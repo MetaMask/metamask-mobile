@@ -60,7 +60,7 @@ async function expectTextVisible(
 }
 
 export const openImportSrpFromAccountList = async (): Promise<void> => {
-  await AccountListBottomSheet.tapAddAccountButton();
+  await AccountListBottomSheet.openAddAccountSheet();
   await AddAccountBottomSheet.tapImportSrp();
   await Assertions.expectElementToBeVisible(ImportSrpView.container);
 };
@@ -137,7 +137,7 @@ export const goToAccountActions = async (accountIndex: number) => {
 export const importAccountViaPrivateKey = async (
   privateKey: string,
 ): Promise<void> => {
-  await AccountListBottomSheet.tapAddWalletButton();
+  await AccountListBottomSheet.openAddWalletSheet();
   await AddAccountBottomSheet.tapImportAccount();
   await Assertions.expectElementToBeVisible(ImportAccountView.container);
   await ImportAccountView.enterPrivateKey(privateKey);
@@ -229,6 +229,10 @@ export const renameAccountAtIndex = async (
   await EditAccountName.updateAccountName(newName);
   await EditAccountName.tapSave();
   await AccountDetails.tapBackButton();
+
+  if (FrameworkDetector.isAppium()) {
+    await AccountListBottomSheet.waitForAccountListVisible();
+  }
 };
 
 export const assertAccountCount = async (

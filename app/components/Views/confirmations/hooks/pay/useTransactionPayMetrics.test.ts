@@ -72,7 +72,7 @@ const QUOTE_MOCK = {
     fiat: '0.6',
     usd: '0.5',
   },
-  strategy: TransactionPayStrategy.Bridge,
+  strategy: TransactionPayStrategy.Relay,
 } as TransactionPayQuote<Json>;
 
 function runHook({ type }: { type?: TransactionType } = {}) {
@@ -776,9 +776,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'crypto',
-            mm_pay_section_source_selected: 'crypto',
-            mm_pay_section_source_switch_count: 0,
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_source_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -796,8 +796,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'money-account',
-            mm_pay_section_source_selected: 'money-account',
+            mm_pay_account_type_source_presented: 'money-account',
+            mm_pay_account_type_source_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -815,8 +815,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'money-account',
-            mm_pay_section_source_selected: 'money-account',
+            mm_pay_account_type_source_presented: 'money-account',
+            mm_pay_account_type_source_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -834,8 +834,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'perps',
-            mm_pay_section_source_selected: 'perps',
+            mm_pay_account_type_source_presented: 'perps',
+            mm_pay_account_type_source_selected: 'perps',
           }),
           sensitiveProperties: {},
         },
@@ -853,7 +853,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_selected: 'crypto',
+            mm_pay_account_type_source_selected: 'crypto',
           }),
           sensitiveProperties: {},
         },
@@ -871,8 +871,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'predict',
-            mm_pay_section_source_selected: 'predict',
+            mm_pay_account_type_source_presented: 'predict',
+            mm_pay_account_type_source_selected: 'predict',
           }),
           sensitiveProperties: {},
         },
@@ -892,8 +892,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'bank-card',
-            mm_pay_section_source_selected: 'bank-card',
+            mm_pay_account_type_source_presented: 'bank-card',
+            mm_pay_account_type_source_selected: 'bank-card',
           }),
           sensitiveProperties: {},
         },
@@ -916,10 +916,14 @@ describe('useTransactionPayMetrics', () => {
         }
       )?.params?.properties;
 
-      expect(calledProps).not.toHaveProperty('mm_pay_section_source_presented');
-      expect(calledProps).not.toHaveProperty('mm_pay_section_source_selected');
       expect(calledProps).not.toHaveProperty(
-        'mm_pay_section_source_switch_count',
+        'mm_pay_account_type_source_presented',
+      );
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_account_type_source_selected',
+      );
+      expect(calledProps).not.toHaveProperty(
+        'mm_pay_source_mm_account_switch_count',
       );
     });
 
@@ -932,9 +936,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'crypto',
-            mm_pay_section_source_selected: 'crypto',
-            mm_pay_section_source_switch_count: 0,
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'crypto',
+            mm_pay_source_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -950,9 +954,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_presented: 'crypto',
-            mm_pay_section_source_selected: 'money-account',
-            mm_pay_section_source_switch_count: 1,
+            mm_pay_account_type_source_presented: 'crypto',
+            mm_pay_account_type_source_selected: 'money-account',
+            mm_pay_source_mm_account_switch_count: 1,
           }),
           sensitiveProperties: {},
         },
@@ -972,7 +976,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_source_selected: 'money-account',
+            mm_pay_account_type_source_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -997,9 +1001,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'perps',
-            mm_pay_section_recipient_selected: 'perps',
-            mm_pay_section_recipient_switch_count: 0,
+            mm_pay_account_type_recipient_presented: 'perps',
+            mm_pay_account_type_recipient_selected: 'perps',
+            mm_pay_recipient_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -1015,8 +1019,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'perps',
-            mm_pay_section_recipient_selected: 'perps',
+            mm_pay_account_type_recipient_presented: 'perps',
+            mm_pay_account_type_recipient_selected: 'perps',
           }),
           sensitiveProperties: {},
         },
@@ -1032,8 +1036,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'predict',
-            mm_pay_section_recipient_selected: 'predict',
+            mm_pay_account_type_recipient_presented: 'predict',
+            mm_pay_account_type_recipient_selected: 'predict',
           }),
           sensitiveProperties: {},
         },
@@ -1049,8 +1053,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'money-account',
-            mm_pay_section_recipient_selected: 'money-account',
+            mm_pay_account_type_recipient_presented: 'money-account',
+            mm_pay_account_type_recipient_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -1066,9 +1070,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'crypto',
-            mm_pay_section_recipient_selected: 'crypto',
-            mm_pay_section_recipient_switch_count: 0,
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
+            mm_pay_recipient_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -1084,7 +1088,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_selected: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
           }),
           sensitiveProperties: {},
         },
@@ -1102,7 +1106,7 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_selected: 'money-account',
+            mm_pay_account_type_recipient_selected: 'money-account',
           }),
           sensitiveProperties: {},
         },
@@ -1118,9 +1122,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'crypto',
-            mm_pay_section_recipient_selected: 'crypto',
-            mm_pay_section_recipient_switch_count: 0,
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'crypto',
+            mm_pay_recipient_mm_account_switch_count: 0,
           }),
           sensitiveProperties: {},
         },
@@ -1136,9 +1140,9 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_section_recipient_presented: 'crypto',
-            mm_pay_section_recipient_selected: 'money-account',
-            mm_pay_section_recipient_switch_count: 1,
+            mm_pay_account_type_recipient_presented: 'crypto',
+            mm_pay_account_type_recipient_selected: 'money-account',
+            mm_pay_recipient_mm_account_switch_count: 1,
           }),
           sensitiveProperties: {},
         },
@@ -1162,13 +1166,13 @@ describe('useTransactionPayMetrics', () => {
       )?.params?.properties;
 
       expect(calledProps).not.toHaveProperty(
-        'mm_pay_section_recipient_presented',
+        'mm_pay_account_type_recipient_presented',
       );
       expect(calledProps).not.toHaveProperty(
-        'mm_pay_section_recipient_selected',
+        'mm_pay_account_type_recipient_selected',
       );
       expect(calledProps).not.toHaveProperty(
-        'mm_pay_section_recipient_switch_count',
+        'mm_pay_recipient_mm_account_switch_count',
       );
     });
   });

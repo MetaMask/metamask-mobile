@@ -461,6 +461,21 @@ class PerpsConnectionManagerClass {
     );
   }
 
+  /**
+   * Re-register all stream channel subscriptions (candles, prices, etc.) on a
+   * still-healthy connection. A ping success only proves the socket transport
+   * is alive — it does NOT prove the server-side topic subscriptions survived
+   * backgrounding. Mobile OSes frequently leave the WebSocket in a "zombie"
+   * state after backgrounding: ping/pong still works, but HyperLiquid has
+   * dropped the `candle`/`allMids` subscriptions, so no further ticks arrive
+   * until something forces a resubscribe. Without this, the chart and price
+   * header appear frozen after foregrounding until the user navigates away
+   * and back (which happens to trigger a fresh subscription elsewhere).
+   */
+  private resubscribeActiveStreamChannels(): void {
+    getStreamManagerInstance().clearAllChannels();
+  }
+
   async resumeFromForeground(options?: ConnectOptions): Promise<void> {
     const source =
       options?.source ?? PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND;
@@ -479,6 +494,7 @@ class PerpsConnectionManagerClass {
         if (!suppressError) {
           this.clearError();
         }
+        this.resubscribeActiveStreamChannels();
         return;
       } catch {
         // First ping failed — JS thread may be sluggish right after foregrounding.
@@ -494,6 +510,7 @@ class PerpsConnectionManagerClass {
           if (!suppressError) {
             this.clearError();
           }
+          this.resubscribeActiveStreamChannels();
           return;
         } catch {
           DevLogger.log(
@@ -1236,6 +1253,14 @@ class PerpsConnectionManagerClass {
       source: source ?? 'ensure_connected',
       suppressError,
     });
+
+    // A cache-preserving foreground reconnect intentionally skips stream cache
+    // clearing during disconnect. Rebind active channel handles after the
+    // controller comes back so subscribers do not keep stale WebSocket
+    // unsubscribe references from the pre-reconnect provider.
+    if (preserveCaches) {
+      this.resubscribeActiveStreamChannels();
+    }
   }
 
   async disconnect(): Promise<void> {

@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { FullWindowOverlay } from 'react-native-screens';
 
 import HardwareWalletContext from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
@@ -290,21 +291,23 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   return (
     <HardwareWalletContext.Provider value={contextValue}>
       {children}
-      <HardwareWalletBottomSheet
-        connectionState={connectionState}
-        deviceSelection={deviceSelection}
-        walletType={effectiveWalletType}
-        forceHideBottomSheet={forceHideBottomSheet}
-        retryEnsureDeviceReady={handleRetryOrClose}
-        selectDevice={selectDevice}
-        rescan={rescan}
-        connect={connect}
-        onClose={handleCloseFlow}
-        onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
-        onConnectionSuccess={handleBottomSheetConnectionSuccess}
-        onCTAClicked={trackCTAClicked}
-        onRetryQrScan={handleRetryQrScan}
-      />
+      <FullWindowOverlay>
+        <HardwareWalletBottomSheet
+          connectionState={connectionState}
+          deviceSelection={deviceSelection}
+          walletType={effectiveWalletType}
+          forceHideBottomSheet={forceHideBottomSheet}
+          retryEnsureDeviceReady={handleRetryOrClose}
+          selectDevice={selectDevice}
+          rescan={rescan}
+          connect={connect}
+          onClose={handleCloseFlow}
+          onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
+          onConnectionSuccess={handleBottomSheetConnectionSuccess}
+          onCTAClicked={trackCTAClicked}
+          onRetryQrScan={handleRetryQrScan}
+        />
+      </FullWindowOverlay>
     </HardwareWalletContext.Provider>
   );
 };

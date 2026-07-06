@@ -238,15 +238,33 @@ describe('TokenDetailsInlineHeader', () => {
       expect(queryByText('Ethereum')).toBeNull();
     });
 
-    it('renders short contract address in description', () => {
-      const { getByText } = renderHeader();
+    it('does not render description or copy button for native tokens', () => {
+      const { queryByTestId, queryByText } = renderHeader();
+
+      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+      expect(queryByText('0x00000...short')).toBeNull();
+    });
+
+    it('renders short contract address in description for non-native tokens', () => {
+      const { getByText } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+        },
+      });
 
       expect(getByText('0x00000...short')).toBeOnTheScreen();
     });
 
-    it('renders copy button and calls onCopyAddress when pressed', () => {
+    it('renders copy button and calls onCopyAddress when pressed for non-native tokens', () => {
       const mockOnCopyAddress = jest.fn();
       const { getByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+        },
         onCopyAddress: mockOnCopyAddress,
       });
 

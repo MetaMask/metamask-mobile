@@ -3,6 +3,7 @@ import { renderCreatePriceAlertViewWithRoutes } from '../../../../../../../tests
 import {
   setupPriceAlertsApiMock,
   setupPriceAlertsPostMock,
+  setupPriceAlertsPatchMock,
   clearPriceAlertsApiMocks,
 } from '../../../../../../../tests/component-view/api-mocking/priceAlerts';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
@@ -87,5 +88,88 @@ describeForPlatforms('CreatePriceAlertView', () => {
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('applies +5% quick percentage pill and updates the target price', async () => {
+    // currentPrice defaults to 2500 in the renderer, so +5% → 2625
+    const { getByTestId, findByText } = renderCreatePriceAlertViewWithRoutes();
+
+    fireEvent.press(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
+    );
+
+    expect(await findByText('$2625')).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
+  });
+
+  it('saves alert with recurring=false after toggling the switch off', async () => {
+    const scope = setupPriceAlertsPostMock();
+    const { getByTestId } = renderCreatePriceAlertViewWithRoutes();
+
+    // Toggle recurring off (default is true)
+    fireEvent(
+      getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+
+    // Enter a target price so the save button is enabled
+    fireEvent.press(getByTestId('keypad-key-1'));
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    // POST was consumed, proving the alert was submitted with the toggled state
+    await waitFor(() => expect(scope.isDone()).toBe(true));
+  });
+
+  it('disables button with duplicate text when threshold matches an existing alert', async () => {
+    const { getByTestId, findByText } = renderCreatePriceAlertViewWithRoutes({
+      routeParams: {
+        existingThresholds: [3000],
+      },
+    });
+
+    // Type "3000" on keypad
+    fireEvent.press(getByTestId('keypad-key-3'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+
+    expect(
+      await findByText('An alert at this price already exists.'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('submits PATCH when saving an edited alert with changed threshold', async () => {
+    const scope = setupPriceAlertsPatchMock(editingAlert.id);
+
+    const { getByTestId } = renderCreatePriceAlertViewWithRoutes({
+      routeParams: {
+        editingAlert,
+        existingThresholds: [],
+      },
+    });
+
+    // Change the threshold by pressing a keypad digit
+    fireEvent.press(getByTestId('keypad-key-1'));
+
+    await waitFor(() => {
+      expect(
+        getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+      ).not.toBeDisabled();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    await waitFor(() => expect(scope.isDone()).toBe(true));
   });
 });

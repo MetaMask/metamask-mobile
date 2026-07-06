@@ -2,12 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { ImageSourcePropType } from 'react-native';
-import {
-  Box,
-  FontWeight,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../types';
 import PillScrollList from '../../../Trending/components/PillScrollList/PillScrollList';
 import SectionPillsSkeleton from '../../../Trending/components/SectionPillsSkeleton/SectionPillsSkeleton';
@@ -129,12 +124,12 @@ export const PostTradeTokenSuggestions = ({
 
   return (
     <Box
-      twClassName="px-4 pb-4"
+      twClassName="pb-4"
       testID={PostTradeBottomSheetTestIds.SUGGESTIONS_SECTION}
     >
-      <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-        {strings('bridge.post_trade_modal.what_to_swap_next')}
-      </Text>
+      <SectionHeader
+        title={strings('bridge.post_trade_modal.what_to_swap_next')}
+      />
       <PillScrollList
         data={tokens}
         isLoading={isLoading}
@@ -144,7 +139,7 @@ export const PostTradeTokenSuggestions = ({
         rowCount={2}
         maxPills={20}
         listTestId={PostTradeBottomSheetTestIds.SUGGESTIONS_LIST}
-        wrapperTwClassName="-mx-4 bg-transparent mt-2 mb-0"
+        wrapperTwClassName="bg-transparent"
       />
     </Box>
   );

@@ -126,6 +126,31 @@ describe('getActivityEmptyState', () => {
       },
     );
 
+    it('Perps with an active sub-filter returns the "try a different filter" hint', () => {
+      expect(
+        getActivityEmptyState({
+          filter: ActivityTypeFilter.Perps,
+          hasFunds: true,
+          perpsSubFilterActive: true,
+        }),
+      ).toEqual({
+        descriptionKey:
+          'activity_view.empty_state.perps_sub_filter.description',
+        actionLabelKey: 'activity_view.empty_state.perps.action',
+        action: ActivityEmptyStateAction.BrowsePerpsMarkets,
+      });
+    });
+
+    it('perpsSubFilterActive only affects the Perps filter', () => {
+      expect(
+        getActivityEmptyState({
+          filter: ActivityTypeFilter.Transactions,
+          hasFunds: true,
+          perpsSubFilterActive: true,
+        }).descriptionKey,
+      ).toBe('activity_view.empty_state.transactions_funded.description');
+    });
+
     it.each([true, false])(
       'BuySell returns themed copy + AddFunds (hasFunds=%s)',
       (hasFunds) => {
