@@ -130,6 +130,13 @@ const MultichainPermissionsSummary = ({
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
+  const safeAreaContainerStyle = useMemo(
+    () => [
+      styles.safeArea,
+      { paddingTop: insets.top, paddingBottom: insets.bottom },
+    ],
+    [styles.safeArea, insets.top, insets.bottom],
+  );
   const navigation = useNavigation();
   const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
@@ -569,12 +576,7 @@ const MultichainPermissionsSummary = ({
   };
 
   return (
-    <View
-      style={[
-        styles.safeArea,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-      ]}
-    >
+    <View style={safeAreaContainerStyle}>
       <View style={styles.mainContainer}>
         <View style={styles.contentContainer}>
           {renderHeader()}

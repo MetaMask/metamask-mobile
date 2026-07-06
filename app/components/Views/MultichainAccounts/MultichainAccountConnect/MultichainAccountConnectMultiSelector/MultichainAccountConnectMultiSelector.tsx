@@ -62,6 +62,13 @@ const MultichainAccountConnectMultiSelector = ({
 }: MultichainAccountConnectMultiSelectorProps) => {
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
+  const safeAreaContainerStyle = useMemo(
+    () => [
+      styles.safeArea,
+      { paddingTop: insets.top, paddingBottom: insets.bottom },
+    ],
+    [styles.safeArea, insets.top, insets.bottom],
+  );
   const navigation = useNavigation();
   const [selectedAccountGroupIdsSet, setSelectedAccountGroupIdsSet] = useState<
     Set<AccountGroupId>
@@ -165,12 +172,7 @@ const MultichainAccountConnectMultiSelector = ({
   );
 
   return (
-    <View
-      style={[
-        styles.safeArea,
-        { paddingTop: insets.top, paddingBottom: insets.bottom },
-      ]}
-    >
+    <View style={safeAreaContainerStyle}>
       <View style={styles.container}>
         <SheetHeader
           title={screenTitle || strings('accounts.connect_accounts_title')}
