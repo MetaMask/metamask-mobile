@@ -114,6 +114,7 @@ const config = {
     '^expo-screen-orientation(/.*)?$':
       '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
+    '^expo$': '<rootDir>/app/__mocks__/expo.ts',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
     '^@metamask/design-system-react-native/spinner$':
       '<rootDir>/app/__mocks__/spinnerMock.js',

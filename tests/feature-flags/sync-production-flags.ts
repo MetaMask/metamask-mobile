@@ -22,6 +22,8 @@
  */
 
 // eslint-disable-next-line import-x/no-nodejs-modules -- Node.js script for CI/sync
+import { execFileSync } from 'child_process';
+// eslint-disable-next-line import-x/no-nodejs-modules -- Node.js script for CI/sync
 import fs from 'fs';
 // eslint-disable-next-line import-x/no-nodejs-modules -- Node.js script for CI/sync
 import path from 'path';
@@ -350,7 +352,7 @@ function escapeRegex(str: string): string {
  */
 function registryEntryLineRegex(name: string): RegExp {
   return new RegExp(
-    `^  (?:"${escapeRegex(name)}"|${escapeRegex(name)}):\\s*\\{`,
+    `^ {2}(?:"${escapeRegex(name)}"|'${escapeRegex(name)}'|${escapeRegex(name)}):\\s*\\{`,
     'mu',
   );
 }
@@ -359,8 +361,22 @@ function entryOpenBraceIndex(entryMatch: RegExpExecArray): number {
   return entryMatch.index + entryMatch[0].length - 1;
 }
 
+function sortKeysDeep(val: unknown): unknown {
+  if (Array.isArray(val)) {
+    return val.map(sortKeysDeep);
+  }
+  if (val !== null && typeof val === 'object') {
+    const sorted: Record<string, unknown> = {};
+    for (const key of Object.keys(val as Record<string, unknown>).sort()) {
+      sorted[key] = sortKeysDeep((val as Record<string, unknown>)[key]);
+    }
+    return sorted;
+  }
+  return val;
+}
+
 function serializeValue(value: unknown, indent = 0): string {
-  const json = JSON.stringify(value, null, 2);
+  const json = JSON.stringify(sortKeysDeep(value), null, 2);
   if (indent <= 0) {
     return json;
   }
@@ -422,6 +438,65 @@ function findBalancedEnd(content: string, openIndex: number): number {
     i += 1;
   }
   return -1;
+}
+
+export function findDuplicateRegistryKeys(content: string): string[] {
+  const entryPattern = /^ {2}([a-zA-Z][a-zA-Z0-9_]*):\s*\{/gmu;
+  const quotedPattern = /^ {2}"([^"]+)":\s*\{/gmu;
+  const seen = new Map<string, number>();
+  const duplicates: string[] = [];
+
+  for (const pattern of [entryPattern, quotedPattern]) {
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(content)) !== null) {
+      const key = match[1];
+      const line = content.slice(0, match.index).split('\n').length;
+      if (seen.has(key)) {
+        duplicates.push(
+          `Duplicate key "${key}" at lines ${seen.get(key)} and ${line}`,
+        );
+      } else {
+        seen.set(key, line);
+      }
+    }
+  }
+  return duplicates;
+}
+
+export function validateRegistryFile(content: string): string[] {
+  const errors: string[] = [];
+
+  const duplicates = findDuplicateRegistryKeys(content);
+  errors.push(...duplicates);
+
+  const rootDir = path.resolve(__dirname, '../..');
+  try {
+    execFileSync(
+      path.resolve(rootDir, 'node_modules/.bin/tsc'),
+      ['--noEmit', '-p', path.resolve(rootDir, 'tsconfig.json')],
+      { encoding: 'utf-8', stdio: 'pipe', cwd: rootDir },
+    );
+  } catch (err: unknown) {
+    const stdout = (err as { stdout?: string }).stdout ?? '';
+    const stderr = (err as { stderr?: string }).stderr ?? '';
+    if (!stdout && !stderr) {
+      errors.push('tsc failed to run (no output — binary may be missing)');
+    } else {
+      const output = stdout || stderr;
+      const tsErrors = output
+        .split('\n')
+        .filter((line: string) => line.includes('error TS'));
+      if (tsErrors.length > 0) {
+        errors.push(...tsErrors);
+      } else {
+        errors.push(
+          `tsc exited with an error but no TS diagnostics found: ${output.trim().split('\n')[0]}`,
+        );
+      }
+    }
+  }
+
+  return errors;
 }
 
 /**
@@ -618,25 +693,37 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
   }
 
   if (result.newInProduction.length > 0) {
-    const newEntries = result.newInProduction
-      .map(({ name, value }) => {
-        const serialized = serializeValue(value, 4);
-        return [
-          `  ${JSON.stringify(name)}: {`,
-          `    name: '${name.replace(/'/gu, "\\'")}',`,
-          '    type: FeatureFlagType.Remote,',
-          '    inProd: true,',
-          `    productionDefault: ${serialized},`,
-          '    status: FeatureFlagStatus.Active,',
-          '  },',
-        ].join('\n');
-      })
-      .join('\n\n');
+    const uniqueNewFlags = result.newInProduction.filter(({ name }) => {
+      const exists = registryEntryLineRegex(name).test(content);
+      if (exists) {
+        console.warn(
+          `[sync] Skipping duplicate: "${name}" already exists in registry`,
+        );
+      }
+      return !exists;
+    });
 
-    content = content.replace(
-      /(\n)(\};\s*\/\/ =+\s*\n\/\/ Helper Functions)/u,
-      (_, g1, g2) => `\n${newEntries}\n${g1}${g2}`,
-    );
+    if (uniqueNewFlags.length > 0) {
+      const newEntries = uniqueNewFlags
+        .map(({ name, value }) => {
+          const serialized = serializeValue(value, 4);
+          return [
+            `  ${JSON.stringify(name)}: {`,
+            `    name: '${name.replace(/'/gu, "\\'")}',`,
+            '    type: FeatureFlagType.Remote,',
+            '    inProd: true,',
+            `    productionDefault: ${serialized},`,
+            '    status: FeatureFlagStatus.Active,',
+            '  },',
+          ].join('\n');
+        })
+        .join('\n\n');
+
+      content = content.replace(
+        /(\n)(\};\s*\/\/ =+\s*\n\/\/ Helper Functions)/u,
+        (_, g1, g2) => `\n${newEntries}\n${g1}${g2}`,
+      );
+    }
   }
 
   // Use require to avoid ts-node type resolution issues with prettier
@@ -654,7 +741,20 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
     ...prettierOptions,
     filepath: REGISTRY_FILE_PATH,
   });
-  fs.writeFileSync(REGISTRY_FILE_PATH, formatted ?? content, 'utf-8');
+  const finalContent = formatted ?? content;
+  fs.writeFileSync(REGISTRY_FILE_PATH, finalContent, 'utf-8');
+
+  const validationErrors = validateRegistryFile(finalContent);
+  if (validationErrors.length > 0) {
+    console.error(c.red('\n✗ Post-write validation failed:'));
+    for (const err of validationErrors) {
+      console.error(c.red(`  - ${err}`));
+    }
+    throw new Error(
+      `Registry file has ${validationErrors.length} validation error(s)`,
+    );
+  }
+
   console.log(c.green(`\n✓ Registry file updated: ${REGISTRY_FILE_PATH}`));
   console.log(c.yellow('Run `yarn feature-flags:sync` to verify.'));
 }

@@ -1,6 +1,7 @@
 import { act, fireEvent } from '@testing-library/react-native';
 import { BackHandler } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
@@ -825,6 +826,9 @@ describe('TradeWalletActions', () => {
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
+        },
       });
     });
 

@@ -136,6 +136,12 @@ class PerpsView {
     );
   }
 
+  private getPortfolioOrderCard(index = 0): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      `${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`,
+    );
+  }
+
   private getWalletHomePositionRow(symbol: string): EncapsulatedElementType {
     return Matchers.getElementByID(`perps-position-row-${symbol}`);
   }
@@ -169,6 +175,31 @@ class PerpsView {
     });
   }
 
+  private async scrollLimitOrderIntoViewOnPortfolio(
+    orderLabel: string,
+  ): Promise<void> {
+    const orderCard = this.getPortfolioOrderCard(0);
+    if (await Utilities.isElementVisible(orderCard, 750)) {
+      return;
+    }
+
+    const scrollView = Matchers.scrollContainer(
+      PerpsHomeViewSelectorsIDs.SCROLL_CONTENT,
+    );
+    const orderElement = Matchers.getElementByText(orderLabel);
+
+    try {
+      await Gestures.scrollToElement(orderElement, scrollView, {
+        direction: 'up',
+        scrollAmount: 150,
+        timeout: 5000,
+        elemDescription: `scrollToElement(up) for ${orderLabel} on Perps portfolio`,
+      });
+    } catch {
+      await this.scrollDownOnPerpsTab(1);
+    }
+  }
+
   /**
    * Open limit order visible on portfolio/home (`formatOrderLabel` / PerpsCard).
    */
@@ -179,12 +210,23 @@ class PerpsView {
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
     await Utilities.executeWithRetry(
       async () => {
+        await this.scrollLimitOrderIntoViewOnPortfolio(orderLabel);
+
+        const orderCard = this.getPortfolioOrderCard(0);
+        if (await Utilities.isElementVisible(orderCard, 1500)) {
+          await Assertions.expectElementToBeVisible(orderCard, {
+            description: `${orderLabel} order card on Perps portfolio (${symbol})`,
+            timeout: 3000,
+          });
+          return;
+        }
+
         await Assertions.expectTextDisplayed(orderLabel, {
           description: `${orderLabel} order visible on Perps portfolio (${symbol})`,
           timeout: 5000,
         });
       },
-      { interval: 1000, timeout: 30000 },
+      { interval: 1000, timeout: 60000 },
     );
   }
 

@@ -82,20 +82,6 @@ const styleSheet = (params: { theme: Theme }) => {
     midPriceText: {
       marginHorizontal: 8,
     },
-    // Bottom sheet content
-    depthBandSheetContent: {
-      paddingHorizontal: 16,
-      paddingBottom: 24,
-    },
-    depthBandOption: {
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    depthBandOptionSelected: {
-      backgroundColor: colors.primary.muted,
-    },
   });
 };
 

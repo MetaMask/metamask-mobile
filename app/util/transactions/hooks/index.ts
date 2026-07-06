@@ -34,6 +34,8 @@ import { getTransactionById } from '..';
 import { accountSupports7702 } from '../account-supports-7702';
 import { isSendBundleSupported } from '../sentinel-api';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
+import { QUOTE_REQUIRED_TRANSACTION_TYPES } from '../../../components/Views/confirmations/constants/confirmations';
+import { hasTransactionType } from '../../../components/Views/confirmations/utils/transaction';
 
 const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
   'transaction_submission_method';
@@ -125,6 +127,8 @@ function publishHook({
       return payResult;
     }
 
+    validateRequiredQuote(transactionMeta, initMessenger);
+
     const { isExternalSign } = transactionMeta;
     const isRevokeDelegation =
       transactionMeta.type === TransactionType.revokeDelegation;
@@ -214,6 +218,25 @@ function publishHook({
 
     return { transactionHash: undefined };
   };
+}
+
+function validateRequiredQuote(
+  transactionMeta: TransactionMeta,
+  messenger: TransactionControllerInitMessenger,
+) {
+  if (!hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES)) {
+    return;
+  }
+
+  const { transactionData } = messenger.call(
+    'TransactionPayController:getState',
+  );
+
+  const quotes = transactionData?.[transactionMeta.id]?.quotes ?? [];
+
+  if (!quotes.length) {
+    throw new Error('MetaMask Pay: Cannot submit without quote');
+  }
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {

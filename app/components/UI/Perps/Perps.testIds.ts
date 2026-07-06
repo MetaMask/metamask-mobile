@@ -805,6 +805,8 @@ export const PerpsOrderBookViewSelectorsIDs = {
   MODIFY_ACTION_SHEET: 'perps-order-book-modify-action-sheet',
   CLOSE_BUTTON: 'perps-order-book-close-button',
   DEPTH_BAND_BUTTON: 'perps-order-book-depth-band-button',
+  DEPTH_BAND_SHEET: 'perps-order-book-depth-band-sheet',
+  DEPTH_BAND_SHEET_CLOSE: 'perps-order-book-depth-band-sheet-close',
   DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
   UNIT_TOGGLE: 'perps-order-book-unit-toggle',
   UNIT_TOGGLE_BASE: 'perps-order-book-unit-toggle-base',

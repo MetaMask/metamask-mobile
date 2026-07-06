@@ -409,13 +409,10 @@ const PriceAdvanced = ({
     [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
-  /** Stable WebView key for interval hot-reload (technical-indicators path only). */
-  const webViewInstanceKey = useMemo(
-    () =>
-      isTechnicalIndicatorsEnabled
-        ? `${assetId}|${currentCurrency}`
-        : undefined,
-    [isTechnicalIndicatorsEnabled, assetId, currentCurrency],
+  /** Stable per-asset session key — time-range switches must not reset chart init state. */
+  const chartWebViewSessionKey = useMemo(
+    () => `${assetId}|${currentCurrency}`,
+    [assetId, currentCurrency],
   );
 
   const assetIdRef = useRef(assetId);
@@ -497,14 +494,10 @@ const PriceAdvanced = ({
     activeVisibilityTraceRef.current = null;
   }, []);
 
-  const chartSessionResetKey = isTechnicalIndicatorsEnabled
-    ? webViewInstanceKey
-    : ohlcvSeriesKey;
-
   useEffect(() => {
     setChartInitFailed(null);
     setHasChartBeenRevealed(false);
-  }, [chartSessionResetKey]);
+  }, [chartWebViewSessionKey]);
 
   const {
     ohlcvData,
@@ -634,10 +627,9 @@ const PriceAdvanced = ({
   /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
   const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
 
-  /** Technical-indicators path: first visit only; interval refresh keeps chart/bars visible. */
-  const isInitialChartPending = isTechnicalIndicatorsEnabled
-    ? !hasChartBeenRevealed && isAdvancedChartUiPending
-    : isAdvancedChartUiPending;
+  /** First visit only; time-range / interval refresh keeps selector and bars visible. */
+  const isInitialChartPending =
+    !hasChartBeenRevealed && isAdvancedChartUiPending;
 
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
@@ -1044,7 +1036,9 @@ const PriceAdvanced = ({
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
               webViewInstanceKey={
-                isTechnicalIndicatorsEnabled ? webViewInstanceKey : undefined
+                isTechnicalIndicatorsEnabled
+                  ? chartWebViewSessionKey
+                  : undefined
               }
               realtimeBar={realtimeBar}
               height={chartHeight}

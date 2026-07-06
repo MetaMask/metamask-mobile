@@ -24,10 +24,14 @@ import {
 } from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
 import {
+  useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
+import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
+import { MONEY_ACCOUNT_CURRENCY } from '../../components/info/money-account-withdraw-info/money-account-withdraw-info';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
@@ -104,6 +108,19 @@ export function useTransactionCustomAmount({
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
 
+  // Gating mirrors useFiatBuyLimitAlert so the keypad cap and the limit alert agree.
+  const { enabledTransactionTypes } = useMMPayFiatConfig();
+  const fiatPaymentMethodId =
+    useTransactionPayFiatPayment()?.selectedPaymentMethodId;
+  const isFiatBuyLimited =
+    hasTransactionType(transactionMeta, enabledTransactionTypes) &&
+    Boolean(fiatPaymentMethodId);
+  const { maxAmount: fiatMaxAmount } = useRampsBuyLimits({
+    amount: 0,
+    paymentMethodId: fiatPaymentMethodId,
+    currency: MONEY_ACCOUNT_CURRENCY,
+  });
+
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
 
@@ -176,6 +193,14 @@ export function useTransactionCustomAmount({
         return;
       }
 
+      if (
+        isFiatBuyLimited &&
+        fiatMaxAmount != null &&
+        Number(newAmount) > fiatMaxAmount
+      ) {
+        return;
+      }
+
       if (isMaxAmount) {
         setIsMax(false);
       }
@@ -188,7 +213,13 @@ export function useTransactionCustomAmount({
 
       setAmountFiat(newAmount);
     },
-    [isMaxAmount, setIsMax, setConfirmationMetric],
+    [
+      isFiatBuyLimited,
+      fiatMaxAmount,
+      isMaxAmount,
+      setIsMax,
+      setConfirmationMetric,
+    ],
   );
 
   const updatePendingAmountPercentage = useCallback(

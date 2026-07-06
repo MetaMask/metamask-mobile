@@ -19,4 +19,10 @@ export const ActivityDetailsSelectorsIDs = {
   BLOCK_EXPLORER_BUTTON: 'activity-details-block-explorer-button',
   DO_IT_AGAIN_BUTTON: 'activity-details-do-it-again-button',
   NOT_FOUND: 'activity-details-not-found',
+  PENDING_BANNER: 'activity-details-pending-banner',
+  PENDING_SPEED_UP_BUTTON: 'activity-details-pending-speed-up-button',
+  PENDING_CANCEL_BUTTON: 'activity-details-pending-cancel-button',
+  PENDING_QR_SIGN_BUTTON: 'activity-details-pending-qr-sign-button',
+  PENDING_QR_CANCEL_BUTTON: 'activity-details-pending-qr-cancel-button',
+  PENDING_LEDGER_SIGN_BUTTON: 'activity-details-pending-ledger-sign-button',
 } as const;

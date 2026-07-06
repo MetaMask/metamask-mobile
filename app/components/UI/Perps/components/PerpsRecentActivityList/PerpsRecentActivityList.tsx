@@ -1,11 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -145,7 +141,6 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   if (isLoading) {
     return (
       <Box>
-        <SectionDivider />
         <SectionHeader title={activityTitle} />
         <PerpsRowSkeleton count={3} />
       </Box>
@@ -158,7 +153,6 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   return (
     <Box>
-      <SectionDivider />
       <SectionHeader
         title={activityTitle}
         isInteractive

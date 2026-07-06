@@ -127,6 +127,11 @@ export const selectExtendedSportsMarketsLeagues = createSelector(
   (flags) => flags.extendedSportsMarketsLeagues,
 );
 
+export const selectNonRegTimeSportsMarketTypes = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.nonRegTimeSportsMarketTypes,
+);
+
 export const selectPredictFeeCollectionFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.feeCollection,

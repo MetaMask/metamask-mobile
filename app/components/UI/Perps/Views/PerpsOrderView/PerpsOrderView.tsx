@@ -1197,7 +1197,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               }),
             vipTier: vipTier ?? undefined,
             vipDiscount: feeResults.feeDiscountPercentage,
-          },
+          } as OrderParams['trackingData'],
         };
 
         showToast(

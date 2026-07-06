@@ -3,7 +3,7 @@ name: Flaky test report
 on:
   schedule:
     # Once every day from Monday-Friday at 08:00 UTC
-    - cron: 0 8 * * 1-5
+    - cron: '0 8 * * 1-5'
     # 10:00 UTC (Europe morning), Monday–Friday — Playwright test health report
     - cron: '0 10 * * 1-5'
     # 15:00 UTC (US morning), Monday–Friday — Playwright test health report
@@ -29,8 +29,8 @@ permissions:
 jobs:
   flaky-test-report:
     if: >-
-      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1-5') ||
-      (github.event_name == 'workflow_dispatch' && inputs.job == 'detox')
+      (github.event_name == 'workflow_dispatch' && inputs.job == 'detox') ||
+      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1-5')
     runs-on: ubuntu-latest
     steps:
       - name: Generate flaky test report
@@ -43,8 +43,8 @@ jobs:
 
   playwright-test-health-report:
     if: >-
-      (github.event_name == 'schedule' && (github.event.schedule == '0 10 * * 1-5' || github.event.schedule == '0 15 * * 1-5')) ||
-      (github.event_name == 'workflow_dispatch' && inputs.job == 'appium')
+      (github.event_name == 'workflow_dispatch' && inputs.job == 'appium') ||
+      (github.event_name == 'schedule' && (github.event.schedule == '0 10 * * 1-5' || github.event.schedule == '0 15 * * 1-5'))
     runs-on: ubuntu-latest
     steps:
       - name: Generate Playwright test health report
