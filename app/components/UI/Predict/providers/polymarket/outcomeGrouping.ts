@@ -142,25 +142,29 @@ const getPlayerGoalSubgroupKey = (player: string): string => {
 const buildSoccerPlayerGoalsSubgroups = (
   outcomes: PredictOutcome[],
 ): PredictOutcomeGroup[] => {
-  const outcomesByPlayer = new Map<string, PredictOutcome[]>();
+  const outcomesByPlayerKey = new Map<
+    string,
+    { title: string; outcomes: PredictOutcome[] }
+  >();
 
   for (const outcome of outcomes) {
     const player = getPlayerGoalSubject(outcome);
-    const bucket = outcomesByPlayer.get(player);
+    const key = getPlayerGoalSubgroupKey(player);
+    const bucket = outcomesByPlayerKey.get(key);
     if (bucket) {
-      bucket.push(outcome);
+      bucket.outcomes.push(outcome);
     } else {
-      outcomesByPlayer.set(player, [outcome]);
+      outcomesByPlayerKey.set(key, { title: player, outcomes: [outcome] });
     }
   }
 
-  return [...outcomesByPlayer.entries()]
+  return [...outcomesByPlayerKey.entries()]
     .sort((a, b) => {
-      const aScore = a[1].reduce(
+      const aScore = a[1].outcomes.reduce(
         (sum, outcome) => sum + outcome.volume + (outcome.liquidity ?? 0),
         0,
       );
-      const bScore = b[1].reduce(
+      const bScore = b[1].outcomes.reduce(
         (sum, outcome) => sum + outcome.volume + (outcome.liquidity ?? 0),
         0,
       );
@@ -169,14 +173,14 @@ const buildSoccerPlayerGoalsSubgroups = (
         return bScore - aScore;
       }
 
-      return a[0].localeCompare(b[0]);
+      return a[1].title.localeCompare(b[1].title);
     })
     .slice(0, MAX_PLAYER_GOAL_SUBGROUPS)
-    .map(([player, playerOutcomes]) => ({
-      key: getPlayerGoalSubgroupKey(player),
-      title: player,
+    .map(([key, playerGroup]) => ({
+      key,
+      title: playerGroup.title,
       outcomes: sortLineOutcomesForDisplay(
-        playerOutcomes,
+        playerGroup.outcomes,
         SOCCER_PLAYER_GOALS_MARKET_TYPE,
       ),
     }));

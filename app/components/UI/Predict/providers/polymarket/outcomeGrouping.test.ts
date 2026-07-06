@@ -166,6 +166,34 @@ describe('outcomeGrouping', () => {
       ]);
     });
 
+    it('orders soccer groups to match Polymarket tabs', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('moneyline', 'moneyline'),
+        createGroupingOutcome('team-total', 'soccer_team_totals'),
+        createGroupingOutcome('exact-score', 'soccer_exact_score'),
+        createGroupingOutcome('half-result', 'soccer_halftime_result'),
+        createGroupingOutcome('corners', 'total_corners'),
+        createGroupingOutcome(
+          'player-goal',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Player A: 1+ goals',
+        ),
+        createGroupingOutcome('assist', 'assists'),
+      ]);
+
+      expect(groups.map((group) => group.key)).toEqual([
+        'game_lines',
+        'team_totals',
+        'exact_score',
+        'halves',
+        'corners',
+        'goals',
+        'assists',
+      ]);
+    });
+
     it('orders spread subgroup outcomes descending when first spread is team one negative', () => {
       const groups = buildOutcomeGroups([
         createGroupingOutcome('moneyline', 'moneyline'),
@@ -411,6 +439,62 @@ describe('outcomeGrouping', () => {
             expect.objectContaining({ id: 'player-a-2' }),
           ],
         }),
+      );
+    });
+
+    it('deduplicates soccer player goal subgroups by normalized player key', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome(
+          'dani-olmo-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Dani Olmo: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'dani-olmo-2',
+          'soccer_player_goals',
+          1.5,
+          'Yes',
+          'DANI OLMO: 2+ goals',
+        ),
+        createGroupingOutcome(
+          'alvaro-morata-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Álvaro Morata: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'alvaro-morata-2',
+          'soccer_player_goals',
+          1.5,
+          'Yes',
+          'Alvaro Morata: 2+ goals',
+        ),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].subgroups).toHaveLength(2);
+      expect(groups[0].subgroups).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: 'soccer_player_goals-alvaro-morata',
+            title: 'Álvaro Morata',
+            outcomes: [
+              expect.objectContaining({ id: 'alvaro-morata-1' }),
+              expect.objectContaining({ id: 'alvaro-morata-2' }),
+            ],
+          }),
+          expect.objectContaining({
+            key: 'soccer_player_goals-dani-olmo',
+            title: 'Dani Olmo',
+            outcomes: [
+              expect.objectContaining({ id: 'dani-olmo-1' }),
+              expect.objectContaining({ id: 'dani-olmo-2' }),
+            ],
+          }),
+        ]),
       );
     });
   });

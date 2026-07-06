@@ -150,20 +150,22 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
 
 export const GROUP_ORDER: string[] = [
   'game_lines',
+  'team_totals',
+  'exact_score',
   'halves',
+  'corners',
+  'goals',
+  'goalscorers',
   'first_half',
   'first_set',
-  'team_totals',
   'touchdowns',
   'rushing',
   'receiving',
   'points',
   'assists',
+  'shots',
   'rebounds',
-  'goalscorers',
-  'exact_score',
   'halftime',
-  'corners',
 ];
 
 export const DEFAULT_GROUP_KEY = 'game_lines';
