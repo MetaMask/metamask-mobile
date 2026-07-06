@@ -16,6 +16,7 @@ import type { ToastRef } from '../../../../component-library/components/Toast/To
 import Routes from '../../../../constants/navigation/Routes';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { PredictEventValues } from '../constants/eventNames';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
@@ -284,7 +285,9 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               ? {
                   retryLabel: strings('predict.claim.toasts.error.try_again'),
                   onRetry: () => {
-                    claim().catch(() => undefined);
+                    claim({
+                      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+                    }).catch(() => undefined);
                   },
                 }
               : {}),

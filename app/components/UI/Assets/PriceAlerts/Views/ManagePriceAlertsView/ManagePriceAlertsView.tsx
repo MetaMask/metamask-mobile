@@ -11,6 +11,7 @@ import {
   FlatList,
   StyleSheet,
   Switch,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import {
@@ -18,7 +19,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -49,9 +50,12 @@ import {
   PriceAlert,
   PriceAlertRouteParams,
 } from '../../constants';
-import { fetchAlerts, deleteAlert, updateAlert } from '../../api';
-
-const priceAlertsQueryKey = (assetId: string) => ['priceAlerts', assetId];
+import {
+  fetchAlerts,
+  deleteAlert,
+  updateAlert,
+  priceAlertsQueryKey,
+} from '../../api';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -62,8 +66,7 @@ const ManagePriceAlertsView: React.FC = () => {
   const { colors, brandColors } = useTheme();
   const queryClient = useQueryClient();
   const { toastRef } = useContext(ToastContext);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -130,25 +133,29 @@ const ManagePriceAlertsView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleAddAlert = useCallback(() => {
-    navigation.navigate(Routes.CREATE_PRICE_ALERT, {
+  const handleNavigateToCreate = useCallback(
+    (editingAlert?: PriceAlert) => {
+      navigation.navigate(Routes.CREATE_PRICE_ALERT, {
+        symbol,
+        ticker,
+        currentPrice,
+        currentCurrency,
+        assetId,
+        fromManage: true,
+        existingThresholds: alerts.map((a) => a.threshold),
+        editingAlert,
+      });
+    },
+    [
+      navigation,
       symbol,
       ticker,
       currentPrice,
       currentCurrency,
       assetId,
-      fromManage: true,
-      existingThresholds: alerts.map((a) => a.threshold),
-    });
-  }, [
-    navigation,
-    symbol,
-    ticker,
-    currentPrice,
-    currentCurrency,
-    assetId,
-    alerts,
-  ]);
+      alerts,
+    ],
+  );
 
   const handleDeleteAlert = useCallback(
     async (id: string) => {
@@ -240,12 +247,18 @@ const ManagePriceAlertsView: React.FC = () => {
         twClassName="px-4 py-3 border-b border-muted"
         testID={`${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-${item.id}`}
       >
-        <Box twClassName="flex-1 mr-3">
+        <TouchableOpacity
+          onPress={() => handleNavigateToCreate(item)}
+          disabled={isDeleting || isToggling}
+          style={tw.style('flex-1 mr-3')}
+          testID={`${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-${item.id}`}
+        >
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {strings('price_alerts.reaches_threshold', {
               threshold: formatPriceWithSubscriptNotation(
                 item.threshold,
                 currentCurrency,
+                { maximumFractionDigits: 15 },
               ),
             })}
           </Text>
@@ -254,7 +267,7 @@ const ManagePriceAlertsView: React.FC = () => {
               ? strings('price_alerts.recurring')
               : strings('price_alerts.once_label')}
           </Text>
-        </Box>
+        </TouchableOpacity>
 
         {isDeleting ? (
           <ActivityIndicator
@@ -331,7 +344,7 @@ const ManagePriceAlertsView: React.FC = () => {
           <View style={tw.style('px-4 pb-4 pt-2')}>
             <Button
               variant={ButtonVariant.Primary}
-              onPress={handleAddAlert}
+              onPress={() => handleNavigateToCreate()}
               testID={ManagePriceAlertsTestIds.ADD_ALERT_BUTTON}
               twClassName="w-full"
             >

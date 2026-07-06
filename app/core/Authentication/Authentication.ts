@@ -72,7 +72,7 @@ import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
-import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,

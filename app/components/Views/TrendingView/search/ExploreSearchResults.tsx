@@ -1,19 +1,25 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   TabEmptyState,
   Text,
   TextVariant,
   TextColor,
-  FontWeight,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-  BoxFlexDirection,
-  BoxAlignItems,
   SectionDivider,
   SectionHeader as MMDSSectionHeader,
 } from '@metamask/design-system-react-native';
@@ -36,6 +42,14 @@ import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
 import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
 import type { FlatListItem, ListItemHeader } from './searchTypes';
 import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
+import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from './abTestConfig';
+import { useQuickBuySearchKeyboard } from '../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 
 const POPULAR_ASSETS: TrendingAsset[] = [
   {
@@ -95,6 +109,22 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     () => getTotalSectionResultCount(sections),
     [sections],
   );
+
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+
+  const closeQuickBuy = useCallback(() => {
+    setQuickTradeToken(null);
+  }, []);
+
+  useQuickBuySearchKeyboard(quickTradeToken, closeQuickBuy);
 
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
@@ -249,6 +279,12 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           searchQuery={searchQuery}
           tabName={activeTab}
           resultCount={totalResultCount}
+          onQuickTrade={
+            (item.feedId === 'tokens' || item.feedId === 'stocks') &&
+            quickBuyVariant.showQuickTradeButton
+              ? setQuickTradeToken
+              : undefined
+          }
         />
       );
     },
@@ -258,6 +294,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       searchQuery,
       activeTab,
       totalResultCount,
+      quickBuyVariant.showQuickTradeButton,
     ],
   );
 
@@ -353,6 +390,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         ListFooterComponent={renderFooter}
         onScrollBeginDrag={onScrollBeginDrag}
       />
+      <TrendingQuickBuy token={quickTradeToken} onClose={closeQuickBuy} />
     </Box>
   );
 };

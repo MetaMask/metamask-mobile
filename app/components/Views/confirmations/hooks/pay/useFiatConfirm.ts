@@ -11,7 +11,7 @@ import type { Quote } from '../../../../UI/Ramp/types';
 import {
   RAMP_SURFACE,
   type RampSurface,
-} from '../../../../UI/Ramp/Deposit/types/analytics';
+} from '../../../../UI/Ramp/types/depositAnalytics';
 import Engine from '../../../../../core/Engine';
 import { getTransactionPayFiatTestOptions } from '../../../../../util/environment';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';

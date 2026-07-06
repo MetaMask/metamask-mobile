@@ -93,6 +93,20 @@ describe('ActivityTypeFilterSheet', () => {
     mockOnCloseBottomSheet.mockClear();
   });
 
+  it('renders the sheet container with the expected testID', () => {
+    renderSheet();
+    expect(
+      screen.getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders one row per filter in ACTIVITY_TYPE_FILTER_ORDER', () => {
+    renderSheet();
+    for (const filter of ACTIVITY_TYPE_FILTER_ORDER) {
+      expect(screen.getByTestId(optionTestId(filter))).toBeOnTheScreen();
+    }
+  });
+
   it('shows a check icon only on the selected row', () => {
     renderSheet({ selected: ActivityTypeFilter.Perps });
 

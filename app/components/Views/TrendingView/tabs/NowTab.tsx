@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import {
+  Box,
+  FilterButton,
+  SegmentedControl,
+} from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -48,7 +53,6 @@ import ExploreSectionList, {
 } from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
 import PillScrollList from '../components/PillScrollList';
-import PillRow, { type PillOption } from '../components/PillRow';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
@@ -81,17 +85,6 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     [perps.data],
   );
   const livePrices = usePerpsLivePrices({ symbols, throttleMs: 3000 });
-
-  const moverPills: PillOption[] = [
-    {
-      key: 'gainers',
-      name: strings('trending.perps_movers_pill_gainers'),
-    },
-    {
-      key: 'losers',
-      name: strings('trending.perps_movers_pill_losers'),
-    },
-  ];
 
   const handleMoverPillSelect = (key: string) => {
     if (key === 'gainers' || key === 'losers') {
@@ -160,12 +153,21 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         tabName="Now"
         sectionName="perps_movers"
       />
-      <PillRow
-        pills={moverPills}
-        activeKey={activeMoverDirection}
-        onSelect={handleMoverPillSelect}
-        testIdPrefix="perps-movers"
-      />
+      <Box twClassName="mb-3">
+        <SegmentedControl
+          value={activeMoverDirection}
+          onChange={handleMoverPillSelect}
+          isFullWidth
+          testID="perps-movers-pills"
+        >
+          <FilterButton value="gainers" testID="perps-movers-pill-gainers">
+            {strings('trending.perps_movers_pill_gainers')}
+          </FilterButton>
+          <FilterButton value="losers" testID="perps-movers-pill-losers">
+            {strings('trending.perps_movers_pill_losers')}
+          </FilterButton>
+        </SegmentedControl>
+      </Box>
       <PillScrollList<PerpsFeedItem>
         data={pillData}
         isLoading={perps.isLoading}
@@ -316,6 +318,8 @@ const NowTabContent: React.FC<TabProps> = ({
               onViewAll={() =>
                 navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW, {
                   initialTimeOption: CRYPTO_MOVERS_TIME_OPTION,
+                  entryPoint: 'crypto_movers',
+                  quickBuySource: 'explore_now',
                 })
               }
               testID="section-header-view-all-crypto_movers"

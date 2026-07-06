@@ -571,6 +571,71 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('getPrices', () => {
+    it('maps Polymarket SELL to the ask (entry.buy) and BUY to the bid (entry.sell)', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest
+          .fn()
+          .mockResolvedValue({ 'tok-1': { BUY: '0.34', SELL: '0.92' } }),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      // entry.buy = best ask (price to buy), entry.sell = best bid (price to sell)
+      expect(result.results[0].entry).toEqual({ buy: 0.92, sell: 0.34 });
+    });
+
+    it('defaults missing price data to zero on both sides', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      expect(result.results[0].entry).toEqual({ buy: 0, sell: 0 });
+    });
+
+    it('coerces malformed (non-numeric) prices to zero instead of NaN', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'tok-1': { BUY: 'not-a-number', SELL: '0.92' },
+        }),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      // Valid ask is kept; malformed bid falls back to 0 (never NaN).
+      expect(result.results[0].entry.buy).toBe(0.92);
+      expect(result.results[0].entry.sell).toBe(0);
+      expect(Number.isNaN(result.results[0].entry.sell)).toBe(false);
+    });
+
+    it('throws when queries are empty', async () => {
+      const provider = createProvider();
+      await expect(provider.getPrices({ queries: [] })).rejects.toThrow(
+        'queries parameter is required and must not be empty',
+      );
+    });
+  });
+
   beforeAll(() => {
     process.env.MM_PREDICT_BUILDER_CODE =
       '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';

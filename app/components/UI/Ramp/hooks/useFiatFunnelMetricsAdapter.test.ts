@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/transaction-controller';
-import { RAMP_SURFACE } from '../Deposit/types/analytics';
+import { RAMP_SURFACE } from '../types/depositAnalytics';
 import { AlertKeys } from '../../../Views/confirmations/constants/alerts';
 import { useFiatFunnelMetricsAdapter } from './useFiatFunnelMetricsAdapter';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';

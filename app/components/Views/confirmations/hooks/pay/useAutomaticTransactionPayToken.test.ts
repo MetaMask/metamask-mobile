@@ -1471,51 +1471,58 @@ describe('useAutomaticTransactionPayToken', () => {
       });
     });
 
-    it('does not select no-fee token for withdraw flows', () => {
-      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
-        preferredTokens: { default: [], overrides: {} },
-        minimumRequiredTokenBalance: 5,
-        blockedTokens: {
-          default: {
-            chainIds: [],
-            tokens: [],
+    it.each([
+      ['perpsWithdraw', TransactionType.perpsWithdraw],
+      ['predictWithdraw', TransactionType.predictWithdraw],
+      ['moneyAccountWithdraw', TransactionType.moneyAccountWithdraw],
+    ])(
+      'does not auto-select a no-fee token for %s (no pre-quote subsidy signal)',
+      (_label, type) => {
+        selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+          preferredTokens: { default: [], overrides: {} },
+          minimumRequiredTokenBalance: 5,
+          blockedTokens: {
+            default: {
+              chainIds: [],
+              tokens: [],
+            },
+            overrides: {},
           },
-          overrides: {},
-        },
-      } as MetaMaskPayTokensFlags);
+        } as MetaMaskPayTokensFlags);
 
-      selectRelayFixedSpreadMock.mockReturnValue({
-        routes: [
-          {
-            sourceChain: CHAIN_ID_2_MOCK,
-            sourceToken: TOKEN_ADDRESS_2_MOCK,
-            targetChain: CHAIN_ID_2_MOCK,
-            targetToken: TOKEN_ADDRESS_2_MOCK,
-          },
-        ],
-      } as RelayFixedSpreadConfig);
+        selectRelayFixedSpreadMock.mockReturnValue({
+          routes: [
+            {
+              sourceChain: CHAIN_ID_2_MOCK,
+              sourceToken: TOKEN_ADDRESS_2_MOCK,
+              targetChain: CHAIN_ID_2_MOCK,
+              targetToken: TOKEN_ADDRESS_2_MOCK,
+            },
+          ],
+        } as RelayFixedSpreadConfig);
 
-      useTransactionMetadataRequestMock.mockReturnValue({
-        id: transactionIdMock,
-        type: TransactionType.perpsWithdraw,
-        txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
-      } as never);
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: transactionIdMock,
+          type,
+          txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+        } as never);
 
-      useTransactionPayAvailableTokensMock.mockReturnValue({
-        availableTokens: [
-          {
-            address: TOKEN_ADDRESS_2_MOCK,
-            chainId: CHAIN_ID_2_MOCK,
-            symbol: 'USDC',
-            fiat: { balance: 10 },
-          },
-        ] as AssetType[],
-        hasTokens: true,
-      });
+        useTransactionPayAvailableTokensMock.mockReturnValue({
+          availableTokens: [
+            {
+              address: TOKEN_ADDRESS_2_MOCK,
+              chainId: CHAIN_ID_2_MOCK,
+              symbol: 'USDC',
+              fiat: { balance: 10 },
+            },
+          ] as AssetType[],
+          hasTokens: true,
+        });
 
-      runHook();
+        runHook();
 
-      expect(setPayTokenMock).not.toHaveBeenCalled();
-    });
+        expect(setPayTokenMock).not.toHaveBeenCalled();
+      },
+    );
   });
 });

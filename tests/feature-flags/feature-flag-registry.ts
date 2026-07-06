@@ -74,13 +74,32 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  addDeviceSyncEnabled: {
+    name: 'addDeviceSyncEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardEnabled: {
     name: 'aiSocialLeaderboardEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '7.72.0',
+      minimumVersion: '8.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialLeaderboardPerpsEnabled: {
+    name: 'aiSocialLeaderboardPerpsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -673,6 +692,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         accountsApiUrl: 'https://accounts.api.cx.metamask.io',
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
       },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardForgotPasswordFeature: {
+    name: 'cardForgotPasswordFeature',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3520,29 +3550,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU610AbtestWalletHomePostOnboardingSteps: {
-    name: 'homeTMCU610AbtestWalletHomePostOnboardingSteps',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-      {
-        name: 'postOnboardingSteps',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   legacyIosGoogleConfigEnabled: {
     name: 'legacyIosGoogleConfigEnabled',
     type: FeatureFlagType.Remote,
@@ -4213,17 +4220,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rampsUnifiedBuyV2: {
-    name: 'rampsUnifiedBuyV2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.74.0',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   rampsServiceDisruptionModal: {
     name: 'rampsServiceDisruptionModal',
     type: FeatureFlagType.Remote,
@@ -4509,13 +4505,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenDetailsAdvancedCharts: {
-    name: 'tokenDetailsAdvancedCharts',
+  tokenDetailsTechnicalIndicators: {
+    name: 'tokenDetailsTechnicalIndicators',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
       enabled: true,
-      minimumVersion: '7.74.0',
+      minimumVersion: '7.83.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5569,14 +5565,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenDetailsTechnicalIndicators: {
-    name: 'tokenDetailsTechnicalIndicators',
+  tmcuTransactionsRedesignEnabled: {
+    name: 'tmcuTransactionsRedesignEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {
-      minimumVersion: '7.83.0',
-      enabled: false,
-    },
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 };

@@ -22,6 +22,7 @@ const createMockState = ({
 } = {}) => ({
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
+    basicFunctionalityEnabled: true,
   },
   engine: {
     backgroundState: {
@@ -90,6 +91,10 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
         inAppNotificationsEnabled: false,
       },
       perps: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+      agenticCli: {
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,
       },

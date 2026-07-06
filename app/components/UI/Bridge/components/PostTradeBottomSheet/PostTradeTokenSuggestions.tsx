@@ -129,10 +129,10 @@ export const PostTradeTokenSuggestions = ({
 
   return (
     <Box
-      twClassName="px-4 pb-2"
+      twClassName="px-4 pb-4"
       testID={PostTradeBottomSheetTestIds.SUGGESTIONS_SECTION}
     >
-      <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+      <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
         {strings('bridge.post_trade_modal.what_to_swap_next')}
       </Text>
       <PillScrollList
@@ -144,7 +144,7 @@ export const PostTradeTokenSuggestions = ({
         rowCount={2}
         maxPills={20}
         listTestId={PostTradeBottomSheetTestIds.SUGGESTIONS_LIST}
-        wrapperTwClassName="-mx-4 bg-transparent mt-3 mb-0"
+        wrapperTwClassName="-mx-4 bg-transparent mt-2 mb-0"
       />
     </Box>
   );

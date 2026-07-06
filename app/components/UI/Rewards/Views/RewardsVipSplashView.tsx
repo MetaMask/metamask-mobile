@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
+import { exitRewardsFlow } from '../utils';
 import { selectHasAcceptedVipInvite } from '../../../../reducers/rewards/selectors';
 import {
   selectIsCurrentSubscriptionVipEnabled,
@@ -31,7 +32,7 @@ const RewardsVipSplashViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewVip) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
       return;
     }
 
@@ -49,12 +50,7 @@ const RewardsVipSplashViewContent: React.FC = () => {
   }, [navigation, subscriptionId]);
 
   const handleNotNow = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-
-    navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+    exitRewardsFlow(navigation);
   }, [navigation]);
 
   if (!canViewVip || hasAcceptedVipInvite) {

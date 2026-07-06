@@ -1,18 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
+  FilterButton,
   SectionDivider,
   SectionHeader,
+  SegmentedControl,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   type PerpsMarketData,
   type SortDirection,
@@ -34,42 +28,6 @@ import type { TransactionActiveAbTestEntry } from '../../../../../util/transacti
 
 const TOP_MOVERS_ROW_COUNT = 2;
 const TOP_MOVERS_MAX_PILLS = 8;
-
-interface TogglePillProps {
-  label: string;
-  isSelected: boolean;
-  onPress: () => void;
-  testID: string;
-}
-
-const TogglePill: React.FC<TogglePillProps> = ({
-  label,
-  isSelected,
-  onPress,
-  testID,
-}) => {
-  const tw = useTailwind();
-  return (
-    <Pressable
-      onPress={onPress}
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
-      style={tw.style(
-        'flex-1 rounded-lg items-center justify-center py-1',
-        isSelected ? 'bg-icon-default' : 'bg-muted',
-      )}
-    >
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={isSelected ? TextColor.InfoInverse : TextColor.TextDefault}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-};
 
 type PerpsTopMoversSource =
   (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE];
@@ -142,23 +100,27 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
         onPress={handleViewAll}
         testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER}
       />
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-4 gap-2 mb-3"
-      >
-        <TogglePill
-          label={strings('perps.home.gainers')}
-          isSelected={direction === 'desc'}
-          onPress={() => setDirection('desc')}
-          testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_GAINERS_PILL}
-        />
-        <TogglePill
-          label={strings('perps.home.losers')}
-          isSelected={direction === 'asc'}
-          onPress={() => setDirection('asc')}
-          testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_LOSERS_PILL}
-        />
+      <Box twClassName="px-4 mb-3">
+        <SegmentedControl
+          value={direction === 'desc' ? 'gainers' : 'losers'}
+          onChange={(value) =>
+            setDirection(value === 'gainers' ? 'desc' : 'asc')
+          }
+          isFullWidth
+        >
+          <FilterButton
+            value="gainers"
+            testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_GAINERS_PILL}
+          >
+            {strings('perps.home.gainers')}
+          </FilterButton>
+          <FilterButton
+            value="losers"
+            testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_LOSERS_PILL}
+          >
+            {strings('perps.home.losers')}
+          </FilterButton>
+        </SegmentedControl>
       </Box>
       <PillScrollList<PerpsMarketData>
         data={data}

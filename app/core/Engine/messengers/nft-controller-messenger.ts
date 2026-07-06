@@ -14,14 +14,12 @@ import { RootMessenger } from '../types';
  * @returns The NftControllerMessenger.
  */
 export function getNftControllerMessenger(
-  rootMessenger: RootMessenger,
-): NftControllerMessenger {
-  const messenger = new Messenger<
-    'NftController',
+  rootMessenger: RootMessenger<
     MessengerActions<NftControllerMessenger>,
-    MessengerEvents<NftControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<NftControllerMessenger>
+  >,
+): NftControllerMessenger {
+  const messenger: NftControllerMessenger = new Messenger({
     namespace: 'NftController',
     parent: rootMessenger,
   });

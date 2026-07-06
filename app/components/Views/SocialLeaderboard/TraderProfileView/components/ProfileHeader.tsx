@@ -42,7 +42,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
       alignItems={BoxAlignItems.Center}
       twClassName="px-4 py-3"
       gap={4}
-      testID={TraderProfileViewSelectorsIDs.HEADER}
+      testID={TraderProfileViewSelectorsIDs.PROFILE_HEADER}
     >
       <TraderAvatar
         imageUrl={profile.imageUrl}

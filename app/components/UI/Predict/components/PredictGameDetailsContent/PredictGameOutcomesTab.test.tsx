@@ -312,6 +312,99 @@ describe('PredictGameOutcomesTab', () => {
     });
   });
 
+  describe('results dropdown', () => {
+    it('renders resolved groups in a collapsed dropdown', () => {
+      const resolvedGroups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [
+            createOutcome({
+              id: 'closed-spread',
+              groupItemTitle: 'Closed spread',
+              status: 'closed',
+              tokens: [
+                createToken({ id: 'closed-yes', title: 'Yes', price: 1 }),
+                createToken({ id: 'closed-no', title: 'No', price: 0 }),
+              ],
+            }),
+          ],
+          subgroups: [
+            createGroup({
+              key: 'moneyline',
+              outcomes: [
+                createOutcome({
+                  id: 'resolved-extended',
+                  groupItemTitle: 'Extended winner',
+                  status: 'resolved',
+                  tokens: [
+                    createToken({
+                      id: 'extended-winner',
+                      title: 'Team A',
+                      price: 1,
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+
+      const { getByTestId, getByText, queryByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap([])}
+          resolvedOutcomeGroups={resolvedGroups}
+          game={mockGame}
+          activeChipKey=""
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_COUNT,
+        ).props.children,
+      ).toBe(2);
+      expect(
+        queryByTestId(
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_CONTENT,
+        ),
+      ).toBeNull();
+
+      fireEvent.press(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
+      );
+
+      expect(
+        getByTestId(
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN_CONTENT,
+        ),
+      ).toBeOnTheScreen();
+      expect(getByText('Closed spread')).toBeOnTheScreen();
+      expect(getByText('Extended winner')).toBeOnTheScreen();
+      expect(getByText('Team A')).toBeOnTheScreen();
+    });
+
+    it('does not render results dropdown when there are no resolved groups', () => {
+      const { queryByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap([createGroup({ key: 'game_lines' })])}
+          resolvedOutcomeGroups={[]}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(
+        queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
+      ).toBeNull();
+    });
+  });
+
   describe('flat outcomes (no subgroups)', () => {
     it('renders SimpleOutcomeCard for each outcome', () => {
       const outcomes = [

@@ -134,6 +134,62 @@ describe('useLocalActivityItems', () => {
     });
   });
 
+  it('does not mark a sole pending transaction as queued when lower nonces are confirmed', () => {
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'confirmed-nonce-1',
+        hash: '0xconfirmednonce1',
+        status: TransactionStatus.confirmed,
+        time: 1,
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      }),
+      makeTx({
+        id: 'pending-nonce-2',
+        hash: '0xpendingnonce2',
+        status: TransactionStatus.submitted,
+        time: 2,
+        txParams: { from, nonce: '0x2', to: recipient, value: '0x1' },
+      }),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(2);
+    expect(
+      result.current.find((item) => item.hash === '0xpendingnonce2'),
+    ).toMatchObject({
+      isEarliestNonce: true,
+    });
+  });
+
+  it('marks a higher-nonce pending transaction as queued when a lower nonce is signed', () => {
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'signed-nonce-1',
+        hash: '0xsignednonce1',
+        status: TransactionStatus.signed,
+        time: 1,
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      }),
+      makeTx({
+        id: 'pending-nonce-2',
+        hash: '0xpendingnonce2',
+        status: TransactionStatus.submitted,
+        time: 2,
+        txParams: { from, nonce: '0x2', to: recipient, value: '0x1' },
+      }),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(2);
+    expect(
+      result.current.find((item) => item.hash === '0xpendingnonce2'),
+    ).toMatchObject({
+      isEarliestNonce: false,
+    });
+  });
+
   it('enriches contract-token metadata from the selected account token list', () => {
     selectorState.localTransactions = [
       makeTx({

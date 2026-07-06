@@ -72,12 +72,8 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   ),
 }));
 
-let mockWalletHomeOnboardingStepsEnabled = false;
 jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => false),
-  selectWalletHomeOnboardingStepsEnabled: jest.fn(
-    () => mockWalletHomeOnboardingStepsEnabled,
-  ),
 }));
 
 // Control Money account feature flag per test (default false so existing tests are unaffected)
@@ -617,7 +613,7 @@ function mockInitialStateWithRemoteFeatureFlags(
   };
 }
 
-/** Eligible + remote FF on + not suppressed — AccountGroupBalance and Wallet both show the checklist and hide main actions. */
+/** Eligible + not suppressed — AccountGroupBalance and Wallet both show the checklist and hide main actions. */
 const mockStateWalletHomePostOnboardingActive = {
   ...mockInitialState,
   onboarding: {
@@ -627,23 +623,6 @@ const mockStateWalletHomePostOnboardingActive = {
     walletHomeOnboardingSteps: {
       suppressedReason: null,
       stepIndex: 0,
-    },
-  },
-  engine: {
-    ...mockInitialState.engine,
-    backgroundState: {
-      ...mockInitialState.engine.backgroundState,
-      RemoteFeatureFlagController: {
-        ...mockInitialState.engine.backgroundState.RemoteFeatureFlagController,
-        remoteFeatureFlags: {
-          ...mockInitialState.engine.backgroundState.RemoteFeatureFlagController
-            .remoteFeatureFlags,
-          walletHomeOnboardingSteps: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-        },
-      },
     },
   },
 };
@@ -1361,7 +1340,6 @@ describe('Wallet post-onboarding checklist coordination', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockWalletHomeOnboardingStepsEnabled = true;
     accountGroupBalanceMock.mockImplementation(
       RealAccountGroupBalance as (...args: unknown[]) => unknown,
     );
@@ -1374,7 +1352,6 @@ describe('Wallet post-onboarding checklist coordination', () => {
 
   afterEach(() => {
     accountGroupBalanceMock.mockImplementation(() => null);
-    mockWalletHomeOnboardingStepsEnabled = false;
   });
 
   it('does not mount main action buttons while wallet-home post-onboarding is active', () => {

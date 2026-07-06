@@ -24,6 +24,7 @@ const buildApproveData = (spender: string, amount: bigint) =>
   `${approveFunctionSignature}${spender
     .replace('0x', '')
     .padStart(64, '0')}${amount.toString(16).padStart(64, '0')}`;
+const maxUint256 = 2n ** 256n - 1n;
 
 const withoutRaw = (item: ReturnType<typeof mapApiEvmTransactions>) => {
   const activity = { ...item };
@@ -139,6 +140,84 @@ describe('mapApiEvmTransactions', () => {
           symbol: 'USDC',
           decimals: 6,
           assetId: toAssetId(baseUsdc, 'eip155:8453'),
+        },
+      },
+    });
+  });
+
+  it('adds API gas fees to approval activities', () => {
+    const transaction = {
+      hash: '0xapprovefee',
+      timestamp: '2026-05-27T13:20:27.000Z',
+      chainId: 8453,
+      accountId: `eip155:8453:${subjectAddress}`,
+      methodId: approveFunctionSignature,
+      input: buildApproveData(baseRecipientAddress, 100000000n),
+      value: '0',
+      gasUsed: 21000,
+      effectiveGasPrice: 1000000000,
+      to: baseUsdc,
+      from: subjectAddress,
+      isError: false,
+      valueTransfers: [],
+      logs: [],
+      transactionProtocol: 'ERC_20',
+      transactionCategory: 'APPROVE',
+      transactionType: 'ERC_20_APPROVE',
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+
+    expect(item.type).toBe('approveSpendingCap');
+    if (item.type !== 'approveSpendingCap') {
+      throw new Error(`Expected approveSpendingCap item, got ${item.type}`);
+    }
+
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
+
+  it('marks unlimited approval amounts from full calldata', () => {
+    const transaction = {
+      hash: '0x91f89897197afcc09ad98ec4282366fd7938d8a9609e4fc2a0aa2d070664bc27',
+      timestamp: '2026-05-27T13:20:27.000Z',
+      chainId: 8453,
+      accountId: `eip155:8453:${subjectAddress}`,
+      methodId: approveFunctionSignature,
+      input: buildApproveData(baseRecipientAddress, maxUint256),
+      value: '0',
+      to: baseUsdc,
+      from: subjectAddress,
+      isError: false,
+      valueTransfers: [],
+      logs: [],
+      transactionProtocol: 'ERC_20',
+      transactionCategory: 'APPROVE',
+      transactionType: 'ERC_20_APPROVE',
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'approveSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779888027000,
+      hash: '0x91f89897197afcc09ad98ec4282366fd7938d8a9609e4fc2a0aa2d070664bc27',
+      data: {
+        token: {
+          amount: maxUint256.toString(),
+          direction: 'out',
+          symbol: 'USDC',
+          decimals: 6,
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          isUnlimitedApproval: true,
         },
       },
     });
@@ -852,5 +931,90 @@ describe('mapApiEvmTransactions', () => {
         transactionType: 'GENERIC_CONTRACT_CALL',
       },
     });
+  });
+
+  it('maps a generic contract call to a contract interaction with its token amount', () => {
+    const mainnetUsdc = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const transaction = {
+      hash: '0xd206cc6c16974409bae072ce4cd1559743041af40c2bae84775a0bbb4dff5fee',
+      timestamp: '2026-05-01T13:39:47.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: subjectAddress,
+      methodId: '0xe9ae5c53',
+      value: '0',
+      transactionCategory: 'CONTRACT_CALL',
+      transactionType: 'GENERIC_CONTRACT_CALL',
+      valueTransfers: [
+        {
+          from: subjectAddress,
+          to: '0x4cd00e387622c35bddb9b4c962c136462338bc31',
+          amount: '580060',
+          decimal: 6,
+          contractAddress: mainnetUsdc,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          transferType: 'erc20',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'contractInteraction',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1777642787000,
+      hash: '0xd206cc6c16974409bae072ce4cd1559743041af40c2bae84775a0bbb4dff5fee',
+      data: {
+        from: subjectAddress,
+        methodId: '0xe9ae5c53',
+        to: subjectAddress,
+        transactionCategory: 'CONTRACT_CALL',
+        transactionProtocol: undefined,
+        transactionType: 'GENERIC_CONTRACT_CALL',
+        token: {
+          amount: '580060',
+          assetId: toAssetId(mainnetUsdc, 'eip155:1'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('adds API gas fees to contract interaction activities', () => {
+    const transaction = {
+      hash: '0xcontractfee',
+      timestamp: '2026-05-01T13:39:47.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: subjectAddress,
+      methodId: '0xe9ae5c53',
+      value: '0',
+      gasUsed: 21000,
+      effectiveGasPrice: 1000000000,
+      transactionCategory: 'CONTRACT_CALL',
+      transactionType: 'GENERIC_CONTRACT_CALL',
+      valueTransfers: [],
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+
+    expect(item.type).toBe('contractInteraction');
+    if (item.type !== 'contractInteraction') {
+      throw new Error(`Expected contractInteraction item, got ${item.type}`);
+    }
+
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
   });
 });

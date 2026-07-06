@@ -25,7 +25,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
@@ -50,7 +49,6 @@ const AccountsMenu = () => {
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -66,7 +64,7 @@ const AccountsMenu = () => {
         .addProperties({
           button_text: 'Buy',
           location: 'AccountsMenu',
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           chain_id_destination: null,
           region: rampGeodetectedRegion ?? null,
           is_authenticated: rampsButtonClickData.is_authenticated ?? null,
@@ -82,7 +80,6 @@ const AccountsMenu = () => {
     trackEvent,
     rampGeodetectedRegion,
     rampsButtonClickData,
-    isV2UnifiedEnabled,
   ]);
 
   const onPressNotifications = useCallback(() => {

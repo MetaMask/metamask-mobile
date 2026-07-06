@@ -254,7 +254,7 @@ jest.mock('./Views/Modals/ProcessingInfoModal/ProcessingInfoModal', () => {
   return MockModal;
 });
 
-jest.mock('./Deposit/Views/Modals/SsnInfoModal', () => {
+jest.mock('./Views/Modals/SsnInfoModal', () => {
   const MockModal = () => {
     const { View, Text } = jest.requireActual('react-native');
     return (

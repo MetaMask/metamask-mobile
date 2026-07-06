@@ -92,7 +92,6 @@ export async function waitForRelaySuccess(
           try {
             const headers = await getSentinelApiHeadersAsync();
             const relayResult = await pollResult(url, headers);
-
             if (relayResult.status !== RelayStatus.Pending) {
               clearInterval(intervalId);
               resolve(relayResult);

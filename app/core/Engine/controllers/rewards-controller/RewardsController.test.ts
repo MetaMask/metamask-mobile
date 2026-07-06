@@ -7281,7 +7281,7 @@ describe('RewardsController', () => {
       ...overrides,
     });
 
-    it('bypasses the cache (TTL=0) and refetches on any time advance', async () => {
+    it('returns the cached VIP dashboard within the TTL window without refetching', async () => {
       const cachedState: VipDashboardState = {
         ...createMockVIPDashboard({
           currentTier: {
@@ -7307,19 +7307,54 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(apiDashboard);
 
-      // First call: cache has lastFetched=100, Date.now()=123 → stale (delta>0) → fetch.
-      const first = await controller.getVIPDashboard(mockSubscriptionId);
-      // Advance the clock so the just-written cache entry (lastFetched=123) is also stale.
-      jest.spyOn(Date, 'now').mockReturnValue(124);
-      const second = await controller.getVIPDashboard(mockSubscriptionId);
+      // cache lastFetched=100, Date.now()=123 → delta 23ms < 5min TTL → fresh → no fetch.
+      const result = await controller.getVIPDashboard(mockSubscriptionId);
 
-      expect(first).toEqual({ ...apiDashboard, lastFetched: 123 });
-      expect(second).toEqual({ ...apiDashboard, lastFetched: 124 });
+      expect(result).toEqual(cachedState);
       expect(
         mockMessenger.call.mock.calls.filter(
           ([method]) => method === 'RewardsDataService:getVIPDashboard',
         ),
-      ).toHaveLength(2);
+      ).toHaveLength(0);
+    });
+
+    it('refetches the VIP dashboard once the TTL window has expired', async () => {
+      const cachedState: VipDashboardState = {
+        ...createMockVIPDashboard({
+          currentTier: {
+            id: 'mock-tier-alpha-2',
+            name: 'Mock Tier Alpha 2',
+            tier: 2,
+          },
+        }),
+        lastFetched: 100,
+      };
+      const apiDashboard = createMockVIPDashboard();
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          vipDashboard: {
+            [mockSubscriptionId]: cachedState,
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      mockMessenger.call.mockResolvedValue(apiDashboard);
+
+      // Advance the clock past the 5-minute TTL so the cached entry is stale.
+      const now = 100 + 1000 * 60 * 5 + 1;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
+      const result = await controller.getVIPDashboard(mockSubscriptionId);
+
+      expect(result).toEqual({ ...apiDashboard, lastFetched: now });
+      expect(
+        mockMessenger.call.mock.calls.filter(
+          ([method]) => method === 'RewardsDataService:getVIPDashboard',
+        ),
+      ).toHaveLength(1);
     });
 
     it('fetches fresh VIP dashboard when cache is empty', async () => {

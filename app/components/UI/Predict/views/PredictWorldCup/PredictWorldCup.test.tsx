@@ -141,6 +141,7 @@ jest.mock('../../components/PredictMarket', () => {
 });
 
 jest.mock('../../hooks', () => ({
+  ...jest.requireActual('../../hooks'),
   usePredictWorldCupAvailableTabs: () => ({
     tabs: mockAvailableTabs,
     availability: mockAvailability,

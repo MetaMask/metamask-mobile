@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
+import { IconName } from '@metamask/design-system-react-native';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import PerpsMarketCategoryBadge from '../PerpsMarketCategoryBadge';
 import { styleSheet } from './PerpsMarketCategoryBadges.styles';
 import type { PerpsMarketCategoryBadgesProps } from './PerpsMarketCategoryBadges.types';

@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -122,8 +122,7 @@ const EarnMusdConversionEducationView = () => {
     conversionTokens,
   } = useMusdConversionFlowData();
 
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const colorScheme = useColorScheme();
 

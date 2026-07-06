@@ -119,8 +119,9 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 // Benefits details cache threshold
 const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
-// VIP dashboard cache threshold — disabled while backend still serves hardcoded data
-const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 0;
+// VIP dashboard cache threshold — re-fetched on every dashboard screen focus,
+// so cache for 5 minutes to avoid redundant backend calls.
+const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.

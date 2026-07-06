@@ -137,19 +137,16 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
 
   const handleClaimPress = useCallback(() => {
     executeGuardedAction(
-      () => {
-        trackPortfolioTransactionInitiated(
-          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
-          PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-        );
-
-        return claim();
-      },
+      () =>
+        claim({
+          ...portfolioAnalyticsProperties,
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        }),
       {
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM,
       },
     );
-  }, [claim, executeGuardedAction, trackPortfolioTransactionInitiated]);
+  }, [claim, executeGuardedAction, portfolioAnalyticsProperties]);
 
   const isWithdrawDisabled = availableBalance > 0 && !walletType;
 

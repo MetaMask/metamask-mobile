@@ -15,8 +15,9 @@ import {
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
-import Utilities from '../Utilities';
+import Utilities, { sleep } from '../Utilities';
 import {
+  dismissAndroidSystemOverlaysPlaywright,
   dismissDevScreens,
   dismissDeveloperMenuPlaywright,
   dismissDevelopmentServerPickerPlaywright,
@@ -45,6 +46,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  resolveE2EFixtureBootstrapTimeoutMs,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -697,16 +699,35 @@ export async function withFixtures(
           await deviceCommands.clearAppData();
         }
 
-        const appStateRequest = fixtureServer.waitForNextStateRequest();
+        // Cold Metro bundles can take 60–160s locally; pre-warm runs in launchApp but
+        // device-side load + E2E bootstrap still need headroom after deep link.
+        const appStateRequest = fixtureServer.waitForNextStateRequest(
+          resolveE2EFixtureBootstrapTimeoutMs(),
+        );
         try {
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
           });
           if (process.env.CI !== 'true') {
-            await dismissDevelopmentServerPickerPlaywright();
             didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
+            await Promise.all([
+              appStateRequest,
+              (async () => {
+                for (;;) {
+                  await dismissDevelopmentServerPickerPlaywright();
+                  const bootstrapped = await Promise.race([
+                    appStateRequest.then(() => true),
+                    sleep(1500).then(() => false),
+                  ]);
+                  if (bootstrapped) {
+                    return;
+                  }
+                }
+              })(),
+            ]);
+          } else {
+            await appStateRequest;
           }
-          await appStateRequest;
         } catch (error) {
           appStateRequest.catch(() => undefined);
           throw error;
@@ -724,7 +745,8 @@ export async function withFixtures(
       }
     }
 
-    // Dismiss dev screens if running locally (not in CI)
+    // Dismiss dev menu after bootstrap (Appium: adb-only overlay dismiss — element
+    // queries here crash UiAutomator2 while Metro is still loading).
     if (process.env.CI !== 'true') {
       if (FrameworkDetector.isDetox()) {
         await dismissDevScreens();

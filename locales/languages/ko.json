@@ -1103,7 +1103,6 @@
       "market_cap": "시가총액",
       "price": "가격",
       "position": "포지션",
-      "trades": "거래하기",
       "buy": "매수",
       "trade": "거래하기",
       "unsupported_market": "지원되지 않는 시장",

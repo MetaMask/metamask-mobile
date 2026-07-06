@@ -72,7 +72,8 @@
     },
     "networkConfigurationsByChainId": {
       "0x1": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
         "name": "Ethereum",
@@ -119,7 +120,8 @@
         ]
       },
       "0x38": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://bscscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x38",
         "defaultRpcEndpointIndex": 0,
         "name": "BNB Chain",
@@ -134,7 +136,8 @@
         ]
       },
       "0x89": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://polygonscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x89",
         "defaultRpcEndpointIndex": 0,
         "name": "Polygon",
@@ -149,7 +152,8 @@
         ]
       },
       "0xa": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://optimistic.etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xa",
         "defaultRpcEndpointIndex": 0,
         "name": "OP",
@@ -164,7 +168,8 @@
         ]
       },
       "0xa4b1": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://arbiscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xa4b1",
         "defaultRpcEndpointIndex": 0,
         "name": "Arbitrum",
@@ -179,7 +184,8 @@
         ]
       },
       "0xaa36a7": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://sepolia.etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xaa36a7",
         "defaultRpcEndpointIndex": 0,
         "name": "Sepolia",
@@ -194,7 +200,8 @@
         ]
       },
       "0xe705": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://sepolia.lineascan.build"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xe705",
         "defaultRpcEndpointIndex": 0,
         "name": "Linea Sepolia",
@@ -209,7 +216,8 @@
         ]
       },
       "0xe708": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://lineascan.build"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xe708",
         "defaultRpcEndpointIndex": 0,
         "name": "Linea",
@@ -224,7 +232,8 @@
         ]
       },
       "0x2105": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://basescan.org"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x2105",
         "defaultRpcEndpointIndex": 0,
         "name": "Base",
@@ -239,7 +248,8 @@
         ]
       },
       "0x8f": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://monadscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x8f",
         "defaultRpcEndpointIndex": 0,
         "name": "Monad",
@@ -277,6 +287,10 @@
         "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
+      },
+      "stellar": {
+        "stellar:pubnet": true,
+        "stellar:testnet": false
       },
       "tron": {
         "tron:2494104990": false,
@@ -565,6 +579,7 @@
   },
   "ProfileMetricsController": {
     "initialEnqueueCompleted": false,
+    "proofBackfillEnqueued": false,
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -630,6 +645,18 @@
         "name": "Solana Devnet",
         "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
       },
+      "stellar:pubnet": {
+        "chainId": "stellar:pubnet",
+        "isEvm": false,
+        "name": "Stellar",
+        "nativeCurrency": "stellar:pubnet/slip44:148"
+      },
+      "stellar:testnet": {
+        "chainId": "stellar:testnet",
+        "isEvm": false,
+        "name": "Stellar Testnet",
+        "nativeCurrency": "stellar:testnet/slip44:148"
+      },
       "tron:2494104990": {
         "chainId": "tron:2494104990",
         "isEvm": false,
@@ -662,6 +689,7 @@
     "assetExchangeRates": {},
     "batchSellTrades": null,
     "batchSellTradesLoadingStatus": null,
+    "inputPrimaryDenomination": "token_amount",
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": [
@@ -676,7 +704,8 @@
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": []
+    "tokenWarnings": [],
+    "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -689,7 +718,8 @@
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
-    "moneyAccountCardLinkInProgress": false
+    "moneyAccountCardLinkInProgress": false,
+    "lastUnauthenticatedReason": null
   },
   "ClientController": {
     "isUiOpen": false
@@ -818,7 +848,7 @@
     "countries": {
       "data": [],
       "selected": null,
-      "isLoading": false,
+      "isLoading": true,
       "error": null
     },
     "providerAutoSelected": false,
@@ -863,7 +893,15 @@
         }
       }
     },
-    "requests": {},
+    "requests": {
+      "getCountries:[]": {
+        "data": null,
+        "error": null,
+        "lastFetchedAt": 123,
+        "status": "loading",
+        "timestamp": 123
+      }
+    },
     "orders": [],
     "providerAutoSelected": false
   },

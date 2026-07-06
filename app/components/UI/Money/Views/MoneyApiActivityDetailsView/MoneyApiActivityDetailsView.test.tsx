@@ -149,6 +149,8 @@ jest.mock('../../../../../util/intl', () => ({
   getIntlDateTimeFormatter: (_locale: string, _opts?: object) => ({
     format: () => 'Jun',
   }),
+  getIntlNumberFormatter: (locale: string, opts?: Intl.NumberFormatOptions) =>
+    new Intl.NumberFormat(locale, opts),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({

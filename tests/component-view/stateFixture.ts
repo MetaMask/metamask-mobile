@@ -174,7 +174,9 @@ export interface StateFixtureBuilder {
 export function createStateFixture(): StateFixtureBuilder {
   const baseState = {
     engine: { backgroundState: {} },
-    settings: {},
+    settings: {
+      basicFunctionalityEnabled: true,
+    },
   } as unknown as DeepPartial<RootState>;
   let current: DeepPartial<RootState> = baseState;
 

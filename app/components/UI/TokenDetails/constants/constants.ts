@@ -81,3 +81,9 @@ export type TokenDetailsExitAction =
   | 'back_navigation'
   | 'cta_clicked'
   | 'app_backgrounded';
+
+/**
+ * Technical indicators that occupy a sub-pane below the main chart.
+ * Keep in sync with SUB_PANE_INDICATOR_NAMES in chartLogic.js.
+ */
+export const SUB_PANE_INDICATORS = ['MACD', 'RSI'] as const;

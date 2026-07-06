@@ -24,7 +24,7 @@ import TraderAvatar from './TraderAvatar';
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
 // drifting due to font-scale or button-size differences.
-export const TRADER_ROW_HEIGHT = 64;
+export const TRADER_ROW_HEIGHT = 71;
 
 export interface TraderRowProps {
   trader: TopTrader;
@@ -120,14 +120,13 @@ const TraderRow: React.FC<TraderRowProps> = ({
         </Box>
       </TouchableOpacity>
 
-      {/* Follow / Following button */}
       <Button
         variant={
           trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
         }
-        size={ButtonSize.Md}
+        size={ButtonSize.Sm}
         onPress={() => onFollowPress(trader.id)}
-        twClassName="min-w-[96px] self-center"
+        twClassName="self-center min-w-[60px] px-2"
       >
         {trader.isFollowing
           ? strings('social_leaderboard.following')

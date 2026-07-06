@@ -18,12 +18,6 @@ const styleSheet = (params: { theme: Theme }) =>
     stockBadge: {
       marginLeft: 8,
     },
-    loadingPrice: {
-      paddingTop: 8,
-    },
-    loadingPriceDiff: {
-      paddingTop: 2,
-    },
     chartContainer: {
       width: '100%',
       alignSelf: 'stretch',
@@ -36,12 +30,21 @@ const styleSheet = (params: { theme: Theme }) =>
       width: 15,
       zIndex: 10,
     } as ViewStyle,
-    /** Figma: column, py 12, align start, gap 10; child row is full width */
     timeRangeContainer: {
       width: '100%',
       alignSelf: 'stretch',
       paddingTop: 12,
       paddingBottom: 24,
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: 10,
+    } as ViewStyle,
+    /** Container for IntervalBar above chart (technical indicators flag ON) - exactly 16px spacing to chart */
+    intervalBarContainer: {
+      width: '100%',
+      alignSelf: 'stretch',
+      paddingTop: 12,
+      paddingBottom: 8,
       flexDirection: 'column',
       alignItems: 'flex-start',
       gap: 10,

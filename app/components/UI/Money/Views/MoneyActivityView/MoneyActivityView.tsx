@@ -83,7 +83,7 @@ function groupByDate(
   }
   return Array.from(groups.entries()).map(([dateKey, data]) => ({
     title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString(locale, {
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       year: 'numeric',
     }),

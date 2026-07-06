@@ -6,7 +6,10 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagPredictEnabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
@@ -22,6 +25,10 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { predictCashOutFlowAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-cash-out.analytics';
 import { SPURS_PELICANS_POSITION_ID } from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
+import {
+  PredictHelpers,
+  remoteFeatureFlagPerpsDisabledForPredictSmoke,
+} from './helpers/predict-helpers';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -39,7 +46,9 @@ const positionDetails = {
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     // TODO: Fix this test to support the FF-enabled Predict bottom sheet / any-token flow.
     predictBottomSheet: {
       enabled: false,
@@ -61,6 +70,7 @@ describe(SmokePredictions('Predictions'), () => {
       {
         fixture: new FixtureBuilder()
           .withPolygon()
+          .withBasicFunctionalityEnabled()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
@@ -68,6 +78,7 @@ describe(SmokePredictions('Predictions'), () => {
         analyticsExpectations: predictCashOutFlowAnalyticsExpectations,
       },
       async ({ mockServer }) => {
+        await PredictHelpers.setPortugalLocation();
         await loginToApp();
         await device.disableSynchronization();
         await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);

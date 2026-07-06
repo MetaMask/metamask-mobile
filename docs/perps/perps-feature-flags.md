@@ -7,7 +7,7 @@ Framework for controlling Perps feature availability through LaunchDarkly with l
 **Key Design Principles:**
 
 - LaunchDarkly is the single source of truth for feature enablement
-- Version-gated flags ensure features only activate on compatible app versions
+- Version-gated flags use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` (see [Version-gated feature flags](../readme/version-gated-feature-flags.md))
 - Local environment variables provide development/testing fallback
 - Graceful degradation when LaunchDarkly is unavailable
 
@@ -74,6 +74,11 @@ See [Perps A/B Testing Framework](./perps-ab-testing.md) for variant-based flags
 **File:** `app/components/UI/Perps/selectors/featureFlags/index.ts`
 
 ```typescript
+import {
+  validatedVersionGatedFeatureFlag,
+  type VersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
+
 /**
  * Selector for My Feature flag
  * Controls visibility of My Feature in the UI
@@ -230,11 +235,13 @@ These flags are managed via `FeatureFlagConfigurationService` and control runtim
 
 ### Version Gating
 
-The `minimumVersion` field ensures features only activate on compatible app versions:
+The `minimumVersion` field ensures features only activate on compatible app versions. **Do not** compare versions in selectors or components — use `validatedVersionGatedFeatureFlag`:
 
-- **Format:** Semantic version string (e.g., `"7.60.0"`)
-- **Comparison:** Uses `compare-versions` library with `>=` operator
+- **Format:** Semantic version string (e.g. `"7.60.0"`)
+- **Evaluation:** `validatedVersionGatedFeatureFlag(remoteFlag)` returns `true` only when `enabled` is true **and** the native app version is `>= minimumVersion`
 - **Use case:** Prevent feature activation on older app versions that lack required code
+
+See [`docs/readme/version-gated-feature-flags.md`](../readme/version-gated-feature-flags.md) for the full pattern and non-standard flag shapes.
 
 ---
 
@@ -249,8 +256,8 @@ The `minimumVersion` field ensures features only activate on compatible app vers
 ### Version Gating Not Working
 
 1. **Verify `minimumVersion` format:** Must be valid semver string
-2. **Check app version:** `getVersion()` from `react-native-device-info`
-3. **Check comparison:** Uses `>=` operator
+2. **Check native app version:** `getVersion()` from `react-native-device-info` (used inside `validatedVersionGatedFeatureFlag`) — not `package.json`
+3. **Confirm selector uses the helper:** `validatedVersionGatedFeatureFlag(remoteFlag) ?? localFallback` — not inline `compare-versions`
 
 ### Local Flag Not Overriding
 
@@ -265,7 +272,8 @@ The `minimumVersion` field ensures features only activate on compatible app vers
 - **Selectors:** `app/components/UI/Perps/selectors/featureFlags/index.ts`
 - **Mocks:** `app/components/UI/Perps/mocks/remoteFeatureFlagMocks.ts`
 - **Tests:** `app/components/UI/Perps/selectors/featureFlags/index.test.ts`
-- **Version validation:** `app/util/remoteFeatureFlag/index.ts`
+- **Version validation:** `app/util/remoteFeatureFlag/index.ts` (`validatedVersionGatedFeatureFlag`)
+- **Version-gated flags guide:** `docs/readme/version-gated-feature-flags.md`
 - **Controller init:** `app/core/Engine/controllers/remote-feature-flag-controller-init.ts`
 - **Configuration service:** `app/controllers/perps/services/FeatureFlagConfigurationService.ts`
 

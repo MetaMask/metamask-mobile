@@ -25,6 +25,12 @@ import {
 } from '../framework/EncapsulatedElement';
 import { AssertionOptions } from '../framework/types';
 import Utilities from '../framework/Utilities';
+import ContactsView from '../page-objects/Settings/Contacts/ContactsView';
+import AddContactView from '../page-objects/Settings/Contacts/AddContactView';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from './wallet.flow';
 
 const PASSWORD = '123123123';
 
@@ -135,11 +141,63 @@ export const importAccountViaPrivateKey = async (
   await AddAccountBottomSheet.tapImportAccount();
   await Assertions.expectElementToBeVisible(ImportAccountView.container);
   await ImportAccountView.enterPrivateKey(privateKey);
-  await Assertions.expectElementToBeVisible(SuccessImportAccountView.container);
+  await expectElementVisible(SuccessImportAccountView.container, {
+    description: 'Import success screen should be visible',
+    timeout: 30_000,
+  });
   await SuccessImportAccountView.tapCloseButton();
   if (FrameworkDetector.isAppium()) {
     await AddAccountBottomSheet.tapBackToWalletView();
   }
+};
+
+export const openContactsViaAccountMenu = async (): Promise<void> => {
+  await TabBarComponent.tapAccountsMenu();
+  await AccountMenu.tapContacts();
+  await Assertions.expectElementToBeVisible(ContactsView.container, {
+    description: 'Contacts view should be visible',
+  });
+};
+
+export const loginAndOpenContacts = async (
+  options: { scenarioType?: string } = {},
+): Promise<void> => {
+  await loginToAppPlaywright(options);
+  await waitForWalletHomePlaywright(15_000);
+  await openContactsViaAccountMenu();
+};
+
+export const addContact = async (
+  name: string,
+  address: string,
+): Promise<void> => {
+  await ContactsView.tapAddContactButton();
+  await Assertions.expectElementToBeVisible(AddContactView.container, {
+    description: 'Add contact view should be visible',
+  });
+  await AddContactView.typeInName(name);
+  await AddContactView.typeInAddress(address);
+  await AddContactView.tapAddContactButton();
+  await Assertions.expectElementToBeVisible(ContactsView.container, {
+    description: 'Contacts view should be visible after adding contact',
+  });
+  await ContactsView.expectContactIsVisible(name);
+};
+
+export const disableContactSyncViaSettings = async (): Promise<void> => {
+  await TabBarComponent.tapSettings();
+  await Assertions.expectElementToBeVisible(
+    SettingsView.backupAndSyncSectionButton,
+    { description: 'Backup and Sync section should be visible in Settings' },
+  );
+  await SettingsView.tapBackupAndSync();
+  await Assertions.expectElementToBeVisible(
+    BackupAndSyncView.backupAndSyncToggle,
+    { description: 'Backup and Sync toggle should be visible' },
+  );
+  await BackupAndSyncView.toggleContactSync();
+  await CommonView.tapBackButton();
+  await SettingsView.tapBackButton();
 };
 
 export const disableAccountSyncViaSettings = async (): Promise<void> => {

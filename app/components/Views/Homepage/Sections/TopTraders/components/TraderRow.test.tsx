@@ -172,7 +172,7 @@ describe('TraderRow', () => {
     expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
   });
 
-  describe('layout stability (prevents Follow/Following toggle shift)', () => {
+  describe('layout stability', () => {
     const findAncestor = (
       start: ReactTestInstance | null,
       predicate: (node: ReactTestInstance) => boolean,
@@ -185,18 +185,31 @@ describe('TraderRow', () => {
       return null;
     };
 
-    const resolveMinWidth = (node: ReactTestInstance): number | undefined => {
-      const flat = StyleSheet.flatten(node.props.style) as
-        | { minWidth?: number }
-        | undefined;
-      return flat?.minWidth;
-    };
-
     const resolveAlignSelf = (node: ReactTestInstance): string | undefined => {
       const flat = StyleSheet.flatten(node.props.style) as
         | { alignSelf?: string }
         | undefined;
       return flat?.alignSelf;
+    };
+
+    const resolveHeight = (node: ReactTestInstance): number | undefined => {
+      const flat = StyleSheet.flatten(node.props.style);
+      if (Array.isArray(flat)) {
+        for (const entry of flat) {
+          if (entry && typeof entry === 'object' && 'height' in entry) {
+            return (entry as { height?: number }).height;
+          }
+        }
+        return undefined;
+      }
+      return (flat as { height?: number } | undefined)?.height;
+    };
+
+    const resolveMinWidth = (node: ReactTestInstance): number | undefined => {
+      const flat = StyleSheet.flatten(node.props.style) as
+        | { minWidth?: number }
+        | undefined;
+      return flat?.minWidth;
     };
 
     it('renders the stats line with numberOfLines=1 so it does not wrap when the button grows', () => {
@@ -217,7 +230,37 @@ describe('TraderRow', () => {
       expect(statsText).not.toBeNull();
     });
 
-    it('renders the Follow button with a minimum width', () => {
+    it('uses ButtonSize.Sm (32px height from the design system)', () => {
+      renderWithProvider(
+        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+      );
+
+      const followLabel = screen.getByText('Follow');
+      const buttonWithHeight = findAncestor(
+        followLabel,
+        (node) => resolveHeight(node) === 32,
+      );
+
+      expect(buttonWithHeight).not.toBeNull();
+    });
+
+    it('applies 8px horizontal padding to match the Following state visually', () => {
+      renderWithProvider(
+        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+      );
+
+      const followLabel = screen.getByText('Follow');
+      const buttonWithPadding = findAncestor(followLabel, (node) => {
+        const flat = StyleSheet.flatten(node.props.style) as
+          | { paddingLeft?: number; paddingRight?: number }
+          | undefined;
+        return flat?.paddingLeft === 8 && flat?.paddingRight === 8;
+      });
+
+      expect(buttonWithPadding).not.toBeNull();
+    });
+
+    it('sets min-width 60px on the Follow button so the label is not clipped', () => {
       renderWithProvider(
         <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
       );
@@ -225,11 +268,28 @@ describe('TraderRow', () => {
       const followLabel = screen.getByText('Follow');
       const buttonWithMinWidth = findAncestor(
         followLabel,
-        (node) => resolveMinWidth(node) !== undefined,
+        (node) => resolveMinWidth(node) === 60,
       );
 
       expect(buttonWithMinWidth).not.toBeNull();
-      expect(resolveMinWidth(buttonWithMinWidth as ReactTestInstance)).toBe(96);
+    });
+
+    it('uses the same min-width on the Following button so the longer label can grow naturally', () => {
+      const followingTrader: TopTrader = { ...baseTrader, isFollowing: true };
+      renderWithProvider(
+        <TraderRow
+          trader={followingTrader}
+          onFollowPress={mockOnFollowPress}
+        />,
+      );
+
+      const followingLabel = screen.getByText('Following');
+      const buttonWithMinWidth = findAncestor(
+        followingLabel,
+        (node) => resolveMinWidth(node) === 60,
+      );
+
+      expect(buttonWithMinWidth).not.toBeNull();
     });
 
     it('vertically centers the Follow button so it sits in the middle of the row (overrides ButtonBase self-start default)', () => {
@@ -244,38 +304,6 @@ describe('TraderRow', () => {
       );
 
       expect(buttonWithAlignSelf).not.toBeNull();
-    });
-
-    it('keeps the same minimum width when toggling between Follow and Following', () => {
-      const { rerender } = renderWithProvider(
-        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
-      );
-
-      const followLabel = screen.getByText('Follow');
-      const followButton = findAncestor(
-        followLabel,
-        (node) => resolveMinWidth(node) !== undefined,
-      );
-      const followMinWidth = resolveMinWidth(followButton as ReactTestInstance);
-
-      rerender(
-        <TraderRow
-          trader={{ ...baseTrader, isFollowing: true }}
-          onFollowPress={mockOnFollowPress}
-        />,
-      );
-
-      const followingLabel = screen.getByText('Following');
-      const followingButton = findAncestor(
-        followingLabel,
-        (node) => resolveMinWidth(node) !== undefined,
-      );
-      const followingMinWidth = resolveMinWidth(
-        followingButton as ReactTestInstance,
-      );
-
-      expect(followMinWidth).toBeDefined();
-      expect(followingMinWidth).toBe(followMinWidth);
     });
   });
 });

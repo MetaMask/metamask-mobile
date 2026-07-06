@@ -11,6 +11,7 @@ import RewardsVipRefereeSplashView from './RewardsVipRefereeSplashView';
 const mockNavigateDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
 // Obviously-synthetic fixtures — never real VIP codes/subscriptions.
 const mockSubscriptionId = 'test-subscription-id';
 const mockReferredByVipCode = 'TESTCODE';
@@ -21,6 +22,10 @@ let mockVipRefereeSplashAccepted: Record<string, boolean> = {};
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -215,17 +220,17 @@ describe('RewardsVipRefereeSplashView', () => {
     );
   });
 
-  it('goes back when not now is pressed', () => {
+  it('exits the rewards flow when not now is pressed', () => {
     const { getByTestId } = render(<RewardsVipRefereeSplashView />);
 
     fireEvent.press(
       getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON),
     );
 
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 
-  it('replaces with dashboard on not now when there is no back route', () => {
+  it('exits the rewards flow on not now even when there is no back route', () => {
     mockCanGoBack = false;
 
     const { getByTestId } = render(<RewardsVipRefereeSplashView />);
@@ -234,10 +239,7 @@ describe('RewardsVipRefereeSplashView', () => {
       getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON),
     );
 
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigateDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 
   it('replaces with the referee view when already accepted', () => {
@@ -253,7 +255,7 @@ describe('RewardsVipRefereeSplashView', () => {
     );
   });
 
-  it('replaces with dashboard when the user is not a VIP referee', () => {
+  it('exits the rewards flow when the user is not a VIP referee', () => {
     mockIsVipReferee = false;
 
     const { queryByTestId } = render(<RewardsVipRefereeSplashView />);
@@ -261,12 +263,10 @@ describe('RewardsVipRefereeSplashView', () => {
     expect(
       queryByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.CONTAINER),
     ).toBeNull();
-    expect(mockNavigateDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 
-  it('replaces with dashboard when the VIP program flag is off', () => {
+  it('exits the rewards flow when the VIP program flag is off', () => {
     mockIsVipProgramEnabled = false;
 
     const { queryByTestId } = render(<RewardsVipRefereeSplashView />);
@@ -274,8 +274,6 @@ describe('RewardsVipRefereeSplashView', () => {
     expect(
       queryByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.CONTAINER),
     ).toBeNull();
-    expect(mockNavigateDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 });

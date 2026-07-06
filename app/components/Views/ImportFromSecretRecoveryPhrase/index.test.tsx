@@ -19,7 +19,7 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { Alert, InteractionManager } from 'react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { passcodeType } from '../../../util/authentication';
@@ -686,7 +686,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
     it('calls navigation.goBack when back button is pressed on step 0', () => {
       const mockGoBack = jest.fn();
-      const Stack = createStackNavigator();
+      const Stack = createNativeStackNavigator();
 
       const customRender = (children: React.ReactElement) =>
         renderWithProvider(
@@ -1019,7 +1019,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       let navigationSpy: jest.SpyInstance;
 
       beforeEach(() => {
-        const Stack = createStackNavigator();
+        const Stack = createNativeStackNavigator();
         customRender = (children: React.ReactElement) =>
           renderWithProvider(
             <NavigationContainer>

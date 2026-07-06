@@ -1,10 +1,10 @@
 import { PerpsControllerMessenger } from '@metamask/perps-controller';
-import { RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
+import { RootMessenger } from '../../types';
 
 type AllowedActions = MessengerActions<PerpsControllerMessenger>;
 

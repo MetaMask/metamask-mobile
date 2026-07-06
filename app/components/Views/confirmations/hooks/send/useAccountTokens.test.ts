@@ -846,6 +846,36 @@ describe('useAccountTokens', () => {
       expect(result.current[0].symbol).toBe('OVERRIDE');
     });
 
+    it('returns empty list when accountOverride is set but has no loaded assets', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(
+        '0xEmptyAddress' as never,
+      );
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return mockAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        if (selector === selectInternalAccountsById) {
+          return {
+            'acc-empty': { address: '0xEmptyAddress' },
+          };
+        }
+        if (selector === selectAccountToGroupMap) {
+          return {
+            'acc-empty': { id: 'group-empty' },
+          };
+        }
+        return {};
+      });
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current).toEqual([]);
+    });
+
     it('falls back to global assets when accountOverride is undefined', () => {
       useTransactionAccountOverrideMock.mockReturnValue(undefined);
 

@@ -18,13 +18,13 @@ import ListItemColumn, {
 } from '../../../../../../component-library/components/List/ListItemColumn';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 
-import styleSheet from '../../../Deposit/Views/Modals/StateSelectorModal/StateSelectorModal.styles';
+import styleSheet from './StateSelectorModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../../../../util/navigation/navUtils';
-import { US_STATES } from '../../../Deposit/constants';
+import { US_STATES } from '../../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { createUnsupportedStateModalNavigationDetails } from '../UnsupportedStateModal/UnsupportedStateModal';

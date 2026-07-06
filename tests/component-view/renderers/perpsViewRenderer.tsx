@@ -1,7 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   type DeepPartial,
@@ -397,8 +397,8 @@ export function renderPerpsView(
   };
 
   if (extraRoutes?.length) {
-    const Stack = createStackNavigator();
-    const InnerStack = createStackNavigator();
+    const Stack = createNativeStackNavigator();
+    const InnerStack = createNativeStackNavigator();
     const nestedPerpsRoutes = extraRoutes.filter(
       ({ mount }) => mount === 'perps-root',
     );

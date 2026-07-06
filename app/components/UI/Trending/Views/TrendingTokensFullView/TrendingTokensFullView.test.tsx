@@ -263,6 +263,19 @@ describe('TrendingTokensFullView', () => {
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
   });
 
+  it('shows Crypto movers title when opened from the Now tab entry point', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        entryPoint: 'crypto_movers',
+        quickBuySource: 'explore_now',
+      },
+    });
+
+    const { getByText } = renderTrendingFullView();
+
+    expect(getByText(strings('trending.crypto_movers'))).toBeOnTheScreen();
+  });
+
   it('navigates back when back button is pressed', async () => {
     const mocks = arrangeMocks();
     const { getByTestId } = renderTrendingFullView();

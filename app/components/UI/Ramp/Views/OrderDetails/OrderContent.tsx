@@ -33,8 +33,8 @@ import { formatSubscriptNotation } from '../../../../../util/number/subscriptNot
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
-import { hasDepositOrderField } from '../../Deposit/utils';
-import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
+import { hasDepositOrderField } from '../../utils/depositUtils';
+import BankDetailRow from '../../components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
