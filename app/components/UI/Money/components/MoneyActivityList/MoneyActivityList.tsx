@@ -11,11 +11,13 @@ import { MoneyActivityListTestIds } from './MoneyActivityList.testIds';
 import MoneyActivityRow from '../MoneyActivityRow/MoneyActivityRow';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
-const MAX_PREVIEW_ITEMS = 5;
+export const MAX_PREVIEW_ITEMS = 5;
 
 interface MoneyActivityListProps {
   items: MoneyActivityItem[];
   moneyAddress?: string;
+  /** Whether more activity exists beyond what's fetched (paginated upstream). */
+  hasMore?: boolean;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
   onItemPress?: (transaction: TransactionMeta) => void;
@@ -24,6 +26,7 @@ interface MoneyActivityListProps {
 const MoneyActivityList = ({
   items,
   moneyAddress,
+  hasMore = false,
   onViewAllPress,
   onHeaderPress,
   onItemPress,
@@ -33,7 +36,7 @@ const MoneyActivityList = ({
   }
 
   const previewItems = items.slice(0, MAX_PREVIEW_ITEMS);
-  const hasMoreItems = items.length > MAX_PREVIEW_ITEMS;
+  const hasMoreItems = items.length > MAX_PREVIEW_ITEMS || hasMore;
 
   return (
     <Box testID={MoneyActivityListTestIds.CONTAINER}>
