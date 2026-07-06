@@ -14,20 +14,32 @@ import {
  * @param event - the event to track
  * @param saveOnboardingEvent - function to store onboarding event before optin
  */
+const trackOnboardingEvent = (
+  event: IMetaMetricsEvent | ITrackingEvent | AnalyticsTrackingEvent,
+  saveOnboardingEvent?: (event: AnalyticsTrackingEvent) => void,
+): void => {
+  const analyticsEvent =
+    AnalyticsEventBuilder.createEventBuilder(event).build();
+  const isOnboardingDelayedEvent =
+    !analytics.isEnabled() && saveOnboardingEvent;
+  if (isOnboardingDelayedEvent) {
+    saveOnboardingEvent(analyticsEvent);
+  } else {
+    analytics.trackEvent(analyticsEvent);
+  }
+};
+
 const trackOnboarding = (
   event: IMetaMetricsEvent | ITrackingEvent | AnalyticsTrackingEvent,
   saveOnboardingEvent?: (event: AnalyticsTrackingEvent) => void,
 ): void => {
-  InteractionManager.runAfterInteractions(async () => {
-    const analyticsEvent =
-      AnalyticsEventBuilder.createEventBuilder(event).build();
-    const isOnboardingDelayedEvent =
-      !analytics.isEnabled() && saveOnboardingEvent;
-    if (isOnboardingDelayedEvent) {
-      saveOnboardingEvent(analyticsEvent);
-    } else {
-      analytics.trackEvent(analyticsEvent);
-    }
+  if (analytics.isEnabled()) {
+    trackOnboardingEvent(event, saveOnboardingEvent);
+    return;
+  }
+
+  InteractionManager.runAfterInteractions(() => {
+    trackOnboardingEvent(event, saveOnboardingEvent);
   });
 };
 
