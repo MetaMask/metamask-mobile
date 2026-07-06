@@ -22,6 +22,8 @@ import {
 } from '../../core/Delegation/delegation';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { limitedCalls } from '../../core/Delegation/caveatBuilder/limitedCallsBuilder';
+import { allowedTargets } from '../../core/Delegation/caveatBuilder/allowedTargetsBuilder';
+import { allowedCalldata } from '../../core/Delegation/caveatBuilder/allowedCalldataBuilder';
 import { Messenger } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
@@ -51,7 +53,7 @@ export async function getDelegationTransaction<
 >(
   messenger: MessengerType,
   transaction: TransactionMeta,
-  caveats?: Caveat[],
+  isSubsidized?: boolean,
 ): Promise<DelegationTransaction> {
   const { chainId } = transaction;
   const delegationEnvironment = getDeleGatorEnvironment(parseInt(chainId, 16));
@@ -63,7 +65,7 @@ export async function getDelegationTransaction<
     delegationEnvironment,
     transaction,
     messenger,
-    caveats,
+    isSubsidized,
   );
 
   const executions = buildExecutions(transaction);
@@ -182,12 +184,12 @@ async function buildDelegation<MessengerType extends SignMessenger>(
   delegationEnvironment: DeleGatorEnvironment,
   transactionMeta: TransactionMeta,
   messenger: MessengerType,
-  caveats?: Caveat[],
+  isSubsidized?: boolean,
 ): Promise<Delegation[][]> {
   const unsignedDelegation = buildUnsignedDelegation(
     delegationEnvironment,
     transactionMeta,
-    caveats,
+    isSubsidized,
   );
 
   log('Signing delegation');
@@ -232,9 +234,11 @@ function buildExecutions(
 function buildUnsignedDelegation(
   environment: DeleGatorEnvironment,
   transactionMeta: TransactionMeta,
-  caveats?: Caveat[],
+  isSubsidized?: boolean,
 ): UnsignedDelegation {
-  const resolvedCaveats = caveats ?? buildCaveats(environment, transactionMeta);
+  const resolvedCaveats = isSubsidized
+    ? buildSubsidizedCaveats(environment, transactionMeta)
+    : buildCaveats(environment, transactionMeta);
 
   log('Caveats', resolvedCaveats);
 
@@ -247,6 +251,45 @@ function buildUnsignedDelegation(
   log('Delegation', delegation);
 
   return delegation;
+}
+
+function buildSubsidizedCaveats(
+  environment: DeleGatorEnvironment,
+  transaction: TransactionMeta,
+): Caveat[] {
+  const caveatBuilder = createCaveatBuilder(environment);
+  const nestedTransactions = transaction.nestedTransactions ?? [];
+
+  // Subsidized execute only supports single-step deposit routes
+  if (nestedTransactions.length !== 1) {
+    throw new Error(
+      'Subsidized Relay execute: expected single-step deposit route',
+    );
+  }
+
+  const transferTx = nestedTransactions[0];
+  const token = transferTx.to as Hex | undefined;
+  const calldata = transferTx.data as Hex | undefined;
+
+  if (!token || !calldata) {
+    throw new Error(
+      'Subsidized Relay execute: missing token address or calldata',
+    );
+  }
+
+  // Extract selector (0x + bytes 2-10) and recipient+amount (bytes 10-138)
+  // Split to prevent Relay post-deposit parser from misreading caveat terms as transfer
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const transferSelector = `0x${calldata.slice(2, 10)}` as Hex;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const recipientAndAmount = `0x${calldata.slice(10, 138)}` as Hex;
+
+  caveatBuilder.addCaveat(limitedCalls, 1);
+  caveatBuilder.addCaveat(allowedTargets, [token]);
+  caveatBuilder.addCaveat(allowedCalldata, 0, transferSelector);
+  caveatBuilder.addCaveat(allowedCalldata, 4, recipientAndAmount);
+
+  return caveatBuilder.build();
 }
 
 function buildCaveats(

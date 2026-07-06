@@ -183,28 +183,86 @@ describe('Transaction Delegation Utils', () => {
       ).rejects.toThrow('Upgrade contract address not found');
     });
 
-    it('uses provided caveats instead of building default ones', async () => {
-      const customCaveats: Caveat[] = [
-        {
-          enforcer: '0xc2b0d624c1c4319760C96503BA27C347F3260f55' as Hex,
-          terms:
-            '0x0000000000000000000000000000000000000000000000000000000000000000a9059cbb0000000000000000000000001234567890abcdef1234567890abcdef12345678' as Hex,
-          args: '0x' as Hex,
-        },
-      ];
+    it('builds subsidized caveats when isSubsidized is true', async () => {
+      // ERC20 transfer calldata: selector (0xa9059cbb) + recipient (padded to 32 bytes) + amount (padded to 32 bytes)
+      // Recipient: 0x1111111111111111111111111111111111111111 padded = 0x0000000000000000000000001111111111111111111111111111111111111111
+      // Amount: 0x0989680 padded = 0x0000000000000000000000000000000000000000000000000000000000989680
+      const transferCalldata =
+        '0xa9059cbb0000000000000000000000001111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000989680' as Hex;
+
+      const transactionWithNested: TransactionMeta = {
+        ...TRANSACTION_META_MOCK,
+        nestedTransactions: [
+          {
+            data: transferCalldata,
+            to: '0x1234567890123456789012345678901234567890' as Hex,
+            value: '0x0' as Hex,
+          },
+        ],
+      };
 
       await getDelegationTransaction(
         messengerMock,
-        TRANSACTION_META_MOCK,
-        customCaveats,
+        transactionWithNested,
+        true,
       );
 
       expect(signDelegationMock).toHaveBeenCalledWith({
-        chainId: TRANSACTION_META_MOCK.chainId,
+        chainId: transactionWithNested.chainId,
         delegation: expect.objectContaining({
-          caveats: customCaveats,
+          caveats: expect.arrayContaining([
+            expect.objectContaining({
+              enforcer: expect.any(String),
+            }),
+          ]),
         }),
       });
+
+      // Verify 4 caveats were built (limitedCalls, allowedTargets, 2x allowedCalldata)
+      const delegationCall = signDelegationMock.mock.calls[0][0];
+      const caveats = ((delegationCall as Record<string, unknown>).delegation as Record<string, unknown>)
+        .caveats as Caveat[];
+      expect(caveats).toHaveLength(4);
+    });
+
+    it('throws when subsidized execute has no nestedTransactions', async () => {
+      const transactionWithoutNested: TransactionMeta = {
+        ...TRANSACTION_META_MOCK,
+        nestedTransactions: [],
+      };
+
+      await expect(
+        getDelegationTransaction(
+          messengerMock,
+          transactionWithoutNested,
+          true,
+        ),
+      ).rejects.toThrow(
+        'Subsidized Relay execute: expected single-step deposit route',
+      );
+    });
+
+    it('throws when subsidized execute is missing token address or calldata', async () => {
+      const transactionWithoutCalldata: TransactionMeta = {
+        ...TRANSACTION_META_MOCK,
+        nestedTransactions: [
+          {
+            data: undefined as unknown as Hex,
+            to: undefined as unknown as Hex,
+            value: '0x0' as Hex,
+          },
+        ],
+      };
+
+      await expect(
+        getDelegationTransaction(
+          messengerMock,
+          transactionWithoutCalldata,
+          true,
+        ),
+      ).rejects.toThrow(
+        'Subsidized Relay execute: missing token address or calldata',
+      );
     });
   });
 });
