@@ -16,7 +16,7 @@ import {
   encapsulated,
   asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
-import { DEFAULT_TAB_ID } from '../../framework/Constants';
+import { DEFAULT_TAB_ID, APP_PACKAGE_IDS } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
@@ -447,14 +447,15 @@ class Browser {
   }
 
   private async waitForDappNavigation(dappUrl: string): Promise<boolean> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
-      const webViewLoaded = await this.waitForDappWebViewContext(dappUrl);
-      if (webViewLoaded) {
-        return true;
-      }
-    }
-
     return this.waitForUrlBarToShowDapp(dappUrl);
+  }
+
+  private async openAndroidDappViaDeepLink(dappUrl: string): Promise<void> {
+    await getDriver().execute('mobile: deepLink', {
+      url: dappUrl,
+      package: APP_PACKAGE_IDS.ANDROID,
+    });
+    await TestHelpers.delay(2000);
   }
 
   // Legacy methods for backward compatibility with existing tests
@@ -652,15 +653,19 @@ class Browser {
     }
 
     for (let attempt = 1; attempt <= DAPP_NAVIGATION_MAX_ATTEMPTS; attempt++) {
-      await this.dismissUrlEditorIfOpen();
-      if (!(FrameworkDetector.isAppium() && PlatformDetector.isAndroid())) {
+      if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+        try {
+          await this.openAndroidDappViaDeepLink(dappUrl);
+        } catch {
+          await this.setAndroidUrlBarValue(dappUrl);
+        }
+      } else {
+        await this.dismissUrlEditorIfOpen();
         await this.tapUrlInputBox();
+        await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
       }
-      await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
 
-      const navigated = await this.waitForDappNavigation(dappUrl);
-
-      if (navigated) {
+      if (await this.waitForDappNavigation(dappUrl)) {
         await this.dismissUrlEditorIfOpen();
         if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
           await PlaywrightContextHelpers.scrollWebViewToTop(dappUrl);
