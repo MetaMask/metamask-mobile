@@ -84,7 +84,7 @@ import Icon, {
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import { CommonActions, useFocusEffect } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
@@ -178,29 +178,35 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   }, [isQrSyncImport, qrSyncPrimaryMnemonic]);
 
-  // Fix 2: if the user leaves this screen (back-navigation) without completing the import, close
-  // the spans this import flow opened so they are not left running for 5 minutes.
-  // Only OnboardingExistingSrpImport + OnboardingSRPAccountImportTime are ended here — both are
-  // re-created if the user re-enters (Onboarding.onPressImport restarts the former, and the try
-  // block restarts the latter). OnboardingJourneyOverall is intentionally NOT ended here: the
-  // Onboarding screen stays mounted underneath, so it is not re-created on re-entry, and ending
-  // it would kill the journey for the rest of the session (including a switch to social login).
-  // Its abandonment close is owned by Onboarding's own unmount cleanup. endTrace no-ops if a span
-  // was already closed on the success/terminal-error paths, so forward-navigation is safe.
-  useFocusEffect(
-    React.useCallback(
-      () => () => {
-        endTrace({
-          name: TraceName.OnboardingExistingSrpImport,
-          data: { success: false },
-        });
-        endTrace({
-          name: TraceName.OnboardingSRPAccountImportTime,
-          data: { success: false },
-        });
-      },
-      [],
-    ),
+  // Fix 2: if the user leaves this screen without completing the import, close the spans this
+  // import flow opened so they are not left running for 5 minutes.
+  //
+  // This MUST be an unmount cleanup, NOT useFocusEffect. useFocusEffect's cleanup fires on any
+  // blur — including forward navigation to the QR scanner, the seed-phrase modal, the support
+  // webview, or OptinMetrics — all of which keep this screen mounted underneath. Ending the spans
+  // on those transient blurs would record success:false for a user who then returns and completes
+  // the import (the success-path endTrace calls would no-op because the spans are already gone,
+  // and OnboardingExistingSrpImport is NOT re-created on return since Onboarding.onPressImport
+  // does not re-run). An unmount cleanup fires only when the screen is actually popped
+  // (back-out = genuine abandonment) or the stack is reset on success (where the success path has
+  // already closed the spans, so this no-ops). Transient sub-route navigation leaves them running.
+  //
+  // Only OnboardingExistingSrpImport + OnboardingSRPAccountImportTime are ended here (the spans
+  // this import flow owns). OnboardingJourneyOverall is intentionally NOT ended: the Onboarding
+  // screen stays mounted underneath and is not re-created on re-entry, so its abandonment close is
+  // owned by Onboarding's own unmount cleanup.
+  useEffect(
+    () => () => {
+      endTrace({
+        name: TraceName.OnboardingExistingSrpImport,
+        data: { success: false },
+      });
+      endTrace({
+        name: TraceName.OnboardingSRPAccountImportTime,
+        data: { success: false },
+      });
+    },
+    [],
   );
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
