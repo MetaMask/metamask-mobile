@@ -13,6 +13,7 @@ import {
 } from '../../messages/handler';
 import { __resetThemeForTests } from '../../widget/theme';
 import { __resetOhlcvIngestionForTests } from '../../widget/ohlcvIngestion';
+import { __resetLoadLibraryForTests } from '../loadLibrary';
 import type { ChartConfig, ChartTheme } from '../types';
 
 const baseTheme: ChartTheme = {
@@ -49,6 +50,7 @@ describe('core/bootstrap', () => {
     __resetHandlersForTests();
     __resetThemeForTests();
     __resetOhlcvIngestionForTests();
+    __resetLoadLibraryForTests();
     bridge = { postMessage: jest.fn() };
     (
       window as unknown as { ReactNativeWebView: MockBridge }
