@@ -233,6 +233,45 @@ describe('handleSetOHLCVData', () => {
     expect(isInHotReloadPreResetPhase()).toBe(false);
   });
 
+  it('clears inHotReloadPreResetPhase when same-resolution data arrives during pending setResolution', () => {
+    let setResCb: () => void = () => undefined;
+    const setResolution = jest
+      .fn()
+      .mockImplementation((_res: string, cb: () => void) => {
+        setResCb = cb;
+      });
+    const chart = {
+      resetData: jest.fn(),
+      setResolution,
+      onDataLoaded: jest
+        .fn()
+        .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
+      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
+    } as unknown as TVActiveChart;
+
+    handleSetOHLCVData({ data: oneMinuteApart(2) });
+    setWidget({
+      activeChart: () => chart,
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
+
+    // Switch 1m → 5m: sets inHotReloadPreResetPhase = true
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
+    });
+    expect(isInHotReloadPreResetPhase()).toBe(true);
+
+    // Same 5m data arrives again before the callback fires
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
+    });
+    expect(isInHotReloadPreResetPhase()).toBe(false);
+
+    // Stale callback should be ignored
+    setResCb();
+    expect(isInHotReloadPreResetPhase()).toBe(false);
+  });
+
   it('calls widget.resetCache before resetData on same-resolution reload', () => {
     const resetCache = jest.fn();
     const resetData = jest.fn();

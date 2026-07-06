@@ -1505,6 +1505,7 @@ function handleSetOHLCVData(payload) {
         try {
             const chart = widget.activeChart();
             if (previousResolution === newResolution) {
+                setInHotReloadPreResetPhase(false);
                 resetDatafeedCacheBeforeHotReload(widget);
                 chart.resetData();
                 resetMainPriceScaleAutoScale(chart);
