@@ -73,13 +73,13 @@ const createCardItemRenderer =
 const renderTrendingItem = createCardItemRenderer({
   sectionName: 'tokens_trending',
   assetType: 'token',
-  tokenDetailsSource: TokenDetailsSource.ExploreCryptoTrending,
+  tokenDetailsSource: TokenDetailsSource.TrendingSwaps,
 });
 
 const renderStocksItem = createCardItemRenderer({
   sectionName: 'stocks',
   assetType: 'stock',
-  tokenDetailsSource: TokenDetailsSource.ExploreNowStocks,
+  tokenDetailsSource: TokenDetailsSource.RwasStocksSwaps,
 });
 
 const buildTokenCardSection = ({
@@ -152,6 +152,7 @@ const buildHotTokensSection = ({
             token={token}
             index={index}
             timeOption={HOT_TOKENS_TIME_OPTION}
+            tokenDetailsSource={TokenDetailsSource.MoversSwaps}
             onCardPress={() =>
               trackDiscoveryItemTap({
                 sectionName: 'tokens_movers',

@@ -1,5 +1,7 @@
+import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
 import { ASSET_VIEWED_PROPERTY } from '../../../../../core/Analytics/trade-transaction-funnel/assetViewedAnalytics';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { ABTestAnalyticsMapping } from '../../../../../util/analytics/abTestAnalytics.types';
 
 export const SWAP_DISCOVERY_FEED_REVAMP_AB_KEY =
@@ -42,8 +44,13 @@ export const SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
     validVariants: Object.values(SwapDiscoveryFeedRevampVariant),
     eventNames: [
       EVENT_NAME.SWAP_PAGE_VIEWED,
+      UnifiedSwapBridgeEventName.QuotesRequested,
+      UnifiedSwapBridgeEventName.QuotesReceived,
+      UnifiedSwapBridgeEventName.Submitted,
+      UnifiedSwapBridgeEventName.Completed,
       EVENT_NAME.ASSET_VIEWED,
       EVENT_NAME.EXPLORE_INTERACTED,
+      EVENT_NAME.TOKEN_DETAILS_OPENED,
     ],
     eventPropertyRequirements: {
       [EVENT_NAME.ASSET_VIEWED]: {
@@ -51,6 +58,13 @@ export const SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
       },
       [EVENT_NAME.EXPLORE_INTERACTED]: {
         source: 'swaps',
+      },
+      [EVENT_NAME.TOKEN_DETAILS_OPENED]: {
+        source: [
+          TokenDetailsSource.TrendingSwaps,
+          TokenDetailsSource.MoversSwaps,
+          TokenDetailsSource.RwasStocksSwaps,
+        ],
       },
     },
   };
