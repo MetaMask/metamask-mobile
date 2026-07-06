@@ -83,6 +83,41 @@ export function setupPriceAlertsPostMock(): Scope {
 }
 
 /**
+ * Registers a one-shot DELETE /v1/alerts/:id nock interceptor.
+ * Returns the nock scope so callers can assert `scope.isDone()`.
+ */
+export function setupPriceAlertsDeleteMock(alertId: string): Scope {
+  return nock(PRICE_ALERTS_ORIGIN)
+    .delete(`${ALERTS_PATH}/${alertId}`)
+    .reply(200);
+}
+
+/**
+ * Registers a one-shot PATCH /v1/alerts/:id nock interceptor.
+ * Returns the nock scope so callers can assert `scope.isDone()`.
+ */
+export function setupPriceAlertsPatchMock(alertId: string): Scope {
+  return nock(PRICE_ALERTS_ORIGIN)
+    .patch(`${ALERTS_PATH}/${alertId}`)
+    .reply(200);
+}
+
+/**
+ * Sets up a nock interceptor for GET /v1/alerts/supported-chains.
+ * Used by TokenDetails to determine if the bell icon should be shown.
+ *
+ * @param chains - The list of CAIP-2 chain identifiers to return. Defaults to ['eip155:1'].
+ */
+export function setupPriceAlertsSupportedChainsMock(
+  chains: string[] = ['eip155:1'],
+): void {
+  nock(PRICE_ALERTS_ORIGIN)
+    .get('/v1/alerts/supported-chains')
+    .reply(200, chains)
+    .persist();
+}
+
+/**
  * Clears all nock interceptors after each price-alerts test.
  */
 export function clearPriceAlertsApiMocks(): void {

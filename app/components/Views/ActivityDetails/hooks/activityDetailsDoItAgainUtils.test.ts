@@ -46,12 +46,41 @@ describe('activityDetailsDoItAgainUtils', () => {
         direction: 'out',
       } as TokenAmount;
 
-      expect(toBridgeToken(token, 'eip155:1')).toStrictEqual({
-        address: NATIVE_SWAPS_TOKEN_ADDRESS,
-        symbol: 'ETH',
+      expect(toBridgeToken(token, 'eip155:1')).toEqual(
+        expect.objectContaining({
+          address: NATIVE_SWAPS_TOKEN_ADDRESS,
+          symbol: 'ETH',
+          decimals: 18,
+          chainId: 'eip155:1',
+        }),
+      );
+    });
+
+    it('normalizes Polygon native (0x…1010) to the zero address so it matches held holdings', () => {
+      const token = {
+        assetId: 'eip155:137/erc20:0x0000000000000000000000000000000000001010',
+        symbol: 'POL',
         decimals: 18,
-        chainId: 'eip155:1',
-      });
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(toBridgeToken(token, 'eip155:137')?.address).toBe(
+        NATIVE_SWAPS_TOKEN_ADDRESS,
+      );
+    });
+
+    it('populates the icon url from the asset id (so un-held tokens still show an icon)', () => {
+      const token = {
+        assetId:
+          'eip155:42161/erc20:0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
+        symbol: 'DAI',
+        decimals: 18,
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(toBridgeToken(token, 'eip155:1')?.image).toEqual(
+        expect.stringContaining('static.cx.metamask.io'),
+      );
     });
 
     it('derives chainId from the asset id when present', () => {

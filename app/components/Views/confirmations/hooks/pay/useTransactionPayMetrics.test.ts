@@ -72,7 +72,7 @@ const QUOTE_MOCK = {
     fiat: '0.6',
     usd: '0.5',
   },
-  strategy: TransactionPayStrategy.Bridge,
+  strategy: TransactionPayStrategy.Relay,
 } as TransactionPayQuote<Json>;
 
 function runHook({ type }: { type?: TransactionType } = {}) {

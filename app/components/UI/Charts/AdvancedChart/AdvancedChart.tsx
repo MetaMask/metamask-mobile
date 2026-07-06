@@ -119,6 +119,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       currentPriceLineColorOverride,
       labelStyleOverrides,
       scrollPassthrough = false,
+      slbMode = false,
       volumeSuccessColorOverride,
       volumeErrorColorOverride,
     },
@@ -409,6 +410,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const visibleToMsRef = useRef<number | undefined>(visibleToMs);
     visibleToMsRef.current = visibleToMs;
+    const prevVisibleFromMsSentRef = useRef<number | undefined>(undefined);
+    const prevVisibleToMsSentRef = useRef<number | undefined>(undefined);
+
+    // Mirror `slbMode` into a ref so `sendOHLCVData` keeps a stable identity (it
+    // rarely changes — set once per consumer). Sent on every SET_OHLCV_DATA so the
+    // WebView's `window.__slbMode` gate is correct before the post-load centering.
+    const slbModeRef = useRef(slbMode);
+    slbModeRef.current = slbMode;
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
@@ -420,8 +429,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             rnBackedPagination: rnBackedPaginationRef.current,
             visibleFromMs: visibleFromMsRef.current,
             visibleToMs: visibleToMsRef.current,
+            // Only sent for SocialLeaderboard; omitted otherwise so other
+            // consumers' payload is unchanged (the WebView coerces a missing
+            // value to false via `!!payload.slbMode`).
+            slbMode: slbModeRef.current || undefined,
           },
         });
+        prevVisibleFromMsSentRef.current = visibleFromMsRef.current;
+        prevVisibleToMsSentRef.current = visibleToMsRef.current;
       },
       [postMessage],
     );
@@ -716,6 +731,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
 
       const prevData = prevOhlcvDataRef.current;
+      const visibleRangeChanged =
+        visibleFromMsRef.current !== prevVisibleFromMsSentRef.current ||
+        visibleToMsRef.current !== prevVisibleToMsSentRef.current;
 
       if (
         ohlcvSeriesKey !== undefined &&
@@ -733,6 +751,21 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         prevData.length === 0 ||
         Math.abs(ohlcvData.length - prevData.length) > 1
       ) {
+        beginFullOhlcvLayoutSettle();
+        sendOHLCVData(ohlcvData);
+        prevOhlcvDataRef.current = ohlcvData;
+        if (ohlcvSeriesKey !== undefined) {
+          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+        }
+        return;
+      }
+
+      // SocialLeaderboard only: when the requested viewport (visibleFromMs/To)
+      // changes without a series-key change, resend the full series so the WebView
+      // re-frames on the trades. Gated behind slbMode so other consumers (e.g.
+      // Perps) keep their stable latest-N-candle viewport + REALTIME_UPDATE path
+      // and never take a full-data resend on a visible-range-only change.
+      if (slbModeRef.current && visibleRangeChanged) {
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
@@ -768,6 +801,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       ohlcvData,
       ohlcvSeriesKey,
       webViewLoaded,
+      visibleFromMs,
+      visibleToMs,
       sendOHLCVData,
       postMessage,
       beginFullOhlcvLayoutSettle,

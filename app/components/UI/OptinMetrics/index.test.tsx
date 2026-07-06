@@ -200,7 +200,10 @@ describe('OptinMetrics', () => {
         }),
       );
       await waitFor(() => {
-        expect(store.getState().attribution.attribution).toBeNull();
+        expect(store.getState().attribution.attribution).toEqual({
+          utm_source: 'stale_campaign',
+          capturedAt: expect.any(Number),
+        });
         expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();

@@ -503,7 +503,8 @@
   },
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
-    "select_hardware": "Select a hardware wallet you'd like to use"
+    "select_hardware": "Select a hardware wallet you'd like to use",
+    "other_qr_wallet": "Other QR wallet"
   },
   "enter_password": {
     "title": "Enter your password",
@@ -794,6 +795,11 @@
       "search_by_country": "Search by country",
       "no_regions_found": "No regions match \"{{searchString}}\""
     },
+    "phone_country_modal": {
+      "select_phone_country": "Select phone country",
+      "search_by_country": "Search by country",
+      "no_countries_found": "No countries match \"{{searchString}}\""
+    },
     "state_modal": {
       "select_a_state": "Select a state",
       "search_by_state": "Search by state",
@@ -1063,21 +1069,14 @@
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
     },
-    "trader_notifications": {
-      "title": "Notifications from {{traderName}}",
-      "allow_push_notifications": "Allow push notifications",
-      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow"
-    },
-    "trader_notifications_setup": {
-      "description": "Get real-time alerts on trades from the traders you follow",
-      "allow_push_notifications": "Allow push notifications",
-      "trades_over_label": "Get notified of trades over:",
-      "save": "Save",
-      "title": "Top Traders"
-    },
     "follow": "Follow",
     "following": "Following",
+    "mute": {
+      "on_accessibility_label": "Notifications on. Tap to mute this trader",
+      "muted_accessibility_label": "Muted. Tap to turn notifications back on",
+      "on_accessibility_label_named": "Notifications on for {{traderName}}. Tap to mute",
+      "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
+    },
     "all_networks": "All networks",
     "trader_profile": {
       "followers_count": "{{count}} follower",
@@ -3090,9 +3089,6 @@
     "title": "Activity",
     "search_placeholder": "Search tokens, transaction types...",
     "filter_all_networks": "All networks",
-    "filter_all_types": "All types",
-    "filter_types_selected": "Types: {{label}}",
-    "filter_network_selected": "Network: {{label}}",
     "type_filter": {
       "title": "Types",
       "all": "All types",
@@ -3102,6 +3098,13 @@
       "predictions": "Predictions",
       "metamask_card": "Card",
       "money": "Money"
+    },
+    "perps_filter": {
+      "title": "Perps",
+      "trades": "Trades",
+      "order": "Order",
+      "fundings": "Fundings",
+      "deposits": "Deposits"
     },
     "empty_state": {
       "default_funded": {
@@ -3119,6 +3122,9 @@
       "perps": {
         "description": "Your first perps trade could be your best.",
         "action": "Browse markets"
+      },
+      "perps_sub_filter": {
+        "description": "No activity for this filter. Try a different Perps filter."
       },
       "transactions_funded": {
         "description": "Swap your first token today.",
@@ -3619,7 +3625,9 @@
       "snaps_title": "Snaps",
       "snaps_desc": "New features and updates",
       "products_announcements_title": "Product announcements",
-      "products_announcements_desc": "New products and features"
+      "products_announcements_desc": "New products and features",
+      "price_alerts_title": "Price Alerts",
+      "price_alerts_desc": "Get notified based on the alerts you've set for a token's price"
     },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts.",
@@ -6804,9 +6812,16 @@
     "eth_app_not_open_message": "Please open the Ethereum app on your Ledger device.",
     "ledger_is_locked": "Ledger is locked",
     "unlock_ledger_message": "Please unlock your Ledger device",
+    "unlock_ledger_device": "Unlock your Ledger device",
     "cannot_get_account": "Cannot get account",
     "connect_ledger": "Connect Ledger",
-    "looking_for_device": "Looking for device",
+    "looking_for_device": "Looking for your device",
+    "device_found": "Ledger device found",
+    "wait_while_we_search_for_it": "Hold on while we search for it...",
+    "select_device": "Select device",
+    "save_device_selection": "Save",
+    "enable_bluetooth": "Enable Bluetooth",
+    "install_and_open_eth_app": "Install and open the Ethereum app",
     "ledger_reminder_message": "Please make sure your Ledger device is:",
     "ledger_reminder_message_step_one": "1. Unlock your Ledger device",
     "ledger_reminder_message_step_two": "2. Install and open the Ethereum app",
@@ -6834,6 +6849,8 @@
     "toast_bluetooth_connection_error_title": "Oops, something went wrong :/",
     "toast_bluetooth_connection_error_subtitle": "Ledger has not been connected",
     "try_again": "Try again",
+    "device_not_found": "Device not found",
+    "turn_off_do_not_disturb": "Turn off Do Not Disturb",
     "forget_device": "Forget Ledger",
     "sign_with_ledger": "Sign with Ledger",
     "ledger_pending_confirmation": "Ledger is busy",
@@ -6859,7 +6876,22 @@
     "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one.",
     "hd_path_error": "HD Path is invalid: {{path}}",
     "unspecified_error_during_connect": "Unspecified error when connect Ledger Hardware,",
-    "account_name_existed": "Account {{accountName}} already exists"
+    "account_name_existed": "Account {{accountName}} already exists",
+    "unresponsive": "Ledger is unresponsive",
+    "unresponsive_message": "Please disconnect and reconnect your device",
+    "ethereum_app_closed": "Ethereum app is closed",
+    "ethereum_app_closed_message": "Please open it on your Ledger device to continue",
+    "ledger_locked_message_continue": "Please unlock your Ledger device to continue",
+    "bluetooth_access_denied": "Bluetooth access denied",
+    "bluetooth_access_denied_message": "Enable Bluetooth in your device settings to connect your Ledger device",
+    "location_access_denied": "Location access denied",
+    "location_access_denied_message": "Enable location permissions in your device settings to connect your Ledger device",
+    "nearby_devices_denied": "Permissions to nearby devices denied",
+    "nearby_devices_denied_message": "Enable access to nearby devices in Settings to connect your Ledger device",
+    "bluetooth_turned_off": "Bluetooth is turned off",
+    "bluetooth_turned_off_message": "Enable Bluetooth in your device settings to connect your Ledger device",
+    "bluetooth_connection_failed_reconnect": "Make sure your device is nearby, then try reconnecting",
+    "not_now": "Not now"
   },
   "account_actions": {
     "add_wallet": "Add a wallet",
@@ -7232,6 +7264,9 @@
       "unlink_pending_title": "Unlinking your card",
       "unlink_success_title": "Your card was unlinked",
       "unlink_error": "Something went wrong unlinking your card",
+      "update_pending_title": "Updating your spending limit",
+      "update_success_title": "Your spending limit was updated",
+      "update_error": "Something went wrong updating your spending limit",
       "link_card_sheet_title": "Spend and earn",
       "link_card_sheet_description_prefix": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to",
       "link_card_sheet_description_suffix": " (variable).",
@@ -8048,8 +8083,10 @@
     "fetching_quote": "Fetching quote",
     "fee_includes": "Includes",
     "fee_percentage": "{{feePercentage}}%",
-    "fee_percentage_meta_mask": "{{feePercentage}}% MM fee.",
-    "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee.",
+    "fee_percentage_meta_mask": "{{feePercentage}}% MetaMask fee",
+    "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee",
+    "discount_badge_promo": "Promo",
+    "discount_badge_dao": "DAO",
     "no_mm_fee": "No MM fee",
     "token_suspicious": "Suspicious",
     "token_malicious": "Malicious",
@@ -8904,9 +8941,9 @@
       "available_cashback": "Available mUSD",
       "network_fee": "Network fee",
       "expected_to_receive": "Expected to receive",
+      "to": "To",
       "withdraw": "Withdraw",
       "withdraw_unavailable": "Withdrawal unavailable",
-      "withdrawal_initiated": "Withdrawal has been initiated",
       "withdrawal_success": "Withdrawal completed successfully",
       "withdrawal_failed": "Withdrawal failed. Please try again.",
       "no_cashback": "No mUSD back available",
@@ -8921,6 +8958,48 @@
         "description": "You need a linked Money Account before redeeming mUSD back.",
         "confirm_button_label": "Set up Money Account"
       }
+    },
+    "credit_screen": {
+      "title": "Card refunds",
+      "available_credit": "Refund balance",
+      "network_fee": "Network fee",
+      "expected_to_receive": "Expected to receive",
+      "to": "To",
+      "withdraw": "Move funds",
+      "withdraw_to_money_account": "Move to Money account",
+      "withdraw_unavailable": "Redemption unavailable",
+      "withdrawal_success": "Redemption completed successfully",
+      "withdrawal_failed": "Redemption failed. Please try again.",
+      "loading_error": "Failed to load credit. Please try again.",
+      "funding_required": {
+        "title": "Set up funding",
+        "description": "You need at least one approved funding source before redeeming your credit.",
+        "confirm_button_label": "Set up funding"
+      },
+      "money_account_required": {
+        "title": "Set up Money Account",
+        "description": "You need a linked Money Account before redeeming your credit.",
+        "confirm_button_label": "Set up Money Account"
+      },
+      "refund_info": {
+        "title": "Refund balance",
+        "description": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be moved to your Money account anytime.",
+        "description_no_money_account": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be redeemed to your wallet anytime."
+      }
+    },
+    "credit_balance_tooltip": {
+      "title": "Available balance",
+      "description": "Your balance is made up of your Money account balance and any refunds you've received.",
+      "description_no_money_account": "Your balance is made up of your wallet balance and any refunds you've received.",
+      "money_account": "Money account",
+      "wallet": "Wallet",
+      "refund_balance": "Refund balance"
+    },
+    "credit_banner": {
+      "title": "Refund balance: {{amount}}",
+      "description": "Spend it or move it to your Money account to keep earning on your balance.",
+      "description_no_money_account": "Spend it or redeem it to your wallet.",
+      "confirm_button_label": "Move funds"
     },
     "change_asset": {
       "title": "Change token and network",

@@ -152,6 +152,7 @@ import {
   TopTradersView,
   TraderProfileView,
   TraderPositionView,
+  TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -220,10 +221,6 @@ const AssetStackFlow = (props) => (
       component={SecurityTrustScreen}
     />
     <NativeStack.Screen
-      name={Routes.TRANSACTION_DETAILS}
-      component={TransactionDetails}
-    />
-    <NativeStack.Screen
       name={Routes.CREATE_PRICE_ALERT}
       component={CreatePriceAlertView}
     />
@@ -286,16 +283,6 @@ const TransactionsHome = () => {
       <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
         component={ActivityView}
-      />
-      <NativeStack.Screen
-        name={Routes.TRANSACTION_DETAILS}
-        component={TransactionDetails}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.ACTIVITY_DETAILS}
-        component={ActivityDetails}
-        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
@@ -1100,6 +1087,16 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
+        name={Routes.ACTIVITY_DETAILS}
+        component={ActivityDetails}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.TRANSACTION_DETAILS}
+        component={TransactionDetails}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
         options={slideFromRightNativeOptions}
@@ -1394,6 +1391,16 @@ const MainNavigator = () => {
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP}
+          component={TradingSignalsSetupBottomSheet}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
         />
       )}
       <>

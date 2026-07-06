@@ -177,6 +177,18 @@ class PerpsView {
   ): Promise<void> {
     const { symbol, direction } = options;
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
+    // Android may land mid-scroll after back navigation; scroll the order into view first
+    if (PlatformDetector.isAndroid()) {
+      const orderElement = Matchers.getElementByText(orderLabel);
+      const scrollView = Matchers.scrollContainer(
+        PerpsHomeViewSelectorsIDs.SCROLL_CONTENT,
+      );
+      await Gestures.scrollToElement(orderElement, scrollView, {
+        direction: 'up',
+        scrollAmount: 150,
+        elemDescription: `scrollToElement(up) for ${orderLabel} on Perps portfolio`,
+      });
+    }
     await Utilities.executeWithRetry(
       async () => {
         await Assertions.expectTextDisplayed(orderLabel, {

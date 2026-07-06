@@ -287,6 +287,12 @@ export interface SetOHLCVDataPayload {
    * the intended window instead of defaulting to `Date.now()`.
    */
   visibleToMs?: number;
+  /**
+   * SocialLeaderboard (Social Trading) scoping flag. When true, the WebView runs
+   * the SLB-only viewport behavior; omitted/false for other consumers. See
+   * {@link AdvancedChartProps.slbMode}.
+   */
+  slbMode?: boolean;
 }
 
 /**
@@ -840,6 +846,16 @@ export interface AdvancedChartProps {
    * the chart must scroll the list underneath rather than pan the WebView.
    */
   scrollPassthrough?: boolean;
+
+  /**
+   * SocialLeaderboard (Social Trading) scoping flag. When true, the WebView runs
+   * the SLB-only viewport behavior (frame-the-trades centering, back-fill
+   * pagination, full-window focus guard); when false/omitted, the chart uses the
+   * default code paths. This is a temporary team name-scope so SLB behavior can't
+   * affect other consumers (Token Details, Perps) while the chart logic is shared
+   * in one file. Only `TraderAdvancedChart` sets it.
+   */
+  slbMode?: boolean;
 }
 
 export interface LegendPlotConfig {

@@ -67,10 +67,13 @@ export const TokenDetailsInlineHeader = ({
   const stellarNativeToken = isStellarNativeToken(token) ? token : null;
   ///: END:ONLY_INCLUDE_IF
 
-  const contractAddress = useMemo(
-    () => resolveTokenContractAddress(token),
-    [token],
-  );
+  const isNativeToken = token.isETH || token.isNative;
+  const contractAddress = useMemo(() => {
+    if (isNativeToken) {
+      return null;
+    }
+    return resolveTokenContractAddress(token);
+  }, [token, isNativeToken]);
   const handleCopyContractAddress = useCopyTokenContractAddress(
     contractAddress,
     onCopyAddress,

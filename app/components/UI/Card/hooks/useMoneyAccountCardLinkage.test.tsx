@@ -1502,6 +1502,87 @@ describe('useMoneyAccountCardLinkage', () => {
     });
   });
 
+  describe('confirmLinkInBackground - update spending limit', () => {
+    it('shows the update pending + success toasts for a non-zero amount on an already-linked card', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      let resolveLink: (() => void) | undefined;
+      mockLinkMoneyAccountCard.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const { result } = renderLinkageHook();
+
+      let linkPromise: Promise<boolean> | undefined;
+      await act(async () => {
+        linkPromise = result.current.confirmLinkInBackground({
+          delegationAmountHuman: '250',
+        });
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Updating your spending limit' }],
+        }),
+      );
+
+      await act(async () => {
+        resolveLink?.();
+        await linkPromise;
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Your spending limit was updated' }],
+        }),
+      );
+    });
+
+    it('shows the update error toast when the update submission fails', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(new Error('update boom'));
+
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '250',
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            { label: 'Something went wrong updating your spending limit' },
+          ],
+        }),
+      );
+    });
+
+    it('still shows the link toast for a non-zero amount when the card is not yet linked', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: false }));
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '250',
+        });
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Your card is ready to use' }],
+        }),
+      );
+    });
+  });
+
   describe('reset', () => {
     it('clears status and error back to idle / null', async () => {
       mockLinkMoneyAccountCard.mockRejectedValueOnce(new Error('boom'));

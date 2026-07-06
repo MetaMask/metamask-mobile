@@ -267,6 +267,7 @@ export const placeLimitOrderAtPreset = async (
   preset: PerpsLimitPricePreset = 'Mid',
 ): Promise<void> => {
   await navigateToPerpsOrderEntry(symbol, direction);
+  await waitForOrderScreenVisible();
   await PerpsOrderView.openOrderTypeSelector();
   await PerpsOrderView.selectLimitOrderType();
 

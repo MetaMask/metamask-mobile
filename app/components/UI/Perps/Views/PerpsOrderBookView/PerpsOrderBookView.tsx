@@ -1,4 +1,7 @@
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -8,6 +11,7 @@ import {
   FilterButton,
   HeaderSubpage,
   IconName as HeaderIconName,
+  ListItemSelect,
   SegmentedControl,
   SelectButton,
   SelectButtonVariant,
@@ -35,10 +39,6 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Icon, {
   IconColor,
   IconName,
@@ -49,6 +49,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -110,6 +111,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { symbol, marketData: routeMarketData } = route.params || {};
   const displaySymbol = getPerpsDisplaySymbol(symbol || '');
   const { styles } = useStyles(styleSheet, {});
+  const surfaceClass = useElevatedSurface();
   const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
@@ -422,15 +424,24 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Handle grouping selection
   const handleGroupingSelect = useCallback(
     (value: number) => {
-      setSelectedGrouping(value);
-      saveGrouping(value); // Persist to controller
-      setIsDepthBandSheetVisible(false);
+      const applyGroupingSelection = () => {
+        setSelectedGrouping(value);
+        saveGrouping(value);
 
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
-        [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
-      });
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.ASSET]: symbol || '',
+        });
+      };
+
+      if (depthBandSheetRef.current) {
+        depthBandSheetRef.current.onCloseBottomSheet(applyGroupingSelection);
+        return;
+      }
+
+      setIsDepthBandSheetVisible(false);
+      applyGroupingSelection();
     },
     [symbol, track, saveGrouping],
   );
@@ -794,38 +805,32 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       {isDepthBandSheetVisible && (
         <BottomSheet
           ref={depthBandSheetRef}
-          shouldNavigateBack={false}
           onClose={handleDepthBandSheetClose}
+          twClassName={surfaceClass}
+          testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET}
         >
-          <BottomSheetHeader onClose={handleDepthBandSheetClose}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('perps.order_book.depth_band.title')}
-            </Text>
+          <BottomSheetHeader
+            onClose={() =>
+              depthBandSheetRef.current?.onCloseBottomSheet(
+                handleDepthBandSheetClose,
+              )
+            }
+            closeButtonProps={{
+              testID: PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET_CLOSE,
+            }}
+          >
+            {strings('perps.order_book.depth_band.title')}
           </BottomSheetHeader>
-          <View style={styles.depthBandSheetContent}>
-            {groupingOptions.map((value) => (
-              <TouchableOpacity
-                key={value}
-                style={[
-                  styles.depthBandOption,
-                  currentGrouping === value && styles.depthBandOptionSelected,
-                ]}
-                onPress={() => handleGroupingSelect(value)}
-                testID={`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-${value}`}
-              >
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={
-                    currentGrouping === value
-                      ? TextColor.Primary
-                      : TextColor.Default
-                  }
-                >
-                  {formatGroupingLabel(value)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {groupingOptions.map((value) => (
+            <ListItemSelect
+              key={value}
+              title={formatGroupingLabel(value)}
+              isSelected={currentGrouping === value}
+              showSelectedIcon
+              onPress={() => handleGroupingSelect(value)}
+              testID={`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-${value}`}
+            />
+          ))}
         </BottomSheet>
       )}
 
