@@ -2164,6 +2164,7 @@ function __resetExternalLinkBridgeForTests() {
 
 
 
+
 /**
  * Generates a 19-shade palette from a base hex color, light→base→dark.
  * Used for TradingView \`custom_themes.dark.color{1,3}\`. Ported verbatim
@@ -2302,6 +2303,19 @@ function createChartWidget(config, options) {
     setWidget(widget);
     widget.onChartReady(() => {
         setChartReady(true);
+        // Apply the stored chart type before revealing the chart. RN sends
+        // SET_CHART_TYPE before SET_OHLCV_DATA, so the state already holds
+        // the user's selection by the time onChartReady fires. Applying it
+        // here prevents the brief candlestick flash for line-chart users.
+        const storedType = getCurrentChartType();
+        if (storedType !== ChartType.Candles) {
+            try {
+                widget.activeChart().setChartType(storedType);
+            }
+            catch (e) {
+                reportErrorToRN(e);
+            }
+        }
         hideLoadingOverlay();
         installTradingViewExternalOpenBridge();
         postToRN('CHART_READY', {});
