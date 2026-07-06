@@ -24,10 +24,6 @@ import {
   TRON_SPECIAL_ASSET_SYMBOLS_SET,
   TronSpecialAssetSymbol,
 } from '../../core/Multichain/constants';
-import {
-  ARC_USDC_TOKEN_ADDRESS,
-  NETWORKS_CHAIN_ID,
-} from '../../constants/network';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
@@ -60,6 +56,7 @@ import {
   getTokensControllerAllIgnoredTokens,
   getTokensControllerAllTokens,
 } from './assets-migration';
+import { filterExcludedAssets } from '../../enablement/assets/networks-customization';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -142,27 +139,6 @@ const getStateForAssetSelector = (state: RootState) => {
 };
 
 /**
- * Removes the Arc USDC ERC-20 (0x3600…) from the per-chain asset map so it
- * never appears as a duplicate of the native token on Arc. The native token
- * (zero address) is kept — it is the source of truth for USDC on Arc.
- */
-function filterArcUsdcErc20Token(
-  assets: AccountGroupAssets,
-): AccountGroupAssets {
-  const arcAssets = assets[NETWORKS_CHAIN_ID.ARC];
-  if (!arcAssets) {
-    return assets;
-  }
-  return {
-    ...assets,
-    [NETWORKS_CHAIN_ID.ARC]: arcAssets.filter(
-      (asset) =>
-        !('address' in asset) || asset?.address !== ARC_USDC_TOKEN_ADDRESS,
-    ),
-  };
-}
-
-/**
  * Invokes the assets-controllers selector; on failure returns {} so the wallet UI
  * does not red-screen during brief AccountTree / internalAccounts mismatch (e.g. after unlock).
  */
@@ -182,9 +158,7 @@ function callSelectAssetsBySelectedAccountGroup(
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) =>
-    filterArcUsdcErc20Token(
-      callSelectAssetsBySelectedAccountGroup(assetsState),
-    ),
+    filterExcludedAssets(callSelectAssetsBySelectedAccountGroup(assetsState)),
 );
 
 /**
