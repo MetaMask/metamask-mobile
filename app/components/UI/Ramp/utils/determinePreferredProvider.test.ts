@@ -207,6 +207,35 @@ describe('determinePreferredProvider', () => {
         autoSelected: false,
       });
     });
+
+    it('matches a fresh canonical provider against a prefixed persisted order id', () => {
+      // Order stored in the legacy path form (prefixed era); catalog is fresh
+      // canonical. provider-1 is NOT transak, so this only passes if the id is
+      // matched canonically (not via the transak substring fallback).
+      const completedOrders = [
+        { providerId: '/providers/provider-1', completedAt: 1000 },
+      ];
+      const providers = [mockProvider1, mockProvider2, mockTransakProvider];
+
+      const result = determinePreferredProvider(completedOrders, providers);
+
+      expect(result).toEqual({ provider: mockProvider1, autoSelected: false });
+    });
+
+    it('exact-matches transak-native across prefixed persisted id and canonical catalog', () => {
+      const nativeProvider: Provider = {
+        ...mockTransakProvider,
+        id: 'transak-native',
+      };
+      const completedOrders = [
+        { providerId: '/providers/transak-native', completedAt: 1000 },
+      ];
+      const providers = [mockProvider1, nativeProvider];
+
+      const result = determinePreferredProvider(completedOrders, providers);
+
+      expect(result).toEqual({ provider: nativeProvider, autoSelected: false });
+    });
   });
 
   describe('when user has no orders', () => {

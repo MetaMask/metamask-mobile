@@ -325,6 +325,43 @@ describe('SettingsModal', () => {
       expect(logoutButton).toBeOnTheScreen();
     });
 
+    it('displays logout option for the canonical (non-prefixed) Transak native id', async () => {
+      mockSelectedProvider = createMockTransakProvider({
+        id: 'transak-native',
+      });
+
+      const { findByText } = renderWithProvider(SettingsModal);
+
+      const logoutButton = await findByText('Log out of Transak');
+
+      expect(logoutButton).toBeOnTheScreen();
+    });
+
+    it('displays logout option for the canonical (non-prefixed) Transak staging id', async () => {
+      mockSelectedProvider = createMockTransakStagingProvider({
+        id: 'transak-native-staging',
+      });
+
+      const { findByText } = renderWithProvider(SettingsModal);
+
+      const logoutButton = await findByText('Log out of Transak');
+
+      expect(logoutButton).toBeOnTheScreen();
+    });
+
+    it('hides logout option for a canonical non-Transak provider even when authenticated', async () => {
+      mockSelectedProvider = createMockProvider({
+        id: 'moonpay',
+        name: 'MoonPay',
+      });
+
+      const { queryByText } = renderWithProvider(SettingsModal);
+
+      await waitFor(() => {
+        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
+      });
+    });
+
     it('hides logout option for non-Transak providers even when authenticated', async () => {
       mockSelectedProvider = createMockProvider();
 

@@ -9,6 +9,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
+import { rampIdsEqual } from './rampIdMatch';
 
 /**
  * Minimal representation of a completed order used for provider selection
@@ -100,7 +101,7 @@ export function determinePreferredProvider(
 
     const foundProvider = availableProviders.find(
       (provider) =>
-        provider.id?.toLowerCase() === mostRecent.providerId.toLowerCase() ||
+        rampIdsEqual(provider.id, mostRecent.providerId) ||
         provider.name?.toLowerCase() === mostRecent.providerId.toLowerCase(),
     );
 

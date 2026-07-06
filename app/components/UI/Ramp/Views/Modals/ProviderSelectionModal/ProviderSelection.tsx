@@ -33,6 +33,7 @@ import { BannerAlertSeverity } from '../../../../../../component-library/compone
 import { useTheme } from '../../../../../../util/theme';
 import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 import { getProviderLimitMessage } from '../../../utils/getProviderLimitMessage';
+import { rampIdInList } from '../../../utils/rampIdMatch';
 
 const SKELETON_ROW_COUNT = 5;
 const SKELETON_NAME_WIDTH = 120;
@@ -136,7 +137,7 @@ function getProviderTag(
   matchedQuote: Quote | null,
   ordersProviders: string[],
 ): string | null {
-  if (ordersProviders.includes(providerId)) {
+  if (rampIdInList(ordersProviders, providerId)) {
     return strings('fiat_on_ramp.previously_used');
   }
   if (matchedQuote?.metadata?.tags?.isMostReliable) {
