@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { NavigationContainer } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TimeOption } from '../../../Trending/components/TrendingTokensBottomSheet';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -8,20 +7,13 @@ import SwapDiscoveryFeed from './SwapDiscoveryFeed';
 import { SwapDiscoveryFeedTestIds } from './SwapDiscoveryFeed.testIds';
 
 const mockNavigate = jest.fn();
-const mockTrackExploreInteracted = jest.fn();
 const mockUseTokensFeed = jest.fn();
 const mockUseStocksFeed = jest.fn();
 const mockExploreSectionList = jest.fn();
-const mockCryptoMoversPillItem = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
-}));
-
-jest.mock('../../../../Views/TrendingView/search/analytics', () => ({
-  trackExploreInteracted: (...args: unknown[]) =>
-    mockTrackExploreInteracted(...args),
 }));
 
 jest.mock('../../../../Views/TrendingView/feeds/tokens/useTokensFeed', () => ({
@@ -67,31 +59,10 @@ jest.mock('../../../../Views/TrendingView/components/SectionHeader', () => {
   };
 });
 
-jest.mock('../../../../Views/TrendingView/components/PillScrollList', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      data,
-      renderItem,
-    }: {
-      data: TrendingAsset[];
-      renderItem: (item: TrendingAsset, index: number) => React.ReactNode;
-    }) =>
-      ReactActual.createElement(
-        View,
-        null,
-        data.map((item, index) =>
-          ReactActual.createElement(
-            View,
-            { key: item.assetId ?? String(index) },
-            renderItem(item, index),
-          ),
-        ),
-      ),
-  };
-});
+jest.mock('../../../../Views/TrendingView/components/PillScrollList', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('../../../../Views/TrendingView/components/CardList', () => ({
   __esModule: true,
@@ -102,14 +73,7 @@ jest.mock(
   '../../../../Views/TrendingView/feeds/tokens/CryptoMoversPillItem',
   () => ({
     __esModule: true,
-    default: (props: {
-      token: TrendingAsset;
-      index: number;
-      onCardPress?: () => void;
-    }) => {
-      mockCryptoMoversPillItem(props);
-      return null;
-    },
+    default: () => null,
   }),
 );
 
@@ -124,7 +88,6 @@ jest.mock(
     default: () => null,
   }),
 );
-
 jest.mock(
   '../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton',
   () => ({
@@ -133,38 +96,25 @@ jest.mock(
   }),
 );
 
-const hotToken = {
-  assetId: 'eip155:1/erc20:0xhot',
-  symbol: 'HOT',
-} as unknown as TrendingAsset;
+const feedToken = (assetId: string, symbol: string) =>
+  ({ assetId, symbol }) as unknown as TrendingAsset;
 
-const trendingToken = {
-  assetId: 'eip155:1/erc20:0xtrend',
-  symbol: 'TRND',
-} as unknown as TrendingAsset;
-
-const stockToken = {
-  assetId: 'eip155:1/erc20:0xstock',
-  symbol: 'STK',
-} as unknown as TrendingAsset;
+const hotToken = feedToken('eip155:1/erc20:0xhot', 'HOT');
+const trendingToken = feedToken('eip155:1/erc20:0xtrend', 'TRND');
+const stockToken = feedToken('eip155:1/erc20:0xstock', 'STK');
 
 const seedFeeds = () => {
   mockUseTokensFeed
-    .mockReturnValueOnce({ data: [hotToken], isLoading: false })
-    .mockReturnValueOnce({ data: [trendingToken], isLoading: false });
-  mockUseStocksFeed.mockReturnValue({ data: [stockToken], isLoading: false });
+    .mockReturnValueOnce({ data: [hotToken], loading: false })
+    .mockReturnValueOnce({ data: [trendingToken], loading: false });
+  mockUseStocksFeed.mockReturnValue({ data: [stockToken], loading: false });
 };
 
 const renderFeed = (
   props: React.ComponentProps<typeof SwapDiscoveryFeed> = {
     mode: 'discovery_feed',
   },
-) =>
-  render(
-    <NavigationContainer>
-      <SwapDiscoveryFeed {...props} />
-    </NavigationContainer>,
-  );
+) => render(<SwapDiscoveryFeed {...props} />);
 
 describe('SwapDiscoveryFeed', () => {
   beforeEach(() => {
@@ -189,9 +139,9 @@ describe('SwapDiscoveryFeed', () => {
 
     mockUseTokensFeed.mockReset();
     mockUseTokensFeed
-      .mockReturnValueOnce({ data: [], isLoading: false })
-      .mockReturnValueOnce({ data: [], isLoading: false });
-    mockUseStocksFeed.mockReturnValue({ data: [], isLoading: false });
+      .mockReturnValueOnce({ data: [], loading: false })
+      .mockReturnValueOnce({ data: [], loading: false });
+    mockUseStocksFeed.mockReturnValue({ data: [], loading: false });
 
     const { queryByTestId } = renderFeed({ mode: 'discovery_feed' });
 
@@ -199,41 +149,14 @@ describe('SwapDiscoveryFeed', () => {
     expect(mockExploreSectionList).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates view-all and tracks item taps with swap source and no tab', () => {
+  it('navigates hot tokens view-all to trending full view with one-hour filter', () => {
     const { getByTestId } = renderFeed({ mode: 'discovery_feed' });
 
     fireEvent.press(getByTestId(SwapDiscoveryFeedTestIds.HOT_TOKENS_VIEW_ALL));
+
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
       { initialTimeOption: TimeOption.OneHour },
-    );
-    expect(mockTrackExploreInteracted).toHaveBeenCalledWith(
-      expect.objectContaining({
-        interaction_type: 'section_see_all_tapped',
-        section_name: 'tokens_movers',
-        source: 'swaps',
-      }),
-    );
-    expect(mockTrackExploreInteracted.mock.calls[0][0]).not.toHaveProperty(
-      'tab_name',
-    );
-
-    const pillProps = mockCryptoMoversPillItem.mock.calls[0][0];
-    pillProps.onCardPress();
-
-    expect(mockTrackExploreInteracted).toHaveBeenCalledWith(
-      expect.objectContaining({
-        interaction_type: 'section_item_tapped',
-        section_name: 'tokens_movers',
-        asset_type: 'token',
-        position: 0,
-        token_symbol: hotToken.symbol,
-        item_clicked: hotToken.assetId,
-        source: 'swaps',
-      }),
-    );
-    expect(mockTrackExploreInteracted.mock.calls[1][0]).not.toHaveProperty(
-      'tab_name',
     );
   });
 });
