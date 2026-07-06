@@ -41,9 +41,6 @@ interface FeedSlice {
   isLoading: boolean;
 }
 
-const isFeedVisible = (feed: FeedSlice): boolean =>
-  feed.isLoading || feed.data.length > 0;
-
 const createCardItemRenderer =
   ({
     sectionName,
@@ -69,18 +66,6 @@ const createCardItemRenderer =
       }
     />
   );
-
-const renderTrendingItem = createCardItemRenderer({
-  sectionName: 'tokens_trending',
-  assetType: 'token',
-  tokenDetailsSource: TokenDetailsSource.TrendingSwaps,
-});
-
-const renderStocksItem = createCardItemRenderer({
-  sectionName: 'stocks',
-  assetType: 'stock',
-  tokenDetailsSource: TokenDetailsSource.RwasStocksSwaps,
-});
 
 const buildTokenCardSection = ({
   key,
@@ -190,11 +175,11 @@ const SwapDiscoveryFeedContent: React.FC = () => {
 
   const sections: ExploreSectionItem[] = [];
 
-  if (isFeedVisible(hotTokens)) {
+  if (hotTokens.loading || hotTokens.data.length > 0) {
     sections.push(buildHotTokensSection({ navigation, feed: hotTokens }));
   }
 
-  if (isFeedVisible(trending)) {
+  if (trending.loading || trending.data.length > 0) {
     sections.push(
       buildTokenCardSection({
         key: 'trending',
@@ -203,14 +188,18 @@ const SwapDiscoveryFeedContent: React.FC = () => {
         onViewAll: () =>
           navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW),
         feed: trending,
-        renderItem: renderTrendingItem,
+        renderItem: createCardItemRenderer({
+          sectionName: 'tokens_trending',
+          assetType: 'token',
+          tokenDetailsSource: TokenDetailsSource.TrendingSwaps,
+        }),
         idPrefix: 'swap-tokens',
         listTestId: SwapDiscoveryFeedTestIds.TRENDING_LIST,
       }),
     );
   }
 
-  if (isFeedVisible(stocks)) {
+  if (stocks.loading || stocks.data.length > 0) {
     sections.push(
       buildTokenCardSection({
         key: 'stocks',
@@ -219,7 +208,11 @@ const SwapDiscoveryFeedContent: React.FC = () => {
         onViewAll: () =>
           navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW),
         feed: stocks,
-        renderItem: renderStocksItem,
+        renderItem: createCardItemRenderer({
+          sectionName: 'stocks',
+          assetType: 'stock',
+          tokenDetailsSource: TokenDetailsSource.RwasStocksSwaps,
+        }),
         idPrefix: 'swap-stocks',
         listTestId: SwapDiscoveryFeedTestIds.STOCKS_LIST,
       }),
@@ -231,7 +224,7 @@ const SwapDiscoveryFeedContent: React.FC = () => {
   }
 
   return (
-    <Box twClassName="px-4" testID={SwapDiscoveryFeedTestIds.ROOT}>
+    <Box twClassName="px-1" testID={SwapDiscoveryFeedTestIds.ROOT}>
       <ExploreSectionList sections={sections} />
     </Box>
   );
