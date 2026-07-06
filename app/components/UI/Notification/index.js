@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { useNavigationState } from '@react-navigation/native';
 import {
   removeCurrentNotification,
   hideCurrentNotification,
@@ -11,18 +10,10 @@ import TransactionNotification from './TransactionNotification';
 import SimpleNotification from './SimpleNotification';
 import { currentNotificationSelector } from '../../../reducers/notification';
 
-import { findRouteNameFromNavigatorState } from '../../../util/general';
 import usePrevious from '../../hooks/usePrevious';
-import {
-  useSharedValue,
-  withTiming,
-  Easing,
-  runOnJS,
-} from 'react-native-reanimated';
+import { withTiming, Easing, runOnJS } from 'react-native-reanimated';
 
 const { TRANSACTION, SIMPLE } = NotificationTypes;
-
-const BROWSER_ROUTE = 'BrowserView';
 
 function Notification({
   currentNotification,
@@ -30,9 +21,6 @@ function Notification({
   hideCurrentNotification,
   removeCurrentNotification,
 }) {
-  const notificationAnimated = useSharedValue(200);
-  const routes = useNavigationState((state) => state.routes);
-
   const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
 
   const animatedTimingStart = useCallback((animatedRef, toValue, callback) => {
@@ -43,44 +31,22 @@ function Notification({
     );
   }, []);
 
-  const isInBrowserView = useMemo(
-    () => findRouteNameFromNavigatorState(routes) === BROWSER_ROUTE,
-    [routes],
-  );
-
   useEffect(
     () => () => {
-      animatedTimingStart(notificationAnimated, 200, removeCurrentNotification);
       hideCurrentNotification();
+      removeCurrentNotification();
     },
-    [
-      notificationAnimated,
-      animatedTimingStart,
-      hideCurrentNotification,
-      removeCurrentNotification,
-    ],
+    [hideCurrentNotification, removeCurrentNotification],
   );
 
   useEffect(() => {
     if (!prevNotificationIsVisible && currentNotificationIsVisible) {
-      animatedTimingStart(notificationAnimated, 0);
       hideCurrentNotification();
-      setTimeout(() => {
-        animatedTimingStart(
-          notificationAnimated,
-          200,
-          removeCurrentNotification,
-        );
-      }, currentNotification.autodismiss || 5000);
     }
   }, [
-    animatedTimingStart,
     hideCurrentNotification,
-    removeCurrentNotification,
     currentNotificationIsVisible,
     prevNotificationIsVisible,
-    currentNotification.autodismiss,
-    notificationAnimated,
   ]);
 
   if (!currentNotification?.type) return null;
@@ -88,8 +54,8 @@ function Notification({
     return (
       <TransactionNotification
         onClose={hideCurrentNotification}
-        isInBrowserView={isInBrowserView}
-        notificationAnimated={notificationAnimated}
+        onDismissComplete={removeCurrentNotification}
+        dismissDuration={currentNotification.autodismiss}
         animatedTimingStart={animatedTimingStart}
         currentNotification={currentNotification}
       />
@@ -97,8 +63,9 @@ function Notification({
   if (currentNotification.type === SIMPLE)
     return (
       <SimpleNotification
-        isInBrowserView={isInBrowserView}
-        notificationAnimated={notificationAnimated}
+        onDismissComplete={removeCurrentNotification}
+        dismissDuration={currentNotification.autodismiss}
+        hideCurrentNotification={hideCurrentNotification}
         currentNotification={currentNotification}
       />
     );

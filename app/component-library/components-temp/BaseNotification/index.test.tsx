@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import BaseNotification, { getDescription } from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
@@ -85,18 +85,30 @@ describe('BaseNotification', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders the close affordance when autoDismiss is true', () => {
+  it('invokes onHide when the close affordance is pressed', async () => {
+    jest.useFakeTimers();
     const onHide = jest.fn();
     const { getByTestId } = renderWithProvider(
       <BaseNotification
         status="success"
         data={defaultData}
         autoDismiss
+        persistUntilDismiss
         onHide={onHide}
       />,
     );
-    fireEvent.press(getByTestId('base-notification-close'));
+
+    fireEvent(getByTestId('base-notification-container'), 'layout', {
+      nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('base-notification-close'));
+      jest.runAllTimers();
+    });
+
     expect(onHide).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
   });
 
   describe('EIP-7702 transactions (without nonce)', () => {
