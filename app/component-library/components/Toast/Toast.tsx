@@ -21,7 +21,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
-  withTiming,
+  withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -43,14 +43,18 @@ import {
 } from './Toast.types';
 import styleSheet from './Toast.styles';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
-import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
+import {
+  TOAST_SPRING_CONFIG,
+  TOAST_TOP_PADDING,
+  visibilityDuration,
+} from './Toast.constants';
 import { useStyles } from '../../hooks';
 import ButtonIcon from '../Buttons/ButtonIcon';
 
-const visibilityDuration = 2750;
-const animationDuration = 250;
-const bottomPadding = 36;
 const screenHeight = Dimensions.get('window').height;
+
+const getHiddenTranslateY = (height: number, offset: number) =>
+  -(height + offset);
 
 /**
  * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
@@ -63,14 +67,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
     undefined,
   );
-  const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
-  const translateYProgress = useSharedValue(screenHeight);
+  const { top: topInset } = useSafeAreaInsets();
+  const toastHeight = useSharedValue(screenHeight);
+  const translateYProgress = useSharedValue(-screenHeight);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const customOffset = toastOptions?.customBottomOffset ?? 0;
+  const topOffset =
+    toastOptions?.customTopOffset ?? toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateYProgress.value - TAB_BAR_HEIGHT - customOffset },
-    ],
+    transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
   const baseStyle: StyleProp<ViewStyle> = useMemo(
     () => [styles.base, animatedStyle],
@@ -101,9 +105,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const closeToast = () => {
-    translateYProgress.value = withTiming(
-      screenHeight,
-      { duration: animationDuration },
+    translateYProgress.value = withSpring(
+      getHiddenTranslateY(toastHeight.value, topOffset),
+      TOAST_SPRING_CONFIG,
       () => {
         runOnJS(resetState)();
       },
@@ -118,24 +122,27 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const onAnimatedViewLayout = (e: LayoutChangeEvent) => {
     if (toastOptions) {
       const { height } = e.nativeEvent.layout;
-      const translateYToValue = -(bottomPadding + bottomNotchSpacing);
+      const hiddenTranslateY = getHiddenTranslateY(height, topOffset);
+      const visibleTranslateY = topInset + TOAST_TOP_PADDING;
 
-      translateYProgress.value = height;
+      toastHeight.value = height;
+      translateYProgress.value = hiddenTranslateY;
 
       if (toastOptions.hasNoTimeout) {
-        translateYProgress.value = withTiming(translateYToValue, {
-          duration: animationDuration,
-        });
+        translateYProgress.value = withSpring(
+          visibleTranslateY,
+          TOAST_SPRING_CONFIG,
+        );
       } else {
-        translateYProgress.value = withTiming(
-          translateYToValue,
-          { duration: animationDuration },
+        translateYProgress.value = withSpring(
+          visibleTranslateY,
+          TOAST_SPRING_CONFIG,
           () => {
             translateYProgress.value = withDelay(
               visibilityDuration,
-              withTiming(
-                height,
-                { duration: animationDuration },
+              withSpring(
+                hiddenTranslateY,
+                TOAST_SPRING_CONFIG,
                 runOnJS(resetState),
               ),
             );

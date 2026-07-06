@@ -106,6 +106,31 @@ describe('Toast', () => {
     expect(screen.getByText('Test description')).toBeOnTheScreen();
   });
 
+  it('hides toast with customTopOffset when closeToast is called', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Offset toast' }],
+      hasNoTimeout: true,
+      customTopOffset: 24,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    expect(screen.getByText('Offset toast')).toBeOnTheScreen();
+
+    await act(async () => {
+      toastRef.current?.closeToast();
+      jest.runAllTimers();
+    });
+
+    expect(screen.queryByText('Offset toast')).toBeNull();
+  });
+
   it('hides toast when closeToast is called', async () => {
     const toastOptions: ToastOptions = {
       variant: ToastVariants.Plain,
