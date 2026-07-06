@@ -1,6 +1,6 @@
 import { type Provider } from '@metamask/ramps-controller';
-import { useRampsProviders } from '../../Ramp/hooks/useRampsProviders';
-import { useFiatProviderScope } from '../../Ramp/utils/providerScope';
+import { useRampsProviders } from './useRampsProviders';
+import { useFiatProviderScope } from '../utils/providerScope';
 
 /**
  * Whether the user's CURRENT region offers a usable on-ramp provider that

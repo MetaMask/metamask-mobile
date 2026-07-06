@@ -14,7 +14,7 @@ import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasFiatProvider } from '../../hooks/useRegionHasFiatProvider';
+import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
@@ -104,6 +104,9 @@ jest.mock('../../utils/moneyAccountTransactions', () => ({
     depositTx: { to: '0xdeposit', data: '0x', value: '0x0' },
   }),
   getMoneyAccountDepositAssetAddress: jest.fn(() => '0xasset'),
+  getMoneyAccountDepositAssetId: jest.fn(
+    () => 'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  ),
 }));
 
 jest.mock('../../../../../util/notifications/methods/common', () => ({
@@ -150,7 +153,7 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
   () => ({ useMMPayFiatConfig: jest.fn() }),
 );
-jest.mock('../../hooks/useRegionHasFiatProvider', () => ({
+jest.mock('../../../Ramp/hooks/useRegionHasFiatProvider', () => ({
   useRegionHasFiatProvider: jest.fn(),
 }));
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({

@@ -8,7 +8,7 @@ import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasFiatProvider } from '../../hooks/useRegionHasFiatProvider';
+import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -60,7 +60,7 @@ jest.mock(
   }),
 );
 
-jest.mock('../../hooks/useRegionHasFiatProvider', () => ({
+jest.mock('../../../Ramp/hooks/useRegionHasFiatProvider', () => ({
   useRegionHasFiatProvider: jest.fn(),
 }));
 

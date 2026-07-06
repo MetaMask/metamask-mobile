@@ -1,12 +1,12 @@
 import { renderHook } from '@testing-library/react-native';
 import { useRegionHasFiatProvider } from './useRegionHasFiatProvider';
-import { useRampsProviders } from '../../Ramp/hooks/useRampsProviders';
-import { useFiatProviderScope } from '../../Ramp/utils/providerScope';
+import { useRampsProviders } from './useRampsProviders';
+import { useFiatProviderScope } from '../utils/providerScope';
 
-jest.mock('../../Ramp/hooks/useRampsProviders', () => ({
+jest.mock('./useRampsProviders', () => ({
   useRampsProviders: jest.fn(),
 }));
-jest.mock('../../Ramp/utils/providerScope', () => ({
+jest.mock('../utils/providerScope', () => ({
   useFiatProviderScope: jest.fn(),
 }));
 
