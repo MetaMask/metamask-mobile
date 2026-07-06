@@ -170,7 +170,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/ramps-controller@^15.0.0": "npm:@metamask-previews/ramps-controller@15.0.0-preview-9e8ad9c32",
     "@metamask/perps-controller": "^9.0.0",
     "@metamask/network-controller": "33.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
@@ -321,7 +320,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^4.0.1",
     "@metamask/profile-sync-controller": "^28.2.0",
-    "@metamask/ramps-controller": "^15.0.0",
+    "@metamask/ramps-controller": "^15.1.0",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
