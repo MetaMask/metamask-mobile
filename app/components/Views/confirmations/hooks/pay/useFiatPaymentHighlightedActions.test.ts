@@ -23,6 +23,13 @@ jest.mock('../../../../UI/Ramp/hooks/useAnalytics', () => ({
 jest.mock('../../../../UI/Ramp/hooks/useHasNativeFiatProvider', () => ({
   useHasNativeFiatProvider: () => true,
 }));
+jest.mock('../../../../UI/Ramp/hooks/useRegionHasFiatProvider', () => ({
+  useRegionHasFiatProvider: () => true,
+}));
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountDepositAssetId', () => ({
+  useMoneyAccountDepositAssetId: () =>
+    'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+}));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
