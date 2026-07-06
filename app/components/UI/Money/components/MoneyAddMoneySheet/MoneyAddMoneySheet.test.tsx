@@ -8,7 +8,7 @@ import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
+import { useRegionHasFiatProvider } from '../../hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -59,8 +59,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../hooks/useRegionHasNativeFiatProvider', () => ({
-  useRegionHasNativeFiatProvider: jest.fn(),
+jest.mock('../../hooks/useRegionHasFiatProvider', () => ({
+  useRegionHasFiatProvider: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
@@ -126,7 +126,7 @@ describe('MoneyAddMoneySheet', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
   });
 
   it('renders all options', () => {
@@ -319,7 +319,7 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('hides the Deposit funds option when the region has no native fiat provider', () => {
-    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
+    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(false);
 
     const { queryByTestId, getByTestId } = renderWithProvider(
       <MoneyAddMoneySheet />,
@@ -344,7 +344,7 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('shows the Deposit funds option when the region has a native fiat provider', () => {
-    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
