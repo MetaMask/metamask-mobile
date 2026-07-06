@@ -33,6 +33,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { isHardwareAccount } from '../../../util/address';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import TradeWalletActions from './TradeWalletActions';
+import { TRADE_MENU_OUTLINE_TEST_ID } from './components/TradeMenuOutline';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -368,14 +369,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   usePureBlack: () => mockIsPureBlack,
 }));
 
-const flattenStyle = (style: unknown): Record<string, unknown>[] => {
-  if (!style) return [];
-  if (Array.isArray(style)) {
-    return style.flatMap((entry) => flattenStyle(entry));
-  }
-  return [style as Record<string, unknown>];
-};
-
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -453,7 +446,7 @@ describe('TradeWalletActions', () => {
     ).toBeNull();
   });
 
-  it('adds border-muted to the menu container when pure black is enabled', () => {
+  it('renders a cutout-following menu outline when pure black is enabled', () => {
     mockIsPureBlack = true;
 
     const { getByTestId } = renderScreen(
@@ -466,22 +459,21 @@ describe('TradeWalletActions', () => {
       },
     );
 
-    const menuStyles = flattenStyle(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER).props
-        .style,
+    fireEvent(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+      'onLayout',
+      {
+        nativeEvent: { layout: { width: 350, height: 280, x: 0, y: 0 } },
+      },
     );
 
-    expect(
-      menuStyles.some(
-        (entry) => entry.borderWidth === 1 || entry.borderWidth === 0.5,
-      ),
-    ).toBe(true);
+    expect(getByTestId(TRADE_MENU_OUTLINE_TEST_ID)).toBeTruthy();
   });
 
-  it('does not add a border to the menu container when pure black is disabled', () => {
+  it('does not render the menu outline when pure black is disabled', () => {
     mockIsPureBlack = false;
 
-    const { getByTestId } = renderScreen(
+    const { queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -491,14 +483,7 @@ describe('TradeWalletActions', () => {
       },
     );
 
-    const menuStyles = flattenStyle(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER).props
-        .style,
-    );
-
-    expect(menuStyles.some((entry) => entry.borderWidth !== undefined)).toBe(
-      false,
-    );
+    expect(queryByTestId(TRADE_MENU_OUTLINE_TEST_ID)).toBeNull();
   });
 
   it('should render earn button if the stablecoin lending feature is enabled', () => {

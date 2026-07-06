@@ -3,6 +3,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
+  LayoutChangeEvent,
   Platform,
   StyleSheet,
   View,
@@ -33,6 +34,7 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { useElevatedSurface } from '../../../util/theme/themeUtils';
+import { useTheme } from '../../../util/theme';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -74,10 +76,14 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
+import TradeMenuOutline from './components/TradeMenuOutline';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
+const bottomShapePeakHeight = 16;
+const bottomShapePeakBezierLength = 25;
+const bottomShapeBaseBezierLength = 55;
 const animationDuration = AnimationDuration.Fast;
 const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
@@ -106,8 +112,13 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
+  const { colors } = useTheme();
   const isPureBlack = usePureBlack();
   const surfaceClass = useElevatedSurface();
+  const [menuLayout, setMenuLayout] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -283,6 +294,11 @@ function TradeWalletActions() {
     [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
+  const handleMenuLayout = useCallback((event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setMenuLayout({ width, height });
+  }, []);
+
   return (
     <View style={tw.style('flex-1 justify-end')}>
       <MaskedView
@@ -316,9 +332,9 @@ function TradeWalletActions() {
                   <BottomShape
                     width={buttonLayout.width * 4}
                     height={bottomMaskHeight}
-                    peakHeight={16}
-                    peakBezierLength={25}
-                    baseBezierLength={55}
+                    peakHeight={bottomShapePeakHeight}
+                    peakBezierLength={bottomShapePeakBezierLength}
+                    baseBezierLength={bottomShapeBaseBezierLength}
                     fill="black"
                   />
                   <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
@@ -335,10 +351,10 @@ function TradeWalletActions() {
             >
               <Box
                 testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+                onLayout={handleMenuLayout}
                 style={tw.style(
                   surfaceClass,
-                  isPureBlack && 'border border-muted',
-                  'p-4 rounded-2xl mx-4',
+                  'relative p-4 rounded-2xl mx-4',
                   `pb-[${bottomMaskHeight - 12}px]`,
                   'px-0',
                 )}
@@ -417,6 +433,16 @@ function TradeWalletActions() {
                     style={tw.style('bg-transparent')}
                   />
                 )}
+                {isPureBlack && menuLayout ? (
+                  <TradeMenuOutline
+                    width={menuLayout.width}
+                    height={menuLayout.height}
+                    stroke={colors.border.muted}
+                    peakHeight={bottomShapePeakHeight}
+                    peakBezierLength={bottomShapePeakBezierLength}
+                    baseBezierLength={bottomShapeBaseBezierLength}
+                  />
+                ) : null}
               </Box>
             </Animated.View>
           </MaskedView>
