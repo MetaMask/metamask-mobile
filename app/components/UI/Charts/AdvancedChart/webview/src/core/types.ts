@@ -126,6 +126,7 @@ export interface TVChartingLibraryWidget {
   subscribe(event: TVWidgetEvent, handler: () => void): void;
   resize(): void;
   remove(): void;
+  resetCache?(): void;
 }
 
 export interface TVSubscription<TArgs extends unknown[] = []> {

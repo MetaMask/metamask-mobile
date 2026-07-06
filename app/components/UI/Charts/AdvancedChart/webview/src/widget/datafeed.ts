@@ -11,6 +11,7 @@ import {
   getOhlcvPagination,
   getRealtimeCallbacks,
   getRnBackedPagination,
+  isInHotReloadPreResetPhase,
   registerRealtimeCallback,
   unregisterRealtimeCallback,
 } from '../core/state';
@@ -148,6 +149,11 @@ export const customDatafeed: TVDatafeed = {
       const fromMs = periodParams.from * 1000;
       const toMs = periodParams.to * 1000;
       const { countBack, firstDataRequest } = periodParams;
+
+      if (firstDataRequest && isInHotReloadPreResetPhase()) {
+        onResult([], { noData: true });
+        return;
+      }
 
       const bars = filterBarsForRange(fromMs, toMs, countBack);
       if (bars.length > 0) {

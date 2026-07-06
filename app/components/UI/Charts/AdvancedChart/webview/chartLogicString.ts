@@ -165,6 +165,8 @@ const state = {
     subPaneHeightRatio: null,
     rnBackedPagination: { enabled: false },
     hasExplicitCurrentPriceLine: false,
+    hotReloadSeq: 0,
+    inHotReloadPreResetPhase: false,
     slbMode: false,
     slbCenteringPending: false,
 };
@@ -340,6 +342,20 @@ function getRnBackedPagination() {
 function setRnBackedPagination(config) {
     state.rnBackedPagination = config;
 }
+// ----- Hot-reload sequence guards --------------------------------------------
+function bumpHotReloadSeq() {
+    state.hotReloadSeq += 1;
+    return state.hotReloadSeq;
+}
+function getHotReloadSeq() {
+    return state.hotReloadSeq;
+}
+function isInHotReloadPreResetPhase() {
+    return state.inHotReloadPreResetPhase;
+}
+function setInHotReloadPreResetPhase(phase) {
+    state.inHotReloadPreResetPhase = phase;
+}
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 function getSlbMode() {
     return state.slbMode;
@@ -388,6 +404,8 @@ function __resetStateForTests() {
     state.subPaneHeightRatio = null;
     state.rnBackedPagination = { enabled: false };
     state.hasExplicitCurrentPriceLine = false;
+    state.hotReloadSeq = 0;
+    state.inHotReloadPreResetPhase = false;
     state.slbMode = false;
     state.slbCenteringPending = false;
 }
@@ -1195,6 +1213,10 @@ const customDatafeed = {
             const fromMs = periodParams.from * 1000;
             const toMs = periodParams.to * 1000;
             const { countBack, firstDataRequest } = periodParams;
+            if (firstDataRequest && isInHotReloadPreResetPhase()) {
+                onResult([], { noData: true });
+                return;
+            }
             const bars = filterBarsForRange(fromMs, toMs, countBack);
             if (bars.length > 0) {
                 onResult(bars, { noData: false });
@@ -1483,6 +1505,7 @@ function handleSetOHLCVData(payload) {
         try {
             const chart = widget.activeChart();
             if (previousResolution === newResolution) {
+                resetDatafeedCacheBeforeHotReload(widget);
                 chart.resetData();
                 resetMainPriceScaleAutoScale(chart);
                 notifyDataLifecycle('ohlcvReset');
@@ -1490,8 +1513,15 @@ function handleSetOHLCVData(payload) {
                 emitLayoutSettled();
             }
             else {
+                setInHotReloadPreResetPhase(true);
+                const seq = bumpHotReloadSeq();
                 chart.setResolution(newResolution, () => {
+                    if (getHotReloadSeq() !== seq) {
+                        return;
+                    }
+                    setInHotReloadPreResetPhase(false);
                     try {
+                        resetDatafeedCacheBeforeHotReload(widget);
                         chart.resetData();
                         resetMainPriceScaleAutoScale(chart);
                         notifyDataLifecycle('ohlcvReset');
@@ -1499,12 +1529,14 @@ function handleSetOHLCVData(payload) {
                         emitLayoutSettled();
                     }
                     catch (error) {
+                        setInHotReloadPreResetPhase(false);
                         reportErrorToRN(error);
                     }
                 });
             }
         }
         catch (error) {
+            setInHotReloadPreResetPhase(false);
             reportErrorToRN(error);
         }
         return;
@@ -1604,6 +1636,16 @@ function resetMainPriceScaleAutoScale(chart) {
         const priceScale = mainPane.getMainSourcePriceScale();
         if (typeof priceScale?.setAutoScale === 'function') {
             priceScale.setAutoScale(true);
+        }
+    }
+    catch {
+        // Best-effort; failures are non-critical
+    }
+}
+function resetDatafeedCacheBeforeHotReload(widget) {
+    try {
+        if (typeof widget.resetCache === 'function') {
+            widget.resetCache();
         }
     }
     catch {

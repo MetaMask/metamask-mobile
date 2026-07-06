@@ -19,9 +19,11 @@ import { detectResolution } from '../core/resolution';
 import { getApproxBarDurationSec } from '../core/timeUtils';
 import {
   appendOrReplaceLastBar,
+  bumpHotReloadSeq,
   bumpOhlcvGeneration,
   clearOhlcvPagination,
   getCurrentResolution,
+  getHotReloadSeq,
   getOhlcvData,
   getOhlcvGeneration,
   getSlbMode,
@@ -29,6 +31,7 @@ import {
   getWidget,
   isChartReady,
   setCurrentResolution,
+  setInHotReloadPreResetPhase,
   setOhlcvData,
   setOhlcvPagination,
   setRnBackedPagination,
@@ -37,7 +40,7 @@ import {
   setVisibleFromMs,
   setVisibleToMs,
 } from '../core/state';
-import type { TVActiveChart } from '../core/types';
+import type { TVActiveChart, TVChartingLibraryWidget } from '../core/types';
 import { forwardRealtimeTick } from './datafeed';
 import { resolveAllPendingOlderBarsNoData } from '../pagination/rnBacked';
 import { slbCenterViewport } from '../overlays/socialLeaderboard';
@@ -103,25 +106,35 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
     try {
       const chart = widget.activeChart();
       if (previousResolution === newResolution) {
+        resetDatafeedCacheBeforeHotReload(widget);
         chart.resetData();
         resetMainPriceScaleAutoScale(chart);
         notifyDataLifecycle('ohlcvReset');
         applyVisibleRange(chart);
         emitLayoutSettled();
       } else {
+        setInHotReloadPreResetPhase(true);
+        const seq = bumpHotReloadSeq();
         chart.setResolution(newResolution, () => {
+          if (getHotReloadSeq() !== seq) {
+            return;
+          }
+          setInHotReloadPreResetPhase(false);
           try {
+            resetDatafeedCacheBeforeHotReload(widget);
             chart.resetData();
             resetMainPriceScaleAutoScale(chart);
             notifyDataLifecycle('ohlcvReset');
             applyVisibleRange(chart);
             emitLayoutSettled();
           } catch (error) {
+            setInHotReloadPreResetPhase(false);
             reportErrorToRN(error);
           }
         });
       }
     } catch (error) {
+      setInHotReloadPreResetPhase(false);
       reportErrorToRN(error);
     }
     return;
@@ -229,6 +242,18 @@ function resetMainPriceScaleAutoScale(chart: TVActiveChart): void {
     const priceScale = mainPane.getMainSourcePriceScale();
     if (typeof priceScale?.setAutoScale === 'function') {
       priceScale.setAutoScale(true);
+    }
+  } catch {
+    // Best-effort; failures are non-critical
+  }
+}
+
+function resetDatafeedCacheBeforeHotReload(
+  widget: TVChartingLibraryWidget,
+): void {
+  try {
+    if (typeof widget.resetCache === 'function') {
+      widget.resetCache();
     }
   } catch {
     // Best-effort; failures are non-critical

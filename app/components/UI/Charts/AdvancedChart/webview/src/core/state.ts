@@ -50,6 +50,10 @@ interface CoreState {
   rnBackedPagination: { enabled: boolean };
   /** True when position lines include a currentPrice line; hides TV's native price line. */
   hasExplicitCurrentPriceLine: boolean;
+  /** Sequence counter for setResolution callbacks; stale callbacks bail when mismatched. */
+  hotReloadSeq: number;
+  /** True between setResolution call and its callback; getBars returns noData during this window. */
+  inHotReloadPreResetPhase: boolean;
   /** SLB scoping flag — activates Strategy C (bulk back-fill) pagination. */
   slbMode: boolean;
   /**
@@ -90,6 +94,8 @@ const state: CoreState = {
   subPaneHeightRatio: null,
   rnBackedPagination: { enabled: false },
   hasExplicitCurrentPriceLine: false,
+  hotReloadSeq: 0,
+  inHotReloadPreResetPhase: false,
   slbMode: false,
   slbCenteringPending: false,
 };
@@ -327,6 +333,25 @@ export function setRnBackedPagination(config: { enabled: boolean }): void {
   state.rnBackedPagination = config;
 }
 
+// ----- Hot-reload sequence guards --------------------------------------------
+
+export function bumpHotReloadSeq(): number {
+  state.hotReloadSeq += 1;
+  return state.hotReloadSeq;
+}
+
+export function getHotReloadSeq(): number {
+  return state.hotReloadSeq;
+}
+
+export function isInHotReloadPreResetPhase(): boolean {
+  return state.inHotReloadPreResetPhase;
+}
+
+export function setInHotReloadPreResetPhase(phase: boolean): void {
+  state.inHotReloadPreResetPhase = phase;
+}
+
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 
 export function getSlbMode(): boolean {
@@ -383,6 +408,8 @@ export function __resetStateForTests(): void {
   state.subPaneHeightRatio = null;
   state.rnBackedPagination = { enabled: false };
   state.hasExplicitCurrentPriceLine = false;
+  state.hotReloadSeq = 0;
+  state.inHotReloadPreResetPhase = false;
   state.slbMode = false;
   state.slbCenteringPending = false;
 }

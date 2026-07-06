@@ -15,6 +15,7 @@ import {
   getOhlcvPagination,
   getRnBackedPagination,
   getVisibleFromMs,
+  isInHotReloadPreResetPhase,
   setChartReady,
   setWidget,
 } from '../../core/state';
@@ -152,6 +153,113 @@ describe('handleSetOHLCVData', () => {
     expect(resetData).not.toHaveBeenCalled();
     setResCb();
     expect(resetData).toHaveBeenCalled();
+  });
+
+  it('ignores stale setResolution callback when a newer interval arrives', () => {
+    const resetData = jest.fn();
+    const setResCbs: (() => void)[] = [];
+    const setResolution = jest
+      .fn()
+      .mockImplementation((_res: string, cb: () => void) => {
+        setResCbs.push(cb);
+      });
+    const onDataLoaded = jest
+      .fn()
+      .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() });
+    const getTimeScale = jest
+      .fn()
+      .mockReturnValue({ setRightOffset: jest.fn() });
+    const chart = {
+      resetData,
+      setResolution,
+      onDataLoaded,
+      getTimeScale,
+    } as unknown as TVActiveChart;
+
+    handleSetOHLCVData({ data: oneMinuteApart(2) });
+    setWidget({
+      activeChart: () => chart,
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
+
+    // Switch to 5m
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
+    });
+    // Switch again to 15m before first callback fires
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 900_000)),
+    });
+
+    expect(setResCbs).toHaveLength(2);
+
+    // Fire the stale 5m callback — should be ignored
+    setResCbs[0]();
+    expect(resetData).not.toHaveBeenCalled();
+
+    // Fire the current 15m callback — should proceed
+    setResCbs[1]();
+    expect(resetData).toHaveBeenCalledTimes(1);
+  });
+
+  it('sets inHotReloadPreResetPhase during setResolution window', () => {
+    let setResCb: () => void = () => undefined;
+    const setResolution = jest
+      .fn()
+      .mockImplementation((_res: string, cb: () => void) => {
+        setResCb = cb;
+      });
+    const chart = {
+      resetData: jest.fn(),
+      setResolution,
+      onDataLoaded: jest
+        .fn()
+        .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
+      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
+    } as unknown as TVActiveChart;
+
+    handleSetOHLCVData({ data: oneMinuteApart(2) });
+    setWidget({
+      activeChart: () => chart,
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
+
+    handleSetOHLCVData({
+      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
+    });
+
+    expect(isInHotReloadPreResetPhase()).toBe(true);
+    setResCb();
+    expect(isInHotReloadPreResetPhase()).toBe(false);
+  });
+
+  it('calls widget.resetCache before resetData on same-resolution reload', () => {
+    const resetCache = jest.fn();
+    const resetData = jest.fn();
+    const chart = {
+      resetData,
+      setResolution: jest.fn(),
+      onDataLoaded: jest
+        .fn()
+        .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
+      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
+    } as unknown as TVActiveChart;
+
+    handleSetOHLCVData({ data: oneMinuteApart(3) });
+    const widget = {
+      activeChart: () => chart,
+      resetCache,
+    } as unknown as TVChartingLibraryWidget;
+    setWidget(widget);
+    setChartReady(true);
+
+    handleSetOHLCVData({ data: oneMinuteApart(3) });
+
+    expect(resetCache).toHaveBeenCalled();
+    expect(resetData).toHaveBeenCalled();
+    const resetCacheOrder = resetCache.mock.invocationCallOrder[0];
+    const resetDataOrder = resetData.mock.invocationCallOrder[0];
+    expect(resetCacheOrder).toBeLessThan(resetDataOrder);
   });
 });
 
