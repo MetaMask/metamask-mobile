@@ -479,9 +479,6 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    // Wait for wallet home to confirm the post-MetaMetrics navigation animation
-    // has fully completed and InteractionManager.runAfterInteractions callbacks
-    // (including the Onboarding Completed analytics event) have fired.
     await Assertions.expectElementToBeVisible(WalletView.container, {
       description: 'Wallet home should be visible after onboarding completion',
       timeout: 15000,
@@ -605,9 +602,6 @@ export const CreateNewWallet = async ({
 
   if (optInToMetrics) {
     await dismissOnboardingInterestQuestionnaire();
-    // Wait for wallet home to confirm the post-MetaMetrics navigation animation
-    // has fully completed and InteractionManager.runAfterInteractions callbacks
-    // (including the Onboarding Completed analytics event) have fired.
     await Assertions.expectElementToBeVisible(WalletView.container, {
       description: 'Wallet home should be visible after onboarding completion',
       timeout: 15000,
