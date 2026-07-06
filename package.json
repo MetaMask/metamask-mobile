@@ -221,8 +221,7 @@
     "@metamask/accounts-controller": "^39.0.3",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
     "@metamask/assets-controller": "npm:@metamask-previews/assets-controller@10.0.1-preview-3c77342c3",
-    "@metamask/stellar-wallet-snap": "patch:@metamask-previews/stellar-wallet-snap@npm%3A0.0.1-preview-a3c0091#~/.yarn/patches/@metamask-previews-stellar-wallet-snap-npm-0.0.1-preview-a3c0091-052886e43f.patch",
-    "@metamask/multichain-account-service": "npm:@metamask-previews/multichain-account-service@11.1.0-preview-eeb8179"
+    "@metamask/stellar-wallet-snap": "patch:@metamask-previews/stellar-wallet-snap@npm%3A0.0.1-preview-a3c0091#~/.yarn/patches/@metamask-previews-stellar-wallet-snap-npm-0.0.1-preview-a3c0091-052886e43f.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
