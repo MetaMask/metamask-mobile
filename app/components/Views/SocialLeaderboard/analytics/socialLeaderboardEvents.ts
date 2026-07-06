@@ -17,6 +17,8 @@ export const SocialLeaderboardEventProperties = {
   IS_OPEN: 'is_open',
   NOTIFICATION_TYPE: 'notification_type',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
+  INTERACTION_TYPE: 'interaction_type',
+  NUX_STEP: 'nux_step',
   PREVIOUS_CHAIN_FILTER: 'previous_chain_filter',
   SCREEN: 'screen',
   SOURCE: 'source',
@@ -24,6 +26,8 @@ export const SocialLeaderboardEventProperties = {
   TRADER_ADDRESS: 'trader_address',
   TRADER_RANK: 'trader_rank',
   TRADER_USERNAME: 'trader_username',
+  TRADERS_FOLLOWED_COUNT: 'traders_followed_count',
+  TRADERS_PRE_SELECTED_COUNT: 'traders_pre_selected_count',
 } as const;
 
 /** Closed-set property values used by enum-typed properties. */
@@ -31,6 +35,20 @@ export const SocialLeaderboardEventValues = {
   ACTION: {
     FOLLOW: 'follow',
     UNFOLLOW: 'unfollow',
+  },
+  INTERACTION_TYPE: {
+    ALLOW_NOTIFICATIONS: 'allow_notifications',
+    BACK: 'back',
+    CONTINUE: 'continue',
+    DISMISSED: 'dismissed',
+    FOLLOW_TOP_THREE: 'follow_top_three',
+    GOT_IT: 'got_it',
+    MAYBE_LATER: 'maybe_later',
+  },
+  NUX_STEP: {
+    STEP_1: 'step_1',
+    STEP_2: 'step_2',
+    STEP_3: 'step_3',
   },
   TAB: {
     OPEN: 'open',

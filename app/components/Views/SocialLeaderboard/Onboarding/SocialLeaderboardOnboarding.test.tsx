@@ -239,8 +239,8 @@ describe('SocialLeaderboardOnboarding', () => {
       ),
     ).toBeOnTheScreen();
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
-      expect.objectContaining({ screen: 'trade', source: 'nux' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_VIEWED,
+      expect.objectContaining({ nux_step: 'step_1', source: 'nux' }),
     );
   });
 
@@ -547,49 +547,70 @@ describe('SocialLeaderboardOnboarding', () => {
     jest.useRealTimers();
   });
 
-  it('tracks the follow slide when next advances the flow', async () => {
+  it('tracks the follow step when next advances the flow', async () => {
     renderComponent();
 
     await fireTrigger(RIVE_TRIGGERS.NEXT);
 
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
-      expect.objectContaining({ screen: 'follow', source: 'nux' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_VIEWED,
+      expect.objectContaining({ nux_step: 'step_2', source: 'nux' }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'continue',
+        nux_step: 'step_1',
+        source: 'nux',
+      }),
     );
   });
 
-  it('tracks the notify slide once across both step-3 variants', async () => {
+  it('tracks step_3 once across both notify variants', async () => {
     renderComponent();
 
     await fireTrigger(RIVE_TRIGGERS.NEXT);
     await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
-      expect.objectContaining({ screen: 'notify', source: 'nux' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_VIEWED,
+      expect.objectContaining({ nux_step: 'step_3', source: 'nux' }),
     );
 
     mockTrack.mockClear();
-    // Going back to Follow then into the "3.1" variant reports notify again, but
-    // consecutive same-slide steps must never double-count.
+    // Going back to Follow then into the "3.1" variant reports step_3 again, but
+    // consecutive same-step views must never double-count.
     await fireTrigger(RIVE_TRIGGERS.BACK);
     mockTrack.mockClear();
     await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
-    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(
+      mockTrack.mock.calls.filter(
+        ([event]) =>
+          event === MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_VIEWED,
+      ),
+    ).toHaveLength(1);
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
-      expect.objectContaining({ screen: 'notify', source: 'nux' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_VIEWED,
+      expect.objectContaining({ nux_step: 'step_3', source: 'nux' }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'maybe_later',
+        nux_step: 'step_2',
+        source: 'nux',
+      }),
     );
   });
 
-  it('does not re-track a slide that is already the current one', async () => {
+  it('does not re-track a step that is already the current one', async () => {
     renderComponent();
     mockTrack.mockClear();
 
-    // `back` on the first slide keeps the already-current trade slide.
+    // `back` on the first step keeps the already-current step_1.
     await fireTrigger(RIVE_TRIGGERS.BACK);
 
     expect(mockTrack).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_VIEWED,
       expect.anything(),
     );
   });
@@ -613,7 +634,7 @@ describe('SocialLeaderboardOnboarding', () => {
     // Follow is not terminal: the flow continues to the Notify step.
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
       expect.anything(),
     );
   });
@@ -631,8 +652,39 @@ describe('SocialLeaderboardOnboarding', () => {
     expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
       expect.anything(),
+    );
+  });
+
+  it('tracks follow_top_three interaction with the count of traders followed', async () => {
+    mockTraders[1] = makeTrader({
+      id: 'b',
+      username: 'raggedand',
+      isFollowing: true,
+    });
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'follow_top_three',
+        nux_step: 'step_2',
+        source: 'nux',
+      }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
+      expect.objectContaining({
+        source: 'nux',
+        nux_step: 'step_3',
+        traders_followed_count: 2,
+        traders_pre_selected_count: 3,
+      }),
     );
   });
 
@@ -646,6 +698,14 @@ describe('SocialLeaderboardOnboarding', () => {
     expect(mockRequestPushPermission).toHaveBeenCalled();
     expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
     expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'allow_notifications',
+        nux_step: 'step_3',
+        source: 'nux',
+      }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
       expect.objectContaining({ source: 'nux' }),
     );
@@ -655,8 +715,13 @@ describe('SocialLeaderboardOnboarding', () => {
       { emitEvent: false },
     );
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
-      expect.objectContaining({ source: 'nux' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
+      expect.objectContaining({
+        source: 'nux',
+        nux_step: 'step_3',
+        traders_followed_count: 3,
+        traders_pre_selected_count: 3,
+      }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
@@ -773,8 +838,21 @@ describe('SocialLeaderboardOnboarding', () => {
 
     expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
-      expect.objectContaining({ source: 'nux' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'got_it',
+        nux_step: 'step_3',
+        source: 'nux',
+      }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
+      expect.objectContaining({
+        source: 'nux',
+        nux_step: 'step_3',
+        traders_followed_count: 3,
+        traders_pre_selected_count: 3,
+      }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
@@ -791,8 +869,21 @@ describe('SocialLeaderboardOnboarding', () => {
 
     expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
-      expect.objectContaining({ source: 'nux' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'got_it',
+        nux_step: 'step_3',
+        source: 'nux',
+      }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
+      expect.objectContaining({
+        source: 'nux',
+        nux_step: 'step_3',
+        traders_followed_count: 3,
+        traders_pre_selected_count: 3,
+      }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
@@ -842,7 +933,7 @@ describe('SocialLeaderboardOnboarding', () => {
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
       expect.anything(),
     );
 
@@ -885,20 +976,32 @@ describe('SocialLeaderboardOnboarding', () => {
     );
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_DISMISSED,
-      expect.objectContaining({ source: 'nux', screen: 'trade' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'dismissed',
+        nux_step: 'step_1',
+        source: 'nux',
+      }),
+    );
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
+      expect.anything(),
     );
   });
 
-  it('reports the current slide in the dismissed event', async () => {
+  it('reports the current step in the dismissed interaction', async () => {
     renderComponent();
 
     await fireTrigger(RIVE_TRIGGERS.NEXT);
     await fireTrigger(RIVE_TRIGGERS.CLOSE);
 
     expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_DISMISSED,
-      expect.objectContaining({ source: 'nux', screen: 'follow' }),
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'dismissed',
+        nux_step: 'step_2',
+        source: 'nux',
+      }),
     );
   });
 
@@ -919,7 +1022,7 @@ describe('SocialLeaderboardOnboarding', () => {
       StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
     );
     expect(mockTrack).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
       expect.anything(),
     );
   });

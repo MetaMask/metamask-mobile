@@ -99,6 +99,14 @@ export const SLIDE_BY_STEP_INDEX: readonly OnboardingSlideId[] = [
   'notify',
 ];
 
+/** Analytics `nux_step` reported for each RN `stepIndex`. */
+export const NUX_STEP_BY_STEP_INDEX = [
+  'step_1',
+  'step_2',
+  'step_3',
+  'step_3',
+] as const;
+
 /** RN `stepIndex` of the (terminal) Notify step and its "3.1" copy variant. */
 export const NOTIFY_STEP_INDEX = 2;
 

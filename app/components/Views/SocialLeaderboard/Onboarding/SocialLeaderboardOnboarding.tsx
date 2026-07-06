@@ -58,6 +58,7 @@ import { ALL_CHAINS, SPOT_CHAINS } from '../../shared/top-traders-constants';
 
 import {
   SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { formatSignedFullUsdNoDecimals } from '../utils/formatters';
@@ -80,7 +81,7 @@ import {
   RIVE_TRANSITION_SPEED,
   RIVE_TRIGGERS,
   TEXT_FADE_DURATION_MS,
-  SLIDE_BY_STEP_INDEX,
+  NUX_STEP_BY_STEP_INDEX,
   isSocialLeaderboardOnboardingSkipSeen,
   riveStepTextBinding,
   riveTraderBinding,
@@ -258,7 +259,8 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   }, []);
 
   const hasCompletedRef = useRef(false);
-  const lastTrackedSlideRef = useRef<string | null>(null);
+  const lastTrackedNuxStepRef = useRef<string | null>(null);
+  const tradersFollowedCountRef = useRef(0);
   // "Maybe later" transitions to the Notify "3.1" slide, and that transition
   // pulses the visible button's completion trigger as the slide animates in
   // (the Figma flow even inserts a deliberate "RIVE DB" delay here, so the pulse
@@ -266,6 +268,20 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // maybe-later tap and swallow exactly that one spurious completion pulse; the
   // user's real "Allow notifications"/"Got it" tap afterwards still completes.
   const swallowNextCompletionRef = useRef(false);
+
+  const trackInteraction = useCallback(
+    (
+      interactionType: (typeof SocialLeaderboardEventValues.INTERACTION_TYPE)[keyof typeof SocialLeaderboardEventValues.INTERACTION_TYPE],
+    ) => {
+      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_INTERACTION, {
+        [SocialLeaderboardEventProperties.INTERACTION_TYPE]: interactionType,
+        [SocialLeaderboardEventProperties.NUX_STEP]:
+          NUX_STEP_BY_STEP_INDEX[stepIndexRef.current],
+        [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
+      });
+    },
+    [track],
+  );
 
   const [, setTransitionSpeed] = useRiveNumber(
     riveRef,
@@ -504,18 +520,18 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     setAllowNotificationsBoolean,
   ]);
 
-  // Track SCREEN_VIEWED whenever the reported slide changes. Runs on mount
-  // (Trade) and whenever `stepIndex` moves to a new slide; the two Notify steps
-  // share the `notify` screen, so 2 -> 3 does not double-count.
+  // Track VIEWED whenever the reported step changes. Runs on mount (step_1) and
+  // whenever `stepIndex` moves to a new step; the two Notify steps share
+  // `step_3`, so 2 -> 3 does not double-count.
   useEffect(() => {
-    const slide = SLIDE_BY_STEP_INDEX[stepIndex];
-    if (lastTrackedSlideRef.current === slide) {
+    const nuxStep = NUX_STEP_BY_STEP_INDEX[stepIndex];
+    if (lastTrackedNuxStepRef.current === nuxStep) {
       return;
     }
-    lastTrackedSlideRef.current = slide;
-    track(MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED, {
+    lastTrackedNuxStepRef.current = nuxStep;
+    track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_VIEWED, {
       [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
-      [SocialLeaderboardEventProperties.SCREEN]: slide,
+      [SocialLeaderboardEventProperties.NUX_STEP]: nuxStep,
     });
   }, [stepIndex, track]);
 
@@ -538,23 +554,25 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       }
       hasCompletedRef.current = true;
       void markOnboardingSeen();
-      track(MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED, {
+      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED, {
         [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
+        [SocialLeaderboardEventProperties.NUX_STEP]:
+          SocialLeaderboardEventValues.NUX_STEP.STEP_3,
+        [SocialLeaderboardEventProperties.TRADERS_FOLLOWED_COUNT]:
+          tradersFollowedCountRef.current,
+        [SocialLeaderboardEventProperties.TRADERS_PRE_SELECTED_COUNT]:
+          topTraders.length,
       });
       exitToLeaderboard(extraParams);
     },
-    [track, exitToLeaderboard],
+    [track, exitToLeaderboard, topTraders.length],
   );
 
   const handleClose = useCallback(() => {
     void markOnboardingSeen();
-    track(MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_DISMISSED, {
-      [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
-      [SocialLeaderboardEventProperties.SCREEN]:
-        SLIDE_BY_STEP_INDEX[stepIndexRef.current],
-    });
+    trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.DISMISSED);
     navigation.goBack();
-  }, [navigation, track]);
+  }, [navigation, trackInteraction]);
 
   // Forward navigation. The "Next" button (Trade slide) AND the artboard's
   // forward tap-zone (right margin) both fire `next`, from whichever slide is
@@ -567,39 +585,45 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // The user must choose "Follow the top three" or "Maybe later" to move on.
   const handleNext = useCallback(() => {
     if (stepIndexRef.current === 0) {
+      trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.CONTINUE);
       setStep(1);
     }
-  }, [setStep]);
+  }, [setStep, trackInteraction]);
 
   // Step back one slide (Notify -> Follow, Follow -> Trade).
   const handleBack = useCallback(() => {
+    trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.BACK);
     setStep(stepIndexRef.current >= NOTIFY_STEP_INDEX ? 1 : 0);
-  }, [setStep]);
+  }, [setStep, trackInteraction]);
 
   // Follow step (not terminal): advance to the post-follow Notify copy, then
   // follow the not-yet-followed top traders.
   const handleFollowTopThree = useCallback(async () => {
+    trackInteraction(
+      SocialLeaderboardEventValues.INTERACTION_TYPE.FOLLOW_TOP_THREE,
+    );
+    const toFollow = topTraders.filter((trader) => !trader.isFollowing);
+    tradersFollowedCountRef.current = toFollow.length;
     setStep(2);
     await Promise.all(
-      topTraders
-        .filter((trader) => !trader.isFollowing)
-        .map((trader) =>
-          toggleFollow(trader.id, {
-            source: ONBOARDING_SOURCE,
-            traderAddress: trader.address,
-            traderUsername: trader.username,
-            traderRank: trader.rank,
-          }),
-        ),
+      toFollow.map((trader) =>
+        toggleFollow(trader.id, {
+          source: ONBOARDING_SOURCE,
+          traderAddress: trader.address,
+          traderUsername: trader.username,
+          traderRank: trader.rank,
+        }),
+      ),
     );
-  }, [topTraders, toggleFollow, setStep]);
+  }, [topTraders, toggleFollow, setStep, trackInteraction]);
 
   // Follow step (not terminal): advance to the "maybe later" Notify copy variant
   // and arm the latch so the transition's spurious completion pulse is ignored.
   const handleMaybeLater = useCallback(() => {
+    trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.MAYBE_LATER);
     setStep(3);
     swallowNextCompletionRef.current = true;
-  }, [setStep]);
+  }, [setStep, trackInteraction]);
 
   // Confirm the enable with a toast (rendered by the global ToastContext, so it
   // survives the route replace and lands on the leaderboard). Only shown when
@@ -651,6 +675,9 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       swallowNextCompletionRef.current = false;
       return;
     }
+    trackInteraction(
+      SocialLeaderboardEventValues.INTERACTION_TYPE.ALLOW_NOTIFICATIONS,
+    );
     const granted = await requestPushPermission();
     // Await the enable before navigating: `goToLeaderboard` does a full route
     // replace that tears down this screen, and firing the enable without
@@ -676,6 +703,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     enableNotificationsInBackground,
     showNotificationsEnabledToast,
     track,
+    trackInteraction,
     goToLeaderboard,
   ]);
 
@@ -692,8 +720,9 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       swallowNextCompletionRef.current = false;
       return;
     }
+    trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.GOT_IT);
     goToLeaderboard();
-  }, [goToLeaderboard]);
+  }, [goToLeaderboard, trackInteraction]);
 
   // Rive owns navigation; RN observes the triggers to track the current step and
   // run each button's side effect. Completion is gated on the Notify step above.
