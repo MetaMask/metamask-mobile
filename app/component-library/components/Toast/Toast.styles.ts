@@ -19,7 +19,7 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'absolute',
       width: toastWidth,
       left: marginWidth,
-      bottom: 0,
+      top: 0,
       backgroundColor: colors.background.section,
       borderWidth: 1,
       borderColor: colors.border.muted,
