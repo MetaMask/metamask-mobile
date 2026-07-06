@@ -318,7 +318,7 @@
     "@metamask/preinstalled-example-snap": "^0.7.2",
     "@metamask/profile-metrics-controller": "^4.0.1",
     "@metamask/profile-sync-controller": "^28.2.0",
-    "@metamask/ramps-controller": "^15.0.0",
+    "@metamask/ramps-controller": "^15.1.0",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
@@ -833,11 +833,5 @@
       }
     },
     "version": "v0.3.0"
-  },
-  "previewBuilds": {
-    "@metamask/ramps-controller": {
-      "type": "non-breaking",
-      "previewVersion": "15.0.0-preview-1bd5239bf"
-    }
   }
 }
