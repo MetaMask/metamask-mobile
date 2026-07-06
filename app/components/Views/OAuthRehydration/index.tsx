@@ -570,6 +570,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             password,
             authPreference: authData,
             onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+            // Nest the seedless OnboardingFetchSrps span under the overall journey. Only the
+            // journey context is reachable here (OnboardingExistingSocialLogin is not started in
+            // this component); parenting under the journey still fixes the disconnected-root-span
+            // issue — see implementation-notes / plan D8 Option B.
+            parentContext: route.params?.onboardingTraceCtx,
           });
         },
       );
@@ -616,6 +621,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     upgradeKeychainAuthAfterSuccessfulUnlock,
     accountType,
     syncMarketingOptInAfterUnlock,
+    route.params?.onboardingTraceCtx,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {

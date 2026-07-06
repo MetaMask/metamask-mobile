@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   BackHandler,
   ScrollView,
   InteractionManager,
@@ -224,6 +225,14 @@ const Onboarding = () => {
     }
   }, []);
 
+  // Fix 5 (OAuth abandonment): OAuth normally backgrounds the app to open the browser, so we must
+  // NOT end the social-login span on 'background' — that would truncate every healthy login.
+  // Instead we arm on background-during-attempt and evaluate on FOREGROUND RETURN.
+  const appBackgroundedDuringSocialLoginRef = useRef(false);
+  const abandonmentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
   const mounted = useRef<boolean>(false);
   const hasCheckedVaultBackup = useRef<boolean>(false);
   const warningCallback = useRef<() => boolean>(() => true);
@@ -377,7 +386,6 @@ const Onboarding = () => {
     // need to call hasMetricConset to update the cached consent state
     await hasMetricsConsent();
 
-    trace({ name: TraceName.OnboardingCreateWallet });
     const action = () => {
       trace({
         name: TraceName.OnboardingNewSrpCreateWallet,
@@ -401,7 +409,6 @@ const Onboarding = () => {
     };
 
     handleExistingUser(action);
-    endTrace({ name: TraceName.OnboardingCreateWallet });
   }, [
     metrics,
     navigation,
@@ -820,6 +827,18 @@ const Onboarding = () => {
           .build(),
       );
 
+      // The mount effect (below) already started an OnboardingJourneyOverall span keyed on this
+      // TraceName. If metrics opt-in consent was already granted at mount, that span is a REAL span sitting in
+      // tracesByKey (discardBufferedTraces only clears the pre-consent buffer, not active spans).
+      // Starting a second span with the same key here would orphan the first span's 5-min cleanup
+      // timeout, which later fires and deletes THIS active span. End the mount span first so the
+      // social-login journey span is the only one tracked. Safe no-op if the mount span was only
+      // buffered (consent was null at mount) and already discarded above.
+      endTrace({
+        name: TraceName.OnboardingJourneyOverall,
+        data: { success: false },
+      });
+
       // use new trace instead of buffered trace for social login
       onboardingTraceCtx.current = trace({
         name: TraceName.OnboardingJourneyOverall,
@@ -1159,11 +1178,65 @@ const Onboarding = () => {
       if (notificationTimer.current) {
         clearTimeout(notificationTimer.current);
       }
+      // Close the overall-journey span on unmount so it is never left open to be force-closed
+      // by the 5-min trace cleanup timer (which also does not fire reliably while the app is
+      // backgrounded during OAuth). success:false is correct here because every SUCCESSFUL
+      // terminal (SRP import, backup skip/confirm, social/password rehydration) calls endTrace
+      // on this span BEFORE navigating away — so by the time this unmount cleanup runs on a
+      // completed journey, the span is already gone from tracesByKey and this call no-ops.
+      // It therefore only records a value when the user actually abandoned onboarding.
+      endTrace({
+        name: TraceName.OnboardingJourneyOverall,
+        data: { success: false },
+      });
+      onboardingTraceCtx.current = undefined;
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Fix 5: end OnboardingSocialLoginAttempt as abandoned only on foreground return when no OAuth
+  // result arrived. socialLoginTraceCtx.current is set while an attempt is in flight and cleared
+  // by endSocialLoginAttemptTrace on success/failure, so "still set" == "no result yet".
+  useEffect(() => {
+    // Grace window after foreground return: the legit long tail (p95 ~87s) is spent in the
+    // browser BEFORE returning; post-foreground completion (redirect -> token exchange -> end)
+    // is fast, so this lets a pending OAuth callback resolve before we declare abandonment.
+    const OAUTH_ABANDONMENT_GRACE_MS = 25_000;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      // Arm ONLY when the app leaves while a social-login attempt is genuinely in flight.
+      if (
+        (nextState === 'background' || nextState === 'inactive') &&
+        socialLoginTraceCtx.current
+      ) {
+        appBackgroundedDuringSocialLoginRef.current = true;
+        return;
+      }
+      // Foreground return after such a background: wait the grace window, then if the attempt
+      // is still in flight (no success/failure cleared the ctx) treat it as abandoned.
+      if (
+        nextState === 'active' &&
+        appBackgroundedDuringSocialLoginRef.current
+      ) {
+        appBackgroundedDuringSocialLoginRef.current = false;
+        if (abandonmentTimerRef.current) {
+          clearTimeout(abandonmentTimerRef.current);
+        }
+        abandonmentTimerRef.current = setTimeout(() => {
+          if (socialLoginTraceCtx.current) {
+            endSocialLoginAttemptTrace(false);
+          }
+        }, OAUTH_ABANDONMENT_GRACE_MS);
+      }
+    });
+    return () => {
+      subscription.remove();
+      if (abandonmentTimerRef.current) {
+        clearTimeout(abandonmentTimerRef.current);
+      }
+    };
+  }, [endSocialLoginAttemptTrace]);
 
   useEffect(() => {
     updateNavBar();

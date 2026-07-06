@@ -84,7 +84,7 @@ import Icon, {
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import { CommonActions } from '@react-navigation/native';
+import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
@@ -177,6 +177,31 @@ const ImportFromSecretRecoveryPhrase = ({
       setCurrentStep(1);
     }
   }, [isQrSyncImport, qrSyncPrimaryMnemonic]);
+
+  // Fix 2: if the user leaves this screen (back-navigation) without completing the import, close
+  // the spans this import flow opened so they are not left running for 5 minutes.
+  // Only OnboardingExistingSrpImport + OnboardingSRPAccountImportTime are ended here — both are
+  // re-created if the user re-enters (Onboarding.onPressImport restarts the former, and the try
+  // block restarts the latter). OnboardingJourneyOverall is intentionally NOT ended here: the
+  // Onboarding screen stays mounted underneath, so it is not re-created on re-entry, and ending
+  // it would kill the journey for the rest of the session (including a switch to social login).
+  // Its abandonment close is owned by Onboarding's own unmount cleanup. endTrace no-ops if a span
+  // was already closed on the success/terminal-error paths, so forward-navigation is safe.
+  useFocusEffect(
+    React.useCallback(
+      () => () => {
+        endTrace({
+          name: TraceName.OnboardingExistingSrpImport,
+          data: { success: false },
+        });
+        endTrace({
+          name: TraceName.OnboardingSRPAccountImportTime,
+          data: { success: false },
+        });
+      },
+      [],
+    ),
+  );
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
@@ -498,6 +523,17 @@ const ImportFromSecretRecoveryPhrase = ({
         }
 
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
+          // RECOVERABLE path: the user stays on this screen and can retry the import.
+          // End ONLY this screen's own per-attempt span (OnboardingSRPAccountImportTime), which
+          // is re-started at the top of this try block on the next attempt — ending it here also
+          // prevents a duplicate-key collision on that restart. Do NOT end OnboardingExistingSrpImport
+          // or OnboardingJourneyOverall: they are owned by the still-mounted Onboarding screen and
+          // are NOT re-created on retry, so ending them would make the success-path endTrace calls
+          // (above) no-op and truncate the journey even though the user ultimately succeeds.
+          endTrace({
+            name: TraceName.OnboardingSRPAccountImportTime,
+            data: { success: false },
+          });
           Alert.alert(
             'Security Alert',
             'In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)',
@@ -516,6 +552,22 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           });
         }
+
+        // TERMINAL path: navigation.reset ejects the user to the error screen and unmounts this
+        // flow, so there is no re-entry from here. Close all three spans that this import flow
+        // opened so none is left to be force-closed by the 5-min trace cleanup timer.
+        endTrace({
+          name: TraceName.OnboardingSRPAccountImportTime,
+          data: { success: false },
+        });
+        endTrace({
+          name: TraceName.OnboardingExistingSrpImport,
+          data: { success: false },
+        });
+        endTrace({
+          name: TraceName.OnboardingJourneyOverall,
+          data: { success: false },
+        });
 
         // Navigate to error screen based on metrics consent
         navigation.reset({

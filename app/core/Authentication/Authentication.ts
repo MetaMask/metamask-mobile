@@ -33,7 +33,13 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
+import {
+  TraceName,
+  TraceOperation,
+  TraceContext,
+  trace,
+  endTrace,
+} from '../../util/trace';
 import { isE2EMockOAuth } from '../../util/environment';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
@@ -744,10 +750,15 @@ class AuthenticationService {
       password,
       authPreference,
       onBeforeNavigate,
+      // Optional onboarding trace context; forwarded to rehydrateSeedPhrase so the seedless
+      // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
+      // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
+      parentContext,
     }: {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
+      parentContext?: TraceContext;
     } = {
       password: undefined,
       authPreference: undefined,
@@ -774,8 +785,9 @@ class AuthenticationService {
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
           if (authPreference?.oauth2Login) {
-            // if seedless flow - rehydrate
-            await this.rehydrateSeedPhrase(passwordToUse);
+            // if seedless flow - rehydrate (forward the onboarding trace context so
+            // OnboardingFetchSrps nests under the journey rather than being a root span)
+            await this.rehydrateSeedPhrase(passwordToUse, parentContext);
             fallbackToPassword = true;
           } else if (
             await this.checkIsSeedlessPasswordOutdated({
@@ -1243,7 +1255,13 @@ class AuthenticationService {
     return true;
   };
 
-  rehydrateSeedPhrase = async (password: string): Promise<void> => {
+  rehydrateSeedPhrase = async (
+    password: string,
+    // Optional so existing callers are unaffected. When provided (from the onboarding UI), it
+    // nests OnboardingFetchSrps under the overall-journey span instead of emitting it as a
+    // disconnected root transaction in Sentry.
+    parentContext?: TraceContext,
+  ): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
       let allSRPs: Awaited<
@@ -1254,6 +1272,7 @@ class AuthenticationService {
         trace({
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
         });
         allSRPs =
           await SeedlessOnboardingController.fetchAllSecretData(password);
