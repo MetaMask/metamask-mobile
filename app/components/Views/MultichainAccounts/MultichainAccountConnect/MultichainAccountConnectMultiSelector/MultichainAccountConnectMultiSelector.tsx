@@ -31,7 +31,7 @@ import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountGroupWithInternalAccounts } from '../../../../../selectors/multichainAccounts/accounts.type';
 import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 
@@ -60,6 +60,7 @@ const MultichainAccountConnectMultiSelector = ({
   hostname,
   connection,
 }: MultichainAccountConnectMultiSelectorProps) => {
+  const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const navigation = useNavigation();
   const [selectedAccountGroupIdsSet, setSelectedAccountGroupIdsSet] = useState<
@@ -164,7 +165,12 @@ const MultichainAccountConnectMultiSelector = ({
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View
+      style={[
+        styles.safeArea,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
       <View style={styles.container}>
         <SheetHeader
           title={screenTitle || strings('accounts.connect_accounts_title')}
@@ -189,7 +195,7 @@ const MultichainAccountConnectMultiSelector = ({
         )}
         <View style={styles.body}>{renderCtaButtons()}</View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
