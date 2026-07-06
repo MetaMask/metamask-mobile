@@ -266,6 +266,10 @@ class Browser {
    * (opens a new Portfolio homepage tab).
    */
   async ensureSingleBrowserTabView(): Promise<void> {
+    if (await Utilities.isElementVisible(this.addressBar, 2000)) {
+      return;
+    }
+
     const openedTabsHeader = Matchers.getElementByID(
       BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
     );
@@ -385,8 +389,21 @@ class Browser {
     const deadline = Date.now() + timeoutMs;
 
     while (Date.now() < deadline) {
+      const remainingMs = deadline - Date.now();
+      if (remainingMs <= 0) {
+        return false;
+      }
+
       try {
-        await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+        await Promise.race([
+          PlaywrightContextHelpers.switchToWebViewContext(dappUrl),
+          new Promise<never>((_, reject) => {
+            setTimeout(
+              () => reject(new Error('WebView context switch timed out')),
+              Math.min(remainingMs, 5_000),
+            );
+          }),
+        ]);
         await PlaywrightContextHelpers.switchToNativeContext();
         return true;
       } catch {
@@ -558,11 +575,13 @@ class Browser {
           timeout: 5000,
         });
         const urlInput = await asPlaywrightElement(this.urlInputBoxID);
-        await urlInput.clear();
-        await urlInput.fill(url);
         if (PlatformDetector.isAndroid()) {
+          // clearValue() can hang when Appium IME is unavailable on CI emulators.
+          await urlInput.fill(url);
           await PlaywrightGestures.submitAndroidUrlBar();
         } else {
+          await urlInput.clear();
+          await urlInput.fill(url);
           await PlaywrightGestures.tapKeyboardReturnKey('Go');
         }
         // Allow WebView navigation to start before dismissing the URL editor.
@@ -593,10 +612,6 @@ class Browser {
 
   async navigateToTestDApp(): Promise<void> {
     const dappUrl = getDappUrl(0);
-
-    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
-      await this.ensureSingleBrowserTabView();
-    }
 
     for (let attempt = 1; attempt <= DAPP_NAVIGATION_MAX_ATTEMPTS; attempt++) {
       await this.dismissUrlEditorIfOpen();
