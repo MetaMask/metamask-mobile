@@ -1,12 +1,19 @@
 pluginManagement {
     includeBuild(new File(["node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().toString())
+    // Expo SDK 55 replaced the old `expo/scripts/autolinking.gradle` Groovy script
+    // with the `expo-autolinking-settings` Gradle plugin, which lives in this
+    // included build. Including it here makes `id("expo-autolinking-settings")` resolvable.
+    includeBuild(new File(["node", "--print", "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim(), "../android/expo-gradle-plugin").toString())
     repositories {
         gradlePluginPortal()
         mavenLocal()
         google()
     }
 }
-plugins { id("com.facebook.react.settings") }
+plugins {
+    id("com.facebook.react.settings")
+    id("expo-autolinking-settings")
+}
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
@@ -42,25 +49,15 @@ includeBuild('../node_modules/@react-native') {}
 include ':react-native-gesture-handler'
 project(':react-native-gesture-handler').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gesture-handler/android')
 
-// Build React Native from source but use prebuilt Hermes from Maven Central.
-// This speeds up build significantly by avoiding Hermes engine compilation.
-// The react-native package is patched via .yarn/patches/react-native-npm-0.81.5-d8232ef145.patch
-// to use com.facebook.react:hermes-android:0.81.5 instead of building hermes-engine from source.
-// When upgrading React Native, regenerate this patch with:
-//   yarn patch react-native@npm:<new-version>
-//   <apply the same three edits>
-//   yarn patch-commit -s <temp-dir>
-includeBuild('../node_modules/react-native') {
-    dependencySubstitution {
-        substitute(module("com.facebook.react:react-android")).using(project(":packages:react-native:ReactAndroid"))
-        substitute(module("com.facebook.react:react-native")).using(project(":packages:react-native:ReactAndroid"))
-        // Note: hermes-android/hermes-engine substitutions intentionally omitted - resolved from Maven
-    }
-}
+// React Native (react-android) and Hermes (hermes-android) are consumed as
+// prebuilt artifacts from Maven Central (the default RN 0.83 behavior). The
+// `com.facebook.react` Gradle plugin injects the google()/mavenCentral()
+// repositories that host them, so no from-source includeBuild is required.
 
 // Build Detox from source to ensure our patches are applied
 include ':detox'
 project(':detox').projectDir = new File(rootProject.projectDir, '../node_modules/detox/android/detox')
 
-apply from: new File(["node", "--print", "require.resolve('expo/package.json')"].execute(null, rootDir).text.trim(), "../scripts/autolinking.gradle")
-useExpoModules()
+// Expo SDK 55+ autolinking: provided by the `expo-autolinking-settings` plugin
+// applied above (replaces the removed `expo/scripts/autolinking.gradle`).
+expoAutolinking.useExpoModules()
