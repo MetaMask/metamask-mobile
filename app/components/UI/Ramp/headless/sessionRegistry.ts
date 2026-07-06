@@ -251,7 +251,7 @@ export function closeSession(
  *
  * `onError` is terminal on its own: a session ends in exactly one of
  * `onOrderCreated`, `onError`, or `onClose`, never a pairing. This matters for
- * MM Pay, whose `onClose` handler clears the error set by `onError` — a trailing
+ * MM Pay, whose `onClose` handler clears the error set by `onError`; a trailing
  * `onClose` here would wipe the failure it just reported.
  */
 export function failSession(

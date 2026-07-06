@@ -72,7 +72,7 @@ jest.mock('../../headless/useHeadlessSessionFocusDismissal', () => ({
 // Keep the real `setHeadlessEntryCardTouchThrough` (asserted via the
 // navigation setOptions mock) but spy on `dismissHeadlessFlow` so the
 // terminal-error teardown can be asserted in isolation. `dismissHeadlessFlow`
-// pops the transparent HEADLESS_ENTRY modal — its absence on the error path
+// pops the transparent HEADLESS_ENTRY modal; its absence on the error path
 // was the bug that froze the app over the confirmation screen.
 const mockDismissHeadlessFlow = jest.fn();
 jest.mock('../../headless/headlessEntryNavigation', () => {
@@ -621,7 +621,7 @@ describe('HeadlessHost', () => {
   });
 
   // The bug: a headless flow that terminates with an ERROR called
-  // `failSession` (registry bookkeeping only — no navigation) but never
+  // `failSession` (registry bookkeeping only, no navigation) but never
   // dismissed the transparent HEADLESS_ENTRY modal. The modal stayed mounted
   // over the confirmation screen and intercepted every touch, so the app
   // looked frozen until relaunch. Each terminal-error path must now pop the
