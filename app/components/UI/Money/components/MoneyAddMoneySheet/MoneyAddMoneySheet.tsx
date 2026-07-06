@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import {
+  CHAIN_IDS,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
@@ -28,6 +29,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import {
   useMoneyAccountDeposit,
@@ -35,6 +37,7 @@ import {
 } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../hooks/useRegionHasFiatProvider';
+import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
@@ -71,7 +74,19 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const transactions = useSelector(selectTransactions);
-  const regionHasFiatProvider = useRegionHasFiatProvider();
+  // Derive the deposit asset (CAIP-19) from the same vault config the deposit
+  // flow uses, so the entry gate checks the exact asset the deposit targets.
+  // Money Account is Monad-only today, so fall back to the Monad mUSD asset id
+  // when no vault config is available.
+  const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
+  const depositAssetId = useMemo(() => {
+    const chainId = (vaultConfig?.chainId as Hex) ?? CHAIN_IDS.MONAD;
+    return (
+      MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] ??
+      MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD]
+    );
+  }, [vaultConfig?.chainId]);
+  const regionHasFiatProvider = useRegionHasFiatProvider(depositAssetId);
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],

@@ -13,6 +13,7 @@ import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenB
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -351,6 +352,14 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     ).toBeOnTheScreen();
+  });
+
+  it('gates on the mUSD-on-Monad asset id', () => {
+    renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(useRegionHasFiatProvider).toHaveBeenCalledWith(
+      MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD],
+    );
   });
 
   it('disables the Convert crypto option when no account has any crypto balance', () => {
