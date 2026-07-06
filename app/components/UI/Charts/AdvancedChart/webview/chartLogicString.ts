@@ -1025,6 +1025,57 @@ function getApproxBarDurationSec(bars) {
 
 
 /**
+ * How long (ms) to keep re-asserting the centered visible range for a
+ * historical frame. A one-shot \`setVisibleRange\` issued during the post-load
+ * settle is overridden by TradingView's default "scroll to latest" positioning,
+ * so we re-apply every animation frame for this window — the same thing the
+ * animated focusTime slide does implicitly, which a single auto-center call did
+ * not. Kept short so it never fights a real user gesture.
+ */
+const CENTER_HOLD_MS = 700;
+/** Bumped on each hold so a newer center / fresh series cancels an in-flight hold. */
+let centerHoldGeneration = 0;
+/**
+ * Re-asserts \`setVisibleRange({ from, to })\` every animation frame for
+ * {@link CENTER_HOLD_MS}, defeating TradingView's post-load scroll-to-latest
+ * that clobbers a single call. Generation- and data-guarded so a newer center
+ * or a fresh series stops it; no-ops once the widget is torn down.
+ *
+ * Deliberately omits the \`{ percentRightMargin: 0 }\` option: passing it makes
+ * TradingView anchor to the latest candle and ignore an older from/to, so a
+ * historical frame (an old position's trades) would snap back to "today".
+ */
+function holdCenteredVisibleRange(chart, fromSec, toSec) {
+    centerHoldGeneration += 1;
+    const gen = centerHoldGeneration;
+    const dataGeneration = getOhlcvGeneration();
+    const startTs = Date.now();
+    const apply = () => {
+        if (gen !== centerHoldGeneration)
+            return;
+        if (dataGeneration !== getOhlcvGeneration())
+            return;
+        if (!getWidget() || !isChartReady())
+            return;
+        try {
+            chart.setVisibleRange({ from: fromSec, to: toSec });
+        }
+        catch {
+            // setVisibleRange can throw every frame while the chart is mid-teardown;
+            // swallow silently so the hold window doesn't spam errors to RN.
+        }
+        if (Date.now() - startTs < CENTER_HOLD_MS) {
+            try {
+                requestAnimationFrame(apply);
+            }
+            catch {
+                setTimeout(apply, 16);
+            }
+        }
+    };
+    apply();
+}
+/**
  * Centers the viewport on the SLB trade window after a data load.
  *
  * Called from ohlcvIngestion's \`applyVisibleRange\` when \`slbMode\` is active.
@@ -1053,8 +1104,24 @@ function slbCenterViewport(chart) {
         const barPadSec = getApproxBarDurationSec(data) * 2;
         const fromSec = Math.floor(fromMs / 1000) - barPadSec;
         const toSec = Math.ceil(toMs / 1000) + barPadSec;
+        // A frame whose right edge sits before the latest loaded bar is a historical
+        // position (an old, closed trade range). TradingView's post-load
+        // scroll-to-latest clobbers a single \`setVisibleRange\`, and
+        // \`percentRightMargin: 0\` re-anchors it to the latest candle — together they
+        // snap the viewport back to "today" and push the trades off-screen. Re-assert
+        // the range across the settle window (without that option) so the historical
+        // frame sticks. A frame ending at/after the latest bar is the trailing window:
+        // TV doesn't fight it, so a single anchored call is enough.
+        const lastBar = data.at(-1);
+        const lastBarSec = lastBar != null ? Math.floor(lastBar.time / 1000) : null;
+        const isHistoricalFrame = lastBarSec != null && Math.ceil(toMs / 1000) < lastBarSec;
         try {
-            chart.setVisibleRange({ from: fromSec, to: toSec }, { percentRightMargin: 0 });
+            if (isHistoricalFrame) {
+                holdCenteredVisibleRange(chart, fromSec, toSec);
+            }
+            else {
+                chart.setVisibleRange({ from: fromSec, to: toSec }, { percentRightMargin: 0 });
+            }
             setSlbCenteringPending(false);
         }
         catch (error) {
@@ -1062,6 +1129,10 @@ function slbCenterViewport(chart) {
         }
     };
     subscription.subscribe(null, onLoaded);
+}
+/** Test-only: reset the center-hold generation counter between cases. */
+function __resetSocialLeaderboardForTests() {
+    centerHoldGeneration = 0;
 }
 /**
  * Schedules SLB viewport centering after the initial chart-ready event.
