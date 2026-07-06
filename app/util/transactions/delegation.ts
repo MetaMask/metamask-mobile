@@ -31,6 +31,8 @@ import { toHex } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { exactExecutionBatch } from '../../core/Delegation/caveatBuilder/exactExecutionBatchBuilder';
 import { exactExecution } from '../../core/Delegation/caveatBuilder/exactExecutionBuilder';
+import { prefixError } from './error-prefix';
+import { TRANSFER_FUNCTION_SIGNATURE } from './index';
 
 const log = createProjectLogger('transaction-delegation');
 
@@ -257,14 +259,23 @@ function buildSubsidizedCaveats(
   environment: DeleGatorEnvironment,
   transaction: TransactionMeta,
 ): Caveat[] {
+  try {
+    return buildSubsidizedCaveatsInternal(environment, transaction);
+  } catch (error) {
+    throw prefixError(error, 'Subsidized Caveats: ');
+  }
+}
+
+function buildSubsidizedCaveatsInternal(
+  environment: DeleGatorEnvironment,
+  transaction: TransactionMeta,
+): Caveat[] {
   const caveatBuilder = createCaveatBuilder(environment);
   const nestedTransactions = transaction.nestedTransactions ?? [];
 
   // Subsidized execute only supports single-step deposit routes
   if (nestedTransactions.length !== 1) {
-    throw new Error(
-      'Subsidized Relay execute: expected single-step deposit route',
-    );
+    throw new Error('expected single-step deposit route');
   }
 
   const transferTx = nestedTransactions[0];
@@ -272,9 +283,17 @@ function buildSubsidizedCaveats(
   const calldata = transferTx.data as Hex | undefined;
 
   if (!token || !calldata) {
-    throw new Error(
-      'Subsidized Relay execute: missing token address or calldata',
-    );
+    throw new Error('missing token address or calldata');
+  }
+
+  // Only ERC20 transfer calldata can be split into selector + recipient/amount caveats
+  if (calldata.slice(0, 10).toLowerCase() !== TRANSFER_FUNCTION_SIGNATURE) {
+    throw new Error('expected ERC20 transfer calldata');
+  }
+
+  // 0x + selector (8) + recipient (64) + amount (64) = 138
+  if (calldata.length < 138) {
+    throw new Error('transfer calldata too short');
   }
 
   // Extract selector (0x + bytes 2-10) and recipient+amount (bytes 10-138)

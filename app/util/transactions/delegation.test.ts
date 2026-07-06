@@ -188,7 +188,7 @@ describe('Transaction Delegation Utils', () => {
       // Recipient: 0x1111111111111111111111111111111111111111 padded = 0x0000000000000000000000001111111111111111111111111111111111111111
       // Amount: 0x0989680 padded = 0x0000000000000000000000000000000000000000000000000000000000989680
       const transferCalldata =
-        '0xa9059cbb0000000000000000000000001111111111111111111111111111111111111111000000000000000000000000000000000000000000000000000000000989680' as Hex;
+        '0xa9059cbb00000000000000000000000011111111111111111111111111111111111111110000000000000000000000000000000000000000000000000000000000989680' as Hex;
 
       const transactionWithNested: TransactionMeta = {
         ...TRANSACTION_META_MOCK,
@@ -220,8 +220,12 @@ describe('Transaction Delegation Utils', () => {
 
       // Verify 4 caveats were built (limitedCalls, allowedTargets, 2x allowedCalldata)
       const delegationCall = signDelegationMock.mock.calls[0][0];
-      const caveats = ((delegationCall as Record<string, unknown>).delegation as Record<string, unknown>)
-        .caveats as Caveat[];
+      const caveats = (
+        (delegationCall as Record<string, unknown>).delegation as Record<
+          string,
+          unknown
+        >
+      ).caveats as Caveat[];
       expect(caveats).toHaveLength(4);
     });
 
@@ -232,13 +236,9 @@ describe('Transaction Delegation Utils', () => {
       };
 
       await expect(
-        getDelegationTransaction(
-          messengerMock,
-          transactionWithoutNested,
-          true,
-        ),
+        getDelegationTransaction(messengerMock, transactionWithoutNested, true),
       ).rejects.toThrow(
-        'Subsidized Relay execute: expected single-step deposit route',
+        'Subsidized Caveats: expected single-step deposit route',
       );
     });
 
@@ -261,8 +261,50 @@ describe('Transaction Delegation Utils', () => {
           true,
         ),
       ).rejects.toThrow(
-        'Subsidized Relay execute: missing token address or calldata',
+        'Subsidized Caveats: missing token address or calldata',
       );
+    });
+
+    it('throws when subsidized execute calldata is not an ERC20 transfer', async () => {
+      const transactionWithNonTransfer: TransactionMeta = {
+        ...TRANSACTION_META_MOCK,
+        nestedTransactions: [
+          {
+            data: `0xdeadbeef${'0'.repeat(128)}` as Hex,
+            to: '0x1234567890123456789012345678901234567890' as Hex,
+            value: '0x0' as Hex,
+          },
+        ],
+      };
+
+      await expect(
+        getDelegationTransaction(
+          messengerMock,
+          transactionWithNonTransfer,
+          true,
+        ),
+      ).rejects.toThrow('Subsidized Caveats: expected ERC20 transfer calldata');
+    });
+
+    it('throws when subsidized execute transfer calldata is too short', async () => {
+      const transactionWithShortCalldata: TransactionMeta = {
+        ...TRANSACTION_META_MOCK,
+        nestedTransactions: [
+          {
+            data: `0xa9059cbb${'0'.repeat(100)}` as Hex,
+            to: '0x1234567890123456789012345678901234567890' as Hex,
+            value: '0x0' as Hex,
+          },
+        ],
+      };
+
+      await expect(
+        getDelegationTransaction(
+          messengerMock,
+          transactionWithShortCalldata,
+          true,
+        ),
+      ).rejects.toThrow('Subsidized Caveats: transfer calldata too short');
     });
   });
 });
