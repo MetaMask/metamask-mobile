@@ -476,6 +476,7 @@
     "security_alert_title": "Security alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "biometric_too_many_attempts": "Too many attempts, please enter your password.",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use a different login method",
@@ -1069,21 +1070,14 @@
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
     },
-    "trader_notifications": {
-      "title": "Notifications from {{traderName}}",
-      "allow_push_notifications": "Allow push notifications",
-      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow"
-    },
-    "trader_notifications_setup": {
-      "description": "Get real-time alerts on trades from the traders you follow",
-      "allow_push_notifications": "Allow push notifications",
-      "trades_over_label": "Get notified of trades over:",
-      "save": "Save",
-      "title": "Top Traders"
-    },
     "follow": "Follow",
     "following": "Following",
+    "mute": {
+      "on_accessibility_label": "Notifications on. Tap to mute this trader",
+      "muted_accessibility_label": "Muted. Tap to turn notifications back on",
+      "on_accessibility_label_named": "Notifications on for {{traderName}}. Tap to mute",
+      "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
+    },
     "all_networks": "All networks",
     "trader_profile": {
       "followers_count": "{{count}} follower",
@@ -7377,6 +7371,9 @@
       "title": "Activity",
       "view_all": "View all",
       "empty": "No activity yet",
+      "load_error": "Couldn't load your activity",
+      "load_error_more": "Couldn't load more activity",
+      "retry": "Retry",
       "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
@@ -8363,7 +8360,7 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
-    "link_metamask_extension" : "Import accounts from MetaMask extension",
+    "link_metamask_extension": "Import accounts from MetaMask extension",
     "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",

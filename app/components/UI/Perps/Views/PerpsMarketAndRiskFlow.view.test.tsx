@@ -14,7 +14,13 @@
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
-import { cleanup, act, fireEvent, screen } from '@testing-library/react-native';
+import {
+  cleanup,
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import {
   renderPerpsView,
@@ -105,12 +111,10 @@ const transactionItemStyles = {
 describe('Market Browsing & Risk Awareness Flow', () => {
   let NOTIFICATIONS_TITLE: string;
   let SORT_SORT_BY: string;
-  let SORT_APPLY: string;
 
   beforeAll(() => {
     NOTIFICATIONS_TITLE = strings('perps.tooltips.notifications.title');
     SORT_SORT_BY = strings('perps.sort.sort_by');
-    SORT_APPLY = strings('perps.sort.apply');
   });
 
   it('trader sees loading, browses markets, checks risk warnings, enables notifications, and reviews transactions', async () => {
@@ -408,11 +412,16 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       },
     );
     await screen.findByText(SORT_SORT_BY, {}, { timeout: 3000 });
-    expect(screen.getByText(SORT_APPLY)).toBeOnTheScreen();
     const volumeOption = screen.getByTestId('perps-sort-sheet-option-volume');
     fireEvent.press(volumeOption);
-    fireEvent.press(screen.getByText(SORT_APPLY));
-    expect(mockOnOptionSelect).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockOnOptionSelect).toHaveBeenCalledWith(
+        'volume',
+        'volume',
+        'desc',
+      );
+    });
+    expect(mockOnCloseSort).toHaveBeenCalled();
 
     // ── PHASE 9: Transaction list item ───────────────────────────────────
     await act(async () => {

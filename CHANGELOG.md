@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.0.3]
+
+### Fixed
+
+- Fixed failed order preview for Polymarket markets using non-standard tick sizes (e.g. World Cup match predictions) (#32720)
+- Reverted money.onboarding.step_1 copy to 8.0.0 state; apy variable is not used. (#32739)
+
 ## [8.0.2]
 
 ### Added
@@ -12417,7 +12424,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.2...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.3...HEAD
+[8.0.3]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.2...v8.0.3
 [8.0.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.1...v8.0.2
 [8.0.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.1...v8.0.0

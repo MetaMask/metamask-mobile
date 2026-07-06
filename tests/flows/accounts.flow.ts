@@ -229,6 +229,10 @@ export const renameAccountAtIndex = async (
   await EditAccountName.updateAccountName(newName);
   await EditAccountName.tapSave();
   await AccountDetails.tapBackButton();
+
+  if (FrameworkDetector.isAppium()) {
+    await AccountListBottomSheet.waitForAccountListVisible();
+  }
 };
 
 export const assertAccountCount = async (
