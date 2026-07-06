@@ -169,6 +169,7 @@ export interface TVShapePoint {
 
 export interface TVShapeCreateOptions {
   shape: string;
+  text?: string;
   icon?: number;
   lock?: boolean;
   overrides?: Record<string, unknown>;

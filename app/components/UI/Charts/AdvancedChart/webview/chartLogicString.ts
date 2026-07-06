@@ -4396,6 +4396,7 @@ function __resetFocusTimeForTests() {
 // Kept separate from core/state.ts per convention: overlay-specific state
 // lives in the overlay's own state module.
 let shapeIds = [];
+let generation = 0;
 function getPositionShapeIds() {
     return shapeIds;
 }
@@ -4405,8 +4406,16 @@ function pushPositionShapeId(id) {
 function clearPositionShapeIds() {
     shapeIds = [];
 }
+function bumpGeneration() {
+    generation += 1;
+    return generation;
+}
+function getGeneration() {
+    return generation;
+}
 function __resetPositionLineStateForTests() {
     shapeIds = [];
+    generation = 0;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/positionLines/index.ts
@@ -4442,6 +4451,7 @@ function handleSetPositionLines(payload) {
     const widget = getWidget();
     if (!widget || !isChartReady())
         return;
+    bumpGeneration();
     clearPositionLines();
     if (!payload?.position) {
         setHasExplicitCurrentPriceLine(false);
@@ -4537,6 +4547,7 @@ function handleSetPositionLines(payload) {
     }
     try {
         const chart = widget.activeChart();
+        const gen = getGeneration();
         for (const line of lines) {
             chart
                 .createShape({ price: line.price }, {
@@ -4545,6 +4556,7 @@ function handleSetPositionLines(payload) {
                 disableSelection: true,
                 disableSave: true,
                 disableUndo: true,
+                ...(line.text != null ? { text: line.text } : {}),
                 overrides: {
                     linecolor: line.color,
                     linestyle: line.lineStyle,
@@ -4554,13 +4566,21 @@ function handleSetPositionLines(payload) {
                     fontsize: 11,
                     horzLabelsAlign: line.horzLabelsAlign,
                     showPrice: line.showPrice,
-                    ...(line.text == null ? {} : { text: line.text }),
                 },
             })
                 .then((entityId) => {
-                if (entityId) {
-                    pushPositionShapeId(entityId);
+                if (!entityId)
+                    return;
+                if (getGeneration() !== gen) {
+                    try {
+                        chart.removeEntity(entityId);
+                    }
+                    catch {
+                        // Shape may already be gone
+                    }
+                    return;
                 }
+                pushPositionShapeId(entityId);
             })
                 .catch(() => {
                 // Shape creation can fail silently

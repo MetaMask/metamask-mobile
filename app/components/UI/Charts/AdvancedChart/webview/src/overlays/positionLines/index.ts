@@ -20,6 +20,8 @@ import {
   getPositionShapeIds,
   clearPositionShapeIds,
   pushPositionShapeId,
+  bumpGeneration,
+  getGeneration,
 } from './state';
 
 interface PositionLineConfig {
@@ -54,6 +56,7 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
   const widget = getWidget();
   if (!widget || !isChartReady()) return;
 
+  bumpGeneration();
   clearPositionLines();
 
   if (!payload?.position) {
@@ -155,6 +158,7 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
 
   try {
     const chart = widget.activeChart();
+    const gen = getGeneration();
     for (const line of lines) {
       chart
         .createShape(
@@ -165,6 +169,7 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
             disableSelection: true,
             disableSave: true,
             disableUndo: true,
+            ...(line.text != null ? { text: line.text } : {}),
             overrides: {
               linecolor: line.color,
               linestyle: line.lineStyle,
@@ -174,14 +179,20 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
               fontsize: 11,
               horzLabelsAlign: line.horzLabelsAlign,
               showPrice: line.showPrice,
-              ...(line.text == null ? {} : { text: line.text }),
             },
           },
         )
         .then((entityId) => {
-          if (entityId) {
-            pushPositionShapeId(entityId);
+          if (!entityId) return;
+          if (getGeneration() !== gen) {
+            try {
+              chart.removeEntity(entityId);
+            } catch {
+              // Shape may already be gone
+            }
+            return;
           }
+          pushPositionShapeId(entityId);
         })
         .catch(() => {
           // Shape creation can fail silently

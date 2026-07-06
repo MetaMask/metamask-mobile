@@ -5,6 +5,8 @@ import {
   getPositionShapeIds,
   pushPositionShapeId,
   clearPositionShapeIds,
+  bumpGeneration,
+  getGeneration,
   __resetPositionLineStateForTests,
 } from '../state';
 import type { TVShapeId } from '../../../core/types';
@@ -35,5 +37,17 @@ describe('positionLines/state', () => {
     pushPositionShapeId('shape-1' as TVShapeId);
     __resetPositionLineStateForTests();
     expect(getPositionShapeIds()).toEqual([]);
+  });
+
+  it('bumpGeneration increments and returns the new value', () => {
+    expect(bumpGeneration()).toBe(1);
+    expect(bumpGeneration()).toBe(2);
+    expect(getGeneration()).toBe(2);
+  });
+
+  it('__resetPositionLineStateForTests resets generation to 0', () => {
+    bumpGeneration();
+    __resetPositionLineStateForTests();
+    expect(getGeneration()).toBe(0);
   });
 });

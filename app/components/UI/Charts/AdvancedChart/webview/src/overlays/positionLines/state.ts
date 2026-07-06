@@ -5,6 +5,7 @@
 import type { TVShapeId } from '../../core/types';
 
 let shapeIds: TVShapeId[] = [];
+let generation = 0;
 
 export function getPositionShapeIds(): TVShapeId[] {
   return shapeIds;
@@ -18,6 +19,16 @@ export function clearPositionShapeIds(): void {
   shapeIds = [];
 }
 
+export function bumpGeneration(): number {
+  generation += 1;
+  return generation;
+}
+
+export function getGeneration(): number {
+  return generation;
+}
+
 export function __resetPositionLineStateForTests(): void {
   shapeIds = [];
+  generation = 0;
 }
