@@ -26,6 +26,7 @@ import {
 } from '../../framework';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -76,7 +77,8 @@ class Browser {
   /**
    * Tap target for the URL bar when it is unfocused. The visible URL text lives
    * in the `url-input` wrapper; the TextInput testID stays hidden until focused.
-   * On Android Appium, tap the inner TextView so `onPressUrlText` runs focus().
+   * On Android Appium, tap the displayed URL text (any node with @text) so
+   * `onPressUrlText` runs focus().
    */
   get urlBarTapTarget(): EncapsulatedElementType {
     return encapsulated({
@@ -84,7 +86,7 @@ class Browser {
       appium: {
         android: () =>
           PlaywrightMatchers.getElementByXPath(
-            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//android.widget.TextView`,
+            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//*[contains(@text,'http') or contains(@text,'localhost')]`,
           ),
         ios: () =>
           PlaywrightMatchers.getElementById(
@@ -102,8 +104,9 @@ class Browser {
       detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//android.widget.EditText`,
+          PlaywrightMatchers.getElementById(
+            BrowserURLBarSelectorsIDs.URL_INPUT,
+            { exact: false },
           ),
         ios: () =>
           PlaywrightMatchers.getElementById(
@@ -194,8 +197,39 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlBarTapTarget, {
-      elemDescription: 'URL input box',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(
+          Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
+          { elemDescription: 'URL input box' },
+        );
+      },
+      appium: async () => {
+        if (await PlatformDetector.isAndroid()) {
+          const urlTextTarget = this.urlBarTapTarget;
+          const urlBarWrapper = encapsulated({
+            appium: {
+              android: () =>
+                PlaywrightMatchers.getElementById(
+                  BrowserViewSelectorsIDs.URL_INPUT,
+                ),
+            },
+          });
+          if (await Utilities.isElementVisible(urlTextTarget, 2000)) {
+            await Gestures.waitAndTap(urlTextTarget, {
+              elemDescription: 'URL bar displayed text',
+            });
+            return;
+          }
+          await Gestures.waitAndTap(urlBarWrapper, {
+            elemDescription: 'URL input wrapper',
+          });
+          return;
+        }
+        await Gestures.waitAndTap(this.urlBarTapTarget, {
+          elemDescription: 'URL input box',
+        });
+      },
     });
   }
 
