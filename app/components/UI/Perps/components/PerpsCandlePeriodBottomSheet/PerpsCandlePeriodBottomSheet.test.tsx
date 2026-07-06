@@ -41,9 +41,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       {
         children,
         testID,
+        onClose,
       }: {
         children: React.ReactNode;
         testID?: string;
+        onClose?: () => void;
       },
       ref: React.Ref<{
         onOpenBottomSheet: () => void;
@@ -53,6 +55,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactActual.useImperativeHandle(ref, () => ({
         onOpenBottomSheet: jest.fn(),
         onCloseBottomSheet: (callback?: () => void) => {
+          onClose?.();
           callback?.();
         },
       }));
@@ -285,7 +288,11 @@ describe('PerpsCandlePeriodBottomSheet', () => {
 
       fireEvent.press(screen.getByText('2h'));
 
+      expect(mockOnClose).toHaveBeenCalled();
       expect(mockOnPeriodChange).toHaveBeenCalledWith('2h');
+      expect(mockOnClose.mock.invocationCallOrder[0]).toBeLessThan(
+        mockOnPeriodChange.mock.invocationCallOrder[0],
+      );
     });
 
     it('calls onClose after period selection', () => {

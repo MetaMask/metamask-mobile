@@ -38,6 +38,8 @@ interface PerpsCandlePeriodBottomSheetProps {
   asset?: string;
 }
 
+const PERIOD_COLUMNS = 5;
+
 const PerpsCandlePeriodBottomSheet: React.FC<
   PerpsCandlePeriodBottomSheetProps
 > = ({
@@ -117,38 +119,48 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     bottomSheetRef.current?.onCloseBottomSheet(onClose);
   }, [onClose]);
 
-  const handlePeriodSelect = (period: CandlePeriod) => {
-    onPeriodChange?.(period);
-    onClose();
-  };
+  const handlePeriodSelect = useCallback(
+    (period: CandlePeriod) => {
+      bottomSheetRef.current?.onCloseBottomSheet(() => {
+        onPeriodChange?.(period);
+      });
+    },
+    [onPeriodChange],
+  );
 
-  const renderPeriodButton = (period: {
-    label: string;
-    value: CandlePeriod;
-  }) => {
-    const isSelected = selectedPeriod === period.value;
+  const renderPeriodRow = (periods: { label: string; value: CandlePeriod }[]) =>
+    Array.from({ length: PERIOD_COLUMNS }, (_, index) => {
+      const period = periods[index];
 
-    return (
-      <Box key={period.value} twClassName="flex-1">
-        <Button
-          variant={isSelected ? ButtonVariant.Primary : ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={() => handlePeriodSelect(period.value)}
-          isFullWidth
-          testID={
-            testID
-              ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
-                  testID,
-                  period.value,
-                )
-              : undefined
-          }
-        >
-          {period.label}
-        </Button>
-      </Box>
-    );
-  };
+      if (!period) {
+        return <Box key={`period-spacer-${index}`} twClassName="flex-1" />;
+      }
+
+      const isSelected = selectedPeriod === period.value;
+
+      return (
+        <Box key={period.value} twClassName="flex-1">
+          <Button
+            variant={
+              isSelected ? ButtonVariant.Primary : ButtonVariant.Secondary
+            }
+            size={ButtonSize.Md}
+            onPress={() => handlePeriodSelect(period.value)}
+            isFullWidth
+            testID={
+              testID
+                ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
+                    testID,
+                    period.value,
+                  )
+                : undefined
+            }
+          >
+            {period.label}
+          </Button>
+        </Box>
+      );
+    });
 
   if (!isVisible) return null;
 
@@ -181,13 +193,13 @@ const PerpsCandlePeriodBottomSheet: React.FC<
                 {section.title}
               </Text>
               <Box twClassName="flex-row gap-2">
-                {section.periods.map(renderPeriodButton)}
+                {renderPeriodRow(section.periods)}
               </Box>
             </Box>
           ))
         ) : (
           <Box twClassName="flex-row gap-2">
-            {availablePeriods.map(renderPeriodButton)}
+            {renderPeriodRow(availablePeriods)}
           </Box>
         )}
       </Box>
