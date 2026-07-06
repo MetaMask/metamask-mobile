@@ -2714,6 +2714,7 @@ export class PredictController extends BaseController<
   public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
     const address = this.requireEvmAccountAddress();
+    let transactionSubmitted = false;
 
     if (!this.state.activeBuyOrders[address]) {
       this.update((state) => {
@@ -2799,6 +2800,7 @@ export class PredictController extends BaseController<
         missingBatchIdError:
           'Failed to get batch ID from transaction submission',
       });
+      transactionSubmitted = true;
 
       this.update((state) => {
         if (state.activeBuyOrders[address]) {
@@ -2815,13 +2817,16 @@ export class PredictController extends BaseController<
     } catch (error) {
       const e = ensureError(error);
       const isUserCancelled = this.isUserCancelledTransactionError(e);
-      this.trackPredictFlowMetric({
-        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
-        status: isUserCancelled
-          ? PredictTradeStatus.CANCELLED
-          : PredictTradeStatus.FAILED,
-        failureReason: e.message,
-      });
+      if (!transactionSubmitted) {
+        this.trackPredictFlowMetric({
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+          status: isUserCancelled
+            ? PredictTradeStatus.CANCELLED
+            : PredictTradeStatus.FAILED,
+          failureReason: e.message,
+        });
+      }
 
       Logger.error(
         e,
@@ -3423,6 +3428,8 @@ export class PredictController extends BaseController<
   public async prepareWithdraw(
     _params: PrepareWithdrawParams = {},
   ): Promise<Result<string>> {
+    let transactionSubmitted = false;
+
     try {
       const provider = this.provider;
 
@@ -3472,6 +3479,7 @@ export class PredictController extends BaseController<
         missingBatchIdError:
           'Failed to get batch ID from transaction submission',
       });
+      transactionSubmitted = true;
 
       this.update((state) => {
         if (state.withdrawTransaction) {
@@ -3491,14 +3499,16 @@ export class PredictController extends BaseController<
 
       const e = ensureError(error);
       const isUserCancelled = this.isUserCancelledTransactionError(e);
-      this.trackPredictFlowMetric({
-        transactionType:
-          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
-        status: isUserCancelled
-          ? PredictTradeStatus.CANCELLED
-          : PredictTradeStatus.FAILED,
-        failureReason: e.message,
-      });
+      if (!transactionSubmitted) {
+        this.trackPredictFlowMetric({
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
+          status: isUserCancelled
+            ? PredictTradeStatus.CANCELLED
+            : PredictTradeStatus.FAILED,
+          failureReason: e.message,
+        });
+      }
 
       if (isUserCancelled) {
         // ignore error, as the user cancelled the tx

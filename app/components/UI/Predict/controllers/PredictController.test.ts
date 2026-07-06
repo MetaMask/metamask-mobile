@@ -540,6 +540,40 @@ describe('PredictController', () => {
     return fn({ controller, messenger: rootMessenger });
   }
 
+  function installOneTimeUpdateFailure({
+    controller,
+    shouldFail,
+    errorMessage,
+  }: {
+    controller: PredictController;
+    shouldFail: () => boolean;
+    errorMessage: string;
+  }): { didFail: () => boolean; restore: () => void } {
+    type ControllerWithUpdate = PredictController & {
+      update: (updater: (state: PredictControllerState) => void) => void;
+    };
+
+    const controllerWithUpdate = controller as ControllerWithUpdate;
+    const originalUpdate = controllerWithUpdate.update;
+    let updateFailed = false;
+
+    controllerWithUpdate.update = (updater) => {
+      if (shouldFail() && !updateFailed) {
+        updateFailed = true;
+        throw new Error(errorMessage);
+      }
+
+      originalUpdate.call(controller, updater);
+    };
+
+    return {
+      didFail: () => updateFailed,
+      restore: () => {
+        controllerWithUpdate.update = originalUpdate;
+      },
+    };
+  }
+
   describe('constructor', () => {
     it('initializes with default state', () => {
       withController(({ controller }) => {
@@ -4962,38 +4996,21 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
-        type ControllerWithUpdate = PredictController & {
-          update: (updater: (state: PredictControllerState) => void) => void;
-        };
-
         const signerAddress = '0x1234567890123456789012345678901234567890';
-        const controllerWithUpdate = controller as ControllerWithUpdate;
-        const originalUpdate = controllerWithUpdate.update.bind(controller);
-        let updateFailedAfterSubmission = false;
-
-        controllerWithUpdate.update = (updater) => {
-          const submissionSucceeded = (
-            analytics.trackEvent as jest.Mock
-          ).mock.calls
-            .map((call) => call[0])
-            .some(
-              (arg) =>
-                arg?.properties?.transaction_type ===
-                  'mm_predict_transaction_submission' &&
-                arg?.properties?.status === 'succeeded',
-            );
-
-          if (
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after submission',
+          shouldFail: () =>
             batchSubmitted &&
-            submissionSucceeded &&
-            !updateFailedAfterSubmission
-          ) {
-            updateFailedAfterSubmission = true;
-            throw new Error('state update failed after submission');
-          }
-
-          originalUpdate(updater);
-        };
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
 
         try {
           (analytics.trackEvent as jest.Mock).mockClear();
@@ -5020,14 +5037,14 @@ describe('PredictController', () => {
                 arg?.properties?.status === 'failed',
             );
 
-          expect(updateFailedAfterSubmission).toBe(true);
+          expect(updateFailure.didFail()).toBe(true);
           expect(submissionEvent).toBeDefined();
           expect(depositFailureEvent).toBeUndefined();
           expect(controller.state.pendingDeposits[signerAddress]).toBe(
             'pending',
           );
         } finally {
-          controllerWithUpdate.update = originalUpdate;
+          updateFailure.restore();
         }
       });
     });
@@ -5938,6 +5955,74 @@ describe('PredictController', () => {
         expect(
           controller.state.activeBuyOrders[MOCK_ADDRESS]?.error,
         ).toBeUndefined();
+      });
+    });
+
+    it('does not track deposit failure when local bookkeeping fails after pay-with-any-token submission', async () => {
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-pay-with-any-token',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.activeBuyOrders[MOCK_ADDRESS] = {
+            state: ActiveOrderState.PREVIEW,
+            error: 'previous-error',
+          };
+        });
+
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage:
+            'state update failed after pay-with-any-token submission',
+          shouldFail: () =>
+            batchSubmitted &&
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.initPayWithAnyToken()).resolves.toEqual({
+            success: false,
+            error: 'state update failed after pay-with-any-token submission',
+          });
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const depositFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailure.didFail()).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(depositFailureEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
       });
     });
   });
@@ -7735,6 +7820,68 @@ describe('PredictController', () => {
         expect(controller.state.withdrawTransaction?.transactionId).toBe(
           mockBatchId,
         );
+      });
+    });
+
+    it('does not track withdraw failure when local bookkeeping fails after submission', async () => {
+      mockPolymarketProvider.prepareWithdraw.mockResolvedValue(
+        mockWithdrawResponse,
+      );
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-withdraw',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after withdraw submission',
+          shouldFail: () =>
+            batchSubmitted &&
+            (analytics.trackEvent as jest.Mock).mock.calls
+              .map((call) => call[0])
+              .some(
+                (arg) =>
+                  arg?.properties?.transaction_type ===
+                    'mm_predict_transaction_submission' &&
+                  arg?.properties?.status === 'succeeded',
+              ),
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.prepareWithdraw({})).rejects.toThrow(
+            'state update failed after withdraw submission',
+          );
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const withdrawFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailure.didFail()).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(withdrawFailureEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
       });
     });
 
