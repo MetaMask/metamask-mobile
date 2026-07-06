@@ -228,7 +228,11 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
-  useBridgeViewOnFocus({ inputRef, keypadRef });
+  useBridgeViewOnFocus({
+    inputRef,
+    keypadRef,
+    autoFocusSourceAmountInput: route.params?.autoFocusSourceAmountInput,
+  });
 
   useFocusEffect(
     useCallback(() => {

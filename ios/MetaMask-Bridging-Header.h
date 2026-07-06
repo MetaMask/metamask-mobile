@@ -3,7 +3,6 @@
 //
 
 #import <React/RCTBridgeModule.h>
-#import <Expo/Expo.h>
 #import <NitroFetch/NitroAutoPrefetcher.h>
 
 // Firebase Messaging — exposes FIRMessaging to Swift (see AppDelegate.swift willPresent).
