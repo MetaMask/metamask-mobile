@@ -3,9 +3,9 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
+  FilterButton,
+  FilterButtonSize,
+  FilterButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -140,11 +140,10 @@ const PerpsCandlePeriodBottomSheet: React.FC<
 
       return (
         <Box key={period.value} twClassName="flex-1">
-          <Button
-            variant={
-              isSelected ? ButtonVariant.Primary : ButtonVariant.Secondary
-            }
-            size={ButtonSize.Md}
+          <FilterButton
+            isSelected={isSelected}
+            variant={FilterButtonVariant.Primary}
+            size={FilterButtonSize.Md}
             onPress={() => handlePeriodSelect(period.value)}
             isFullWidth
             testID={
@@ -157,7 +156,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
             }
           >
             {period.label}
-          </Button>
+          </FilterButton>
         </Box>
       );
     });
