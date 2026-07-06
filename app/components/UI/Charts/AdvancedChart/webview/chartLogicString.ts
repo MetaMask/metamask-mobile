@@ -401,9 +401,11 @@ function __resetStateForTests() {
 
 
 const CHARTING_LIBRARY_FILE = 'charting_library.js';
+let inflightPromise = null;
 /**
  * Loads the TradingView library script. Subsequent calls resolve immediately
  * if the library is already loaded; rejected if a previous load failed.
+ * Concurrent calls while the script is still loading share the same promise.
  */
 function loadLibrary_loadTradingViewLibrary(libraryUrl) {
     if (isLibraryLoaded()) {
@@ -413,23 +415,33 @@ function loadLibrary_loadTradingViewLibrary(libraryUrl) {
     if (existingError) {
         return Promise.reject(new Error(existingError));
     }
-    return new Promise((resolve, reject) => {
+    if (inflightPromise) {
+        return inflightPromise;
+    }
+    inflightPromise = new Promise((resolve, reject) => {
         const scriptUrl = libraryUrl + CHARTING_LIBRARY_FILE;
         const script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = scriptUrl;
         script.onload = () => {
             setLibraryLoaded(true);
+            inflightPromise = null;
             resolve();
         };
         script.onerror = () => {
             const message = \`Failed to load TradingView library. URL: \${scriptUrl}\`;
             setLibraryError(message);
+            inflightPromise = null;
             reportErrorToRN(message);
             reject(new Error(message));
         };
         document.head.appendChild(script);
     });
+    return inflightPromise;
+}
+/** @internal Exported only for unit tests. */
+function __resetLoadLibraryForTests() {
+    inflightPromise = null;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/messages/handler.ts
