@@ -1,5 +1,6 @@
 import {
   hexToBigInt,
+  toBigInt,
   weiToFiat,
   renderFromWei,
   balanceToFiat,
@@ -86,7 +87,7 @@ function getTokenTransfer(args) {
   // If data is incomplete/truncated, use transferInformation if available
   if ((!encodedAmount || amount === 0n) && tx.transferInformation?.amount) {
     // transferInformation.amount is a decimal string, not hex
-    amount = BigInt(tx.transferInformation.amount);
+    amount = toBigInt.dec(tx.transferInformation.amount);
   }
 
   const userHasToken = toFormattedAddress(to) in tokens;
@@ -223,9 +224,9 @@ function getMetamaskPayTargetFiat(tx, decimals) {
 
   const targetFiatNoDecimals = new BigNumber(targetFiat)
     .shiftedBy(decimals ?? 0)
-    .toFixed();
+    .toFixed(0);
 
-  return BigInt(targetFiatNoDecimals);
+  return toBigInt.dec(targetFiatNoDecimals);
 }
 
 // For post-quote predict withdrawals, derive the received token amount and
@@ -440,7 +441,7 @@ function decodeIncomingTransfer(args) {
   const isIncoming = from?.toLowerCase() !== selectedAddress?.toLowerCase();
   const actualRecipient = decodedData[0] || (isIncoming ? selectedAddress : to);
 
-  const amount = hexToBigInt(value);
+  const amount = value ? hexToBigInt(value) : 0n;
   const token = { symbol, decimals, address: contractAddress };
 
   const renderTokenAmount = token
@@ -825,7 +826,7 @@ function decodeConfirmTx(args) {
     selectedAddress,
     ticker,
   } = args;
-  const totalEth = hexToBigInt(value);
+  const totalEth = value ? hexToBigInt(value) : 0n;
   const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
   const renderTotalEthFiat = weiToFiat(
     totalEth,
