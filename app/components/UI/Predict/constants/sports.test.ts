@@ -36,8 +36,8 @@ const game: PredictMarketGame = {
 };
 
 describe('MONEYLINE_MARKET_TYPES', () => {
-  it('contains exactly 6 entries', () => {
-    expect(MONEYLINE_MARKET_TYPES.size).toBe(6);
+  it('contains exactly 7 entries', () => {
+    expect(MONEYLINE_MARKET_TYPES.size).toBe(7);
   });
 
   it('contains moneyline', () => {
