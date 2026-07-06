@@ -221,6 +221,10 @@ export interface UseQuickBuyControllerResult {
   handleClose: () => void;
   handleSliderChange: (percent: number) => void;
   handleSliderDragEnd: (percent: number) => void;
+  /** Buy-mode preset fiat pill tap — commits amount and fetches quote immediately. */
+  handleQuickAmountPress: (fiatValue: number) => void;
+  /** USD → user display currency rate for fallback pill conversion. */
+  usdToCurrentCurrencyRate: number | undefined;
   handleAmountAreaPress: () => void;
   handleAmountChange: (text: string) => void;
   handleToggleAmountDisplay: () => void;
@@ -491,6 +495,25 @@ export function useQuickBuyController(
     },
     [sourceToken?.chainId, networkConfigurations, currencyRates],
   );
+
+  const usdToCurrentCurrencyRate = useMemo(() => {
+    const nativeCurrency = sourceToken?.chainId
+      ? networkConfigurations[sourceToken.chainId]?.nativeCurrency
+      : undefined;
+    const evmChainCurrencyEntry = nativeCurrency
+      ? currencyRates?.[nativeCurrency]
+      : undefined;
+    const fallbackEvmCurrencyEntry = Object.values(currencyRates ?? {}).find(
+      (entry) => entry?.conversionRate && entry?.usdConversionRate,
+    );
+    const currencyEntry = evmChainCurrencyEntry ?? fallbackEvmCurrencyEntry;
+    const conversionRate = currencyEntry?.conversionRate;
+    const usdConversionRate = currencyEntry?.usdConversionRate;
+    if (!conversionRate || !usdConversionRate) {
+      return undefined;
+    }
+    return conversionRate / usdConversionRate;
+  }, [sourceToken?.chainId, networkConfigurations, currencyRates]);
 
   // BridgeController.fetchQuotes does not start gas fee polling, so estimates
   // for the source chain may be missing when selectBridgeQuotesBase enriches
@@ -1044,6 +1067,48 @@ export function useQuickBuyController(
       tradeMode,
       toAmountUsd,
       trackAmountSelected,
+    ],
+  );
+
+  const handleQuickAmountPress = useCallback(
+    (fiatValue: number) => {
+      if (!Number.isFinite(fiatValue) || fiatValue <= 0) {
+        return;
+      }
+
+      lastInputMethodRef.current =
+        QuickBuyEventValues.AMOUNT_SELECTION_METHOD.PRESET;
+      setIsMaxSourceAmount(false);
+
+      const nextFiat = fiatValue.toFixed(FIAT_INPUT_DECIMALS);
+      lastCommittedFiatRef.current = nextFiat;
+      setFiatAmount(nextFiat);
+      setQuotedFiatAmount(nextFiat);
+
+      const nextSliderPercent =
+        maxSpendFiat > 0
+          ? Math.min(100, Math.round((fiatValue / maxSpendFiat) * 100))
+          : 0;
+      setSliderPercent(nextSliderPercent);
+      lastSliderPercentRef.current = nextSliderPercent;
+
+      setImmediateFetchToken((token) => token + 1);
+      trackAmountSelected(
+        toAmountUsd(fiatValue),
+        QuickBuyEventValues.AMOUNT_SELECTION_METHOD.PRESET,
+        tradeMode === 'buy' ? sourceToken?.symbol : undefined,
+        undefined,
+        tradeMode === 'sell' ? destToken?.symbol : undefined,
+      );
+    },
+    [
+      maxSpendFiat,
+      sourceToken?.symbol,
+      destToken?.symbol,
+      tradeMode,
+      toAmountUsd,
+      trackAmountSelected,
+      lastInputMethodRef,
     ],
   );
 
@@ -1622,6 +1687,8 @@ export function useQuickBuyController(
     handleClose,
     handleSliderChange,
     handleSliderDragEnd,
+    handleQuickAmountPress,
+    usdToCurrentCurrencyRate,
     handleAmountAreaPress,
     handleAmountChange,
     handleToggleAmountDisplay,

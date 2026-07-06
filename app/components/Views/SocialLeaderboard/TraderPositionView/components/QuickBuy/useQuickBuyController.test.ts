@@ -631,6 +631,66 @@ describe('useQuickBuyController', () => {
     });
   });
 
+  describe('handleQuickAmountPress', () => {
+    it('commits the fiat amount, syncs the slider, and tracks PRESET analytics', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '10',
+        atomicBalance: '10000000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 200 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(500);
+      });
+
+      expect(result.current.fiatAmount).toBe('500.00');
+      expect(result.current.sliderPercent).toBe(25);
+      expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+      expect(mockTrackAmountSelected.mock.calls[0][1]).toBe('preset');
+    });
+
+    it('still sets amounts above the available balance for insufficient-funds handling', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(3500);
+      });
+
+      expect(result.current.fiatAmount).toBe('3500.00');
+      expect(result.current.sliderPercent).toBe(100);
+    });
+
+    it('exposes usdToCurrentCurrencyRate from native currency rates', () => {
+      (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+        ETH: { conversionRate: 1000, usdConversionRate: 1200 },
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.usdToCurrentCurrencyRate).toBeCloseTo(1000 / 1200);
+    });
+  });
+
   describe('user-currency (non-USD)', () => {
     it('formats the headline in the user currency while emitting amount_usd in USD', () => {
       // EUR display currency; native ETH worth €1,000 / $1,200 → USD = EUR * 1.2.
