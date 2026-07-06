@@ -2806,7 +2806,7 @@ function buildHTML(entries) {
                 hasValues = true;
                 inner +=
                     \`<span style="color:\${labelColor}">&nbsp;\${plot.label}</span>\` +
-                        \`<span style="color:\${altColor}">\${v}</span>\`;
+                        \`<span style="color:\${altColor}">&nbsp;\${v}</span>\`;
             });
             if (hasValues)
                 pills.push(wrapPill(inner));
@@ -2817,8 +2817,8 @@ function buildHTML(entries) {
             if (isEmptyValue(v))
                 return;
             const color = plot.color ?? successColor;
-            const inner = \`<span style="color:\${color}">\${plot.label} </span>\` +
-                \`<span style="color:\${altColor}">\${v}</span>\`;
+            const inner = \`<span style="color:\${color}">\${plot.label}</span>\` +
+                \`<span style="color:\${altColor}">&nbsp;\${v}</span>\`;
             pills.push(wrapPill(inner));
         });
     }
