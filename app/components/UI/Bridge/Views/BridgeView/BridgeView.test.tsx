@@ -157,6 +157,7 @@ jest.mock('../../../../../core/Engine', () => {
       BridgeController: {
         resetState: jest.fn(),
         setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
+        setInputPrimaryDenomination: jest.fn(),
         updateBridgeQuoteRequestParams: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
@@ -285,6 +286,24 @@ jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   isHardwareAccount: jest.fn(),
+}));
+
+jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
+  useHwConnectionMonitoring: jest.fn(() => ({
+    isDisconnectedRef: { current: false },
+    resetHandledError: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../HardwareWallet/Swaps/hooks/useHwQrState', () => ({
+  useHwQrState: jest.fn(() => ({
+    isReadingQrSignature: false,
+    setIsReadingQrSignature: jest.fn(),
+    isQrHardwareWallet: false,
+    showInlineQrSigning: false,
+    handleQrSignatureCancel: jest.fn(),
+    pendingScanRequest: undefined,
+  })),
 }));
 
 jest.mock('react-native-fade-in-image', () => {
@@ -1017,6 +1036,31 @@ describe('BridgeView', () => {
       );
 
       expect(queryByTestId('keypad-delete-button')).toBeNull();
+    });
+
+    it('displays keypad on initial focus when route requests source amount auto-focus', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        autoFocusSourceAmountInput: true,
+      } as BridgeRouteParams;
+
+      const { queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      act(() => {
+        mockFocusEffects.forEach((focusEffect) => {
+          focusEffect();
+        });
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+      });
     });
 
     it('shows loading mode with quote skeleton only', () => {

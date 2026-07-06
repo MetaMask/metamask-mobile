@@ -104,3 +104,25 @@ export const RELAY_DEPOSIT_TYPES = [
   TransactionType.perpsRelayDeposit,
   TransactionType.predictRelayDeposit,
 ];
+
+export const MM_PAY_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.musdClaim,
+  TransactionType.musdConversion,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+  TransactionType.predictClaim,
+  TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
+  TransactionType.predictWithdraw,
+];
+
+/**
+ * Transaction types that require a Pay quote before publishing.
+ * These transactions will fail if no quotes are available.
+ */
+export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
+] as const;

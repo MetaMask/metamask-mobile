@@ -13,9 +13,12 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import Routes from '../../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import { ActivityTypeFilter } from '../../../Views/ActivityScreen/types';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { PredictEventValues } from '../constants/eventNames';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
@@ -25,6 +28,11 @@ import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import {
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
+} from '../../Money/utils/moneyTransactionGuards';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
@@ -142,9 +150,8 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
-  const selectedAddress =
-    getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
-  const normalizedSelectedAddress = selectedAddress.toLowerCase();
+  const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
+  const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, senderAddress, transactionId, amount, marketId } =
@@ -174,6 +181,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       }
 
       if (type === 'deposit') {
+        const depositMeta = transactionId
+          ? selectTransactionMetadataById(store.getState(), transactionId)
+          : undefined;
+        if (depositMeta && isPerpsPredictMoneyDeposit(depositMeta)) {
+          return;
+        }
+
         if (status === 'approved') {
           showPendingToast({
             showToast,
@@ -183,14 +197,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             }),
             trackLabel: strings('predict.deposit.track'),
             onTrack: () => {
-              navigation.navigate(Routes.TRANSACTIONS_VIEW);
-              if (transactionId) {
-                setTimeout(() => {
-                  navigation.navigate(Routes.TRANSACTION_DETAILS, {
-                    transactionId,
-                  });
-                }, 100);
-              }
+              navigateToTransactionDetails(navigation, {
+                transactionId,
+                initialTypeFilter: ActivityTypeFilter.Predictions,
+              });
             },
           });
           return;
@@ -276,7 +286,9 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               ? {
                   retryLabel: strings('predict.claim.toasts.error.try_again'),
                   onRetry: () => {
-                    claim().catch(() => undefined);
+                    claim({
+                      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+                    }).catch(() => undefined);
                   },
                 }
               : {}),
@@ -299,6 +311,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
+          const withdrawMeta = transactionId
+            ? selectTransactionMetadataById(store.getState(), transactionId)
+            : undefined;
+          if (withdrawMeta && isPerpsPredictMoneyWithdraw(withdrawMeta)) {
+            return;
+          }
+
           const fallbackAmount = amount ?? withdrawTransaction?.amount ?? 0;
           const { title, description } = getWithdrawConfirmedMessage(
             transactionId,

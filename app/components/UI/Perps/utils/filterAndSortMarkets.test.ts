@@ -14,6 +14,7 @@ const createMarket = (
   change24h: '+2.5%',
   change24hPercent: '2.5',
   volume: '$1M',
+  openInterest: '$500K',
   ...overrides,
 });
 
@@ -169,6 +170,122 @@ describe('filterAndSortMarkets', () => {
       const result = filterAndSortMarkets({
         marketData: markets,
         showZeroVolume: true,
+      });
+
+      expect(result).toHaveLength(4);
+    });
+  });
+
+  describe('filtering with showZeroOpenInterest=false', () => {
+    it('filters out markets with FallbackPriceDisplay open interest', () => {
+      const markets = [
+        createMarket({ symbol: 'A', openInterest: '$1M' }),
+        createMarket({
+          symbol: 'B',
+          openInterest: PERPS_CONSTANTS.FallbackPriceDisplay,
+        }),
+      ];
+
+      const result = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('A');
+    });
+
+    it('filters out markets with FallbackDataDisplay open interest', () => {
+      const markets = [
+        createMarket({ symbol: 'A', openInterest: '$1M' }),
+        createMarket({
+          symbol: 'B',
+          openInterest: PERPS_CONSTANTS.FallbackDataDisplay,
+        }),
+      ];
+
+      const result = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('A');
+    });
+
+    it('filters out markets with zero open interest', () => {
+      const markets = [
+        createMarket({ symbol: 'A', openInterest: '$1M' }),
+        createMarket({
+          symbol: 'B',
+          openInterest: PERPS_CONSTANTS.ZeroAmountDisplay,
+        }),
+        createMarket({
+          symbol: 'C',
+          openInterest: PERPS_CONSTANTS.ZeroAmountDetailedDisplay,
+        }),
+      ];
+
+      const result = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('A');
+    });
+
+    it('filters out markets with falsy open interest', () => {
+      const markets = [
+        createMarket({ symbol: 'A', openInterest: '$1M' }),
+        createMarket({ symbol: 'B', openInterest: '' }),
+        createMarket({ symbol: 'C', openInterest: undefined }),
+      ];
+
+      const result = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].symbol).toBe('A');
+    });
+
+    it('keeps markets with valid small open interest', () => {
+      const markets = [
+        createMarket({ symbol: 'A', openInterest: '$1M' }),
+        createMarket({ symbol: 'B', openInterest: '$<1' }),
+      ];
+
+      const result = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+      });
+
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.symbol)).toEqual(['A', 'B']);
+    });
+  });
+
+  describe('filtering with showZeroOpenInterest=true', () => {
+    it('includes markets regardless of open interest', () => {
+      const markets = [
+        createMarket({ symbol: 'A', openInterest: '$1M' }),
+        createMarket({
+          symbol: 'B',
+          openInterest: PERPS_CONSTANTS.FallbackDataDisplay,
+        }),
+        createMarket({
+          symbol: 'C',
+          openInterest: PERPS_CONSTANTS.ZeroAmountDisplay,
+        }),
+        createMarket({ symbol: 'D', openInterest: '' }),
+      ];
+
+      const result = filterAndSortMarkets({
+        marketData: markets,
+        showZeroVolume: false,
+        showZeroOpenInterest: true,
       });
 
       expect(result).toHaveLength(4);

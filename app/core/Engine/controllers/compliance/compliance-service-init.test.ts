@@ -43,7 +43,7 @@ describe('complianceServiceInit', () => {
     process.env.COMPLIANCE_API_URL = COMPLIANCE_API_URL;
   });
 
-  afterAll(() => {
+  afterEach(() => {
     process.env.COMPLIANCE_API_URL = originalComplianceApiUrl;
   });
 

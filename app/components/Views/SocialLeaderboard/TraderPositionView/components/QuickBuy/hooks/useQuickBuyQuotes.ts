@@ -33,11 +33,13 @@ import { getDecimalChainId } from '../../../../../../../util/networks';
 import Logger from '../../../../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
 import {
-  SocialLeaderboardEventProperties,
-  useSocialLeaderboardAnalytics,
-} from '../../../../analytics';
+  QuickBuyEventProperties,
+  type QuickBuySheetSource,
+} from '../analytics';
+import { useSocialLeaderboardAnalytics } from '../../../../analytics';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { getQuoteRefreshRate } from '../../../../../../UI/Bridge/utils/quoteUtils';
+import { getQuickBuyFeatureId } from '../utils/getQuickBuyFeatureId';
 
 export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
 
@@ -48,6 +50,8 @@ export interface QuickBuyQuotesAnalyticsContext {
   caip19?: string;
   /** USD amount the user has selected; used as `amount_usd`. */
   amountUsd?: number;
+  /** Entry surface for FeatureId mapping on fetchQuotes. */
+  source?: QuickBuySheetSource;
 }
 
 export type EnrichedQuickBuyQuote = ReturnType<
@@ -288,13 +292,12 @@ export function useQuickBuyQuotes({
     const quotesBaseProps =
       analyticsContext?.traderAddress && analyticsContext?.caip19
         ? {
-            [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+            [QuickBuyEventProperties.TRADER_ADDRESS]:
               analyticsContext.traderAddress,
-            [SocialLeaderboardEventProperties.CAIP19]: analyticsContext.caip19,
-            [SocialLeaderboardEventProperties.AMOUNT_USD]:
+            [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
+            [QuickBuyEventProperties.AMOUNT_USD]:
               analyticsContext.amountUsd ?? 0,
-            [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
-              sourceToken.symbol,
+            [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
           }
         : null;
 
@@ -309,9 +312,8 @@ export function useQuickBuyQuotes({
       if (quotesBaseProps) {
         track(MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED, {
           ...quotesBaseProps,
-          [SocialLeaderboardEventProperties.QUOTE_COUNT]: quoteCount,
-          [SocialLeaderboardEventProperties.LATENCY_MS]:
-            Date.now() - requestedAt,
+          [QuickBuyEventProperties.QUOTE_COUNT]: quoteCount,
+          [QuickBuyEventProperties.LATENCY_MS]: Date.now() - requestedAt,
         });
       }
     };
@@ -319,9 +321,8 @@ export function useQuickBuyQuotes({
     try {
       const result = await Engine.context.BridgeController.fetchQuotes(
         params,
+        getQuickBuyFeatureId(analyticsContext?.source),
         controller.signal,
-        // @ts-expect-error quickBuy has not been added as a FeatureId yet
-        'quickBuy',
       );
 
       if (controller.signal.aborted) {

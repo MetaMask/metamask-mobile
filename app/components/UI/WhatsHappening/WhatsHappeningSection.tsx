@@ -14,8 +14,16 @@ import {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { TextVariant } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../component-library/components-temp/SectionHeader';
+import {
+  Box,
+  SectionHeader,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import ExploreSectionHeader from '../../Views/TrendingView/components/SectionHeader';
+import type {
+  ExploreTabName,
+  ExploreSectionName,
+} from '../../Views/TrendingView/search/analytics';
 import ErrorState from '../../Views/Homepage/components/ErrorState';
 import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../Views/Homepage/types';
@@ -27,9 +35,14 @@ import {
   MAX_ITEMS_DISPLAYED,
   WhatsHappeningInteractionType,
   WhatsHappeningView,
+  WhatsHappeningSource,
   type WhatsHappeningSourceValue,
 } from './constants';
-import { useWhatsHappening } from './hooks';
+import {
+  useWhatsHappening,
+  isWhatsHappeningSectionVisible,
+  type UseWhatsHappeningResult,
+} from './hooks';
 import type { WhatsHappeningItem } from './types';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
@@ -57,12 +70,20 @@ const styles = StyleSheet.create({
 
 interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
+  /** Optional callback fired when the section header is pressed, before navigation. */
+  onHeaderPress?: () => void;
+  /** Optional pre-fetched feed state (avoids duplicate requests in Explore). */
+  feed?: UseWhatsHappeningResult;
+  /** Tab context for Explore section analytics — pair with sectionName. */
+  tabName?: ExploreTabName;
+  /** Section context for Explore section analytics — pair with tabName. */
+  sectionName?: ExploreSectionName;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ source }, ref) => {
+>(({ source, onHeaderPress, feed, tabName, sectionName }, ref) => {
   const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -70,8 +91,10 @@ const WhatsHappeningSection = forwardRef<
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('whats_happening.title');
 
-  const { items, isLoading, error, refresh } =
-    useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const internalFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED, {
+    enabled: feed === undefined,
+  });
+  const { items, isLoading, error, refresh } = feed ?? internalFeed;
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -88,8 +111,9 @@ const WhatsHappeningSection = forwardRef<
   );
 
   const handleViewAll = useCallback(() => {
+    onHeaderPress?.();
     navigateToDetail(0);
-  }, [navigateToDetail]);
+  }, [onHeaderPress, navigateToDetail]);
 
   const handleCardPress = useCallback(
     (index: number) => {
@@ -125,68 +149,85 @@ const WhatsHappeningSection = forwardRef<
     return null;
   }
 
-  if (hasError) {
-    return (
-      <View style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAll}
-          testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-        />
-        <ErrorState
-          title={strings('homepage.error.unable_to_load', {
-            section: title.toLowerCase(),
-          })}
-          onRetry={refresh}
-        />
-      </View>
-    );
-  }
+  const isExploreSection = tabName !== undefined && sectionName !== undefined;
 
-  if (!isLoading && items.length === 0) {
+  const header = isExploreSection ? (
+    <ExploreSectionHeader
+      title={title}
+      onViewAll={handleViewAll}
+      testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+      tabName={tabName}
+      sectionName={sectionName}
+    />
+  ) : (
+    <SectionHeader
+      title={title}
+      isInteractive
+      onPress={handleViewAll}
+      testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+    />
+  );
+
+  const carouselContent = hasError ? (
+    <ErrorState
+      title={strings('homepage.error.unable_to_load', {
+        section: title.toLowerCase(),
+      })}
+      onRetry={refresh}
+    />
+  ) : (
+    <PerpsStreamProvider>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+        snapToOffsets={SNAP_OFFSETS}
+        decelerationRate="fast"
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        testID={WhatsHappeningSelectorsIDs.CAROUSEL}
+      >
+        {isLoading ? (
+          SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
+        ) : (
+          <>
+            {items.map((item: WhatsHappeningItem, index: number) => (
+              <WhatsHappeningCard
+                key={item.id}
+                item={item}
+                cardIndex={index}
+                source={source}
+                onPress={() => handleCardPress(index)}
+              />
+            ))}
+            <ViewMoreCard
+              onPress={handleViewAll}
+              twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
+              textVariant={TextVariant.BodyLg}
+            />
+          </>
+        )}
+      </ScrollView>
+    </PerpsStreamProvider>
+  );
+
+  if (!isWhatsHappeningSectionVisible({ isLoading, items, error })) {
     return null;
   }
 
+  if (isExploreSection) {
+    return (
+      <Box>
+        {header}
+        {carouselContent}
+      </Box>
+    );
+  }
+
   return (
-    <View style={styles.sectionGap}>
-      <SectionHeader
-        title={title}
-        onPress={handleViewAll}
-        testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-      />
-      <PerpsStreamProvider>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3')}
-          snapToOffsets={SNAP_OFFSETS}
-          decelerationRate="fast"
-          onMomentumScrollEnd={handleMomentumScrollEnd}
-          testID={WhatsHappeningSelectorsIDs.CAROUSEL}
-        >
-          {isLoading ? (
-            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
-          ) : (
-            <>
-              {items.map((item: WhatsHappeningItem, index: number) => (
-                <WhatsHappeningCard
-                  key={item.id}
-                  item={item}
-                  cardIndex={index}
-                  source={source}
-                  onPress={() => handleCardPress(index)}
-                />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewAll}
-                twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
-                textVariant={TextVariant.BodyLg}
-              />
-            </>
-          )}
-        </ScrollView>
-      </PerpsStreamProvider>
-    </View>
+    <Box paddingBottom={3} style={styles.sectionGap}>
+      {header}
+      {carouselContent}
+    </Box>
   );
 });
 

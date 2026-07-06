@@ -171,7 +171,6 @@ class WalletConnect2Session {
       getApprovedHosts: undefined,
       isRemoteConn: false,
       sendMessage: undefined,
-      remoteConnHost: undefined,
     });
 
     this.checkPendingRequests();
@@ -663,7 +662,6 @@ class WalletConnect2Session {
       }
 
       return this.handleAdapterRequest({
-        channelId: this.channelId,
         requestEvent,
         scope: normalizedRequestChainId,
       });
@@ -792,11 +790,9 @@ class WalletConnect2Session {
    * the request namespace.
    */
   private handleAdapterRequest = async ({
-    channelId,
     requestEvent,
     scope,
   }: {
-    channelId: string;
     requestEvent: WalletKitTypes.SessionRequest;
     scope: CaipChainId;
   }) => {
@@ -807,7 +803,6 @@ class WalletConnect2Session {
 
     try {
       const result = await handleMultichainRequestByAdapter({
-        channelId,
         connectedAddresses,
         scope,
         requestId: requestEvent.id,

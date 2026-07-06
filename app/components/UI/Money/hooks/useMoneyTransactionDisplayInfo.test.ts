@@ -1,5 +1,6 @@
 import {
   type TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { IconName } from '@metamask/design-system-react-native';
@@ -11,10 +12,23 @@ import {
 import { safeToChecksumAddress } from '../../../../util/address';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { useMoneyTransactionDisplayInfo } from './useMoneyTransactionDisplayInfo';
+import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
+
+// The async ramp-order lookup is tested in useFiatPaymentMethodName.test.ts;
+// here we defaults to undefined so deposit rows fall back to the default label.
+jest.mock('./useFiatPaymentMethodName', () => ({
+  useFiatPaymentMethodName: jest.fn(),
+}));
+
+const mockUseFiatPaymentMethodName = jest.mocked(useFiatPaymentMethodName);
+
+beforeEach(() => {
+  mockUseFiatPaymentMethodName.mockReturnValue(undefined);
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
@@ -92,13 +106,11 @@ function makeTx(
 
 describe('useMoneyTransactionDisplayInfo — titleKeyToLabel all keys', () => {
   const cases: [string, string][] = [
-    ['added', 'money.transaction.added'],
     ['deposited', 'money.transaction.deposited'],
     ['received', 'money.transaction.received'],
     ['card_transaction', 'money.transaction.card_transaction'],
     ['converted', 'money.transaction.converted'],
     ['sent', 'money.transaction.sent'],
-    ['transferred', 'money.transaction.transferred'],
     // unknown key hits the default branch → 'received'
     ['unknown_key_xyz', 'money.transaction.received'],
   ];
@@ -132,8 +144,30 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
     expect(result.current.label).toBe('money.transaction.deposited');
   });
 
-  it('returns deposited for moneyAccountDeposit type', () => {
+  it('returns converted for a crypto moneyAccountDeposit (conversion into mUSD)', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.converted');
+  });
+
+  it('returns deposited for a fiat on-ramp moneyAccountDeposit (e.g. Transak)', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { fiat: { orderId: 'order-1', provider: 'transak-native' } },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.deposited');
+  });
+
+  it('returns deposited for an mUSD-funded moneyAccountDeposit (top-up, not a conversion)', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
@@ -204,7 +238,7 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
     expect(result.current.label).toBe('money.transaction.received');
   });
 
-  it('derives label from nested type for an EIP-7702 batch deposit', () => {
+  it('derives converted from nested type for an EIP-7702 batch crypto deposit', () => {
     const tx = makeTx(TransactionType.batch, {
       nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
     });
@@ -212,7 +246,7 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.label).toBe('money.transaction.deposited');
+    expect(result.current.label).toBe('money.transaction.converted');
   });
 
   it('derives label from nested type for an EIP-7702 batch withdraw', () => {
@@ -245,13 +279,11 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
 
 describe('useMoneyTransactionDisplayInfo — titleKeyToIcon all keys', () => {
   const cases: [string, IconName][] = [
-    ['added', IconName.Add],
     ['deposited', IconName.Add],
     ['received', IconName.Arrow2Down],
     ['card_transaction', IconName.Card],
     ['converted', IconName.Refresh],
     ['sent', IconName.Arrow2UpRight],
-    ['transferred', IconName.SwapHorizontal],
     // unknown key → default → Arrow2Down
     ['unknown_key_xyz', IconName.Arrow2Down],
   ];
@@ -276,17 +308,28 @@ describe('useMoneyTransactionDisplayInfo — titleKeyToIcon all keys', () => {
 // ---------------------------------------------------------------------------
 
 describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
-  it('returns Arrow2Down when type is undefined', () => {
+  it('returns Add when type is undefined (defaults to the deposited kind)', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit, { type: undefined });
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.icon).toBe(IconName.Arrow2Down);
+    expect(result.current.icon).toBe(IconName.Add);
   });
 
-  it('returns Add for moneyAccountDeposit type', () => {
+  it('returns Refresh for a crypto moneyAccountDeposit (conversion into mUSD)', () => {
     const tx = makeTx(TransactionType.moneyAccountDeposit);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Refresh);
+  });
+
+  it('returns Add for a fiat on-ramp moneyAccountDeposit', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { fiat: { orderId: 'order-1', provider: 'transak-native' } },
+    });
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
@@ -312,13 +355,13 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
     expect(result.current.icon).toBe(IconName.Refresh);
   });
 
-  it('returns SwapHorizontal for moneyAccountWithdraw type', () => {
+  it('returns Arrow2UpRight for moneyAccountWithdraw type (the "Sent" row)', () => {
     const tx = makeTx(TransactionType.moneyAccountWithdraw);
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.icon).toBe(IconName.SwapHorizontal);
+    expect(result.current.icon).toBe(IconName.Arrow2UpRight);
   });
 
   it('returns Arrow2UpRight for simpleSend type', () => {
@@ -357,7 +400,7 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
     expect(result.current.icon).toBe(IconName.Arrow2Down);
   });
 
-  it('returns Add for a batch tx with a nested moneyAccountDeposit', () => {
+  it('returns Refresh for a batch tx with a nested crypto moneyAccountDeposit', () => {
     const tx = makeTx(TransactionType.batch, {
       nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
     });
@@ -365,10 +408,10 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.icon).toBe(IconName.Add);
+    expect(result.current.icon).toBe(IconName.Refresh);
   });
 
-  it('returns SwapHorizontal for a batch tx with a nested moneyAccountWithdraw', () => {
+  it('returns Arrow2UpRight for a batch tx with a nested moneyAccountWithdraw', () => {
     const tx = makeTx(TransactionType.batch, {
       nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
     });
@@ -376,313 +419,151 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.icon).toBe(IconName.SwapHorizontal);
+    expect(result.current.icon).toBe(IconName.Arrow2UpRight);
   });
 });
 
 // ---------------------------------------------------------------------------
-// Primary amount — ERC-20 (USDC)
+// Primary amount — denominated in mUSD (the money-account currency)
 // ---------------------------------------------------------------------------
 
-describe('useMoneyTransactionDisplayInfo — ERC-20 (stablecoin) primary amount', () => {
-  /**
-   * Builds state where USDC is a known ERC-20 with optional market data.
-   * Like every other ERC-20, USDC is priced via the Price API
-   * (token→ETH `price` × ETH→USD rate) — there is no $1 peg shortcut. The
-   * `USDC` symbol only affects *formatting* (2 fixed decimals).
-   */
-  function makeUsdcState(opts: {
-    tokenToEthPrice?: number;
-    ethUsdRate?: number;
-  }): ProviderValues['state'] {
-    const marketData =
-      opts.tokenToEthPrice === undefined
-        ? {}
-        : {
-            [CHAIN_ID]: {
-              [safeToChecksumAddress(USDC_ADDRESS) as string]: {
-                price: opts.tokenToEthPrice,
-              },
-            },
-          };
-    return {
-      engine: {
-        backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: 'usd',
-            currencyRates:
-              opts.ethUsdRate === undefined
-                ? {}
-                : {
-                    ETH: {
-                      conversionRate: opts.ethUsdRate,
-                      usdConversionRate: opts.ethUsdRate,
-                    },
-                  },
-          },
-          TokenRatesController: { marketData },
-          TokensController: {
-            allTokens: {
-              [CHAIN_ID]: {
-                '0xSomeWallet': [
-                  {
-                    address: USDC_ADDRESS,
-                    symbol: 'USDC',
-                    decimals: 6,
-                    image: undefined,
-                  },
-                ],
-              },
-            },
-          },
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              [CHAIN_ID]: { nativeCurrency: 'ETH' },
-            },
-          },
-        },
-      },
-    } as unknown as ProviderValues['state'];
+describe('useMoneyTransactionDisplayInfo — mUSD-denominated primary amount', () => {
+  // A conversion deposit is shown in mUSD, derived from the mUSD entry in
+  // `requiredAssets` (6-decimal mUSD units, pegged 1:1 to USD). The pay token
+  // and its market price no longer affect the primary amount — see MUSD-956.
+  //
+  // Production declares the required asset as mUSD on the tx's chain (see
+  // `getMoneyAccountDepositAssetAddress`), so the fixture mirrors that shape.
+
+  function makeDepositTx(amount: string, tokenAddress: Hex = USDC_ADDRESS) {
+    return makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress, chainId: CHAIN_ID },
+      requiredAssets: [
+        { address: MUSD_TOKEN_ADDRESS, amount, standard: 'erc20' },
+      ],
+    });
   }
 
-  function makeUsdcDepositTx(): TransactionMeta {
-    // 1_000_000 → $1.00 (6-decimal USD value).
-    return makeTx(TransactionType.moneyAccountDeposit, {
+  it('renders the deposit target in mUSD with 2 decimals and grouping', () => {
+    // 1_000_000_000 / 1e6 = 1000 → "+1,000.00 mUSD"
+    const { result } = renderHookWithProvider(
+      () =>
+        useMoneyTransactionDisplayInfo(makeDepositTx('1000000000'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+1,000.00 mUSD');
+  });
+
+  it('is independent of the pay token and its market price', () => {
+    // A native-ETH deposit with no market data at all still renders in mUSD.
+    const { result } = renderHookWithProvider(
+      () =>
+        useMoneyTransactionDisplayInfo(
+          makeDepositTx('1000000', ETH_ADDRESS),
+          undefined,
+        ),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+1.00 mUSD');
+  });
+
+  it('rounds the 6-decimal mUSD value to 2 decimals', () => {
+    // 998537 / 1e6 = 0.998537 → "+1.00 mUSD"
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeDepositTx('998537'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+1.00 mUSD');
+  });
+
+  it('leaves primaryAmount empty when there is no required asset', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
     });
-  }
-
-  it('prices USDC at its market value (~$1) and formats with 2 decimals', () => {
-    // USDC→ETH 0.0004 × ETH→USD 2500 = $1.00 per USDC.
-    // $1.00 / $1.00 = 1.00 USDC.
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
-      { state: makeUsdcState({ tokenToEthPrice: 0.0004, ethUsdRate: 2500 }) },
-    );
-
-    expect(result.current.primaryAmount).toBe('+1.00 USDC');
-  });
-
-  it('reflects a de-pegged market price rather than assuming $1', () => {
-    // USDC trading at $0.80: USDC→ETH 0.00032 × ETH→USD 2500 = $0.80 per USDC.
-    // $1.00 / $0.80 = 1.25 USDC — the Price API value, not the flat $1 peg.
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
-      { state: makeUsdcState({ tokenToEthPrice: 0.00032, ethUsdRate: 2500 }) },
-    );
-
-    expect(result.current.primaryAmount).toBe('+1.25 USDC');
-  });
-
-  it('leaves primaryAmount empty when stablecoin market data is unavailable', () => {
-    // No peg fallback: without market data we cannot price USDC, so we show
-    // nothing rather than a misleading "+1.00 USDC". The fiat line still renders.
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
-      { state: makeUsdcState({}) },
-    );
-
-    expect(result.current.primaryAmount).toBe('');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Primary amount — non-stable ERC-20 (LINK), regression for MUSD-857
-// ---------------------------------------------------------------------------
-
-describe('useMoneyTransactionDisplayInfo — non-stable ERC-20 primary amount', () => {
-  // Mainnet LINK: 18 decimals, NOT a USD-pegged stablecoin.
-  const LINK_ADDRESS: Hex = '0x514910771AF9Ca656af840dff83E8264EcF986CA';
-
-  /**
-   * Builds state where LINK is a known ERC-20 with optional market data.
-   *
-   * `requiredAssets[0].amount` is denominated in the mUSD deposit target
-   * (6 decimals / a USD value), NOT in the pay token's own minimal units —
-   * so it must be priced via the pay token's USD price, exactly like the
-   * native (ETH) path. `tokenMarketData` stores the token→ETH price; the
-   * USD price is `tokenToEth × ETH→USD`.
-   */
-  function makeLinkState(opts: {
-    tokenToEthPrice?: number;
-    ethUsdRate?: number;
-  }): ProviderValues['state'] {
-    const marketData =
-      opts.tokenToEthPrice === undefined
-        ? {}
-        : {
-            [CHAIN_ID]: {
-              [safeToChecksumAddress(LINK_ADDRESS) as string]: {
-                price: opts.tokenToEthPrice,
-              },
-            },
-          };
-    return {
-      engine: {
-        backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: 'usd',
-            currencyRates:
-              opts.ethUsdRate === undefined
-                ? {}
-                : {
-                    ETH: {
-                      conversionRate: opts.ethUsdRate,
-                      usdConversionRate: opts.ethUsdRate,
-                    },
-                  },
-          },
-          TokenRatesController: { marketData },
-          TokensController: {
-            allTokens: {
-              [CHAIN_ID]: {
-                '0xSomeWallet': [
-                  {
-                    address: LINK_ADDRESS,
-                    symbol: 'LINK',
-                    decimals: 18,
-                    image: undefined,
-                  },
-                ],
-              },
-            },
-          },
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              [CHAIN_ID]: { nativeCurrency: 'ETH' },
-            },
-          },
-        },
-      },
-    } as unknown as ProviderValues['state'];
-  }
-
-  function makeLinkDepositTx(): TransactionMeta {
-    // amount = 500000 → $0.50 (6-decimal USD value), the deposit shown in the
-    // bug screenshot as "+0.00 LINK".
-    return makeTx(TransactionType.moneyAccountDeposit, {
-      metamaskPay: { tokenAddress: LINK_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: LINK_ADDRESS, amount: '500000' }],
-    });
-  }
-
-  it('prices the 6-decimal USD amount via market data (LINK at $25 → +0.02 LINK)', () => {
-    // LINK→ETH price 0.01 × ETH→USD 2500 = $25 per LINK.
-    // $0.50 / $25 = 0.02 LINK.
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
-      { state: makeLinkState({ tokenToEthPrice: 0.01, ethUsdRate: 2500 }) },
-    );
-
-    expect(result.current.primaryAmount).toBe('+0.02 LINK');
-  });
-
-  it('leaves primaryAmount empty (not +0.00) when market data is unavailable', () => {
-    // No market data and no ETH rate → we cannot price LINK, so we must show
-    // nothing rather than a misleading "+0.00 LINK". Fiat still renders from
-    // its own pipeline.
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
-      { state: makeLinkState({}) },
-    );
-
-    expect(result.current.primaryAmount).toBe('');
-  });
-
-  it('leaves primaryAmount empty when token→ETH price exists but ETH→USD rate is missing', () => {
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
-      { state: makeLinkState({ tokenToEthPrice: 0.01 }) },
-    );
-
-    expect(result.current.primaryAmount).toBe('');
-  });
-
-  it('leaves primaryAmount empty (not +0) when the token amount underflows 6 decimals', () => {
-    // High-unit-value token: token→ETH 400 × ETH→USD 2500 = $1,000,000 per token.
-    // $0.50 / $1,000,000 = 0.0000005, which rounds down to "0.000000" at 6
-    // decimals. We must show nothing rather than a misleading "+0 LINK" — this
-    // is the same class of bug MUSD-857 fixed, just one decimal place over.
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
-      { state: makeLinkState({ tokenToEthPrice: 400, ethUsdRate: 2500 }) },
-    );
-
-    expect(result.current.primaryAmount).toBe('');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Primary amount — native token (ETH)
-// ---------------------------------------------------------------------------
-
-describe('useMoneyTransactionDisplayInfo — native token (ETH) primary amount', () => {
-  /**
-   * requiredAssets[0].amount is stored as a 6-decimal USDC-equivalent
-   * (i.e. the USD value of the deposit).  Given amount=998537 ($0.998537)
-   * and ETH/USD rate=2242, the expected ETH amount is
-   * 0.998537 / 2242 ≈ 0.000445 ETH (rounded down to 6dp).
-   *
-   * Note: the code must use usdConversionRate (ETH→USD), not conversionRate
-   * (ETH→currentCurrency), because requiredAsset.amount is always in USD units.
-   */
-  it('converts 6-decimal USD amount to ETH via usdConversionRate', () => {
-    const tx = makeTx(TransactionType.moneyAccountDeposit, {
-      metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: ETH_ADDRESS, amount: '998537' }],
-    });
-
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
-      {
-        state: makeState({
-          currencyRates: { ETH: { usdConversionRate: 2242 } },
-        }),
-      },
-    );
-
-    // 0.998537 / 2242 = 0.00044538... → toFixed(6, ROUND_DOWN) = "0.000445"
-    expect(result.current.primaryAmount).toBe('+0.000445 ETH');
-  });
-
-  it('uses usdConversionRate not conversionRate — correct result in non-USD currency', () => {
-    // currentCurrency = EUR; ETH/EUR = 2000, ETH/USD = 2242
-    // requiredAsset.amount = 998537 (= $0.998537 USD)
-    // Correct:   0.998537 / 2242 ≈ 0.000445 ETH  (uses usdConversionRate)
-    // Incorrect: 0.998537 / 2000 ≈ 0.000499 ETH  (would use conversionRate)
-    const tx = makeTx(TransactionType.moneyAccountDeposit, {
-      metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: ETH_ADDRESS, amount: '998537' }],
-    });
-
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      {
-        state: makeState({
-          currentCurrency: 'eur',
-          currencyRates: {
-            ETH: { conversionRate: 2000, usdConversionRate: 2242 },
-          },
-        }),
-      },
-    );
-
-    expect(result.current.primaryAmount).toBe('+0.000445 ETH');
-  });
-
-  it('leaves primaryAmount empty when exchange rate is unavailable', () => {
-    const tx = makeTx(TransactionType.moneyAccountDeposit, {
-      metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: ETH_ADDRESS, amount: '998537' }],
-    });
-
-    const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      { state: makeState({ currencyRates: {} }) },
+      { state: makeState() },
     );
 
     expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('leaves primaryAmount empty when the deposit amount is zero', () => {
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeDepositTx('0'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('leaves primaryAmount empty (not "+0.00") for a sub-cent deposit', () => {
+    // 4999 / 1e6 = 0.004999 rounds to 0.00 at 2 decimals — rendering it would
+    // produce "+0.00 mUSD", the marker reserved for failed rows.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeDepositTx('4999'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('renders the smallest amount visible at 2 decimals', () => {
+    // 5000 / 1e6 = 0.005 → "+0.01 mUSD" (half-up, matching Intl rounding).
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeDepositTx('5000'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+0.01 mUSD');
+  });
+
+  it('parses the hex-encoded amount that production writes', () => {
+    // `RequiredAsset.amount` is typed `Hex` and written via `toHex(...)` (see
+    // useUpdateTransactionPayAmount) — 0x3b9aca00 = 1_000_000_000 → 1000 mUSD.
+    const { result } = renderHookWithProvider(
+      () =>
+        useMoneyTransactionDisplayInfo(makeDepositTx('0x3b9aca00'), undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+1,000.00 mUSD');
+  });
+
+  it('ignores a required asset that is not mUSD on the tx chain', () => {
+    // The amount is only known to be mUSD-denominated when the asset is mUSD;
+    // rendering any other asset's raw amount as mUSD would mis-denominate it.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [
+        { address: USDC_ADDRESS, amount: '1000000000', standard: 'erc20' },
+      ],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('finds the mUSD required asset even when it is not first', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [
+        { address: USDC_ADDRESS, amount: '7', standard: 'erc20' },
+        { address: MUSD_TOKEN_ADDRESS, amount: '2500000', standard: 'erc20' },
+      ],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+
+    expect(result.current.primaryAmount).toBe('+2.50 mUSD');
   });
 });
 
@@ -712,12 +593,15 @@ describe('useMoneyTransactionDisplayInfo — fiat amount fallback', () => {
 // ---------------------------------------------------------------------------
 
 describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () => {
-  it('leaves primaryAmount empty when token is not in state and address is not native', () => {
-    // USDC address but NOT present in TokensController state → not native, not erc-20
-    // → sourceTokenSymbol is undefined → primaryAmount stays empty
+  it('leaves the conversion subtitle bare when the token is neither in state nor native', () => {
+    // USDC address but NOT present in TokensController state → not native, not
+    // erc-20 → sourceTokenSymbol is undefined → no "<token> → mUSD" pair. The
+    // mUSD amount still renders, since it no longer depends on the pay token.
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
+      requiredAssets: [
+        { address: MUSD_TOKEN_ADDRESS, amount: '1000000', standard: 'erc20' },
+      ],
     });
 
     const { result } = renderHookWithProvider(
@@ -726,10 +610,11 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
       { state: makeState() },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.description).toBeUndefined();
+    expect(result.current.primaryAmount).toBe('+1.00 mUSD');
   });
 
-  it('leaves primaryAmount empty when getNativeTokenAddress throws for unknown chainId', () => {
+  it('does not crash when getNativeTokenAddress throws for an unknown chainId', () => {
     // Use a chainId our mock does not support → isNativeTokenAddress catch → returns false.
     // We also include the chain in networkConfigurationsByChainId so that
     // selectTickerByChainId does not error if the reselect stability check
@@ -737,7 +622,9 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
     const UNKNOWN_CHAIN: Hex = '0x89'; // Polygon (not in our mock)
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: UNKNOWN_CHAIN },
-      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
+      requiredAssets: [
+        { address: MUSD_TOKEN_ADDRESS, amount: '1000000', standard: 'erc20' },
+      ],
     });
 
     const stateWithPolygon = {
@@ -761,7 +648,8 @@ describe('useMoneyTransactionDisplayInfo — token resolution edge cases', () =>
       { state: stateWithPolygon },
     );
 
-    expect(result.current.primaryAmount).toBe('');
+    expect(result.current.description).toBeUndefined();
+    expect(result.current.primaryAmount).toBe('+1.00 mUSD');
   });
 });
 
@@ -783,8 +671,9 @@ describe('useMoneyTransactionDisplayInfo — description', () => {
     expect(result.current.description).toBe('My custom subtitle');
   });
 
-  it('falls back to sourceTokenSymbol as description when no moneySubtitle', () => {
-    // USDC in state so sourceTokenSymbol is 'USDC'
+  it('shows the "<token> → mUSD" pair for a crypto conversion deposit', () => {
+    // USDC in state so sourceTokenSymbol is 'USDC'; a crypto moneyAccountDeposit
+    // is a conversion, so the subtitle becomes the token pair.
     const tx = makeTx(TransactionType.moneyAccountDeposit, {
       metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
     });
@@ -821,7 +710,7 @@ describe('useMoneyTransactionDisplayInfo — description', () => {
       { state: stateWithUsdc },
     );
 
-    expect(result.current.description).toBe('USDC');
+    expect(result.current.description).toBe('USDC → mUSD');
   });
 });
 
@@ -892,7 +781,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
     expect(result.current.primaryAmount).toContain('mUSD');
   });
 
-  it('converts mUSD to EUR via the peg (ignoring market rate)', () => {
+  it('always shows mUSD in USD via the peg, ignoring preferred currency', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -928,9 +817,342 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
       { state },
     );
 
-    expect(result.current.fiatAmount).toMatch(/^\+/);
-    expect(result.current.fiatAmount).toMatch(/920/);
+    expect(result.current.fiatAmount).toBe('+$1,000.00');
     expect(result.current.primaryAmount).toMatch(/1,000\.00/);
     expect(result.current.primaryAmount).toContain('mUSD');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Status — derived state + status-aware label
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — status', () => {
+  it.each([
+    [TransactionStatus.confirmed, 'confirmed'],
+    [TransactionStatus.submitted, 'pending'],
+    [TransactionStatus.failed, 'failed'],
+  ])('exposes status %s as %s', (status, expected) => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, { status });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.status).toBe(expected);
+  });
+
+  it('uses the present-tense label while a conversion is pending', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.submitted,
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.converting');
+  });
+
+  it('uses the failed label when a conversion fails', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.failed,
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.conversion_failed');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Failed rows — zero amount, signed by direction (MUSD-956)
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — failed amount', () => {
+  it('shows +0.00 mUSD / +$0.00 for a failed (incoming) conversion', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          amount: '1000000000',
+          standard: 'erc20',
+        },
+      ],
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.primaryAmount).toBe('+0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('+$0.00');
+  });
+
+  it('shows -0.00 mUSD / -$0.00 for a failed (outgoing) send', () => {
+    const tx = makeTx(TransactionType.moneyAccountWithdraw, {
+      status: TransactionStatus.failed,
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.primaryAmount).toBe('-0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('-$0.00');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Per-kind subtitles
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
+  it('received → "From: <sender>"', () => {
+    const tx = makeTx(TransactionType.incoming, {
+      txParams: { from: '0x2323100000000000000000000000000000012345' },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    // i18n mock returns the key; interpolation is exercised in integration.
+    expect(result.current.description).toBe('money.transaction.received_from');
+  });
+
+  it('sent → "mUSD → <destination token>" when the dest token resolves', () => {
+    const tx = makeTx(TransactionType.moneyAccountWithdraw, {
+      metamaskPay: { tokenAddress: ETH_ADDRESS, chainId: CHAIN_ID },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD → ETH');
+  });
+
+  it('sent → "mUSD" for a plain mUSD send (no redundant "mUSD → mUSD")', () => {
+    // A simple mUSD transfer out of the Money account: the pay token resolves
+    // to mUSD, so the pair would be "mUSD → mUSD". It collapses to just "mUSD",
+    // mirroring the deposit row.
+    const tx = makeTx(TransactionType.simpleSend, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+
+  it('sent → "mUSD → USDC" for a withdrawal whose dest token cannot be resolved', () => {
+    // No metamaskPay token → falls back to the known money withdraw token.
+    const tx = makeTx(TransactionType.moneyAccountWithdraw, {});
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD → USDC');
+  });
+
+  it('deposited (fiat on-ramp) → provider name when the payment method is unresolved', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak-native' } },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('Transak');
+  });
+
+  it('deposited (fiat on-ramp) → payment-method name when resolved', () => {
+    // The payment method (e.g. "Apple Pay") is preferred over the provider name.
+    mockUseFiatPaymentMethodName.mockReturnValue('Apple Pay');
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { fiat: { orderId: 'o-1', provider: 'transak-native' } },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('Apple Pay');
+  });
+
+  it('deposited (mUSD top-up) → "mUSD"', () => {
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+
+  it('canonicalises the registry "MUSD" symbol to the branded "mUSD"', () => {
+    // mUSD is registered with the uppercase symbol "MUSD"; the subtitle must
+    // still show the branded casing, not whatever the registry holds.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const stateWithUppercaseMusd = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+          TokenRatesController: { marketData: {} },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  { address: MUSD_TOKEN_ADDRESS, symbol: 'MUSD', decimals: 6 },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: stateWithUppercaseMusd },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+
+  it('sent → "mUSD" even when the registry symbol is uppercase "MUSD"', () => {
+    // The send pair must collapse to "mUSD" (not "mUSD → MUSD") once the
+    // destination symbol is canonicalised.
+    const tx = makeTx(TransactionType.simpleSend, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const stateWithUppercaseMusd = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+          TokenRatesController: { marketData: {} },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  { address: MUSD_TOKEN_ADDRESS, symbol: 'MUSD', decimals: 6 },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: stateWithUppercaseMusd },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Perps/Predict ↔ Money transfers (matched via the mUSD pay token)
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — Perps/Predict ↔ Money', () => {
+  const MONAD: Hex = '0x8f';
+  const payOnMonad = (extra: Record<string, string>) => ({
+    tokenAddress: MUSD_TOKEN_ADDRESS,
+    chainId: MONAD,
+    ...extra,
+  });
+
+  it('renders a money-funded Perps deposit as an outflow ("Sent")', () => {
+    // Outflow → the debit from the account, including the bridge fee = totalFiat.
+    const tx = makeTx(TransactionType.perpsDeposit, {
+      metamaskPay: payOnMonad({ totalFiat: '0.67157', targetFiat: '0.64' }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.sent');
+    expect(result.current.icon).toBe(IconName.Arrow2UpRight);
+    expect(result.current.description).toBe(
+      'transaction_details.label.perps_account',
+    );
+    expect(result.current.isIncoming).toBe(false);
+    expect(result.current.primaryAmount).toBe('-0.67 mUSD');
+    expect(result.current.fiatAmount).toBe('-$0.67');
+  });
+
+  it('renders a Predict withdraw into the Money account as an inflow ("Deposited")', () => {
+    // Inflow → the net amount that lands = targetFiat. Withdraw sits in the
+    // EIP-7702 batch's nested calls.
+    const tx = makeTx(TransactionType.batch, {
+      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      metamaskPay: payOnMonad({
+        totalFiat: '0.158879',
+        targetFiat: '0.099965',
+      }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.deposited');
+    expect(result.current.icon).toBe(IconName.Add);
+    expect(result.current.description).toBe(
+      'transaction_details.label.predictions_account',
+    );
+    expect(result.current.isIncoming).toBe(true);
+    expect(result.current.primaryAmount).toBe('+0.10 mUSD');
+    expect(result.current.fiatAmount).toBe('+$0.10');
+  });
+
+  it('shows signed-zero (not the real amount) for a failed money-funded Perps deposit', () => {
+    // Failed rows must show signed-zero like every other kind; the perps amount
+    // block must not clobber it.
+    const tx = makeTx(TransactionType.perpsDeposit, {
+      status: TransactionStatus.failed,
+      metamaskPay: payOnMonad({ totalFiat: '0.67157', targetFiat: '0.64' }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.label).toBe('money.transaction.send_failed');
+    expect(result.current.isIncoming).toBe(false);
+    expect(result.current.primaryAmount).toBe('-0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('-$0.00');
+  });
+
+  it('shows signed-zero for a failed Predict withdraw into the Money account', () => {
+    const tx = makeTx(TransactionType.batch, {
+      status: TransactionStatus.failed,
+      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      metamaskPay: payOnMonad({
+        totalFiat: '0.158879',
+        targetFiat: '0.099965',
+      }),
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState({ currentCurrency: 'usd' }) },
+    );
+
+    expect(result.current.isIncoming).toBe(true);
+    expect(result.current.primaryAmount).toBe('+0.00 mUSD');
+    expect(result.current.fiatAmount).toBe('+$0.00');
   });
 });

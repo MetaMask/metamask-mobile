@@ -2,10 +2,24 @@ import { useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import type { LinkFlowOrigin } from './useMoneyAccountCardLinkage';
+import { CardEntryPoint } from '../util/metrics';
 
 export const MONEY_HOME_CARD_ORIGIN: LinkFlowOrigin = {
-  screen: Routes.MONEY.ROOT,
-  params: { screen: Routes.MONEY.HOME },
+  screen: Routes.HOME_TABS,
+  params: {
+    screen: Routes.MONEY.ROOT,
+    params: { screen: Routes.MONEY.HOME },
+  },
+};
+
+export const CASHBACK_MONEY_ACCOUNT_ORIGIN: LinkFlowOrigin = {
+  screen: Routes.CARD.CASHBACK,
+  entrypoint: CardEntryPoint.CASHBACK,
+};
+
+export const CREDIT_MONEY_ACCOUNT_ORIGIN: LinkFlowOrigin = {
+  screen: Routes.CARD.CREDIT_REDEEM,
+  entrypoint: CardEntryPoint.CREDIT,
 };
 
 const isLinkFlowOrigin = (value: unknown): value is LinkFlowOrigin =>

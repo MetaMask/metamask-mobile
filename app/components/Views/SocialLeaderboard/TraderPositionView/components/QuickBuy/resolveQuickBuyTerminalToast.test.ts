@@ -1,17 +1,20 @@
 import { StatusTypes } from '@metamask/bridge-controller';
-import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
+import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
+import Engine from '../../../../../../core/Engine';
 import {
+  playErrorNotification,
+  playSuccessNotification,
+} from '../../../../../../util/haptics';
+import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import {
+  clearSettledQuickBuyTrades,
   getTrackedQuickBuyTradeIds,
+  isQuickBuyTransaction,
   trackQuickBuyTrade,
   untrackQuickBuyTrade,
   type TrackedQuickBuyTrade,
 } from './quickBuyTradeTracker';
-import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
-import Engine from '../../../../../../core/Engine';
-import {
-  playSuccessNotification,
-  playErrorNotification,
-} from '../../../../../../util/haptics';
+import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
 
 jest.mock('./quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
@@ -29,12 +32,29 @@ jest.mock('../../../../../../core/Engine', () => ({
       BridgeStatusController: {
         getBridgeHistoryItemByTxMetaId: jest.fn(),
       },
+      MultichainTransactionsController: {
+        state: { nonEvmTransactions: {} },
+      },
     },
   },
 }));
 
 const mockGetHistoryItem = Engine.context.BridgeStatusController
   .getBridgeHistoryItemByTxMetaId as jest.Mock;
+
+const setMultichainTransaction = (
+  id: string,
+  status: KeyringTransactionStatus,
+) => {
+  Engine.context.MultichainTransactionsController.state.nonEvmTransactions = {
+    'account-1': {
+      'solana:mainnet': {
+        transactions: [{ id, status }],
+      },
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
+};
 
 const theme = { colors: {} } as unknown as Parameters<
   typeof resolveQuickBuyTerminalToast
@@ -52,10 +72,22 @@ const buyTrade: TrackedQuickBuyTrade = {
   rate: '1 USDC = 1,000 PEPE',
 };
 
+const solanaTrade: TrackedQuickBuyTrade = {
+  tradeMode: 'buy',
+  tokenSymbol: 'BONK',
+  counterTokenSymbol: 'SOL',
+  fiatAmountLabel: '$30.00',
+  isNonEvmSwap: true,
+  txSignature: 'sig-1',
+};
+
 describe('resolveQuickBuyTerminalToast', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
+    clearSettledQuickBuyTrades();
+    Engine.context.MultichainTransactionsController.state.nonEvmTransactions =
+      {};
   });
 
   it('shows the complete toast, plays success haptic, and untracks on COMPLETE', () => {
@@ -129,5 +161,93 @@ describe('resolveQuickBuyTerminalToast', () => {
     expect(first).toBe(true);
     expect(second).toBe(false);
     expect(showToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the trade recognised as QuickBuy after settling so the delayed generic toast stays suppressed', () => {
+    trackQuickBuyTrade('tx-1', buyTrade);
+    mockGetHistoryItem.mockReturnValue(
+      historyItemWithStatus(StatusTypes.COMPLETE),
+    );
+
+    resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
+
+    expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+    expect(
+      isQuickBuyTransaction({
+        id: 'tx-1',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any),
+    ).toBe(true);
+  });
+
+  it('resolves a Solana swap to complete from the multichain controller when bridge status is absent', () => {
+    trackQuickBuyTrade('sig-1', solanaTrade);
+    mockGetHistoryItem.mockReturnValue(undefined);
+    setMultichainTransaction('sig-1', KeyringTransactionStatus.Confirmed);
+    const showToast = jest.fn();
+
+    const result = resolveQuickBuyTerminalToast('sig-1', showToast, theme);
+
+    expect(result).toBe(true);
+    expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('complete', {
+      trade: solanaTrade,
+      theme,
+    });
+    expect(playSuccessNotification).toHaveBeenCalledTimes(1);
+    expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+  });
+
+  it('resolves a Solana swap to failed from the multichain controller', () => {
+    trackQuickBuyTrade('sig-1', solanaTrade);
+    mockGetHistoryItem.mockReturnValue(undefined);
+    setMultichainTransaction('sig-1', KeyringTransactionStatus.Failed);
+    const showToast = jest.fn();
+
+    const result = resolveQuickBuyTerminalToast('sig-1', showToast, theme);
+
+    expect(result).toBe(true);
+    expect(showToast).toHaveBeenCalledWith({ kind: 'failed' });
+    expect(playErrorNotification).toHaveBeenCalledTimes(1);
+    expect(getTrackedQuickBuyTradeIds()).toEqual([]);
+  });
+
+  it('keeps tracking a Solana swap whose multichain tx is not yet terminal', () => {
+    trackQuickBuyTrade('sig-1', solanaTrade);
+    mockGetHistoryItem.mockReturnValue(undefined);
+    setMultichainTransaction('sig-1', KeyringTransactionStatus.Submitted);
+    const showToast = jest.fn();
+
+    const result = resolveQuickBuyTerminalToast('sig-1', showToast, theme);
+
+    expect(result).toBe(false);
+    expect(showToast).not.toHaveBeenCalled();
+    expect(getTrackedQuickBuyTradeIds()).toEqual(['sig-1']);
+  });
+
+  it('keeps tracking a Solana swap with no matching multichain tx yet', () => {
+    trackQuickBuyTrade('sig-1', solanaTrade);
+    mockGetHistoryItem.mockReturnValue(undefined);
+    const showToast = jest.fn();
+
+    const result = resolveQuickBuyTerminalToast('sig-1', showToast, theme);
+
+    expect(result).toBe(false);
+    expect(showToast).not.toHaveBeenCalled();
+    expect(getTrackedQuickBuyTradeIds()).toEqual(['sig-1']);
+  });
+
+  it('does not read the multichain controller for a non-Solana trade', () => {
+    trackQuickBuyTrade('tx-1', buyTrade);
+    mockGetHistoryItem.mockReturnValue(
+      historyItemWithStatus(StatusTypes.PENDING),
+    );
+    setMultichainTransaction('tx-1', KeyringTransactionStatus.Confirmed);
+    const showToast = jest.fn();
+
+    const result = resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+
+    expect(result).toBe(false);
+    expect(showToast).not.toHaveBeenCalled();
+    expect(getTrackedQuickBuyTradeIds()).toEqual(['tx-1']);
   });
 });

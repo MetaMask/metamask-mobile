@@ -32,6 +32,7 @@ export const CARD_CONTROLLER_NAME = 'CardController';
 export const DEFAULT_CARD_PROVIDER_ID = 'baanx';
 
 export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
+export type CardUnauthenticatedReason = 'onboarding_token_revoked';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardControllerState = {
@@ -41,6 +42,8 @@ export type CardControllerState = {
   activeProviderId: string | null;
   /** Whether the user is authenticated with the active provider. */
   isAuthenticated: boolean;
+  /** Last reason the active provider session became unauthenticated. */
+  lastUnauthenticatedReason: CardUnauthenticatedReason | null;
   /** CAIP-10 account IDs that are card holders. */
   cardholderAccounts: string[];
   /**
@@ -57,6 +60,8 @@ export type CardControllerState = {
   cardHomeData: Record<string, Json> | null;
   /** Fetch status for cardHomeData. Not persisted. */
   cardHomeDataStatus: CardHomeDataStatus;
+  /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
+  moneyAccountCardLinkInProgress: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<

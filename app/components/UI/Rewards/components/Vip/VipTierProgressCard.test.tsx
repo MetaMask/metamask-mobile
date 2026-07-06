@@ -72,15 +72,15 @@ const renderWithTheme = (
 
 describe('VipTierProgressCard', () => {
   const baseProps = {
-    currentTier: { id: 't3', name: 'Gold Fox VIP 3', tier: 3 },
+    currentTier: { id: 't3', name: 'Mock Tier Alpha 3', tier: 3 },
     progress: {
-      percent: 72,
-      remainingPointsToNextTier: 800_000,
+      percent: 42,
+      remainingPointsToNextTier: 123_456,
       status: 'on_track',
     },
-    subline: '$800K Swaps • $3.6M Perps to Gold Fox VIP 4',
+    subline: '$123K Swaps • $456K Perps to Mock Tier Alpha 4',
     memberIdTitle: 'Member ID',
-    memberId: 'VIP-123',
+    memberId: 'MOCK-123',
   };
 
   it('renders the current tier name, member id, and the subline passed in by the parent', () => {
@@ -88,12 +88,12 @@ describe('VipTierProgressCard', () => {
       <VipTierProgressCard {...baseProps} />,
     );
 
-    expect(getByText('Gold Fox VIP 3')).toBeOnTheScreen();
+    expect(getByText('Mock Tier Alpha 3')).toBeOnTheScreen();
     expect(getByText('Member ID')).toBeOnTheScreen();
-    expect(getByText('VIP-123')).toBeOnTheScreen();
+    expect(getByText('MOCK-123')).toBeOnTheScreen();
     expect(
       getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE),
-    ).toHaveTextContent('$800K Swaps • $3.6M Perps to Gold Fox VIP 4');
+    ).toHaveTextContent('$123K Swaps • $456K Perps to Mock Tier Alpha 4');
   });
 
   it('renders a gold gradient and border from bottom left to top right', () => {
@@ -193,7 +193,7 @@ describe('VipTierProgressCard', () => {
     expect(getByText('Member ID')).toHaveStyle({
       color: TextColor.TextAlternative,
     });
-    expect(getByText('VIP-123')).toHaveStyle({
+    expect(getByText('MOCK-123')).toHaveStyle({
       color: TextColor.TextAlternative,
     });
   });
@@ -207,7 +207,7 @@ describe('VipTierProgressCard', () => {
     expect(getByText('Member ID')).toHaveStyle({
       color: VIP_GOLD_TEXT_MUTED,
     });
-    expect(getByText('VIP-123')).toHaveStyle({
+    expect(getByText('MOCK-123')).toHaveStyle({
       color: VIP_GOLD_TEXT_MUTED,
     });
   });

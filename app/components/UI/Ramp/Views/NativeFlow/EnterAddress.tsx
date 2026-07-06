@@ -12,15 +12,15 @@ import {
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../Deposit/Views/EnterAddress/EnterAddress.styles';
+import styleSheet from './EnterAddress.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import DepositTextField from '../../Deposit/components/DepositTextField';
-import { useForm } from '../../Deposit/hooks/useForm';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import PrivacySection from '../../Deposit/components/PrivacySection';
-import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
+import DepositTextField from '../../components/DepositTextField';
+import { useForm } from '../../hooks/useForm';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
+import { VALIDATION_REGEX } from '../../constants/transak';
 import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -32,6 +32,7 @@ import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { BasicInfoFormData } from './BasicInfo';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { ENTER_ADDRESS_TEST_IDS } from './EnterAddress.testIds';
 import StateSelector from './StateSelector';
 
@@ -51,7 +52,7 @@ interface V2EnterAddressParams {
   headlessSessionId?: string;
 }
 
-const V2EnterAddress = (): JSX.Element => {
+const V2EnterAddress = (): React.JSX.Element => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData, headlessSessionId } =
@@ -63,6 +64,11 @@ const V2EnterAddress = (): JSX.Element => {
   const trackEvent = useAnalytics();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
+
+  // Headless deposit (TRAM-3623): tag RAMPS_ADDRESS_ENTERED with
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
+  // part of a headless buy flow; keep 'DEPOSIT' otherwise.
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const transakRoutingConfig = useMemo(
     () =>
@@ -204,7 +210,7 @@ const V2EnterAddress = (): JSX.Element => {
 
     trackEvent('RAMPS_ADDRESS_ENTERED', {
       region: regionIsoCode,
-      ramp_type: 'DEPOSIT',
+      ...headlessDepositRampProps,
       kyc_type: 'SIMPLE',
     });
 
@@ -238,6 +244,7 @@ const V2EnterAddress = (): JSX.Element => {
     routeAfterAuthentication,
     regionIsoCode,
     trackEvent,
+    headlessDepositRampProps,
   ]);
 
   return (

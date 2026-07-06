@@ -13,6 +13,7 @@ import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnric
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
+import { publishPerformanceScenarioToSentry } from './providers/sentry/PerformanceSentryPublisher';
 import type {
   MetricsEntry,
   SessionData,
@@ -130,6 +131,7 @@ class PerformanceReporter {
 
     if (this.sessions.length > 0 && isBrowserStackRun) {
       await this.enrichSessionsWithProviderData();
+      await this.publishAppSizeToSentry();
     }
 
     // Clean up leftover environment variables
@@ -483,6 +485,65 @@ class PerformanceReporter {
     }
   }
 
+  /**
+   * After BrowserStack enrichment, publish the installed app size for each
+   * session that has profiling data to Sentry, following the same pattern
+   * as the per-test timing measurements sent from the fixture.
+   */
+  private async publishAppSizeToSentry(): Promise<void> {
+    for (const session of this.sessions) {
+      const appSizeMb = session.profilingSummary?.appSizeMb;
+      if (appSizeMb === undefined) {
+        continue;
+      }
+
+      const metric = this.metrics.find((m) => m.testName === session.testTitle);
+
+      const deviceInfo: DeviceInfo = session.deviceInfo ??
+        metric?.device ?? {
+          name: 'Unknown',
+          osVersion: 'Unknown',
+          provider: 'browserstack',
+        };
+
+      const teamInfo = session.team ?? metric?.team ?? null;
+
+      try {
+        const sentToSentry = await publishPerformanceScenarioToSentry({
+          metrics: {
+            steps: [],
+            timestamp: session.timestamp ?? new Date().toISOString(),
+            thresholdMarginPercent: 0,
+            team: teamInfo,
+            total: 0,
+            totalThreshold: null,
+            hasThresholds: false,
+            totalValidation: null,
+            device: deviceInfo,
+            appSizeMb,
+          },
+          testTitle: session.testTitle,
+          projectName: session.projectName ?? 'unknown',
+          testFilePath: session.testFilePath,
+          videoRecordingUrl: session.videoURL ?? null,
+          tags: session.tags ?? metric?.tags ?? [],
+          status: session.testStatus,
+        });
+
+        if (sentToSentry) {
+          logger.info(
+            `App size (${appSizeMb} MB) for "${session.testTitle}" sent to Sentry`,
+          );
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn(
+          `Failed to publish app size for "${session.testTitle}" to Sentry: ${message}`,
+        );
+      }
+    }
+  }
+
   private async generateReports(summary: ReportSummary): Promise<void> {
     const testName = (this.metrics[0]?.testName ?? 'Unknown')
       .replace(/[^a-zA-Z0-9]/g, '_')
@@ -501,6 +562,9 @@ class PerformanceReporter {
 
       // Merge session data into metrics (video URLs, profiling, network logs)
       const metricsWithSession = this.mergeSessionDataIntoMetrics();
+
+      // Publish profiling data (FPS, CPU, memory) to Sentry for enriched metrics
+      await this.publishProfilingDataToSentry(metricsWithSession);
 
       const reportData: ReportData = {
         metrics: metricsWithSession,
@@ -546,6 +610,64 @@ class PerformanceReporter {
       if (files.length > 0) {
         logger.info(
           `   Files: ${files.slice(0, 15).join(', ')}${files.length > 15 ? ` (+${files.length - 15} more)` : ''}`,
+        );
+      }
+    }
+  }
+
+  private async publishProfilingDataToSentry(
+    metrics: MetricsEntry[],
+  ): Promise<void> {
+    for (const metric of metrics) {
+      // Skip if no profiling data or if enrichment produced an error object
+      // (BrowserStackEnricher sets profilingSummary to { error: '...' } on failure)
+      if (!metric.profilingSummary || metric.profilingSummary.error) continue;
+
+      // Derive status that matches what the fixture sends: timedOut is a
+      // distinct Sentry status and must not be collapsed to 'failed'.
+      const testStatus = !metric.testFailed
+        ? 'passed'
+        : metric.failureReason === 'timedOut'
+          ? 'timedOut'
+          : 'failed';
+
+      // Anchor Sentry transaction to the actual test end time, not report time.
+      const testEndTimestamp = metric.timestamp
+        ? new Date(metric.timestamp).getTime() / 1000
+        : undefined;
+
+      try {
+        const sent = await publishPerformanceScenarioToSentry({
+          metrics: {
+            steps: metric.steps || [],
+            timestamp: metric.timestamp || new Date().toISOString(),
+            thresholdMarginPercent: metric.thresholdMarginPercent ?? 10,
+            team: metric.team ?? null,
+            total: metric.total || 0,
+            totalThreshold: metric.totalThreshold ?? null,
+            hasThresholds: metric.hasThresholds ?? false,
+            totalValidation: metric.totalValidation ?? null,
+            device: metric.device,
+            ...(metric.sessionCreationDurationMs !== undefined && {
+              sessionCreationDurationMs: metric.sessionCreationDurationMs,
+            }),
+          },
+          testTitle: metric.testName,
+          projectName: metric.projectName || 'unknown',
+          testFilePath: metric.testFilePath,
+          tags: metric.tags || [],
+          status: testStatus,
+          videoRecordingUrl: metric.videoURL ?? null,
+          profilingSummary: metric.profilingSummary,
+          testEndTimestamp,
+        });
+
+        if (sent) {
+          logger.info(`Profiling data for "${metric.testName}" sent to Sentry`);
+        }
+      } catch (error) {
+        logger.error(
+          `Failed to publish profiling data to Sentry for "${metric.testName}": ${error}`,
         );
       }
     }

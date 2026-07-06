@@ -54,7 +54,6 @@ import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
 
-
 interface OptionType {
   key: string;
   label: string;
@@ -163,9 +162,9 @@ const LedgerSelectAccount = () => {
           const isReady = await ensureDeviceReady();
 
           if (isReady) {
-            console.log(
-              '[LedgerSelectAccount] Device ready - fetching accounts',
-            );
+            // We default to the Ledger Live path BEFORE fetching accounts.
+            await setHDPath(LEDGER_LIVE_PATH);
+
             await fetchAccounts();
           } else {
             console.log(

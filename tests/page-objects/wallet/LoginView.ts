@@ -9,7 +9,6 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import Utilities from '../../framework/Utilities';
 
@@ -44,11 +43,11 @@ class LoginView {
     });
   }
 
-  get forgotPasswordButton(): DetoxElement {
+  get forgotPasswordButton(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  get rememberMeSwitch(): DetoxElement {
+  get rememberMeSwitch(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
@@ -82,8 +81,8 @@ class LoginView {
       appium: async () => {
         await UnifiedGestures.typeText(this.passwordInput, password, {
           description: 'Password Input',
+          hideKeyboard: false,
         });
-        await PlaywrightGestures.hideKeyboard();
       },
     });
   }

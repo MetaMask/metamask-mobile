@@ -159,7 +159,6 @@ describe('AccountFromToInfoCard', () => {
 
   it('should render to account name', async () => {
     const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -168,7 +167,6 @@ describe('AccountFromToInfoCard', () => {
 
   it('should render to address', async () => {
     const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
@@ -195,7 +193,6 @@ describe('AccountFromToInfoCard', () => {
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
     const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={NFTTransaction} />,
       { state: mockInitialState },
     );
@@ -224,7 +221,6 @@ describe('AccountFromToInfoCard', () => {
       },
     };
     const { queryByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={txState} />,
       { state: mockInitialState },
     );
@@ -234,7 +230,6 @@ describe('AccountFromToInfoCard', () => {
 
   it('renders correct network name', async () => {
     const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
       <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );

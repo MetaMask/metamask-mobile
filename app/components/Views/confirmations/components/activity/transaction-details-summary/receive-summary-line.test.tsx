@@ -15,7 +15,8 @@ import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { ReceiveSummaryLine } from './receive-summary-line';
-
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../hooks/useNetworkName');
 jest.mock('../../../../../../selectors/bridgeStatusController');
@@ -23,6 +24,9 @@ jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -54,6 +58,8 @@ describe('ReceiveSummaryLine', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    configureUseAnalyticsExternalLinkMock();
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
@@ -191,6 +197,33 @@ describe('ReceiveSummaryLine', () => {
         strings('transaction_details.summary_title.bridge_receive', {
           targetSymbol: 'USDC',
           targetChain: 'Ethereum',
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders perps withdraw title with mUSD and destination network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0xmonad' ? 'Monad' : 'Arbitrum',
+    );
+
+    const { getByText } = render({
+      id: 'tx-id',
+      chainId: '0xa4b1' as Hex,
+      hash: '0x123',
+      submittedTime: 1755719285723,
+      type: TransactionType.perpsWithdraw,
+      metamaskPay: {
+        chainId: '0xmonad' as Hex,
+        tokenAddress: '0xmusd' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive', {
+          targetSymbol: 'mUSD',
+          targetChain: 'Monad',
         }),
       ),
     ).toBeDefined();

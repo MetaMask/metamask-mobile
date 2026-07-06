@@ -3,9 +3,9 @@ import { Provider } from 'react-redux';
 
 import { NavigationContainer } from '@react-navigation/native';
 import {
-  createStackNavigator,
-  StackNavigationOptions,
-} from '@react-navigation/stack';
+  createNativeStackNavigator,
+  NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
 import {
   render,
   renderHook,
@@ -17,6 +17,11 @@ import { Theme } from '../theme/models';
 import configureStore from './configureStore';
 import { RootState } from '../../reducers';
 import { FeatureFlagOverrideProvider } from '../../contexts/FeatureFlagOverrideContext';
+import { UIMessengerProvider } from '../../contexts/ui-messenger';
+import { createMockUIMessenger } from './mock-ui-messenger';
+import { RouteMessengerContext } from '../../contexts/route-messenger';
+import { RouteMessenger } from '../../messengers/route-messenger';
+import { UIMessenger } from '../../messengers/ui-messenger';
 
 // DeepPartial is a generic type that recursively makes all properties of a given type T optional
 export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
@@ -30,9 +35,12 @@ export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
         { [K in keyof T]?: DeepPartial<T[K]> }
       : // Otherwise, return T or undefined.
         T | undefined;
+
 export interface ProviderValues {
   state?: DeepPartial<RootState>;
   theme?: Theme;
+  uiMessenger?: UIMessenger;
+  routeMessenger?: RouteMessenger;
 }
 
 export default function renderWithProvider(
@@ -41,7 +49,13 @@ export default function renderWithProvider(
   includeNavigationContainer = true,
   includeFeatureFlagOverrideProvider = true,
 ) {
-  const { state = {}, theme = mockTheme } = providerValues ?? {};
+  const {
+    state = {},
+    theme = mockTheme,
+    uiMessenger = createMockUIMessenger(),
+    routeMessenger = null,
+  } = providerValues ?? {};
+
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
@@ -55,11 +69,22 @@ export default function renderWithProvider(
         </FeatureFlagOverrideProvider>
       );
     }
+
+    if (routeMessenger) {
+      wrappedChildren = (
+        <RouteMessengerContext.Provider value={routeMessenger}>
+          {wrappedChildren}
+        </RouteMessengerContext.Provider>
+      );
+    }
+
     return (
       <Provider store={store}>
-        <ThemeContext.Provider value={theme}>
-          {wrappedChildren}
-        </ThemeContext.Provider>
+        <UIMessengerProvider value={uiMessenger}>
+          <ThemeContext.Provider value={theme}>
+            {wrappedChildren}
+          </ThemeContext.Provider>
+        </UIMessengerProvider>
       </Provider>
     );
   };
@@ -81,14 +106,14 @@ export function renderScreen(
   Component: React.ComponentType,
   options: {
     name: string;
-    options?: StackNavigationOptions;
+    options?: NativeStackNavigationOptions;
   },
   providerValues?: ProviderValues,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialParams: Record<string, any> = {},
 ) {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
   return renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen
@@ -106,13 +131,34 @@ export function renderHookWithProvider<Result, Props>(
   hook: (props: Props) => Result,
   providerValues?: ProviderValues,
 ) {
-  const { state = {} } = providerValues ?? {};
+  const {
+    state = {},
+    uiMessenger = createMockUIMessenger(),
+    routeMessenger = null,
+  } = providerValues ?? {};
+
   const store = configureStore(state);
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   require('../../store')._updateMockState(state);
-  const Providers = ({ children }: { children: React.ReactElement }) => (
-    <Provider store={store}>{children}</Provider>
-  );
+
+  const Providers = ({ children }: { children: React.ReactElement }) => {
+    let wrappedChildren = children;
+    if (routeMessenger) {
+      wrappedChildren = (
+        <RouteMessengerContext.Provider value={routeMessenger}>
+          {wrappedChildren}
+        </RouteMessengerContext.Provider>
+      );
+    }
+
+    return (
+      <Provider store={store}>
+        <UIMessengerProvider value={uiMessenger}>
+          {wrappedChildren}
+        </UIMessengerProvider>
+      </Provider>
+    );
+  };
 
   return {
     ...renderHook(hook, { wrapper: Providers } as RenderHookOptions<Props>),

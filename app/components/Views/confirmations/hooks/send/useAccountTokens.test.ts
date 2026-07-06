@@ -10,6 +10,7 @@ import {
   selectAssetsByAccountGroupId,
 } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
@@ -64,6 +65,10 @@ jest.mock('../../../../../selectors/assets/assets-list', () => ({
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/settings', () => ({
+  selectShowFiatInTestnets: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useTokensData/useTokensData');
@@ -319,6 +324,95 @@ describe('useAccountTokens', () => {
       expect(result.current[0].symbol).toBe('TOKEN2');
       expect(result.current[1].symbol).toBe('TOKEN1');
       expect(result.current[2].symbol).toBe('TOKEN3');
+    });
+  });
+
+  describe('show fiat on testnets setting', () => {
+    const mixedAssets = {
+      '0x1': [
+        {
+          chainId: '0x1',
+          accountType: 'eip155:1/erc20:0xtoken1',
+          fiat: { balance: '10' },
+          rawBalance: '0x1234',
+          symbol: 'MAINNET_TOKEN',
+        },
+      ],
+      '0xaa36a7': [
+        {
+          chainId: '0xaa36a7',
+          accountType: 'eip155:11155111/slip44:60',
+          fiat: { balance: '1000' },
+          rawBalance: '0x5678',
+          symbol: 'SepoliaETH',
+        },
+      ],
+    };
+
+    const setupSelectors = (showFiatOnTestnets: boolean) => {
+      mockIsTestNet.mockImplementation((chainId) => chainId === '0xaa36a7');
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mixedAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return mixedAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        if (selector === selectShowFiatInTestnets) {
+          return showFiatOnTestnets;
+        }
+        return undefined;
+      });
+    };
+
+    it('hides fiat for testnet assets when the setting is disabled', () => {
+      setupSelectors(false);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      const testnetAsset = result.current.find(
+        (asset) => asset.symbol === 'SepoliaETH',
+      );
+      const mainnetAsset = result.current.find(
+        (asset) => asset.symbol === 'MAINNET_TOKEN',
+      );
+
+      expect(testnetAsset?.balanceInSelectedCurrency).toBeUndefined();
+      expect(mainnetAsset?.balanceInSelectedCurrency).toBe('$100.50');
+    });
+
+    it('shows fiat for testnet assets when the setting is enabled', () => {
+      setupSelectors(true);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      const testnetAsset = result.current.find(
+        (asset) => asset.symbol === 'SepoliaETH',
+      );
+
+      expect(testnetAsset?.balanceInSelectedCurrency).toBe('$100.50');
+    });
+
+    it('sorts testnet assets below mainnet assets when the setting is disabled', () => {
+      setupSelectors(false);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current[0].symbol).toBe('MAINNET_TOKEN');
+      expect(result.current[1].symbol).toBe('SepoliaETH');
+    });
+
+    it('sorts testnet assets by fiat when the setting is enabled', () => {
+      setupSelectors(true);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current[0].symbol).toBe('SepoliaETH');
+      expect(result.current[1].symbol).toBe('MAINNET_TOKEN');
     });
   });
 
@@ -844,6 +938,36 @@ describe('useAccountTokens', () => {
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('OVERRIDE');
+    });
+
+    it('returns empty list when accountOverride is set but has no loaded assets', () => {
+      useTransactionAccountOverrideMock.mockReturnValue(
+        '0xEmptyAddress' as never,
+      );
+
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return mockAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        if (selector === selectInternalAccountsById) {
+          return {
+            'acc-empty': { address: '0xEmptyAddress' },
+          };
+        }
+        if (selector === selectAccountToGroupMap) {
+          return {
+            'acc-empty': { id: 'group-empty' },
+          };
+        }
+        return {};
+      });
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current).toEqual([]);
     });
 
     it('falls back to global assets when accountOverride is undefined', () => {

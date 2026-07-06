@@ -4,14 +4,32 @@ import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
+  getPerpsRelatedMarketsSelector,
   PerpsMarketDetailsViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
+  PerpsRelatedMarketsSelectorsIDs,
 } from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsRelatedMarketsEnabledFlag,
+} from '../../selectors/featureFlags';
+import {
+  CandlePeriod,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  TimeDuration,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+
+const mockPerpsAdvancedChartMount = jest.fn();
+const mockPerpsAdvancedChartUnmount = jest.fn();
+const mockTradingViewResetToDefault = jest.fn();
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -32,9 +50,41 @@ jest.mock('react-native-modal', () => {
     ) : null;
 });
 
-// Mock @consensys/native-ramps-sdk to provide missing enum
-jest.mock('@consensys/native-ramps-sdk', () => ({
-  ...jest.requireActual('@consensys/native-ramps-sdk'),
+jest.mock('../../components/PerpsAdvancedChart/PerpsAdvancedChart', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      ReactActual.useEffect(() => {
+        mockPerpsAdvancedChartMount();
+        return mockPerpsAdvancedChartUnmount;
+      }, []);
+      return <View testID="mock-perps-advanced-chart" {...(props as object)} />;
+    },
+  };
+});
+
+jest.mock('../../components/TradingViewChart', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef((props: object, ref: unknown) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        resetToDefault: mockTradingViewResetToDefault,
+        zoomToLatestCandle: jest.fn(),
+      }));
+
+      return <View {...props} />;
+    }),
+  };
+});
+
+jest.mock('../../../Ramp/types/legacyDeposit', () => ({
+  ...jest.requireActual('../../../Ramp/types/legacyDeposit'),
   DepositPaymentMethodDuration: {
     instant: 'instant',
     oneToTwoDays: 'oneToTwoDays',
@@ -137,6 +187,13 @@ jest.mock('../../hooks/usePerpsMarketFills', () => ({
   })),
 }));
 
+jest.mock(
+  '../../../../Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
+  () => ({
+    useHomepageSparklines: () => ({ sparklines: {} }),
+  }),
+);
+
 // Navigation mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -147,6 +204,7 @@ const mockNavigateToHome = jest.fn();
 const mockNavigateToActivity = jest.fn();
 const mockNavigateToOrder = jest.fn();
 const mockNavigateToTutorial = jest.fn();
+const mockNavigateToMarketList = jest.fn();
 const mockNavigateBack = jest.fn();
 
 // Mock notification feature flag
@@ -154,15 +212,7 @@ const mockIsNotificationsFeatureEnabled = jest.fn();
 
 // Mock route params that can be modified during tests
 const mockRouteParams: {
-  market?: {
-    symbol: string;
-    name: string;
-    price: string;
-    change24h: string;
-    change24hPercent: string;
-    volume: string;
-    maxLeverage: string;
-  };
+  market?: PerpsMarketData;
   monitoringIntent?: {
     asset: string;
     monitor: 'orders' | 'positions' | 'both';
@@ -337,10 +387,15 @@ jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
 
 // Mock Engine for REST fallback tests
 const mockGetOrderFills = jest.fn();
+const mockToggleWatchlistMarket = jest.fn();
+const mockGetWatchlistMarkets = jest.fn(() => [] as string[]);
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
+      toggleWatchlistMarket: (...args: unknown[]) =>
+        mockToggleWatchlistMarket(...args),
+      getWatchlistMarkets: () => mockGetWatchlistMarkets(),
     },
   },
 }));
@@ -522,6 +577,7 @@ jest.mock('../../hooks', () => ({
     navigateToActivity: mockNavigateToActivity,
     navigateToOrder: mockNavigateToOrder,
     navigateToTutorial: mockNavigateToTutorial,
+    navigateToMarketList: mockNavigateToMarketList,
     navigateBack: mockNavigateBack,
     canGoBack: mockCanGoBack(),
   })),
@@ -820,6 +876,12 @@ describe('PerpsMarketDetailsView', () => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return false;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
       return undefined;
     });
 
@@ -873,6 +935,23 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
     ).toBeOnTheScreen();
+  });
+
+  it('toggles the watchlist via the controller when the favorite button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON));
+
+    // The component fires the controller's own optimistic-update/revert toggle
+    // (fire-and-forget) rather than maintaining a separate local optimistic copy.
+    expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('BTC');
   });
 
   it('renders statistics items', () => {
@@ -930,6 +1009,75 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders related markets rail when flag is enabled and market has category', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return true;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
+      return undefined;
+    });
+    const aaplMarket: PerpsMarketData = {
+      symbol: 'xyz:AAPL',
+      name: 'AAPL',
+      price: '$6.00',
+      change24h: '+$0.10',
+      change24hPercent: '+1.00%',
+      volume: '$1M',
+      maxLeverage: '20x',
+      marketType: 'stock',
+      isHip3: true,
+    };
+    mockRouteParams.market = aaplMarket;
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [
+        {
+          ...aaplMarket,
+          volumeNumber: 1000000,
+        },
+        {
+          symbol: 'xyz:MSFT',
+          name: 'MSFT',
+          price: '$0.50',
+          change24h: '+$0.01',
+          change24hPercent: '+2.00%',
+          volume: '$2M',
+          maxLeverage: '10x',
+          marketType: 'stock',
+          isHip3: true,
+          volumeNumber: 2000000,
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL)).toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsRelatedMarketsSelector.tile('xyz:MSFT')),
     ).toBeOnTheScreen();
   });
 
@@ -1339,6 +1487,276 @@ describe('PerpsMarketDetailsView', () => {
       // so no manual refresh is needed - data updates automatically
     });
 
+    it('resets the TradingView chart when RefreshControl is pulled and advanced charts are disabled', async () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockTradingViewResetToDefault).toHaveBeenCalled();
+    });
+
+    it('remounts the advanced chart when RefreshControl is pulled and advanced charts are enabled', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+      expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockPerpsAdvancedChartUnmount).toHaveBeenCalledTimes(1);
+      expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not remount the advanced chart when only the candle period changes', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      const mockSelectPerpsChartPreferredCandlePeriod = jest.requireMock(
+        '../../selectors/chartPreferences',
+      ).selectPerpsChartPreferredCandlePeriod;
+      let selectedPeriod = CandlePeriod.FifteenMinutes;
+
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        if (selector === mockSelectPerpsChartPreferredCandlePeriod) {
+          return selectedPeriod;
+        }
+        return undefined;
+      });
+
+      const renderView = () => (
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>
+      );
+      const { getByTestId, rerender } = renderWithProvider(renderView(), {
+        state: initialState,
+      });
+
+      const mountCountBeforeIntervalChange =
+        mockPerpsAdvancedChartMount.mock.calls.length;
+      const unmountCountBeforeIntervalChange =
+        mockPerpsAdvancedChartUnmount.mock.calls.length;
+      expect(getByTestId('mock-perps-advanced-chart').props.interval).toBe(
+        CandlePeriod.FifteenMinutes,
+      );
+
+      selectedPeriod = CandlePeriod.FourHours;
+      rerender(renderView());
+
+      expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(
+        mountCountBeforeIntervalChange,
+      );
+      expect(mockPerpsAdvancedChartUnmount).toHaveBeenCalledTimes(
+        unmountCountBeforeIntervalChange,
+      );
+      expect(getByTestId('mock-perps-advanced-chart').props.interval).toBe(
+        CandlePeriod.FourHours,
+      );
+    });
+
+    it('passes YearToDate pagination to advanced chart and uses its latest price for the header', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId, getAllByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const advancedChart = getByTestId('mock-perps-advanced-chart');
+      expect(advancedChart.props.paginationDuration).toBe(
+        TimeDuration.YearToDate,
+      );
+
+      act(() => {
+        advancedChart.props.onLatestPriceChange(47000);
+      });
+
+      await waitFor(() => {
+        expect(getAllByText('$47,000').length).toBeGreaterThan(0);
+      });
+    });
+
+    it('logs and tracks advanced chart errors from market details', () => {
+      const mockTrack = jest.fn();
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      getByTestId('mock-perps-advanced-chart').props.onError(
+        'Advanced chart unavailable',
+      );
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Advanced chart unavailable'),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: expect.any(String),
+          }),
+        }),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'Advanced chart unavailable',
+          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        }),
+      );
+    });
+
+    it('uses error object and fallback messages for advanced chart errors', () => {
+      const mockTrack = jest.fn();
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+      const onError = getByTestId('mock-perps-advanced-chart').props.onError;
+
+      onError(new Error('Advanced chart object error'));
+      onError();
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Advanced chart object error'),
+        expect.any(Object),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+            'Chart rendering error in market details view',
+        }),
+      );
+    });
+
     it('refreshes candle data when position tab is active', async () => {
       // Arrange
       const mockRefreshPosition = jest.fn();
@@ -1561,11 +1979,13 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
-      expect(mockNavigateToOrder).toHaveBeenCalledWith({
-        direction: 'long',
-        asset: 'BTC',
-        source: 'perp_asset_screen',
-      });
+      expect(mockNavigateToOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          direction: 'long',
+          asset: 'BTC',
+          source: 'perp_asset_screen',
+        }),
+      );
     });
 
     it('passes marketData defaults to order screen when available', async () => {
@@ -1705,11 +2125,13 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
-      expect(mockNavigateToOrder).toHaveBeenCalledWith({
-        direction: 'short',
-        asset: 'BTC',
-        source: 'perp_asset_screen',
-      });
+      expect(mockNavigateToOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          direction: 'short',
+          asset: 'BTC',
+          source: 'perp_asset_screen',
+        }),
+      );
     });
 
     it('shows geo block modal when long button is pressed and user is not eligible', () => {
@@ -2594,6 +3016,104 @@ describe('PerpsMarketDetailsView', () => {
           getByTestId('perps-chart-fullscreen-close-button'),
         ).toBeOnTheScreen();
         expect(getByTestId('fullscreen-chart')).toBeOnTheScreen();
+      });
+    });
+
+    it('passes advanced chart props into fullscreen modal when advanced charts are enabled', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '1000',
+          marginUsed: '2200',
+          leverage: { value: 10, type: 'isolated' },
+          liquidationPrice: '40000',
+          maxLeverage: 40,
+          returnOnEquity: '0.1',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId, getAllByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(getAllByTestId('mock-perps-advanced-chart').length).toBe(2);
+      });
+      const fullscreenChart = getAllByTestId('mock-perps-advanced-chart').find(
+        (chart) => chart.props.paginationDuration === undefined,
+      );
+
+      expect(fullscreenChart?.props).toEqual(
+        expect.objectContaining({
+          symbol: 'BTC',
+          visibleCandleCount: 30,
+          positionSize: '0.5',
+          fallbackCandleData: expect.objectContaining({
+            symbol: 'BTC',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('Category search shortcut', () => {
+    it('navigates to market list without filters when search button is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const searchButton = getByTestId(
+        'perps-market-header-category-search-button',
+      );
+      fireEvent.press(searchButton);
+
+      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+        source: 'magnifying_glass',
       });
     });
   });

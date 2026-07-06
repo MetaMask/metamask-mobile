@@ -40,6 +40,22 @@ export const PredictFeedSelectorsIDs = {
 } as const;
 
 // ========================================
+// PREDICT HOME (REDESIGN SHELL) SELECTORS
+// ========================================
+
+export const PredictHomeSelectorsIDs = {
+  CONTAINER: 'predict-home-container',
+  SCROLL_VIEW: 'predict-home-scroll-view',
+  TITLE_SECTION: 'predict-home-title-section',
+  TITLE: 'predict-home-title',
+  PORTFOLIO_MODULE: 'predict-home-portfolio-module',
+  LIVE_NOW_SECTION: 'predict-home-live-now-section',
+  CATEGORIES_SECTION: 'predict-home-categories-section',
+  POPULAR_TODAY_SECTION: 'predict-home-popular-today-section',
+  TRENDING_SECTION: 'predict-home-trending-section',
+} as const;
+
+// ========================================
 // PREDICT POSITIONS VIEW SELECTORS
 // ========================================
 
@@ -100,6 +116,27 @@ export const getPredictFeedSelector = {
     `skeleton-footer-${category}-${index}`,
   searchSkeleton: (index: number) => `search-skeleton-${index}`,
   marketList: (category: string) => `predict-market-list-${category}`,
+};
+
+// ========================================
+// PREDICT FEED VIEW (GENERIC, CONFIG-DRIVEN) SELECTORS
+// ========================================
+
+export const PredictFeedViewSelectorsIDs = {
+  CONTAINER: 'predict-feed-view-container',
+  HEADER: 'predict-feed-view-header',
+  TABS: 'predict-feed-view-tabs',
+  FILTERS: 'predict-feed-view-filters',
+  MARKET_LIST: 'predict-feed-view-market-list',
+  EMPTY_STATE: 'predict-feed-view-empty-state',
+  ERROR_STATE: 'predict-feed-view-error-state',
+} as const;
+
+export const getPredictFeedViewSelector = {
+  marketCard: (index: number) => `predict-feed-view-market-card-${index}`,
+  skeleton: (index: number) => `predict-feed-view-skeleton-${index}`,
+  skeletonFooter: (index: number) =>
+    `predict-feed-view-skeleton-footer-${index}`,
 };
 
 // PredictFeed unit test mock selectors (used by PredictFeed.test.tsx mocks)

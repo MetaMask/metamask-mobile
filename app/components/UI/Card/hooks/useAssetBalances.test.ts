@@ -10,6 +10,7 @@ import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import Engine from '../../../../core/Engine';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../Tokens/util', () => ({
@@ -55,7 +56,7 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn((chainId: string) => chainId.startsWith('solana:')),
 }));
-jest.mock('../../Ramp/Deposit/constants/networks', () => ({
+jest.mock('../../Ramp/constants/networks', () => ({
   SOLANA_MAINNET: {
     chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   },
@@ -2105,6 +2106,91 @@ describe('useAssetBalances', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('money account (mUSD) fiat conversion', () => {
+    const mockMoneyAccountToken: CardFundingToken = {
+      address: '0xveda000000000000000000000000000000000001',
+      caipChainId: 'eip155:59144' as CaipChainId,
+      decimals: 6,
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      fundingStatus: FundingStatus.Enabled,
+      spendableBalance: '100',
+      walletAddress: '0xwallet1',
+      isMoneyAccountEntry: true,
+    } as CardFundingToken;
+
+    const setupSelectorMock = (marketData: Record<string, unknown>) => {
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+          const state = {
+            engine: {
+              backgroundState: {
+                TokensController: { allTokens: {} },
+                NetworkController: {
+                  networkConfigurationsByChainId: {
+                    '0x1': { nativeCurrency: 'ETH' },
+                    '0xe708': { nativeCurrency: 'ETH' },
+                  },
+                },
+                CurrencyRateController: {
+                  currencyRates: { ETH: { conversionRate: 2000 } },
+                },
+                TokenRatesController: { marketData },
+              },
+            },
+          };
+          return selector(state);
+        }
+        return 'USD';
+      });
+    };
+
+    it('converts the USD-denominated balance into the display currency using the mUSD fiat rate', () => {
+      // mUSD price-in-native-currency (0.00046 ETH) × ETH→currency rate (2000)
+      // → mUSD fiat rate of 0.92, so 100 mUSD spend power = 92 in display currency.
+      setupSelectorMock({
+        '0x1': {
+          [MUSD_TOKEN_ADDRESS.toLowerCase()]: { price: 0.00046 },
+        },
+      });
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBeCloseTo(92, 5);
+      expect(balanceInfo?.balanceFiat).toBe('$92.00');
+    });
+
+    it('falls back to a 1:1 label when the mUSD fiat rate is unavailable', () => {
+      // No mUSD market data → no rate → balance is shown 1:1 (correct for USD).
+      setupSelectorMock({});
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBe(100);
+      expect(balanceInfo?.balanceFiat).toBe('$100.00');
     });
   });
 });

@@ -3,6 +3,12 @@ import { isUserCancellation } from './errors';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 
 /**
+ * Operation type accepted by {@link executeHardwareWalletOperation}.
+ * Drives confirmation copy and behavior for a transaction signature vs a message signature.
+ */
+export type HardwareWalletOperationType = 'transaction' | 'message';
+
+/**
  * Options for {@link executeHardwareWalletOperation}: resolve the device, gate on readiness,
  * show confirmation UI, and run the Ledger or QR wallet work.
  */
@@ -10,7 +16,7 @@ interface ExecuteHardwareWalletOperationOptions {
   /** Account address used to look up the device id and optional pending-operation context. */
   address: string;
   /** Drives confirmation copy and behavior for a transaction signature vs a message signature. */
-  operationType: 'transaction' | 'message';
+  operationType: HardwareWalletOperationType;
   /**
    * Returns whether the hardware device is ready to sign. Receives the id from
    * {@link getDeviceIdForAddress} when available.
@@ -26,11 +32,16 @@ interface ExecuteHardwareWalletOperationOptions {
    * if the user dismisses or rejects that prompt before signing completes.
    */
   showAwaitingConfirmation: (
-    operationType: 'transaction' | 'message',
+    operationType: HardwareWalletOperationType,
     onReject?: () => void,
   ) => void;
   /** Hides the awaiting-confirmation UI. */
   hideAwaitingConfirmation: () => void;
+  /**
+   * When `false`, skips the Ledger-style awaiting-confirmation bottom sheet while still
+   * running {@link ensureDeviceReady} and {@link execute}. Defaults to `true`.
+   */
+  showConfirmation?: boolean;
   /** Presents a generic error when the operation fails and the error is not user-cancelled. */
   showHardwareWalletError: (error: unknown) => void;
   /**
@@ -61,6 +72,7 @@ export async function executeHardwareWalletOperation({
   setPendingOperationAddress,
   showAwaitingConfirmation,
   hideAwaitingConfirmation,
+  showConfirmation = true,
   showHardwareWalletError,
   onError,
   execute,
@@ -82,25 +94,37 @@ export async function executeHardwareWalletOperation({
 
   try {
     const deviceId = await getDeviceIdForAddress(address);
-    DevLogger.log('[DMK] executeHardwareWalletOperation - address:', address, 'deviceId:', deviceId, 'opType:', operationType);
+    DevLogger.log(
+      '[DMK] executeHardwareWalletOperation - address:',
+      address,
+      'deviceId:',
+      deviceId,
+      'opType:',
+      operationType,
+    );
     const isReady = await ensureDeviceReady(deviceId);
     DevLogger.log('[DMK] executeHardwareWalletOperation - isReady:', isReady);
 
     if (!isReady) {
-      DevLogger.log('[DMK] executeHardwareWalletOperation - device not ready, rejecting');
+      DevLogger.log(
+        '[DMK] executeHardwareWalletOperation - device not ready, rejecting',
+      );
       await rejectOnce();
       return false;
     }
 
-    hasShownConfirmation = true;
-    showAwaitingConfirmation(operationType, () => {
-      rejectOnce().catch(() => undefined);
-    });
+    if (showConfirmation) {
+      hasShownConfirmation = true;
+      showAwaitingConfirmation(operationType, () => {
+        rejectOnce().catch(() => undefined);
+      });
+    }
 
     DevLogger.log('[DMK] executeHardwareWalletOperation - calling execute()');
     await execute();
-    DevLogger.log('[DMK] executeHardwareWalletOperation - execute() done');
-    hideAwaitingConfirmation();
+    if (hasShownConfirmation) {
+      hideAwaitingConfirmation();
+    }
     return true;
   } catch (error) {
     DevLogger.log('[DMK] executeHardwareWalletOperation - error:', error);

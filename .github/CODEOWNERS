@@ -11,18 +11,10 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 patches/                                                    @MetaMask/mobile-platform
 .github/actions/configure-signing/action.yml                @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
-app/core/Analytics/MetaMetrics.constants.ts                 @MetaMask/mobile-platform
-app/core/Analytics/MetaMetrics.test.ts                      @MetaMask/mobile-platform
-app/core/Analytics/MetaMetrics.ts                           @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.types.ts                     @MetaMask/mobile-platform
-app/core/Analytics/MetaMetricsPrivacySegmentPlugin.ts       @MetaMask/mobile-platform
-app/core/Analytics/MetaMetricsPrivacySegmentPlugin.test.ts  @MetaMask/mobile-platform
-app/core/Analytics/MetaMetricsTestUtils.test.ts             @MetaMask/mobile-platform
-app/core/Analytics/MetaMetricsTestUtils.ts                  @MetaMask/mobile-platform
-app/core/Analytics/MetricsEventBuilder.test.ts              @MetaMask/mobile-platform
-app/core/Analytics/MetricsEventBuilder.ts                   @MetaMask/mobile-platform
+app/util/analytics/                                         @MetaMask/mobile-platform
+app/components/hooks/useAnalytics/                          @MetaMask/mobile-platform
 app/util/metrics/                                           @MetaMask/mobile-platform
-app/components/hooks/useMetrics/                            @MetaMask/mobile-platform
 app/selectors/featureFlagController/*                       @MetaMask/mobile-platform
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
@@ -42,6 +34,14 @@ app/core/Engine/README.md                                   @MetaMask/mobile-pla
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
 app/core/DeeplinkManager                                    @MetaMask/mobile-platform
+# SDK / WalletConnect / BackgroundBridge
+app/actions/sdk/                                            @MetaMask/mobile-platform
+app/reducers/sdk/                                           @MetaMask/mobile-platform
+app/core/SDKConnect/                                        @MetaMask/mobile-platform
+app/core/SDKConnectV2/                                      @MetaMask/mobile-platform
+app/core/WalletConnect/                                     @MetaMask/mobile-platform
+app/util/walletconnect.js                                   @MetaMask/mobile-platform
+app/core/BackgroundBridge/                                  @MetaMask/mobile-platform
 # Deprecated BN.js helpers. Gated to discourage adding new exports; consumers
 # should migrate to app/util/number/bigint. See .eslintrc.js for the import
 # fence and bigint-migration-reference.test.ts for migration patterns.
@@ -87,6 +87,7 @@ app/selectors/cardController.ts                            @MetaMask/card
 # Confirmation Team
 app/components/Views/confirmations                              @MetaMask/confirmations
 app/components/Views/confirmations/external/staking             @MetaMask/confirmations @MetaMask/earn
+app/components/Views/confirmations/hooks/useIsExternalAppRequest.ts @MetaMask/confirmations @MetaMask/product-safety
 app/core/Analytics/events/confirmations                         @MetaMask/confirmations
 app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
 app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
@@ -109,18 +110,9 @@ app/util/transaction-controller/                               @MetaMask/confirm
 app/util/transactions/                                         @MetaMask/confirmations
 
 # Wallet integrations Team
-app/actions/sdk/                                            @MetaMask/wallet-integrations
 app/components/Approvals/WalletConnectApproval/             @MetaMask/wallet-integrations
 app/components/Views/SDK/                                   @MetaMask/wallet-integrations
 app/components/Views/WalletConnectSessions/                 @MetaMask/wallet-integrations
-app/core/BackgroundBridge/                                  @MetaMask/wallet-integrations
-app/core/RPCMethods/                                        @MetaMask/wallet-integrations
-app/core/SDKConnect/                                        @MetaMask/wallet-integrations
-app/core/SDKConnectV2/                                      @MetaMask/wallet-integrations
-app/core/WalletConnect/                                     @MetaMask/wallet-integrations
-app/reducers/sdk/                                           @MetaMask/wallet-integrations
-app/util/permissions/                                       @MetaMask/wallet-integrations
-app/util/walletconnect.js                                   @MetaMask/wallet-integrations
 
 # Accounts Team
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
@@ -174,6 +166,9 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 # Core Platform Team
 **/snaps/**                          @MetaMask/core-platform
 **/Snaps/**                          @MetaMask/core-platform
+# RPC methods / permissions
+app/core/RPCMethods/                 @MetaMask/core-platform
+app/util/permissions/                @MetaMask/core-platform
 
 # Co-owned by Confirmations team and Core Platform team
 app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/core-platform
@@ -211,6 +206,7 @@ app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 app/core/Engine/controllers/compliance/ @MetaMask/perps
 app/core/Engine/messengers/compliance/ @MetaMask/perps
 app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
+app/dev-tools/AgenticService/        @MetaMask/perps @MetaMask/mobile-platform
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
@@ -251,22 +247,14 @@ app/*/*/assets/** @MetaMask/metamask-assets
 app/*/Assets/** @MetaMask/metamask-assets
 app/*/*/Assets/** @MetaMask/metamask-assets
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
-app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets
 app/components/hooks/useTokensData @MetaMask/metamask-assets
 app/components/hooks/useSafeChains.ts @MetaMask/metamask-assets
 app/components/UI/Assets @MetaMask/metamask-assets
 app/components/UI/AssetOverview @MetaMask/metamask-assets
-app/components/UI/Collectibles @MetaMask/metamask-assets
-app/components/UI/CollectibleContractElement @MetaMask/metamask-assets
-app/components/UI/CollectivelContractInformation @MetaMask/metamask-assets
-app/components/UI/CollectibleContractOverview @MetaMask/metamask-assets
-app/components/UI/CollectibleContracts @MetaMask/metamask-assets
 app/components/UI/CollectibleDetectionModal @MetaMask/metamask-assets
 app/components/UI/CollectibleMedia @MetaMask/metamask-assets
-app/components/UI/CollectibleModal @MetaMask/metamask-assets
 app/components/UI/CollectibleOverview @MetaMask/metamask-assets
-app/components/UI/ConfirmAddAsset @MetaMask/metamask-assets
 app/components/UI/DeFiPositions @MetaMask/metamask-assets
 app/components/UI/Tokens @MetaMask/metamask-assets
 app/components/UI/TokenDetails @MetaMask/metamask-assets
@@ -274,9 +262,6 @@ app/components/Views/AddAsset @MetaMask/metamask-assets
 app/components/Views/Asset @MetaMask/metamask-assets
 app/components/Views/AssetDetails @MetaMask/metamask-assets
 app/components/Views/AssetHideConfirmation @MetaMask/metamask-assets
-app/components/Views/AssetOptions @MetaMask/metamask-assets
-app/components/Views/Collectible @MetaMask/metamask-assets
-app/components/Views/CollectibleView @MetaMask/metamask-assets
 app/components/Views/NFTAutoDetectionModal @MetaMask/metamask-assets
 app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
@@ -289,6 +274,7 @@ app/components/Views/Homepage/Sections/NFTs/ @MetaMask/metamask-assets
 
 # UX Team
 app/components/Views/AccountActions              @MetaMask/mobile-core-ux
+app/components/Views/AccountPermissions          @MetaMask/mobile-core-ux
 app/components/Views/AccountSelector             @MetaMask/mobile-core-ux
 app/components/Views/AddressQRCode               @MetaMask/mobile-core-ux
 app/components/Views/EditAccountName             @MetaMask/mobile-core-ux
@@ -327,7 +313,10 @@ app/components/Views/transactions @MetaMask/transactions
 # Web3auth Team
 app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
+app/core/Engine/controllers/qr-sync-controller-init.ts      @MetaMask/web3auth
+app/core/Engine/messengers/qr-sync-controller-messenger     @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
+app/core/QrSync                                             @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/components/Views/OnboardingSheet                        @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
@@ -375,6 +364,9 @@ tests/websocket/                                                @MetaMask/qa
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
 .github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
 .github/workflows/auto-label-not-ready-for-e2e.yml              @MetaMask/qa
+.github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa
+.github/workflows/run-appium-smoke-tests-android.yml            @MetaMask/qa
+.github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
 .github/workflows/run-e2e-workflow.yml                          @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
 .github/workflows/run-e2e-regression-tests-android.yml          @MetaMask/qa
@@ -399,6 +391,15 @@ tests/websocket/                                                @MetaMask/qa
 # Co-owned by Swaps and Money Movement teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
 app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/money-movement
+
+# Wallet Library initialization  
+app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
+app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accounts-engineers @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/mobile-platform @MetaMask/core-platform
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
