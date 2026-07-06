@@ -5,6 +5,7 @@ import {
   PERPS_ACTIVITY_FILTER_KINDS,
   PERPS_ACTIVITY_FILTER_ORDER,
   PerpsActivityFilter,
+  activityKindMatchesTypeFilter,
   getPerpsSubFilterKinds,
   resolveInitialActivityTypeFilter,
 } from './types';
@@ -84,6 +85,22 @@ describe('getPerpsSubFilterKinds', () => {
         'trades' as unknown as PerpsActivityFilter,
       ),
     ).toBeUndefined();
+  });
+});
+
+describe('activityKindMatchesTypeFilter', () => {
+  it('groups lending deposit and withdrawal under Transactions, not Money', () => {
+    for (const kind of [
+      'lendingDeposit',
+      'lendingWithdrawal',
+    ] as ActivityKind[]) {
+      expect(
+        activityKindMatchesTypeFilter(kind, ActivityTypeFilter.Transactions),
+      ).toBe(true);
+      expect(
+        activityKindMatchesTypeFilter(kind, ActivityTypeFilter.Money),
+      ).toBe(false);
+    }
   });
 });
 

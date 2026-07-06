@@ -820,6 +820,55 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a typed lendingWithdraw transaction from the received token transfer', () => {
+    // Mobile tags lending withdrawals with TransactionType.lendingWithdraw, so
+    // the explicit case (not the contractInteraction heuristic) must classify it.
+    const transaction = {
+      chainId: base,
+      hash: '0x26f4911467b538702c0945e4ec5e303de44c0c1c174897141d1b548ea3161795',
+      status: TransactionStatus.confirmed,
+      time: 1779912434153,
+      type: TransactionType.lendingWithdraw,
+      txParams: {
+        from,
+        to: baseAavePool,
+        data: '0x69328dec000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda029130000000000000000000000000000000000000000000000000000000000030d400000000000000000000000009bed78535d6a03a955f1504aadba974d9a29e292',
+      },
+      txReceipt: {
+        logs: [
+          {
+            address: baseUsdc,
+            data: '0x0000000000000000000000000000000000000000000000000000000000030d40',
+            topics: [
+              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+              '0x0000000000000000000000004e65fe4dba92790696d040ac24aa414708f5c0ab',
+              '0x0000000000000000000000009bed78535d6a03a955f1504aadba974d9a29e292',
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingWithdrawal',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779912434153,
+      hash: '0x26f4911467b538702c0945e4ec5e303de44c0c1c174897141d1b548ea3161795',
+      data: {
+        destinationToken: {
+          amount: '200000',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'in',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
   it('maps an EIP-7702 upgrade (authorizationList) to a smart account upgrade activity with the gas shown as a native amount', () => {
     const transaction = {
       chainId: mainnet,
