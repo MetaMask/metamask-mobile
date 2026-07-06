@@ -85,6 +85,29 @@ jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
   };
 });
 
+jest.mock(
+  '../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',
+  () => {
+    const MockReact = jest.requireActual('react');
+    const { Text, View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ label }: { label: string }) =>
+        MockReact.createElement(
+          View,
+          { testID: 'rewards-discount-badge' },
+          MockReact.createElement(Text, null, label),
+        ),
+      RewardsDiscountBadge: ({ label }: { label: string }) =>
+        MockReact.createElement(
+          View,
+          { testID: 'rewards-discount-badge' },
+          MockReact.createElement(Text, null, label),
+        ),
+    };
+  },
+);
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockLocation = MetaMetricsSwapsEventSource.MainView;
@@ -314,7 +337,7 @@ describe('BridgeViewFooter', () => {
       });
     });
 
-    it('shows discounted fee disclaimer with fee percentage when fee is less than base fee', async () => {
+    it('shows standard fee disclaimer when fee is less than base fee but discountType is absent', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -330,12 +353,71 @@ describe('BridgeViewFooter', () => {
       const { getByTestId } = renderFooter(buildActiveQuoteState());
 
       await waitFor(() => {
-        expect(getByTestId('rewards-vip-badge')).toBeTruthy();
         expect(
           getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
-        ).toHaveTextContent('Includes0.9%0.575% MM fee.');
+        ).toHaveTextContent('Includes 0.575% MetaMask fee');
       });
     });
+
+    it.each([
+      {
+        discountType: 'vip',
+        expectedBadgeTestId: 'rewards-vip-badge',
+        expectedBadgeLabel: undefined,
+      },
+      {
+        discountType: 'promo',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'Promo',
+      },
+      {
+        discountType: 'dao',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'DAO',
+      },
+      {
+        discountType: 'seasonal',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'Promo',
+      },
+    ])(
+      'shows discounted fee disclaimer and badge for $discountType discountType',
+      async ({ discountType, expectedBadgeTestId, expectedBadgeLabel }) => {
+        jest
+          .mocked(useBridgeQuoteData as unknown as jest.Mock)
+          .mockImplementation(() => ({
+            ...mockUseBridgeQuoteData,
+            activeQuote: {
+              ...mockQuoteWithMetadata,
+              quote: {
+                feeData: {
+                  metabridge: {
+                    quoteBpsFee: 57.5,
+                    baseBpsFee: 90,
+                    discountType,
+                  },
+                },
+              },
+            },
+          }));
+
+        const { getByTestId, getByText } = renderFooter(
+          buildActiveQuoteState(),
+        );
+
+        await waitFor(() => {
+          expect(getByTestId(expectedBadgeTestId)).toBeTruthy();
+          if (expectedBadgeLabel) {
+            expect(getByText(expectedBadgeLabel)).toBeTruthy();
+          }
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+          ).toHaveTextContent(
+            `${expectedBadgeLabel ?? ''}0.9%0.575% MetaMask fee`,
+          );
+        });
+      },
+    );
 
     it('shows no MM fee disclaimer when dest token is mUSD and fee is zero', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;

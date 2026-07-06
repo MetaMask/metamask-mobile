@@ -223,6 +223,22 @@ const QRScanner = ({
       }
 
       if (SDKConnectV2.isMwpDeeplink(response.data)) {
+        if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
+          shouldReadBarCodeRef.current = false;
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
+          end();
+          onScanSuccess({ content }, content);
+          return;
+        }
+
         // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
         // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
         // parent components don't need to be notified.
@@ -380,6 +396,23 @@ const QRScanner = ({
           mountedRef.current = false;
         }
       } else {
+        if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
+          shouldReadBarCodeRef.current = false;
+          data = { content };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
+          end();
+          onScanSuccess(data, content);
+          return;
+        }
+
         if (
           !failedSeedPhraseRequirements(content) &&
           isValidMnemonic(content)
