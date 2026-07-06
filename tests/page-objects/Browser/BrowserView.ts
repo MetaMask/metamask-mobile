@@ -179,21 +179,35 @@ class Browser {
         });
       },
       appium: async () => {
-        const urlBar = await asPlaywrightElement(this.addressBar);
-        const location = await urlBar.unwrap().getLocation();
-        const size = await urlBar.unwrap().getSize();
-        await getDriver().execute('mobile: tap', {
-          x: Math.floor(location.x + size.width * 0.5),
-          y: Math.floor(location.y + size.height / 2),
-        });
+        if (PlatformDetector.isIOS()) {
+          const urlBar = await asPlaywrightElement(this.addressBar);
+          const location = await urlBar.unwrap().getLocation();
+          const size = await urlBar.unwrap().getSize();
+          await getDriver().execute('mobile: tap', {
+            x: Math.floor(location.x + size.width * 0.5),
+            y: Math.floor(location.y + size.height / 2),
+          });
+          await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
+            elemDescription: 'Cancel button (URL bar focused)',
+            timeout: 10000,
+          });
+          return;
+        }
 
-        const focusedEditor = PlatformDetector.isAndroid()
-          ? this.urlInputBoxID
-          : this.cancelUrlInputButton;
-        await Assertions.expectElementToBeVisible(focusedEditor, {
-          elemDescription: PlatformDetector.isAndroid()
-            ? 'URL input box (focused)'
-            : 'Cancel button (URL bar focused)',
+        await Gestures.waitAndTap(this.addressBar, {
+          elemDescription: 'URL bar container',
+        });
+        if (!(await Utilities.isElementVisible(this.urlInputBoxID, 3000))) {
+          const urlBar = await asPlaywrightElement(this.addressBar);
+          const location = await urlBar.unwrap().getLocation();
+          const size = await urlBar.unwrap().getSize();
+          await getDriver().execute('mobile: clickGesture', {
+            x: Math.floor(location.x + size.width * 0.5),
+            y: Math.floor(location.y + size.height / 2),
+          });
+        }
+        await Assertions.expectElementToBeVisible(this.urlInputBoxID, {
+          elemDescription: 'URL input box (focused)',
           timeout: 10000,
         });
       },
