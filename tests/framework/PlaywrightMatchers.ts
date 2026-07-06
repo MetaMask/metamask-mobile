@@ -71,8 +71,11 @@ export default class PlaywrightMatchers {
         ? this.escapeRegexPatternForUiAutomator(elementId)
         : this.escapeRegexPattern(elementId);
       this.logFind('id pattern', elementId.source);
+      // Android resource IDs are package-qualified (e.g. io.metamask:id/browser-tab-1).
+      // Detox by.id(RegExp) matches the suffix; UiAutomator resourceIdMatches needs .*…*.
+      const androidPattern = `.*${escaped}.*`;
       const locator = isAndroid
-        ? `android=new UiSelector().resourceIdMatches("${escaped}")`
+        ? `android=new UiSelector().resourceIdMatches("${androidPattern}")`
         : `-ios predicate string:name MATCHES "${escaped}"`;
 
       const drv = getDriver();
