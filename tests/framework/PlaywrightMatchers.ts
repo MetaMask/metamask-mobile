@@ -82,10 +82,14 @@ export default class PlaywrightMatchers {
       if (!drv) throw new Error('Driver is not available');
       if (options.index !== undefined) {
         const elements = await drv.$$(locator);
-        return this.wrapElementAtIndex(
-          elements as unknown as ChainablePromiseElement[],
-          options.index,
-          `resource id pattern ${elementId.source}`,
+        const matchedElement = elements[options.index];
+        if (matchedElement) {
+          return wrapElement(
+            matchedElement as unknown as ChainablePromiseElement,
+          );
+        }
+        return wrapElement(
+          (await drv.$(locator)) as unknown as ChainablePromiseElement,
         );
       }
       const element = await drv.$(locator);
@@ -112,8 +116,14 @@ export default class PlaywrightMatchers {
     if (!drv) throw new Error('Driver is not available');
     if (options.index !== undefined) {
       const elements = await drv.$$(locator);
+      const matchedElement = elements[options.index];
+      if (matchedElement) {
+        return wrapElement(
+          matchedElement as unknown as ChainablePromiseElement,
+        );
+      }
       return wrapElement(
-        elements[options.index] as unknown as ChainablePromiseElement,
+        (await drv.$(locator)) as unknown as ChainablePromiseElement,
       );
     }
     const element = await drv.$(locator);

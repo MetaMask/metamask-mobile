@@ -7,6 +7,11 @@ import TestDApp from '../page-objects/Browser/TestDApp';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
+import {
+  encapsulated,
+  type EncapsulatedElementType,
+} from '../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../framework/PlaywrightMatchers';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
 
 /**
@@ -97,6 +102,30 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
  * If the "Opened tabs" grid view is shown (e.g. after tapping the browser tab icon),
  * selects the first/most recent tab so we land on the single-tab browser view.
  */
+const getFirstBrowserTabInGrid = (): EncapsulatedElementType => {
+  if (!FrameworkDetector.isAppium()) {
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_ITEM_REGEX, 0);
+  }
+
+  return encapsulated({
+    detox: () =>
+      Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_ITEM_REGEX, 0),
+    appium: {
+      // TabThumbnail sets accessibilityLabel to "Switch tab"; Android exposes it as content-desc.
+      android: () =>
+        PlaywrightMatchers.getElementByAndroidUIAutomator(
+          '.descriptionContains("Switch tab")',
+          { index: 0 },
+        ),
+      ios: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
+          { index: 0 },
+        ),
+    },
+  });
+};
+
 const ensureSingleBrowserTabView = async (): Promise<void> => {
   const openedTabsHeader = Matchers.getElementByID(
     BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
@@ -106,16 +135,10 @@ const ensureSingleBrowserTabView = async (): Promise<void> => {
     2000,
   );
   if (isInTabListView) {
-    const firstTab = Matchers.getElementByID(
-      BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
-      0,
-    );
-    const hasTabThumbnail = await Utilities.isElementVisible(firstTab, 5000);
-    if (hasTabThumbnail) {
-      await Gestures.waitAndTap(firstTab, {
-        elemDescription: 'First browser tab (select to open single-tab view)',
-      });
-    }
+    const firstTab = getFirstBrowserTabInGrid();
+    await Gestures.waitAndTap(firstTab, {
+      elemDescription: 'First browser tab (select to open single-tab view)',
+    });
   }
 };
 
