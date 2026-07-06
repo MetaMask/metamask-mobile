@@ -52,7 +52,7 @@ import {
 import { TraceName, TraceOperation } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../Analytics';
-import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -309,7 +309,7 @@ jest.mock('@sentry/react-native', () => ({
   captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
-jest.mock('../../components/UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../components/UI/Ramp/utils/ProviderTokenVault', () => ({
   resetProviderToken: jest.fn(),
 }));
 
@@ -4101,7 +4101,7 @@ describe('Authentication', () => {
       }
     });
 
-    it('tracks failure event on migration error', async () => {
+    it('tracks failure event on migration error without throwing', async () => {
       const error = new Error('Network error');
       Engine.context.SeedlessOnboardingController = {
         runMigrations: jest.fn().mockRejectedValue(error),
@@ -4110,27 +4110,16 @@ describe('Authentication', () => {
 
       await expect(
         Authentication.runSeedlessOnboardingMigrations(),
-      ).rejects.toThrow('Network error');
+      ).resolves.toBeUndefined();
 
       expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
       );
       expect(analytics.trackEvent).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalledWith(error);
     });
 
-    it('re-throws error on migration error', async () => {
-      const error = new Error('Network error');
-      Engine.context.SeedlessOnboardingController = {
-        runMigrations: jest.fn().mockRejectedValue(error),
-        state: { migrationVersion: 1 },
-      };
-
-      await expect(
-        Authentication.runSeedlessOnboardingMigrations(),
-      ).rejects.toThrow('Network error');
-    });
-
-    it('wraps non-Error thrown values in a new Error before re-throwing', async () => {
+    it('wraps non-Error thrown values before reporting failure', async () => {
       Engine.context.SeedlessOnboardingController = {
         runMigrations: jest.fn().mockRejectedValue('string error'),
         state: { migrationVersion: 0 },
@@ -4138,14 +4127,17 @@ describe('Authentication', () => {
 
       await expect(
         Authentication.runSeedlessOnboardingMigrations(),
-      ).rejects.toThrow('Unknown error');
+      ).resolves.toBeUndefined();
 
       expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
       );
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Unknown error' }),
+      );
     });
 
-    it('logs warnings and still re-throws when analytics tracking or Sentry reporting fail', async () => {
+    it('logs warnings and still resolves when analytics tracking or Sentry reporting fail', async () => {
       const logWarnSpy = jest
         .spyOn(Logger, 'log')
         .mockImplementation(jest.fn());
@@ -4165,7 +4157,7 @@ describe('Authentication', () => {
       try {
         await expect(
           Authentication.runSeedlessOnboardingMigrations(),
-        ).rejects.toThrow('migration failed');
+        ).resolves.toBeUndefined();
 
         expect(logWarnSpy).toHaveBeenCalledWith(
           'Failed to track seedless onboarding migration failure',
@@ -5070,7 +5062,7 @@ describe('Authentication', () => {
 
       expect(reauthSpy).toHaveBeenCalledWith('valid-password');
       expect(exportSeedPhraseSpy).toHaveBeenCalledWith(
-        'valid-password',
+        { password: 'valid-password' },
         keyringId,
       );
     });
@@ -5097,7 +5089,10 @@ describe('Authentication', () => {
       await Authentication.revealPrivateKey('valid-password', address);
 
       expect(reauthSpy).toHaveBeenCalledWith('valid-password');
-      expect(exportAccountSpy).toHaveBeenCalledWith('valid-password', address);
+      expect(exportAccountSpy).toHaveBeenCalledWith(
+        { password: 'valid-password' },
+        address,
+      );
     });
   });
 

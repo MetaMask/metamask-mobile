@@ -1,12 +1,16 @@
 # Reusable workflow for setting up node_modules
-# This workflow installs dependencies and runs the project setup, then uploads
-# the prepared node_modules as an artifact for consumption by other workflows.
+# This workflow installs dependencies and runs the project setup, then either
+# saves to GitHub Actions cache or uploads the prepared node_modules as an
+# artifact for consumption by other workflows.
 #
 # Use cases:
-# - EAS update: platform='', use-tarball=false, one ubuntu-latest runner.
-# - Build: platform=ios|android, use-tarball=true, build_name set; runs on
-#   platform-specific runner (macOS for iOS, Ubuntu for Android) and uploads
-#   a tarball to preserve symlinks.
+# - Build on release/*: platform=ios|android, use-cache=true, build_name set;
+#   saves node_modules to actions/cache after full install/setup so the build
+#   job can restore it quickly without downloading a tarball artifact.
+# - Build on other branches: platform=ios|android, use-tarball=true; uploads a
+#   zstd-compressed tarball artifact for the build job to download and extract.
+# - EAS update: platform='', use-tarball=false, one ubuntu-latest runner;
+#   uploads node_modules as a zip artifact (no cache used).
 
 name: Setup Node Modules
 
@@ -63,10 +67,22 @@ on:
         required: false
         type: string
         default: current
+      use-cache:
+        description: >-
+          When true, save node_modules to actions/cache after a full install/setup
+          run, keyed on yarn.lock + inpage-bridge sources. The consuming build job
+          restores from this cache instead of downloading a tarball artifact.
+          Exposes cache-key output for the build job to use with fail-on-cache-miss.
+        required: false
+        type: boolean
+        default: false
     outputs:
       artifact-name:
         description: 'The actual artifact name used'
         value: ${{ jobs.setup.outputs.artifact-name }}
+      cache-key:
+        description: 'Exact cache key used when use-cache is true (empty otherwise)'
+        value: ${{ jobs.setup.outputs.cache-key }}
 
 permissions:
   contents: read
@@ -80,8 +96,11 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      CACHE_GENERATION: v1
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -136,6 +155,15 @@ jobs:
             echo "artifact-name=$ARTIFACT_NAME" >> "$GITHUB_OUTPUT"
             echo "📦 Artifact name: $ARTIFACT_NAME"
           fi
+
+      - name: Compute cache key
+        id: cache-key
+        if: inputs.use-cache
+        run: |
+          NODE_VERSION=$(node --version | sed 's/v//')
+          KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ inputs.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          echo "key=${KEY}" >> "$GITHUB_OUTPUT"
+          echo "Cache key: ${KEY}"
 
       - name: Install dependencies
         run: |
@@ -215,24 +243,54 @@ jobs:
           echo "📄 install-state.gz exists: $(test -f .yarn/install-state.gz && echo 'yes' || echo 'no')"
           echo "📁 cache dir exists: $(test -d .yarn/cache && echo 'yes' || echo 'no')"
 
+      - name: Save node_modules cache
+        if: inputs.use-cache
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            node_modules
+            app/util/termsOfUse/termsOfUseContent.ts
+            app/core/InpageBridgeWeb3.js
+            scripts/inpage-bridge/dist
+          key: ${{ steps.cache-key.outputs.key }}
+
+      # zstd compresses ~24% smaller than gzip and, being multithreaded (-T0),
+      # creates the tarball ~10x faster. This shrinks both this step (on the
+      # critical path) and the download in the consuming build job.
+      - name: Ensure zstd is available
+        if: inputs.upload-artifact && inputs.use-tarball
+        shell: bash
+        run: |
+          if command -v zstd >/dev/null 2>&1; then
+            echo "✅ zstd present: $(zstd --version)"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            echo "Installing zstd via Homebrew..."
+            brew install zstd
+          else
+            echo "Installing zstd via apt..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq zstd
+          fi
+
       - name: Create tarball (preserves symlinks)
         if: inputs.upload-artifact && inputs.use-tarball
         run: |
-          echo "📦 Creating tarball to preserve symlinks..."
-          tar -czf node-modules-${{ inputs.platform }}.tar.gz \
+          echo "📦 Creating zstd tarball to preserve symlinks..."
+          tar --use-compress-program 'zstd -10 -T0' \
+            -cf node-modules-${{ inputs.platform }}.tar.zst \
             node_modules \
             app/util/termsOfUse/termsOfUseContent.ts \
             app/core/InpageBridgeWeb3.js \
             scripts/inpage-bridge/dist
-          echo "✅ Tarball created: $(du -h node-modules-${{ inputs.platform }}.tar.gz)"
+          echo "✅ Tarball created: $(du -h node-modules-${{ inputs.platform }}.tar.zst)"
 
       - name: Upload node_modules tarball
         if: inputs.upload-artifact && inputs.use-tarball
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
-          path: node-modules-${{ inputs.platform }}.tar.gz
+          path: node-modules-${{ inputs.platform }}.tar.zst
           retention-days: ${{ inputs.artifact-retention-days }}
+          # Already zstd-compressed; skip the artifact zip's redundant compression.
           compression-level: 0
           if-no-files-found: error
 

@@ -10,6 +10,7 @@ import {
   isMoneyAccountTx,
   isMoneyDepositTx,
   isMoneyWithdrawTx,
+  isSingleRowMusdMoneyWithdraw,
   isPerpsPredictMoneyActivity,
   isPerpsPredictMoneyDeposit,
   isPerpsPredictMoneyWithdraw,
@@ -112,6 +113,56 @@ describe('isMoneyWithdrawTx', () => {
     expect(isMoneyWithdrawTx(makeTx(TransactionType.contractInteraction))).toBe(
       false,
     );
+  });
+});
+
+describe('isSingleRowMusdMoneyWithdraw', () => {
+  it('returns true when destination is mUSD on Monad', () => {
+    expect(
+      isSingleRowMusdMoneyWithdraw({
+        ...makeTx(TransactionType.moneyAccountWithdraw),
+        metamaskPay: {
+          tokenAddress: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+        },
+      } as TransactionMeta),
+    ).toBe(true);
+  });
+
+  it('returns true when destination is mUSD on another chain (cross-chain)', () => {
+    expect(
+      isSingleRowMusdMoneyWithdraw({
+        ...makeTx(TransactionType.moneyAccountWithdraw),
+        metamaskPay: {
+          tokenAddress: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+        },
+      } as TransactionMeta),
+    ).toBe(true);
+  });
+
+  it('returns false when destination is a non-mUSD token', () => {
+    expect(
+      isSingleRowMusdMoneyWithdraw({
+        ...makeTx(TransactionType.moneyAccountWithdraw),
+        metamaskPay: {
+          tokenAddress: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+        },
+      } as TransactionMeta),
+    ).toBe(false);
+  });
+
+  it('returns false for deposit txs', () => {
+    expect(
+      isSingleRowMusdMoneyWithdraw({
+        ...makeTx(TransactionType.moneyAccountDeposit),
+        metamaskPay: {
+          tokenAddress: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+        },
+      } as TransactionMeta),
+    ).toBe(false);
   });
 });
 

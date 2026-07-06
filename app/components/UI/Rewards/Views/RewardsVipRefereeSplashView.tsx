@@ -8,6 +8,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../constants/navigation/Routes';
+import { exitRewardsFlow } from '../utils';
 import {
   selectHasAcceptedVipRefereeInvite,
   selectIsVipReferee,
@@ -38,7 +39,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewReferee) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
       return;
     }
 
@@ -60,12 +61,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
   }, [navigation, subscriptionId]);
 
   const handleNotNow = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-
-    navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+    exitRewardsFlow(navigation);
   }, [navigation]);
 
   if (!canViewReferee || hasAcceptedVipRefereeInvite) {

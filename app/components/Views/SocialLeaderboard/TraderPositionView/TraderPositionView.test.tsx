@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderPositionView from './TraderPositionView';
@@ -17,6 +23,7 @@ const mockPriceChart = jest.fn();
 const mockTraderPriceChart = jest.fn();
 const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
 const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
+const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
 
 interface MockRouteParams {
   positionId?: string;
@@ -105,6 +112,21 @@ jest.mock('./components/QuickBuy', () => ({
   default: () => null,
 }));
 
+// Resolves the tradable perp market set used by the Trade CTA's xyz/HIP-3
+// gating. Mocked because the real hook reaches into the Perps stream provider,
+// which this minimal-store test does not mount.
+const mockUseTradablePerpsMarketSymbols = jest.fn();
+jest.mock('../../../UI/WhatsHappening/hooks', () => ({
+  useTradablePerpsMarketSymbols: () => mockUseTradablePerpsMarketSymbols(),
+}));
+
+// PerpsTradeButton wraps itself in PerpsStreamProvider; stub it to a passthrough
+// so the real stream-manager singleton isn't pulled into this minimal-store test.
+jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
 jest.mock('../../../../util/haptics', () => {
   const actual = jest.requireActual<typeof import('../../../../util/haptics')>(
     '../../../../util/haptics',
@@ -146,7 +168,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
   return { useAnalytics: () => createMockUseAnalyticsHook() };
 });
 
-jest.mock('../../../UI/AssetOverview/PriceChart', () => {
+jest.mock('../../../UI/AssetOverview/PriceChart/PriceChart', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -185,6 +207,14 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardPerpsEnabled: () =>
+      mockSelectSocialLeaderboardPerpsEnabled(),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
 
@@ -222,6 +252,11 @@ describe('TraderPositionView', () => {
       json: () => Promise.resolve({ prices: [] }),
     }) as jest.Mock;
     mockGetAssetImageUrl.mockReturnValue('https://example.com/token.png');
+    mockUseTradablePerpsMarketSymbols.mockReturnValue({
+      tradableSymbols: new Set<string>(),
+      isLoading: false,
+    });
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'trader1',
@@ -237,8 +272,25 @@ describe('TraderPositionView', () => {
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByText('trader1')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK),
+      ).getByText('trader1'),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('does not render the floating sticky day header at rest', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    // At rest the natural in-list day headers carry the labels; the floating
+    // sticky only appears once trades scroll behind the pinned chart's edge.
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.STICKY_DAY_HEADER),
+    ).toBeNull();
   });
 
   it('shows empty state when trades array is empty', () => {
@@ -417,8 +469,221 @@ describe('TraderPositionView', () => {
     it('renders the perp leverage and direction badges in the header', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      expect(screen.getByText('10x')).toBeOnTheScreen();
-      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+      const headerPerpBadges = within(
+        screen.getByTestId(
+          TraderPositionViewSelectorsIDs.HEADER_COMPACT_PERP_BADGES,
+        ),
+      );
+
+      expect(headerPerpBadges.getByText('10x')).toBeOnTheScreen();
+      expect(headerPerpBadges.getByText('SHORT')).toBeOnTheScreen();
+    });
+
+    it('does not render the copy token address button for a perp position', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      // Perps have no on-chain token address, so copy is not offered.
+      expect(
+        screen.queryByTestId(
+          TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the fallback instead of perp details when social leaderboard perps are disabled', () => {
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
+    });
+
+    it('renders the fallback when a disabled perp position resolves from positionId', () => {
+      const { useTraderPosition } = jest.requireMock(
+        './hooks/useTraderPosition',
+      );
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: mockRouteParams.position,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+      mockRouteParams.position = undefined;
+      mockRouteParams.positionId = 'position-uuid-1';
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: undefined,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
+    });
+
+    describe('HIP-3 markets', () => {
+      it('hides the provider prefix in the displayed symbol', () => {
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.getAllByText('SPCX').length).toBeGreaterThanOrEqual(1);
+        expect(screen.queryByText('cash:SPCX')).toBeNull();
+      });
+
+      it('links an xyz market directly without a tradable-set check', () => {
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'xyz:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
+
+      it('links another HIP-3 provider to its xyz equivalent when that market exists', () => {
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set(['xyz:SPCX']),
+          isLoading: false,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
+
+      it('disables the Trade button as Unsupported market when the loaded market list lacks the xyz market', () => {
+        // A populated set that does not include the target is a definitive
+        // "no such market" — only then do we disable.
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set(['BTC', 'ETH', 'xyz:OTHER']),
+          isLoading: false,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.getByText('Unsupported market')).toBeOnTheScreen();
+
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockPlayImpact).not.toHaveBeenCalled();
+      });
+
+      it('stays enabled (optimistic) while the market list is still loading', () => {
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set<string>(),
+          isLoading: true,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.queryByText('Unsupported market')).toBeNull();
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
+
+      it('stays optimistic when the market set is empty even with isLoading false (fetch in flight / empty cache)', () => {
+        // usePerpsMarkets can report isLoading:false with an empty list while a
+        // fetch is still in flight; an empty set must not lock the button into
+        // a false "Unsupported market".
+        mockUseTradablePerpsMarketSymbols.mockReturnValue({
+          tradableSymbols: new Set<string>(),
+          isLoading: false,
+        });
+        mockRouteParams.position = {
+          ...makeDefaultPosition(),
+          tokenSymbol: 'cash:SPCX',
+          chain: 'hyperliquid',
+          perpPositionType: 'long',
+        };
+
+        renderWithProvider(<TraderPositionView />, { state: mockState });
+
+        expect(screen.queryByText('Unsupported market')).toBeNull();
+        fireEvent.press(
+          screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+        );
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: { symbol: 'xyz:SPCX', name: 'SPCX' },
+            source: 'social_leaderboard',
+          },
+        });
+      });
     });
   });
 
@@ -538,7 +803,7 @@ describe('TraderPositionView', () => {
 
     expect(screen.getByText('Closed position')).toBeOnTheScreen();
     expect(screen.getByText('+$300.00')).toBeOnTheScreen();
-    expect(screen.getByText('+25%')).toBeOnTheScreen();
+    expect(screen.getByText('+25.00%')).toBeOnTheScreen();
   });
 
   it('displays market cap from the fallback API when cache is empty', async () => {
@@ -555,7 +820,11 @@ describe('TraderPositionView', () => {
     });
   });
 
-  it('shows all trades regardless of the active time period, but filters chart markers', async () => {
+  it('passes all trades to the chart regardless of the active time period', async () => {
+    // Markers are bounded to the chart's loaded data window inside the chart
+    // component (not a now-relative period window), so the view forwards the
+    // full trade list and never drops past trades — e.g. a closed position whose
+    // fills predate the selected period must still surface on the chart.
     const now = Date.now();
 
     mockRouteParams.position = {
@@ -592,8 +861,10 @@ describe('TraderPositionView', () => {
         mockTraderPriceChart.mock.calls[
           mockTraderPriceChart.mock.calls.length - 1
         ]?.[0]?.trades;
-      expect(chartTrades).toHaveLength(1);
-      expect(chartTrades[0].transactionHash).toBe('0xrecent');
+      expect(chartTrades).toHaveLength(2);
+      expect(
+        chartTrades.map((t: { transactionHash: string }) => t.transactionHash),
+      ).toEqual(expect.arrayContaining(['0xrecent', '0xolder']));
     });
     expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
     expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();

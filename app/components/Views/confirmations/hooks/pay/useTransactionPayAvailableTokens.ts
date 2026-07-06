@@ -23,8 +23,8 @@ export function useTransactionPayAvailableTokens() {
 
   // For post-quote transactions, tokens are always available
   // (the supported destination tokens from the bridge API).
-  // Disabled tokens (e.g. required tokens with no gas) are excluded
-  // so the UI can correctly fall back to fiat payment or BuySection.
+  // Disabled tokens are excluded so the UI can correctly fall back to fiat
+  // payment or BuySection when every token is blocked.
   const hasTokens = isPostQuote || availableTokens.some((t) => !t.disabled);
 
   return { availableTokens, hasTokens };

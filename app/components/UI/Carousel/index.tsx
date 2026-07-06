@@ -7,6 +7,10 @@ import React, {
   useRef,
 } from 'react';
 import { Dimensions, Animated, Linking } from 'react-native';
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { CarouselProps, CarouselSlide } from './types';
@@ -32,7 +36,10 @@ import {
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
-import { BANNER_EVENT_DISPLAY } from '../../../constants/engagement';
+import {
+  BANNER_EVENT_DISPLAY,
+  BANNER_EVENT_DISMISSED,
+} from '../../../constants/engagement';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
 import AppConstants from '../../../core/AppConstants';
@@ -145,8 +152,11 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   // Carousel-level animations for empty state dismissal
   const carouselOpacity = useRef(new Animated.Value(1)).current;
-  const carouselHeight = useRef(new Animated.Value(BANNER_HEIGHT + 6)).current;
+  const carouselHeight = useSharedValue(BANNER_HEIGHT + 6);
   const carouselScaleY = useRef(new Animated.Value(1)).current;
+  const carouselContainerStyle = useAnimatedStyle(() => ({
+    height: carouselHeight.value,
+  }));
 
   const isAnimating = useRef(false);
 
@@ -401,6 +411,23 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         // After animation, dismiss banner immediately so Redux knows it's gone
         dispatch(dismissBanner(slideId));
 
+        // Track the dismissal so the analytics funnel shows a "Banner Dismissed"
+        // event between two consecutive "Banner Display" events.
+        const dismissedSlide = visibleSlides.find(
+          (slide) => slide.id === slideId,
+        );
+        trackEvent(
+          createEventBuilder({
+            category: BANNER_EVENT_DISMISSED,
+          })
+            .addProperties({
+              name: dismissedSlide
+                ? getSlideAnalyticsName(dismissedSlide)
+                : slideId,
+            })
+            .build(),
+        );
+
         // Set up animations based on what's next
         requestAnimationFrame(() => {
           if (isNextCardEmpty) {
@@ -441,8 +468,10 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     [
       transitionToNextCard,
       dispatch,
+      trackEvent,
+      createEventBuilder,
       safeActiveSlideIndex,
-      visibleSlides.length,
+      visibleSlides,
       nextSlide,
       currentCardOpacity,
       currentCardScale,
@@ -564,15 +593,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   }
 
   return (
-    <Animated.View
-      style={[
-        tw.style('mx-4'),
-        {
-          height: carouselHeight, // Layout animation (non-native)
-        },
-        style,
-      ]}
-    >
+    <Reanimated.View style={[tw.style('mx-4'), carouselContainerStyle, style]}>
       <Animated.View
         style={{
           opacity: carouselOpacity,
@@ -641,7 +662,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           </Box>
         </Box>
       </Animated.View>
-    </Animated.View>
+    </Reanimated.View>
   );
 };
 

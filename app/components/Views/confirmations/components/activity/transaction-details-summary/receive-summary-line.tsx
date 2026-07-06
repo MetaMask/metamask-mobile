@@ -36,6 +36,10 @@ export function ReceiveSummaryLine({
     TransactionType.predictWithdraw,
   ]);
 
+  const isPerpsWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+  ]);
+
   const targetNetworkName = useNetworkName(targetChainId);
   const sourceNetworkName = useNetworkName(sourceChainId ?? '0x0');
 
@@ -52,6 +56,10 @@ export function ReceiveSummaryLine({
     targetSymbol = 'USDC';
     finalTargetNetworkName = 'Hyperliquid';
     receiveChainId = CHAIN_IDS.ARBITRUM;
+  } else if (isPerpsWithdraw) {
+    targetSymbol = 'mUSD';
+    finalTargetNetworkName = sourceNetworkName;
+    receiveChainId = sourceChainId ?? '0x0';
   } else if (isPredictDeposit) {
     targetSymbol = POLYGON_PUSD.symbol;
   } else if (isPredictWithdraw) {

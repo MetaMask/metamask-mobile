@@ -14,6 +14,7 @@ import {
 import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -80,9 +81,10 @@ jest.mock('../../contexts', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useLiveGameUpdates', () => ({
-  useLiveGameUpdates: () => ({ gameUpdate: null }),
-}));
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const mockGetLivePrice = jest.fn();
 jest.mock('../../hooks/useLiveMarketPrices', () => ({
@@ -212,6 +214,11 @@ describe('FeaturedCarouselSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetLivePrice.mockReturnValue(undefined);
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   it('renders league name and live indicator for ongoing games', () => {
@@ -237,6 +244,35 @@ describe('FeaturedCarouselSportCard', () => {
     expect(getAllByTestId('predict-sport-team-logo')).toHaveLength(2);
     expect(getByText('2')).toBeOnTheScreen();
     expect(getByText('1')).toBeOnTheScreen();
+  });
+
+  it('renders cached game state from usePredictGame', () => {
+    const market = createMockSportMarket({
+      game: createMockGame({
+        status: 'scheduled',
+        elapsed: null,
+        score: null,
+      }),
+    });
+    mockUsePredictGame.mockReturnValue({
+      game: createMockGame({
+        status: 'ongoing',
+        elapsed: '75',
+        period: '2H',
+        score: { away: 3, home: 4, raw: '3-4' },
+      }),
+      isConnected: true,
+      lastUpdateTime: 1,
+    });
+
+    const { getByText } = renderWithProvider(
+      <FeaturedCarouselSportCard market={market} index={0} />,
+      { state: initialState },
+    );
+
+    expect(getByText('Live 75')).toBeOnTheScreen();
+    expect(getByText('4')).toBeOnTheScreen();
+    expect(getByText('3')).toBeOnTheScreen();
   });
 
   it('renders team names', () => {

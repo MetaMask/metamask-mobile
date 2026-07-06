@@ -66,7 +66,7 @@ describe('PerpsMarketRowItem', () => {
     it('renders all market data correctly', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
       expect(screen.getByText('50x')).toBeOnTheScreen();
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
@@ -142,10 +142,21 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={ethMarket} />);
 
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
       ).toBeOnTheScreen();
+    });
+
+    it('falls back to the ticker when name is missing', () => {
+      const noNameMarket = {
+        ...mockMarketData,
+        name: '',
+      };
+
+      render(<PerpsMarketRowItem market={noNameMarket} />);
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
     });
 
     it('handles different leverage values', () => {
@@ -199,11 +210,12 @@ describe('PerpsMarketRowItem', () => {
       const longSymbolMarket = {
         ...mockMarketData,
         symbol: 'VERYLONGSYMBOLNAME',
+        name: 'Very Long Asset Name Token',
       };
 
       render(<PerpsMarketRowItem market={longSymbolMarket} />);
 
-      expect(screen.getByText('VERYLONGSYMBOLNAME')).toBeOnTheScreen();
+      expect(screen.getByText('Very Long Asset Name Token')).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           getPerpsMarketRowItemSelector.rowItem('VERYLONGSYMBOLNAME'),
@@ -215,13 +227,14 @@ describe('PerpsMarketRowItem', () => {
       const specialCharMarket = {
         ...mockMarketData,
         symbol: 'BTC/USD',
+        name: 'Bitcoin / USD',
         change24h: '+$1,000',
         change24hPercent: '+2.50%',
       };
 
       render(<PerpsMarketRowItem market={specialCharMarket} />);
 
-      expect(screen.getByText('BTC/USD')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin / USD')).toBeOnTheScreen();
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
     });
 
@@ -229,6 +242,7 @@ describe('PerpsMarketRowItem', () => {
       const unicodeMarket = {
         ...mockMarketData,
         symbol: 'BTC€',
+        name: 'Bitcoin Euro',
         price: '€45,000',
         change24h: '+€2,000',
         change24hPercent: '+4.65%',
@@ -236,7 +250,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={unicodeMarket} />);
 
-      expect(screen.getByText('BTC€')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin Euro')).toBeOnTheScreen();
       expect(screen.getByText('€45,000')).toBeOnTheScreen();
     });
   });
@@ -532,7 +546,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={positiveMarket} />);
 
       // Verify the component renders without error
-      expect(screen.getByText(positiveMarket.symbol)).toBeOnTheScreen();
+      expect(screen.getByText(positiveMarket.name)).toBeOnTheScreen();
     });
 
     it('shows negative change', () => {
@@ -545,7 +559,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={negativeMarket} />);
 
       // Verify the component renders without error
-      expect(screen.getByText(negativeMarket.symbol)).toBeOnTheScreen();
+      expect(screen.getByText(negativeMarket.name)).toBeOnTheScreen();
     });
 
     it('handles zero change correctly', () => {
@@ -558,7 +572,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={zeroChangeMarket} />);
 
       // Verify the component renders without error
-      expect(screen.getByText(zeroChangeMarket.symbol)).toBeOnTheScreen();
+      expect(screen.getByText(zeroChangeMarket.name)).toBeOnTheScreen();
     });
   });
 

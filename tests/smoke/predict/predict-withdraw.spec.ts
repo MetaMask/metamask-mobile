@@ -51,6 +51,7 @@ describe(SmokePredictions('Predictions Withdraw'), () => {
       {
         fixture: new FixtureBuilder()
           .withPolygon()
+          .withBasicFunctionalityEnabled()
           // Polygon bridged USDC must be in TokenController so confirmation's
           // useUpdateTokenAmount gets decimals=6. Otherwise decimals fall back to 18 and
           // "5" USDC is encoded as 5e18 raw — Predict signWithdraw then throws

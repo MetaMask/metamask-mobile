@@ -77,6 +77,7 @@ import branch from 'react-native-branch';
 import Logger from '../../../../util/Logger';
 import type { DeeplinkParseMode } from '../../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import { handleMoney } from './handleMoney';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
@@ -115,6 +116,7 @@ const SUPPORTED_ACTIONS = {
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
   MMSDK: ACTIONS.MMSDK,
+  MONEY: ACTIONS.MONEY,
 } as const;
 
 type SUPPORTED_ACTIONS =
@@ -148,6 +150,8 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.EARN_MUSD,
   SUPPORTED_ACTIONS.AGENTIC_CLI,
   SUPPORTED_ACTIONS.ON_RAMP,
+  SUPPORTED_ACTIONS.MONEY,
+  SUPPORTED_ACTIONS.ASSET,
 ];
 
 const interstitialWhitelistUrls = [] as const;
@@ -781,6 +785,10 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.AGENTIC_CLI: {
       handleAgenticCliApproval({ actionPath: actionBasedRampPath });
+      break;
+    }
+    case SUPPORTED_ACTIONS.MONEY: {
+      handleMoney();
       break;
     }
   }

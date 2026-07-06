@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,6 +34,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   selectBatchSellSourceTokens,
+  selectBatchSellSlippages,
   selectIsSubmittingTx,
   setIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
@@ -48,6 +49,7 @@ import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { useTrackBatchSellReviewModalSubmitted } from '../../hooks/useTrackBatchSellReviewModalSubmitted';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
@@ -290,9 +292,9 @@ function NetworkFeeRow({
 
 export function BatchSellFinalReviewModal() {
   const dispatch = useDispatch();
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
+  const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const batchSellQuoteData = useBatchSellQuoteData({
     shouldUpdateBatchSellTrades: false,
@@ -306,6 +308,13 @@ export function BatchSellFinalReviewModal() {
   const surfaceClass = useElevatedSurface();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(false);
+  const trackBatchSellReviewModalSubmitted =
+    useTrackBatchSellReviewModalSubmitted({
+      batchSellSlippages,
+      selectedTokens,
+      tokenData: batchSellQuoteData.tokenData,
+      usdQuotedGas: batchSellQuoteData.networkFee.usd,
+    });
   const finalReviewQuoteData = useMemo(
     () =>
       getFinalReviewQuoteData({
@@ -398,6 +407,7 @@ export function BatchSellFinalReviewModal() {
   const handleSellAll = useCallback(async () => {
     try {
       dispatch(setIsSubmittingTx(true));
+      trackBatchSellReviewModalSubmitted();
 
       await submitBatchSellTx({
         quoteResponses: batchSellQuoteData.recommendedQuotes,
@@ -415,6 +425,7 @@ export function BatchSellFinalReviewModal() {
     dispatch,
     navigation,
     submitBatchSellTx,
+    trackBatchSellReviewModalSubmitted,
   ]);
 
   return (

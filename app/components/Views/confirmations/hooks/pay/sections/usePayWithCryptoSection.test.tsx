@@ -96,6 +96,15 @@ describe('usePayWithCryptoSection', () => {
     useTransactionMetadataRequest,
   );
   const usePayWithNoFeeTokenMock = jest.mocked(usePayWithNoFeeToken);
+
+  const NO_FEE_TAG_SENTINEL = '__no-fee-tag__';
+  const LAST_USED_TAG_SENTINEL = '__last-used-tag__';
+
+  const hasTag = (
+    row: { tagRenderers?: (() => unknown)[] } | undefined,
+    sentinel: string,
+  ): boolean =>
+    row?.tagRenderers?.some((render) => render() === sentinel) ?? false;
   const usePayWithPreferredTokenMock = jest.mocked(usePayWithPreferredToken);
   const usePayWithSelectedTokenMock = jest.mocked(usePayWithSelectedToken);
   const useLastUsedPaymentMethodMock = jest.mocked(useLastUsedPaymentMethod);
@@ -114,16 +123,36 @@ describe('usePayWithCryptoSection', () => {
   const onPredictPaymentTokenChangeMock = jest.fn();
   const resetPredictPaymentTokenMock = jest.fn();
   const isLastUsedMock = jest.fn().mockReturnValue(false);
+  const isNoFeeTokenSharedMock = jest.fn().mockReturnValue(false);
+  const renderNoFeeTagForTokenSharedMock = jest.fn(
+    (address: string, chainId: string) =>
+      isNoFeeTokenSharedMock(address, chainId) ? NO_FEE_TAG_SENTINEL : null,
+  );
+  const renderLastUsedTagSharedMock = jest.fn(
+    (address: string, chainId: string) =>
+      isLastUsedMock(address, chainId) ? LAST_USED_TAG_SENTINEL : null,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     useSelectorMock.mockReturnValue(undefined);
 
+    isNoFeeTokenSharedMock.mockReturnValue(false);
+    renderNoFeeTagForTokenSharedMock.mockImplementation(
+      (address: string, chainId: string) =>
+        isNoFeeTokenSharedMock(address, chainId) ? NO_FEE_TAG_SENTINEL : null,
+    );
+    renderLastUsedTagSharedMock.mockImplementation(
+      (address: string, chainId: string) =>
+        isLastUsedMock(address, chainId) ? LAST_USED_TAG_SENTINEL : null,
+    );
+
     usePayWithNoFeeTokenMock.mockReturnValue({
       noFeeToken: undefined,
-      isNoFeeToken: jest.fn().mockReturnValue(false),
+      isNoFeeToken: isNoFeeTokenSharedMock,
       renderNoFeeTag: jest.fn().mockReturnValue(null),
+      renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
     });
 
     useNavigationMock.mockReturnValue({
@@ -153,6 +182,7 @@ describe('usePayWithCryptoSection', () => {
     useLastUsedPaymentMethodMock.mockReturnValue({
       lastUsedToken: undefined,
       isLastUsed: isLastUsedMock,
+      renderLastUsedTag: renderLastUsedTagSharedMock,
     });
     useIsPerpsBalanceSelectedMock.mockReturnValue(true);
     usePerpsPaymentTokenMock.mockReturnValue({
@@ -795,7 +825,7 @@ describe('usePayWithCryptoSection', () => {
     );
   });
 
-  it('marks the preferred row as last used when the last-used token matches it', () => {
+  it('renders the last-used tag on the preferred row when the last-used token matches it', () => {
     isLastUsedMock.mockImplementation(
       (address, chainId) =>
         address === TOKEN_MOCK.address && chainId === TOKEN_MOCK.chainId,
@@ -803,25 +833,23 @@ describe('usePayWithCryptoSection', () => {
 
     const { result } = renderHook(() => usePayWithCryptoSection());
 
-    expect(result.current?.rows[0]).toEqual(
-      expect.objectContaining({
-        id: 'crypto-preferred-token',
-        isLastUsed: true,
-      }),
+    const preferredRow = result.current?.rows.find(
+      (row) => row.id === 'crypto-preferred-token',
     );
+    expect(hasTag(preferredRow, LAST_USED_TAG_SENTINEL)).toBe(true);
   });
 
-  it('does not mark any row as last used when the last-used token does not match', () => {
+  it('does not render the last-used tag when no row matches the last-used token', () => {
     isLastUsedMock.mockReturnValue(false);
 
     const { result } = renderHook(() => usePayWithCryptoSection());
 
     for (const row of result.current?.rows ?? []) {
-      expect(row.isLastUsed ?? false).toBe(false);
+      expect(hasTag(row, LAST_USED_TAG_SENTINEL)).toBe(false);
     }
   });
 
-  it('marks the user-selected row as last used when the last-used token matches the selected token', () => {
+  it('renders the last-used tag on the user-selected row when the last-used token matches the selected token', () => {
     const distinctSelectedToken = {
       ...TOKEN_MOCK,
       address: SELECTED_TOKEN_MOCK.address,
@@ -853,11 +881,11 @@ describe('usePayWithCryptoSection', () => {
       (row) => row.id === 'crypto-selected-token',
     );
 
-    expect(preferredRow?.isLastUsed ?? false).toBe(false);
-    expect(selectedRow).toEqual(expect.objectContaining({ isLastUsed: true }));
+    expect(hasTag(preferredRow, LAST_USED_TAG_SENTINEL)).toBe(false);
+    expect(hasTag(selectedRow, LAST_USED_TAG_SENTINEL)).toBe(true);
   });
 
-  it('never marks the other-assets row as last used', () => {
+  it('never renders the last-used tag on the other-assets row', () => {
     isLastUsedMock.mockReturnValue(true);
 
     const { result } = renderHook(() => usePayWithCryptoSection());
@@ -866,7 +894,7 @@ describe('usePayWithCryptoSection', () => {
       (row) => row.id === 'crypto-other-assets',
     );
 
-    expect(otherAssetsRow?.isLastUsed ?? false).toBe(false);
+    expect(hasTag(otherAssetsRow, LAST_USED_TAG_SENTINEL)).toBe(false);
   });
 
   it('suppresses the preferred token row checkmark when a fiat payment method is selected', () => {
@@ -1046,6 +1074,15 @@ describe('usePayWithCryptoSection', () => {
   });
 
   describe('no-fee token row', () => {
+    beforeEach(() => {
+      // No-fee tokens only surface for Money Account flows. Default these tests
+      // to a Money Account deposit; cases that need a different flow override it.
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: {},
+      } as never);
+    });
+
     it('renders no-fee token row when noFeeToken is available', () => {
       const noFeeTokenMock = {
         address: '0xnoFee' as Hex,
@@ -1053,10 +1090,12 @@ describe('usePayWithCryptoSection', () => {
         symbol: 'USDT',
         balanceUsd: '10',
       };
+      isNoFeeTokenSharedMock.mockReturnValue(true);
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
-        isNoFeeToken: jest.fn().mockReturnValue(false),
+        isNoFeeToken: isNoFeeTokenSharedMock,
         renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1068,18 +1107,19 @@ describe('usePayWithCryptoSection', () => {
       expect(noFeeRow).toEqual(
         expect.objectContaining({
           id: 'crypto-no-fee-token',
-          isNoFee: true,
           title: 'USDT',
           testID: 'pay-with-crypto-section-no-fee-token-row',
         }),
       );
+      expect(hasTag(noFeeRow, NO_FEE_TAG_SENTINEL)).toBe(true);
     });
 
     it('does not render no-fee token row when noFeeToken is undefined', () => {
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: undefined,
-        isNoFeeToken: jest.fn().mockReturnValue(false),
+        isNoFeeToken: isNoFeeTokenSharedMock,
         renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1098,10 +1138,12 @@ describe('usePayWithCryptoSection', () => {
         symbol: 'USDT',
         balanceUsd: '10',
       };
+      isNoFeeTokenSharedMock.mockReturnValue(true);
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
-        isNoFeeToken: jest.fn().mockReturnValue(true),
+        isNoFeeToken: isNoFeeTokenSharedMock,
         renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
       });
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.perpsWithdraw,
@@ -1113,36 +1155,58 @@ describe('usePayWithCryptoSection', () => {
       expect(
         result.current?.rows.find((row) => row.id === 'crypto-no-fee-token'),
       ).toBeUndefined();
-      expect(
-        result.current?.rows.some(
-          (row) => row.id !== 'crypto-other-assets' && row.isNoFee,
-        ),
-      ).toBe(false);
+      for (const row of result.current?.rows ?? []) {
+        if (row.id === 'crypto-other-assets') continue;
+        expect(hasTag(row, NO_FEE_TAG_SENTINEL)).toBe(false);
+      }
     });
 
-    it('sets isNoFee on preferred token when it is a no-fee token', () => {
-      const isNoFeeTokenMock = jest
-        .fn()
-        .mockImplementation(
-          (address, chainId) =>
-            address === TOKEN_MOCK.address && chainId === TOKEN_MOCK.chainId,
-        );
+    it('shows no-fee tags on token rows but keeps the suggestion row suppressed for Money withdrawals', () => {
+      isNoFeeTokenSharedMock.mockImplementation(
+        (address: string, chainId: string) =>
+          address === TOKEN_MOCK.address && chainId === TOKEN_MOCK.chainId,
+      );
       usePayWithNoFeeTokenMock.mockReturnValue({
-        noFeeToken: undefined,
-        isNoFeeToken: isNoFeeTokenMock,
+        noFeeToken: {
+          address: '0xnoFee' as Hex,
+          chainId: '0x1' as Hex,
+          symbol: 'USDT',
+          balanceUsd: '10',
+        },
+        isNoFeeToken: isNoFeeTokenSharedMock,
         renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
       });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountWithdraw,
+        txParams: {},
+      } as never);
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      // Dedicated "pay-with" no-fee suggestion row stays suppressed on withdraw.
+      expect(
+        result.current?.rows.find((row) => row.id === 'crypto-no-fee-token'),
+      ).toBeUndefined();
+      // The destination token row still shows its no-fee tag.
+      const preferredRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-preferred-token',
+      );
+      expect(hasTag(preferredRow, NO_FEE_TAG_SENTINEL)).toBe(true);
+    });
+
+    it('renders the no-fee tag on the preferred row when it is a no-fee token', () => {
+      isNoFeeTokenSharedMock.mockImplementation(
+        (address: string, chainId: string) =>
+          address === TOKEN_MOCK.address && chainId === TOKEN_MOCK.chainId,
+      );
 
       const { result } = renderHook(() => usePayWithCryptoSection());
 
       const preferredRow = result.current?.rows.find(
         (row) => row.id === 'crypto-preferred-token',
       );
-      expect(preferredRow).toEqual(
-        expect.objectContaining({
-          isNoFee: true,
-        }),
-      );
+      expect(hasTag(preferredRow, NO_FEE_TAG_SENTINEL)).toBe(true);
     });
 
     it('sorts token rows by balance descending', () => {
@@ -1154,8 +1218,9 @@ describe('usePayWithCryptoSection', () => {
       };
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
-        isNoFeeToken: jest.fn().mockReturnValue(false),
+        isNoFeeToken: isNoFeeTokenSharedMock,
         renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
       });
       usePayWithPreferredTokenMock.mockReturnValue({
         hasTokens: true,
@@ -1186,8 +1251,9 @@ describe('usePayWithCryptoSection', () => {
       };
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
-        isNoFeeToken: jest.fn().mockReturnValue(false),
+        isNoFeeToken: isNoFeeTokenSharedMock,
         renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
       });
 
       const { result } = renderHook(() => usePayWithCryptoSection());
@@ -1216,8 +1282,9 @@ describe('usePayWithCryptoSection', () => {
       };
       usePayWithNoFeeTokenMock.mockReturnValue({
         noFeeToken: noFeeTokenMock,
-        isNoFeeToken: jest.fn().mockReturnValue(false),
+        isNoFeeToken: isNoFeeTokenSharedMock,
         renderNoFeeTag: jest.fn().mockReturnValue(null),
+        renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
       });
       usePayWithSelectedTokenMock.mockReturnValue({
         isSelectedDistinctFromAutomatic: true,
@@ -1233,19 +1300,12 @@ describe('usePayWithCryptoSection', () => {
       expect(noFeeRow).toBeUndefined();
     });
 
-    it('sets isNoFee on selected token row when it is a no-fee token', () => {
-      const isNoFeeTokenMock = jest
-        .fn()
-        .mockImplementation(
-          (address, chainId) =>
-            address === SELECTED_TOKEN_MOCK.address &&
-            chainId === SELECTED_TOKEN_MOCK.chainId,
-        );
-      usePayWithNoFeeTokenMock.mockReturnValue({
-        noFeeToken: undefined,
-        isNoFeeToken: isNoFeeTokenMock,
-        renderNoFeeTag: jest.fn().mockReturnValue(null),
-      });
+    it('renders the no-fee tag on the selected row when it is a no-fee token', () => {
+      isNoFeeTokenSharedMock.mockImplementation(
+        (address: string, chainId: string) =>
+          address === SELECTED_TOKEN_MOCK.address &&
+          chainId === SELECTED_TOKEN_MOCK.chainId,
+      );
       const distinctSelectedToken = {
         ...TOKEN_MOCK,
         address: SELECTED_TOKEN_MOCK.address,
@@ -1268,11 +1328,42 @@ describe('usePayWithCryptoSection', () => {
       const selectedRow = result.current?.rows.find(
         (row) => row.id === 'crypto-selected-token',
       );
-      expect(selectedRow).toEqual(
-        expect.objectContaining({
-          isNoFee: true,
-        }),
-      );
+      expect(hasTag(selectedRow, NO_FEE_TAG_SENTINEL)).toBe(true);
     });
+
+    it.each([
+      ['perps deposit', TransactionType.perpsDeposit],
+      ['predict deposit', TransactionType.predictDeposit],
+    ])(
+      'does not render no-fee row or tags for %s',
+      (_label, transactionType) => {
+        isNoFeeTokenSharedMock.mockReturnValue(true);
+        usePayWithNoFeeTokenMock.mockReturnValue({
+          noFeeToken: {
+            address: '0xnoFee' as Hex,
+            chainId: '0x1' as Hex,
+            symbol: 'USDT',
+            balanceUsd: '10',
+          },
+          isNoFeeToken: isNoFeeTokenSharedMock,
+          renderNoFeeTag: jest.fn().mockReturnValue(null),
+          renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
+        });
+        useTransactionMetadataRequestMock.mockReturnValue({
+          type: transactionType,
+          txParams: {},
+        } as never);
+
+        const { result } = renderHook(() => usePayWithCryptoSection());
+
+        expect(
+          result.current?.rows.find((row) => row.id === 'crypto-no-fee-token'),
+        ).toBeUndefined();
+        for (const row of result.current?.rows ?? []) {
+          if (row.id === 'crypto-other-assets') continue;
+          expect(hasTag(row, NO_FEE_TAG_SENTINEL)).toBe(false);
+        }
+      },
+    );
   });
 });

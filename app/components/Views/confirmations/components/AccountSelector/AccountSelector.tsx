@@ -162,9 +162,11 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       return label;
     }
 
-    const walletName = filteredAccountSections.find((section) =>
-      section.data.some((group) => group.id === selectedAccountGroup.id),
-    )?.title;
+    const walletName = filteredAccountSections
+      .find((section) =>
+        section.data.some((group) => group.id === selectedAccountGroup.id),
+      )
+      ?.title?.replace(/ accounts$/iu, '');
 
     return walletName ? `${label} ${walletName}` : label;
   }, [filteredAccountSections, selectedAccountGroup, label]);

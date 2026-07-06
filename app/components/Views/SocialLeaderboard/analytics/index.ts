@@ -6,7 +6,6 @@ export {
 export type {
   FollowTradingTokenSource,
   LeaderboardScreenViewedSource,
-  QuickBuySheetSource,
   SocialLeaderboardSource,
   TraderFollowInteractionSource,
   TraderProfileScreenViewedSource,

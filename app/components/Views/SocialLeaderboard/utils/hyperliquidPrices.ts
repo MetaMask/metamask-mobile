@@ -24,6 +24,56 @@ const INTERVAL_MS: Record<HyperliquidCandleInterval, number> = {
   '1d': 24 * 60 * 60_000,
 };
 
+/**
+ * Hard cap on candles per `candleSnapshot` request. Hyperliquid returns at most
+ * ~5000 candles regardless of the requested window, keeping the *most recent*
+ * ones when the window would exceed it (verified against the live endpoint). We
+ * never request more than this so the returned window is the one we asked for.
+ */
+export const MAX_HYPERLIQUID_CANDLES = 5000;
+
+/**
+ * Resolves how many candles to request for a chart period.
+ *
+ * Starts from `baseLimit` (the period's default window) and, when the position
+ * has an earlier trade than that window reaches, grows the count to span back to
+ * the earliest trade (plus 10% padding so the trade isn't flush against the left
+ * edge). The result is clamped to {@link MAX_HYPERLIQUID_CANDLES}: at the coarse
+ * intervals (`4h`/`1d`) that ceiling covers years, so closed positions are framed;
+ * at fine intervals it bounds the window to the most recent ~5000 candles.
+ *
+ * @param params.interval - Candle interval for the period (granularity).
+ * @param params.baseLimit - Default candle count for the period's window.
+ * @param params.earliestTradeMs - Earliest trade time (ms), or undefined when the position has no trades (then `baseLimit` is used as-is).
+ * @param params.nowMs - Current epoch ms (the snapshot's `endTime`).
+ * @returns Candle count to request, in `[1, MAX_HYPERLIQUID_CANDLES]`.
+ */
+export function resolveHyperliquidCandleLimit({
+  interval,
+  baseLimit,
+  earliestTradeMs,
+  nowMs,
+}: {
+  interval: HyperliquidCandleInterval;
+  baseLimit: number;
+  earliestTradeMs?: number;
+  nowMs: number;
+}): number {
+  let limit = baseLimit;
+  if (earliestTradeMs != null && Number.isFinite(earliestTradeMs)) {
+    const span = nowMs - earliestTradeMs;
+    if (span > 0) {
+      const candlesToCoverTrades = Math.ceil(span / INTERVAL_MS[interval]);
+      // +10% padding (integer-safe) so the earliest trade isn't flush against
+      // the chart's left edge.
+      const padded =
+        candlesToCoverTrades + Math.ceil(candlesToCoverTrades / 10);
+      limit = Math.max(baseLimit, padded);
+    }
+  }
+  return Math.min(limit, MAX_HYPERLIQUID_CANDLES);
+}
+
 /** Single entry from the candleSnapshot response (only the fields we consume). */
 interface HyperliquidCandle {
   /** Open time, ms since epoch. */
@@ -66,7 +116,10 @@ export async function fetchHyperliquidHistoricalPrices({
     return [];
   }
 
-  const startTime = nowMs - limit * INTERVAL_MS[interval];
+  // Never ask for more than the endpoint will return; otherwise the window we
+  // compute wouldn't match the (truncated) data we get back.
+  const cappedLimit = Math.min(limit, MAX_HYPERLIQUID_CANDLES);
+  const startTime = nowMs - cappedLimit * INTERVAL_MS[interval];
 
   try {
     const response = await fetch(HYPERLIQUID_INFO_URL, {

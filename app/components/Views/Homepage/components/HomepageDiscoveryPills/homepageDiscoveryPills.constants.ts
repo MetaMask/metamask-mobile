@@ -31,8 +31,8 @@ export const HOMEPAGE_DISCOVERY_PILL_GRAY_ICONS: Record<
 > = {
   perpetuals: IconName.Candlestick,
   predictions: IconName.Predictions,
-  stocks: IconName.Chart,
-  crypto: IconName.Coin,
+  stocks: IconName.Coin,
+  crypto: IconName.Ethereum,
 } as const;
 
 export const HOMEPAGE_DISCOVERY_PILL_COLOR_ICON_SOURCES = {

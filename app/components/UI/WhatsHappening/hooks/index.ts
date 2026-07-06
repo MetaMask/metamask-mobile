@@ -6,3 +6,5 @@ export type {
   UseWhatsHappeningResult,
   UseWhatsHappeningOptions,
 } from './useWhatsHappening';
+export { useTradablePerpsMarketSymbols } from './useTradablePerpsMarketSymbols';
+export type { UseTradablePerpsMarketSymbolsResult } from './useTradablePerpsMarketSymbols';

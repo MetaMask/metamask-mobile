@@ -24,6 +24,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { MoneyAccountDepositIntent } from './useMoneyAccount';
 
 export type MoneyToastOptions = Omit<
   Extract<ToastOptions, { variant: ToastVariants.Icon }>,
@@ -36,7 +37,42 @@ export type MoneyToastOptions = Omit<
   }[];
 };
 
-export type DepositIntent = 'convert' | 'addMusd';
+export type DepositIntent = MoneyAccountDepositIntent;
+
+interface DepositToastKeys {
+  inProgressTitle: string;
+  inProgressBody: string;
+  successTitle: string;
+  failedTitle: string;
+  failedBody: string;
+}
+
+const DEPOSIT_TOAST_KEYS: Record<DepositIntent, DepositToastKeys> = {
+  convert: {
+    inProgressTitle: 'money.toasts.deposit_in_progress_title_convert',
+    inProgressBody: 'money.toasts.in_progress_body',
+    successTitle: 'money.toasts.deposit_success_title_convert',
+    failedTitle: 'money.toasts.deposit_failed_title_convert',
+    failedBody: 'money.toasts.deposit_failed_body_convert',
+  },
+  addMusd: {
+    inProgressTitle: 'money.toasts.deposit_in_progress_title_add_musd',
+    inProgressBody: 'money.toasts.in_progress_body',
+    successTitle: 'money.toasts.deposit_success_title_add_musd',
+    failedTitle: 'money.toasts.deposit_failed_title_add_musd',
+    failedBody: 'money.toasts.deposit_failed_body_add_musd',
+  },
+  card: {
+    inProgressTitle: 'money.toasts.deposit_in_progress_title_card',
+    inProgressBody: 'money.toasts.deposit_in_progress_body_card',
+    successTitle: 'money.toasts.deposit_success_title_card',
+    failedTitle: 'money.toasts.deposit_failed_title_card',
+    failedBody: 'money.toasts.deposit_failed_body_add_musd',
+  },
+};
+
+const getDepositToastKeys = (intent?: DepositIntent): DepositToastKeys =>
+  DEPOSIT_TOAST_KEYS[intent ?? 'convert'];
 
 export interface DepositInProgressParams {
   intent?: DepositIntent;
@@ -206,34 +242,29 @@ const useMoneyToasts = (): {
 
     return {
       deposit: {
-        inProgress: (params?: DepositInProgressParams) => ({
-          ...moneyBaseToastOptions.inProgress,
-          labelOptions: getMoneyToastLabels({
-            primary: strings(
-              params?.intent === 'addMusd'
-                ? 'money.toasts.deposit_in_progress_title_add_musd'
-                : 'money.toasts.deposit_in_progress_title_convert',
-            ),
-            primaryIsBold: true,
-            secondary: (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('money.toasts.in_progress_body')}
-              </Text>
-            ),
-          }),
-          closeButtonOptions,
-        }),
+        inProgress: (params?: DepositInProgressParams) => {
+          const keys = getDepositToastKeys(params?.intent);
+          return {
+            ...moneyBaseToastOptions.inProgress,
+            labelOptions: getMoneyToastLabels({
+              primary: strings(keys.inProgressTitle),
+              primaryIsBold: true,
+              secondary: (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings(keys.inProgressBody)}
+                </Text>
+              ),
+            }),
+            closeButtonOptions,
+          };
+        },
         success: ({ amountFiat, intent }: DepositSuccessParams) => ({
           ...moneyBaseToastOptions.success,
           labelOptions: getMoneyToastLabels({
-            primary: strings(
-              intent === 'addMusd'
-                ? 'money.toasts.deposit_success_title_add_musd'
-                : 'money.toasts.deposit_success_title_convert',
-            ),
+            primary: strings(getDepositToastKeys(intent).successTitle),
             primaryIsBold: true,
             secondary: (
               <Text
@@ -250,30 +281,25 @@ const useMoneyToasts = (): {
           }),
           closeButtonOptions,
         }),
-        failed: (params?: DepositFailedParams) => ({
-          ...moneyBaseToastOptions.error,
-          labelOptions: getMoneyToastLabels({
-            primary: strings(
-              params?.intent === 'addMusd'
-                ? 'money.toasts.deposit_failed_title_add_musd'
-                : 'money.toasts.deposit_failed_title_convert',
-            ),
-            primaryIsBold: true,
-            secondary: (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings(
-                  params?.intent === 'addMusd'
-                    ? 'money.toasts.deposit_failed_body_add_musd'
-                    : 'money.toasts.deposit_failed_body_convert',
-                )}
-              </Text>
-            ),
-          }),
-          closeButtonOptions,
-        }),
+        failed: (params?: DepositFailedParams) => {
+          const keys = getDepositToastKeys(params?.intent);
+          return {
+            ...moneyBaseToastOptions.error,
+            labelOptions: getMoneyToastLabels({
+              primary: strings(keys.failedTitle),
+              primaryIsBold: true,
+              secondary: (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings(keys.failedBody)}
+                </Text>
+              ),
+            }),
+            closeButtonOptions,
+          };
+        },
       },
       withdraw: {
         inProgress: () => ({

@@ -25,6 +25,7 @@ jest.mock('../../../../../core/Engine', () => ({
 // Mock the stream provider
 const mockPositionsSubscribe = jest.fn();
 const mockPricesSubscribe = jest.fn();
+const mockPricesSubscribeToSymbols = jest.fn();
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
@@ -34,6 +35,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     },
     prices: {
       subscribe: mockPricesSubscribe,
+      subscribeToSymbols: mockPricesSubscribeToSymbols,
     },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -93,30 +95,55 @@ describe('usePerpsLivePositions', () => {
     });
 
     it('does NOT subscribe to prices by default (useLivePnl: false)', () => {
-      // Arrange
+      // Arrange - even with positions present, no price subscription by default
+      mockChannelPositionsSnapshot = [{ ...mockPosition, symbol: 'BTC-PERP' }];
       mockPositionsSubscribe.mockReturnValue(jest.fn());
       mockPricesSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribeToSymbols.mockReturnValue(jest.fn());
 
       // Act
       renderHook(() => usePerpsLivePositions());
 
-      // Assert - prices should NOT be subscribed
+      // Assert - prices should NOT be subscribed via either API
+      expect(mockPricesSubscribe).not.toHaveBeenCalled();
+      expect(mockPricesSubscribeToSymbols).not.toHaveBeenCalled();
+    });
+
+    it('subscribes to prices (scoped to position symbols) only when useLivePnl: true', () => {
+      // Arrange - seed positions so symbols can be derived for the scoped subscription
+      mockChannelPositionsSnapshot = [
+        { ...mockPosition, symbol: 'BTC-PERP' },
+        { ...mockPosition, symbol: 'ETH-PERP' },
+      ];
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribeToSymbols.mockReturnValue(jest.fn());
+
+      // Act
+      renderHook(() => usePerpsLivePositions({ useLivePnl: true }));
+
+      // Assert - subscribes via the symbol-scoped API, NOT the full price channel
+      expect(mockPricesSubscribeToSymbols).toHaveBeenCalledWith({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        callback: expect.any(Function),
+        throttleMs: 0,
+      });
       expect(mockPricesSubscribe).not.toHaveBeenCalled();
     });
 
-    it('subscribes to prices only when useLivePnl: true', () => {
-      // Arrange
+    it('does NOT subscribe to prices when useLivePnl: true but there are no positions', () => {
+      // Arrange - no positions means there is nothing to price-scope to
+      mockChannelPositionsSnapshot = undefined;
       mockPositionsSubscribe.mockReturnValue(jest.fn());
       mockPricesSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribeToSymbols.mockReturnValue(jest.fn());
 
       // Act
       renderHook(() => usePerpsLivePositions({ useLivePnl: true }));
 
       // Assert
-      expect(mockPricesSubscribe).toHaveBeenCalledWith({
-        callback: expect.any(Function),
-        throttleMs: 0,
-      });
+      expect(mockPricesSubscribeToSymbols).not.toHaveBeenCalled();
+      expect(mockPricesSubscribe).not.toHaveBeenCalled();
     });
 
     it('unsubscribes from positions on unmount', () => {
@@ -133,11 +160,12 @@ describe('usePerpsLivePositions', () => {
     });
 
     it('unsubscribes from positions and prices on unmount when useLivePnl: true', () => {
-      // Arrange
+      // Arrange - seed positions so the scoped price subscription is created
+      mockChannelPositionsSnapshot = [{ ...mockPosition, symbol: 'BTC-PERP' }];
       const mockPositionsUnsubscribe = jest.fn();
       const mockPricesUnsubscribe = jest.fn();
       mockPositionsSubscribe.mockReturnValue(mockPositionsUnsubscribe);
-      mockPricesSubscribe.mockReturnValue(mockPricesUnsubscribe);
+      mockPricesSubscribeToSymbols.mockReturnValue(mockPricesUnsubscribe);
 
       // Act
       const { unmount } = renderHook(() =>
@@ -405,7 +433,7 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      mockPricesSubscribe.mockImplementation((params) => {
+      mockPricesSubscribeToSymbols.mockImplementation((params) => {
         pricesCallback = params.callback;
         return jest.fn();
       });
@@ -431,6 +459,7 @@ describe('usePerpsLivePositions', () => {
           price: '52000',
           markPrice: '52000',
           timestamp: Date.now(),
+          isTradable: true,
         },
       };
 
@@ -455,7 +484,7 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      mockPricesSubscribe.mockImplementation((params) => {
+      mockPricesSubscribeToSymbols.mockImplementation((params) => {
         pricesCallback = params.callback;
         return jest.fn();
       });
@@ -481,6 +510,7 @@ describe('usePerpsLivePositions', () => {
           price: '51000',
           markPrice: '51500',
           timestamp: Date.now(),
+          isTradable: true,
         },
       };
 
@@ -504,7 +534,7 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      mockPricesSubscribe.mockImplementation((params) => {
+      mockPricesSubscribeToSymbols.mockImplementation((params) => {
         pricesCallback = params.callback;
         return jest.fn();
       });
@@ -529,6 +559,7 @@ describe('usePerpsLivePositions', () => {
           symbol: 'BTC-PERP',
           price: '51000',
           timestamp: Date.now(),
+          isTradable: true,
         },
       };
 
@@ -552,7 +583,7 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      mockPricesSubscribe.mockImplementation((params) => {
+      mockPricesSubscribeToSymbols.mockImplementation((params) => {
         pricesCallback = params.callback;
         return jest.fn();
       });
@@ -578,6 +609,7 @@ describe('usePerpsLivePositions', () => {
           price: '48000',
           markPrice: '48000',
           timestamp: Date.now(),
+          isTradable: true,
         },
       };
 
@@ -602,7 +634,7 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      mockPricesSubscribe.mockImplementation((params) => {
+      mockPricesSubscribeToSymbols.mockImplementation((params) => {
         pricesCallback = params.callback;
         return jest.fn();
       });
@@ -627,6 +659,7 @@ describe('usePerpsLivePositions', () => {
           symbol: 'ETH-PERP',
           price: '3000',
           timestamp: Date.now(),
+          isTradable: true,
         },
       };
 
@@ -651,7 +684,7 @@ describe('usePerpsLivePositions', () => {
         return jest.fn();
       });
 
-      mockPricesSubscribe.mockImplementation((params) => {
+      mockPricesSubscribeToSymbols.mockImplementation((params) => {
         pricesCallback = params.callback;
         return jest.fn();
       });
@@ -678,6 +711,177 @@ describe('usePerpsLivePositions', () => {
         const updatedPosition = result.current.positions[0];
         expect(updatedPosition.unrealizedPnl).toBe('1000');
         expect(updatedPosition.returnOnEquity).toBe('0.2');
+      });
+    });
+
+    it('resets stale prices when an empty {} payload is received (cache-clear / reconnect)', async () => {
+      // Arrange: PriceStreamChannel.clearCache() notifies subscribers with {}
+      // on reconnect, provider change, or account switch. Without a reset, the
+      // previous mark prices linger and enrichPositionsWithLivePnL produces
+      // stale PnL values until every subscribed symbol receives a fresh tick.
+      let positionsCallback: (positions: Position[]) => void = jest.fn();
+      let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
+        jest.fn();
+
+      mockPositionsSubscribe.mockImplementation((params) => {
+        positionsCallback = params.callback;
+        return jest.fn();
+      });
+      mockPricesSubscribeToSymbols.mockImplementation((params) => {
+        pricesCallback = params.callback;
+        return jest.fn();
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
+
+      const position: Position = {
+        ...mockPosition,
+        symbol: 'BTC-PERP',
+        entryPrice: '50000',
+        size: '1.0',
+        marginUsed: '5000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '0.2',
+      };
+
+      // Step 1: receive positions and an initial price tick
+      act(() => {
+        positionsCallback([position]);
+      });
+
+      act(() => {
+        pricesCallback({
+          'BTC-PERP': {
+            symbol: 'BTC-PERP',
+            price: '51000',
+            markPrice: '51000',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+
+      await waitFor(() => {
+        // Live PnL calculated: (51000 - 50000) * 1 = 1000... wait, entry is 50000
+        // (51000 - 50000) * 1.0 = 1000, original was also 1000, so check returnOnEquity
+        expect(result.current.positions[0].unrealizedPnl).toBe('1000');
+      });
+
+      // Step 2: cache-clear fires — channel emits {} to signal stale data
+      act(() => {
+        pricesCallback({});
+      });
+
+      // Step 3: after the reset, enrichPositionsWithLivePnL receives empty priceData
+      // and falls back to the original position PnL from the WS positions feed.
+      await waitFor(() => {
+        const pos = result.current.positions[0];
+        // Original unrealizedPnl from the position WS (not the old mark-price calc)
+        expect(pos.unrealizedPnl).toBe('1000');
+        expect(pos.returnOnEquity).toBe('0.2');
+      });
+
+      // Step 4: a fresh tick arrives after reconnect — enrichment resumes correctly
+      act(() => {
+        pricesCallback({
+          'BTC-PERP': {
+            symbol: 'BTC-PERP',
+            price: '52000',
+            markPrice: '52000',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+
+      await waitFor(() => {
+        // (52000 - 50000) * 1 = 2000
+        expect(result.current.positions[0].unrealizedPnl).toBe('2000');
+      });
+    });
+
+    it('merges partial price ticks so a tick for one symbol does not wipe another (multi-position portfolio)', async () => {
+      // Arrange
+      let positionsCallback: (positions: Position[]) => void = jest.fn();
+      let pricesCallback: (prices: Record<string, PriceUpdate>) => void =
+        jest.fn();
+
+      mockPositionsSubscribe.mockImplementation((params) => {
+        positionsCallback = params.callback;
+        return jest.fn();
+      });
+      mockPricesSubscribeToSymbols.mockImplementation((params) => {
+        pricesCallback = params.callback;
+        return jest.fn();
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsLivePositions({ useLivePnl: true }),
+      );
+
+      const btc: Position = {
+        ...mockPosition,
+        symbol: 'BTC-PERP',
+        entryPrice: '50000',
+        size: '1.0',
+        marginUsed: '5000',
+      };
+      const eth: Position = {
+        ...mockPosition,
+        symbol: 'ETH-PERP',
+        entryPrice: '2000',
+        size: '10.0',
+        marginUsed: '2000',
+      };
+
+      act(() => {
+        positionsCallback([btc, eth]);
+      });
+
+      // First tick: full batch with prices for BOTH symbols
+      act(() => {
+        pricesCallback({
+          'BTC-PERP': {
+            symbol: 'BTC-PERP',
+            price: '52000',
+            markPrice: '52000',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+          'ETH-PERP': {
+            symbol: 'ETH-PERP',
+            price: '2200',
+            markPrice: '2200',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.positions[0].unrealizedPnl).toBe('2000'); // BTC: (52000-50000)*1
+        expect(result.current.positions[1].unrealizedPnl).toBe('2000'); // ETH: (2200-2000)*10
+      });
+
+      // Second tick: PARTIAL batch with only BTC updated
+      act(() => {
+        pricesCallback({
+          'BTC-PERP': {
+            symbol: 'BTC-PERP',
+            price: '53000',
+            markPrice: '53000',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+
+      // Assert - BTC reflects new price, ETH retains its merged price (NOT wiped)
+      await waitFor(() => {
+        expect(result.current.positions[0].unrealizedPnl).toBe('3000'); // BTC: (53000-50000)*1
+        expect(result.current.positions[1].unrealizedPnl).toBe('2000'); // ETH: unchanged, still (2200-2000)*10
       });
     });
   });
@@ -797,6 +1001,7 @@ describe('usePerpsLivePositions', () => {
         price: '52000',
         markPrice: '52000',
         timestamp: Date.now(),
+        isTradable: true,
       },
     };
 
@@ -847,6 +1052,7 @@ describe('usePerpsLivePositions', () => {
           symbol: 'BTC-PERP',
           price: '0',
           timestamp: Date.now(),
+          isTradable: true,
         },
       };
 

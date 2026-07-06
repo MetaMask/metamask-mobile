@@ -3,7 +3,7 @@ import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type {
   AuthenticatedUserStorageServiceGetNotificationPreferencesAction,
-  NotificationPreferences,
+  NotificationPreferences as NotificationPreferencesType,
 } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -22,6 +22,9 @@ type NotificationPreferencesResult = Awaited<
 type NotificationPreferencesQueryData =
   | NotificationPreferencesResult
   | undefined;
+// make agenticCli required
+type NotificationPreferences = Omit<NotificationPreferencesType, 'agenticCli'> &
+  Required<Pick<NotificationPreferencesType, 'agenticCli'>>;
 export type NotificationPreferenceSection = keyof NotificationPreferences;
 export type NotificationPreferenceChannelKey =
   | 'pushNotificationsEnabled'

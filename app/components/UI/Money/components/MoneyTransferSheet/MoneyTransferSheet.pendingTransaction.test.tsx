@@ -155,6 +155,12 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit',
   () => ({ useMoneyPredictDeposit: jest.fn() }),
 );
+jest.mock('../../../Perps/selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(() => true),
+}));
+jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
+  usePredictEligibility: jest.fn(() => ({ isEligible: true })),
+}));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));

@@ -773,7 +773,8 @@ describe('useMoneyTransactionStatus', () => {
         metamaskPay: {
           tokenAddress: MUSD_ADDRESS,
           chainId: CHAIN_IDS.MONAD,
-          totalFiat: '100',
+          targetFiat: '100',
+          totalFiat: '106',
         },
         ...overrides,
       } as unknown as Partial<TransactionMeta>);
@@ -796,7 +797,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawInProgressFn).not.toHaveBeenCalled();
     });
 
-    it('confirmed → send success toast with fiat amount and "Perps" destination', () => {
+    it('confirmed → send success toast uses targetFiat (amount received), not totalFiat (amount + fee), with "Perps" destination', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -808,6 +809,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(sendSuccessFn).toHaveBeenCalledTimes(1);
       const params = sendSuccessFn.mock.calls[0][0];
       expect(params.amountFiat).toContain('100');
+      expect(params.amountFiat).not.toContain('106');
       expect(params.destination).toBe('Perps');
       expect(depositSuccessFn).not.toHaveBeenCalled();
       expect(withdrawSuccessFn).not.toHaveBeenCalled();
@@ -835,7 +837,25 @@ describe('useMoneyTransactionStatus', () => {
           metamaskPay: {
             tokenAddress: MUSD_ADDRESS,
             chainId: CHAIN_IDS.MONAD,
-            totalFiat: '0',
+            targetFiat: '0',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(sendSuccessFn).toHaveBeenCalledTimes(1);
+      expect(sendSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
+    });
+
+    it('confirmed with missing targetFiat → success without amount, never falls back to totalFiat', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildSendTxMeta(TransactionType.perpsDeposit, {
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            totalFiat: '106',
           },
         } as unknown as Partial<TransactionMeta>),
       );
@@ -881,6 +901,108 @@ describe('useMoneyTransactionStatus', () => {
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
       expect(sendInProgressFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('perps/predict receive (money withdraw) lifecycle', () => {
+    const buildReceiveTxMeta = (
+      type: TransactionType,
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta =>
+      buildTxMeta({
+        id: 'receive-tx-1',
+        type,
+        metamaskPay: {
+          tokenAddress: MUSD_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+          isPostQuote: true,
+          targetFiat: '50',
+        },
+        ...overrides,
+      } as unknown as Partial<TransactionMeta>);
+
+    it('confirmed → deposit success toast with fiat amount and addMusd intent', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildReceiveTxMeta(TransactionType.perpsWithdraw, {
+          status: TransactionStatus.confirmed,
+        }),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledTimes(1);
+      const params = depositSuccessFn.mock.calls[0][0];
+      expect(params.intent).toBe('addMusd');
+      expect(params.amountFiat).toContain('50');
+      expect(withdrawSuccessFn).not.toHaveBeenCalled();
+      expect(sendSuccessFn).not.toHaveBeenCalled();
+    });
+
+    it('confirmed with invalid targetFiat → success without amount', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildReceiveTxMeta(TransactionType.perpsWithdraw, {
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            isPostQuote: true,
+            targetFiat: 'not-a-number',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledTimes(1);
+      expect(depositSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
+      expect(depositSuccessFn.mock.calls[0][0].intent).toBe('addMusd');
+    });
+
+    it('does not fire in-progress or failed money toasts for a receive (those stay native)', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildReceiveTxMeta(TransactionType.perpsWithdraw, {
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      statusUpdatedHandler({
+        transactionMeta: buildReceiveTxMeta(TransactionType.perpsWithdraw, {
+          id: 'receive-tx-failed',
+          status: TransactionStatus.failed,
+        }),
+      });
+
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(sendInProgressFn).not.toHaveBeenCalled();
+      expect(withdrawFailedFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(sendFailedFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('ignores a perps withdraw not landing as mUSD on the Money chain', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          id: 'receive-tx-other',
+          type: TransactionType.perpsWithdraw,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: '0x1',
+            isPostQuote: true,
+            targetFiat: '50',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(depositSuccessFn).not.toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalled();
     });
   });

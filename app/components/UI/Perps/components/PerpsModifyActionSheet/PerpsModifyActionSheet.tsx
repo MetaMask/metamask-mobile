@@ -9,11 +9,13 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Icon, {
-  IconSize,
+import {
+  Box,
+  Icon,
+  IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import { Box } from '@metamask/design-system-react-native';
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsModifyActionSheet.styles';
 import type { ModifyAction } from './PerpsModifyActionSheet.types';
@@ -127,7 +129,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
               <Icon
                 name={option.iconName}
                 size={IconSize.Md}
-                color={styles.iconColor.color}
+                color={IconColor.IconDefault}
               />
             </View>
             <View style={styles.actionTextContainer}>

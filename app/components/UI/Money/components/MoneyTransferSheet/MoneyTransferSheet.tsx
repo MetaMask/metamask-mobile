@@ -24,6 +24,8 @@ import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
+import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
+import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import Logger from '../../../../../util/Logger';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
@@ -51,6 +53,8 @@ const MoneyTransferSheet = () => {
     useMoneyPerpsDeposit();
   const { isEnabled: isPredictEnabled, initiatePredictDeposit } =
     useMoneyPredictDeposit();
+  const isPerpsEligible = useSelector(selectPerpsEligibility);
+  const { isEligible: isPredictEligible } = usePredictEligibility();
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
@@ -163,20 +167,28 @@ const MoneyTransferSheet = () => {
       onPress: handleBetweenAccounts,
       testID: MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
     },
-    {
-      label: strings('money.transfer_sheet.perps_account'),
-      icon: IconName.Candlestick,
-      onPress: handlePerpsAccount,
-      testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
-      disabled: !isPerpsEnabled,
-    },
-    {
-      label: strings('money.transfer_sheet.predictions_account'),
-      icon: IconName.Speedometer,
-      onPress: handlePredictionsAccount,
-      testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
-      disabled: !isPredictEnabled,
-    },
+    ...(isPerpsEligible
+      ? [
+          {
+            label: strings('money.transfer_sheet.perps_account'),
+            icon: IconName.Candlestick,
+            onPress: handlePerpsAccount,
+            testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
+            disabled: !isPerpsEnabled,
+          },
+        ]
+      : []),
+    ...(isPredictEligible
+      ? [
+          {
+            label: strings('money.transfer_sheet.predictions_account'),
+            icon: IconName.Speedometer,
+            onPress: handlePredictionsAccount,
+            testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
+            disabled: !isPredictEnabled,
+          },
+        ]
+      : []),
     {
       label: strings('money.transfer_sheet.send_external'),
       icon: IconName.Arrow2Up,

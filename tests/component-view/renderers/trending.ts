@@ -7,7 +7,6 @@ import { renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ExploreFeed } from '../../../app/components/Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../../app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import AssetDetails from '../../../app/components/Views/AssetDetails';
 import TrendingTokensFullView from '../../../app/components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../../app/components/UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { initialStateTrending } from '../presets/trending';
@@ -58,10 +57,6 @@ export function renderTrendingViewWithRoutes(
         Component: withQueryClient(
           ExploreSearchScreen as unknown as React.ComponentType<unknown>,
         ),
-      },
-      {
-        name: 'Asset',
-        Component: AssetDetails as unknown as React.ComponentType<unknown>,
       },
       {
         name: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,

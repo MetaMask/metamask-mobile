@@ -8,6 +8,31 @@ import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 // The port is then translated to the actual allocated port
 export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
 
+/**
+ * Optional cap for E2E wait/poll timeouts (ms). Set `E2E_WAIT_TIMEOUT_MS=30000`
+ * locally to fail fast when a step is stuck instead of waiting minutes.
+ */
+export const resolveE2EWaitTimeoutMs = (fallbackMs: number): number => {
+  const raw = process.env.E2E_WAIT_TIMEOUT_MS?.trim();
+  if (!raw) {
+    return fallbackMs;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackMs;
+};
+
+/** Bootstrap-only timeout (fixture /state.json, cold app after pm clear). */
+export const resolveE2EFixtureBootstrapTimeoutMs = (): number => {
+  const raw = process.env.E2E_FIXTURE_BOOTSTRAP_TIMEOUT_MS?.trim();
+  if (raw) {
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return process.env.E2E_WAIT_TIMEOUT_MS ? 90_000 : 300_000;
+};
+
 // Default implicit wait timeout for WebDriverIO element lookups (in ms).
 // Kept low to enable fast retries in polling loops; use withImplicitWait() for longer waits.
 export const DEFAULT_IMPLICIT_WAIT_MS = 3_500;

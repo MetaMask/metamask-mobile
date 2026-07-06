@@ -1,6 +1,8 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
+import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
 import ActivityRowView from './ActivityRowView';
 
 export interface MoneyActivityItemProps {
@@ -18,13 +20,16 @@ const MoneyActivityItem = ({
   showNetworkBadge = false,
 }: MoneyActivityItemProps) => {
   const display = useMoneyTransactionDisplayInfo(tx, moneyAddress);
+  const activityDetailsEnabled = useSelector(
+    selectMoneyEnableActivityDetailsFlag,
+  );
 
   return (
     <ActivityRowView
       id={tx.id}
       display={display}
       chainId={tx.chainId}
-      onPress={() => onPress?.(tx)}
+      onPress={activityDetailsEnabled ? () => onPress?.(tx) : undefined}
       showNetworkBadge={showNetworkBadge}
     />
   );

@@ -43,6 +43,14 @@ const notificationPreferences = {
     txAmountLimit: 100,
     mutedTraderProfileIds: [],
   },
+  agenticCli: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  priceAlerts: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
 };
 
 export const USER_STORAGE_MOCK: MockEventsObject = {

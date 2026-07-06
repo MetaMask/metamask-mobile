@@ -3,7 +3,6 @@ export const CashbackSelectors = {
   BALANCE_TITLE: 'cashback-balance-title',
   DETAILS_CARD: 'cashback-details-card',
   FUNDING_WARNING: 'cashback-funding-warning',
-  NETWORK_FEE_ROW: 'cashback-network-fee-row',
-  EXPECTED_TO_RECEIVE_ROW: 'cashback-expected-to-receive-row',
+  TO_ROW: 'cashback-to-row',
   WITHDRAW_BUTTON: 'cashback-withdraw-button',
 };

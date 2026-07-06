@@ -1,15 +1,16 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -135,7 +136,7 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
                 <Icon
                   name={IconName.Check}
                   size={IconSize.Md}
-                  color={IconColor.Primary}
+                  color={IconColor.PrimaryDefault}
                   style={styles.checkIcon}
                   testID={testID ? `${testID}-check-${option.id}` : undefined}
                 />

@@ -42,6 +42,7 @@ import {
 import { useTheme } from '../../../util/theme';
 import type { IdentitySubmission, KycRequiredResponse } from './api';
 import MoonpayFrame from './MoonpayFrame';
+import useMoonpayReset from './useMoonpayReset';
 import useMoonpayIdentityFlow, {
   DEMO_PROFILES,
   type DemoProfile,
@@ -74,6 +75,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 16,
+  },
+  resetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   panel: { gap: 12 },
   termsBlock: {
@@ -534,11 +540,52 @@ const MoonpayDemo: React.FC = () => {
     handleAuthFrameError,
   } = useMoonpayIdentityFlow();
 
+  const {
+    resetState,
+    resetError,
+    resetFrameUrl,
+    startReset,
+    dismissReset,
+    handleResetMessage,
+    handleResetError,
+  } = useMoonpayReset();
+
   return (
     <View
       style={[styles.container, { backgroundColor: colors.background.default }]}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.resetRow}>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={startReset}
+            isDisabled={resetState === 'resetting'}
+          >
+            {resetState === 'resetting'
+              ? 'Resetting…'
+              : 'Reset MoonPay session'}
+          </Button>
+          {resetState === 'success' && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.SuccessDefault}
+              onPress={dismissReset}
+            >
+              Session cleared
+            </Text>
+          )}
+          {resetState === 'error' && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              onPress={dismissReset}
+            >
+              {resetError ?? 'Reset failed'}
+            </Text>
+          )}
+        </View>
+
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           Phase: {phase}
           {statusMessage ? ` — ${statusMessage}` : ''}
@@ -615,6 +662,25 @@ const MoonpayDemo: React.FC = () => {
             onError={handleAuthFrameError}
           />
         </View>
+      )}
+
+      {phase === 'challenge' && challengeUrl && (
+        <View style={styles.frameArea}>
+          <MoonpayFrame
+            url={challengeUrl}
+            onMessage={handleChallengeMessage}
+            onError={handleChallengeFrameError}
+          />
+        </View>
+      )}
+
+      {resetFrameUrl && (
+        <MoonpayFrame
+          url={resetFrameUrl}
+          onMessage={handleResetMessage}
+          onError={handleResetError}
+          invisible
+        />
       )}
     </View>
   );
