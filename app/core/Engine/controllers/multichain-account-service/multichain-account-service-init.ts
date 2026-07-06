@@ -5,6 +5,8 @@ import {
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
   XLM_ACCOUNT_PROVIDER_NAME,
+  AccountProviderWrapper,
+  XlmAccountProvider,
 } from '@metamask/multichain-account-service';
 import { MessengerClientInitFunction } from '../../types';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
@@ -41,8 +43,18 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   };
 
+  const xlmProvider = new AccountProviderWrapper(
+    controllerMessenger,
+    new XlmAccountProvider(controllerMessenger, snapAccountProviderConfig),
+  );
+
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
+    providers: [
+      /// BEGIN:ONLY_INCLUDE_IF(stellar)
+      xlmProvider
+      /// END:ONLY_INCLUDE_IF
+    ],
     providerConfigs: {
       [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -50,9 +62,6 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
       /// END:ONLY_INCLUDE_IF
       /// BEGIN:ONLY_INCLUDE_IF(tron)
       [TRX_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(stellar)
-      [XLM_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// END:ONLY_INCLUDE_IF
     },
   });
