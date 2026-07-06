@@ -179,23 +179,21 @@ class Browser {
         });
       },
       appium: async () => {
-        if (PlatformDetector.isIOS()) {
-          // iOS XCUITest cannot focus the hidden TextInput; tap the URL bar center.
-          const urlBar = await asPlaywrightElement(this.addressBar);
-          const location = await urlBar.unwrap().getLocation();
-          const size = await urlBar.unwrap().getSize();
-          await getDriver().execute('mobile: tap', {
-            x: Math.floor(location.x + size.width * 0.5),
-            y: Math.floor(location.y + size.height / 2),
-          });
-        } else {
-          // Android hides browser-modal-url-input until focused; tap the visible container.
-          await Gestures.waitAndTap(this.addressBar, {
-            elemDescription: 'URL bar container',
-          });
-        }
-        await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
-          elemDescription: 'Cancel button (URL bar focused)',
+        const urlBar = await asPlaywrightElement(this.addressBar);
+        const location = await urlBar.unwrap().getLocation();
+        const size = await urlBar.unwrap().getSize();
+        await getDriver().execute('mobile: tap', {
+          x: Math.floor(location.x + size.width * 0.5),
+          y: Math.floor(location.y + size.height / 2),
+        });
+
+        const focusedEditor = PlatformDetector.isAndroid()
+          ? this.urlInputBoxID
+          : this.cancelUrlInputButton;
+        await Assertions.expectElementToBeVisible(focusedEditor, {
+          elemDescription: PlatformDetector.isAndroid()
+            ? 'URL input box (focused)'
+            : 'Cancel button (URL bar focused)',
           timeout: 10000,
         });
       },
