@@ -909,5 +909,10 @@ module.exports = {
     'no-loss-of-precision': 'off',
   },
 
-  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
+  ignorePatterns: [
+    'wdio.conf.js',
+    'app/util/termsOfUse/termsOfUseContent.ts',
+    '!.storybook',
+    '!.storybook/**',
+  ],
 };
