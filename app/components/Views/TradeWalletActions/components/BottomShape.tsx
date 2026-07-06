@@ -1,47 +1,55 @@
 import React, { useMemo } from 'react';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, type PathProps } from 'react-native-svg';
 
-export interface BottomShapeDimensions {
+function BottomShape({
+  width,
+  height,
+  peakHeight,
+  peakBezierLength,
+  baseBezierLength,
+  fill,
+  stroke,
+  strokeWidth,
+  strokeOnly = false,
+  pathProps,
+  ...svgProps
+}: {
   width: number;
   height: number;
   peakHeight: number;
   peakBezierLength: number;
   baseBezierLength: number;
-}
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeOnly?: boolean;
+  pathProps?: PathProps;
+}) {
+  const pathData = useMemo(() => {
+    const centerX = width / 2;
 
-function getBottomShapePoints({
-  width,
-  height,
-  peakHeight,
-  baseBezierLength,
-}: BottomShapeDimensions) {
-  const centerX = width / 2;
-  const peakX = centerX;
-  const peakY = height - peakHeight;
-  const leftBaseX = centerX - baseBezierLength;
-  const leftBaseY = height;
-  const rightBaseX = centerX + baseBezierLength;
-  const rightBaseY = height;
+    const peakX = centerX;
+    const peakY = height - peakHeight;
 
-  return {
-    centerX,
-    peakX,
-    peakY,
-    leftBaseX,
-    leftBaseY,
-    rightBaseX,
-    rightBaseY,
-  };
-}
+    const leftBaseX = centerX - baseBezierLength;
+    const leftBaseY = height;
+    const rightBaseX = centerX + baseBezierLength;
+    const rightBaseY = height;
 
-export function buildBottomShapeMaskPath(
-  dimensions: BottomShapeDimensions,
-): string {
-  const { width, height, peakBezierLength } = dimensions;
-  const { peakX, peakY, leftBaseX, leftBaseY, rightBaseX, rightBaseY } =
-    getBottomShapePoints(dimensions);
+    if (strokeOnly) {
+      return `
+        M ${rightBaseX} ${rightBaseY}
+        C ${rightBaseX - peakBezierLength} ${rightBaseY}
+          ${peakX + peakBezierLength} ${peakY}
+          ${peakX} ${peakY}
+        S ${leftBaseX + peakBezierLength} ${leftBaseY}
+          ${leftBaseX} ${leftBaseY}
+      `
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
 
-  return `
+    return `
       M 0 ${height}
       V 0
       H ${width}
@@ -55,76 +63,25 @@ export function buildBottomShapeMaskPath(
       H 0
       Z
     `
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-export function buildBottomCutoutCurvePath(
-  dimensions: BottomShapeDimensions,
-): string {
-  const { peakBezierLength } = dimensions;
-  const { peakX, peakY, leftBaseX, leftBaseY, rightBaseX, rightBaseY } =
-    getBottomShapePoints(dimensions);
-
-  return `
-      M ${rightBaseX} ${rightBaseY}
-      C ${rightBaseX - peakBezierLength} ${rightBaseY}
-        ${peakX + peakBezierLength} ${peakY}
-        ${peakX} ${peakY}
-      S ${leftBaseX + peakBezierLength} ${leftBaseY}
-        ${leftBaseX} ${leftBaseY}
-    `
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function BottomShape({
-  width,
-  height,
-  peakHeight,
-  peakBezierLength,
-  baseBezierLength,
-  fill,
-  stroke,
-  strokeWidth,
-  ...svgProps
-}: BottomShapeDimensions & {
-  fill?: string;
-  stroke?: string;
-  strokeWidth?: number;
-}) {
-  const isStrokeOnly = stroke != null && fill == null;
-
-  const pathData = useMemo(() => {
-    const shapeDimensions = {
-      width,
-      height,
-      peakHeight,
-      peakBezierLength,
-      baseBezierLength,
-    };
-
-    if (isStrokeOnly) {
-      return buildBottomCutoutCurvePath(shapeDimensions);
-    }
-
-    return buildBottomShapeMaskPath(shapeDimensions);
+      .replace(/\s+/g, ' ')
+      .trim();
   }, [
-    isStrokeOnly,
     width,
     height,
     peakHeight,
     peakBezierLength,
     baseBezierLength,
+    strokeOnly,
   ]);
 
   return (
     <Svg width={width} height={height} {...svgProps}>
       <Path
         d={pathData}
-        fill={isStrokeOnly ? 'none' : fill}
+        fill={strokeOnly ? 'none' : fill}
         stroke={stroke}
         strokeWidth={strokeWidth}
+        {...pathProps}
       />
     </Svg>
   );

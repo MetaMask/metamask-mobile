@@ -79,9 +79,6 @@ import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsContro
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
-const bottomShapePeakHeight = 16;
-const bottomShapePeakBezierLength = 25;
-const bottomShapeBaseBezierLength = 55;
 const animationDuration = AnimationDuration.Fast;
 const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
@@ -113,17 +110,6 @@ function TradeWalletActions() {
   const { colors } = useTheme();
   const isPureBlack = usePureBlack();
   const surfaceClass = useElevatedSurface();
-
-  const bottomShapeDimensions = useMemo(
-    () => ({
-      width: buttonLayout.width * 4,
-      height: bottomMaskHeight,
-      peakHeight: bottomShapePeakHeight,
-      peakBezierLength: bottomShapePeakBezierLength,
-      baseBezierLength: bottomShapeBaseBezierLength,
-    }),
-    [buttonLayout.width],
-  );
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -329,7 +315,14 @@ function TradeWalletActions() {
                 <View style={tw.style('flex-1 bg-black')} />
                 <View style={tw.style('flex-row mt-[-1px]')}>
                   <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
-                  <BottomShape {...bottomShapeDimensions} fill="black" />
+                  <BottomShape
+                    width={buttonLayout.width * 4}
+                    height={bottomMaskHeight}
+                    peakHeight={16}
+                    peakBezierLength={25}
+                    baseBezierLength={55}
+                    fill="black"
+                  />
                   <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
                 </View>
               </View>
@@ -435,7 +428,12 @@ function TradeWalletActions() {
                     }
                   >
                     <BottomShape
-                      {...bottomShapeDimensions}
+                      width={buttonLayout.width * 4}
+                      height={bottomMaskHeight}
+                      peakHeight={16}
+                      peakBezierLength={25}
+                      baseBezierLength={55}
+                      strokeOnly
                       stroke={colors.border.muted}
                       strokeWidth={1}
                     />
