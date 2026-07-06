@@ -1081,7 +1081,7 @@ describe('legend', () => {
 
       const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-1`);
       expect(rsiOverlay).not.toBeNull();
-      expect(rsiOverlay?.style.top).toBe('301px');
+      expect(rsiOverlay?.style.top).toBe('304px');
     });
 
     it('keeps main-pane indicators in main overlay when sub-pane indicators exist', async () => {
