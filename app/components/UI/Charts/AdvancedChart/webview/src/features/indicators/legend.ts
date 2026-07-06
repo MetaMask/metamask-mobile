@@ -29,6 +29,7 @@ import type {
   IndicatorColors,
   LegendIndicatorCfg,
   LegendOverlayConfig,
+  LegendPlotCfg,
   StudyId,
   TVActiveChart,
   TVExportData,
@@ -223,8 +224,8 @@ function isEmptyValue(v: string): boolean {
 }
 
 function plotValue(
-  cfg: IndicatorLegendCfg,
-  plotCfg: PlotCfg,
+  cfg: LegendIndicatorCfg,
+  plotCfg: LegendPlotCfg,
   plotIndex: number,
   values: StudyValueEntry[],
 ): string {
