@@ -12,7 +12,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
@@ -47,8 +47,16 @@ import {
   formatPrice,
   getCashoutInfoText,
 } from '../../utils/format';
+import {
+  getPredictExchangeFee,
+  getPredictSellNetProceeds,
+  roundDownToCents,
+} from '../../utils/orders';
+import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
 import styleSheet from './PredictSellPreview.styles';
 import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
 
@@ -178,6 +186,24 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     }
   }, [dispatch, result, isSheetMode, onClose]);
 
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+
+  const handleFeesInfoPress = useCallback(
+    () => setIsFeeBreakdownVisible(true),
+    [],
+  );
+  const handleFeeBreakdownClose = useCallback(
+    () => setIsFeeBreakdownVisible(false),
+    [],
+  );
+
+  // Close the fee breakdown sheet if the preview refreshes to null while it is open
+  useEffect(() => {
+    if (!preview && isFeeBreakdownVisible) {
+      setIsFeeBreakdownVisible(false);
+    }
+  }, [preview, isFeeBreakdownVisible]);
+
   // Use preview data if available, fallback to position data on error or when preview is unavailable
   const currentValue = preview
     ? preview.minAmountReceived
@@ -185,11 +211,14 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const currentPrice = preview?.sharePrice ?? 0;
   const { avgPrice } = position;
 
-  // Recalculate PnL based on preview data
-  const cashPnl = useMemo(
-    () => currentValue - initialValue,
-    [currentValue, initialValue],
-  );
+  const metamaskFee = preview?.fees?.metamaskFee ?? 0;
+  const exchangeFee = getPredictExchangeFee(preview?.fees);
+  const total = preview
+    ? getPredictSellNetProceeds(preview)
+    : roundDownToCents(currentValue);
+
+  // Recalculate PnL based on net proceeds so it reflects what the user actually receives after fees
+  const cashPnl = useMemo(() => total - initialValue, [total, initialValue]);
 
   const percentPnl = useMemo(
     () => (initialValue > 0 ? (cashPnl / initialValue) * 100 : 0),
@@ -437,6 +466,13 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               )}
             </Box>
           )}
+          {/* rewardsFeeAmountUsd intentionally omitted: sell orders do not earn rewards points */}
+          <PredictFeeSummary
+            disabled={!preview}
+            loading={isPreviewLoading}
+            total={total}
+            handleFeesInfoPress={handleFeesInfoPress}
+          />
           <View style={styles.cashOutButtonContainer}>
             {renderCashOutButton()}
             <Text variant={TextVariant.BodyXs} style={styles.cashOutButtonText}>
@@ -445,6 +481,18 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           </View>
         </View>
       </View>
+      {isFeeBreakdownVisible && (
+        <PredictFeeBreakdownSheet
+          providerFee={exchangeFee}
+          metamaskFee={metamaskFee}
+          sharePrice={currentPrice}
+          contractCount={preview?.maxAmountSpent ?? 0}
+          betAmount={preview?.minAmountReceived ?? 0}
+          total={total}
+          slippage={SLIPPAGE_SELL}
+          onClose={handleFeeBreakdownClose}
+        />
+      )}
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
