@@ -187,7 +187,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
-                twClassName="py-2"
+                twClassName="pb-2"
               >
                 {section.title}
               </Text>
