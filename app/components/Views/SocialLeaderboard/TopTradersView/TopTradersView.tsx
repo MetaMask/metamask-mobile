@@ -7,6 +7,8 @@ import React, {
   useTransition,
 } from 'react';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   FontWeight,
   HeaderStandardAnimated,
@@ -48,6 +50,7 @@ import {
   selectSocialLeaderboardPerpsEnabled,
 } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../util/Logger';
+import NotificationService from '../../../../util/notifications/services/NotificationService';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -71,6 +74,11 @@ import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
 type TabFilter = 'all' | 'tokens' | 'perps';
+
+// How long the post-onboarding "turn on notifications" nudge stays up before it
+// auto-dismisses (ms). Long enough to notice and act on after landing here, but
+// still transient so it never becomes permanent chrome.
+const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
 interface IdleCallbackGlobals {
   requestIdleCallback?: (
@@ -255,6 +263,12 @@ const TopTradersView = () => {
   });
   const [, startTabTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
+  // One-shot nudge shown when onboarding reports the user tapped "Allow
+  // notifications" but the OS denied it. Seeded from the route param so it only
+  // appears on that hand-off, never on normal tab visits.
+  const [showNotificationsBanner, setShowNotificationsBanner] = useState(
+    Boolean(route.params?.showNotificationsBanner),
+  );
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
@@ -409,6 +423,28 @@ const TopTradersView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  // Auto-dismiss the notifications nudge after a fixed window so it never lingers
+  // as permanent chrome. Cleared on manual close/unmount via the effect cleanup.
+  useEffect(() => {
+    if (!showNotificationsBanner) {
+      return undefined;
+    }
+    const timeoutId = setTimeout(
+      () => setShowNotificationsBanner(false),
+      NOTIFICATIONS_BANNER_AUTO_DISMISS_MS,
+    );
+    return () => clearTimeout(timeoutId);
+  }, [showNotificationsBanner]);
+
+  const handleDismissNotificationsBanner = useCallback(() => {
+    setShowNotificationsBanner(false);
+  }, []);
+
+  const handleOpenNotificationSettings = useCallback(() => {
+    setShowNotificationsBanner(false);
+    NotificationService.openSystemSettings();
+  }, []);
+
   const handleNotificationPreferencesPress = useCallback(() => {
     if (isLoadingNotificationPreferences) {
       return;
@@ -553,6 +589,26 @@ const TopTradersView = () => {
         ]}
         testID={TopTradersViewSelectorsIDs.HEADER}
       />
+
+      {showNotificationsBanner && (
+        <Box twClassName="px-4 pt-2">
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            title={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.title',
+            )}
+            description={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.description',
+            )}
+            actionButtonLabel={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+            )}
+            actionButtonOnPress={handleOpenNotificationSettings}
+            onClose={handleDismissNotificationsBanner}
+            testID={TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER}
+          />
+        </Box>
+      )}
 
       <Box twClassName="flex-1">
         {isLoading && traders.length === 0 ? (

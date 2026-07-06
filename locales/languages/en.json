@@ -1051,6 +1051,11 @@
         "all": "All",
         "tokens": "Tokens",
         "perps": "Perps"
+      },
+      "notifications_banner": {
+        "title": "Turn on notifications",
+        "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        "open_settings": "Open settings"
       }
     },
     "onboarding": {

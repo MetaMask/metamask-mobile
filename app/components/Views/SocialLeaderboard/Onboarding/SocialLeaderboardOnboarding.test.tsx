@@ -659,7 +659,10 @@ describe('SocialLeaderboardOnboarding', () => {
       expect.objectContaining({ source: 'nux' }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+        source: 'nux',
+        showNotificationsBanner: false,
+      }),
     );
   });
 
@@ -688,7 +691,10 @@ describe('SocialLeaderboardOnboarding', () => {
     );
     // Enable is still in flight, so we must not have navigated yet.
     expect(mockDispatch).not.toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+        source: 'nux',
+        showNotificationsBanner: false,
+      }),
     );
 
     // Once the enable resolves, the flow completes and navigates.
@@ -698,7 +704,10 @@ describe('SocialLeaderboardOnboarding', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+        source: 'nux',
+        showNotificationsBanner: false,
+      }),
     );
   });
 
@@ -724,28 +733,22 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('shows the "notifications off" toast after allow when permission is denied (OS off)', async () => {
+  it('lands on the leaderboard with the nudge banner (no toast) when permission is denied (OS off)', async () => {
     mockRequestPushPermission.mockResolvedValueOnce(false);
     renderComponent();
 
     await advanceToNotifyStep();
     await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
 
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: 'Notifications are off', isBold: true }],
-        descriptionOptions: {
-          description: 'Turn them on anytime in Settings → Notifications.',
-        },
-        startAccessory: expect.any(Object),
-        customBottomOffset: expect.any(Number),
-        hasNoTimeout: false,
-      }),
-    );
-    // Still completes the flow so the user is never stuck.
+    // No toast on denial — the leaderboard shows a persistent banner instead.
+    expect(mockShowToast).not.toHaveBeenCalled();
+    // Still completes the flow (user is never ejected) and asks the leaderboard
+    // to surface the "turn on notifications" banner.
     expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+        source: 'nux',
+        showNotificationsBanner: true,
+      }),
     );
   });
 

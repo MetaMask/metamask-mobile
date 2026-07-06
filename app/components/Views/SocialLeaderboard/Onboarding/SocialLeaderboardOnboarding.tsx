@@ -476,25 +476,32 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     });
   }, [stepIndex, track]);
 
-  const exitToLeaderboard = useCallback(() => {
-    navigation.dispatch(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
-        source: ONBOARDING_SOURCE,
-      }),
-    );
-  }, [navigation]);
+  const exitToLeaderboard = useCallback(
+    (extraParams?: { showNotificationsBanner?: boolean }) => {
+      navigation.dispatch(
+        StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, {
+          source: ONBOARDING_SOURCE,
+          ...extraParams,
+        }),
+      );
+    },
+    [navigation],
+  );
 
-  const goToLeaderboard = useCallback(() => {
-    if (hasCompletedRef.current) {
-      return;
-    }
-    hasCompletedRef.current = true;
-    void markOnboardingSeen();
-    track(MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED, {
-      [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
-    });
-    exitToLeaderboard();
-  }, [track, exitToLeaderboard]);
+  const goToLeaderboard = useCallback(
+    (extraParams?: { showNotificationsBanner?: boolean }) => {
+      if (hasCompletedRef.current) {
+        return;
+      }
+      hasCompletedRef.current = true;
+      void markOnboardingSeen();
+      track(MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED, {
+        [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
+      });
+      exitToLeaderboard(extraParams);
+    },
+    [track, exitToLeaderboard],
+  );
 
   const handleClose = useCallback(() => {
     void markOnboardingSeen();
@@ -551,46 +558,40 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     swallowNextCompletionRef.current = true;
   }, [setStep]);
 
-  // Surface the outcome of the OS push prompt as a toast (rendered by the global
-  // ToastContext, so it survives the route replace and lands on the leaderboard).
-  // `granted` is false when notifications are off at the OS level, in which case
-  // we tell the user how to turn them on rather than silently doing nothing.
-  const showNotificationStatusToast = useCallback(
-    (areOn: boolean) => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: strings(
-              areOn
-                ? 'notifications.push_onboarding.new_user.toast.notifications_on.title'
-                : 'notifications.push_onboarding.new_user.toast.notifications_off.title',
-            ),
-            isBold: true,
-          },
-        ],
-        descriptionOptions: {
-          description: strings(
-            areOn
-              ? 'notifications.push_onboarding.new_user.toast.notifications_on.description'
-              : 'notifications.push_onboarding.new_user.toast.notifications_off.description',
+  // Confirm the enable with a toast (rendered by the global ToastContext, so it
+  // survives the route replace and lands on the leaderboard). Only shown when
+  // permission was granted; the OS-denied case is handled on the leaderboard via
+  // a persistent nudge banner (a toast disappears too quickly to catch), so the
+  // user is never ejected mid-onboarding and always sees the actionable prompt.
+  const showNotificationsEnabledToast = useCallback(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings(
+            'notifications.push_onboarding.new_user.toast.notifications_on.title',
           ),
+          isBold: true,
         },
-        startAccessory: (
-          <View style={styles.toastAccessory}>
-            <Icon
-              name={areOn ? IconName.CheckBold : IconName.Info}
-              size={IconSize.Lg}
-              color={areOn ? IconColor.Success : IconColor.Alternative}
-            />
-          </View>
+      ],
+      descriptionOptions: {
+        description: strings(
+          'notifications.push_onboarding.new_user.toast.notifications_on.description',
         ),
-        customBottomOffset: TAB_BAR_HEIGHT,
-        hasNoTimeout: false,
-      });
-    },
-    [toastRef, styles.toastAccessory],
-  );
+      },
+      startAccessory: (
+        <View style={styles.toastAccessory}>
+          <Icon
+            name={IconName.CheckBold}
+            size={IconSize.Lg}
+            color={IconColor.Success}
+          />
+        </View>
+      ),
+      customBottomOffset: TAB_BAR_HEIGHT,
+      hasNoTimeout: false,
+    });
+  }, [toastRef, styles.toastAccessory]);
 
   // "Allow notifications" (terminal): enable notifications, then complete. The
   // button appears on either Notify slide (step 3 or 3.1) while prompting is
@@ -614,19 +615,23 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     // the toggle never actually flips on. (The hook handles its own errors, so
     // this never rejects.)
     await enableNotificationsInBackground(granted);
-    showNotificationStatusToast(granted);
+    if (granted) {
+      showNotificationsEnabledToast();
+    }
     track(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
       {
         [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
       },
     );
-    goToLeaderboard();
+    // OS denied → land on the leaderboard with the nudge banner so the user can
+    // still turn notifications on from device settings.
+    goToLeaderboard({ showNotificationsBanner: !granted });
   }, [
     shouldPromptNotifications,
     requestPushPermission,
     enableNotificationsInBackground,
-    showNotificationStatusToast,
+    showNotificationsEnabledToast,
     track,
     goToLeaderboard,
   ]);
