@@ -57,6 +57,7 @@ const Routes = {
       SSN_INFO: 'RampSsnInfoModal',
       STATE_SELECTOR: 'RampStateSelectorModal',
       UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
+      PHONE_COUNTRY_SELECTOR: 'RampPhoneCountrySelectorModal',
     },
   },
   DEPOSIT: {
@@ -405,6 +406,7 @@ const Routes = {
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
+    TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -483,6 +485,7 @@ const Routes = {
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
       GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
+      DEEPLINK_MODAL: 'MoneyDeeplinkModal',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
@@ -533,6 +536,7 @@ const Routes = {
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
+    CREDIT_REDEEM: 'CardCreditRedeem',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -560,6 +564,8 @@ const Routes = {
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
+      CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
+      CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
     },
   },

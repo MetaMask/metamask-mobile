@@ -1,8 +1,9 @@
 import UIKit
-import Expo
+internal import Expo
 import React
 import ReactAppDependencyProvider
 import FirebaseCore
+import UserNotifications
 import RNBranch
 import BrazeKit
 
@@ -51,7 +52,6 @@ class AppDelegate: ExpoAppDelegate {
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
 
     window = UIWindow(frame: UIScreen.main.bounds)
     window?.makeKeyAndVisible()
@@ -116,6 +116,15 @@ class AppDelegate: ExpoAppDelegate {
 
     let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
+    // Claim UNUserNotificationCenterDelegate AFTER all SDK initializations so we are
+    // stored as Notifee's _originalDelegate when its JS-side observe() runs asynchronously.
+    // Notifee (dispatch_once) will then take the slot, keeping us as its forwarding target:
+    //   - Notifee notifications → Notifee handles (fires PRESS events to JS)
+    //   - FCM notifications → Notifee forwards willPresent/didReceive to us
+    // Do NOT reassert self as delegate after this point (e.g. in applicationDidBecomeActive)
+    // or Notifee's forwarding chain is silently broken on every foreground entry.
+    UNUserNotificationCenter.current().delegate = self
+
     return superResult
   }
 
@@ -164,6 +173,37 @@ class AppDelegate: ExpoAppDelegate {
       didReceiveRemoteNotification: userInfo,
       fetchCompletionHandler: completionHandler
     )
+  }
+}
+
+// MARK: - UNUserNotificationCenterDelegate
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+  // Called when a notification arrives while the app is in the foreground.
+  // Braze's push.automation would have consumed this without forwarding to
+  // Firebase, so we own the delegate and do both here.
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    let userInfo = notification.request.content.userInfo
+    // Tell Firebase about the message — this triggers messaging().onMessage() in JS.
+    Messaging.messaging().appDidReceiveMessage(userInfo)
+    // Show the notification visually in the foreground.
+    completionHandler([.sound, .badge, .banner, .list])
+  }
+
+  // Called when the user taps a notification or one of its action buttons.
+  // Forward to Braze so it can track opens and handle Braze-originated deep links.
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    if AppDelegate.braze?.notifications.handleUserNotification(response: response, withCompletionHandler: completionHandler) != true {
+      completionHandler()
+    }
   }
 }
 

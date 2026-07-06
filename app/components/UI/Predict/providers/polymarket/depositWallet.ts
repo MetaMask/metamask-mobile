@@ -1,5 +1,7 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import { Hex } from '@metamask/utils';
+import { query } from '@metamask/controller-utils';
+import EthQuery from '@metamask/eth-query';
+import { Hex, numberToHex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import {
   getAddress,
@@ -8,6 +10,8 @@ import {
   hexZeroPad,
   keccak256,
 } from 'ethers/lib/utils';
+import Engine from '../../../../../core/Engine';
+import { isSmartContractAddress } from '../../../../../util/transactions';
 import { POLYGON_MAINNET_CHAIN_ID } from './constants';
 import type { PolymarketProtocolDefinition } from './protocol/definitions';
 import type { SafeTransaction } from './safe/types';
@@ -19,6 +23,8 @@ export const DEPOSIT_WALLET_FACTORY_ADDRESS =
   '0x00000000000Fb5C9ADea0298D729A0CB3823Cc07';
 export const DEPOSIT_WALLET_IMPLEMENTATION_ADDRESS =
   '0x58CA52ebe0DadfdF531Cde7062e76746de4Db1eB';
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+const DEPOSIT_WALLET_FACTORY_BEACON_SELECTOR = '0x49493a4d';
 
 const DEPOSIT_WALLET_DOMAIN_NAME = 'DepositWallet';
 const DEPOSIT_WALLET_DOMAIN_VERSION = '1';
@@ -28,6 +34,15 @@ const DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS = 300;
 
 const RELAYER_SUCCESS_STATES = new Set(['STATE_CONFIRMED']);
 const RELAYER_FAILURE_STATES = new Set(['STATE_FAILED', 'STATE_INVALID']);
+const CONTRACT_REVERT_ERROR_CODE = 3;
+const CONTRACT_REVERT_ERROR_PATTERNS = [
+  'execution reverted',
+  'contract function reverted',
+  'function selector was not recognized',
+  'missing revert data',
+  'call revert exception',
+  'reverted',
+];
 
 /**
  * Byte constants from Solady LibClone.initCodeHashERC1967 used by the
@@ -38,6 +53,13 @@ const ERC1967_CONST1 =
 const ERC1967_CONST2 =
   '0x5155f3363d3d373d3d363d7f360894a13ba1a3210667c828492db98dca3e2076';
 const ERC1967_PREFIX = 0x61003d3d8160233d3973n;
+const ERC1967_BEACON_CONST1 =
+  '0x60195155f3363d3d373d3d363d602036600436635c60da';
+const ERC1967_BEACON_CONST2 =
+  '0x1b60e01b36527fa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6c';
+const ERC1967_BEACON_CONST3 =
+  '0xb3582b35133d50545afa5036515af43d6000803e604d573d6000fd5b3d6000f3';
+const ERC1967_BEACON_PREFIX = 0x6100523d8160233d3973n;
 
 export interface DepositWalletCall {
   target: string;
@@ -99,21 +121,57 @@ function initCodeHashERC1967({
   ) as Hex;
 }
 
+function initCodeHashERC1967BeaconProxy({
+  beacon,
+  args,
+}: {
+  beacon: string;
+  args: Hex;
+}): Hex {
+  const argsLength = BigInt((args.length - 2) / 2);
+  const prefix = toFixedSizeHex(
+    ERC1967_BEACON_PREFIX + (argsLength << 56n),
+    10,
+  );
+
+  return keccak256(
+    hexConcat([
+      prefix,
+      getAddress(beacon),
+      ERC1967_BEACON_CONST1,
+      ERC1967_BEACON_CONST2,
+      ERC1967_BEACON_CONST3,
+      args,
+    ]),
+  ) as Hex;
+}
+
 export function getDepositWalletId(ownerAddress: string): Hex {
   return hexZeroPad(getAddress(ownerAddress), 32) as Hex;
 }
 
-export function deriveDepositWalletAddress(ownerAddress: string): Hex {
+function getDepositWalletCreate2Inputs(ownerAddress: string): {
+  factoryAddress: string;
+  args: Hex;
+  salt: Hex;
+} {
   const factoryAddress = getAddress(DEPOSIT_WALLET_FACTORY_ADDRESS);
-  const implementationAddress = getAddress(
-    DEPOSIT_WALLET_IMPLEMENTATION_ADDRESS,
-  );
   const walletId = getDepositWalletId(ownerAddress);
   const args = ethers.utils.defaultAbiCoder.encode(
     ['address', 'bytes32'],
     [factoryAddress, walletId],
   ) as Hex;
   const salt = keccak256(args) as Hex;
+
+  return { factoryAddress, args, salt };
+}
+
+export function deriveDepositWalletUupsAddress(ownerAddress: string): Hex {
+  const implementationAddress = getAddress(
+    DEPOSIT_WALLET_IMPLEMENTATION_ADDRESS,
+  );
+  const { factoryAddress, args, salt } =
+    getDepositWalletCreate2Inputs(ownerAddress);
   const bytecodeHash = initCodeHashERC1967({
     implementation: implementationAddress,
     args,
@@ -122,6 +180,145 @@ export function deriveDepositWalletAddress(ownerAddress: string): Hex {
   return getAddress(
     getCreate2Address(factoryAddress, salt, bytecodeHash),
   ) as Hex;
+}
+
+export function deriveDepositWalletBeaconAddress({
+  ownerAddress,
+  beaconAddress,
+}: {
+  ownerAddress: string;
+  beaconAddress: string;
+}): Hex {
+  const { factoryAddress, args, salt } =
+    getDepositWalletCreate2Inputs(ownerAddress);
+  const bytecodeHash = initCodeHashERC1967BeaconProxy({
+    beacon: beaconAddress,
+    args,
+  });
+
+  return getAddress(
+    getCreate2Address(factoryAddress, salt, bytecodeHash),
+  ) as Hex;
+}
+
+export function deriveDepositWalletAddress(ownerAddress: string): Hex {
+  return deriveDepositWalletUupsAddress(ownerAddress);
+}
+
+function getErrorCode(error: unknown): unknown {
+  return typeof error === 'object' && error !== null && 'code' in error
+    ? (error as { code?: unknown }).code
+    : undefined;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function isContractRevertError(error: unknown): boolean {
+  if (getErrorCode(error) === CONTRACT_REVERT_ERROR_CODE) {
+    return true;
+  }
+
+  const message = getErrorMessage(error).toLowerCase();
+
+  return CONTRACT_REVERT_ERROR_PATTERNS.some((pattern) =>
+    message.includes(pattern),
+  );
+}
+
+function decodeBeaconAddress(response: unknown): Hex | undefined {
+  if (typeof response !== 'string') {
+    throw new Error(
+      `Polymarket deposit wallet factory BEACON returned non-string response: ${String(
+        response,
+      )}`,
+    );
+  }
+
+  if (response === '0x') {
+    return undefined;
+  }
+
+  try {
+    const [beaconAddress] = ethers.utils.defaultAbiCoder.decode(
+      ['address'],
+      response,
+    );
+    const normalizedBeaconAddress = getAddress(String(beaconAddress)) as Hex;
+
+    return normalizedBeaconAddress === ZERO_ADDRESS
+      ? undefined
+      : normalizedBeaconAddress;
+  } catch (error) {
+    throw new Error(
+      `Polymarket deposit wallet factory BEACON returned malformed address data: ${response}. ${
+        error instanceof Error ? error.message : 'Unknown decode error'
+      }`,
+    );
+  }
+}
+
+export async function readDepositWalletFactoryBeacon(): Promise<
+  Hex | undefined
+> {
+  const { NetworkController } = Engine.context;
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    numberToHex(POLYGON_MAINNET_CHAIN_ID),
+  );
+  const ethQuery = new EthQuery(
+    NetworkController.getNetworkClientById(networkClientId).provider,
+  );
+
+  try {
+    const response = await query(ethQuery, 'call', [
+      {
+        to: DEPOSIT_WALLET_FACTORY_ADDRESS,
+        data: DEPOSIT_WALLET_FACTORY_BEACON_SELECTOR,
+      },
+    ]);
+
+    return decodeBeaconAddress(response);
+  } catch (error) {
+    if (isContractRevertError(error)) {
+      return undefined;
+    }
+
+    throw new Error(
+      `Polymarket deposit wallet factory BEACON call failed: ${getErrorMessage(
+        error,
+      )}`,
+    );
+  }
+}
+
+export async function resolveDepositWalletAddress({
+  ownerAddress,
+  readFactoryBeacon = readDepositWalletFactoryBeacon,
+  isWalletDeployed = async (walletAddress) =>
+    isSmartContractAddress(
+      walletAddress,
+      numberToHex(POLYGON_MAINNET_CHAIN_ID),
+    ),
+}: {
+  ownerAddress: string;
+  readFactoryBeacon?: () => Promise<Hex | undefined>;
+  isWalletDeployed?: (walletAddress: Hex) => Promise<boolean>;
+}): Promise<Hex> {
+  const uupsWalletAddress = deriveDepositWalletUupsAddress(ownerAddress);
+  const beaconAddress = await readFactoryBeacon();
+
+  if (!beaconAddress) {
+    return uupsWalletAddress;
+  }
+
+  const uupsWalletIsDeployed = await isWalletDeployed(uupsWalletAddress);
+
+  if (uupsWalletIsDeployed) {
+    return uupsWalletAddress;
+  }
+
+  return deriveDepositWalletBeaconAddress({ ownerAddress, beaconAddress });
 }
 
 export function toDepositWalletCalls(

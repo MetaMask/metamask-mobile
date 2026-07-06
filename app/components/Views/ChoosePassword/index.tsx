@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -93,7 +93,6 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -610,9 +609,6 @@ const ChoosePassword = () => {
         ...walletSetupAttributionProps,
       });
 
-      if (isSocialLogin) {
-        dispatch(clearAttribution());
-      }
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
@@ -629,7 +625,6 @@ const ChoosePassword = () => {
     handleWalletCreationError,
     metrics,
     marketingOptInChecked,
-    dispatch,
   ]);
 
   const onPasswordChange = useCallback(
@@ -760,7 +755,6 @@ const ChoosePassword = () => {
         ) : (
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
-            resetScrollToCoords={{ x: 0, y: 0 }}
             keyboardShouldPersistTaps="handled"
           >
             <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">

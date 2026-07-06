@@ -52,9 +52,17 @@ import {
 import Logger from '../../../../util/Logger';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
+import { useNotificationPreferences } from '../NotificationPreferences/hooks';
+import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
+import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
 import {
   TraderRow,
   TraderRowSkeleton,
@@ -205,10 +213,12 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
 
   const handleTabPress = useCallback(
     (next: TabFilter) => {
+      if (optimisticSelectedTab === next) return;
+      playSelection().catch(() => undefined);
       setOptimisticSelectedTab(next);
       onTabPress(next);
     },
-    [onTabPress],
+    [onTabPress, optimisticSelectedTab],
   );
 
   return (
@@ -249,6 +259,17 @@ const TopTradersView = () => {
     hasNotificationPreferences,
     isLoading: isLoadingNotificationPreferences,
   } = useNotificationStoragePreferences();
+  const {
+    preferences: notificationPreferences,
+    hasNotificationPreferences: hasSocialAiPreferences,
+    isTraderNotificationEnabled,
+    toggleTraderNotification,
+  } = useNotificationPreferences();
+  const showMuteChip = hasSocialAiPreferences;
+  const needsNotificationSetup =
+    hasSocialAiPreferences &&
+    areTradingSignalsChannelsDisabled(notificationPreferences);
+  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
   const title = strings('social_leaderboard.top_traders_view.title');
@@ -381,16 +402,22 @@ const TopTradersView = () => {
   );
 
   const handleFollowPress = useCallback(
-    (traderId: string) => {
+    async (traderId: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      toggleFollow(traderId, {
-        source: 'leaderboard',
-        traderAddress: trader?.address ?? '',
-        traderUsername: trader?.username,
-        traderRank: trader?.rank,
-      });
+      const wasFollowing = trader?.isFollowing ?? false;
+      const performFollow = () =>
+        toggleFollow(traderId, {
+          source: 'leaderboard',
+          traderAddress: trader?.address ?? '',
+          traderUsername: trader?.username,
+          traderRank: trader?.rank,
+        });
+      if (!wasFollowing && openSetupIfNeeded(performFollow)) {
+        return;
+      }
+      await performFollow();
     },
-    [traders, toggleFollow],
+    [traders, toggleFollow, openSetupIfNeeded],
   );
 
   const {
@@ -527,15 +554,47 @@ const TopTradersView = () => {
     [navigation, traders, activeTab, track],
   );
 
+  const handleMuteToggle = useCallback(
+    (traderId: string) => {
+      // Tapping a bell that only looks disabled because notifications are off
+      // means "enable"; forward an idempotent unmute rather than a toggle.
+      const ensureUnmuted = () => {
+        if (!isTraderNotificationEnabled(traderId)) {
+          // Symmetric with the Follow button: same Light impact on any real toggle.
+          playImpact(ImpactMoment.FollowToggle);
+          toggleTraderNotification(traderId);
+        }
+      };
+      if (openSetupIfNeeded(ensureUnmuted)) {
+        return;
+      }
+      playImpact(ImpactMoment.FollowToggle);
+      toggleTraderNotification(traderId);
+    },
+    [openSetupIfNeeded, toggleTraderNotification, isTraderNotificationEnabled],
+  );
+
   const renderTraderRow = useCallback(
     ({ item }: { item: TopTrader }) => (
       <TraderRow
         trader={item}
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
+        showMute={showMuteChip}
+        isMuted={
+          !isTraderNotificationEnabled(item.id) || needsNotificationSetup
+        }
+        onMuteToggle={handleMuteToggle}
       />
     ),
-    [handleFollowPress, handleTraderPress],
+    [
+      handleFollowPress,
+      handleTraderPress,
+      showMuteChip,
+      needsNotificationSetup,
+      isTraderNotificationEnabled,
+      handleMuteToggle,
+    ],
   );
 
   const listHeader = useMemo(

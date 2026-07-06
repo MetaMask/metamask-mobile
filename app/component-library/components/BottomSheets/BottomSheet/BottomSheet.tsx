@@ -49,7 +49,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       shouldNavigateBack = true,
       isFullscreen = false,
       keyboardAvoidingViewEnabled = true,
-      panGestureHandlerProps,
       ...props
     },
     ref,
@@ -173,7 +172,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           isFullscreen={isFullscreen}
           style={style}
           keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
-          panGestureHandlerProps={panGestureHandlerProps}
         >
           {children}
         </BottomSheetDialog>

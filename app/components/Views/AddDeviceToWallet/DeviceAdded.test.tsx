@@ -1,12 +1,10 @@
 import React from 'react';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
+import { QrSyncPhases } from '../../../core/QrSync/constants';
+import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import DeviceAdded from './DeviceAdded';
-import {
-  MOCK_EXTENSION_CANCEL_ERROR_DELAY_MS,
-  showExtensionCancelledErrorSheet,
-} from './showExtensionCancelledErrorSheet';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -14,17 +12,18 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('./showExtensionCancelledErrorSheet', () => {
-  const actual = jest.requireActual('./showExtensionCancelledErrorSheet');
-  return {
-    ...actual,
-    showExtensionCancelledErrorSheet: jest.fn(),
-  };
-});
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    QrSyncController: {
+      cancelSession: jest.fn(),
+    },
+  },
+}));
 
-const mockShowExtensionCancelledErrorSheet = jest.mocked(
-  showExtensionCancelledErrorSheet,
-);
+import Engine from '../../../core/Engine';
+
+const mockCancelSession = Engine.context.QrSyncController
+  .cancelSession as jest.Mock;
 
 const mockGoBack = jest.fn();
 
@@ -38,16 +37,25 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const renderComponent = () => renderWithProvider(<DeviceAdded />);
+const renderComponent = (
+  qrSyncState: Partial<typeof defaultQrSyncControllerState> = {},
+) =>
+  renderWithProvider(<DeviceAdded />, {
+    state: {
+      engine: {
+        backgroundState: {
+          QrSyncController: {
+            ...defaultQrSyncControllerState,
+            ...qrSyncState,
+          },
+        },
+      },
+    },
+  });
 
 describe('DeviceAdded', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
   });
 
   describe('rendering', () => {
@@ -66,41 +74,34 @@ describe('DeviceAdded', () => {
     });
   });
 
-  describe('extension cancelled error sheet', () => {
-    it('shows the error sheet after the mock delay', () => {
-      renderComponent();
-
-      act(() => {
-        jest.advanceTimersByTime(MOCK_EXTENSION_CANCEL_ERROR_DELAY_MS);
-      });
-
-      expect(mockShowExtensionCancelledErrorSheet).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not show the error sheet again after unmount and remount within the delay', () => {
-      const { unmount } = renderComponent();
-
-      act(() => {
-        jest.advanceTimersByTime(MOCK_EXTENSION_CANCEL_ERROR_DELAY_MS - 1);
-      });
-
-      unmount();
-      renderComponent();
-
-      act(() => {
-        jest.advanceTimersByTime(MOCK_EXTENSION_CANCEL_ERROR_DELAY_MS);
-      });
-
-      expect(mockShowExtensionCancelledErrorSheet).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('back navigation', () => {
     it('calls navigation.goBack when back button is pressed', () => {
       const { getByTestId } = renderComponent();
 
       fireEvent.press(getByTestId('device-added-back-button'));
 
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels the QR sync session when back is pressed during an active session', () => {
+      const { getByTestId } = renderComponent({
+        phase: QrSyncPhases.AWAITING_SYNC_READY,
+      });
+
+      fireEvent.press(getByTestId('device-added-back-button'));
+
+      expect(mockCancelSession).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not cancel the session when sync is already completed', () => {
+      const { getByTestId } = renderComponent({
+        phase: QrSyncPhases.COMPLETED,
+      });
+
+      fireEvent.press(getByTestId('device-added-back-button'));
+
+      expect(mockCancelSession).not.toHaveBeenCalled();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
