@@ -12,7 +12,6 @@ import {
   HeaderSubpage,
   IconColor,
   IconName,
-  IconName as HeaderIconName,
   ListItemSelect,
   SegmentedControl,
   SelectButton,
@@ -376,7 +375,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         twClassName="min-h-14 h-auto bg-default justify-center"
         startAccessory={
           <ButtonIcon
-            iconName={HeaderIconName.ArrowLeft}
+            iconName={IconName.ArrowLeft}
             size={ButtonIconSize.Md}
             onPress={handleBack}
             testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
