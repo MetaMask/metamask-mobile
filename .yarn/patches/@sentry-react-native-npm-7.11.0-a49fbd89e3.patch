@@ -1,16 +1,16 @@
-diff --git a/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js b/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
-index e3d0936..5277051 100644
---- a/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
-+++ b/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
+diff --git a/dist/js/vendor/base64-js/index.js b/dist/js/vendor/base64-js/index.js
+index e3d0936a56f3a74b509b14f0c9e5b61c70fee7b9..527705103d2404d32a76d9ac4efc1fc34a3170cd 100644
+--- a/dist/js/vendor/base64-js/index.js
++++ b/dist/js/vendor/base64-js/index.js
 @@ -1,2 +1,2 @@
 -export { base64StringFromByteArray } from './fromByteArray';
 +export { fromByteArray as base64StringFromByteArray } from 'react-native-quick-base64';
  //# sourceMappingURL=index.js.map
 \ No newline at end of file
-diff --git a/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js b/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js
-index 03a1c6e..dac9820 100644
---- a/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js
-+++ b/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js
+diff --git a/dist/js/vendor/buffer/utf8ToBytes.js b/dist/js/vendor/buffer/utf8ToBytes.js
+index 03a1c6e13ef777d1258da82ec2b76c716fd6290a..dac98205476adfa27904cb2e2f3297a6281c8933 100644
+--- a/dist/js/vendor/buffer/utf8ToBytes.js
++++ b/dist/js/vendor/buffer/utf8ToBytes.js
 @@ -20,76 +20,41 @@
  /**
   * Convert a string to a byte array

@@ -18,7 +18,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
-  KeyboardProvider,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
@@ -558,7 +557,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
-  const content = (
+  return (
     <Box twClassName="flex-1 bg-default">
       <HeaderStandard
         includesTopInset
@@ -884,8 +883,6 @@ const ImportFromSecretRecoveryPhrase = ({
       <ScreenshotDeterrent enabled isSRP />
     </Box>
   );
-
-  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 ImportFromSecretRecoveryPhrase.propTypes = {
