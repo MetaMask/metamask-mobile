@@ -501,6 +501,18 @@ describe('PredictFeedView', () => {
       });
     });
 
+    it('does not track tab changed when re-pressing the already-active tab', () => {
+      // Active tab is 'basketball'. Pressing 'Basketball' again should be a no-op.
+      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
+
+      render(<PredictFeedView />);
+
+      fireEvent.press(screen.getAllByText('Basketball')[0]);
+
+      expect(mockTrackFeedTabChanged).not.toHaveBeenCalled();
+      expect(mockSetActiveTabId).not.toHaveBeenCalled();
+    });
+
     it('tracks a static filter change with is_dynamic_filter false', () => {
       mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
 

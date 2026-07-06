@@ -198,7 +198,7 @@ const PredictFeedView: React.FC = () => {
   const handleTabPress = useCallback(
     (index: number) => {
       const tab = tabs[index];
-      if (tab) {
+      if (tab && tab.id !== activeTabId) {
         setActiveTabId(tab.id);
         if (feedId) {
           Engine.context.PredictController.trackFeedTabChanged({
@@ -209,7 +209,7 @@ const PredictFeedView: React.FC = () => {
         }
       }
     },
-    [tabs, setActiveTabId, feedId, entryPoint],
+    [tabs, setActiveTabId, feedId, activeTabId, entryPoint],
   );
 
   const handleFilterSelect = useCallback(
