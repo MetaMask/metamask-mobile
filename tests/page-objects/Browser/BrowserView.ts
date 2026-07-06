@@ -11,9 +11,21 @@ import {
   getTestDappLocalUrl,
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import {
+  EncapsulatedElementType,
+  asPlaywrightElement,
+  encapsulated,
+} from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  PlaywrightGestures,
+  Utilities,
+} from '../../framework';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -59,6 +71,39 @@ class Browser {
 
   get urlInputBoxID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
+  }
+
+  /**
+   * Tap target for the URL bar when it is unfocused. The visible URL text lives
+   * in the `url-input` wrapper; the TextInput testID stays hidden until focused.
+   */
+  get urlBarTapTarget(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT),
+        ios: () =>
+          PlaywrightMatchers.getElementById(BrowserURLBarSelectorsIDs.URL_INPUT),
+      },
+    });
+  }
+
+  /**
+   * Editable URL field after the bar is focused (Android needs the inner EditText).
+   */
+  get urlBarTextInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//android.widget.EditText`,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(BrowserURLBarSelectorsIDs.URL_INPUT),
+      },
+    });
   }
 
   get clearURLButton(): EncapsulatedElementType {
@@ -142,7 +187,7 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlInputBoxID, {
+    await Gestures.waitAndTap(this.urlBarTapTarget, {
       elemDescription: 'URL input box',
     });
   }
@@ -326,9 +371,18 @@ class Browser {
     url: string,
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
-    await Gestures.typeText(this.urlInputBoxID, url, {
-      hideKeyboard: true,
-      elemDescription: 'URL input box',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.typeText(this.urlInputBoxID, url, {
+          hideKeyboard: true,
+          elemDescription: 'URL input box',
+        });
+      },
+      appium: async () => {
+        const input = await asPlaywrightElement(this.urlBarTextInput);
+        await input.clear();
+        await PlaywrightGestures.typeText(input, `${url}\n`);
+      },
     });
     // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
     // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
