@@ -33,7 +33,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { isHardwareAccount } from '../../../util/address';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import TradeWalletActions from './TradeWalletActions';
-import { TRADE_MENU_OUTLINE_TEST_ID } from './components/TradeMenuOutline';
+import { TRADE_MENU_BORDER_TEST_ID } from './components/TradeMenuBorder';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -446,7 +446,7 @@ describe('TradeWalletActions', () => {
     ).toBeNull();
   });
 
-  it('renders a cutout-following menu outline when pure black is enabled', () => {
+  it('renders a composed menu border when pure black is enabled', () => {
     mockIsPureBlack = true;
 
     const { getByTestId } = renderScreen(
@@ -459,18 +459,10 @@ describe('TradeWalletActions', () => {
       },
     );
 
-    fireEvent(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
-      'onLayout',
-      {
-        nativeEvent: { layout: { width: 350, height: 280, x: 0, y: 0 } },
-      },
-    );
-
-    expect(getByTestId(TRADE_MENU_OUTLINE_TEST_ID)).toBeTruthy();
+    expect(getByTestId(TRADE_MENU_BORDER_TEST_ID)).toBeTruthy();
   });
 
-  it('does not render the menu outline when pure black is disabled', () => {
+  it('does not render the menu border when pure black is disabled', () => {
     mockIsPureBlack = false;
 
     const { queryByTestId } = renderScreen(
@@ -483,7 +475,7 @@ describe('TradeWalletActions', () => {
       },
     );
 
-    expect(queryByTestId(TRADE_MENU_OUTLINE_TEST_ID)).toBeNull();
+    expect(queryByTestId(TRADE_MENU_BORDER_TEST_ID)).toBeNull();
   });
 
   it('should render earn button if the stablecoin lending feature is enabled', () => {

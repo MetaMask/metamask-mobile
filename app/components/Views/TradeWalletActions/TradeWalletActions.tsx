@@ -3,7 +3,6 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
-  LayoutChangeEvent,
   Platform,
   StyleSheet,
   View,
@@ -76,7 +75,7 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
-import TradeMenuOutline from './components/TradeMenuOutline';
+import TradeMenuBorder from './components/TradeMenuBorder';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
@@ -115,10 +114,6 @@ function TradeWalletActions() {
   const { colors } = useTheme();
   const isPureBlack = usePureBlack();
   const surfaceClass = useElevatedSurface();
-  const [menuLayout, setMenuLayout] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -294,11 +289,6 @@ function TradeWalletActions() {
     [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
-  const handleMenuLayout = useCallback((event: LayoutChangeEvent) => {
-    const { width, height } = event.nativeEvent.layout;
-    setMenuLayout({ width, height });
-  }, []);
-
   return (
     <View style={tw.style('flex-1 justify-end')}>
       <MaskedView
@@ -351,7 +341,6 @@ function TradeWalletActions() {
             >
               <Box
                 testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
-                onLayout={handleMenuLayout}
                 style={tw.style(
                   surfaceClass,
                   'relative p-4 rounded-2xl mx-4',
@@ -433,14 +422,14 @@ function TradeWalletActions() {
                     style={tw.style('bg-transparent')}
                   />
                 )}
-                {isPureBlack && menuLayout ? (
-                  <TradeMenuOutline
-                    width={menuLayout.width}
-                    height={menuLayout.height}
-                    stroke={colors.border.muted}
+                {isPureBlack ? (
+                  <TradeMenuBorder
+                    bottomMaskHeight={bottomMaskHeight}
+                    bottomShapeWidth={buttonLayout.width * 4}
                     peakHeight={bottomShapePeakHeight}
                     peakBezierLength={bottomShapePeakBezierLength}
                     baseBezierLength={bottomShapeBaseBezierLength}
+                    stroke={colors.border.muted}
                   />
                 ) : null}
               </Box>
