@@ -160,8 +160,4 @@ jobs:
             fi
             echo
             echo "_Shadow CI runs **fire-and-forget**: it does not appear in this PR's checks and never blocks the merge queue. Benchmark data is collected by \`scripts/namespace-benchmark.sh\`._"
-            if [ "${{ vars.NAMESPACE_SHADOW_AUTO_DISPATCH }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
-              echo
-              echo "_Auto-dispatch is **disabled** (NAMESPACE_SHADOW_AUTO_DISPATCH ≠ true). Use workflow_dispatch on this workflow or ci.yml._"
-            fi
           } >> "$GITHUB_STEP_SUMMARY"
