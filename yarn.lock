@@ -8552,12 +8552,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.33.0":
-  version: 0.33.0
-  resolution: "@metamask/design-system-react-native@npm:0.33.0"
+"@metamask/design-system-react-native@npm:^0.34.0":
+  version: 0.34.0
+  resolution: "@metamask/design-system-react-native@npm:0.34.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.27.0"
-    fast-text-encoding: "npm:^1.0.6"
+    "@metamask/design-system-shared": "npm:^0.28.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.7.0
@@ -8567,20 +8566,21 @@ __metadata:
     react: ">=18.2.0"
     react-native: ">=0.76.0"
     react-native-gesture-handler: ">=2.25.0"
-    react-native-reanimated: ">=3.17.0"
+    react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/19ac65ab820a620d974cca91498669c2feb7e8a0d7d716fb52fd83d9c63acb78ad3c6511e477e752082b4f34b5ae63b67acc24e134ef9941b04fb34ea2942c0b
+    react-native-worklets: ">=0.7.4"
+  checksum: 10/c9538ebb2deb857fb02ba5ff60a7c14ee6d850803f535674981dba8d82ca4dde0aa9aaef932d362e41c0d2ec9e77a74cddcc21801c6b6b1ac8c6563794c42e48
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.27.0":
-  version: 0.27.0
-  resolution: "@metamask/design-system-shared@npm:0.27.0"
+"@metamask/design-system-shared@npm:^0.28.0":
+  version: 0.28.0
+  resolution: "@metamask/design-system-shared@npm:0.28.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/2c8b211baa3f8ba30c8c619716c9581eae10335a9fcaa9080b199ea99e82384fc370a2934209b1d7b14390aec9d8957fc99982f3cd2c41e4904d00582f90c971
+  checksum: 10/5a478a1e7da1648a8ecc9ed94d74ebbbc4ff34921f93d3bdd0f64fbe2bd048fe3f6a93ce7d8be8f928471b5630486899eccd0d83d1dfacef6a0087174ab34f52
   languageName: node
   linkType: hard
 
@@ -29776,7 +29776,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-text-encoding@npm:1.0.6, fast-text-encoding@npm:^1.0.6":
+"fast-text-encoding@npm:1.0.6":
   version: 1.0.6
   resolution: "fast-text-encoding@npm:1.0.6"
   checksum: 10/f7b9e2e7a21e4ae5f4b8d3729850be83fb45052b28c9c38c09b8366463a291d6dc5448359238bdaf87f6a9e907d5895a94319a2c5e0e9f0786859ad6312d1d06
@@ -35514,7 +35514,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.33.0"
+    "@metamask/design-system-react-native": "npm:^0.34.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.7.0"
     "@metamask/design-tokens": "npm:^8.7.0"
     "@metamask/earn-controller": "npm:^12.1.0"
