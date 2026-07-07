@@ -221,6 +221,7 @@
     "expo-web-browser@npm:~55.0.16": "55.0.16",
     "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
+    "@metamask/assets-controller@npm:^10.0.1": "patch:@metamask/assets-controller@npm%3A10.0.1#~/.yarn/patches/@metamask-assets-controller-npm-10.0.1-d3c86d8983.patch",
     "@metamask/stellar-wallet-snap": "patch:@metamask-previews/stellar-wallet-snap@npm%3A0.0.1-preview-a3c0091#~/.yarn/patches/@metamask-previews-stellar-wallet-snap-npm-0.0.1-preview-a3c0091-052886e43f.patch"
   },
   "dependencies": {

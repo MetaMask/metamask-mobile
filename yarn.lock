@@ -8020,7 +8020,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:10.0.1, @metamask/assets-controller@npm:^10.0.1":
+"@metamask/assets-controller@npm:10.0.1":
   version: 10.0.1
   resolution: "@metamask/assets-controller@npm:10.0.1"
   dependencies:
