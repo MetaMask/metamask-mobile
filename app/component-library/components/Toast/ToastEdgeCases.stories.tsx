@@ -10,9 +10,9 @@ import { getNetworkImageSource } from '../../../util/networks';
 import Button, { ButtonVariants } from '../Buttons/Button';
 import type { ButtonProps } from '../Buttons/Button/Button.types';
 import { IconName } from '../Icons/Icon';
-import Toast, { ToastVariants } from './Toast';
+import Toast from './Toast';
 import { ToastContext, ToastContextWrapper } from './Toast.context';
-import type { ToastOptions } from './Toast.types';
+import { ToastVariants, type ToastOptions } from './Toast.types';
 import { TEST_NETWORK_IMAGE_SOURCE } from './Toast.constants';
 import {
   presentStoryToast,
