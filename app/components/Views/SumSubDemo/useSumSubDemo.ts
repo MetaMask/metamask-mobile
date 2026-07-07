@@ -16,17 +16,6 @@ async function getBearerToken(): Promise<string> {
   return bearerToken;
 }
 
-async function getBearerToken(): Promise<string> {
-  const bearerToken =
-    await Engine.context.AuthenticationController.getBearerToken();
-  if (!bearerToken) {
-    throw new Error(
-      'Unable to obtain an authentication bearer token — is the wallet signed in?',
-    );
-  }
-  return bearerToken;
-}
-
 interface CreateSessionResponse {
   sessionId: string;
   wrappedUserKey: string;
