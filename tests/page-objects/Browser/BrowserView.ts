@@ -7,10 +7,7 @@ import {
 import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
-import {
-  getTestDappLocalUrl,
-  getDappUrl,
-} from '../../framework/fixtures/FixtureUtils';
+import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import {
@@ -18,12 +15,18 @@ import {
   Gestures,
   Matchers,
   Utilities,
+  asPlaywrightElement,
+  encapsulated,
   sleep,
 } from '../../framework';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { createPlaywrightLogger } from '../../framework/playwrightLogger';
+import { openUrlInBrowserView } from '../../flows/browser.flow';
 
 const logger = createPlaywrightLogger('BrowserView');
 
@@ -71,6 +74,47 @@ class Browser {
 
   get urlInputBoxID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
+  }
+
+  /**
+   * Tap target for the URL bar when it is unfocused. The visible URL text lives
+   * in the `url-input` wrapper; the TextInput testID stays hidden until focused.
+   * On Android Appium, tap the displayed URL text so `onPressUrlText` runs focus().
+   */
+  get urlBarTapTarget(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//*[contains(@text,'http') or contains(@text,'localhost')]`,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            BrowserURLBarSelectorsIDs.URL_INPUT,
+          ),
+      },
+    });
+  }
+
+  /**
+   * Editable URL field after the bar is focused (Android needs the inner EditText).
+   */
+  get urlBarTextInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            BrowserURLBarSelectorsIDs.URL_INPUT,
+            { exact: false },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            BrowserURLBarSelectorsIDs.URL_INPUT,
+          ),
+      },
+    });
   }
 
   get clearURLButton(): EncapsulatedElementType {
@@ -139,7 +183,7 @@ class Browser {
   }
 
   get closeAllTabsButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.CLOSE_ALL_TABS);
+    return Matchers.getElementByID('tabs_close_all');
   }
 
   get noTabsMessage(): EncapsulatedElementType {
@@ -154,14 +198,44 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      // Appium navigates via dapp:// deeplink in navigateToURL (URL bar is unreliable).
-      return;
-    }
-
-    await Gestures.waitAndTap(this.urlInputBoxID, {
-      elemDescription: 'URL input box',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.urlInputBoxID, {
+          elemDescription: 'URL input box',
+        });
+      },
+      appium: async () => {
+        await openUrlInBrowserView();
+      },
     });
+  }
+
+  /**
+   * `dapp://` deeplinks are upgraded to HTTPS in `handleDappUrl` — local test
+   * dapps are HTTP-only (`http://localhost:8085`), so they must use the URL bar.
+   */
+  private requiresHttpUrlBarNavigation(url: string): boolean {
+    return /^http:\/\//i.test(url);
+  }
+
+  /**
+   * Navigate via the browser URL bar (preserves `http://` scheme).
+   */
+  private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
+    logger.info(`navigateToUrlViaUrlBarAppium: ${url}`);
+    await this.tapUrlInputBox();
+
+    const input = await asPlaywrightElement(this.urlBarTextInput);
+    await input.waitForDisplayed({ timeout: 10_000 });
+    await input.clear();
+    // Trailing `\n` triggers React Native `onSubmitEditing` (returnKeyType="go").
+    await PlaywrightGestures.typeText(input, url);
+    await PlaywrightGestures.submitAndroidUrlBar();
+
+    const settleMs = process.env.CI === 'true' ? 8_000 : 3_000;
+    logger.info(`navigateToUrlViaUrlBarAppium: settle ${settleMs}ms`);
+    await sleep(settleMs);
+    logger.info('navigateToUrlViaUrlBarAppium: complete');
   }
 
   /**
@@ -187,6 +261,10 @@ class Browser {
   }
 
   private async typeUrlAppium(url: string): Promise<void> {
+    if (this.requiresHttpUrlBarNavigation(url)) {
+      await this.navigateToUrlViaUrlBarAppium(url);
+      return;
+    }
     await this.navigateToUrlViaDeeplink(url);
   }
 
@@ -374,7 +452,6 @@ class Browser {
       await this.typeUrlAppium(url);
       return;
     }
-
     await Gestures.typeText(this.urlInputBoxID, url, {
       hideKeyboard: true,
       elemDescription: 'URL input box',
@@ -413,7 +490,7 @@ class Browser {
 
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
-    await this.navigateToURL(getTestDappLocalUrl());
+    await this.navigateToURL(getDappUrl(0));
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
@@ -431,7 +508,7 @@ class Browser {
     await this.tapUrlInputBox();
     const encodedParams = encodeURIComponent(JSON.stringify(transactionParams));
     await this.navigateToURL(
-      `${getTestDappLocalUrl()}/request?method=eth_sendTransaction&params=${encodedParams}`,
+      `${getDappUrl(0)}/request?method=eth_sendTransaction&params=${encodedParams}`,
     );
   }
 

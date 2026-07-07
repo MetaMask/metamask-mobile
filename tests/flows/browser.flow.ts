@@ -193,3 +193,12 @@ export const navigateToBrowserView = async (): Promise<void> => {
   );
   logger.info('navigateToBrowserView: complete');
 };
+
+export const openUrlInBrowserView = async (): Promise<void> => {
+  await Gestures.waitAndTap(
+    PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT),
+    {
+      elemDescription: 'URL input box',
+    },
+  );
+};
