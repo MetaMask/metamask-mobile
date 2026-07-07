@@ -32,7 +32,7 @@ jest.mock('react-redux', () => {
       const {
         selectTokenWatchlistEnabled: enabledSelector,
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-      } = require('../../selectors/featureFlags');
+      } = require('../../../Assets/selectors/featureFlags');
       const {
         selectAssetsBySelectedAccountGroup: assetsSelector,
         // eslint-disable-next-line @typescript-eslint/no-require-imports

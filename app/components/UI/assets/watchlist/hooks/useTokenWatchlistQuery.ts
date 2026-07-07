@@ -3,7 +3,7 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
-import { selectTokenWatchlistEnabled } from '../../selectors/featureFlags';
+import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { readFromTokenWatchList } from '../storage';
 import {
   addBalanceToTokens,
@@ -42,24 +42,23 @@ export const useTokenWatchlistQuery = (
     [assetsByChain],
   );
 
-  return useQuery<WatchlistTokenMetadata[], Error, WatchlistTokenWithBalance[]>(
-    {
-      queryKey: suggestedTokens
-        ? tokenWatchlistQueryKeys.suggested
-        : tokenWatchlistQueryKeys.blob,
-      staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
-      enabled: isWatchlistEnabled,
-      queryFn: async () => {
-        if (suggestedTokens) {
-          return getTokens(suggestedTokens);
-        }
-        const blob = await readFromTokenWatchList();
-        if (!blob.assets.length) {
-          return [];
-        }
-        return getTokens(blob.assets);
-      },
-      select: (tokens) => addBalanceToTokens(tokens, assetsByAssetId),
+  return useQuery({
+    queryKey: suggestedTokens
+      ? tokenWatchlistQueryKeys.suggested
+      : tokenWatchlistQueryKeys.blob,
+    staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
+    enabled: isWatchlistEnabled,
+    queryFn: async (): Promise<WatchlistTokenMetadata[]> => {
+      if (suggestedTokens) {
+        return getTokens(suggestedTokens);
+      }
+      const blob = await readFromTokenWatchList();
+      if (!blob.assets.length) {
+        return [];
+      }
+      return getTokens(blob.assets);
     },
-  );
+    select: (tokens: WatchlistTokenMetadata[]) =>
+      addBalanceToTokens(tokens, assetsByAssetId),
+  });
 };
