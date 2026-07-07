@@ -693,9 +693,20 @@ export const POLYMARKET_CLOB_MARKET_INFO_MOCKS = async (
 };
 
 /**
+ * Minimal CLOB prices-history payload for game charts.
+ * PredictGameChart treats empty series as still loading (`!hasChartData` → spinner).
+ */
+const POLYMARKET_MOCK_PRICE_HISTORY_RESPONSE = {
+  history: [
+    { t: 1_729_814_400, p: 0.55 },
+    { t: 1_729_900_800, p: 0.58 },
+    { t: 1_729_987_200, p: 0.615 },
+  ],
+};
+
+/**
  * Mock for Polymarket CLOB prices-history API
- * Returns an empty history series — sufficient for predict happy-path specs
- * that render the chart (consumer treats non-array history as empty).
+ * Returns a short history series so PredictGameChart exits the loading state.
  */
 export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
@@ -705,7 +716,7 @@ export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
       return Boolean(url?.includes('clob.polymarket.com/prices-history'));
     })
     .asPriority(PRIORITY.BASE)
-    .thenReply(200, JSON.stringify({ history: [] }), {
+    .thenReply(200, JSON.stringify(POLYMARKET_MOCK_PRICE_HISTORY_RESPONSE), {
       'content-type': 'application/json',
     });
 };

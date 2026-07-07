@@ -9,7 +9,7 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../Deposit/Views/EnterEmail/EnterEmail.styles';
+import styleSheet from './EnterEmail.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
   createNavigationDetails,
@@ -20,9 +20,9 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import { createV2OtpCodeNavDetails } from './OtpCode';
-import { validateEmail } from '../../Deposit/utils';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar/DepositProgressBar';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
+import { validateEmail } from '../../utils/depositUtils';
+import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';

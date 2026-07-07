@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, ActivityIndicator } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -231,12 +235,16 @@ const OnboardingMainStep: React.FC = () => {
     });
   }, [optin, canContinue, referralCode, isPrefilledReferral]);
 
-  // Auto-redirect + analytics tracking
+  // Post-opt-in: replace onboarding with dashboard so back does not return here.
+  // RewardsHome registers both screens in the same stack; dashboard screen options
+  // provide the slide transition.
   useFocusEffect(
     useCallback(() => {
       if (subscriptionId) {
-        navigation.navigate(Routes.REWARDS_DASHBOARD);
-      } else if (!hasTrackedOnboardingStart.current) {
+        navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+        return;
+      }
+      if (!hasTrackedOnboardingStart.current) {
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.REWARDS_ONBOARDING_STARTED,

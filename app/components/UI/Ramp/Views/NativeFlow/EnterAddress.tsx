@@ -12,15 +12,15 @@ import {
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../Deposit/Views/EnterAddress/EnterAddress.styles';
+import styleSheet from './EnterAddress.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import DepositTextField from '../../Deposit/components/DepositTextField';
-import { useForm } from '../../Deposit/hooks/useForm';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import PrivacySection from '../../Deposit/components/PrivacySection';
-import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
+import DepositTextField from '../../components/DepositTextField';
+import { useForm } from '../../hooks/useForm';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
+import { VALIDATION_REGEX } from '../../constants/transak';
 import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -52,7 +52,7 @@ interface V2EnterAddressParams {
   headlessSessionId?: string;
 }
 
-const V2EnterAddress = (): JSX.Element => {
+const V2EnterAddress = (): React.JSX.Element => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData, headlessSessionId } =

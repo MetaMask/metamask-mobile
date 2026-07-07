@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -7,6 +8,7 @@ import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -56,6 +58,10 @@ jest.mock(
     useMMPayFiatConfig: jest.fn(),
   }),
 );
+
+jest.mock('../../hooks/useRegionHasNativeFiatProvider', () => ({
+  useRegionHasNativeFiatProvider: jest.fn(),
+}));
 
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
@@ -120,6 +126,7 @@ describe('MoneyAddMoneySheet', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
+    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
   });
 
   it('renders all options', () => {
@@ -137,6 +144,25 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the deposit option as "Debit card" without Apple Pay on Android', () => {
+    const originalOS = Platform.OS;
+    Platform.OS = 'android';
+
+    try {
+      const { getByText, queryByText, getByTestId } = renderWithProvider(
+        <MoneyAddMoneySheet />,
+      );
+
+      expect(getByText('Debit card')).toBeOnTheScreen();
+      expect(queryByText('Debit card or Apple Pay')).toBeNull();
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+      ).toBeOnTheScreen();
+    } finally {
+      Platform.OS = originalOS;
+    }
   });
 
   it('renders the Bank account row as a coming-soon, non-pressable option', () => {
@@ -290,6 +316,41 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     ).toBeNull();
+  });
+
+  it('hides the Deposit funds option when the region has no native fiat provider', () => {
+    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
+
+    const { queryByTestId, getByTestId } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeNull();
+    // Other options are unaffected.
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the Deposit funds option when the region has a native fiat provider', () => {
+    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
   });
 
   it('disables the Convert crypto option when no account has any crypto balance', () => {

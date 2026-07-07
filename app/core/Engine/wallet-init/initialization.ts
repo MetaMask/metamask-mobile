@@ -1,48 +1,46 @@
-import { Wallet } from '@metamask/wallet';
-import { Json } from '@metamask/utils';
-import { ApprovalType } from '@metamask/controller-utils';
-import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
-import { getKeyringBuilders, getKeyringV2Builders } from './keyrings';
+import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../Encryptor';
-import { mobileStorageAdapter } from '../utils/storage-service-utils';
-import { ApprovalTypes } from '../../RPCMethods/RPCMethodMiddleware';
+import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
+import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
+import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
+import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
+import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
+import {
+  getNetworkControllerInstanceOptions,
+  setupRpcEndpointMetrics,
+} from './instance-options/network-controller';
 
+/**
+ * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
+ * client-specific options live in its own builder under `./instance-options/`.
+ */
 export function initializeWallet({
   messenger,
   state,
 }: {
   messenger: RootMessenger;
-  state: Record<string, Record<string, Json> | undefined>;
+  state: NonNullable<WalletOptions['state']>;
 }) {
-  const encryptor = new Encryptor({
-    keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
-  });
-
-  return new Wallet({
+  const wallet = new Wallet({
     messenger,
     state,
     instanceOptions: {
-      approvalController: {
-        // Mobile drives approvals through state, so `showApprovalRequest` is a
-        // no-op. It is omitted here because the wallet defaults it to a no-op.
-        typesExcludedFromRateLimiting: [
-          ApprovalType.Transaction,
-          ApprovalType.WatchAsset,
-          ApprovalTypes.SMART_TRANSACTION_STATUS,
-
-          // Allow one flavor of snap_dialog to be queued.
-          DIALOG_APPROVAL_TYPES.default,
-        ],
-      },
-      keyringController: {
-        encryptor,
-        keyringBuilders: getKeyringBuilders(messenger),
-        keyringV2Builders: getKeyringV2Builders(),
-      },
-      storageService: {
-        storage: mobileStorageAdapter,
-      },
+      approvalController: getApprovalControllerInstanceOptions(),
+      connectivityController: getConnectivityControllerInstanceOptions(),
+      keyringController: getKeyringControllerInstanceOptions(messenger),
+      networkController: getNetworkControllerInstanceOptions(),
+      remoteFeatureFlagController:
+        getRemoteFeatureFlagControllerInstanceOptions({
+          messenger,
+          state,
+        }),
+      storageService: getStorageServiceInstanceOptions(),
     },
   });
+
+  setupRpcEndpointMetrics(messenger);
+
+  wallet.init().catch((error) => console.error(error));
+
+  return wallet;
 }

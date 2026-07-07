@@ -1,11 +1,19 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { View, Animated, ScrollView } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Icon, {
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
+import {
+  HeaderStandard,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import { View, Animated, ScrollView } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -42,7 +50,7 @@ import {
 } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -58,6 +66,11 @@ const PerpsMarketListView = ({
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const insets = useSafeAreaInsets();
+  const listContentContainerStyle = useMemo(
+    () => ({ paddingBottom: insets.bottom }),
+    [insets.bottom],
+  );
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
@@ -177,10 +190,7 @@ const PerpsMarketListView = ({
           PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
       });
       setMarketTypeFilter(category);
-      // Deactivate the watchlist filter whenever a category badge is activated
-      if (category !== 'all') {
-        setShowFavoritesOnly(false);
-      }
+      setShowFavoritesOnly(false);
     },
     [setMarketTypeFilter, setShowFavoritesOnly, track],
   );
@@ -357,7 +367,7 @@ const PerpsMarketListView = ({
             <Icon
               name={IconName.Search}
               size={IconSize.Xl}
-              color={theme.colors.icon.muted}
+              color={IconColor.IconMuted}
               style={styles.emptyStateIcon}
             />
             <Text
@@ -381,7 +391,8 @@ const PerpsMarketListView = ({
       return (
         <ScrollView
           style={styles.watchlistScrollContainer}
-          contentContainerStyle={styles.watchlistScrollContent}
+          contentContainerStyle={listContentContainerStyle}
+          showsVerticalScrollIndicator={false}
         >
           <PerpsWatchlistMarkets
             markets={visibleWatchlistMarkets}
@@ -404,7 +415,7 @@ const PerpsMarketListView = ({
           <Icon
             name={IconName.Search}
             size={IconSize.Xl}
-            color={theme.colors.icon.muted}
+            color={IconColor.IconMuted}
             style={styles.emptyStateIcon}
           />
           <Text
@@ -438,6 +449,7 @@ const PerpsMarketListView = ({
           sortBy={sortBy}
           showBadge={false}
           filterKey={marketTypeFilter}
+          contentContainerStyle={listContentContainerStyle}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
@@ -445,8 +457,9 @@ const PerpsMarketListView = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <HeaderStandard
+        includesTopInset
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
         backButtonProps={{
@@ -499,7 +512,7 @@ const PerpsMarketListView = ({
         onOptionSelect={handleOptionChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

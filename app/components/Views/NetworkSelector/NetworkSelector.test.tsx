@@ -1,6 +1,6 @@
 // Third party dependencies
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 
 // External dependencies
@@ -308,7 +308,7 @@ const initialState = {
   },
 };
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const createMockRoute = () => ({
   params: {},

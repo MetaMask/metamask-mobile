@@ -3,8 +3,10 @@ import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictGameDetailsFooter from './PredictGameDetailsFooter';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import {
   PredictMarket,
+  PredictMarketGame,
   PredictOutcome,
   PredictMarketStatus,
   Recurrence,
@@ -43,6 +45,11 @@ jest.mock('../../hooks/useLiveMarketPrices', () => ({
     lastUpdateTime: null,
   }),
 }));
+jest.mock('../../hooks/usePredictGame');
+
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'outcome-1',
@@ -119,6 +126,11 @@ const createDefaultProps = (overrides = {}) => ({
 describe('PredictGameDetailsFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   describe('info row', () => {
@@ -343,6 +355,26 @@ describe('PredictGameDetailsFooter', () => {
       renderWithProvider(<PredictGameDetailsFooter {...props} />);
 
       expect(screen.getByTestId('game-details-footer')).toBeOnTheScreen();
+    });
+
+    it('returns null when the cached live game has ended', () => {
+      const market = createMockGameMarket();
+      const cachedEndedGame: PredictMarketGame = {
+        ...(market.game as PredictMarketGame),
+        status: 'ended',
+        period: 'FT',
+        elapsed: null,
+      };
+      mockUsePredictGame.mockReturnValue({
+        game: cachedEndedGame,
+        isConnected: false,
+        lastUpdateTime: Date.now(),
+      });
+      const props = createDefaultProps({ market });
+
+      renderWithProvider(<PredictGameDetailsFooter {...props} />);
+
+      expect(screen.queryByTestId('game-details-footer')).toBeNull();
     });
   });
 

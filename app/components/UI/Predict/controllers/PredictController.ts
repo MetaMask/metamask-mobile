@@ -37,6 +37,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
+import { formatUnits, Interface } from 'ethers/lib/utils';
 import performance from 'react-native-performance';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -50,15 +51,20 @@ import {
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { PredictTradeStatus } from '../constants/eventNames';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+} from '../constants/eventNames';
 
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
+  COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
 
@@ -97,6 +103,7 @@ import {
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
+  PredictTradeAnalyticsProperties,
   PredictWithdraw,
   PredictWithdrawStatus,
   PrepareDepositParams,
@@ -111,6 +118,7 @@ import {
 } from '../types';
 import { PredictFeatureFlags } from '../types/flags';
 
+import { mapClaimFailureReason } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
 import { ensureError } from '../utils/predictErrorHandler';
@@ -304,6 +312,25 @@ export type PredictControllerEvents =
   | ControllerStateChangeEvent<'PredictController', PredictControllerState>
   | PredictControllerTransactionStatusChangedEvent;
 
+interface TransactionReceiptLog {
+  address?: string;
+  data?: string;
+  topics?: string | string[];
+}
+
+interface ClaimAmountFromSimulationOptions {
+  treatMissingRelevantTokenChangesAsZero?: boolean;
+}
+
+const PAYOUT_REDEMPTION_INTERFACE = new Interface([
+  'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
+]);
+
+const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
+  MATIC_CONTRACTS_V2.collateral.toLowerCase(),
+  USDC_E_ADDRESS.toLowerCase(),
+]);
+
 /**
  * The action which can be used to retrieve the state of the PredictController.
  */
@@ -404,6 +431,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackActivityViewed',
   'trackBannerAction',
   'trackBetslipDismissed',
+  'trackCategoryClicked',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
@@ -455,6 +483,27 @@ export class PredictController extends BaseController<
       activeAbTests?: PlaceOrderParams['activeAbTests'];
     };
   } = {};
+
+  /**
+   * In-memory claim analytics context keyed by lowercased signer address.
+   * Captured when a claim is initiated and consumed when the claim transaction
+   * reaches a terminal status, so `succeeded`/`failed` events keep entry-point
+   * attribution. Keyed by address (not transactionId) because the claim has no
+   * transaction id at initiation time.
+   */
+  private pendingClaimAnalytics: {
+    [address: string]: PredictTradeAnalyticsProperties;
+  } = {};
+
+  /**
+   * Tracks which claim transactions have already emitted a terminal
+   * `PREDICT_TRADE_TRANSACTION` event, keyed by transaction id. Keyed per
+   * transaction (not per address) so a delayed/duplicate `transactionStatusUpdated`
+   * for an earlier claim cannot emit a spurious terminal event for, or suppress
+   * the real terminal event of, a newer in-flight claim on the same address.
+   * Each claim creates a unique transaction id, so no per-attempt reset is needed.
+   */
+  private claimTerminalEmitted = new Set<string>();
 
   private readonly traceable: TraceableController = {
     update: (updater) => this.update(updater),
@@ -1268,6 +1317,12 @@ export class PredictController extends BaseController<
     this.analytics.trackBannerAction(args);
   }
 
+  public trackCategoryClicked(
+    args: Parameters<PredictAnalytics['trackCategoryClicked']>[0],
+  ): void {
+    this.analytics.trackCategoryClicked(args);
+  }
+
   public trackShareAction(
     args: Parameters<PredictAnalytics['trackShareAction']>[0],
   ): void {
@@ -1724,9 +1779,8 @@ export class PredictController extends BaseController<
     }
   }
 
-  async claimWithConfirmation(
-    _params: ClaimParams = {},
-  ): Promise<PredictClaim> {
+  async claimWithConfirmation(params: ClaimParams = {}): Promise<PredictClaim> {
+    const analyticsContext = params.analyticsProperties;
     // Start Sentry trace for claim operation
     const traceId = `claim-${Date.now()}`;
     let traceData:
@@ -1769,6 +1823,16 @@ export class PredictController extends BaseController<
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
       }
+
+      // Stash claim analytics context so the terminal-status handler can fire
+      // `succeeded`/`failed` with entry-point attribution. Captured here (before
+      // `confirmClaim` clears `claimablePositions`) so single-market context is
+      // available at terminal time.
+      this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+        this.buildClaimAnalyticsProperties(
+          analyticsContext,
+          claimablePositions,
+        );
 
       // Set pending claim placeholder before preparing the transaction
       this.update((state) => {
@@ -1857,6 +1921,21 @@ export class PredictController extends BaseController<
       if (e.message.includes('User denied transaction signature')) {
         traceData = { success: false, reason: 'user_cancelled' };
 
+        // This branch returns without throwing and before any on-chain
+        // transaction exists, so neither the hook catch nor the terminal-status
+        // handler fires. Track the user rejection here so it stays measurable.
+        const claimAnalytics =
+          this.pendingClaimAnalytics[signer.address.toLowerCase()] ??
+          this.buildClaimAnalyticsProperties(analyticsContext);
+        // Signing was denied before any transaction was created, so there is no
+        // terminal `transactionStatusUpdated` to dedupe against (no guard entry).
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          analyticsProperties: claimAnalytics,
+          failureReason: PredictEventValues.CLAIM_FAILURE_REASON.USER_REJECTED,
+        });
+        delete this.pendingClaimAnalytics[signer.address.toLowerCase()];
+
         // ignore error, as the user cancelled the tx
         return {
           batchId: 'NA',
@@ -1894,6 +1973,10 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      // The hook's catch handler tracks the `failed` event for re-thrown
+      // (pre-tx) errors, so just clear the stash here to avoid a double-fire.
+      delete this.pendingClaimAnalytics[signer.address.toLowerCase()];
+
       // Re-throw the error so the hook can handle it and show the toast
       throw error;
     } finally {
@@ -1903,6 +1986,132 @@ export class PredictController extends BaseController<
         data: traceData,
       });
     }
+  }
+
+  /**
+   * Builds the analytics properties for a claim `PREDICT_TRADE_TRANSACTION`
+   * event. Always sets `transaction_type: mm_predict_claim`. When a single
+   * market is being claimed, `market_id`/`market_title` are populated; for
+   * multi-market claims they are omitted in favor of `claimable_positions_count`.
+   */
+  private buildClaimAnalyticsProperties(
+    analyticsContext?: PredictTradeAnalyticsProperties,
+    claimablePositions?: PredictPosition[],
+  ): PredictTradeAnalyticsProperties {
+    const properties: PredictTradeAnalyticsProperties = {
+      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+      ...analyticsContext,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+    };
+
+    if (claimablePositions && claimablePositions.length > 0) {
+      properties.claimablePositionsCount = claimablePositions.length;
+
+      const distinctMarketIds = new Set(
+        claimablePositions.map((position) => position.marketId),
+      );
+      if (distinctMarketIds.size === 1) {
+        const [singlePosition] = claimablePositions;
+        properties.marketId = properties.marketId ?? singlePosition.marketId;
+        properties.marketTitle = properties.marketTitle ?? singlePosition.title;
+      }
+    }
+
+    return properties;
+  }
+
+  /**
+   * Fires the terminal claim `PREDICT_TRADE_TRANSACTION` event
+   * (`succeeded`/`failed`) using the stashed analytics context and the claim
+   * amount captured before claimable positions are cleared.
+   *
+   * Idempotent per transaction: if a terminal event was already emitted for this
+   * transaction id (e.g. by the footer resolution-lag guard, or a repeated
+   * terminal `transactionStatusUpdated`), this is a no-op. The stash is left
+   * untouched on skip so a stale update cannot clear a newer claim's attribution.
+   */
+  private trackClaimTransactionOutcome({
+    status,
+    amount,
+    address,
+    transactionMeta,
+  }: {
+    status: PredictTransactionEventStatus;
+    amount?: number;
+    address: string;
+    transactionMeta: TransactionMeta;
+  }): void {
+    const transactionId = transactionMeta.id;
+
+    if (this.claimTerminalEmitted.has(transactionId)) {
+      return;
+    }
+
+    const normalizedAddress = address.toLowerCase();
+    const analyticsProperties =
+      this.pendingClaimAnalytics[normalizedAddress] ??
+      this.buildClaimAnalyticsProperties();
+
+    if (status === 'confirmed') {
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: amount,
+        analyticsProperties,
+      });
+    } else {
+      const failureReason =
+        status === 'rejected'
+          ? PredictEventValues.CLAIM_FAILURE_REASON.USER_REJECTED
+          : mapClaimFailureReason(transactionMeta.error?.message);
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        amountUsd: amount,
+        analyticsProperties,
+        failureReason,
+      });
+    }
+
+    this.claimTerminalEmitted.add(transactionId);
+    delete this.pendingClaimAnalytics[normalizedAddress];
+  }
+
+  /**
+   * Emits a terminal `failed`/`pending_resolution` claim event for the
+   * resolution-lag (no-positions-won) guard surfaced on the claim confirmation
+   * footer (Sentry 5JA7). Participates in the same per-transaction idempotency
+   * guard as {@link trackClaimTransactionOutcome} (keyed by `transactionId`), so
+   * the eventual `rejected` status update for the same transaction does not emit
+   * a duplicate (mislabeled `user_rejected`) terminal event.
+   */
+  public trackClaimResolutionLagFailure({
+    transactionId,
+    address,
+  }: {
+    transactionId?: string;
+    address?: string;
+  }): void {
+    if (transactionId && this.claimTerminalEmitted.has(transactionId)) {
+      return;
+    }
+
+    const normalizedAddress = (
+      address ?? this.getSigner().address
+    ).toLowerCase();
+
+    const analyticsProperties =
+      this.pendingClaimAnalytics[normalizedAddress] ??
+      this.buildClaimAnalyticsProperties();
+
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.FAILED,
+      analyticsProperties,
+      failureReason: PredictEventValues.CLAIM_FAILURE_REASON.PENDING_RESOLUTION,
+    });
+
+    if (transactionId) {
+      this.claimTerminalEmitted.add(transactionId);
+    }
+    delete this.pendingClaimAnalytics[normalizedAddress];
   }
 
   public confirmClaim({ address }: { address?: string }): void {
@@ -2572,6 +2781,21 @@ export class PredictController extends BaseController<
       ...(transactionId ? { transactionId } : {}),
       ...(amount !== undefined ? { amount } : {}),
     });
+
+    // Track terminal claim outcome on PREDICT_TRADE_TRANSACTION. `amount` is
+    // captured above before `handleTransactionSideEffects` -> `confirmClaim`
+    // clears claimable positions, so `amount_usd` reflects the claimed value.
+    if (
+      type === 'claim' &&
+      (status === 'confirmed' || status === 'failed' || status === 'rejected')
+    ) {
+      this.trackClaimTransactionOutcome({
+        status,
+        amount,
+        address,
+        transactionMeta,
+      });
+    }
   }
 
   private async syncDepositWalletBalanceAllowanceIfNeeded({
@@ -2860,6 +3084,134 @@ export class PredictController extends BaseController<
     );
   }
 
+  private getClaimAmountFromReceipt(
+    logs: TransactionReceiptLog[] | undefined,
+  ): number | undefined {
+    if (!logs?.length) {
+      return undefined;
+    }
+
+    let payoutRaw = 0n;
+    let hasPayoutRedemption = false;
+
+    for (const log of logs) {
+      if (
+        log.address?.toLowerCase() !==
+        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
+      ) {
+        continue;
+      }
+
+      const topics = this.normalizeLogTopics(log.topics);
+      if (!topics || !log.data) {
+        continue;
+      }
+
+      try {
+        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+          topics,
+          data: log.data,
+        });
+        const payout = parsedLog.args.payout?.toString();
+
+        if (payout === undefined) {
+          continue;
+        }
+
+        payoutRaw += BigInt(payout);
+        hasPayoutRedemption = true;
+      } catch (_error) {
+        continue;
+      }
+    }
+
+    if (!hasPayoutRedemption) {
+      return undefined;
+    }
+
+    return parseFloat(
+      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+    );
+  }
+
+  private getClaimAmountFromSimulation(
+    transactionMeta: TransactionMeta,
+    {
+      treatMissingRelevantTokenChangesAsZero = false,
+    }: ClaimAmountFromSimulationOptions = {},
+  ): number | undefined {
+    const tokenBalanceChanges =
+      transactionMeta.simulationData?.tokenBalanceChanges;
+
+    if (!tokenBalanceChanges) {
+      return undefined;
+    }
+
+    let hasRelevantTokenChange = false;
+
+    const claimAmount = tokenBalanceChanges.reduce((sum, change) => {
+      const address = change.address?.toLowerCase();
+
+      if (
+        change.isDecrease ||
+        change.standard !== 'erc20' ||
+        !address ||
+        !PREDICT_CLAIM_COLLATERAL_ADDRESSES.has(address) ||
+        typeof change.difference !== 'string'
+      ) {
+        return sum;
+      }
+
+      try {
+        const difference = parseFloat(
+          formatUnits(change.difference, COLLATERAL_TOKEN_DECIMALS),
+        );
+        hasRelevantTokenChange = true;
+        return sum + difference;
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to parse claim simulation difference',
+          {
+            difference: change.difference,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        );
+        return sum;
+      }
+    }, 0);
+
+    if (hasRelevantTokenChange) {
+      return claimAmount;
+    }
+
+    return treatMissingRelevantTokenChangesAsZero ? 0 : undefined;
+  }
+
+  private getActualClaimAmount(
+    transactionMeta: TransactionMeta,
+    options?: ClaimAmountFromSimulationOptions,
+  ): number | undefined {
+    const receiptAmount = this.getClaimAmountFromReceipt(
+      transactionMeta.txReceipt?.logs as TransactionReceiptLog[] | undefined,
+    );
+
+    if (receiptAmount !== undefined) {
+      return receiptAmount;
+    }
+
+    return this.getClaimAmountFromSimulation(transactionMeta, options);
+  }
+
+  private normalizeLogTopics(
+    topics: string | string[] | undefined,
+  ): string[] | undefined {
+    if (!topics) {
+      return undefined;
+    }
+
+    return Array.isArray(topics) ? topics : undefined;
+  }
+
   private getTransactionAmount({
     type,
     status,
@@ -2889,7 +3241,15 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'claim') {
-      return this.getClaimAmountByAddress(address);
+      const actualClaimAmount = this.getActualClaimAmount(transactionMeta, {
+        treatMissingRelevantTokenChangesAsZero: status === 'confirmed',
+      });
+
+      if (status === 'confirmed') {
+        return actualClaimAmount ?? 0;
+      }
+
+      return actualClaimAmount ?? this.getClaimAmountByAddress(address);
     }
 
     if (type === 'withdraw' && status === 'confirmed') {

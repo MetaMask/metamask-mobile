@@ -58,6 +58,9 @@ ios/GoogleService-Info.plist
 node_modules/
 npm-debug.log
 yarn-error.log
+
+# React Compiler bailout log (generated at build time)
+react-compiler.log
 .yalc
 yalc.lock
 
@@ -183,6 +186,7 @@ github-tools/
 
 # AI coding agents development files
 *.local.md
+*.local.json
 temp/
 /temp/
 .agent/
@@ -217,10 +221,12 @@ release-signoffs.json
 .claude/skills/
 .claude/commands/
 .agents/skills/
-.cursor/rules/
+.cursor/rules/*
+!.cursor/rules/*.mdc
 .cursor/skills/
 .cursor/commands/
 # Carve-outs: IDE/bugbot config that must stay tracked
+!.cursor/rules/*.mdc
 !.cursor/BUGBOT.md
 !.cursor/hooks.json
 !.cursor/worktrees.json
@@ -228,3 +234,9 @@ release-signoffs.json
 
 # Build environment validation
 build-env.json
+
+# Local typecheck / validation output
+*.tsccheck.log
+.tsccheck.log
+predict_tsc.log
+predict_tsc_summary.txt

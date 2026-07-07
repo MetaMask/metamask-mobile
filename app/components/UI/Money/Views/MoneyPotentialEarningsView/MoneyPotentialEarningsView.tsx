@@ -56,11 +56,11 @@ const MoneyPotentialEarningsView = () => {
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { apyPercent } = useMoneyAccountBalance();
-  const apyPercentForProjection = apyPercent ?? 0;
+  const { apyDecimal } = useMoneyAccountBalance();
+  const apyDecimalForProjection = apyDecimal ?? 0;
 
   const { eligibleTokens, totalAssetsFiat, projectedAmount } =
-    useProjectedEarnings(depositTokens, apyPercent);
+    useProjectedEarnings(depositTokens, apyDecimal);
 
   const {
     trackButtonClicked,
@@ -259,7 +259,7 @@ const MoneyPotentialEarningsView = () => {
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
-            apyPercent={apyPercentForProjection}
+            apyDecimal={apyDecimalForProjection}
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
             testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}

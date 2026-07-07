@@ -3,76 +3,54 @@
  * All styling and localization are Mobile-specific; data comes from the shared adapters.
  */
 import React, { useCallback } from 'react';
-import { useColorScheme } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
-import { getTransactionIcon } from '../../../util/transaction-icons';
 import { getNetworkImageSource } from '../../../util/networks';
-import { RootState } from '../../../reducers';
-import { AppThemeKey } from '../../../util/theme/models';
-import type { ActivityKind } from '../../../util/activity-adapters';
 import { createStyles } from './ActivityListItemRow.styles';
 import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
+import { PendingActivityListItemRow } from './PendingActivityListItemRow';
+import { resolveTransactionIconName } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
+import { useNftActivityImage } from './useNftActivityImage';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
+import type { ActivityKind } from '../../../util/activity-adapters';
 
 export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
+export { resolveIconType } from './resolveIconType';
 
-function resolveIconType(type: ActivityKind): string {
+/**
+ * Perps (always Arbitrum) and Predict (always Polygon) are single-network
+ * domains, so the network badge on the avatar conveys nothing — suppress it.
+ */
+function isSingleNetworkDomainKind(type: ActivityKind): boolean {
+  return (
+    type.startsWith('perps') ||
+    type.startsWith('prediction') ||
+    type.startsWith('market') ||
+    type.startsWith('stopMarket')
+  );
+}
+
+/**
+ * Per-kind title severity for perps closes (design): liquidations are an error
+ * (red), stop-loss closes are a warning (amber). Everything else is neutral.
+ */
+function resolveTitleSeverity(
+  type: ActivityKind,
+): 'error' | 'warning' | undefined {
   switch (type) {
-    case 'send':
-    case 'sell':
-    case 'lendingDeposit':
-    case 'deposit':
-    case 'wrap':
-    case 'perpsAddFunds':
-    case 'predictionsAddFunds':
-      return 'send';
-    case 'receive':
-    case 'buy':
-    case 'claim':
-    case 'claimMusdBonus':
-    case 'lendingWithdrawal':
-    case 'unwrap':
-    case 'nftMint':
-    case 'perpsWithdraw':
-    case 'predictionsWithdrawFunds':
-    case 'predictionClaimWinnings':
-    case 'predictionCashedOut':
-    case 'predictionPlaced':
-    case 'perpsReceivedFundingFees':
-      return 'receive';
-    case 'swap':
-    case 'swapIncomplete':
-    case 'bridge':
-    case 'convert':
-      return 'swap';
-    case 'approveSpendingCap':
-    case 'revokeSpendingCap':
-    case 'increaseSpendingCap':
-    case 'contractInteraction':
-    case 'contractDeployment':
-    case 'smartAccountUpgrade':
-    case 'perpsOpenLong':
-    case 'perpsCloseLong':
     case 'perpsCloseLongLiquidated':
-    case 'perpsCloseLongStopLoss':
-    case 'perpsOpenShort':
-    case 'perpsCloseShort':
     case 'perpsCloseShortLiquidated':
+      return 'error';
+    case 'perpsCloseLongStopLoss':
     case 'perpsCloseShortStopLoss':
-    case 'perpsPaidFundingFees':
-    case 'perpsCloseShortTakeProfit':
-    case 'perpsCloseLongTakeProfit':
-    case 'marketShort':
-    case 'stopMarketCloseShort':
-    case 'marketCloseShort':
-      return 'interaction';
+      return 'warning';
+    default:
+      return undefined;
   }
 }
 
-export function ActivityListItemRow({
+function ResolvedActivityListItemRow({
   bridgeHistoryItem,
   item,
   index,
@@ -80,26 +58,21 @@ export function ActivityListItemRow({
   title: titleOverride,
 }: ActivityListItemRowProps) {
   const { colors, typography } = useTheme();
-  const osColorScheme = useColorScheme();
-  const appTheme = useSelector(
-    (state: RootState) => state.user.appTheme as AppThemeKey,
-  );
   const content = useActivityListItemRowContent(
     item,
     undefined,
     bridgeHistoryItem,
   );
+
+  const nftImageUrl = useNftActivityImage(item);
   const styles = createStyles(colors, typography);
   const isFailed = item.status === 'failed' || item.status === 'cancelled';
-  const icon = getTransactionIcon(
-    resolveIconType(item.type),
-    isFailed,
-    appTheme,
-    osColorScheme,
-  );
-  const networkImageSource = getNetworkImageSource({
-    chainId: item.chainId,
-  });
+  const fallbackIconName = resolveTransactionIconName(item.type);
+  const networkImageSource = isSingleNetworkDomainKind(item.type)
+    ? undefined
+    : getNetworkImageSource({
+        chainId: item.chainId,
+      });
 
   const handlePress = useCallback(() => {
     onPress?.(item);
@@ -109,14 +82,18 @@ export function ActivityListItemRow({
     <ActivityListItemRowLayout
       avatar={
         <ActivityListItemRowIcon
-          fallbackIcon={icon}
+          fallbackIconName={fallbackIconName}
+          isFailed={isFailed}
           networkImageSource={networkImageSource}
+          iconUrl={content.avatarIconUrl ?? nftImageUrl}
+          perpsMarketSymbol={content.perpsMarketSymbol}
           styles={styles}
           tokens={content.avatarTokens}
         />
       }
       index={index}
       isFailed={isFailed}
+      titleSeverity={resolveTitleSeverity(item.type)}
       item={item}
       onPress={handlePress}
       primaryAmount={content.primaryAmount}
@@ -127,6 +104,19 @@ export function ActivityListItemRow({
       title={titleOverride ?? content.title}
     />
   );
+}
+
+/**
+ * Dispatches to the pending or resolved row variant, mirroring the extension's
+ * `ActivityRow`. Holds no hooks so the branch can switch as a row transitions
+ * from pending to a final status.
+ */
+export function ActivityListItemRow(props: ActivityListItemRowProps) {
+  if (props.item.status === 'pending') {
+    return <PendingActivityListItemRow {...props} />;
+  }
+
+  return <ResolvedActivityListItemRow {...props} />;
 }
 
 export default ActivityListItemRow;

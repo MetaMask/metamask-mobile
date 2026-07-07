@@ -1,26 +1,27 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
-  Text,
-  TextVariant,
-  FontWeight,
-  TextColor,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { Position } from '@metamask/social-controllers';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import PerpBadges from '../../components/PerpBadges';
-import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
-  formatUsd,
+  formatPercent,
   formatSignedUsd,
   formatTokenAmount,
-  formatPercent,
   formatTradeDate,
+  formatUsd,
 } from '../../utils/formatters';
+import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface PositionRowProps {
   position: Position;
@@ -30,12 +31,14 @@ export interface PositionRowProps {
    * profile's Closed tab). Falls back to {@link isClosedPosition} when omitted.
    */
   isClosed?: boolean;
+  showTradeDate?: boolean;
 }
 
-const PositionRow: React.FC<PositionRowProps> = ({
+const PositionRowComponent: React.FC<PositionRowProps> = ({
   position,
   onPress,
   isClosed: isClosedProp,
+  showTradeDate,
 }) => {
   // Honor main's spot closed-detection; the explicit prop (from the profile's
   // Open/Closed tab) overrides it, which perps rely on.
@@ -69,7 +72,15 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   const testID = `position-row-${position.tokenSymbol}`;
 
+  // Strip the HIP-3 provider prefix for display (`xyz:SPCX` → `SPCX`);
+  // non-HIP-3 symbols pass through unchanged. testIDs keep the raw symbol.
+  const displaySymbol = getPerpsDisplaySymbol(position.tokenSymbol);
+
   const perpDirection = getPerpPositionDirection(position);
+
+  const handlePress = useCallback(() => {
+    onPress?.(position);
+  }, [onPress, position]);
 
   // Open positions — perp and spot alike — show the current position value in
   // neutral white (matching spot). Closed positions show signed, colored
@@ -103,33 +114,20 @@ const PositionRow: React.FC<PositionRowProps> = ({
     </Text>
   );
 
-  // All positions — open and closed, perp and spot — render a directional
-  // triangle (▲/▼) alongside an unsigned percentage, both colored by direction
-  // (green up / red down). A break-even position shows a neutral minus and a
-  // neutral percentage. The sign lives in the caret, so the percent is unsigned.
+  // All positions — open and closed, perp and spot — render the PnL direction
+  // as a signed percentage, colored by profit/loss direction.
+  const signedDisplayPnlPercent =
+    hasPnlPercent && pnlSignSource != null && !isPnlZero
+      ? Math.abs(displayPnlPercent) * (isPnlPositive ? 1 : -1)
+      : displayPnlPercent;
   const bottomRight = (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={1}
+    <Text
+      variant={TextVariant.BodySm}
+      twClassName={pnlColorClass}
+      color={pnlColorClass ? undefined : TextColor.TextAlternative}
     >
-      {!hasPnlPercent ? null : isPnlZero ? (
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {'−'}
-        </Text>
-      ) : (
-        <Text variant={TextVariant.BodySm} twClassName={pnlColorClass}>
-          {isPnlPositive ? '▲' : '▼'}
-        </Text>
-      )}
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName={pnlColorClass}
-        color={pnlColorClass ? undefined : TextColor.TextAlternative}
-      >
-        {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
-      </Text>
-    </Box>
+      {formatPercent(signedDisplayPnlPercent)}
+    </Text>
   );
 
   const content = (
@@ -161,7 +159,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
               numberOfLines={1}
               twClassName="shrink"
             >
-              {position.tokenSymbol}
+              {displaySymbol}
             </Text>
             {perpDirection ? (
               <PerpBadges
@@ -176,7 +174,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {isClosed
+            {isClosed || showTradeDate
               ? formatTradeDate(position.lastTradeAt)
               : `${formatTokenAmount(
                   isPerp
@@ -185,7 +183,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
                           position.positionAmount,
                       )
                     : position.positionAmount,
-                )} ${position.tokenSymbol}`}
+                )} ${displaySymbol}`}
           </Text>
         </Box>
       </Box>
@@ -199,7 +197,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={() => onPress(position)} testID={testID}>
+      <TouchableOpacity onPress={handlePress} testID={testID}>
         {content}
       </TouchableOpacity>
     );
@@ -207,5 +205,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   return content;
 };
+
+const PositionRow = React.memo(PositionRowComponent);
 
 export default PositionRow;

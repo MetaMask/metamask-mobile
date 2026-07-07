@@ -43,6 +43,8 @@ jobs:
     needs: [find-rc-branches]
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    permissions:
+      id-token: write
 
     strategy:
       matrix:
@@ -56,12 +58,20 @@ jobs:
           }}
 
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ matrix.branch }}
-          # Use PAT to ensure that the commit later can trigger status check workflows
-          token: ${{ secrets.METAMASKBOT_CROWDIN_TOKEN }}
+          # Use installation token to ensure that the commit later can trigger status check workflows
+          token: ${{ steps.get-token.outputs.token }}
 
       - name: crowdin download approved translations
         uses: crowdin/github-action@a3160b9e5a9e00739392c23da5e580c6cabe526d
@@ -82,7 +92,7 @@ jobs:
           github_user_name: metamaskbot
           github_user_email: metamaskbot@users.noreply.github.com
         env:
-          GITHUB_TOKEN: ${{ secrets.METAMASKBOT_CROWDIN_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
           GITHUB_ACTOR: metamaskbot
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

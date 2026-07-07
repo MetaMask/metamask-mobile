@@ -117,17 +117,14 @@ import {
 } from '../../../selectors/notifications';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
-import { getIsNetworkOnboarded } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
-import usePrevious from '../../hooks/usePrevious';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
-import { selectWalletHomeOnboardingStepsEnabled } from '../../../selectors/featureFlagController/homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -343,15 +340,11 @@ const Wallet = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
-  const isWalletHomeOnboardingStepsEnabled = useSelector(
-    selectWalletHomeOnboardingStepsEnabled,
-  );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
 
-  const inWalletHomePostOnboardingFlow =
-    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
+  const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
   const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
 
@@ -429,8 +422,6 @@ const Wallet = ({
   const chainId = useSelector(selectChainId);
 
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
-
-  const prevChainId = usePrevious(chainId);
 
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -711,13 +702,6 @@ const Wallet = ({
     currentToast,
   ]);
 
-  /**
-   * Network onboarding state
-   */
-  const networkOnboardingState = useSelector(
-    (state: RootState) => state.networkOnboarded.networkOnboardedState,
-  );
-
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -757,31 +741,6 @@ const Wallet = ({
     }
     checkIfNotificationsAreEnabled();
   });
-
-  /**
-   * Check to see if we need to show What's New modal
-   */
-  useEffect(() => {
-    // TODO: [SOLANA] Revisit this before shipping, we need to check if this logic supports non evm networks
-    const networkOnboarded = getIsNetworkOnboarded(
-      chainId,
-      networkOnboardingState,
-    );
-
-    if (!networkOnboarded && prevChainId !== chainId) {
-      // Do not check since it will conflict with the onboarding and/or network onboarding
-      return;
-    }
-  }, [
-    navigation,
-    chainId,
-    // TODO: Is this providerConfig.rpcUrl needed in this useEffect dependencies?
-    providerConfig.rpcUrl,
-    networkOnboardingState,
-    prevChainId,
-    // TODO: Is this accountBalanceByChainId?.balance needed in this useEffect dependencies?
-    accountBalanceByChainId?.balance,
-  ]);
 
   const { variantName: discoveryTabsVariantName } = useABTest(
     HUB_PAGE_DISCOVERY_TABS_AB_KEY,

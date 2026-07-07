@@ -1,7 +1,7 @@
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import { AnalyticsEvents } from '../Aggregator/types';
-import type { AnalyticsEvents as UnifiedAnalyticsEvents } from '../Deposit/types/analytics';
+import type { AnalyticsEvents as UnifiedAnalyticsEvents } from '../types/depositAnalytics';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 
 type EventName =

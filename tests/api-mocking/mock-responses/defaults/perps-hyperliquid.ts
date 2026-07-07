@@ -5,6 +5,14 @@ const hyperliquidInfoEndpoint = 'https://api.hyperliquid.xyz/info';
 const hyperliquidExchangeEndpoint = 'https://api.hyperliquid.xyz/exchange';
 
 export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
+  GET: [
+    {
+      urlEndpoint:
+        /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v1\/perpetuals/,
+      responseCode: 200,
+      response: [],
+    },
+  ],
   POST: [
     {
       urlEndpoint: hyperliquidExchangeEndpoint,

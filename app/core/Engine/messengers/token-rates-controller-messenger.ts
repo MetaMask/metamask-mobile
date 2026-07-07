@@ -5,6 +5,7 @@ import {
 } from '@metamask/messenger';
 import type { TokenRatesControllerMessenger } from '@metamask/assets-controllers';
 import { RootMessenger } from '../types';
+
 /**
  * Get the messenger for the token rates controller. This is scoped to the
  * actions and events that the token rates controller is allowed to handle.
@@ -13,14 +14,12 @@ import { RootMessenger } from '../types';
  * @returns The TokenRatesControllerMessenger.
  */
 export function getTokenRatesControllerMessenger(
-  rootMessenger: RootMessenger,
-): TokenRatesControllerMessenger {
-  const messenger = new Messenger<
-    'TokenRatesController',
+  rootMessenger: RootMessenger<
     MessengerActions<TokenRatesControllerMessenger>,
-    MessengerEvents<TokenRatesControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<TokenRatesControllerMessenger>
+  >,
+): TokenRatesControllerMessenger {
+  const messenger: TokenRatesControllerMessenger = new Messenger({
     namespace: 'TokenRatesController',
     parent: rootMessenger,
   });

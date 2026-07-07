@@ -20,14 +20,25 @@ const isEvmToken = (token: AssetType) =>
   Boolean(token.accountType?.includes('eip155'));
 
 /**
- * Money deposits ALWAYS convert TO Monad mUSD. The no-fee tag must match a
+ * Money deposits ALWAYS convert TO Monad mUSD. The no-fee tag matches a
  * subsidized route whose TARGET is Monad mUSD — NOT merely a token that is a
- * subsidized source on some other route (e.g. a withdraw mUSD->USDC route).
+ * subsidized source on some other route (e.g. a USDC -> Linea mUSD deposit or
+ * a Monad mUSD -> USDC withdraw), which would mislabel tokens that have no
+ * subsidized route into Monad mUSD.
  */
 const MONAD_MUSD_TARGET = {
   address: MUSD_TOKEN_ADDRESS,
   chainId: CHAIN_IDS.MONAD,
 };
+
+/**
+ * Monad mUSD -> Monad mUSD needs no swap or bridge, so the fixed-spread SSOT
+ * flag omits it; depositing Monad mUSD still incurs no Relay fee, so it is
+ * tagged no-fee explicitly.
+ */
+const isMonadMusd = (address: string, chainId: string) =>
+  chainId?.toLowerCase() === MONAD_MUSD_TARGET.chainId.toLowerCase() &&
+  address?.toLowerCase() === MONAD_MUSD_TARGET.address.toLowerCase();
 
 /**
  * Returns tokens the user holds that are eligible for Money account deposits
@@ -43,9 +54,8 @@ const MONAD_MUSD_TARGET = {
  *
  * Sort: fiat balance descending.
  *
- * isNoFeeToken: true only when the token has a subsidized route whose target
- * is Monad mUSD (i.e. the deposit destination). Source-only matching is
- * intentionally avoided — see MONAD_MUSD_TARGET above.
+ * isNoFeeToken: true when the token has a subsidized route whose target is
+ * Monad mUSD, or when the token IS Monad mUSD (see isMonadMusd above).
  */
 export const useMoneyEarnableTokens = () => {
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
@@ -63,16 +73,18 @@ export const useMoneyEarnableTokens = () => {
   );
 
   const isNoFeeToken = useCallback(
-    (token: AssetType) =>
-      Boolean(token.chainId) &&
-      isSubsidizedRoute(
-        relayFixedSpread,
-        {
-          address: token.address,
-          chainId: safeFormatChainIdToHex(token.chainId as string),
-        },
-        MONAD_MUSD_TARGET,
-      ),
+    (token: AssetType) => {
+      if (!token.chainId) return false;
+      const chainId = safeFormatChainIdToHex(token.chainId as string);
+      return (
+        isMonadMusd(token.address, chainId) ||
+        isSubsidizedRoute(
+          relayFixedSpread,
+          { address: token.address, chainId },
+          MONAD_MUSD_TARGET,
+        )
+      );
+    },
     [relayFixedSpread],
   );
 

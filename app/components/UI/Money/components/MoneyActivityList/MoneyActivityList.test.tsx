@@ -155,4 +155,22 @@ describe('MoneyActivityList', () => {
     fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
     expect(onViewAllPress).toHaveBeenCalledTimes(1);
   });
+
+  it('renders View all when more pages remain upstream even at the preview count', () => {
+    const onHeaderPress = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityList
+        items={MOCK_ITEMS.slice(0, 5)}
+        hasMore
+        onHeaderPress={onHeaderPress}
+        onViewAllPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId('section-header'));
+    expect(onHeaderPress).toHaveBeenCalledTimes(1);
+  });
 });

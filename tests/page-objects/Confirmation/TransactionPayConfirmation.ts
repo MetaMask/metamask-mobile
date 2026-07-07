@@ -151,6 +151,24 @@ class TransactionPayConfirmation {
     });
   }
 
+  // "You'll receive" row, shown instead of Total for withdraw flows.
+  get receive(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ConfirmationRowComponentIDs.RECEIVE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ConfirmationRowComponentIDs.RECEIVE, {
+          exact: true,
+        }),
+    });
+  }
+
+  // "Available balance: $X" row (PerpsWithdrawBalance) on the Perps withdraw
+  // confirmation. The row has no testID, so it is matched by text; iOS matches
+  // by.text against the whole string, so the pattern spans the trailing amount.
+  get availableBalance(): EncapsulatedElementType {
+    return Matchers.getElementByText(/Available balance: \$[0-9,.]+/u);
+  }
+
   get transactionFee(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -429,14 +447,32 @@ class TransactionPayConfirmation {
         }
       },
       appium: async () => {
+        const waitForKeypad = async (): Promise<void> => {
+          await Assertions.expectElementToBeVisible(this.getKeypadButton('0'), {
+            timeout: 60_000,
+            description: 'Transaction pay amount keypad',
+          });
+        };
+
+        try {
+          await waitForKeypad();
+        } catch {
+          await Assertions.expectElementToBeVisible(this.keyboardContainer, {
+            timeout: 60_000,
+            description: 'Custom amount input before opening keypad',
+          });
+          await UnifiedGestures.waitAndTap(this.keyboardContainer, {
+            description: 'Custom amount input field',
+            timeout: 15_000,
+          });
+          await waitForKeypad();
+        }
+
         for (const char of amount) {
-          await PlaywrightGestures.waitAndTap(
-            await asPlaywrightElement(this.getKeypadButton(char)),
-            {
-              checkForDisplayed: true,
-              checkForEnabled: true,
-            },
-          );
+          await UnifiedGestures.waitAndTap(this.getKeypadButton(char), {
+            description: `Keyboard Key ${char}`,
+            timeout: 15_000,
+          });
         }
       },
     });
@@ -476,6 +512,28 @@ class TransactionPayConfirmation {
       description: 'Transaction fee row should be visible',
       timeout: 15000,
     });
+  }
+
+  async verifyReceiveVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.receive, {
+      description: "You'll receive row should be visible",
+      timeout: 15000,
+    });
+  }
+
+  async verifyAvailableBalanceVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.availableBalance, {
+      description: 'Available Perps balance row should be visible',
+      timeout: 15000,
+    });
+  }
+
+  async verifyReceive(amount: string): Promise<void> {
+    await this.expectText(
+      this.receive,
+      amount,
+      "You'll receive amount should be correct",
+    );
   }
 }
 

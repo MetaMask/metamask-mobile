@@ -3,11 +3,13 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { usePerpsWithdrawToastRegistrations } from './usePerpsWithdrawToastRegistrations';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 
 jest.mock('../../../../util/theme', () => ({
   ...jest.requireActual('../../../../util/theme'),
@@ -322,6 +324,65 @@ describe('usePerpsWithdrawToastRegistrations', () => {
         ]),
       }),
     );
+  });
+
+  describe('Money-account withdraw destination', () => {
+    const moneyWithdrawMeta = (
+      id: string,
+      status: TransactionStatus,
+    ): TransactionMeta =>
+      ({
+        id,
+        type: TransactionType.perpsWithdraw,
+        status,
+        metamaskPay: {
+          tokenAddress: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+          isPostQuote: true,
+          targetFiat: '25',
+        },
+      }) as unknown as TransactionMeta;
+
+    it('suppresses the native success toast when destination is the Money account', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          transactionMeta: moneyWithdrawMeta(
+            'tx-money',
+            TransactionStatus.confirmed,
+          ),
+        },
+        mockShowToast,
+      );
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('still shows the native success toast for a non-Money withdraw (other flows unchanged)', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          transactionMeta: {
+            id: 'tx-not-money',
+            type: TransactionType.perpsWithdraw,
+            status: TransactionStatus.confirmed,
+            metamaskPay: {
+              tokenAddress: MUSD_TOKEN_ADDRESS,
+              chainId: '0x1',
+              isPostQuote: true,
+              targetFiat: '25',
+            },
+          } as unknown as TransactionMeta,
+        },
+        mockShowToast,
+      );
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({ iconName: IconName.Confirmation }),
+      );
+    });
   });
 
   it('ignores other status changes like submitted', () => {

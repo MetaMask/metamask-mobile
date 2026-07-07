@@ -8,13 +8,16 @@ import {
 import {
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
+  type SnapControllerInitMessenger,
 } from './snap-controller-messenger';
 import { SnapControllerMessenger } from '@metamask/snaps-controllers';
 
 type RootMessenger = Messenger<
   MockAnyNamespace,
-  MessengerActions<SnapControllerMessenger>,
-  MessengerEvents<SnapControllerMessenger>
+  | MessengerActions<SnapControllerMessenger>
+  | MessengerActions<SnapControllerInitMessenger>,
+  | MessengerEvents<SnapControllerMessenger>
+  | MessengerEvents<SnapControllerInitMessenger>
 >;
 
 const getRootMessenger = (): RootMessenger =>

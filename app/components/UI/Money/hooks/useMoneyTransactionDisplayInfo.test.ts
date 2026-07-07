@@ -781,7 +781,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
     expect(result.current.primaryAmount).toContain('mUSD');
   });
 
-  it('converts mUSD to EUR via the peg (ignoring market rate)', () => {
+  it('always shows mUSD in USD via the peg, ignoring preferred currency', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -817,8 +817,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
       { state },
     );
 
-    expect(result.current.fiatAmount).toMatch(/^\+/);
-    expect(result.current.fiatAmount).toMatch(/920/);
+    expect(result.current.fiatAmount).toBe('+$1,000.00');
     expect(result.current.primaryAmount).toMatch(/1,000\.00/);
     expect(result.current.primaryAmount).toContain('mUSD');
   });
@@ -931,6 +930,20 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
     expect(result.current.description).toBe('mUSD → ETH');
   });
 
+  it('sent → "mUSD" for a plain mUSD send (no redundant "mUSD → mUSD")', () => {
+    // A simple mUSD transfer out of the Money account: the pay token resolves
+    // to mUSD, so the pair would be "mUSD → mUSD". It collapses to just "mUSD",
+    // mirroring the deposit row.
+    const tx = makeTx(TransactionType.simpleSend, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+
   it('sent → "mUSD → USDC" for a withdrawal whose dest token cannot be resolved', () => {
     // No metamaskPay token → falls back to the known money withdraw token.
     const tx = makeTx(TransactionType.moneyAccountWithdraw, {});
@@ -972,6 +985,78 @@ describe('useMoneyTransactionDisplayInfo — per-kind subtitles', () => {
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+
+  it('canonicalises the registry "MUSD" symbol to the branded "mUSD"', () => {
+    // mUSD is registered with the uppercase symbol "MUSD"; the subtitle must
+    // still show the branded casing, not whatever the registry holds.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const stateWithUppercaseMusd = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+          TokenRatesController: { marketData: {} },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  { address: MUSD_TOKEN_ADDRESS, symbol: 'MUSD', decimals: 6 },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: stateWithUppercaseMusd },
+    );
+    expect(result.current.description).toBe('mUSD');
+  });
+
+  it('sent → "mUSD" even when the registry symbol is uppercase "MUSD"', () => {
+    // The send pair must collapse to "mUSD" (not "mUSD → MUSD") once the
+    // destination symbol is canonicalised.
+    const tx = makeTx(TransactionType.simpleSend, {
+      metamaskPay: { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: CHAIN_ID },
+    });
+    const stateWithUppercaseMusd = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
+          TokenRatesController: { marketData: {} },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  { address: MUSD_TOKEN_ADDRESS, symbol: 'MUSD', decimals: 6 },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: stateWithUppercaseMusd },
     );
     expect(result.current.description).toBe('mUSD');
   });

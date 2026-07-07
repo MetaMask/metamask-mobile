@@ -3,6 +3,7 @@ import {
   selectCardSelectedCountry,
   selectCardActiveProviderId,
   selectIsCardAuthenticated,
+  selectCardLastUnauthenticatedReason,
   selectIsMoneyAccountCardLinkInProgress,
   selectCardholderAccounts,
   selectHasCardholderAccounts,
@@ -17,12 +18,11 @@ import {
   selectCardAvailableTokens,
   selectCardFundingTokens,
   selectCardDelegationSettings,
-  selectCardHasApprovedLineaFunding,
-  selectCardLineaUsdcToken,
   selectIsMoneyAccountDelegatedForCard,
   selectCardCountryOfResidence,
   selectCardResidencyRegion,
   selectIsCardResidencyBlocked,
+  selectCardRedemptionDestinationIsMoneyAccount,
 } from './cardController';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
@@ -189,6 +189,32 @@ describe('CardController selectors', () => {
       const state = createMockRootState({ isAuthenticated: true });
 
       expect(selectIsCardAuthenticated(state)).toBe(true);
+    });
+  });
+
+  describe('selectCardLastUnauthenticatedReason', () => {
+    it('returns null by default', () => {
+      const state = createMockRootState();
+
+      expect(selectCardLastUnauthenticatedReason(state)).toBeNull();
+    });
+
+    it('returns the last unauthenticated reason when set', () => {
+      const state = createMockRootState({
+        lastUnauthenticatedReason: 'onboarding_token_revoked',
+      });
+
+      expect(selectCardLastUnauthenticatedReason(state)).toBe(
+        'onboarding_token_revoked',
+      );
+    });
+
+    it('returns null when CardController state is undefined', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+
+      expect(selectCardLastUnauthenticatedReason(state)).toBeNull();
     });
   });
 
@@ -595,7 +621,30 @@ describe('selectCardPrimaryToken', () => {
     expect(selectCardPrimaryToken(state)?.displaySymbol).toBeUndefined();
   });
 
-  it('sets isMoneyAccountEntry and displaySymbol=mUSD when the primary funding asset is the Veda token', () => {
+  it('sets isMoneyAccountEntry and displaySymbol=mUSD when the primary funding asset is the Veda token allowlisted in cardFeature', () => {
+    const homeData: CardHomeData = {
+      ...mockCardHomeData,
+      primaryFundingAsset: {
+        ...mockPrimaryAsset,
+        symbol: 'veda',
+        address: VEDA_ADDRESS,
+        chainId: VEDA_CAIP,
+      },
+      delegationSettings: makeVedaDelegationSettings(),
+    } as unknown as CardHomeData;
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      MONAD_VEDA_FEATURE_FLAG,
+    );
+    const token = selectCardPrimaryToken(state);
+    expect(token?.isMoneyAccountEntry).toBe(true);
+    expect(token?.displaySymbol).toBe('mUSD');
+  });
+
+  it('does not flag the Veda primary funding asset when veda is not allowlisted in cardFeature', () => {
     const homeData: CardHomeData = {
       ...mockCardHomeData,
       primaryFundingAsset: {
@@ -610,8 +659,8 @@ describe('selectCardPrimaryToken', () => {
       cardHomeData: homeData as unknown as CardControllerState['cardHomeData'],
     });
     const token = selectCardPrimaryToken(state);
-    expect(token?.isMoneyAccountEntry).toBe(true);
-    expect(token?.displaySymbol).toBe('mUSD');
+    expect(token?.isMoneyAccountEntry).toBe(false);
+    expect(token?.displaySymbol).toBeUndefined();
   });
 });
 
@@ -1002,7 +1051,7 @@ describe('selectCardAvailableTokens', () => {
   });
 
   describe('isMoneyAccountEntry flag', () => {
-    it('flags real entries that match the Veda token from delegation settings', () => {
+    it('flags real entries that match the Veda token allowlisted in cardFeature', () => {
       const assets = [
         makeAsset({
           walletAddress: WALLET_A,
@@ -1017,13 +1066,16 @@ describe('selectCardAvailableTokens', () => {
           status: FundingAssetStatus.Active,
         }),
       ];
-      const state = createMockRootState({
-        cardHomeData: {
-          ...mockCardHomeData,
-          fundingAssets: assets,
-          delegationSettings: makeVedaDelegationSettings(),
-        } as unknown as CardControllerState['cardHomeData'],
-      });
+      const state = createMockRootState(
+        {
+          cardHomeData: {
+            ...mockCardHomeData,
+            fundingAssets: assets,
+            delegationSettings: makeVedaDelegationSettings(),
+          } as unknown as CardControllerState['cardHomeData'],
+        },
+        MONAD_VEDA_FEATURE_FLAG,
+      );
       const tokens = selectCardAvailableTokens(state);
       const vedaToken = tokens.find((t) => t.address === VEDA_ADDRESS);
       const otherToken = tokens.find((t) => t.address !== VEDA_ADDRESS);
@@ -1031,6 +1083,59 @@ describe('selectCardAvailableTokens', () => {
       expect(vedaToken?.displaySymbol).toBe('mUSD');
       expect(otherToken?.isMoneyAccountEntry).toBe(false);
       expect(otherToken?.displaySymbol).toBeUndefined();
+    });
+
+    it('still flags real Veda entries when delegationSettings omits Veda but cardFeature allowlists it', () => {
+      const assets = [
+        makeAsset({
+          walletAddress: WALLET_A,
+          address: VEDA_ADDRESS,
+          chainId: VEDA_CAIP,
+          status: FundingAssetStatus.Active,
+        }),
+      ];
+      const state = createMockRootState(
+        {
+          cardHomeData: {
+            ...mockCardHomeData,
+            fundingAssets: assets,
+            delegationSettings: {
+              networks: [],
+              count: 0,
+              _links: { self: '' },
+            },
+          } as unknown as CardControllerState['cardHomeData'],
+        },
+        MONAD_VEDA_FEATURE_FLAG,
+      );
+      const vedaToken = selectCardAvailableTokens(state).find(
+        (t) => t.address === VEDA_ADDRESS,
+      );
+      expect(vedaToken?.isMoneyAccountEntry).toBe(true);
+      expect(vedaToken?.displaySymbol).toBe('mUSD');
+    });
+
+    it('does not flag real Veda entries when cardFeature does not allowlist Veda', () => {
+      const assets = [
+        makeAsset({
+          walletAddress: WALLET_A,
+          address: VEDA_ADDRESS,
+          chainId: VEDA_CAIP,
+          status: FundingAssetStatus.Active,
+        }),
+      ];
+      const state = createMockRootState({
+        cardHomeData: {
+          ...mockCardHomeData,
+          fundingAssets: assets,
+          delegationSettings: makeVedaDelegationSettings(),
+        } as unknown as CardControllerState['cardHomeData'],
+      });
+      const vedaToken = selectCardAvailableTokens(state).find(
+        (t) => t.address === VEDA_ADDRESS,
+      );
+      expect(vedaToken?.isMoneyAccountEntry).toBe(false);
+      expect(vedaToken?.displaySymbol).toBeUndefined();
     });
 
     it('flags the synthesized Veda placeholder for the current wallet', () => {
@@ -1116,7 +1221,7 @@ describe('selectCardFundingTokens', () => {
     expect(tokens[1]?.symbol).toBe('USDT');
   });
 
-  it('flags only the funding row matching the Veda token', () => {
+  it('flags only the funding row matching the Veda token allowlisted in cardFeature', () => {
     const cardHomeData: CardHomeData = {
       ...mockCardHomeData,
       fundingAssets: [
@@ -1134,10 +1239,13 @@ describe('selectCardFundingTokens', () => {
       ],
       delegationSettings: makeVedaDelegationSettings(),
     } as unknown as CardHomeData;
-    const state = createMockRootState({
-      cardHomeData:
-        cardHomeData as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          cardHomeData as unknown as CardControllerState['cardHomeData'],
+      },
+      MONAD_VEDA_FEATURE_FLAG,
+    );
     const tokens = selectCardFundingTokens(state);
     expect(tokens).toHaveLength(2);
     const vedaRow = tokens.find((t) => t.address === VEDA_ADDRESS);
@@ -1166,162 +1274,6 @@ describe('selectCardDelegationSettings', () => {
   });
 });
 
-describe('selectCardHasApprovedLineaFunding', () => {
-  it('returns false when cardHomeData is null', () => {
-    const state = createMockRootState({ cardHomeData: null });
-    expect(selectCardHasApprovedLineaFunding(state)).toBe(false);
-  });
-
-  it('returns true when a Linea funding asset is approved', () => {
-    const state = createMockRootState({
-      cardHomeData:
-        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
-    });
-
-    expect(selectCardHasApprovedLineaFunding(state)).toBe(true);
-  });
-
-  it('returns false when Linea funding assets are inactive', () => {
-    const state = createMockRootState({
-      cardHomeData: {
-        ...mockCardHomeData,
-        fundingAssets: [
-          {
-            ...mockPrimaryAsset,
-            status: FundingAssetStatus.Inactive,
-          },
-        ],
-      } as unknown as CardControllerState['cardHomeData'],
-    });
-
-    expect(selectCardHasApprovedLineaFunding(state)).toBe(false);
-  });
-
-  it('returns false when approved funding assets are not on Linea', () => {
-    const state = createMockRootState({
-      cardHomeData: {
-        ...mockCardHomeData,
-        fundingAssets: [
-          {
-            ...mockPrimaryAsset,
-            chainId: 'eip155:8453',
-            status: FundingAssetStatus.Active,
-          },
-        ],
-      } as unknown as CardControllerState['cardHomeData'],
-    });
-
-    expect(selectCardHasApprovedLineaFunding(state)).toBe(false);
-  });
-});
-
-describe('selectCardLineaUsdcToken', () => {
-  it('returns null when cardHomeData is null', () => {
-    const state = createMockRootState({ cardHomeData: null });
-    expect(selectCardLineaUsdcToken(state)).toBeNull();
-  });
-
-  it('returns the USDC token on Linea from available funding assets', () => {
-    const state = createMockRootState({
-      cardHomeData:
-        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
-    });
-
-    expect(selectCardLineaUsdcToken(state)).toEqual(
-      expect.objectContaining({
-        symbol: 'USDC',
-        caipChainId: 'eip155:59144',
-        fundingStatus: FundingStatus.Limited,
-      }),
-    );
-  });
-
-  it('returns null when USDC is not available on Linea', () => {
-    const state = createMockRootState({
-      cardHomeData: {
-        ...mockCardHomeData,
-        fundingAssets: [
-          {
-            ...mockPrimaryAsset,
-            symbol: 'USDC',
-            chainId: 'eip155:8453',
-          },
-        ],
-      } as unknown as CardControllerState['cardHomeData'],
-    });
-
-    expect(selectCardLineaUsdcToken(state)).toBeNull();
-  });
-
-  describe('placeholder synthesis from delegationSettings', () => {
-    const WALLET_A = '0xwalletA000000000000000000000000000000001';
-
-    const cardHomeDataWithDelegationOnly = {
-      ...mockCardHomeData,
-      fundingAssets: [],
-      delegationSettings: {
-        networks: [
-          {
-            network: 'linea',
-            environment: 'production',
-            chainId: '59144',
-            delegationContract: '0xdeleg000000000000000000000000000000000004',
-            tokens: {
-              USDC: {
-                address: '0xusdc000000000000000000000000000000000010',
-                symbol: 'USDC',
-                decimals: 6,
-              },
-            },
-          },
-        ],
-        count: 1,
-        _links: { self: '/v1/delegation/chain/config' },
-      },
-    } as unknown as CardHomeData;
-
-    it('stamps the synthesized placeholder with the current EVM wallet address', () => {
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        jest.fn().mockReturnValue({ address: WALLET_A }),
-      );
-      const state = createMockRootState({
-        cardHomeData:
-          cardHomeDataWithDelegationOnly as unknown as CardControllerState['cardHomeData'],
-      });
-
-      const token = selectCardLineaUsdcToken(state);
-      expect(token).toEqual(
-        expect.objectContaining({
-          symbol: 'USDC',
-          caipChainId: 'eip155:59144',
-          fundingStatus: FundingStatus.NotEnabled,
-          walletAddress: WALLET_A,
-        }),
-      );
-    });
-
-    it('returns the placeholder unstamped when no EVM account is selected', () => {
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        jest.fn().mockReturnValue(undefined),
-      );
-      const state = createMockRootState({
-        cardHomeData:
-          cardHomeDataWithDelegationOnly as unknown as CardControllerState['cardHomeData'],
-      });
-
-      const token = selectCardLineaUsdcToken(state);
-      expect(token).toEqual(
-        expect.objectContaining({
-          symbol: 'USDC',
-          caipChainId: 'eip155:59144',
-          fundingStatus: FundingStatus.NotEnabled,
-        }),
-      );
-      expect(token?.walletAddress).toBeUndefined();
-    });
-  });
-});
-
 describe('selectIsMoneyAccountDelegatedForCard', () => {
   const MA_ADDRESS = '0xma000000000000000000000000000000000000aa';
 
@@ -1346,16 +1298,19 @@ describe('selectIsMoneyAccountDelegatedForCard', () => {
     delegationSettings: makeVedaDelegationSettings(),
   });
 
+  const stateWithVeda = (home: CardHomeData) =>
+    createMockRootState(
+      { cardHomeData: home as unknown as CardControllerState['cardHomeData'] },
+      MONAD_VEDA_FEATURE_FLAG,
+    );
+
   beforeEach(() => {
     mockSelectPrimaryMoneyAccount.mockReset();
   });
 
   it('returns false when there is no primary Money Account', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
-    const state = createMockRootState({
-      cardHomeData:
-        homeDataWithVeda() as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = stateWithVeda(homeDataWithVeda());
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
   });
@@ -1367,12 +1322,13 @@ describe('selectIsMoneyAccountDelegatedForCard', () => {
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
   });
 
-  it('returns false when delegation settings have no Veda entry', () => {
+  it('returns false when cardFeature does not allowlist Veda', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
     const state = createMockRootState({
       cardHomeData: {
         ...mockCardHomeData,
         fundingAssets: [vedaFundingAsset],
+        delegationSettings: makeVedaDelegationSettings(),
       } as unknown as CardControllerState['cardHomeData'],
     });
 
@@ -1381,54 +1337,54 @@ describe('selectIsMoneyAccountDelegatedForCard', () => {
 
   it('returns true when the primary Money Account has an active Veda funding row', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
-    const state = createMockRootState({
-      cardHomeData:
-        homeDataWithVeda() as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = stateWithVeda(homeDataWithVeda());
+
+    expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(true);
+  });
+
+  it('returns true even when delegationSettings omit Veda but cardFeature allowlists it', () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
+    const state = stateWithVeda({
+      ...mockCardHomeData,
+      fundingAssets: [vedaFundingAsset],
+      delegationSettings: { networks: [], count: 0, _links: { self: '' } },
+    } as unknown as CardHomeData);
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(true);
   });
 
   it('returns true when the matching row has Limited (partial allowance) status', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
-    const state = createMockRootState({
-      cardHomeData: homeDataWithVeda({
-        status: FundingAssetStatus.Limited,
-      }) as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = stateWithVeda(
+      homeDataWithVeda({ status: FundingAssetStatus.Limited }),
+    );
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(true);
   });
 
   it('returns false when the matching row is Inactive (NotEnabled)', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
-    const state = createMockRootState({
-      cardHomeData: homeDataWithVeda({
-        status: FundingAssetStatus.Inactive,
-      }) as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = stateWithVeda(
+      homeDataWithVeda({ status: FundingAssetStatus.Inactive }),
+    );
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
   });
 
   it('returns false when the wallet address on the funding row does not match the Money Account', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
-    const state = createMockRootState({
-      cardHomeData: homeDataWithVeda({
+    const state = stateWithVeda(
+      homeDataWithVeda({
         walletAddress: '0xother000000000000000000000000000000000099',
-      }) as unknown as CardControllerState['cardHomeData'],
-    });
+      }),
+    );
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
   });
 
   it('returns false when the Money Account row is on a different chain than Monad', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: MA_ADDRESS });
-    const state = createMockRootState({
-      cardHomeData: homeDataWithVeda({
-        chainId: 'eip155:59144',
-      }) as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = stateWithVeda(homeDataWithVeda({ chainId: 'eip155:59144' }));
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(false);
   });
@@ -1437,10 +1393,7 @@ describe('selectIsMoneyAccountDelegatedForCard', () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({
       address: MA_ADDRESS.toUpperCase(),
     });
-    const state = createMockRootState({
-      cardHomeData:
-        homeDataWithVeda() as unknown as CardControllerState['cardHomeData'],
-    });
+    const state = stateWithVeda(homeDataWithVeda());
 
     expect(selectIsMoneyAccountDelegatedForCard(state)).toBe(true);
   });
@@ -1693,5 +1646,76 @@ describe('selectCardAvailableTokens residency blocking', () => {
     expect(tokens).toHaveLength(1);
     expect(tokens[0].isMoneyAccountEntry).toBe(true);
     expect(tokens[0].fundingStatus).toBe(FundingStatus.Enabled);
+  });
+});
+
+describe('selectCardRedemptionDestinationIsMoneyAccount', () => {
+  const homeDataWithPriority = (
+    externalWalletPriority: unknown[],
+  ): CardControllerState['cardHomeData'] =>
+    ({
+      ...mockCardHomeData,
+      delegationSettings: makeVedaDelegationSettings(),
+      externalWalletPriority,
+    }) as unknown as CardControllerState['cardHomeData'];
+
+  beforeEach(() => {
+    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
+  });
+
+  it('is false when the top-priority destination is a non-VEDA wallet (steur/linea)', () => {
+    const state = createMockRootState({
+      cardHomeData: homeDataWithPriority([
+        {
+          id: 1,
+          address: '0xlinea',
+          currency: 'steur',
+          network: 'linea',
+          priority: 1,
+        },
+        {
+          id: 2,
+          address: '0xmonad',
+          currency: 'veda',
+          network: 'monad',
+          priority: 2,
+        },
+      ]),
+    });
+    expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(false);
+  });
+
+  it('is true when the top-priority destination is the veda/monad Money Account', () => {
+    const state = createMockRootState({
+      cardHomeData: homeDataWithPriority([
+        {
+          id: 1,
+          address: '0xmonad',
+          currency: 'veda',
+          network: 'monad',
+          priority: 1,
+        },
+        {
+          id: 2,
+          address: '0xlinea',
+          currency: 'steur',
+          network: 'linea',
+          priority: 2,
+        },
+      ]),
+    });
+    expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(true);
+  });
+
+  it('falls back to the region + has-MA heuristic when there is no priority data', () => {
+    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
+      address: '0xprimaryma',
+    });
+    const state = createMockRootState({
+      cardHomeData: homeDataWithPriority([]),
+    });
+    expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(true);
   });
 });

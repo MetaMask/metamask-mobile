@@ -29,7 +29,9 @@ import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
+import PredictRegTimeInfoSheet from './PredictRegTimeInfoSheet';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -49,6 +51,7 @@ const PredictGameDetailsContentComponent: React.FC<
   claimableAmount = 0,
   isLoading = false,
   isClaimPending = false,
+  nonRegTimeSportsMarketTypes = [],
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -56,15 +59,28 @@ const PredictGameDetailsContentComponent: React.FC<
 
   const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
     usePredictBottomSheet();
+  const {
+    sheetRef: regTimeSheetRef,
+    isVisible: isRegTimeSheetVisible,
+    handleSheetClosed: handleRegTimeSheetClosed,
+    getRefHandlers: getRegTimeRefHandlers,
+  } = usePredictBottomSheet();
 
   const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
+  const regTimeSheetHandlers = useMemo(
+    () => getRegTimeRefHandlers(),
+    [getRegTimeRefHandlers],
+  );
+  const { game } = usePredictGame(market, { live: true });
 
   const handleInfoPress = useCallback(() => {
     sheetHandlers.onOpenBottomSheet();
   }, [sheetHandlers]);
+  const handleRegTimeInfoPress = useCallback(() => {
+    regTimeSheetHandlers.onOpenBottomSheet();
+  }, [regTimeSheetHandlers]);
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
-  const game = market.game;
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
@@ -86,6 +102,7 @@ const PredictGameDetailsContentComponent: React.FC<
     handleTabPress,
     chips,
     groupMap,
+    resolvedOutcomeGroups,
     activeChipKey,
     handleChipSelect,
     showChips,
@@ -96,10 +113,11 @@ const PredictGameDetailsContentComponent: React.FC<
     outcomeGroups: market.outcomeGroups ?? [],
   });
 
+  const resolvedGroups = resolvedOutcomeGroups ?? [];
   const showStickyHeader = showTabBar || showChips;
-  const hasExtendedOutcomes = tabsEnabled && groupMap.size > 0;
+  const hasOpenExtendedOutcomes = tabsEnabled && groupMap.size > 0;
   const showFooter =
-    !hasExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
+    !hasOpenExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
   const stickyHeaderIndices = useMemo(
     () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
     [showStickyHeader],
@@ -127,6 +145,7 @@ const PredictGameDetailsContentComponent: React.FC<
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
           accessibilityLabel={strings('predict.buttons.back')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
           <Icon
             name={IconName.ArrowLeft}
@@ -150,6 +169,7 @@ const PredictGameDetailsContentComponent: React.FC<
       </Box>
 
       <ScrollView
+        testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         stickyHeaderIndices={stickyHeaderIndices}
@@ -204,8 +224,11 @@ const PredictGameDetailsContentComponent: React.FC<
           activePositions={activePositions}
           claimablePositions={claimablePositions}
           groupMap={groupMap}
+          resolvedOutcomeGroups={resolvedGroups}
           activeChipKey={activeChipKey}
           onBetPress={onBetPress}
+          nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+          onRegTimeInfoPress={handleRegTimeInfoPress}
         />
       </ScrollView>
 
@@ -227,6 +250,12 @@ const PredictGameDetailsContentComponent: React.FC<
           ref={sheetRef}
           description={market.description ?? ''}
           onClose={handleSheetClosed}
+        />
+      )}
+      {isRegTimeSheetVisible && (
+        <PredictRegTimeInfoSheet
+          ref={regTimeSheetRef}
+          onClose={handleRegTimeSheetClosed}
         />
       )}
     </SafeAreaView>

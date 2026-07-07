@@ -153,8 +153,18 @@ describe('usePerpsOrderForm', () => {
       isInitialLoading: false,
     });
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: { price: '50000', timestamp: Date.now(), symbol: 'BTC' },
-      ETH: { price: '3000', timestamp: Date.now(), symbol: 'ETH' },
+      BTC: {
+        price: '50000',
+        timestamp: Date.now(),
+        symbol: 'BTC',
+        isTradable: true,
+      },
+      ETH: {
+        price: '3000',
+        timestamp: Date.now(),
+        symbol: 'ETH',
+        isTradable: true,
+      },
     });
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
@@ -813,7 +823,12 @@ describe('usePerpsOrderForm', () => {
 
       // BTC at $50000 with szDecimals=0: position size rounding is per whole token
       mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '50000', timestamp: Date.now(), symbol: 'BTC' },
+        BTC: {
+          price: '50000',
+          timestamp: Date.now(),
+          symbol: 'BTC',
+          isTradable: true,
+        },
       });
 
       const { result } = renderHook(

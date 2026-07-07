@@ -187,6 +187,23 @@ export function getActiveSessionId(): string | undefined {
 }
 
 /**
+ * Marks a session terminal (unless it is already terminal) and removes it from
+ * the registry. Shared by `closeSession` and `failSession`; it fires no consumer
+ * callback, so each caller stays in full control of which terminal event
+ * (`onClose` vs `onError`) it emits.
+ */
+function terminateSession(
+  session: HeadlessSession,
+  id: string,
+  terminalStatus: 'cancelled' | 'failed',
+): void {
+  if (!isTerminalSessionStatus(session.status)) {
+    session.status = terminalStatus;
+  }
+  sessions.delete(id);
+}
+
+/**
  * Idempotent "stop and notify" used by both consumer-driven cancellation
  * and the auto-cancel path of `startHeadlessBuy`.
  *
@@ -212,11 +229,11 @@ export function closeSession(
   if (!session) {
     return;
   }
-  if (!isTerminalSessionStatus(session.status)) {
-    session.status =
-      options?.terminalStatus === 'failed' ? 'failed' : 'cancelled';
-  }
-  sessions.delete(id);
+  terminateSession(
+    session,
+    id,
+    options?.terminalStatus === 'failed' ? 'failed' : 'cancelled',
+  );
   try {
     session.callbacks.onClose(info);
   } catch (e) {
@@ -230,7 +247,12 @@ export function closeSession(
 /**
  * Idempotent "fail and notify" for unrecoverable headless errors. It turns
  * thrown/native errors into the public HeadlessBuyError shape, fires `onError`,
- * then terminates the session through `closeSession`.
+ * then removes the session directly, WITHOUT firing `onClose`.
+ *
+ * `onError` is terminal on its own: a session ends in exactly one of
+ * `onOrderCreated`, `onError`, or `onClose`, never a pairing. This matters for
+ * MM Pay, whose `onClose` handler clears the error set by `onError`; a trailing
+ * `onClose` here would wipe the failure it just reported.
  */
 export function failSession(
   id: string | undefined,
@@ -253,13 +275,7 @@ export function failSession(
       'headless sessionRegistry: onError callback threw',
     );
   }
-  closeSession(
-    id,
-    { reason: 'unknown' },
-    {
-      terminalStatus: 'failed',
-    },
-  );
+  terminateSession(session, id, 'failed');
   return headlessError;
 }
 
