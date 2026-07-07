@@ -366,7 +366,7 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
-            if (isTrustlineAsset(asset.assetId)) return false;
+            if (isTrustlineAsset(asset.assetId)) return true;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -609,7 +609,10 @@ const oneHundredths = 0.01;
 
 // BIP44 MAINTENANCE: Review what fields are really needed
 function assetToToken(
-  asset: Asset & { isStaked?: boolean },
+  asset: Asset & {
+    isStaked?: boolean;
+    accountAssetInfo?: TokenI['accountAssetInfo'];
+  },
   aggregators?: string[],
   rwaData?: TokenI['rwaData'],
 ): TokenI {
@@ -655,6 +658,9 @@ function assetToToken(
     ticker: asset.symbol,
     accountType: asset.accountType,
     rwaData,
+    ...(asset.accountAssetInfo !== undefined
+      ? { accountAssetInfo: asset.accountAssetInfo }
+      : {}),
   };
 }
 

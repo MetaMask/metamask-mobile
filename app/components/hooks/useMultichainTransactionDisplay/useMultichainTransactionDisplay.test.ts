@@ -95,7 +95,9 @@ describe('useMultichainTransactionDisplay', () => {
         'stellar:pubnet',
       );
 
-      expect(displayData.title).toBe('transactions.activity_trustline_activated');
+      expect(displayData.title).toBe(
+        'transactions.activity_trustline_activated USDC',
+      );
       expect(displayData.shouldShowAmountOrUnit).toBe(false);
     });
 

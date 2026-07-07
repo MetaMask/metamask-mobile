@@ -34,8 +34,8 @@ export async function requestStellarChangeTrustOptDelete(params: {
   accountId: string;
   assetId: CaipAssetType;
   scope: CaipChainId;
-}): Promise<unknown> {
-  return handleSnapRequest(Engine.controllerMessenger, {
+}): Promise<StellarChangeTrustOptResult> {
+  return (await handleSnapRequest(Engine.controllerMessenger, {
     snapId: STELLAR_WALLET_SNAP_ID,
     origin: 'metamask',
     handler: HandlerType.OnClientRequest,
@@ -46,6 +46,6 @@ export async function requestStellarChangeTrustOptDelete(params: {
         action: 'delete',
       },
     },
-  });
+  })) as StellarChangeTrustOptResult;
 }
 ///: END:ONLY_INCLUDE_IF

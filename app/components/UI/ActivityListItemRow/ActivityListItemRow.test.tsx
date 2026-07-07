@@ -1609,12 +1609,8 @@ const EXPECTED_TITLES = {
   marketCloseShort: strings('transactions.activity_market_close_short'),
   limitShort: strings('transactions.activity_limit_short'),
   limitCloseShort: strings('transactions.activity_limit_close_short'),
-  assetActivation: strings('activity_assetActivation_success_title', {
-    symbol: '',
-  }),
-  assetDeactivation: strings('activity_assetDeactivation_success_title', {
-    symbol: '',
-  }),
+  assetActivation: strings('transactions.activity_trustline_activated'),
+  assetDeactivation: strings('transactions.activity_trustline_deactivated'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {
