@@ -9063,7 +9063,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/gas-fee-controller@npm:^26.1.0, @metamask/gas-fee-controller@npm:^26.2.3, @metamask/gas-fee-controller@npm:^26.2.4":
+"@metamask/gas-fee-controller@npm:^26.1.0, @metamask/gas-fee-controller@npm:^26.2.4":
   version: 26.2.4
   resolution: "@metamask/gas-fee-controller@npm:26.2.4"
   dependencies:
@@ -9931,6 +9931,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/ramps-controller@npm:^15.1.0":
+  version: 15.1.0
+  resolution: "@metamask/ramps-controller@npm:15.1.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/profile-sync-controller": "npm:^28.2.0"
+  checksum: 10/54f664646ece5a30dba4913c8d00d4a77a8894b640cf54a61d50ebe0dd5c582e8fa55df3113d5c87cd352c2440b4418a8e50f5658aee17de7b53a1fe835eae1b
+  languageName: node
+  linkType: hard
+
 "@metamask/react-data-query@npm:^0.2.0":
   version: 0.2.0
   resolution: "@metamask/react-data-query@npm:0.2.0"
@@ -10611,9 +10623,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:68.2.0":
-  version: 68.2.0
-  resolution: "@metamask/transaction-controller@npm:68.2.0"
+"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@68.2.2-preview-380bb5c":
+  version: 68.2.2-preview-380bb5c
+  resolution: "@metamask-previews/transaction-controller@npm:68.2.2-preview-380bb5c"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10622,15 +10634,15 @@ __metadata:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
     "@ethersproject/wallet": "npm:^5.7.0"
-    "@metamask/accounts-controller": "npm:^39.0.3"
+    "@metamask/accounts-controller": "npm:^39.0.4"
     "@metamask/approval-controller": "npm:^9.0.2"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/core-backend": "npm:^6.3.3"
-    "@metamask/gas-fee-controller": "npm:^26.2.3"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/core-backend": "npm:^6.5.0"
+    "@metamask/gas-fee-controller": "npm:^26.2.4"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
-    "@metamask/network-controller": "npm:^33.0.0"
+    "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/nonce-tracker": "npm:^6.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/rpc-errors": "npm:^7.0.2"
@@ -10645,13 +10657,13 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/f754016f3fe61f3f9e4399e44efc125f279a0bbc0f61ac572677b2d542e61caf1ad41a4906f1804c747bbf5f4b6f15313b7d545d6025c9fd880d3f7536d80340
+  checksum: 10/3c26aec9f8aa2a7c39b8140bcd4f959e796371c731f0403ec5a205b8e7ed01dcfde4509ed4f1143a2c00edc6d9a90bc6a5a02137a3165312b8c0dbf634123e8a
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@23.17.4-preview-b538ab03c":
-  version: 23.17.4-preview-b538ab03c
-  resolution: "@metamask-previews/transaction-pay-controller@npm:23.17.4-preview-b538ab03c"
+"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@23.17.4-preview-380bb5c":
+  version: 23.17.4-preview-380bb5c
+  resolution: "@metamask-previews/transaction-pay-controller@npm:23.17.4-preview-380bb5c"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10662,10 +10674,10 @@ __metadata:
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/gas-fee-controller": "npm:^26.2.4"
     "@metamask/keyring-controller": "npm:^27.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^34.0.0"
-    "@metamask/ramps-controller": "npm:^15.0.0"
+    "@metamask/ramps-controller": "npm:^15.1.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/transaction-controller": "npm:^68.2.2"
     "@metamask/utils": "npm:^11.11.0"
@@ -10673,7 +10685,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/348473a4f1ce3142a29dce6df8a93c91753dc3d25cadd50099b4b2e30fda2e2569adf9d08aafd68b3bd54da7156a83d196f884141d85e9266c04dc0708c31bb3
+  checksum: 10/2566f3cc4263b1a5bd30badb6d16c0468ca005decd66186867cce70968b4d163ec53022530e77b56ee9dfd20b84324c6945f8cca3dc29b6bdd5b6d7d77f43f14
   languageName: node
   linkType: hard
 
