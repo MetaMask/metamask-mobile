@@ -67,7 +67,10 @@ export const tokenWatchlistBatcher = createAsyncBatcher<WatchlistOp>(
     const current = await readFromTokenWatchList();
     await writeToTokenWatchList({
       ...current,
-      assets: ops.reduce<string[]>(applyOp, [...current.assets]),
+      assets: ops.reduce<string[]>(
+        (acc, op) => applyOp(acc, op),
+        [...current.assets],
+      ),
     });
   },
 );
