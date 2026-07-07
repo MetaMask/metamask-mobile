@@ -1,5 +1,8 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
+import {
+  createSnapsMethodMiddleware,
+  type PermittedRpcMethodHooks,
+} from '@metamask/snaps-rpc-methods';
 import { SubjectType } from '@metamask/permission-controller';
 import { Json } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
@@ -7,7 +10,7 @@ import { AppState } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
-import { RootExtendedMessenger, EngineContext } from '../Engine';
+import { RootExtendedMessenger, GlobalActions, GlobalEvents } from '../Engine';
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { endTrace, trace } from '../../util/trace';
@@ -56,11 +59,11 @@ const snapMethodMiddlewareBuilder = (
         return `${baseVersion}-${buildType}.0`;
       },
       getMessenger: ({ actions, events }) =>
-        controllerMessenger.buildChild({
+        controllerMessenger.buildChild<string, GlobalActions, GlobalEvents>({
           namespace: origin,
-          actions,
-          events,
-        }),
+          actions: (actions ?? []) as GlobalActions['type'][],
+          events: (events ?? []) as GlobalEvents['type'][],
+        }) as ReturnType<PermittedRpcMethodHooks['getMessenger']>,
       // @ts-expect-error Type 'string' is not assignable to type 'TraceName'.
       startTrace: trace,
       // @ts-expect-error Type 'string' is not assignable to type 'TraceName'.
