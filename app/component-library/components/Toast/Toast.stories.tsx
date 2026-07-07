@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
 import {
-  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
@@ -174,12 +173,10 @@ const getIconTriggers = (theme: Theme): ToastTrigger[] => [
         { label: 'This may take a few minutes.', isBold: false },
       ],
       startAccessory: (
-        <Box twClassName="pr-3">
-          <Spinner
-            color={ReactNativeDsIconColor.PrimaryDefault}
-            spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
-          />
-        </Box>
+        <Spinner
+          color={ReactNativeDsIconColor.PrimaryDefault}
+          spinnerIconProps={{ size: ReactNativeDsIconSize.Xl }}
+        />
       ),
     }),
   },
@@ -232,7 +229,7 @@ const getIconTriggers = (theme: Theme): ToastTrigger[] => [
 
 const getCloseActionTriggers = (): ToastTrigger[] => [
   {
-    label: 'With close link button',
+    label: 'With close secondary button',
     getOptions: () => ({
       variant: ToastVariants.Icon,
       hasNoTimeout: true,
@@ -244,7 +241,7 @@ const getCloseActionTriggers = (): ToastTrigger[] => [
       ],
       closeButtonOptions: {
         label: 'Track',
-        variant: ButtonVariants.Link,
+        variant: ButtonVariants.Secondary,
         onPress: () => Alert.alert('Track pressed'),
       },
     }),

@@ -27,8 +27,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
+import Icon, { IconSize } from '../Icons/Icon';
 import Text, { TextColor, TextVariant } from '../Texts/Text';
-import Button, { ButtonVariants } from '../Buttons/Button';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  IconName as DsIconName,
+} from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import {
@@ -49,12 +55,24 @@ import {
   visibilityDuration,
 } from './Toast.constants';
 import { useStyles } from '../../hooks';
+import { ButtonProps, ButtonVariants } from '../Buttons/Button/Button.types';
 import ButtonIcon from '../Buttons/ButtonIcon';
+import { ButtonIconSizes } from '../Buttons/ButtonIcon/ButtonIcon.types';
 
 const screenHeight = Dimensions.get('window').height;
 
 const getHiddenTranslateY = (height: number, offset: number) =>
   -(height + offset);
+
+const mapLegacyButtonVariant = (variant?: ButtonVariants): ButtonVariant => {
+  if (variant === ButtonVariants.Secondary) {
+    return ButtonVariant.Secondary;
+  }
+  if (variant === ButtonVariants.Link) {
+    return ButtonVariant.Secondary;
+  }
+  return ButtonVariant.Primary;
+};
 
 /**
  * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
@@ -76,9 +94,23 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
+  const hasCloseIconButton =
+    toastOptions?.closeButtonOptions?.variant === ButtonIconVariant.Icon;
   const baseStyle: StyleProp<ViewStyle> = useMemo(
-    () => [styles.base, animatedStyle],
-    [styles.base, animatedStyle],
+    () => [
+      styles.base,
+      toastOptions?.linkButtonOptions && styles.baseWithActionButton,
+      hasCloseIconButton && styles.baseWithCloseIconButton,
+      animatedStyle,
+    ],
+    [
+      styles.base,
+      styles.baseWithActionButton,
+      styles.baseWithCloseIconButton,
+      animatedStyle,
+      toastOptions?.linkButtonOptions,
+      hasCloseIconButton,
+    ],
   );
 
   const resetState = () => setToastOptions(undefined);
@@ -152,19 +184,62 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }
   };
 
-  const renderLabel = (labelOptions: ToastLabelOptions) => (
+  const renderInlineLabelSegments = (segments: ToastLabelOptions) => (
     <Text variant={TextVariant.BodyMD}>
-      {labelOptions.map(({ label, isBold }, index) => (
+      {segments.map(({ label, isBold }, index) => (
         <Text
           key={`toast-label-${index}`}
-          variant={isBold ? TextVariant.BodyMDBold : TextVariant.BodyMD}
-          style={styles.label}
+          variant={
+            isBold === false ? TextVariant.BodySM : TextVariant.BodyMDMedium
+          }
+          color={isBold === false ? TextColor.Alternative : undefined}
+          style={isBold === false ? undefined : styles.label}
         >
           {label}
         </Text>
       ))}
     </Text>
   );
+
+  const renderLabel = (labelOptions: ToastLabelOptions) => {
+    const descriptionSplitIndex = labelOptions.findIndex(
+      (option, index) => index > 0 && option.label === '\n',
+    );
+
+    if (descriptionSplitIndex === -1) {
+      return renderInlineLabelSegments(labelOptions);
+    }
+
+    const titleOptions = labelOptions.slice(0, descriptionSplitIndex);
+    const descriptionLabelOptions = labelOptions.slice(
+      descriptionSplitIndex + 1,
+    );
+
+    return (
+      <>
+        {titleOptions.length > 0
+          ? renderInlineLabelSegments(titleOptions)
+          : null}
+        {descriptionLabelOptions.length > 0 ? (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            style={styles.description}
+          >
+            {descriptionLabelOptions.map(({ label }, index) => (
+              <Text
+                key={`toast-description-label-${index}`}
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+              >
+                {label}
+              </Text>
+            ))}
+          </Text>
+        ) : null}
+      </>
+    );
+  };
 
   const renderDescription = (descriptionOptions?: ToastDescriptionOptions) =>
     descriptionOptions && (
@@ -180,12 +255,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const renderActionButton = (linkButtonOptions?: ToastLinkButtonOptions) =>
     linkButtonOptions && (
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Sm}
         onPress={linkButtonOptions.onPress}
-        labelTextVariant={TextVariant.BodyMD}
-        label={linkButtonOptions.label}
         style={styles.actionButton}
-      />
+      >
+        {linkButtonOptions.label}
+      </Button>
     );
 
   const renderCloseButton = (closeButtonOptions?: ToastCloseButtonOptions) => {
@@ -194,17 +270,23 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         <ButtonIcon
           onPress={() => closeButtonOptions?.onPress?.()}
           iconName={closeButtonOptions?.iconName}
+          size={ButtonIconSizes.Md}
+          style={styles.closeButton}
         />
       );
     }
+    const legacyCloseButton = closeButtonOptions as ButtonProps;
+
     return (
       <Button
-        variant={ButtonVariants.Primary}
-        onPress={() => closeButtonOptions?.onPress()}
-        label={closeButtonOptions?.label}
-        endIconName={closeButtonOptions?.endIconName}
-        style={closeButtonOptions?.style}
-      />
+        variant={mapLegacyButtonVariant(legacyCloseButton.variant)}
+        size={ButtonSize.Sm}
+        onPress={() => legacyCloseButton.onPress?.()}
+        endIconName={legacyCloseButton.endIconName as DsIconName | undefined}
+        style={legacyCloseButton.style}
+      >
+        {legacyCloseButton.label}
+      </Button>
     );
   };
 
@@ -223,7 +305,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             // should receive avatar type as props
             type={accountAvatarType}
             size={AvatarSize.Md}
-            style={styles.avatar}
           />
         );
       }
@@ -234,8 +315,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             variant={AvatarVariant.Network}
             name={networkName}
             imageSource={networkImageSource}
-            size={AvatarSize.Md}
-            style={styles.avatar}
+            size={AvatarSize.Sm}
           />
         );
       }
@@ -246,21 +326,26 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             variant={AvatarVariant.Favicon}
             imageSource={appIconSource}
             size={AvatarSize.Md}
-            style={styles.avatar}
           />
         );
       }
       case ToastVariants.Icon: {
         const { iconName, iconColor, backgroundColor } = toastOptions;
-        return (
-          <Avatar
-            variant={AvatarVariant.Icon}
-            name={iconName}
-            iconColor={iconColor}
-            backgroundColor={backgroundColor}
-            style={styles.avatar}
-          />
+        const icon = (
+          <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
         );
+        const hasIconBackground =
+          backgroundColor != null && backgroundColor !== 'transparent';
+
+        if (hasIconBackground) {
+          return (
+            <View style={[styles.iconBackground, { backgroundColor }]}>
+              {icon}
+            </View>
+          );
+        }
+
+        return icon;
       }
     }
   };
@@ -276,10 +361,15 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
     const isStartAccessoryValid =
       startAccessory != null && React.isValidElement(startAccessory);
+    const leadingAccessory = isStartAccessoryValid
+      ? startAccessory
+      : renderAvatar();
 
     return (
       <>
-        {isStartAccessoryValid ? startAccessory : renderAvatar()}
+        {leadingAccessory ? (
+          <View style={styles.startAccessoryContainer}>{leadingAccessory}</View>
+        ) : null}
         <View
           style={styles.labelsContainer}
           testID={ToastSelectorsIDs.CONTAINER}
