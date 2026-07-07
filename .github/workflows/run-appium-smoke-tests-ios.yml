@@ -128,3 +128,27 @@ jobs:
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
     secrets: inherit
+
+  appium-snaps-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeSnaps'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2, 3]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-snaps-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: SmokeSnaps
+      split_number: ${{ matrix.split }}
+      total_splits: 3
+      test-timeout-minutes: 60
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit

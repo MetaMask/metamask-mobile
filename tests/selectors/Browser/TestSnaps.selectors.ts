@@ -1,3 +1,6 @@
+export const TEST_SNAPS_URL =
+  'https://metamask.github.io/snaps/test-snaps/3.4.2/';
+
 // Only keep selectors that are actually used in tests
 export const TestSnapViewSelectorWebIDS = {
   cancelBackgroundEventButton: 'cancelBackgroundEvent',
