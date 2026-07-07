@@ -1,21 +1,25 @@
 import React, { useMemo } from 'react';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, type PathProps } from 'react-native-svg';
 
 function BottomShape({
   width,
   height,
-  peakHeight,
-  peakBezierLength,
-  baseBezierLength,
-  fill,
+  peakHeight = 16,
+  peakBezierLength = 25,
+  baseBezierLength = 55,
+  fill = 'black',
+  strokeOnly = false,
+  pathProps,
   ...svgProps
 }: {
   width: number;
   height: number;
-  peakHeight: number;
-  peakBezierLength: number;
-  baseBezierLength: number;
-  fill: string;
+  peakHeight?: number;
+  peakBezierLength?: number;
+  baseBezierLength?: number;
+  fill?: string;
+  strokeOnly?: boolean;
+  pathProps?: PathProps;
 }) {
   const pathData = useMemo(() => {
     const centerX = width / 2;
@@ -27,6 +31,21 @@ function BottomShape({
     const leftBaseY = height;
     const rightBaseX = centerX + baseBezierLength;
     const rightBaseY = height;
+
+    // strokeOnly builds an open path for the border-muted stroke along the trade-menu cutout curve.
+    // TradeWalletActions is the only caller; this branch can be removed if that menu no longer has a border.
+    if (strokeOnly) {
+      return `
+        M ${rightBaseX} ${rightBaseY}
+        C ${rightBaseX - peakBezierLength} ${rightBaseY}
+          ${peakX + peakBezierLength} ${peakY}
+          ${peakX} ${peakY}
+        S ${leftBaseX + peakBezierLength} ${leftBaseY}
+          ${leftBaseX} ${leftBaseY}
+      `
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
 
     return `
       M 0 ${height}
@@ -44,11 +63,18 @@ function BottomShape({
     `
       .replace(/\s+/g, ' ')
       .trim();
-  }, [width, height, peakHeight, peakBezierLength, baseBezierLength]);
+  }, [
+    width,
+    height,
+    peakHeight,
+    peakBezierLength,
+    baseBezierLength,
+    strokeOnly,
+  ]);
 
   return (
     <Svg width={width} height={height} {...svgProps}>
-      <Path d={pathData} fill={fill} />
+      <Path d={pathData} fill={strokeOnly ? 'none' : fill} {...pathProps} />
     </Svg>
   );
 }
