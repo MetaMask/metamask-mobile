@@ -1,6 +1,9 @@
 import { StackActions } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
-import { replaceWithTransactionsView } from './replaceWithTransactionsView';
+import {
+  replaceWithTransactionsView,
+  showActivityKeepingFlow,
+} from './replaceWithTransactionsView';
 
 interface FakeNav {
   navigate: jest.Mock;
@@ -88,5 +91,29 @@ describe('replaceWithTransactionsView', () => {
 
     expect(nav.dispatch).not.toHaveBeenCalled();
     expect(nav.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+  });
+});
+
+describe('showActivityKeepingFlow', () => {
+  it('pushes Activity without popping for a combined input+confirm flow (swaps)', () => {
+    const nav = makeNav();
+
+    showActivityKeepingFlow(nav);
+
+    expect(nav.dispatch).not.toHaveBeenCalled();
+    expect(nav.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+  });
+
+  it('pops the confirmation to the flow input, then pushes Activity (stake)', () => {
+    const nav = makeNav();
+
+    showActivityKeepingFlow(nav, { returnToFlowInput: true });
+
+    expect(nav.dispatch).toHaveBeenCalledWith(StackActions.popToTop());
+    expect(nav.navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    // pop must happen before the Activity push so back lands on the input.
+    expect(nav.dispatch.mock.invocationCallOrder[0]).toBeLessThan(
+      nav.navigate.mock.invocationCallOrder[0],
+    );
   });
 });

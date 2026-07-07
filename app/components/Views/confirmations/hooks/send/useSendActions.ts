@@ -7,7 +7,7 @@ import { errorCodes } from '@metamask/rpc-errors';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
+import { showActivityKeepingFlow } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { AssetType } from '../../types/token';
 import Logger from '../../../../../util/Logger';
 import { sendMultichainTransactionForReview } from '../../utils/multichain-snaps';
@@ -82,8 +82,7 @@ export const useSendActions = () => {
             return;
           }
 
-          // Success - navigate to transactions view
-          replaceWithTransactionsView(navigation);
+          showActivityKeepingFlow(navigation, { returnToFlowInput: true });
         } catch (error) {
           // Check for user rejection using error code (4001) - this is language-independent
           const errorCode = (error as { code?: number })?.code;

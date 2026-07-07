@@ -21,7 +21,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
-import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
+import { showActivityKeepingFlow } from '../../../../../util/navigation/replaceWithTransactionsView';
 import {
   IMetaMetricsEvent,
   MetaMetricsEvents,
@@ -317,7 +317,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
           });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
-            replaceWithTransactionsView(navigation);
+            // Keep the Earn flow in the back stack so "back" from Activity
+            // returns to the lending screen, not the wallet.
+            showActivityKeepingFlow(navigation);
           }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,

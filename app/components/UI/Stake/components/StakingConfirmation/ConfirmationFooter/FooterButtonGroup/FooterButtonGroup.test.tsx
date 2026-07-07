@@ -10,7 +10,7 @@ import renderWithProvider, {
 } from '../../../../../../../util/test/renderWithProvider';
 import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/stakeMockData';
 import FooterButtonGroup from './FooterButtonGroup';
-import { replaceWithTransactionsView } from '../../../../../../../util/navigation/replaceWithTransactionsView';
+import { showActivityKeepingFlow } from '../../../../../../../util/navigation/replaceWithTransactionsView';
 import Engine from '../../../../../../../core/Engine';
 import {
   FooterButtonGroupActions,
@@ -61,6 +61,7 @@ jest.mock(
   '../../../../../../../util/navigation/replaceWithTransactionsView',
   () => ({
     replaceWithTransactionsView: jest.fn(),
+    showActivityKeepingFlow: jest.fn(),
   }),
 );
 
@@ -254,7 +255,9 @@ describe('FooterButtonGroup', () => {
       submittedCallback?.();
     });
 
-    expect(replaceWithTransactionsView).toHaveBeenCalled();
+    expect(showActivityKeepingFlow).toHaveBeenCalledWith(expect.anything(), {
+      returnToFlowInput: true,
+    });
   });
 
   it('handles transaction error correctly', async () => {

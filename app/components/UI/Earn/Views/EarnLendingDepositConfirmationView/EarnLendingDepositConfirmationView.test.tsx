@@ -33,7 +33,7 @@ import {
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 import Routes from '../../../../../constants/navigation/Routes';
-import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
+import { showActivityKeepingFlow } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
@@ -45,6 +45,7 @@ type TxCallback = (event: {
 
 jest.mock('../../../../../util/navigation/replaceWithTransactionsView', () => ({
   replaceWithTransactionsView: jest.fn(),
+  showActivityKeepingFlow: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
@@ -928,7 +929,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(replaceWithTransactionsView).toHaveBeenCalled();
+      expect(showActivityKeepingFlow).toHaveBeenCalled();
 
       // Clear and test confirmed status
       mockTrackEvent.mockClear();

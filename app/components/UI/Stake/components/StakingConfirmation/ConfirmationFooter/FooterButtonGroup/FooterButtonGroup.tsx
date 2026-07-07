@@ -23,7 +23,7 @@ import {
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { replaceWithTransactionsView } from '../../../../../../../util/navigation/replaceWithTransactionsView';
+import { showActivityKeepingFlow } from '../../../../../../../util/navigation/replaceWithTransactionsView';
 import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
 import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -117,7 +117,10 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         () => {
           submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].SUBMITTED);
           setDidSubmitTransaction(false);
-          replaceWithTransactionsView(navigation);
+          // Pop the stake confirmation off so "back" from Activity returns to
+          // the stake/unstake input screen (the confirmation re-mounts into an
+          // infinite spinner), then show Activity above the kept flow.
+          showActivityKeepingFlow(navigation, { returnToFlowInput: true });
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );

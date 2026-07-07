@@ -6,7 +6,6 @@ import { useABTest } from '../../../../../hooks';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
-import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { isHardwareAccount } from '../../../../../util/address';
 import { HardwareWalletsSwapsStatus } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
@@ -23,10 +22,6 @@ const defaultParams = {
   activeQuote: mockQuoteWithMetadata,
   location: MetaMetricsSwapsEventSource.MainView,
 };
-
-jest.mock('../../../../../util/navigation/replaceWithTransactionsView', () => ({
-  replaceWithTransactionsView: jest.fn(),
-}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -209,7 +204,7 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
-      expect(replaceWithTransactionsView).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
   });
 
@@ -234,7 +229,7 @@ describe('useBridgeConfirm', () => {
           screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
         }),
       );
-      expect(replaceWithTransactionsView).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
@@ -376,7 +371,7 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
-      expect(replaceWithTransactionsView).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 
     it('resets isSubmittingTx to false after the error', async () => {

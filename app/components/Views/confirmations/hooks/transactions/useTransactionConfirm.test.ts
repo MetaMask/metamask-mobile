@@ -13,7 +13,7 @@ import {
 } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import Routes from '../../../../../constants/navigation/Routes';
-import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
+import { showActivityAfterConfirmation } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
@@ -40,6 +40,7 @@ const mockMusdNavigateOnConfirm = jest.fn();
 
 jest.mock('../../../../../util/navigation/replaceWithTransactionsView', () => ({
   replaceWithTransactionsView: jest.fn(),
+  showActivityAfterConfirmation: jest.fn(),
 }));
 jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
@@ -375,7 +376,7 @@ describe('useTransactionConfirm', () => {
       await expect(result.current.onConfirm()).resolves.toBeUndefined();
     });
 
-    expect(replaceWithTransactionsView).toHaveBeenCalled();
+    expect(showActivityAfterConfirmation).toHaveBeenCalled();
   });
 
   it('does nothing when transactionMetadata is missing', async () => {
@@ -572,7 +573,7 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(replaceWithTransactionsView).toHaveBeenCalled();
+      expect(showActivityAfterConfirmation).toHaveBeenCalled();
     });
 
     it('previous page if not full screen', async () => {
