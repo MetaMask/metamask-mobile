@@ -14,7 +14,10 @@ interface CreateSessionResponse {
   idosSessionId: string;
 }
 
-async function createSession(jwtToken: string): Promise<CreateSessionResponse> {
+async function createSession(
+  jwtToken: string,
+  moonPayAccessToken: string,
+): Promise<CreateSessionResponse> {
   const response = await fetch(`${UKYC_API_BASE_URL}/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -22,6 +25,7 @@ async function createSession(jwtToken: string): Promise<CreateSessionResponse> {
       vendorId: 'moonpay',
       vendorUserId: 'mockedId',
       jwtToken,
+      moonPayAccessToken,
     }),
   });
 
@@ -70,71 +74,83 @@ const useSumSubDemo = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  const launchSumSubSDK = useCallback(async () => {
-    setIsLoading(true);
-    setSdkResult(null);
-    setStatus(null);
+  const launchSumSubSDK = useCallback(
+    async (moonPayAccessToken: string | null) => {
+      setIsLoading(true);
+      setSdkResult(null);
+      setStatus(null);
 
-    try {
-      if (!NativeModules.SNSMobileSDKModule) {
-        throw new Error(
-          'SumSub native module is not available. Rebuild the app with native dependencies (yarn start:ios or yarn start:android). Expo Go is not supported.',
-        );
-      }
-
-      setStatus('Creating UKYC session...');
-      const mockJwtToken = 'mock-jwt-token';
-      const { sessionId, idosSessionId, wrappedUserKey } =
-        await createSession(mockJwtToken);
-
-      setStatus('Fetching access token...');
-      const { applicantAccessToken } = await fetchAccessToken(
-        sessionId,
-        wrappedUserKey,
-        idosSessionId,
-        mockJwtToken,
-      );
-
-      setStatus('Launching SumSub SDK...');
-      const snsMobileSDK = SNSMobileSDK.init(applicantAccessToken, async () => {
-        const { applicantAccessToken: refreshedAccessToken } =
-          await fetchAccessToken(
-            sessionId,
-            wrappedUserKey,
-            idosSessionId,
-            mockJwtToken,
+      try {
+        if (!NativeModules.SNSMobileSDKModule) {
+          throw new Error(
+            'SumSub native module is not available. Rebuild the app with native dependencies (yarn start:ios or yarn start:android). Expo Go is not supported.',
           );
-        return refreshedAccessToken;
-      })
-        .withHandlers({
-          onStatusChanged: (event: {
-            prevStatus: string;
-            newStatus: string;
-          }) => {
-            console.log(
-              `[SumSub] Status: ${event.prevStatus} => ${event.newStatus}`,
-            );
-          },
-          onLog: (event: { message: string }) => {
-            console.log(`[SumSub] ${event.message}`);
-          },
-        })
-        .withDebug(true)
-        .withLocale('en')
-        .build();
+        }
 
-      const result: Record<string, unknown> = await snsMobileSDK.launch();
-      console.log('[SumSub] Result:', JSON.stringify(result));
-      setSdkResult(result);
-      setStatus('Complete');
-    } catch (err) {
-      console.error('[SumSubDemo] Error:', err);
-      setSdkResult({ error: String(err) });
-      setStatus('Failed');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+        setStatus('Creating UKYC session...');
+        const mockJwtToken = 'mock-jwt-token';
+        if (!moonPayAccessToken) {
+          throw new Error('MoonPay access token not provided');
+        }
+        const { sessionId, idosSessionId, wrappedUserKey } =
+          await createSession(mockJwtToken, moonPayAccessToken);
+
+        setStatus('Fetching access token...');
+        const { applicantAccessToken } = await fetchAccessToken(
+          sessionId,
+          wrappedUserKey,
+          idosSessionId,
+          mockJwtToken,
+        );
+
+        setStatus('Launching SumSub SDK...');
+        const snsMobileSDK = SNSMobileSDK.init(
+          applicantAccessToken,
+          async () => {
+            const { applicantAccessToken: refreshedAccessToken } =
+              await fetchAccessToken(
+                sessionId,
+                wrappedUserKey,
+                idosSessionId,
+                mockJwtToken,
+              );
+            return refreshedAccessToken;
+          },
+        )
+          .withHandlers({
+            onStatusChanged: (event: {
+              prevStatus: string;
+              newStatus: string;
+            }) => {
+              // eslint-disable-next-line no-console
+              console.log(
+                `[SumSub] Status: ${event.prevStatus} => ${event.newStatus}`,
+              );
+            },
+            onLog: (event: { message: string }) => {
+              // eslint-disable-next-line no-console
+              console.log(`[SumSub] ${event.message}`);
+            },
+          })
+          .withDebug(true)
+          .withLocale('en')
+          .build();
+
+        const result: Record<string, unknown> = await snsMobileSDK.launch();
+        // eslint-disable-next-line no-console
+        console.log('[SumSub] Result:', JSON.stringify(result));
+        setSdkResult(result);
+        setStatus('Complete');
+      } catch (err) {
+        console.error('[SumSubDemo] Error:', err);
+        setSdkResult({ error: String(err) });
+        setStatus('Failed');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
 
   return { sdkResult, isLoading, status, launchSumSubSDK };
 };

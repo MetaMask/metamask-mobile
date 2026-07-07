@@ -29,7 +29,6 @@ import {
 import type { MoonpayFrameMessage } from './MoonpayFrame';
 // eslint-disable-next-line import-x/no-restricted-paths
 import useSumSubDemo from '../SumSubDemo/useSumSubDemo';
-import { Engine } from '../../../core/Engine/Engine';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -229,9 +228,9 @@ const useMoonpayIdentityFlow = () => {
 
   useEffect(() => {
     if (finalStatus === 'approved') {
-      launchSumSubSDK();
+      launchSumSubSDK(accessToken);
     }
-  }, [finalStatus, launchSumSubSDK]);
+  }, [finalStatus, launchSumSubSDK, accessToken]);
 
   // ---- Check frame visibility toggle ----
   const [showCheckFrame, setShowCheckFrame] = useState(false);
@@ -287,7 +286,7 @@ const useMoonpayIdentityFlow = () => {
         setFinalStatus(finalIdentity.status);
         setPhase('done');
         setStatusMessage(`Final status: ${finalIdentity.status}`);
-        launchSumSubSDK();
+        launchSumSubSDK(accessToken);
       } catch (err) {
         if (!pollAbortedRef.current) {
           setErrorMessage(`Polling failed: ${err}`);
@@ -295,7 +294,7 @@ const useMoonpayIdentityFlow = () => {
         }
       }
     },
-    [launchSumSubSDK],
+    [launchSumSubSDK, accessToken],
   );
 
   // ---------- Step 3a / 3b: Check + Auth frame message handler ----------
@@ -646,6 +645,7 @@ const useMoonpayIdentityFlow = () => {
   }, []);
 
   return {
+    accessToken,
     phase,
     statusMessage,
     errorMessage,
