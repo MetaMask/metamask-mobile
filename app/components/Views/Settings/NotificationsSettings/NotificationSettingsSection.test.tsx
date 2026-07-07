@@ -127,7 +127,7 @@ describe('NotificationSettingsSection', () => {
     expect(screen.getByText(marketingDisclaimer)).toBeOnTheScreen();
   });
 
-  it('renders a Wallet activity deselect all button when any account is enabled', () => {
+  it('renders a wallet activity deselect all button when any account is enabled', () => {
     renderSection({
       type: 'walletActivity',
       title: 'Wallet activity',
@@ -144,7 +144,7 @@ describe('NotificationSettingsSection', () => {
     expect(mockToggleAllAccounts).toHaveBeenCalledTimes(1);
   });
 
-  it('renders a Wallet activity select all button when every account is disabled', () => {
+  it('renders a wallet activity select all button when every account is disabled', () => {
     mockHasEnabledAccount = false;
 
     renderSection({
