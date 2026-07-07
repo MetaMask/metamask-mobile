@@ -3,6 +3,8 @@ process.env.TZ = 'America/Toronto';
 // Unit tests need a test-like environment before Babel transforms app modules.
 process.env.METAMASK_ENVIRONMENT ??= 'test';
 
+process.env.MM_INFURA_PROJECT_ID = 'fake-infura-project-id';
+
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
@@ -106,6 +108,7 @@ const config = {
     '^expo-screen-orientation(/.*)?$':
       '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
+    '^expo$': '<rootDir>/app/__mocks__/expo.ts',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
     '^@metamask/design-system-react-native/spinner$':
       '<rootDir>/app/__mocks__/spinnerMock.js',

@@ -1,6 +1,14 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import {
+  asDetoxElement,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { resolve } from '../../framework/Selector';
+import UnifiedGestures from '../../framework/UnifiedGestures';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 
 class ImportSrpView {
@@ -20,13 +28,25 @@ class ImportSrpView {
     return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
   }
 
-  seedPhraseInput(index: number): EncapsulatedElementType {
-    if (index !== 0) {
-      return Matchers.getElementByID(
-        `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`,
-      );
+  private getAppiumIosSeedPhraseXPath(index: number): string {
+    if (index === 0) {
+      return '//XCUIElementTypeOther[@name="textfield"]';
     }
-    return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+
+    return `//XCUIElementTypeOther[@name="textfield" and @label="${index + 1}."]`;
+  }
+
+  seedPhraseInput(index: number): EncapsulatedElementType {
+    const testID =
+      index === 0
+        ? ImportSRPIDs.SEED_PHRASE_INPUT_ID
+        : `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`;
+
+    return resolve({
+      detoxTestID: testID,
+      androidAppiumTestID: testID,
+      iosAppiumXPath: this.getAppiumIosSeedPhraseXPath(index),
+    });
   }
 
   async tapTitle() {
@@ -42,21 +62,57 @@ class ImportSrpView {
   }
 
   async enterSrp(mnemonic: string): Promise<void> {
-    if (device.getPlatform() === 'ios') {
-      const srpArray = mnemonic.split(' ');
-      for (const [i, word] of srpArray.entries()) {
-        await Gestures.typeText(this.seedPhraseInput(i), `${word} `, {
-          elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
-          hideKeyboard: i === srpArray.length - 1,
-        });
-      }
-      await this.tapTitle();
-    } else {
-      await Gestures.replaceText(this.textareaInput, mnemonic, {
-        elemDescription: 'SRP textarea input',
-        checkVisibility: false,
-      });
-    }
+    const srpArray = mnemonic.split(' ');
+
+    await encapsulatedAction({
+      detox: async () => {
+        if (PlatformDetector.isIOS()) {
+          for (const [i, word] of srpArray.entries()) {
+            await Gestures.typeText(
+              asDetoxElement(this.seedPhraseInput(i)),
+              `${word} `,
+              {
+                elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
+                hideKeyboard: i === srpArray.length - 1,
+              },
+            );
+          }
+          await this.tapTitle();
+          return;
+        }
+
+        await Gestures.replaceText(
+          asDetoxElement(this.textareaInput),
+          mnemonic,
+          {
+            elemDescription: 'SRP textarea input',
+            checkVisibility: false,
+          },
+        );
+      },
+      appium: async () => {
+        if (PlatformDetector.isAndroid()) {
+          await UnifiedGestures.replaceText(this.seedPhraseInput(0), mnemonic, {
+            description: 'Import SRP Secret Recovery Phrase Input Box',
+          });
+          return;
+        }
+
+        for (const [i, word] of srpArray.entries()) {
+          const suffix = i === srpArray.length - 1 ? '' : ' ';
+          await UnifiedGestures.typeText(
+            this.seedPhraseInput(i),
+            `${word}${suffix}`,
+            {
+              description: 'Import SRP Secret Recovery Phrase Input Box',
+              waitForInteractive: true,
+              postEnabledSettleMs: 500,
+            },
+          );
+        }
+        await PlaywrightGestures.hideKeyboard();
+      },
+    });
   }
 }
 

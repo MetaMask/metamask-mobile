@@ -6,6 +6,8 @@ import { useWhatsHappeningAssetPrices } from '../../../Views/WhatsHappeningDetai
 import type { WhatsHappeningItem } from '../types';
 import type { WhatsHappeningSourceValue } from '../constants';
 import WhatsHappeningAssetPill from './WhatsHappeningAssetPill';
+import { useTradablePerpsMarketSymbols } from '../hooks';
+import { isRelatedAssetTradable } from '../util/tradableAssets';
 
 export interface WhatsHappeningAssetSliderProps {
   assets: RelatedAsset[];
@@ -22,9 +24,15 @@ const WhatsHappeningAssetSlider: React.FC<WhatsHappeningAssetSliderProps> = ({
 }) => {
   const tw = useTailwind();
 
+  const { tradableSymbols } = useTradablePerpsMarketSymbols();
+
   const perpsAssets = useMemo(
-    () => assets.filter((a) => a.hlPerpsMarket?.[0]),
-    [assets],
+    () =>
+      assets.filter(
+        (a) =>
+          a.hlPerpsMarket?.[0] && isRelatedAssetTradable(a, tradableSymbols),
+      ),
+    [assets, tradableSymbols],
   );
 
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(perpsAssets);

@@ -5,7 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
 import { ForgotPasswordModalSelectorsIDs } from '../../../util/ForgotPasswordModal.testIds';
@@ -72,7 +72,7 @@ jest.mock('../../../core/Authentication/Authentication', () => ({
   },
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const renderComponent = (
   state: DeepPartial<RootState> = {},

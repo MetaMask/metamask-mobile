@@ -41,15 +41,15 @@ const styles = StyleSheet.create({
 const PotentialEarningsTokenRow = ({
   token,
   hasSubsidizedFee,
-  apyPercent,
+  apyDecimal,
   onCardPress,
   onButtonPress,
   testID,
 }: {
   token: AssetType;
   hasSubsidizedFee: boolean;
-  /** APY as a percentage (e.g. 4 for 4%). */
-  apyPercent: number;
+  /** APY as a decimal (e.g. 0.04 for 4%). */
+  apyDecimal: number;
   onCardPress: () => void;
   onButtonPress: () => void;
   testID?: string;
@@ -63,7 +63,7 @@ const PotentialEarningsTokenRow = ({
   const fiatBalance = tokenFiatValue(token);
   const projectedFiatNumber = calculateProjectedEarnings(
     fiatBalance,
-    apyPercent,
+    apyDecimal,
     PROJECTION_YEARS,
   );
   const projectedFiatFormatted = moneyFormatFiat(

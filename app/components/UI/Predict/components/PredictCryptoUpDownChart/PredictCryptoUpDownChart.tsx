@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { PixelRatio } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
@@ -60,6 +72,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     data,
     value,
     loading,
+    connectionError,
     window: chartWindow,
   } = useCryptoUpDownChartData(market, targetPrice);
 
@@ -85,32 +98,62 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
       }
       testID="predict-crypto-up-down-chart-container"
     >
-      {chartHeight > 0 && (
-        <LivelineChart
-          data={data}
-          value={value}
-          loading={loading}
-          window={chartWindow}
-          height={chartHeight}
-          color={color}
-          lineWidth={2}
-          grid
-          hideControls
-          badge={false}
-          momentum={false}
-          padding={{ top: 8, right: 64, bottom: bottomPadding }}
-          referenceLine={
-            targetPrice ? { value: targetPrice, label: 'Target' } : undefined
-          }
+      {chartHeight > 0 &&
+        (connectionError ? (
           /*
-           * TODO: Re-enable orderbook once Liveline supports one-shot updates
-           * instead of resampling a persistent book.
-           * orderbook={orderbook ?? undefined}
+           * Connection-error state for an upstream data outage. Sized to the
+           * exact chart height and centered so it occupies the same space as
+           * the chart. This only swaps the view — `useCryptoUpDownChartData`
+           * (above) keeps the live subscription and history polling active
+           * underneath, so the chart re-renders automatically as soon as data
+           * flows again. Do not gate the hook on this.
            */
-          formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
-          formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
-        />
-      )}
+          <Box
+            style={{ height: chartHeight }}
+            twClassName="px-8 gap-2"
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            testID="predict-crypto-up-down-chart-connection-error"
+          >
+            <Icon
+              name={IconName.WifiOff}
+              size={IconSize.Xl}
+              color={IconColor.IconMuted}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings('predict.error.chart_connection_error')}
+            </Text>
+          </Box>
+        ) : (
+          <LivelineChart
+            data={data}
+            value={value}
+            loading={loading}
+            window={chartWindow}
+            height={chartHeight}
+            color={color}
+            lineWidth={2}
+            grid
+            hideControls
+            badge={false}
+            momentum={false}
+            padding={{ top: 8, right: 64, bottom: bottomPadding }}
+            referenceLine={
+              targetPrice ? { value: targetPrice, label: 'Target' } : undefined
+            }
+            /*
+             * TODO: Re-enable orderbook once Liveline supports one-shot updates
+             * instead of resampling a persistent book.
+             * orderbook={orderbook ?? undefined}
+             */
+            formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
+            formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
+          />
+        ))}
     </Box>
   );
 };

@@ -23,7 +23,7 @@ import TextField from '../../../../../component-library/components/Form/TextFiel
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
-import { validateEmail } from '../../../Ramp/Deposit/utils';
+import { validateEmail } from '../../../Ramp/utils/depositUtils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegions from '../../hooks/useRegions';

@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   BackHandler,
-  Image,
-  type ImageSourcePropType,
   Platform,
   ScrollView,
   StatusBar,
-  TouchableOpacity,
+  type ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -25,9 +23,9 @@ import {
   TextColor,
   FontWeight,
   BoxFlexDirection,
-  BoxFlexWrap,
+  BoxAlignItems,
 } from '@metamask/design-system-react-native';
-import { InterestSelectionIndicator } from './InterestSelectionIndicator';
+import { InterestOptionCard } from './InterestOptionCard';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -91,6 +89,12 @@ const INTEREST_OPTION_IMAGES: Record<InterestOptionId, ImageSourcePropType> = {
   crypto_as_money: cryptoAsMoneyImage,
   connect_apps_sites: connectAppsSitesImage,
 };
+
+const INTEREST_OPTION_ROWS = [
+  INTEREST_OPTIONS.slice(0, 2),
+  INTEREST_OPTIONS.slice(2, 4),
+  INTEREST_OPTIONS.slice(4, 6),
+];
 
 /** 8px gutters between 2-column grid cells (4px padding per column side). */
 const GRID_GUTTER_PX = 4;
@@ -215,56 +219,37 @@ const OnboardingInterestQuestionnaire = () => {
         contentContainerStyle={tw.style('px-4 pb-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          flexWrap={BoxFlexWrap.Wrap}
-          style={tw.style('py-2', { marginHorizontal: -GRID_GUTTER_PX })}
-        >
-          {INTEREST_OPTIONS.map((option) => {
-            const isSelected = selectedIds.has(option.id);
-            return (
-              <Box
-                key={option.id}
-                style={tw.style({
-                  width: '50%',
-                  paddingHorizontal: GRID_GUTTER_PX,
-                  marginBottom: GRID_GUTTER_PX * 2,
-                })}
-              >
-                <TouchableOpacity
-                  onPress={() => toggleOption(option.id)}
-                  style={tw.style(
-                    'relative h-[120px] w-full rounded-xl bg-background-muted',
-                    isSelected
-                      ? 'border border-border-default bg-background-muted-hover'
-                      : 'border border-muted',
-                  )}
-                  testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: isSelected }}
+        <Box twClassName="py-2">
+          {INTEREST_OPTION_ROWS.map((rowOptions, rowIndex) => (
+            <Box
+              key={rowOptions.map((option) => option.id).join('-')}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Stretch}
+              testID={`${OnboardingInterestQuestionnaireTestIds.GRID_ROW_PREFIX}${rowIndex}`}
+              style={tw.style({
+                marginHorizontal: -GRID_GUTTER_PX,
+                marginBottom: GRID_GUTTER_PX * 2,
+              })}
+            >
+              {rowOptions.map((option) => (
+                <Box
+                  key={option.id}
+                  style={tw.style({
+                    width: '50%',
+                    paddingHorizontal: GRID_GUTTER_PX,
+                  })}
                 >
-                  <Box style={tw.style('absolute top-3 right-3')}>
-                    <InterestSelectionIndicator isSelected={isSelected} />
-                  </Box>
-                  <Image
-                    source={INTEREST_OPTION_IMAGES[option.id]}
-                    style={tw.style('absolute top-3 left-3 h-10 w-10')}
-                    resizeMode="contain"
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
+                  <InterestOptionCard
+                    labelKey={option.labelKey}
+                    imageSource={INTEREST_OPTION_IMAGES[option.id]}
+                    isSelected={selectedIds.has(option.id)}
+                    onPress={() => toggleOption(option.id)}
+                    testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
                   />
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                    style={tw.style('absolute bottom-3 left-3 right-3')}
-                  >
-                    {strings(option.labelKey)}
-                  </Text>
-                </TouchableOpacity>
-              </Box>
-            );
-          })}
+                </Box>
+              ))}
+            </Box>
+          ))}
         </Box>
       </ScrollView>
 

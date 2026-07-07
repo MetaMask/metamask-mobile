@@ -2,7 +2,7 @@ import React from 'react';
 import { act, render, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
 import RewardsNavigator from './RewardsNavigator';
 import Routes from '../../../constants/navigation/Routes';
@@ -220,6 +220,8 @@ jest.mock('../../../reducers/rewards/selectors', () => ({
 
 // Mock react-navigation/native hooks
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
 const mockSetOptions = jest.fn();
 const mockSetParams = jest.fn();
 const mockIsFocused = jest.fn();
@@ -235,6 +237,8 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
       setOptions: mockSetOptions,
       setParams: mockSetParams,
     }),
@@ -335,8 +339,8 @@ import {
   selectIsRewardsVersionBlocked,
   selectPendingDeeplink,
 } from '../../../reducers/rewards/selectors';
-import { setPendingDeeplink } from '../../../reducers/rewards';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
+import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 
@@ -357,6 +361,10 @@ const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
 const mockUseGeoRewardsMetadata = useGeoRewardsMetadata as jest.MockedFunction<
   typeof useGeoRewardsMetadata
 >;
+const mockUseCandidateSubscriptionId =
+  useCandidateSubscriptionId as jest.MockedFunction<
+    typeof useCandidateSubscriptionId
+  >;
 const mockUseRewardsNotificationsNudge =
   useRewardsNotificationsNudge as jest.MockedFunction<
     typeof useRewardsNotificationsNudge
@@ -366,13 +374,16 @@ const mockUseRewardsVersionGuard =
 
 describe('RewardsNavigator', () => {
   let store: ReturnType<typeof configureStore>;
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Set default mock return values
-    mockSelectRewardsSubscriptionId.mockReturnValue(null);
+    // Set default mock return values. The navigator only renders screens for
+    // subscribed users now (dashboard/onboarding routing moved up to
+    // MainNavigator), so default to a subscription to keep the stack populated.
+    mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+    mockCanGoBack.mockReturnValue(true);
     mockSelectPendingDeeplink.mockReturnValue(null);
     mockUseGeoRewardsMetadata.mockReturnValue({
       fetchGeoRewardsMetadata: jest.fn(),
@@ -460,223 +471,97 @@ describe('RewardsNavigator', () => {
     });
   });
 
-  describe('Initial route determination', () => {
-    beforeEach(() => {
-      mockIsFocused.mockReturnValue(true);
-    });
-
-    it('returns dashboard route when subscription ID exists', () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert - The component should use REWARDS_DASHBOARD as initial route
-      // This is tested indirectly through the navigation behavior
-      expect(true).toBe(true); // Component renders without error
-    });
-
-    it('returns onboarding flow route when subscription ID is null', () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert - The component should use REWARDS_ONBOARDING_FLOW as initial route
-      // This is tested indirectly through the navigation behavior
-      expect(true).toBe(true); // Component renders without error
-    });
-
-    it('renders dashboard when subscription ID is available', async () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders onboarding when subscription ID is not available', async () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-navigator')).toBeOnTheScreen();
-      });
-    });
-  });
-
-  describe('Navigation routing logic', () => {
-    beforeEach(() => {
-      mockIsFocused.mockReturnValue(true);
-    });
-
-    it('navigates to dashboard when subscription ID exists', async () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
-
-      // Reset navigate mock to track calls
-      mockNavigate.mockClear();
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
-      });
-    });
-
-    it('navigates to onboarding flow when subscription ID is null', async () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Reset navigate mock to track calls
-      mockNavigate.mockClear();
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_ONBOARDING_FLOW,
-        );
-      });
-    });
-
-    it('navigates to onboarding flow when subscription ID is undefined', async () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Reset navigate mock to track calls
-      mockNavigate.mockClear();
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_ONBOARDING_FLOW,
-        );
-      });
-    });
-  });
-
   describe('Stack Navigator Configuration', () => {
-    it('includes onboarding route for users without subscription', async () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-
-      // Act
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      await waitFor(() => {
-        expect(getByTestId('rewards-onboarding-navigator')).toBeOnTheScreen();
-      });
-    });
-
-    it('includes dashboard and other routes only for users with subscription', async () => {
-      // Arrange
+    it('renders the first sub-page (referral view) for users with subscription', async () => {
+      // Dashboard/onboarding routing moved up to MainNavigator. RewardsNavigator
+      // now only registers the rewards sub-pages, which are present only when the
+      // user is enrolled. The referral view is the first registered screen.
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
-      // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
-      // Assert - Dashboard should be visible
       await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
       });
-
-      // The conditional routes (referral, settings) are only included in the navigator
-      // when subscriptionId exists, but they're not rendered initially
     });
 
-    it('does not render dashboard routes when subscription ID is null', async () => {
-      // Arrange
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+    it('does not render dashboard route (owned by MainNavigator now)', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
 
-      // Act
       const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
 
-      // Assert - Dashboard and related routes should not be available
       await waitFor(() => {
         expect(queryByTestId('rewards-dashboard-view')).toBeNull();
       });
     });
+  });
 
-    it('registers ONDO_CAMPAIGN_DETAILS_VIEW and CAMPAIGN_MECHANICS routes when subscription exists', async () => {
-      // Both views are registered inside the subscriptionId-guarded block,
-      // so they are present in the navigator only when the user is enrolled.
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+  describe('Lost subscription recovery', () => {
+    // REWARDS_FLOW can stay mounted after an account switch or opt-out. When the
+    // subscription disappears, the navigator must neither render an empty native
+    // stack (which throws) nor leave stale sub-page routes registered; instead it
+    // dismisses the flow.
+    it('does not render any sub-page screen when subscription is absent', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
 
-      // Rendering should not throw even with the new screens registered
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+        expect(queryByTestId('rewards-referral-view')).toBeNull();
+        expect(queryByTestId('rewards-dashboard-view')).toBeNull();
       });
     });
 
-    it('registers REWARDS_VIP_VIEW route when subscription exists', async () => {
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+    it('dismisses the flow when subscription is absent', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockCanGoBack.mockReturnValue(true);
 
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+      renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
       });
     });
 
-    it('registers REWARDS_ONDO_CAMPAIGN_RWA_ASSET_SELECTOR route when subscription exists', async () => {
-      // The RWA selector screen is registered inside the subscriptionId-guarded block
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+    it('does not call goBack when the flow cannot be dismissed', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockCanGoBack.mockReturnValue(false);
 
-      // Rendering should not throw with the new screen registered
-      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+      renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+        expect(mockCanGoBack).toHaveBeenCalled();
       });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('registers REWARDS_CAMPAIGN_TOUR_STEP route when subscription exists', async () => {
-      // The campaign tour screen is registered inside the subscriptionId-guarded block
-      // so that navigate() from the tour to campaign details is a push (not a pop),
-      // keeping the slide-left direction consistent with the carousel animation.
+    it('does not dismiss the flow while a subscription exists', async () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+      mockGoBack.mockClear();
 
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
       await waitFor(() => {
-        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
       });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 
-  // Note: Removed AuthErrorView tests as they don't match the actual implementation
-  // The component appears to handle errors differently than originally tested
-
   describe('Hooks integration', () => {
-    it('calls useCandidateSubscriptionId hook', () => {
+    it('does not call useCandidateSubscriptionId hook (owned by the dashboard)', () => {
+      // The tab-level data hooks now live on RewardsDashboard (the Rewards tab
+      // entry), which stays mounted while this pushed flow is open. Re-running
+      // them here would duplicate the focus-driven fetches.
+      mockUseCandidateSubscriptionId.mockClear();
+
       // Act
       renderWithNavigation(<RewardsNavigator />);
 
-      // Assert - The hook should be called during component render
-      // This is implicitly tested since the component renders successfully
-      expect(true).toBe(true);
+      // Assert
+      expect(mockUseCandidateSubscriptionId).not.toHaveBeenCalled();
     });
 
     it('uses selectors for subscription state management', () => {
@@ -694,159 +579,18 @@ describe('RewardsNavigator', () => {
       // Act
       const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
 
-      // Assert - Just verify it renders with default subscription state
-      expect(getByTestId('rewards-onboarding-navigator')).toBeDefined();
+      // Assert - Just verify it renders the first sub-page screen
+      expect(getByTestId('rewards-referral-view')).toBeDefined();
     });
 
-    it('calls useGeoRewardsMetadata hook', () => {
+    it('does not call useGeoRewardsMetadata hook (owned by the dashboard)', () => {
+      mockUseGeoRewardsMetadata.mockClear();
+
       // Act
       renderWithNavigation(<RewardsNavigator />);
 
       // Assert
-      expect(mockUseGeoRewardsMetadata).toHaveBeenCalledWith({});
-    });
-  });
-
-  describe('Deeplink navigation params', () => {
-    beforeEach(() => {
-      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
-      mockNavigate.mockClear();
-      mockReactReduxDispatch.mockClear();
-    });
-
-    it('navigates to campaigns view when pendingDeeplink.page=campaigns', async () => {
-      mockSelectPendingDeeplink.mockReturnValue({ page: 'campaigns' });
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_CAMPAIGNS_VIEW,
-        );
-      });
-    });
-
-    it('navigates to ondo campaign when pendingDeeplink.campaign=ondo', async () => {
-      mockSelectPendingDeeplink.mockReturnValue({ campaign: 'ondo' });
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-        );
-      });
-    });
-
-    it('navigates to season1 campaign when pendingDeeplink.campaign=season1', async () => {
-      mockSelectPendingDeeplink.mockReturnValue({ campaign: 'season1' });
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
-        );
-      });
-    });
-
-    it('navigates to musd calculator when pendingDeeplink.page=musd', async () => {
-      mockSelectPendingDeeplink.mockReturnValue({ page: 'musd' });
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_MUSD_CALCULATOR_VIEW,
-        );
-      });
-    });
-
-    it('navigates to benefits full view when pendingDeeplink.page=benefits', async () => {
-      mockSelectPendingDeeplink.mockReturnValue({ page: 'benefits' });
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARD_BENEFITS_FULL_VIEW,
-        );
-      });
-    });
-
-    it('navigates to dashboard when pendingDeeplink is null', async () => {
-      mockSelectPendingDeeplink.mockReturnValue(null);
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
-      });
-    });
-
-    it('dispatches setPendingDeeplink(null) after handling page deeplink', async () => {
-      mockSelectPendingDeeplink.mockReturnValue({ page: 'campaigns' });
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockReactReduxDispatch).toHaveBeenCalledWith(
-          setPendingDeeplink(null),
-        );
-      });
-    });
-
-    it('dispatches setPendingDeeplink(null) after handling campaign deeplink', async () => {
-      mockSelectPendingDeeplink.mockReturnValue({ campaign: 'ondo' });
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockReactReduxDispatch).toHaveBeenCalledWith(
-          setPendingDeeplink(null),
-        );
-      });
-    });
-
-    it('does not dispatch setPendingDeeplink when no deeplink is pending', async () => {
-      mockSelectPendingDeeplink.mockReturnValue(null);
-
-      renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
-      });
-      expect(mockReactReduxDispatch).not.toHaveBeenCalledWith(
-        setPendingDeeplink(null),
-      );
-    });
-
-    it('does not navigate to dashboard after pending deeplink is consumed', async () => {
-      // Regression: the useEffect re-fires when dispatch(setPendingDeeplink(null))
-      // changes the pendingDeeplink dep to null. Without the skipNextEffectRef guard
-      // it would fall through to navigate(REWARDS_DASHBOARD), overriding the
-      // deeplink destination.
-      mockSelectPendingDeeplink.mockReturnValue({ page: 'campaigns' });
-
-      const { rerender } = renderWithNavigation(<RewardsNavigator />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.REWARDS_CAMPAIGNS_VIEW,
-        );
-      });
-
-      // Simulate Redux clearing the pending deeplink (what happens after the
-      // real dispatch(setPendingDeeplink(null)) updates the store).
-      mockSelectPendingDeeplink.mockReturnValue(null);
-      mockNavigate.mockClear();
-
-      await act(async () => {
-        rerender(buildNavWrapper(<RewardsNavigator />));
-      });
-
-      // The skipNextEffectRef guard must prevent navigate(REWARDS_DASHBOARD).
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      expect(mockUseGeoRewardsMetadata).not.toHaveBeenCalled();
     });
   });
 
@@ -883,7 +627,7 @@ describe('RewardsNavigator', () => {
 
       await waitFor(() => {
         expect(queryByTestId('rewards-update-required')).toBeNull();
-        expect(getByTestId('rewards-onboarding-navigator')).toBeOnTheScreen();
+        expect(getByTestId('rewards-referral-view')).toBeOnTheScreen();
       });
     });
   });

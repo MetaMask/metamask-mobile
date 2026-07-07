@@ -50,6 +50,12 @@ export interface HardwareWalletContextValue {
   ) => void;
   /** Hide the "awaiting confirmation" bottom sheet. */
   hideAwaitingConfirmation: () => void;
+  /**
+   * When set to `true`, forces the hardware wallet bottom sheet to remain hidden
+   * (returns `null` regardless of connection state). Used by flows that manage
+   * their own inline confirmation UI (e.g. QR wallet swaps in the bridge).
+   */
+  setForceHideBottomSheet?: (hide: boolean) => void;
   /** QR-specific signing request state. */
   qr: HardwareWalletQRState;
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyMetaMaskCard from './MoneyMetaMaskCard';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
@@ -412,6 +413,25 @@ describe('MoneyMetaMaskCard', () => {
       ).toHaveTextContent('$2,342.86');
     });
 
+    it('renders the available balance muted when the balance is stale', () => {
+      const { getByTestId, rerender } = render(
+        <MoneyMetaMaskCard {...props} />,
+      );
+      const balanceColor = () =>
+        StyleSheet.flatten(
+          getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.style,
+        ).color;
+      const defaultColor = balanceColor();
+
+      rerender(<MoneyMetaMaskCard {...props} isBalanceStale />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$2,342.86');
+      expect(balanceColor()).toBeDefined();
+      expect(balanceColor()).not.toBe(defaultColor);
+    });
+
     it('calls onManagePress when Manage is tapped', () => {
       const { getByTestId } = render(<MoneyMetaMaskCard {...props} />);
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
@@ -424,6 +444,49 @@ describe('MoneyMetaMaskCard', () => {
         queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
       ).toBeNull();
       expect(queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER)).toBeNull();
+    });
+  });
+
+  describe('mode="verifying"', () => {
+    it('renders the MetaMask Card title and verification pending banner', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyMetaMaskCard mode="verifying" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(getByText(strings('money.metamask_card.title'))).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.VERIFYING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.metamask_card.verification_pending')),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onHeaderPress when section header is tapped in verifying mode', () => {
+      const mockHeader = jest.fn();
+      const { getByText } = render(
+        <MoneyMetaMaskCard
+          mode="verifying"
+          onGetNowPress={jest.fn()}
+          onHeaderPress={mockHeader}
+        />,
+      );
+
+      fireEvent.press(getByText(strings('money.metamask_card.title')));
+      expect(mockHeader).toHaveBeenCalled();
+    });
+
+    it('does not render upsell or link content', () => {
+      const { queryByTestId } = render(
+        <MoneyMetaMaskCard mode="verifying" onGetNowPress={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
     });
   });
 

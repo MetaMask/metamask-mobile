@@ -1,11 +1,6 @@
-import { InteractionManager } from 'react-native';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import { handleTrendingUrl } from '../handleTrendingUrl';
-
-// Mock Variable used for testing purposes only
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MockedVar = any;
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
@@ -20,8 +15,8 @@ describe('handleTrendingUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to trending view by default', () => {
-    handleTrendingUrl({ actionPath: '' });
+  it('navigates to trending view by default', async () => {
+    await handleTrendingUrl({ actionPath: '' });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
@@ -32,19 +27,12 @@ describe('handleTrendingUrl - stocks deeplink (screen=stocks)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .mocked(InteractionManager.runAfterInteractions)
-      .mockImplementation((task) => {
-        if (typeof task === 'function') {
-          task();
-        }
-        return null as MockedVar;
-      });
   });
 
-  it('navigates to trending view and then RWA tokens full view', () => {
-    handleTrendingUrl({ actionPath: '?screen=stocks' });
+  it('activates Explore tab then navigates to the RWA tokens full view', async () => {
+    await handleTrendingUrl({ actionPath: '?screen=stocks' });
 
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
     expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
     expect(mockNavigate).toHaveBeenNthCalledWith(
       2,
@@ -52,9 +40,10 @@ describe('handleTrendingUrl - stocks deeplink (screen=stocks)', () => {
     );
   });
 
-  it('navigates to trending view and then RWA tokens full view with uppercase screen param', () => {
-    handleTrendingUrl({ actionPath: '?screen=STOCKS' });
+  it('activates Explore tab then navigates to the RWA tokens full view with uppercase screen param', async () => {
+    await handleTrendingUrl({ actionPath: '?screen=STOCKS' });
 
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
     expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
     expect(mockNavigate).toHaveBeenNthCalledWith(
       2,

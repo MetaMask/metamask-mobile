@@ -28,7 +28,17 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-// Captures the onOpenBottomSheet callback registered by QuickBuyBottomSheetInner.
+const mockTrack = jest.fn();
+
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
+
+// Captures the onOpenDialog callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
@@ -41,7 +51,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheet: ReactMock.forwardRef(
+    BottomSheetDialog: ReactMock.forwardRef(
       (
         {
           children,
@@ -53,13 +63,14 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
+          onOpenDialog: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
+          onCloseDialog: (cb?: () => void) => cb?.(),
         }));
         return ReactMock.createElement(
           View,
-          { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
+          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
           children,
         );
       },
@@ -186,9 +197,10 @@ const buildHookResult = (
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
   currentCurrency: 'USD',
-  usdAmount: '',
+  fiatAmount: '',
+  fiatAmountLabel: '$0.00',
   sliderPercent: 0,
-  maxSpendUsd: 0,
+  maxSpendFiat: 0,
   formattedExchangeRate: undefined,
   metamaskFeePercent: 0,
   estimatedReceiveAmount: undefined,
@@ -201,7 +213,7 @@ const buildHookResult = (
   formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
   formattedRate: undefined,
-  totalAmountUsd: '$0',
+  totalAmountFiat: '$0',
   isQuoteLoading: false,
   isBlockingQuoteLoad: false,
   isSubmittingTx: false,
@@ -209,6 +221,7 @@ const buildHookResult = (
   sortedQuotes: [],
   selectedQuoteRequestId: undefined,
   setSelectedQuoteRequestId: jest.fn(),
+  handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
   refreshCount: 0,
   quoteRefreshRateMs: 30000,
@@ -222,6 +235,7 @@ const buildHookResult = (
     description: 'bridge.price_impact_info_description',
   },
   isPriceImpactError: false,
+  isPresetAddFundsMode: false,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: true,
@@ -230,6 +244,8 @@ const buildHookResult = (
   handleClose: jest.fn(),
   handleSliderChange: jest.fn(),
   handleSliderDragEnd: jest.fn(),
+  handleQuickAmountPress: jest.fn(),
+  usdToCurrentCurrencyRate: undefined,
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),
@@ -305,7 +321,9 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.queryByTestId('mock-bottom-sheet')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('mock-bottom-sheet-dialog'),
+      ).not.toBeOnTheScreen();
     });
 
     it('mounts the inner sheet when visible with a valid position', () => {
@@ -318,7 +336,7 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.getByTestId('mock-bottom-sheet')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-bottom-sheet-dialog')).toBeOnTheScreen();
     });
   });
 

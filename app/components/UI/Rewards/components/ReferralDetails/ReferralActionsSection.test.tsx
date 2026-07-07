@@ -1,6 +1,31 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import ReferralActionsSection from './ReferralActionsSection';
+import { selectIsCurrentSubscriptionVipEnabled } from '../../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/rewards', () => ({
+  selectIsCurrentSubscriptionVipEnabled: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
+}));
+
+jest.mock('../RewardsVipReferralTag/RewardsVipReferralTag', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-referral-tag' }),
+  };
+});
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -18,10 +43,12 @@ jest.mock('./CopyableField', () => {
       label,
       value,
       onCopy,
+      trailingAccessory,
     }: {
       label: string;
       value: string | null;
       onCopy?: () => void;
+      trailingAccessory?: React.ReactNode;
     }) =>
       MockReact.createElement(
         ReactNative.View,
@@ -30,6 +57,7 @@ jest.mock('./CopyableField', () => {
         },
         MockReact.createElement(ReactNative.Text, null, label),
         MockReact.createElement(ReactNative.Text, null, value),
+        trailingAccessory,
         MockReact.createElement(
           ReactNative.TouchableOpacity,
           {
@@ -44,6 +72,10 @@ jest.mock('./CopyableField', () => {
 });
 
 describe('ReferralActionsSection', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
   const defaultProps = {
     referralCode: 'TEST123',
     referralCodeLoading: false,
@@ -52,8 +84,30 @@ describe('ReferralActionsSection', () => {
     onCopyLink: jest.fn(),
   };
 
+  const setVipSelectors = ({
+    isVipProgramEnabled,
+    isSubscriptionVipEnabled,
+  }: {
+    isVipProgramEnabled: boolean;
+    isSubscriptionVipEnabled: boolean;
+  }) => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectVipProgramEnabled) {
+        return isVipProgramEnabled;
+      }
+      if (selector === selectIsCurrentSubscriptionVipEnabled) {
+        return isSubscriptionVipEnabled;
+      }
+      return undefined;
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    setVipSelectors({
+      isVipProgramEnabled: false,
+      isSubscriptionVipEnabled: false,
+    });
   });
 
   describe('rendering', () => {
@@ -81,6 +135,45 @@ describe('ReferralActionsSection', () => {
       expect(
         getByTestId('copyable-field-rewards.referral.referral_link'),
       ).toBeTruthy();
+    });
+
+    it('should show the VIP referral tag on the referral code field when VIP applies', () => {
+      setVipSelectors({
+        isVipProgramEnabled: true,
+        isSubscriptionVipEnabled: true,
+      });
+
+      const { getByTestId } = render(
+        <ReferralActionsSection {...defaultProps} />,
+      );
+
+      expect(getByTestId('rewards-vip-referral-tag')).toBeTruthy();
+    });
+
+    it('should not show the VIP referral tag when the VIP program flag is off', () => {
+      setVipSelectors({
+        isVipProgramEnabled: false,
+        isSubscriptionVipEnabled: true,
+      });
+
+      const { queryByTestId } = render(
+        <ReferralActionsSection {...defaultProps} />,
+      );
+
+      expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+
+    it('should not show the VIP referral tag while the referral code is loading', () => {
+      setVipSelectors({
+        isVipProgramEnabled: true,
+        isSubscriptionVipEnabled: true,
+      });
+
+      const { queryByTestId } = render(
+        <ReferralActionsSection {...defaultProps} referralCodeLoading />,
+      );
+
+      expect(queryByTestId('rewards-vip-referral-tag')).toBeNull();
     });
   });
 

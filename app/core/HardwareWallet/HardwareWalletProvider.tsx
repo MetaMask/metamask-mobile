@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { FullWindowOverlay } from 'react-native-screens';
 
 import HardwareWalletContext from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
@@ -24,7 +25,6 @@ import {
   useQRSigningState,
 } from './hooks';
 import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import DevLogger from '../SDKConnect/utils/DevLogger';
 
 interface HardwareWalletProviderProps {
   children: ReactNode;
@@ -49,6 +49,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const effectiveWalletType =
     targetWalletType ?? pendingOperationWalletType ?? walletType;
+
+  const [forceHideBottomSheet, setForceHideBottomSheet] = useState(false);
 
   const { handleDeviceEvent, handleError, updateConnectionState } =
     useDeviceEventHandlers({
@@ -131,7 +133,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const showHardwareWalletError = useCallback(
     (error: unknown) => {
-      DevLogger.log('[HardwareWallet] showHardwareWalletError:', error);
       handleError(error);
     },
     [handleError],
@@ -143,10 +144,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const showAwaitingConfirmation = useCallback(
     (operationType: 'transaction' | 'message', onReject?: () => void) => {
-      DevLogger.log(
-        '[HardwareWallet] showAwaitingConfirmation:',
-        operationType,
-      );
       awaitingConfirmationRejectRef.current = onReject ?? null;
       operationTypeRef.current = operationType;
 
@@ -160,7 +157,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   );
 
   const hideAwaitingConfirmation = useCallback(() => {
-    DevLogger.log('[HardwareWallet] hideAwaitingConfirmation');
     awaitingConfirmationRejectRef.current = null;
     // Ledger BLE transports are cached by device id inside the transport
     // package, so release the transport once signing is no longer awaiting.
@@ -184,9 +180,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const handleRetryOrClose = useCallback(async () => {
     if (operationTypeRef.current !== null) {
-      DevLogger.log(
-        '[HardwareWallet] Post-signing error — closing flow instead of retrying',
-      );
       handleCloseFlow();
       return;
     }
@@ -213,7 +206,6 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   }, [deviceId, updateConnectionState]);
 
   const handleAwaitingConfirmationCancel = useCallback(() => {
-    DevLogger.log('[HardwareWallet] handleAwaitingConfirmationCancel');
     const onReject = awaitingConfirmationRejectRef.current;
     awaitingConfirmationRejectRef.current = null;
     operationTypeRef.current = null;
@@ -276,6 +268,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
+      setForceHideBottomSheet,
       qr: qrSigningValue,
     }),
     [
@@ -290,6 +283,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       setQrScanRetryHandler,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
+      setForceHideBottomSheet,
       qrSigningValue,
     ],
   );
@@ -297,20 +291,23 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   return (
     <HardwareWalletContext.Provider value={contextValue}>
       {children}
-      <HardwareWalletBottomSheet
-        connectionState={connectionState}
-        deviceSelection={deviceSelection}
-        walletType={effectiveWalletType}
-        retryEnsureDeviceReady={handleRetryOrClose}
-        selectDevice={selectDevice}
-        rescan={rescan}
-        connect={connect}
-        onClose={handleCloseFlow}
-        onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
-        onConnectionSuccess={handleBottomSheetConnectionSuccess}
-        onCTAClicked={trackCTAClicked}
-        onRetryQrScan={handleRetryQrScan}
-      />
+      <FullWindowOverlay>
+        <HardwareWalletBottomSheet
+          connectionState={connectionState}
+          deviceSelection={deviceSelection}
+          walletType={effectiveWalletType}
+          forceHideBottomSheet={forceHideBottomSheet}
+          retryEnsureDeviceReady={handleRetryOrClose}
+          selectDevice={selectDevice}
+          rescan={rescan}
+          connect={connect}
+          onClose={handleCloseFlow}
+          onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
+          onConnectionSuccess={handleBottomSheetConnectionSuccess}
+          onCTAClicked={trackCTAClicked}
+          onRetryQrScan={handleRetryQrScan}
+        />
+      </FullWindowOverlay>
     </HardwareWalletContext.Provider>
   );
 };

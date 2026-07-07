@@ -53,8 +53,11 @@ import {
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
+  EncAccountDataType,
+  SeedlessOnboardingMigrationVersion,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -69,7 +72,7 @@ import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
-import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -90,6 +93,7 @@ import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
+import { captureException } from '@sentry/react-native';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 
 /**
@@ -974,7 +978,7 @@ class AuthenticationService {
       }
 
       const seedPhrase = await KeyringController.exportSeedPhrase(
-        password,
+        { password },
         keyringId,
       );
 
@@ -1012,6 +1016,12 @@ class AuthenticationService {
       }
 
       await this.syncKeyringEncryptionKey();
+
+      // New users already have dataType set on their secrets during creation,
+      // so we mark the migration as complete to prevent it from running
+      SeedlessOnboardingController.setMigrationVersion(
+        SeedlessOnboardingMigrationVersion.V1,
+      );
 
       this.dispatchOauthReset();
     } catch (error) {
@@ -1140,7 +1150,6 @@ class AuthenticationService {
       // handle seedless controller import error by reverting keyring controller mnemonic import
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
-        newAccount.address,
       );
       throw error;
     }
@@ -1157,9 +1166,12 @@ class AuthenticationService {
     const bufferedPrivateKey = hexToBytes(add0x(privateKey));
 
     if (syncWithSocial) {
+      // Run data type migration before adding new private key to ensure data consistency.
+      await this.runSeedlessOnboardingMigrations();
+
       await SeedlessOnboardingController.addNewSecretData(
         bufferedPrivateKey,
-        SecretType.PrivateKey,
+        EncAccountDataType.ImportedPrivateKey,
         {
           keyringId,
         },
@@ -1534,6 +1546,86 @@ class AuthenticationService {
   };
 
   /**
+   * Runs seedless onboarding migrations if needed.
+   *
+   * Delegates to SeedlessOnboardingController.runMigrations() which handles
+   * version tracking and migration logic. Called before adding new secret data
+   * to ensure data type consistency and correct ordering.
+   *
+   * Migration failures are reported via analytics and Sentry but do not
+   * propagate, so the caller's primary operation (e.g. import SRP / private
+   * key) can continue. Legacy secrets may remain unmigrated until a later
+   * successful run; new secrets are still written with the correct dataType.
+   */
+  runSeedlessOnboardingMigrations = async (): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    const state = ReduxService.store.getState();
+    const completedOnboarding = selectCompletedOnboarding(state);
+
+    if (!completedOnboarding) {
+      return;
+    }
+
+    try {
+      const migrationPerformed =
+        await SeedlessOnboardingController.runMigrations();
+
+      if (migrationPerformed) {
+        try {
+          analytics.trackEvent(
+            AnalyticsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+            )
+              .addProperties({
+                migration_version:
+                  SeedlessOnboardingController.state?.migrationVersion,
+              })
+              .build(),
+          );
+        } catch (metaMetricsError) {
+          // A tracking failure must not roll back a successful migration.
+          Logger.log(
+            'Failed to track seedless onboarding migration completion',
+            metaMetricsError,
+          );
+        }
+      }
+    } catch (error) {
+      const isError = error instanceof Error;
+      const errorMessage = isError ? error.message : 'Unknown error';
+      const migrationError = isError ? error : new Error(errorMessage);
+
+      try {
+        analytics.trackEvent(
+          AnalyticsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
+          )
+            .addProperties({
+              migration_version:
+                SeedlessOnboardingController.state?.migrationVersion,
+              error: errorMessage,
+            })
+            .build(),
+        );
+      } catch (metaMetricsError) {
+        Logger.log(
+          'Failed to track seedless onboarding migration failure',
+          metaMetricsError,
+        );
+      }
+
+      try {
+        captureException(migrationError);
+      } catch (sentryError) {
+        Logger.log(
+          'Failed to capture seedless onboarding migration failure',
+          sentryError,
+        );
+      }
+    }
+  };
+
+  /**
    * Deletes the wallet by resetting wallet state and deleting user data.
    * This is the main public method for wallet deletion/reset flows.
    * It calls resetWalletState() followed by deleteUser(), and also clears
@@ -1565,6 +1657,12 @@ class AuthenticationService {
       // This prevents the temporary wallet (created during reset) from being backed up
       EngineClass.disableAutomaticVaultBackup = true;
 
+      // Suppress Card's reactive data fetching during reset. The temporary
+      // wallet created below emits KeyringController:unlock and rebuilds the
+      // account tree, which would otherwise make CardController fetch CardHome
+      // data (with the still-present old tokens) only to discard it in resetAll.
+      Engine.context.CardController.setResetInProgress(true);
+
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -1579,11 +1677,16 @@ class AuthenticationService {
 
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 
+        // Clear all Card auth/session/onboarding data (CARD-431)
+        await Engine.context.CardController.resetAll();
+
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
         // ALWAYS re-enable automatic vault backups, even if error occurs
         EngineClass.disableAutomaticVaultBackup = false;
+        // ALWAYS re-enable Card reactive fetching, even if an error occurs
+        Engine.context.CardController.setResetInProgress(false);
       }
     } catch (error) {
       const errorMsg = `Failed to createNewVaultAndKeychain: ${error}`;
@@ -1724,7 +1827,7 @@ class AuthenticationService {
     const { KeyringController } = Engine.context;
     await this.reauthenticate(password);
     const rawSeedPhrase = await KeyringController.exportSeedPhrase(
-      password,
+      { password },
       keyringId,
     );
     const seedPhrase = uint8ArrayToMnemonic(rawSeedPhrase, wordlist);
@@ -1745,7 +1848,10 @@ class AuthenticationService {
   ): Promise<string> => {
     const { KeyringController } = Engine.context;
     await this.reauthenticate(password);
-    const privateKey = await KeyringController.exportAccount(password, address);
+    const privateKey = await KeyringController.exportAccount(
+      { password },
+      address,
+    );
     return privateKey;
   };
 }

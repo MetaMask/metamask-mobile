@@ -47,6 +47,13 @@ jest.mock('../hooks/useWhatsHappeningAssetPrices', () => ({
   })),
 }));
 
+const mockUseTradablePerpsMarketSymbols = jest.fn();
+
+jest.mock('../../../UI/WhatsHappening/hooks', () => ({
+  ...jest.requireActual('../../../UI/WhatsHappening/hooks'),
+  useTradablePerpsMarketSymbols: () => mockUseTradablePerpsMarketSymbols(),
+}));
+
 jest.mock(
   '../../../UI/Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge',
   () => 'TokenListSecurityBadge',
@@ -84,9 +91,21 @@ const baseItem: WhatsHappeningItem = {
   articles: [],
 };
 
+const dxyAsset = {
+  sourceAssetId: 'dxy',
+  symbol: 'DXY',
+  name: 'Dollar Index',
+  caip19: [],
+  hlPerpsMarket: ['xyz:DXY'],
+};
+
 describe('WhatsHappeningExpandedCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTradablePerpsMarketSymbols.mockReturnValue({
+      tradableSymbols: new Set(['xyz:TSLA', 'BTC']),
+      isLoading: false,
+    });
   });
 
   it('renders the title and description', () => {
@@ -320,5 +339,35 @@ describe('WhatsHappeningExpandedCard', () => {
       />,
     );
     expect(screen.getByText('$172.50')).toBeOnTheScreen();
+  });
+
+  it('hides a perps asset whose market is not tradable (e.g. xyz:DXY)', () => {
+    const item = { ...baseItem, relatedAssets: [perpsOnlyAsset, dxyAsset] };
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+        source="homepage"
+      />,
+    );
+    expect(screen.getByText('Tesla')).toBeOnTheScreen();
+    expect(screen.queryByText('Dollar Index')).toBeNull();
+  });
+
+  it('hides the Related Assets section entirely when all perps assets are non-tradable', () => {
+    const item = { ...baseItem, relatedAssets: [dxyAsset] };
+    renderWithProvider(
+      <WhatsHappeningExpandedCard
+        item={item}
+        cardIndex={0}
+        cardWidth={CARD_WIDTH}
+        cardHeight={CARD_HEIGHT}
+        source="homepage"
+      />,
+    );
+    expect(screen.queryByText('Related Assets')).toBeNull();
+    expect(screen.queryByText('Dollar Index')).toBeNull();
   });
 });

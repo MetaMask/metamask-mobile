@@ -13,6 +13,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import Routes from '../../../constants/navigation/Routes';
+import { QR_SYNC_MWP_DEEPLINK_PREFIX } from '../../../core/QrSync/services/qr-sync-validation';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -200,6 +201,11 @@ describe('QrScanner', () => {
     // test starts with a clean slate. jest.clearAllMocks() only clears call
     // counts, not implementations set via mockResolvedValue.
     (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
+
+    const EngineModule = jest.requireMock('../../../core/Engine');
+    (
+      EngineModule.context.KeyringController.isUnlocked as jest.Mock
+    ).mockReturnValue(true);
 
     // Setup useSelector mock
     mockUseSelector.mockImplementation(
@@ -482,6 +488,115 @@ describe('QrScanner', () => {
             [QRScannerEventProperties.QR_TYPE]: QRType.PRIVATE_KEY,
             [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
           });
+        });
+      });
+
+      it('routes add device MWP deeplinks to onScanSuccess instead of SDKConnectV2', async () => {
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (
+          SDKConnectV2Module.default.isMwpDeeplink as jest.Mock
+        ).mockImplementation(
+          (url: unknown) =>
+            typeof url === 'string' &&
+            url.startsWith(QR_SYNC_MWP_DEEPLINK_PREFIX),
+        );
+        (SDKConnectV2Module.default.handleMwpDeeplink as jest.Mock).mockClear();
+
+        const connectionRequest = {
+          sessionRequest: {
+            id: '11111111-2222-3333-4444-555555555555',
+            publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
+            channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
+            mode: 'trusted',
+            expiresAt: Date.now() + 600_000,
+          },
+        };
+        const encodedPayload = Buffer.from(
+          JSON.stringify(connectionRequest),
+          'utf-8',
+        ).toString('base64');
+        const qrPayload = `${QR_SYNC_MWP_DEEPLINK_PREFIX}?p=${encodeURIComponent(encodedPayload)}`;
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={mockOnScanSuccess}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          />,
+          {
+            state: initialState,
+          },
+        );
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: qrPayload }]);
+        });
+
+        await waitFor(() => {
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+          });
+          expect(mockOnScanSuccess).toHaveBeenCalledWith(
+            { content: qrPayload },
+            qrPayload,
+          );
+          expect(
+            SDKConnectV2Module.default.handleMwpDeeplink,
+          ).not.toHaveBeenCalled();
+        });
+      });
+
+      it('allows add device QR scans while the wallet is locked', async () => {
+        const validatorsModule = jest.requireMock('../../../util/validators');
+        (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
+        (
+          validatorsModule.failedSeedPhraseRequirements as jest.Mock
+        ).mockReturnValue(true);
+
+        const EngineModule = jest.requireMock('../../../core/Engine');
+        (
+          EngineModule.context.KeyringController.isUnlocked as jest.Mock
+        ).mockReturnValue(false);
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={mockOnScanSuccess}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          />,
+          {
+            state: initialState,
+          },
+        );
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        const qrPayload = '{"sessionRequest":{"id":"test"}}';
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: qrPayload }]);
+        });
+
+        await waitFor(() => {
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+          });
+          expect(mockOnScanSuccess).toHaveBeenCalledWith(
+            { content: qrPayload },
+            qrPayload,
+          );
         });
       });
 

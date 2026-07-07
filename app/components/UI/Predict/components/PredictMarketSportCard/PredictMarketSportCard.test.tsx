@@ -4,13 +4,15 @@ import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
-  GameUpdate,
   PredictMarket as PredictMarketType,
+  PredictMarketGame,
   Recurrence,
 } from '../../types';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarketSportCard from './';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -46,10 +48,18 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
   }),
 }));
 
-let mockGameUpdate: GameUpdate | null = null;
-jest.mock('../../hooks/useLiveGameUpdates', () => ({
-  useLiveGameUpdates: () => ({ gameUpdate: mockGameUpdate }),
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
+
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
 }));
+const mockUseLiveMarketPrices = jest.mocked(useLiveMarketPrices);
 
 jest.mock('../../constants/sportLeagueConfigs', () => ({
   getLeagueConfig: () => ({}),
@@ -126,11 +136,34 @@ const initialState = {
   },
 };
 
+const stateWithSportCardLivePricesEnabled = (enabled: boolean) => ({
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        ...backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
+          predictSportCardLivePrices: {
+            enabled,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+});
+
 describe('PredictMarketSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFromTrending.mockReturnValue(false);
-    mockGameUpdate = null;
+    mockGetLivePrice.mockReturnValue(undefined);
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   it('renders scheduled World Cup match card information', () => {
@@ -156,6 +189,63 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('SPA 60¢')).toBeOnTheScreen();
     expect(getByText('DRAW 15¢')).toBeOnTheScreen();
     expect(getByText('ENG 62¢')).toBeOnTheScreen();
+  });
+
+  it('keeps outcome button labels on one line and shrinks to fit to prevent truncation', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: initialState },
+    );
+
+    const drawLabel = getByText('DRAW 15¢');
+    expect(drawLabel.props.numberOfLines).toBe(1);
+    expect(drawLabel.props.adjustsFontSizeToFit).toBe(true);
+  });
+
+  it('renders live Moneyline best ask prices when available', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk:
+        tokenId === 'token-home'
+          ? 0.71
+          : tokenId === 'token-draw'
+            ? 0.12
+            : 0.29,
+    }));
+
+    const { getByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: initialState },
+    );
+
+    expect(getByText('SPA 71¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 12¢')).toBeOnTheScreen();
+    expect(getByText('ENG 29¢')).toBeOnTheScreen();
+  });
+
+  it('renders static prices and disables live subscriptions when the flag is off', () => {
+    mockGetLivePrice.mockImplementation((tokenId: string) => ({
+      tokenId,
+      price: 0,
+      bestBid: 0,
+      bestAsk: 0.99,
+    }));
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: stateWithSportCardLivePricesEnabled(false) },
+    );
+
+    expect(getByText('SPA 60¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 15¢')).toBeOnTheScreen();
+    expect(getByText('ENG 62¢')).toBeOnTheScreen();
+    expect(queryByText('SPA 99¢')).not.toBeOnTheScreen();
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['token-home', 'token-draw', 'token-away'],
+      { enabled: false },
+    );
   });
 
   it('uses the main moneyline outcome when extended sports markets are present', () => {
@@ -209,20 +299,31 @@ describe('PredictMarketSportCard', () => {
   });
 
   it('renders live status and live scores from game updates', () => {
-    mockGameUpdate = {
-      gameId: 'game-1',
-      score: '0-1',
+    const cachedGame: PredictMarketGame = {
+      ...(mockMarket.game as PredictMarketGame),
+      status: 'ongoing',
+      score: { away: 0, home: 1, raw: '0-1' },
       elapsed: '75',
       period: '2H',
-      status: 'ongoing',
     };
+    mockUsePredictGame.mockReturnValue({
+      game: cachedGame,
+      isConnected: true,
+      lastUpdateTime: 1,
+    });
 
     const { getByText } = renderWithProvider(
       <PredictMarketSportCard
         market={{
           ...mockMarket,
           game: mockMarket.game
-            ? { ...mockMarket.game, status: 'ongoing' }
+            ? {
+                ...mockMarket.game,
+                status: 'ongoing',
+                period: 'FT',
+                elapsed: '90',
+                score: { away: 1, home: 1, raw: '1-1' },
+              }
             : undefined,
         }}
       />,
@@ -239,20 +340,18 @@ describe('PredictMarketSportCard', () => {
     // Providers can report a terminal period ('FT') before flipping status to
     // 'ended'; the card must stop showing buy buttons in lockstep with the
     // scoreboard rendering "Final".
-    mockGameUpdate = {
-      gameId: 'game-1',
-      score: '1-1',
-      elapsed: '90',
-      period: 'FT',
-      status: 'ongoing',
-    };
-
     const { getByText, queryByText } = renderWithProvider(
       <PredictMarketSportCard
         market={{
           ...mockMarket,
           game: mockMarket.game
-            ? { ...mockMarket.game, status: 'ongoing' }
+            ? {
+                ...mockMarket.game,
+                status: 'ongoing',
+                period: 'FT',
+                elapsed: '90',
+                score: { away: 1, home: 1, raw: '1-1' },
+              }
             : undefined,
         }}
       />,

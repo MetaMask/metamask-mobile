@@ -14,7 +14,6 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
@@ -23,6 +22,7 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 const descriptionArray = [
   strings('accounts.fake_metamask'),
@@ -32,16 +32,14 @@ const descriptionArray = [
 
 const goToLearnMore = () => {
   Linking.openURL(CONNECTING_TO_A_DECEPTIVE_SITE);
-  analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
-    )
-      .addProperties({
-        location: 'dapp_connection_request',
-        text: 'Learn More',
-        url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
-      })
-      .build(),
+  trackExternalLinkClicked(
+    analytics.trackEvent,
+    AnalyticsEventBuilder.createEventBuilder,
+    {
+      location: 'dapp_connection_request',
+      text: 'Learn More',
+      url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
+    },
   );
 };
 

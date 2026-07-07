@@ -21,8 +21,7 @@ import {
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
-import { PREDICT_PORTFOLIO_TEST_IDS } from './components/PredictPortfolio';
-import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
+import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const PREDICTIONS_TITLE = 'Predictions';
@@ -48,11 +47,30 @@ describe('PredictHome', () => {
     (
       Engine.context.PredictController.getMarkets as jest.Mock
     ).mockResolvedValue({ markets: [], nextCursor: null });
-    // The Live Now section hides itself when there is no data, so it needs at
-    // least one live market to render for the composition/order assertion.
+    // Live Now hides when empty after load and only keeps scoreboard-capable
+    // markets (`game` present). The sport card also needs full team/league data
+    // once the carousel renders loaded cards (see MOCK_PREDICT_LIVE_SPORT_MARKET).
     (
       Engine.context.PredictController.listMarkets as jest.Mock
-    ).mockResolvedValue({ markets: [MOCK_PREDICT_MARKET], nextCursor: null });
+    ).mockResolvedValue({
+      markets: [MOCK_PREDICT_LIVE_SPORT_MARKET],
+      nextCursor: null,
+    });
+    (
+      Engine.context.PredictController.listFilterOptions as jest.Mock
+    ).mockResolvedValue([
+      {
+        id: 'elections',
+        label: 'Elections',
+        source: 'related-tags',
+        params: {
+          tagSlugs: ['elections'],
+          status: 'open',
+          order: 'volume24hr',
+          limit: 12,
+        },
+      },
+    ]);
     (
       Engine.context.PredictController.searchMarkets as jest.Mock
     ).mockResolvedValue({ markets: [], totalResults: 0 });
@@ -97,26 +115,15 @@ describe('PredictHome', () => {
     });
 
     it('composes the section placeholders in Figma order', async () => {
-      const { findByTestId, getByTestId } = renderPredictHomeView();
+      const { findByTestId } = renderPredictHomeView();
 
-      // Wait for the shell to mount.
+      // Wait for the shell and async sections (Live Now loads via React Query).
       await findByTestId(PredictHomeSelectorsIDs.CONTAINER);
-
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.PORTFOLIO_MODULE),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.CATEGORIES_SECTION),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION),
-      ).toBeOnTheScreen();
+      await findByTestId(PredictHomeSelectorsIDs.PORTFOLIO_MODULE);
+      await findByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.CATEGORIES_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
     });
   });
 

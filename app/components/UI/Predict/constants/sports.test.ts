@@ -1,13 +1,43 @@
 import {
   MONEYLINE_MARKET_TYPES,
   filterSupportedLeagues,
+  getMatchingSportTeam,
+  getNegRiskMoneylineTeamLogo,
   getPrimaryMoneylineOutcomes,
+  hasNegRiskMoneylineGroupItem,
   isMoneylineLikeMarketType,
+  resolveNegRiskMoneylineShortTitles,
 } from './sports';
+import type { PredictMarketGame } from '../types';
+
+const game: PredictMarketGame = {
+  id: 'game-1',
+  startTime: '2026-06-11T23:00:00Z',
+  status: 'scheduled',
+  league: 'fifwc',
+  elapsed: null,
+  period: null,
+  score: null,
+  homeTeam: {
+    id: 'team-home',
+    name: 'Korea Republic',
+    logo: 'https://example.com/korea.png',
+    abbreviation: 'KOR',
+    color: 'red',
+    alias: 'South Korea',
+  },
+  awayTeam: {
+    id: 'team-away',
+    name: 'Czechia',
+    logo: 'https://example.com/czechia.png',
+    abbreviation: 'CZE',
+    color: 'blue',
+  },
+};
 
 describe('MONEYLINE_MARKET_TYPES', () => {
-  it('contains exactly 4 entries', () => {
-    expect(MONEYLINE_MARKET_TYPES.size).toBe(4);
+  it('contains exactly 6 entries', () => {
+    expect(MONEYLINE_MARKET_TYPES.size).toBe(6);
   });
 
   it('contains moneyline', () => {
@@ -20,6 +50,14 @@ describe('MONEYLINE_MARKET_TYPES', () => {
 
   it('contains soccer_halftime_result', () => {
     expect(MONEYLINE_MARKET_TYPES.has('soccer_halftime_result')).toBe(true);
+  });
+
+  it('contains soccer_first_to_score', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('soccer_first_to_score')).toBe(true);
+  });
+
+  it('contains soccer_team_to_advance', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('soccer_team_to_advance')).toBe(true);
   });
 
   it('contains tennis_first_set_winner', () => {
@@ -46,6 +84,18 @@ describe('isMoneylineLikeMarketType', () => {
     expect(result).toBe(true);
   });
 
+  it('returns true for soccer_first_to_score', () => {
+    const result = isMoneylineLikeMarketType('soccer_first_to_score');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for soccer_team_to_advance', () => {
+    const result = isMoneylineLikeMarketType('soccer_team_to_advance');
+
+    expect(result).toBe(true);
+  });
+
   it('returns true for tennis_first_set_winner', () => {
     const result = isMoneylineLikeMarketType('tennis_first_set_winner');
 
@@ -56,6 +106,8 @@ describe('isMoneylineLikeMarketType', () => {
     expect(isMoneylineLikeMarketType('Moneyline')).toBe(true);
     expect(isMoneylineLikeMarketType('FIRST_HALF_MONEYLINE')).toBe(true);
     expect(isMoneylineLikeMarketType('Soccer_Halftime_Result')).toBe(true);
+    expect(isMoneylineLikeMarketType('Soccer_First_To_Score')).toBe(true);
+    expect(isMoneylineLikeMarketType('Soccer_Team_To_Advance')).toBe(true);
     expect(isMoneylineLikeMarketType('Tennis_First_Set_Winner')).toBe(true);
   });
 
@@ -139,5 +191,85 @@ describe('getPrimaryMoneylineOutcomes', () => {
     ];
 
     expect(getPrimaryMoneylineOutcomes(outcomes)).toBe(outcomes);
+  });
+});
+
+describe('sports moneyline helpers', () => {
+  it('detects neg-risk moneyline markets with group item titles', () => {
+    expect(
+      hasNegRiskMoneylineGroupItem({
+        negRisk: true,
+        sportsMarketType: 'moneyline',
+        groupItemTitle: 'Korea Republic',
+      }),
+    ).toBe(true);
+    expect(
+      hasNegRiskMoneylineGroupItem({
+        negRisk: true,
+        sportsMarketType: 'spreads',
+        groupItemTitle: 'Korea Republic',
+      }),
+    ).toBe(false);
+  });
+
+  it('matches sport teams by name, alias, or abbreviation', () => {
+    expect(getMatchingSportTeam('south korea', game)).toBe(game.homeTeam);
+    expect(getMatchingSportTeam('CZE', game)).toBe(game.awayTeam);
+  });
+
+  it('resolves neg-risk moneyline short titles for team and draw outcomes', () => {
+    expect(
+      resolveNegRiskMoneylineShortTitles(
+        {
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Korea Republic',
+        },
+        game,
+      ),
+    ).toEqual({ yesShort: 'KOR', noShort: 'CZE' });
+    expect(
+      resolveNegRiskMoneylineShortTitles(
+        {
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Draw',
+        },
+        game,
+      ),
+    ).toEqual({ yesShort: 'Draw' });
+  });
+
+  it('uses team logos only for neg-risk moneyline team outcomes', () => {
+    expect(
+      getNegRiskMoneylineTeamLogo(
+        {
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Korea Republic',
+        },
+        game,
+      ),
+    ).toBe('https://example.com/korea.png');
+    expect(
+      getNegRiskMoneylineTeamLogo(
+        {
+          negRisk: true,
+          sportsMarketType: 'moneyline',
+          groupItemTitle: 'Draw',
+        },
+        game,
+      ),
+    ).toBeUndefined();
+    expect(
+      getNegRiskMoneylineTeamLogo(
+        {
+          negRisk: true,
+          sportsMarketType: 'spreads',
+          groupItemTitle: 'Korea Republic',
+        },
+        game,
+      ),
+    ).toBeUndefined();
   });
 });

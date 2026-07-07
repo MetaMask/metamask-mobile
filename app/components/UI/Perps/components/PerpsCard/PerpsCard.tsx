@@ -104,6 +104,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   onPress,
   testID,
   source,
+  source_section,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const navigation = useNavigation();
@@ -156,10 +157,20 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           market,
           initialTab,
           source,
+          ...(source_section && { source_section }),
         },
       });
     }
-  }, [onPress, market, navigation, order, position, source, track]);
+  }, [
+    onPress,
+    market,
+    navigation,
+    order,
+    position,
+    source,
+    source_section,
+    track,
+  ]);
 
   if (!position && !order) {
     return null;

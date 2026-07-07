@@ -50,3 +50,17 @@ export type SnapKeyringBuilderMessenger = Messenger<
   SnapKeyringBuilderAllowActions,
   never
 >;
+
+export enum WalletClientType {
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  Solana = 'solana',
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  Bitcoin = 'bitcoin',
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  Tron = 'tron',
+  ///: END:ONLY_INCLUDE_IF
+}

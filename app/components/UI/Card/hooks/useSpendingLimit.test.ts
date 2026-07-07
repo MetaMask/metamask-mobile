@@ -197,12 +197,9 @@ const buildBalanceReturn = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
 ) =>
   ({
-    musdBalanceQuery: {} as never,
+    moneyBalanceQuery: {} as never,
     vaultApyQuery: {} as never,
-    musdEquivalentBalanceQuery: {} as never,
-    isAggregatedBalanceLoading: false,
-    musdFiatFormatted: undefined,
-    musdSHFvdFiatFormatted: undefined,
+    isBalanceLoading: false,
     tokenTotal: new BigNumber(0),
     totalFiatFormatted: '$0.00',
     totalFiatRaw: '0',
@@ -261,6 +258,7 @@ describe('useSpendingLimit', () => {
     goBack: jest.Mock;
     dispatch: jest.Mock;
     setParams: jest.Mock;
+    isFocused: jest.Mock;
   };
   let mockSubmitDelegation: jest.Mock;
   let mockTrackEvent: jest.Mock;
@@ -282,6 +280,7 @@ describe('useSpendingLimit', () => {
       goBack: jest.fn(),
       dispatch: jest.fn(),
       setParams: jest.fn(),
+      isFocused: jest.fn().mockReturnValue(true),
     };
     mockUseNavigation.mockReturnValue(mockNavigation as never);
 
@@ -988,6 +987,71 @@ describe('useSpendingLimit', () => {
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
+    it('does not navigate when Money Account linkage is processing', async () => {
+      const MONEY_ACCOUNT_TOKEN: CardFundingToken = {
+        address: '0xMonadUsdc',
+        symbol: 'USDC',
+        name: 'USDC',
+        decimals: 6,
+        caipChainId: 'eip155:143',
+        walletAddress: undefined,
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
+        delegationContract: '0xMonadDelegation',
+        priority: undefined,
+        isMoneyAccountEntry: true,
+      };
+
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({
+          tokenTotal: new BigNumber('12.34'),
+          totalFiatFormatted: '$12.34',
+        }),
+      );
+
+      let resolveLink: (value: boolean) => void = () => undefined;
+      mockConfirmLinkInBackground.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const priorityToken = createMockToken({
+        ...MONEY_ACCOUNT_TOKEN,
+        isMoneyAccountEntry: true,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
+      );
+
+      act(() => {
+        result.current.submit().catch(() => undefined);
+      });
+
+      act(() => {
+        result.current.cancel();
+      });
+
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveLink(true);
+        await jest.runAllTimersAsync();
+      });
+    });
+
     it('tracks button click event', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams()),
@@ -1623,6 +1687,153 @@ describe('useSpendingLimit', () => {
       );
 
       expect(result.current.isLoading).toBe(false);
+    });
+  });
+
+  describe('isUiInteractionLocked', () => {
+    it('returns false when not loading', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      expect(result.current.isUiInteractionLocked).toBe(false);
+    });
+
+    it('returns true when delegation is loading for regular funding assets', () => {
+      mockUseCardDelegation.mockReturnValue({
+        submitDelegation: mockSubmitDelegation,
+        isLoading: true,
+        error: null,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
+        refetchFaucetCheck: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      expect(result.current.isUiInteractionLocked).toBe(true);
+    });
+
+    it('returns false when Money Account linkage is processing outside onboarding', async () => {
+      const MONEY_ACCOUNT_TOKEN: CardFundingToken = {
+        address: '0xMonadUsdc',
+        symbol: 'USDC',
+        name: 'USDC',
+        decimals: 6,
+        caipChainId: 'eip155:143',
+        walletAddress: undefined,
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
+        delegationContract: '0xMonadDelegation',
+        priority: undefined,
+        isMoneyAccountEntry: true,
+      };
+
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({
+          tokenTotal: new BigNumber('12.34'),
+          totalFiatFormatted: '$12.34',
+        }),
+      );
+
+      let resolveLink: (value: boolean) => void = () => undefined;
+      mockConfirmLinkInBackground.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const priorityToken = createMockToken({
+        ...MONEY_ACCOUNT_TOKEN,
+        isMoneyAccountEntry: true,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+
+      act(() => {
+        result.current.submit().catch(() => undefined);
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isUiInteractionLocked).toBe(false);
+
+      await act(async () => {
+        resolveLink(true);
+        await jest.runAllTimersAsync();
+      });
+    });
+
+    it('returns true when Money Account linkage is processing during onboarding', async () => {
+      const MONEY_ACCOUNT_TOKEN: CardFundingToken = {
+        address: '0xMonadUsdc',
+        symbol: 'USDC',
+        name: 'USDC',
+        decimals: 6,
+        caipChainId: 'eip155:143',
+        walletAddress: undefined,
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
+        delegationContract: '0xMonadDelegation',
+        priority: undefined,
+      };
+
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({
+          tokenTotal: new BigNumber('12.34'),
+          totalFiatFormatted: '$12.34',
+        }),
+      );
+
+      let resolveLink: (value: boolean) => void = () => undefined;
+      mockConfirmLinkInBackground.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+
+      act(() => {
+        result.current.submit().catch(() => undefined);
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isUiInteractionLocked).toBe(true);
+
+      await act(async () => {
+        resolveLink(true);
+        await jest.runAllTimersAsync();
+      });
     });
   });
 

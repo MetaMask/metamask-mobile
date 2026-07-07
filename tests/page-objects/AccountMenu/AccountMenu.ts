@@ -2,6 +2,7 @@ import { AccountsMenuSelectorsIDs } from '../../../app/components/Views/Accounts
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
 import { EncapsulatedElementType } from '../../framework';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AccountMenu {
   get container(): EncapsulatedElementType {
@@ -53,8 +54,8 @@ class AccountMenu {
   }
 
   async tapSettings(): Promise<void> {
-    await Gestures.waitAndTap(this.settingsButton, {
-      elemDescription: 'Settings button',
+    await UnifiedGestures.waitAndTap(this.settingsButton, {
+      description: 'Settings button',
     });
   }
 

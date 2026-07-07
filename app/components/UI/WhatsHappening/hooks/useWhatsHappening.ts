@@ -15,6 +15,18 @@ export interface UseWhatsHappeningResult {
   refresh: () => Promise<void>;
 }
 
+export interface UseWhatsHappeningOptions {
+  /** When false, skips fetching (for parents that supply their own feed). */
+  enabled?: boolean;
+}
+
+export const isWhatsHappeningSectionVisible = ({
+  isLoading,
+  items,
+  error,
+}: Pick<UseWhatsHappeningResult, 'isLoading' | 'items' | 'error'>): boolean =>
+  isLoading || items.length > 0 || Boolean(error);
+
 const mapTrendsToItems = (
   overview: MarketOverview,
   limit: number,
@@ -40,15 +52,20 @@ const mapTrendsToItems = (
  * @param limit - Maximum number of items to return (default: 5)
  * @returns Object with items, isLoading, error, refresh
  */
-export const useWhatsHappening = (limit = 5): UseWhatsHappeningResult => {
-  const isEnabled = useSelector(selectWhatsHappeningEnabled);
+export const useWhatsHappening = (
+  limit = 5,
+  options?: UseWhatsHappeningOptions,
+): UseWhatsHappeningResult => {
+  const isFeatureEnabled = useSelector(selectWhatsHappeningEnabled);
+  const isHookEnabled = options?.enabled ?? true;
+  const isActive = isFeatureEnabled && isHookEnabled;
 
   const [items, setItems] = useState<WhatsHappeningItem[]>([]);
-  const [isLoading, setIsLoading] = useState(!!isEnabled);
+  const [isLoading, setIsLoading] = useState(isActive);
   const [error, setError] = useState<string | null>(null);
 
   const fetchItems = useCallback(async () => {
-    if (!isEnabled) {
+    if (!isActive) {
       setItems([]);
       setIsLoading(false);
       setError(null);
@@ -75,7 +92,7 @@ export const useWhatsHappening = (limit = 5): UseWhatsHappeningResult => {
     } finally {
       setIsLoading(false);
     }
-  }, [isEnabled, limit]);
+  }, [isActive, limit]);
 
   const refresh = useCallback(async () => {
     await fetchItems();

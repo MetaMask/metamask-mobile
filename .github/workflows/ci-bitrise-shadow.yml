@@ -1,0 +1,129 @@
+name: CI (Bitrise shadow)
+
+# On-demand dispatcher for Bitrise Build Hub shadow runs (INFRA-3679).
+#
+# Dispatches `ci.yml` as a separate `workflow_dispatch` run with
+# `runner_provider=bitrise` (not `workflow_call`), so shadow runs live in the
+# Actions tab only and never appear in PR checks or the merge queue. The token
+# exchange and dispatch steps use continue-on-error so this job's own check
+# always concludes success even when the dispatch cannot run.
+#
+# Authentication: Token Exchange Service via MetaMask/github-tools get-token
+# (OIDC → POST /api/exchange/token). Prerequisites:
+#   - Actions variable TOKEN_EXCHANGE_URL (already used elsewhere, e.g. triage-forwarder).
+#   - Rego policy mm-metamask-mobile-bitrise-shadow-ci-token-exchange in
+#     token-exchange-service (matches the OIDC `workflow_ref` claim).
+#
+# Auto-dispatch gate: set repo Actions variable BITRISE_SHADOW_AUTO_DISPATCH=true
+# to dispatch on PR/push. Default (unset/false) = manual workflow_dispatch only.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - ".github/CODEOWNERS"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: bitrise-shadow-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  dispatch-shadow:
+    name: "[bitrise-shadow] Dispatch"
+    runs-on: ubuntu-latest
+    # Fork PRs use head.repo != github.repository — skip (no shadow, no token exchange).
+    # PR/push auto-dispatch requires BITRISE_SHADOW_AUTO_DISPATCH=true; workflow_dispatch always runs.
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' || vars.BITRISE_SHADOW_AUTO_DISPATCH == 'true') &&
+        (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+      }}
+    steps:
+      - name: Get access token
+        id: get-token
+        continue-on-error: true
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            actions: write
+            contents: read
+            metadata: read
+
+      - name: Dispatch ci.yml on Bitrise (best effort)
+        id: dispatch
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.head_ref || github.ref_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "::error::Token exchange did not return a token; shadow dispatch skipped — this job still succeeds."
+            echo "::notice::Ensure token-exchange-service policy mm-metamask-mobile-bitrise-shadow-ci-token-exchange is deployed (INFRA-3679)."
+            exit 0
+          fi
+          echo "Dispatching ci.yml on ref='${REF}' (PR='${PR_NUMBER:-none}', sha='${HEAD_SHA}')"
+          set +e
+          DISPATCH_LOG="$(gh workflow run ci.yml \
+            --repo "$REPO" \
+            --ref "$REF" \
+            -f runner_provider=bitrise \
+            -f pr_number="$PR_NUMBER" \
+            -f head_sha="$HEAD_SHA" 2>&1)"
+          gh_status=$?
+          set -e
+          RUN_URL=""
+          if [[ "$gh_status" -ne 0 ]]; then
+            echo "::error::gh workflow run failed (exit ${gh_status}); shadow dispatch skipped — this job still succeeds."
+            echo "$DISPATCH_LOG"
+          else
+            echo "$DISPATCH_LOG"
+            RUN_URL="$(printf '%s\n' "$DISPATCH_LOG" | grep -oE 'https://[^[:space:]]+/actions/runs/[0-9]+' | tail -1 || true)"
+            if [[ -z "$RUN_URL" ]]; then
+              echo "::warning::Could not parse workflow run URL from gh output; open the Actions tab for ci.yml on ref ${REF}."
+            fi
+          fi
+          echo "run_url=${RUN_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Step summary
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PR_URL: ${{ github.event.pull_request.html_url || '' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REF: ${{ github.head_ref || github.ref_name }}
+          RUN_URL: ${{ steps.dispatch.outputs.run_url }}
+        run: |
+          {
+            echo "## Bitrise shadow CI dispatched"
+            echo
+            echo "| Field | Value |"
+            echo "|---|---|"
+            if [ -n "$PR_NUMBER" ]; then
+              echo "| PR | [#${PR_NUMBER}](${PR_URL}) |"
+            fi
+            echo "| Ref | \`${REF}\` |"
+            echo "| Head SHA | \`${HEAD_SHA}\` |"
+            if [ -n "${RUN_URL}" ]; then
+              echo "| Shadow run | ${RUN_URL} |"
+            else
+              echo "| Shadow run | (not yet visible — check the Actions tab) |"
+            fi
+            echo
+            echo "_Bitrise shadow CI runs **fire-and-forget**: it does not appear in this PR's checks and never blocks the merge queue. This is a benchmark run for INFRA-3679._"
+            if [ "${{ vars.BITRISE_SHADOW_AUTO_DISPATCH }}" != "true" ] && [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
+              echo
+              echo "_Auto-dispatch is **disabled** (BITRISE_SHADOW_AUTO_DISPATCH ≠ true). Use workflow_dispatch on this workflow or ci.yml._"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

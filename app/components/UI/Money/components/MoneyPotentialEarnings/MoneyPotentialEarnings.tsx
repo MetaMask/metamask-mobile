@@ -30,16 +30,15 @@ const VISIBLE_TOKENS_COUNT = 5;
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
   /**
-   * APY expressed as a percentage (e.g. 3 for 3%) used together with the
+   * APY expressed as a decimal (e.g. 0.03 for 3%) used together with the
    * shared projection horizon to compute the projected earnings displayed
    * alongside each token and in the description.
    */
-  apy: number | undefined;
+  apyDecimal: number | undefined;
   /**
    * Returns true when the given token qualifies for a subsidised (no-fee)
-   * deposit. Used to render the "No fee" badge on each token row.
-   * Sourced from the `earnMoneyDepositNoFeeTokens` remote feature flag via
-   * useMoneyDepositTokens.
+   * deposit into the Money account. Used to render the "No fee" badge on
+   * each token row.
    */
   isNoFeeToken?: (token: AssetType) => boolean;
   onTokenCardPress?: (
@@ -63,7 +62,7 @@ interface MoneyPotentialEarningsProps {
 
 const MoneyPotentialEarnings = ({
   tokens,
-  apy,
+  apyDecimal = 0,
   isNoFeeToken = () => false,
   onTokenCardPress,
   onTokenButtonPress,
@@ -72,14 +71,13 @@ const MoneyPotentialEarnings = ({
   onInfoPress,
 }: MoneyPotentialEarningsProps) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const apyPercent = apy ?? 0;
 
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
   // the visible five would contradict that affordance.
   const { eligibleTokens, totalAssetsFiat, projectedAmount } =
-    useProjectedEarnings(tokens, apyPercent);
+    useProjectedEarnings(tokens, apyDecimal);
   const visibleTokens = useMemo(
     () => eligibleTokens.slice(0, VISIBLE_TOKENS_COUNT),
     [eligibleTokens],
@@ -183,7 +181,7 @@ const MoneyPotentialEarnings = ({
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
-            apyPercent={apyPercent}
+            apyDecimal={apyDecimal}
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
           />

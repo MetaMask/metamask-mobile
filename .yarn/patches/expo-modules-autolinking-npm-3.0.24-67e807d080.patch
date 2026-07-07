@@ -1,0 +1,17 @@
+diff --git a/build/platforms/android/android.js b/build/platforms/android/android.js
+index 5154abd5f0fdd8fd87bb532b99fb0959c081f0ac..9eb6017ea5aa28e296966ae91c7809ac3520e225 100644
+--- a/build/platforms/android/android.js
++++ b/build/platforms/android/android.js
+@@ -193,7 +193,11 @@ async function findAndroidPackagesAsync(modules) {
+             }
+         }
+     }));
+-    return classes.sort();
++    // react-native-nitro-fetch double-registers its Android package via both autolink
++    // and manual registration, causing a duplicate-class Gradle build failure.
++    // Deduplicate with Set before sorting to work around this.
++    // Remove this patch if the issue is fixed upstream or when upgrading expo-modules-autolinking past 3.0.24.
++    return [...new Set(classes)].sort();
+ }
+ /**
+  * Converts the package name to Android's project name.

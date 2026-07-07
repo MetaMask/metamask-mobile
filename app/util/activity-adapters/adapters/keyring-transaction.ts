@@ -1,0 +1,277 @@
+/**
+ * Vendored from metamask-extension shared/lib/activity/adapters/keyring-transaction.ts
+ * Branch: origin/n3ps/activity-v3-prototype
+ * TODO: Replace with shared @metamask/activity-adapters package when published.
+ */
+import {
+  type Transaction,
+  TransactionStatus as KeyringTransactionStatus,
+  TransactionType as KeyringTransactionType,
+} from '@metamask/keyring-api';
+import type {
+  ActivityFee,
+  ActivityListItem,
+  Status,
+  TokenAmount,
+} from '../types';
+
+type Movement = Transaction['from'][number];
+type Fee = Transaction['fees'][number];
+type FungibleAsset = Extract<
+  NonNullable<Movement['asset']>,
+  { fungible: true }
+>;
+
+// Mirrors EVM TOKEN_VALUE_UNLIMITED_THRESHOLD: amounts above 10^15 are treated as unlimited.
+const APPROVE_AMOUNT_UNLIMITED_THRESHOLD = 1e15;
+
+function mapStatus(status: Transaction['status']): Status {
+  switch (status) {
+    case KeyringTransactionStatus.Confirmed:
+      return 'success';
+    case KeyringTransactionStatus.Failed:
+      return 'failed';
+    case KeyringTransactionStatus.Submitted:
+    case KeyringTransactionStatus.Unconfirmed:
+    default:
+      return 'pending';
+  }
+}
+
+function mapTimestamp(timestamp: Transaction['timestamp']) {
+  return timestamp ? timestamp * 1000 : 0;
+}
+
+function getAddress(movements: Movement[]) {
+  return movements[0]?.address ?? '';
+}
+
+function hasFungibleAsset(
+  movement: Movement,
+): movement is Movement & { asset: FungibleAsset } {
+  return movement.asset?.fungible === true;
+}
+
+function getToken(
+  movements: Movement[],
+  direction: TokenAmount['direction'],
+): TokenAmount | undefined {
+  const movement = movements.find(hasFungibleAsset);
+
+  if (!movement) {
+    return undefined;
+  }
+
+  return {
+    amount: movement.asset.amount,
+    symbol: movement.asset.unit,
+    assetId: movement.asset.type,
+    direction,
+  };
+}
+
+function getFee(fee: Fee): ActivityFee | undefined {
+  const { asset } = fee;
+
+  if (asset.fungible !== true) {
+    return undefined;
+  }
+
+  return {
+    type: fee.type,
+    amount: asset.amount,
+    symbol: asset.unit,
+    assetId: asset.type,
+  };
+}
+
+function getFees(transaction: Transaction): ActivityFee[] | undefined {
+  const fees = (transaction.fees ?? []).flatMap((fee) => {
+    const mappedFee = getFee(fee);
+
+    return mappedFee ? [mappedFee] : [];
+  });
+
+  return fees.length ? fees : undefined;
+}
+
+function isUnlimitedApprovalMovement(movement: Movement) {
+  return (
+    hasFungibleAsset(movement) &&
+    Number.parseFloat(movement.asset.amount) >
+      APPROVE_AMOUNT_UNLIMITED_THRESHOLD
+  );
+}
+
+function getApprovalToken(transaction: Transaction): TokenAmount | undefined {
+  const movement =
+    transaction.to.find(hasFungibleAsset) ??
+    transaction.from.find(hasFungibleAsset);
+
+  if (!movement) {
+    return undefined;
+  }
+
+  return {
+    amount: movement.asset.amount,
+    assetId: movement.asset.type,
+    direction: 'out',
+    isUnlimitedApproval:
+      transaction.from.some(isUnlimitedApprovalMovement) ||
+      transaction.to.some(isUnlimitedApprovalMovement),
+    symbol: movement.asset.unit,
+  };
+}
+
+function aggregateMovementAmount(movements: Movement[]) {
+  const amountByAssetType: Record<
+    string,
+    {
+      amount: number;
+      unit: string;
+    }
+  > = {};
+
+  for (const movement of movements) {
+    if (!hasFungibleAsset(movement)) {
+      continue;
+    }
+
+    const { type: assetType, unit } = movement.asset;
+    const parsedAmount = Number.parseFloat(movement.asset.amount);
+    const normalizedAmount = Number.isFinite(parsedAmount) ? parsedAmount : 0;
+
+    if (!amountByAssetType[assetType]) {
+      amountByAssetType[assetType] = {
+        amount: normalizedAmount,
+        unit,
+      };
+      continue;
+    }
+
+    amountByAssetType[assetType].amount += normalizedAmount;
+  }
+
+  const entries = Object.entries(amountByAssetType);
+  if (entries.length !== 1) {
+    return undefined;
+  }
+
+  const [assetType, aggregate] = entries[0];
+  return {
+    assetType,
+    amount: String(aggregate.amount),
+    unit: aggregate.unit,
+  };
+}
+
+// Converts keyring API transactions into the shared activity item shape
+export function mapKeyringTransaction({
+  transaction,
+}: {
+  transaction: Transaction;
+}): ActivityListItem {
+  const status = mapStatus(transaction.status);
+  const timestamp = mapTimestamp(transaction.timestamp);
+  const chainId = transaction.chain;
+  const from = getAddress(transaction.from);
+  const to = getAddress(transaction.to);
+  const fees = getFees(transaction);
+
+  if (transaction.type === KeyringTransactionType.Send) {
+    const fromToken = getToken(transaction.from, 'out');
+    let token = fromToken;
+
+    // Bitcoin transaction.from can be empty, resulting in no token avatar or send amount displayed.
+    // Workaround: use the same aggregated to-asset fallback strategy as tx details modal.
+    if (!fromToken && chainId.startsWith('bip122:')) {
+      const aggregatedToAsset = aggregateMovementAmount(transaction.to);
+      if (aggregatedToAsset) {
+        token = {
+          direction: 'out',
+          assetId: aggregatedToAsset.assetType,
+          symbol: aggregatedToAsset.unit,
+          amount: aggregatedToAsset.amount,
+        };
+      }
+    }
+
+    return {
+      type: 'send',
+      chainId,
+      status,
+      timestamp,
+      hash: transaction.id,
+      raw: { type: 'keyringTransaction', data: transaction },
+      data: {
+        from,
+        to,
+        token,
+        ...(fees ? { fees } : {}),
+      },
+    };
+  }
+
+  if (transaction.type === KeyringTransactionType.Receive) {
+    return {
+      type: 'receive',
+      chainId,
+      status,
+      timestamp,
+      hash: transaction.id,
+      raw: { type: 'keyringTransaction', data: transaction },
+      data: {
+        from,
+        to,
+        token: getToken(transaction.to, 'in'),
+        ...(fees ? { fees } : {}),
+      },
+    };
+  }
+
+  if (transaction.type === KeyringTransactionType.Swap) {
+    return {
+      type: 'swap',
+      chainId,
+      status,
+      timestamp,
+      hash: transaction.id,
+      raw: { type: 'keyringTransaction', data: transaction },
+      data: {
+        destinationToken: getToken(transaction.to, 'in'),
+        sourceToken: getToken(transaction.from, 'out'),
+        ...(fees ? { fees } : {}),
+      },
+    };
+  }
+
+  if (transaction.type === KeyringTransactionType.TokenApprove) {
+    return {
+      type: 'approveSpendingCap',
+      chainId,
+      status,
+      timestamp,
+      hash: transaction.id,
+      raw: { type: 'keyringTransaction', data: transaction },
+      data: {
+        token: getApprovalToken(transaction),
+        ...(fees ? { fees } : {}),
+      },
+    };
+  }
+
+  return {
+    type: 'contractInteraction',
+    chainId,
+    status,
+    timestamp,
+    hash: transaction.id,
+    raw: { type: 'keyringTransaction', data: transaction },
+    data: {
+      from,
+      to,
+      transactionType: transaction.type,
+      ...(fees ? { fees } : {}),
+    },
+  };
+}

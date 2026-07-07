@@ -11,6 +11,11 @@ import { initialState } from '../../_mocks_/initialState';
 import BlockExplorersModal from './BlockExplorersModal';
 import { fireEvent } from '@testing-library/react-native';
 
+jest.mock('../../../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
 
 const mockTx = {
@@ -151,6 +156,14 @@ describe('BlockExplorersModal', () => {
         url: expect.stringContaining('etherscan.io'),
       }),
     });
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'bridge_transaction_details',
+        url: expect.stringContaining('etherscan.io'),
+      }),
+    );
   });
 
   it('should navigate to webview when destination chain explorer button is pressed', () => {

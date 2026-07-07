@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text as RNText } from 'react-native';
+import { Text as RNText, View } from 'react-native';
 import { TokenSelectorItem, getSecurityTag } from './TokenSelectorItem';
 import { SecurityDataType } from '../types';
 import { ethers } from 'ethers';
@@ -46,6 +46,8 @@ jest.mock('../../../../component-library/hooks', () => {
       tokenSymbol: {},
       verifiedIcon: {},
       childrenWrapper: {},
+      pressTargetContent: { flex: 1 },
+      itemWrapperWithChildren: { alignItems: 'center' },
     },
   }));
 
@@ -364,6 +366,50 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(UNSAFE_root).toBeTruthy();
+    });
+
+    it('routes presses on children through the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      fireEvent.press(getByTestId('token-row-child'));
+
+      expect(mockOnPress).toHaveBeenCalledWith(token);
+    });
+
+    it('uses checkbox accessibility on the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          isSelected
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityRole',
+        'checkbox',
+      );
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: true }),
+      );
     });
 
     it('renders network badge when networkImageSource is provided', () => {

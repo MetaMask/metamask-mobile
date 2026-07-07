@@ -1,30 +1,26 @@
-import React from 'react';
 import {
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Text,
-  TextVariant,
-  TextColor,
-  AvatarToken,
-  AvatarTokenSize,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-  BadgeNetwork,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import QuickBuyBanners from '../QuickBuyBanners';
+import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
-import { getNetworkImageSource } from '../../../../../../../util/networks';
-import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
+import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
+import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
   const {
@@ -41,35 +37,19 @@ const QuickBuyActionFooter: React.FC = () => {
     isHardwareSolanaBlocked,
     tradeMode,
     sourceToken,
-    sourceChainId,
     sourceBalanceFiat,
     destBalanceFiat,
-    destToken,
     selectedDestStable,
     features,
     setActiveScreen,
   } = useQuickBuyContext();
 
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
-  const pickerChainId =
-    tradeMode === 'sell'
-      ? (selectedDestStable?.chainId as
-          | import('@metamask/utils').Hex
-          | undefined)
-      : sourceChainId;
-  // Both balances are driven by live, selector-backed state (TSA-632):
-  // `sourceBalanceFiat` from `useLatestBalance` re-keyed off the live cached
-  // balance, and `destBalanceFiat` resynced from the reactive receive-token
-  // list. Either updates the pill the moment the underlying balance changes.
   const pickerBalanceFiat =
     tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
 
-  const networkImage = pickerChainId
-    ? getNetworkImageSource({ chainId: pickerChainId })
-    : undefined;
-
   return (
-    <Box twClassName="px-4 pb-4">
+    <Box twClassName="px-4">
       {/* Slider — reduced top padding to tighten gap with the amount section */}
       <Box twClassName="pt-2 pb-3">
         <QuickBuyPercentageSlider
@@ -80,6 +60,12 @@ const QuickBuyActionFooter: React.FC = () => {
         />
       </Box>
 
+      {features.quickAmountPills ? (
+        <Box twClassName="pb-3">
+          <QuickBuyQuickAmounts />
+        </Box>
+      ) : null}
+
       {/* Pay with / Receive with row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -87,7 +73,7 @@ const QuickBuyActionFooter: React.FC = () => {
         justifyContent={BoxJustifyContent.Between}
         twClassName="pb-5"
       >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {tradeMode === 'sell'
             ? strings('social_leaderboard.quick_buy.receive')
             : strings('social_leaderboard.quick_buy.pay_with')}
@@ -104,27 +90,12 @@ const QuickBuyActionFooter: React.FC = () => {
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
-            twClassName="rounded-full bg-muted px-3 py-1"
           >
             {pickerToken ? (
-              networkImage ? (
-                <BadgeWrapper
-                  position={BadgeWrapperPosition.BottomRight}
-                  badge={<BadgeNetwork src={networkImage} />}
-                >
-                  <AvatarToken
-                    size={AvatarTokenSize.Sm}
-                    name={pickerToken.symbol}
-                    src={getBridgeTokenImageSource(pickerToken)}
-                  />
-                </BadgeWrapper>
-              ) : (
-                <AvatarToken
-                  size={AvatarTokenSize.Sm}
-                  name={pickerToken.symbol}
-                  src={getBridgeTokenImageSource(pickerToken)}
-                />
-              )
+              <QuickBuyTokenIcon
+                token={pickerToken}
+                size={AvatarTokenSize.Sm}
+              />
             ) : null}
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {pickerToken

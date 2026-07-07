@@ -5,6 +5,7 @@ import {
 } from '../../../../../UI/Predict/types';
 import {
   FIFA_WORLD_CUP_2026_WINNER_POLYMARKET_SLUG,
+  pickLiveWorldCupGameMarket,
   pickWorldCupWinnerMarket,
 } from './marketResolvers';
 
@@ -69,6 +70,144 @@ describe('marketResolvers', () => {
           marketCount: 1,
         },
       );
+    });
+  });
+
+  describe('pickLiveWorldCupGameMarket', () => {
+    it('returns the first ongoing game with an open priced outcome', () => {
+      const scheduled = createMarket({
+        id: 'scheduled-game',
+        outcomes: [
+          {
+            id: 'scheduled-outcome',
+            providerId: 'scheduled-provider-outcome',
+            marketId: 'scheduled-game',
+            title: 'France',
+            description: 'France wins',
+            image: '',
+            status: 'open',
+            tokens: [{ id: 'scheduled-token', title: 'France', price: 0.67 }],
+            volume: 0,
+            groupItemTitle: 'France',
+          },
+        ],
+        game: {
+          id: 'game-1',
+          startTime: '2026-06-01T20:00:00.000Z',
+          status: 'scheduled',
+          league: 'fifwc',
+          elapsed: null,
+          period: null,
+          score: null,
+          homeTeam: {
+            id: 'france',
+            name: 'France',
+            logo: '',
+            abbreviation: 'FRA',
+            color: '',
+          },
+          awayTeam: {
+            id: 'senegal',
+            name: 'Senegal',
+            logo: '',
+            abbreviation: 'SEN',
+            color: '',
+          },
+        },
+      });
+      const live = createMarket({
+        id: 'live-game',
+        title: 'France vs. Senegal',
+        outcomes: [
+          {
+            id: 'live-outcome',
+            providerId: 'live-provider-outcome',
+            marketId: 'live-game',
+            title: 'France',
+            description: 'France wins',
+            image: '',
+            status: 'open',
+            tokens: [{ id: 'live-token', title: 'France', price: 0.67 }],
+            volume: 0,
+            groupItemTitle: 'France',
+          },
+        ],
+        game: {
+          id: 'game-2',
+          startTime: '2026-06-01T20:00:00.000Z',
+          status: 'ongoing',
+          league: 'fifwc',
+          elapsed: '03:58',
+          period: '1H',
+          score: null,
+          homeTeam: {
+            id: 'france',
+            name: 'France',
+            logo: '',
+            abbreviation: 'FRA',
+            color: '',
+          },
+          awayTeam: {
+            id: 'senegal',
+            name: 'Senegal',
+            logo: '',
+            abbreviation: 'SEN',
+            color: '',
+          },
+        },
+      });
+
+      const result = pickLiveWorldCupGameMarket([scheduled, live]);
+
+      expect(result).toBe(live);
+    });
+
+    it('ignores games that have ended even when status remains ongoing', () => {
+      const ended = createMarket({
+        id: 'ended-game',
+        outcomes: [
+          {
+            id: 'ended-outcome',
+            providerId: 'ended-provider-outcome',
+            marketId: 'ended-game',
+            title: 'France',
+            description: 'France wins',
+            image: '',
+            status: 'open',
+            tokens: [{ id: 'ended-token', title: 'France', price: 0.67 }],
+            volume: 0,
+            groupItemTitle: 'France',
+          },
+        ],
+        game: {
+          id: 'game-3',
+          startTime: '2026-06-01T20:00:00.000Z',
+          endTime: '2026-06-01T22:00:00.000Z',
+          status: 'ongoing',
+          league: 'fifwc',
+          elapsed: '90',
+          period: 'FT',
+          score: null,
+          homeTeam: {
+            id: 'france',
+            name: 'France',
+            logo: '',
+            abbreviation: 'FRA',
+            color: '',
+          },
+          awayTeam: {
+            id: 'senegal',
+            name: 'Senegal',
+            logo: '',
+            abbreviation: 'SEN',
+            color: '',
+          },
+        },
+      });
+
+      const result = pickLiveWorldCupGameMarket([ended]);
+
+      expect(result).toBeUndefined();
     });
   });
 });

@@ -57,10 +57,6 @@ export const TransactionControllerInit: MessengerClientInitFunction<
           getTransactionController: () => transactionController,
           initMessenger,
         }),
-        incomingTransactions: {
-          isEnabled: () => isIncomingTransactionsEnabled(initMessenger),
-          updateTransactions: true,
-        },
         isAutomaticGasFeeUpdateEnabled,
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
           if (
@@ -110,14 +106,6 @@ export const TransactionControllerInit: MessengerClientInitFunction<
     throw error;
   }
 };
-
-function isIncomingTransactionsEnabled(
-  initMessenger: TransactionControllerInitMessenger,
-): boolean {
-  return (
-    initMessenger.call('PreferencesController:getState')?.privacyMode !== true
-  );
-}
 
 function isFirstTimeInteractionEnabled(
   initMessenger: TransactionControllerInitMessenger,

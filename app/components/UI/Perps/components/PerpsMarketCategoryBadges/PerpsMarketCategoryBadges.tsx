@@ -1,9 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
-import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
+import {
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonVariant,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useStyles } from '../../../../../component-library/hooks';
-import PerpsMarketCategoryBadge from '../PerpsMarketCategoryBadge';
-import { styleSheet } from './PerpsMarketCategoryBadges.styles';
 import type { PerpsMarketCategoryBadgesProps } from './PerpsMarketCategoryBadges.types';
 import { type MarketTypeFilter } from '@metamask/perps-controller';
 import {
@@ -11,8 +14,9 @@ import {
   type PerpsCategory,
 } from '../../hooks/usePerpsCategories';
 import { useHasNewMarkets } from '../../hooks/useHasNewMarkets';
+import { getCategoryIconName } from '../../constants/categoryIcons';
 
-const ANIMATION_DURATION = 250;
+const WATCHLIST_FILTER_VALUE = 'watchlist';
 
 const NEW_CATEGORY: PerpsCategory = {
   id: 'new',
@@ -26,15 +30,16 @@ const NEW_CATEGORY: PerpsCategory = {
  * The `'new'` badge is automatically appended when any market has
  * `isNewMarket` set.
  *
- * The selected category is visually highlighted.
- * Tapping a selected badge again deselects it (toggles back to 'all').
+ * Uses MMDS FilterButtonGroup with an explicit "All" reset filter.
  */
 const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   selectedCategory,
   onCategorySelect,
+  showWatchlistBadge = false,
+  isWatchlistSelected = false,
+  onWatchlistToggle,
   testID,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   const categories = usePerpsCategories();
   const hasNewMarkets = useHasNewMarkets();
 
@@ -43,43 +48,68 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     [categories, hasNewMarkets],
   );
 
-  const handleCategoryPress = useCallback(
-    (category: Exclude<MarketTypeFilter, 'all'>) => {
-      if (selectedCategory === category) {
-        onCategorySelect('all');
-      } else {
-        onCategorySelect(category);
+  const groupValue = isWatchlistSelected
+    ? WATCHLIST_FILTER_VALUE
+    : selectedCategory;
+
+  const handleFilterChange = useCallback(
+    (value: string) => {
+      if (value === WATCHLIST_FILTER_VALUE) {
+        if (!isWatchlistSelected) {
+          onWatchlistToggle?.();
+        }
+        return;
       }
+
+      if (value === 'all') {
+        onCategorySelect('all');
+        if (isWatchlistSelected) {
+          onWatchlistToggle?.();
+        }
+        return;
+      }
+
+      onCategorySelect(value as MarketTypeFilter);
     },
-    [onCategorySelect, selectedCategory],
+    [isWatchlistSelected, onCategorySelect, onWatchlistToggle],
+  );
+
+  const renderCategoryFilterButton = (category: PerpsCategory) => (
+    <FilterButton
+      key={category.id}
+      value={category.id}
+      startIconName={getCategoryIconName(category.id)}
+      startIconProps={{ size: IconSize.Sm }}
+      testID={testID ? `${testID}-${category.id}` : undefined}
+    >
+      {category.label}
+    </FilterButton>
   );
 
   return (
-    <Animated.ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-      style={styles.scrollContainer}
+    <FilterButtonGroup
+      value={groupValue}
+      onChange={handleFilterChange}
+      variant={FilterButtonVariant.Primary}
+      twClassName="px-4 py-2"
       testID={testID}
     >
-      {displayCategories.map((category, index) => {
-        const isCategorySelected = selectedCategory === category.id;
-        return (
-          <Animated.View
-            key={category.id}
-            entering={FadeIn.duration(ANIMATION_DURATION).delay(index * 50)}
-            layout={LinearTransition.duration(ANIMATION_DURATION)}
-          >
-            <PerpsMarketCategoryBadge
-              label={category.label}
-              isSelected={isCategorySelected}
-              onPress={() => handleCategoryPress(category.id)}
-              testID={testID ? `${testID}-${category.id}` : undefined}
-            />
-          </Animated.View>
-        );
-      })}
-    </Animated.ScrollView>
+      {showWatchlistBadge && (
+        <FilterButton
+          value={WATCHLIST_FILTER_VALUE}
+          startIconName={IconName.StarFilled}
+          accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
+          testID={testID ? `${testID}-watchlist` : undefined}
+          contentWrapperProps={{ gap: 0 }}
+        >
+          {null}
+        </FilterButton>
+      )}
+      <FilterButton value="all" testID={testID ? `${testID}-all` : undefined}>
+        {strings('perps.home.tabs.all')}
+      </FilterButton>
+      {displayCategories.map(renderCategoryFilterButton)}
+    </FilterButtonGroup>
   );
 };
 

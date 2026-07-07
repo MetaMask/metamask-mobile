@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
@@ -37,6 +37,7 @@ import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePer
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 
 interface PayWithModalParams {
   /**
@@ -83,6 +84,16 @@ export function PayWithModal() {
   const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
     isPredictContext,
     isPredictContext ? resetSelectedPaymentToken : undefined,
+  );
+
+  const isMoneyAccount = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const { renderNoFeeTag } = usePayWithNoFeeToken();
+  const tagRenderers = useMemo(
+    () => (isMoneyAccount ? [renderNoFeeTag] : undefined),
+    [isMoneyAccount, renderNoFeeTag],
   );
 
   const close = useCallback((onClosed?: () => void) => {
@@ -266,6 +277,7 @@ export function PayWithModal() {
         hideNfts
         hideHeader
         tokenFilter={tokenFilter}
+        tagRenderers={tagRenderers}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}
       />

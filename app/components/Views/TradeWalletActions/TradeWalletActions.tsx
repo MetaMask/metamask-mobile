@@ -28,6 +28,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import {
   useSafeAreaFrame,
@@ -148,6 +149,16 @@ function TradeWalletActions() {
     swapButtonEventLocationOverride: ActionLocation.NAVBAR,
   });
 
+  const dismissRootModalFlow = useCallback(() => {
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation?.canGoBack()) {
+      parentNavigation.goBack();
+      return;
+    }
+
+    navigation.goBack();
+  }, [navigation]);
+
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
     setIsVisible(false);
@@ -164,6 +175,9 @@ function TradeWalletActions() {
     postCallback.current = () => {
       navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
+        },
       });
     };
     handleNavigateBack();
@@ -249,10 +263,20 @@ function TradeWalletActions() {
   const exitingWithNavigateBack = useMemo(
     () =>
       exitingAnimationWithCallback(() => {
-        navigation.goBack();
-        postCallback.current?.();
+        const callback = postCallback.current;
+        postCallback.current = undefined;
+
+        dismissRootModalFlow();
+
+        if (callback) {
+          // Defer navigation until RootModalFlow is fully dismissed so screens
+          // on MainNavigator (e.g. StakeModals) are not opened underneath it.
+          requestAnimationFrame(() => {
+            callback();
+          });
+        }
       }),
-    [exitingAnimationWithCallback, navigation],
+    [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
   return (

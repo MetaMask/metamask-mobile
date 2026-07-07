@@ -36,6 +36,7 @@ import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
+import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
@@ -111,6 +112,14 @@ const OrderDetails = () => {
           return;
         }
         addOrder(fetchedOrder);
+
+        showV2OrderToast({
+          orderId: fetchedOrder.providerOrderId,
+          cryptocurrency:
+            fetchedOrder.cryptoCurrency?.symbol ?? params.cryptocurrency ?? '',
+          cryptoAmount: fetchedOrder.cryptoAmount,
+          status: fetchedOrder.status,
+        });
         navigation.setParams({
           orderId: fetchedOrder.providerOrderId,
           callbackUrl: undefined,
@@ -118,7 +127,11 @@ const OrderDetails = () => {
           walletAddress: undefined,
         });
       } catch (fetchError) {
-        Logger.error(fetchError as Error, {
+        const normalizedError =
+          fetchError instanceof Error
+            ? fetchError
+            : new Error(String(fetchError));
+        Logger.error(normalizedError, {
           message: `RampsOrderDetails: error fetching order from callback URL${logContext}`,
           callbackUrl,
         });
@@ -131,7 +144,7 @@ const OrderDetails = () => {
         setIsLoading(false);
       }
     },
-    [getOrderFromCallback, addOrder, navigation],
+    [getOrderFromCallback, addOrder, navigation, params.cryptocurrency],
   );
 
   const handleHeaderBack = useCallback(() => {

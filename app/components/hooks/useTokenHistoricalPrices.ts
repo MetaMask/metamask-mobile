@@ -11,6 +11,50 @@ export type TokenPrice = [string, number];
 
 const placeholderPrices = Array(289).fill(['0', 0] as TokenPrice);
 
+const HOURS = 3_600_000;
+const DAYS = 24 * HOURS;
+
+/**
+ * Expected durations (in ms) for each time period.
+ * `null` means no coverage check (e.g. "all" has no fixed expected span).
+ */
+const EXPECTED_DURATION_MS: Record<TimePeriod, number | null> = {
+  '1d': 1 * DAYS,
+  '1w': 7 * DAYS,
+  '7d': 7 * DAYS,
+  '1m': 30 * DAYS,
+  '3m': 90 * DAYS,
+  '1y': 365 * DAYS,
+  '3y': 3 * 365 * DAYS,
+  all: null,
+};
+
+/**
+ * Minimum fraction of the requested time period that the returned data must
+ * cover. Below this threshold we show the "no data" overlay instead of
+ * rendering a misleading chart.  0.95 = data must span at least 95% of the
+ * expected duration (e.g. ~22.8 h for a 1D request).
+ */
+const MIN_COVERAGE_RATIO = 0.95;
+
+/**
+ * Returns true when the historical-prices data covers less than
+ * {@link MIN_COVERAGE_RATIO} of the requested time period.
+ */
+export function hasInsufficientTimeCoverage(
+  prices: TokenPrice[],
+  timePeriod: TimePeriod,
+): boolean {
+  const expectedMs = EXPECTED_DURATION_MS[timePeriod];
+  if (expectedMs === null || prices.length < 2) return false;
+
+  const firstTs = Number(prices[0][0]);
+  const lastTs = Number(prices[prices.length - 1][0]);
+  const actualSpanMs = Math.abs(lastTs - firstTs);
+
+  return actualSpanMs < expectedMs * MIN_COVERAGE_RATIO;
+}
+
 const useTokenHistoricalPrices = ({
   asset,
   address,
@@ -31,16 +75,19 @@ const useTokenHistoricalPrices = ({
   data: TokenPrice[] | undefined;
   isLoading: boolean;
   error: Error | undefined;
+  hasInsufficientCoverage: boolean;
 } => {
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
   const [prices, setPrices] = useState<TokenPrice[]>(placeholderPrices);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error>();
+  const [insufficientCoverage, setInsufficientCoverage] = useState(false);
 
   useEffect(() => {
     const fetchPrices = async () => {
       setIsLoading(true);
+      setInsufficientCoverage(false);
 
       try {
         const baseUri = 'https://price.api.cx.metamask.io/v3';
@@ -91,10 +138,17 @@ const useTokenHistoricalPrices = ({
         endTrace({ name: TraceName.FetchHistoricalPrices });
         if (response.status === 204) {
           setPrices([]);
+          setInsufficientCoverage(true);
           return;
         }
         const data: { prices: TokenPrice[] } = await response.json();
-        setPrices(data.prices as TokenPrice[]);
+        const sortedPrices = [...data.prices].sort(
+          (a, b) => Number(a[0]) - Number(b[0]),
+        );
+        setPrices(sortedPrices as TokenPrice[]);
+        setInsufficientCoverage(
+          hasInsufficientTimeCoverage(sortedPrices, timePeriod),
+        );
       } catch (e: unknown) {
         setError(e as Error);
       } finally {
@@ -114,7 +168,12 @@ const useTokenHistoricalPrices = ({
     asset.chainId,
   ]);
 
-  return { data: prices, isLoading, error };
+  return {
+    data: prices,
+    isLoading,
+    error,
+    hasInsufficientCoverage: insufficientCoverage,
+  };
 };
 
 export default useTokenHistoricalPrices;

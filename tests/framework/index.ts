@@ -14,6 +14,7 @@ export {
 } from '../helpers/analytics/runAnalyticsExpectations.ts';
 export {
   boxedStep,
+  executeMobileDeepLink,
   getDriver,
   withSnapshotSettings,
   startOverheadTracking,
@@ -79,4 +80,5 @@ export {
   type UnifiedGestureOptions,
   type TapAtIndexElement,
   type ScrollViewMatcher,
+  type ScrollContainer,
 } from './GestureStrategy.ts';

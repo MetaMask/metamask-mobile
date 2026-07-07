@@ -4,7 +4,7 @@ import {
   AddContactViewSelectorsText,
 } from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
+import { EncapsulatedElementType, PlatformDetector } from '../../../framework';
 
 class AddContactView {
   get container(): EncapsulatedElementType {
@@ -12,13 +12,13 @@ class AddContactView {
   }
 
   get addButton(): EncapsulatedElementType {
-    return device.getPlatform() === 'ios'
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
   get editButton(): EncapsulatedElementType {
-    return device.getPlatform() === 'ios'
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
   }
@@ -28,7 +28,7 @@ class AddContactView {
   }
 
   get deleteButton(): EncapsulatedElementType {
-    return device.getPlatform() === 'ios'
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }

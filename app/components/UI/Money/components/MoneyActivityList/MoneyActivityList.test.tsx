@@ -59,10 +59,10 @@ describe('MoneyActivityList', () => {
 
     expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     expect(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-1`),
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}`),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-5`),
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[4].id}`),
     ).toBeOnTheScreen();
   });
 
@@ -72,7 +72,7 @@ describe('MoneyActivityList', () => {
     );
 
     expect(
-      queryByTestId(`${MoneyActivityItemTestIds.ROW}-money-tx-6`),
+      queryByTestId(`${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[5].id}`),
     ).toBeNull();
   });
 
@@ -154,5 +154,23 @@ describe('MoneyActivityList', () => {
 
     fireEvent.press(getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON));
     expect(onViewAllPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders View all when more pages remain upstream even at the preview count', () => {
+    const onHeaderPress = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityList
+        items={MOCK_ITEMS.slice(0, 5)}
+        hasMore
+        onHeaderPress={onHeaderPress}
+        onViewAllPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON),
+    ).toBeOnTheScreen();
+    fireEvent.press(getByTestId('section-header'));
+    expect(onHeaderPress).toHaveBeenCalledTimes(1);
   });
 });

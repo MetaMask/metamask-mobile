@@ -42,9 +42,14 @@ export function FiatOrderSummaryLine({
   const subtitle = formatSubtitle(parentTransaction.time, statusText);
 
   const handleOrderDetailsPress = useCallback(() => {
-    navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
-      orderId: fiatOrderId,
-      showCloseButton: true,
+    // FiatOrderSummaryLine renders inside MoneyModalStack (a transparent modal
+    // nested navigator). useNavigation() returns the ModalStack navigator, which
+    // doesn't know about RAMPS_ORDER_DETAILS. We must escape to the root Stack
+    // navigator via getParent() to reach it.
+    const rootNav = navigation.getParent() ?? navigation;
+    rootNav.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.RAMP.RAMPS_ORDER_DETAILS,
+      params: { orderId: fiatOrderId, showCloseButton: true },
     });
   }, [navigation, fiatOrderId]);
 

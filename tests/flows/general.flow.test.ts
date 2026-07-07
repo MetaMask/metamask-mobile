@@ -1,4 +1,5 @@
 jest.mock('../framework/logger', () => ({
+  ...jest.requireActual('../framework/logger'),
   createLogger: jest.fn(() => ({
     debug: jest.fn(),
     error: jest.fn(),
@@ -58,6 +59,7 @@ import {
   PlaywrightGestures,
   PlaywrightMatchers,
 } from '../framework';
+import { PlatformDetector } from '../framework/PlatformLocator';
 
 describe('general.flow Playwright dev screens', () => {
   beforeEach(() => {
@@ -77,11 +79,31 @@ describe('general.flow Playwright dev screens', () => {
     );
     expect(PlaywrightAssertions.expectElementToBeVisible).toHaveBeenCalledWith(
       serverRow,
-      expect.objectContaining({ timeout: 2000 }),
+      expect.objectContaining({
+        timeout: 1500,
+        description: 'Dev Server Row should be visible',
+      }),
     );
     expect(PlaywrightGestures.waitAndTap).toHaveBeenCalledWith(serverRow);
     expect(PlaywrightMatchers.getElementById).not.toHaveBeenCalled();
   });
+
+  it('uses 10.0.2.2 as the Metro host on Android', async () => {
+    (PlatformDetector.isAndroid as jest.Mock).mockReturnValueOnce(true);
+    (PlaywrightMatchers.getElementByText as jest.Mock).mockResolvedValue({
+      selector: 'metro-server-row',
+    });
+
+    await dismissDevelopmentServerPickerPlaywright();
+
+    expect(PlaywrightMatchers.getElementByText).toHaveBeenCalledWith(
+      'http://10.0.2.2:8081',
+    );
+  });
+
+  // The METRO_HOST_E2E override branch is not unit-testable here:
+  // babel-plugin-transform-inline-environment-variables (babel.config.js)
+  // inlines process.env.* at compile time, so runtime mutation has no effect.
 
   it('closes the developer menu directly without toggling Fast refresh', async () => {
     const closeButton = { selector: 'xmark' };
@@ -108,7 +130,10 @@ describe('general.flow Playwright dev screens', () => {
       PlaywrightAssertions.expectElementToNotBeVisible,
     ).toHaveBeenCalledWith(
       closeButton,
-      expect.objectContaining({ timeout: 5000 }),
+      expect.objectContaining({
+        timeout: 2000,
+        description: 'Dev Menu Close Button should not be visible',
+      }),
     );
     expect(
       (PlaywrightAssertions.expectElementToNotBeVisible as jest.Mock).mock
