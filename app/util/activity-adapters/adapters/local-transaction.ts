@@ -680,7 +680,7 @@ export function mapLocalTransaction(
 
     case TransactionType.stakingDeposit:
       return {
-        type: 'deposit',
+        type: 'stake',
         chainId,
         status,
         timestamp,

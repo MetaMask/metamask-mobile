@@ -623,11 +623,18 @@ function resolveCoreContent(
     case 'buy':
     case 'sell':
     case 'claim':
+    case 'stake':
     case 'unstake':
     case 'deposit': {
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
+      const isStakingKind = item.type === 'stake' || item.type === 'unstake';
+      const displayNoun = isStakingKind
+        ? 'Ethereum'
+        : isNamelessNftBuy
+          ? 'NFT'
+          : symbol;
       const labels =
         item.type === 'buy'
           ? { success: 'Bought', pending: 'Buying', failed: 'Buy failed' }
@@ -639,28 +646,28 @@ function resolveCoreContent(
                   pending: 'Claiming',
                   failed: 'Claim failed',
                 }
-              : item.type === 'unstake'
+              : item.type === 'stake'
                 ? {
-                    success: 'Unstaked',
-                    pending: 'Unstaking',
-                    failed: 'Unstake failed',
+                    success: 'Staked',
+                    pending: 'Staking',
+                    failed: 'Stake failed',
                   }
-                : {
-                    success: 'Deposited',
-                    pending: 'Depositing',
-                    failed: 'Deposit failed',
-                  };
+                : item.type === 'unstake'
+                  ? {
+                      success: 'Unstaked',
+                      pending: 'Unstaking',
+                      failed: 'Unstake failed',
+                    }
+                  : {
+                      success: 'Deposited',
+                      pending: 'Depositing',
+                      failed: 'Deposit failed',
+                    };
 
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol(
-            labels.success,
-            isNamelessNftBuy ? 'NFT' : symbol,
-          ),
-          pending: withOptionalSymbol(
-            labels.pending,
-            isNamelessNftBuy ? 'NFT' : symbol,
-          ),
+          success: withOptionalSymbol(labels.success, displayNoun),
+          pending: withOptionalSymbol(labels.pending, displayNoun),
           failed: labels.failed,
         }),
         subtitle: protocolSubtitle(item),
