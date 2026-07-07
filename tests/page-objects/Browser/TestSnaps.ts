@@ -26,7 +26,7 @@ import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.5.0/';
+  'https://metamask.github.io/snaps/test-snaps/3.5.1/';
 
 class TestSnaps {
   get getConnectSnapButton(): EncapsulatedElementType {
