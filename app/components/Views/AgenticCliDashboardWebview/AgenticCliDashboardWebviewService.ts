@@ -209,7 +209,7 @@ export const AgenticCliDashboardWebviewService = {
         completeRequest(requestId, (pending) =>
           pending.reject(new Error('Dashboard approval timed out.')),
         );
-        // dismissOpenWebview();
+        dismissOpenWebview();
       }, WEBVIEW_TIMEOUT_MS);
 
       pendingRequests.set(requestId, {
