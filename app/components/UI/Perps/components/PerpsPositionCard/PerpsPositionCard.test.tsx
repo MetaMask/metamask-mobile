@@ -317,6 +317,19 @@ describe('PerpsPositionCard', () => {
       ).toHaveTextContent(/long\s+10x/);
     });
 
+    it('formats auto-close stop loss with market-aware price precision', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        stopLossPrice: '2.1946',
+        stopLossCount: 1,
+      };
+
+      render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
+
+      expect(screen.getByText('perps.order.sl $2.1946')).toBeOnTheScreen();
+    });
+
     it('renders SHORT position correctly', () => {
       // Arrange
       const shortPosition = {

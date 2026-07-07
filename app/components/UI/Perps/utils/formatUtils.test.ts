@@ -20,6 +20,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+  formatPerpsPrice,
 } from './formatUtils';
 import {
   countSignificantFigures,
@@ -1410,6 +1411,16 @@ describe('formatUtils', () => {
     });
 
     describe('PRICE_RANGES_UNIVERSAL (comprehensive formatting)', () => {
+      describe('formatPerpsPrice', () => {
+        it('uses market-aware Hyperliquid price precision when szDecimals is known', () => {
+          expect(formatPerpsPrice('2.1946', { szDecimals: 2 })).toBe('$2.1946');
+        });
+
+        it('falls back to universal price ranges when szDecimals is unknown', () => {
+          expect(formatPerpsPrice(95123.45)).toBe('$95,123');
+        });
+      });
+
       it('should format high-value BTC prices without decimals (> $10k)', () => {
         // BTC at $126k - no decimals for cleaner display
         expect(

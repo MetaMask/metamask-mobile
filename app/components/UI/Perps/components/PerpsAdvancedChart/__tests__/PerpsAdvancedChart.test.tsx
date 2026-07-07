@@ -116,6 +116,16 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
+  it('passes market-aware price decimals to AdvancedChart', () => {
+    renderChart({ szDecimals: 2 });
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        priceDecimals: 4,
+      }),
+    );
+  });
+
   it('passes pagination duration into the adapter', () => {
     renderChart({ paginationDuration: TimeDuration.YearToDate });
 

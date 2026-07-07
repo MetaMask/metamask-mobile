@@ -1319,6 +1319,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <PerpsPositionCard
             position={existingPosition}
             currentPrice={currentPrice}
+            szDecimals={marketData?.szDecimals}
             onAutoClosePress={handleAutoClosePress}
             onMarginPress={handleMarginPress}
             onSharePress={handleSharePress}
@@ -1359,6 +1360,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [
       existingPosition,
       currentPrice,
+      marketData?.szDecimals,
       handleAutoClosePress,
       handleMarginPress,
       handleSharePress,
@@ -1497,6 +1499,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
                   tpslLines={tpslLines}
                   positionSize={existingPosition?.size}
+                  szDecimals={marketData?.szDecimals}
                   onCrosshairDataChange={setOhlcData}
                   onLatestPriceChange={setAdvancedChartCurrentPrice}
                   onError={handleChartError}
@@ -1792,6 +1795,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isAdvancedChartEnabled={isAdvancedChartEnabled}
         symbol={market?.symbol}
         positionSize={existingPosition?.size}
+        szDecimals={marketData?.szDecimals}
       />
 
       {/* Market Insights Disclaimer Bottom Sheet */}

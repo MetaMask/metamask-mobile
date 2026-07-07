@@ -7,6 +7,8 @@ import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import {
   type FiatRangeConfig,
   formatPerpsFiat,
+  formatHyperLiquidPrice,
+  PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
 
 // Decimal formatters moved to controller for cross-platform sharing
@@ -22,6 +24,37 @@ export {
   formatFundingRate,
 } from '@metamask/perps-controller';
 export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
+
+/**
+ * Formats a perps market price for display using Hyperliquid price precision
+ * when market size decimals are known. Falls back to the shared fiat formatter
+ * for generic fiat display sites.
+ */
+export const formatPerpsPrice = (
+  price: number | string,
+  options?: {
+    szDecimals?: number | null;
+    includeCurrencySymbol?: boolean;
+  },
+): string => {
+  const includeCurrencySymbol = options?.includeCurrencySymbol ?? true;
+  const fallback = () =>
+    formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
+
+  if (options?.szDecimals === undefined || options.szDecimals === null) {
+    return fallback();
+  }
+
+  try {
+    const formattedPrice = formatHyperLiquidPrice({
+      price,
+      szDecimals: options.szDecimals,
+    });
+    return includeCurrencySymbol ? `$${formattedPrice}` : formattedPrice;
+  } catch {
+    return fallback();
+  }
+};
 
 /**
  * Truncates a number to 2 decimal places without rounding up.
