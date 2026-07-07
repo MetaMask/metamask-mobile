@@ -30,7 +30,7 @@ interface WatchlistMutationContext {
 }
 
 const toStrings = (input: readonly CaipAssetType[]): string[] =>
-  input.map((id) => String(id));
+  input.map(String);
 
 const asArray = <T>(value: T | T[]): T[] =>
   Array.isArray(value) ? value : [value];
