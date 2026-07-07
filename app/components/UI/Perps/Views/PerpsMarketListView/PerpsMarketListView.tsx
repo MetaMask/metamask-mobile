@@ -5,18 +5,11 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import {
-  HeaderStandard,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
   View,
   Animated,
   ScrollView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -40,6 +33,7 @@ import {
 import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
+import PerpsMarketListEmptyState from './components/PerpsMarketListEmptyState';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import {
@@ -367,31 +361,13 @@ const PerpsMarketListView = ({
         !visibleSuggestedMarkets?.length
       ) {
         return (
-          <View
-            style={styles.emptyStateContainer}
-            testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-          >
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Xl}
-              color={IconColor.IconMuted}
-              style={styles.emptyStateIcon}
-            />
-            <Text
-              variant={TextVariant.HeadingSM}
-              color={TextColor.Default}
-              style={styles.emptyStateTitle}
-            >
-              {strings('perps.no_tokens_found')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.emptyStateDescription}
-            >
-              {strings('perps.no_tokens_found_description', { searchQuery })}
-            </Text>
-          </View>
+          <PerpsMarketListEmptyState
+            containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+            title={strings('perps.no_tokens_found')}
+            description={strings('perps.no_tokens_found_description', {
+              searchQuery,
+            })}
+          />
         );
       }
 
@@ -420,125 +396,46 @@ const PerpsMarketListView = ({
     // can widen results without losing their search term.
     if (hasSearchQuery && hasActiveFilter && filteredMarkets.length === 0) {
       return (
-        <View
-          style={styles.emptyStateContainer}
-          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-        >
-          <Icon
-            name={IconName.Search}
-            size={IconSize.Xl}
-            color={IconColor.IconMuted}
-            style={styles.emptyStateIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
-            style={styles.emptyStateTitle}
-          >
-            {strings('perps.no_markets_found')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.emptyStateDescription}
-          >
-            {strings('perps.no_markets_search_description', {
-              searchQuery: searchQuery.trim(),
-            })}
-          </Text>
-          <TouchableOpacity
-            style={styles.emptyStateCta}
-            onPress={() => setMarketTypeFilter('all')}
-            testID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
-            accessibilityRole="button"
-          >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {strings('perps.clear_filter')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <PerpsMarketListEmptyState
+          containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+          title={strings('perps.no_markets_found')}
+          description={strings('perps.no_markets_search_description', {
+            searchQuery: searchQuery.trim(),
+          })}
+          ctaLabel={strings('perps.clear_filter')}
+          onCtaPress={() => setMarketTypeFilter('all')}
+          ctaTestID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+        />
       );
     }
 
     // Search-only: search active, no category filter, no results.
     if (hasSearchQuery && filteredMarkets.length === 0) {
       return (
-        <View
-          style={styles.emptyStateContainer}
-          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-        >
-          <Icon
-            name={IconName.Search}
-            size={IconSize.Xl}
-            color={IconColor.IconMuted}
-            style={styles.emptyStateIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
-            style={styles.emptyStateTitle}
-          >
-            {strings('perps.no_tokens_found')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.emptyStateDescription}
-          >
-            {strings('perps.no_tokens_found_description', { searchQuery })}
-          </Text>
-          <TouchableOpacity
-            style={styles.emptyStateCta}
-            onPress={() => setSearchQuery('')}
-            testID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
-            accessibilityRole="button"
-          >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {strings('perps.clear_search')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <PerpsMarketListEmptyState
+          containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+          title={strings('perps.no_tokens_found')}
+          description={strings('perps.no_tokens_found_description', {
+            searchQuery,
+          })}
+          ctaLabel={strings('perps.clear_search')}
+          onCtaPress={() => setSearchQuery('')}
+          ctaTestID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+        />
       );
     }
 
     // Filter-only: category filter active, no search term, no results.
     if (hasActiveFilter && filteredMarkets.length === 0) {
       return (
-        <View
-          style={styles.emptyStateContainer}
-          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER}
-        >
-          <Icon
-            name={IconName.Search}
-            size={IconSize.Xl}
-            color={IconColor.IconMuted}
-            style={styles.emptyStateIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
-            style={styles.emptyStateTitle}
-          >
-            {strings('perps.no_markets_found')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.emptyStateDescription}
-          >
-            {strings('perps.no_markets_found_description')}
-          </Text>
-          <TouchableOpacity
-            style={styles.emptyStateCta}
-            onPress={() => setMarketTypeFilter('all')}
-            testID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
-            accessibilityRole="button"
-          >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-              {strings('perps.clear_filter')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <PerpsMarketListEmptyState
+          containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER}
+          title={strings('perps.no_markets_found')}
+          description={strings('perps.no_markets_found_description')}
+          ctaLabel={strings('perps.clear_filter')}
+          onCtaPress={() => setMarketTypeFilter('all')}
+          ctaTestID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+        />
       );
     }
 
