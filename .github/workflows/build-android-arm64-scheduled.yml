@@ -1,0 +1,61 @@
+# Builds a main-e2e RELEASE APK that includes arm64-v8a native libs, so the
+# CI-equivalent binary can be installed on Apple Silicon (arm64) emulators to
+# reproduce CI E2E failures locally. Runs 4x/day; skips when main has not moved.
+name: Build Android arm64 E2E (scheduled)
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 00:00, 06:00, 12:00, 18:00 UTC — 4x/day
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write # required for AWS OIDC role assumption when fetching signing keystores
+  actions: read
+
+jobs:
+  check-changes:
+    name: Decide whether to build
+    runs-on: ubuntu-latest
+    outputs:
+      should-build: ${{ steps.decide.outputs.should-build }}
+    steps:
+      - name: Decide whether a new build is needed
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          CURRENT_SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # Manual runs always build.
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "Manual trigger; building."
+            echo "should-build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Compare current HEAD to the head SHA of the last SUCCESSFUL run of this workflow.
+          last_sha=$(gh api \
+            "/repos/$REPO/actions/workflows/build-android-arm64-scheduled.yml/runs?status=success&per_page=1" \
+            --jq '.workflow_runs[0].head_sha // ""')
+          echo "current_sha=$CURRENT_SHA"
+          echo "last_successful_sha=$last_sha"
+          if [[ -n "$last_sha" && "$last_sha" == "$CURRENT_SHA" ]]; then
+            echo "main has not advanced since the last successful build; skipping."
+            echo "should-build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New commits (or no prior successful run); building."
+            echo "should-build=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build arm64 E2E APK
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.should-build == 'true' }}
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: main
+      metamask_environment: e2e
+      include_arm64: true
+    secrets: inherit

@@ -2,7 +2,14 @@
  * Predict navigation parameters
  */
 
-import { ParamListBase } from '@react-navigation/native';
+/**
+ * Nested navigation into the Predict stack root.
+ * Kept local to avoid a circular import with NavigationService/types.
+ */
+interface PredictNestedNavigationParams {
+  screen?: string;
+  params?: object;
+}
 import {
   PredictActivityItem,
   PredictCategory,
@@ -28,6 +35,7 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL
   | typeof PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST
   | typeof PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON
+  | typeof PredictEventValues.ENTRY_POINT.HOMESCREEN_PILL
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
@@ -51,6 +59,27 @@ export interface PredictMarketListRouteParams {
    */
   tabId?: string;
   query?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+}
+
+/**
+ * Generic Predict feed route parameters.
+ *
+ * Consumed by the config-driven `PredictFeedView` (powers Sports / Politics /
+ * Crypto / Live / Trending / Popular Today). Carries stable IDs only — the
+ * view resolves them into a render-ready config via `usePredictFeedConfig`.
+ * The route registration + deeplink parsing that populates these params lands
+ * separately (route + deeplinks ticket); the view reads them via `useRoute`.
+ */
+export interface PredictFeedRouteParams {
+  feedId: PredictFeedId;
+  /** Initial sub-tab id within the feed (e.g. `basketball`, `all`). */
+  initialTabId?: string;
+  /** Initial filter chip id within the active tab (e.g. `all`, `live`). */
+  initialFilterId?: string;
+  /** Opens the search overlay pre-filled with this query. */
+  query?: string;
+  entryPoint?: PredictEntryPoint;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -87,6 +116,7 @@ export type PredictPositionsTabKey = 'positions' | 'history';
 
 /** Predict Positions screen parameters */
 export interface PredictPositionsParams {
+  entryPoint?: PredictEntryPoint;
   initialTab?: PredictPositionsTabKey;
 }
 
@@ -146,14 +176,27 @@ export type PredictSellPreviewProps =
   | ({ mode: 'sheet' } & PredictSellPreviewContentProps)
   | { mode?: never };
 
-export interface PredictNavigationParamList extends ParamListBase {
-  Predict: undefined;
-  PredictMarketList: PredictMarketListRouteParams;
-  PredictMarketDetails: PredictMarketDetailsParams;
+// Declared as a `type` (not `interface`) so it gains an implicit index
+// signature and satisfies React Navigation's `ParamListBase` constraint while
+// `keyof` stays a strict union of route names. The repo's
+// `consistent-type-definitions` rule prefers `interface`, hence the suppression.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictNavigationParamList = {
+  Predict: PredictNestedNavigationParams | undefined;
+  PredictMarketList: PredictMarketListRouteParams | undefined;
+  PredictFeed: PredictFeedRouteParams | undefined;
+  PredictMarketDetails: PredictMarketDetailsParams | undefined;
   PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
   PredictActivityDetail: PredictActivityDetailParams;
-  PredictAddFundsSheet: PredictAddFundsModalParams;
-}
+  PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
+  PredictUnavailable: undefined;
+  PredictGTMModal: undefined;
+  PredictModals: PredictNestedNavigationParams | undefined;
+  RedesignedConfirmations: undefined;
+  NoHeaderConfirmations: undefined;
+  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithBottomSheet: undefined;
+};

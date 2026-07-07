@@ -134,7 +134,7 @@ jest.mock('react-native-confirmation-code-field', () => ({
   useClearByFocusCell: () => [{}, jest.fn()],
 }));
 
-jest.mock('../../Deposit/constants', () => ({
+jest.mock('../../constants', () => ({
   TRANSAK_SUPPORT_URL: 'https://support.transak.com',
 }));
 
@@ -299,6 +299,91 @@ describe('V2OtpCode', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('RampAmountInput');
     });
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
+  });
+
+  it('navigates to HEADLESS_HOST with suppressFocusDismissal when headless and no amount/currency/assetId params', async () => {
+    jest.useRealTimers();
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: undefined,
+      currency: undefined,
+      assetId: undefined,
+      headlessSessionId: 'headless-buy-abc',
+    });
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    // Programmatic refocus of the still-mounted Host must flag itself so the
+    // host's focus-dismissal heuristic does not kill the live session.
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampHeadlessHost', {
+        headlessSessionId: 'headless-buy-abc',
+        suppressFocusDismissal: true,
+      });
+    });
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
+  });
+
+  it('navigates back to HEADLESS_HOST with nativeFlowError (not suppressFocusDismissal) when headless post-auth routing fails', async () => {
+    jest.useRealTimers();
+
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+      headlessSessionId: 'headless-buy-abc',
+    });
+
+    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
+    mockVerifyUserOtp.mockResolvedValue(mockToken);
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockRejectedValue(new Error('Limit exceeded'));
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    // Failure must keep routing through nativeFlowError (so failSession runs);
+    // the success-only suppress flag must NOT be set on this path.
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('RampHeadlessHost', {
+        headlessSessionId: 'headless-buy-abc',
+        nativeFlowError: 'Limit exceeded',
+      });
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      'RampHeadlessHost',
+      expect.objectContaining({ suppressFocusDismissal: true }),
+    );
 
     mockUseParams.mockReturnValue({
       email: 'test@example.com',

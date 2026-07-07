@@ -36,10 +36,13 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<PerpsPositionTransactionRouteProp>();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,
@@ -85,6 +88,11 @@ const PerpsPositionTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'perps_transaction_details',
+      text: strings('perps.transactions.view_on_explorer'),
+      url: explorerUrl,
+    });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {

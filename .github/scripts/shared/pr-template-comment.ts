@@ -10,22 +10,39 @@ const READY_FOR_REVIEW_DOC_URL =
   'https://github.com/MetaMask/metamask-mobile/blob/main/docs/readme/ready-for-review.md';
 
 /**
- * Build the markdown body of the sticky comment, given the aggregated failure
- * reasons and the draft flag. The marker is prepended by `upsertStickyComment`
- * so callers never need to think about it.
+ * Build the markdown body of the sticky comment from grouped failure reasons.
+ * Blocking failures fail the workflow; warning failures are informational.
+ * Groups with no entries are omitted so authors never see an empty section.
+ * The marker is prepended by `upsertStickyComment` so callers never need to
+ * think about it.
  */
-export function renderFailureComment(
-  reasons: string[],
-  isDraft: boolean,
-): string {
+export function renderFailureComment({
+  blocking,
+  warning,
+}: {
+  blocking: string[];
+  warning: string[];
+}): string {
   const heading =
     '### PR template — items to address before "Ready for review"';
-  const draftNote = isDraft
-    ? '_This check is informational while the PR is in draft. It will start blocking once you mark the PR as Ready for review._'
-    : '_This check is blocking. Address every item below, then push to re-run._';
-  const bullets = reasons.map((r) => `- ${r}`).join('\n');
   const footer = `See [docs/readme/ready-for-review.md](${READY_FOR_REVIEW_DOC_URL}) for the full Definition of Ready for Review.`;
-  return [heading, '', draftNote, '', bullets, '', footer].join('\n');
+
+  const sections: string[] = [heading, ''];
+
+  if (blocking.length > 0) {
+    sections.push('**Blocking** — these items fail the workflow until fixed:');
+    sections.push(blocking.map((r) => `- ${r}`).join('\n'));
+    sections.push('');
+  }
+
+  if (warning.length > 0) {
+    sections.push('**Warnings** — informational, address before merging:');
+    sections.push(warning.map((r) => `- ${r}`).join('\n'));
+    sections.push('');
+  }
+
+  sections.push(footer);
+  return sections.join('\n');
 }
 
 /**

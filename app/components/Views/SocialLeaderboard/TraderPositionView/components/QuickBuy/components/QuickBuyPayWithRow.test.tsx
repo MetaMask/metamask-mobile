@@ -4,6 +4,24 @@ import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { getTokenKey } from '../tokenKey';
 import QuickBuyPayWithRow from './QuickBuyPayWithRow';
 
+jest.mock('./QuickBuyTokenSecurityBadge', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View: RNView } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      token,
+      iconTestID,
+    }: {
+      token: BridgeToken;
+      iconTestID?: string;
+    }) =>
+      token.isVerified
+        ? ReactMock.createElement(RNView, { testID: iconTestID })
+        : null,
+  };
+});
+
 const getRowTestId = (token: BridgeToken): string =>
   `quick-buy-pay-with-row-${getTokenKey(token)}`;
 
@@ -33,6 +51,20 @@ describe('QuickBuyPayWithRow', () => {
     expect(screen.getByText('USDC')).toBeOnTheScreen();
     expect(screen.getByText('$10,100.01')).toBeOnTheScreen();
     expect(screen.getByText('10,100.01 USDC')).toBeOnTheScreen();
+  });
+
+  it('renders row content while the security badge is still loading', () => {
+    render(
+      <QuickBuyPayWithRow
+        token={createToken({ isVerified: false })}
+        isSelected={false}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText('USD Coin')).toBeOnTheScreen();
+    expect(screen.getByText('USDC')).toBeOnTheScreen();
+    expect(screen.getByText('$10,100.01')).toBeOnTheScreen();
   });
 
   it('shows the verified icon when token.isVerified is true', () => {

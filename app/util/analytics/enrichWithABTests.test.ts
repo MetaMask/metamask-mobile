@@ -364,6 +364,5 @@ describe('enrichWithABTests', () => {
 
     expect(result.properties.button_type).toBe('card');
     expect(result.sensitiveProperties).toEqual({ sensitive: 'value' });
-    expect(result.saveDataRecording).toBe(false);
   });
 });

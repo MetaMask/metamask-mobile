@@ -559,6 +559,9 @@ describe('SearchTokenAutocomplete', () => {
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         expectedCaipAssetType,
+        expect.objectContaining({
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+        }),
       );
     });
 
@@ -612,10 +615,16 @@ describe('SearchTokenAutocomplete', () => {
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         caipAsset1,
+        expect.objectContaining({
+          address: '0x1234567890abcdef1234567890abcdef12345678',
+        }),
       );
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'evm-account-id',
         caipAsset2,
+        expect.objectContaining({
+          address: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+        }),
       );
     });
 
@@ -691,8 +700,10 @@ describe('SearchTokenAutocomplete', () => {
     const solanaChainId =
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as SupportedCaipChainId;
 
+    const solanaAddress =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y';
     const mockNonEvmToken = {
-      address: 'solana-address-123',
+      address: solanaAddress,
       symbol: 'SOL',
       name: 'Solana',
       decimals: 9,
@@ -769,8 +780,45 @@ describe('SearchTokenAutocomplete', () => {
 
       expect(mockAddCustomAsset).toHaveBeenCalledWith(
         'non-evm-account-id',
-        'solana-address-123',
+        solanaAddress,
+        expect.objectContaining({ address: solanaAddress }),
       );
+    });
+  });
+
+  describe('Arc USDC ERC-20 filtering', () => {
+    const ARC_CHAIN_ID = '0x13b2' as Hex;
+    const ARC_ERC20_ADDRESS = '0x3600000000000000000000000000000000000000';
+    const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+
+    const arcErc20Token = {
+      address: ARC_ERC20_ADDRESS,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      chainId: ARC_CHAIN_ID,
+      image: '',
+    };
+    const arcNativeToken = {
+      address: NATIVE_ADDRESS,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 18,
+      chainId: ARC_CHAIN_ID,
+      image: '',
+    };
+
+    it('hides Arc USDC ERC-20 from search results on Arc chain', () => {
+      mockConvertTokens.mockReturnValue([arcErc20Token, arcNativeToken]);
+
+      const { queryAllByTestId } = renderComponent({
+        selectedChainId: ARC_CHAIN_ID,
+      });
+
+      const results = queryAllByTestId(
+        ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+      );
+      expect(results).toHaveLength(1);
     });
   });
 });

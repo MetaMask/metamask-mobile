@@ -25,9 +25,9 @@ import {
   TRANSACTION_TYPES,
   isTransactionIncomplete,
 } from '../../../util/transactions';
-import Engine from '../../../core/Engine';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
+  decodeBatchSellTx,
   decodeBridgeTx,
   decodeSwapsTx,
   isBridgeTxHistoryItemBridge,
@@ -1035,6 +1035,10 @@ export default async function decodeTransaction(args) {
         actionKey,
       });
       return [transactionElement, transactionDetails];
+    }
+
+    if (args.bridgeTxHistoryData?.is7702Batch) {
+      return decodeBatchSellTx(args);
     }
 
     const [transactionElement, transactionDetails] = decodeSwapsTx({

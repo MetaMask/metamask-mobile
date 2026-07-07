@@ -68,8 +68,8 @@
     },
     "insufficient_balance": {
       "title": "अपर्याप्त फंड",
-      "message": "नेटवर्क शुल्क का भुगतान करने के लिए आपके अकाउंट में पर्याप्त %{nativeCurrency} नहीं है।",
-      "buy_action": "%{nativeCurrency} खरीदें"
+      "message": "नेटवर्क शुल्क का भुगतान करने के लिए आपके अकाउंट में पर्याप्त {{nativeCurrency}} नहीं है।",
+      "buy_action": "{{nativeCurrency}} खरीदें"
     },
     "signed_or_submitted": {
       "title": "ट्रांसेक्शन प्रोग्रेस में है",
@@ -102,8 +102,8 @@
       "message": "{{amount}} से कम की राशि जोड़ें या कोई दूसरा टोकन इस्तेमाल करें।",
       "title": "अपर्याप्त फंड"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "कम की राशि जोड़ें या कोई दूसरा टोकन इस्तेमाल करें।"
+    "insufficient_pay_method_balance": {
+      "message": "कम राशि जोड़ें या किसी अन्य भुगतान विधि का उपयोग करें।"
     },
     "insufficient_pay_token_native": {
       "message": "फीस कवर करने के लिए ज़्यादा {{ticker}} मौजूद नहीं हैं। जारी रखने के लिए किसी दूसरे नेटवर्क पर टोकन इस्तेमाल करें या और {{ticker}} जोड़ें।",
@@ -114,11 +114,18 @@
       "title": "पोस्ट कोटेशन के लिए पर्याप्त फंड नहीं है"
     },
     "no_pay_token_quotes": {
-      "message": "यह भुगतान रूट अभी उपलब्ध नहीं है। राशि, नेटवर्क या टोकन बदलने का प्रयास करें और हम सबसे अच्छा विकल्प ढूँढ लेंगे।",
+      "message": "यह भुगतान रूट अभी उपलब्ध नहीं है। राशि या भुगतान का तरीका बदलने का प्रयास करें और हम सबसे अच्छा विकल्प ढूँढ लेंगे।",
       "title": "कोई कोटेशन मौजूद नहीं है"
     },
     "account_no_funds": {
-      "message": "कोई फंड उपलब्ध नहीं है। कृपया किसी अन्य अकाउंट का इस्तेमाल करें।"
+      "message": "कोई फंड उपलब्ध नहीं है। कृपया किसी अन्य अकाउंट का इस्तेमाल करें।",
+      "title": "अपर्याप्त फंड"
+    },
+    "fiat_buy_amount_limit": {
+      "title": "राशि सीमा से बाहर"
+    },
+    "deposit_limit": {
+      "title": "अधिकतम डिपॉज़िट: {{amount}}"
     },
     "headless_buy_error": {
       "title": "फिएट की खरीद नहीं हो पाई",
@@ -127,6 +134,11 @@
     "mmpay_hardware_account": {
       "title": "वॉलेट सपोर्टेड नहीं है",
       "message": "हार्डवेयर वॉलेट सपोर्टेड नहीं हैं।\nजारी रखने के लिए वॉलेट बदलें।"
+    },
+    "address_poisoning": {
+      "title": "एड्रेस पॉइज़निंग का पता चला है",
+      "message": "यह एड्रेस उस एड्रेस से बहुत मिलता-जुलता है जिसका आपने पहले उपयोग किया है। हो सकता है कि इसे आपको धोखा देकर गलत प्राप्तकर्ता को फंड्स भेजने के लिए बनाया गया हो।",
+      "badge": "पॉइज़न किया गया (धोखा देने के लिए एड्रेस में छेड़छाड़ की गई)"
     },
     "burn_address": {
       "message": "आप अपनी एसेट्स एक बर्न एड्रेस पर भेज रहे हैं। यदि आप जारी रखते हैं, तो आप अपनी एसेट्स खो देंगे।",
@@ -137,7 +149,7 @@
       "message": "हो सकता है कि पाने वाले का पता सीधे टोकन ट्रांसफर को सपोर्ट न करे, जिससे फंड का नुकसान हो सकता है। तभी आगे बढ़ें जब आपको पक्का हो कि यह कॉन्ट्रैक्ट आपका ट्रांसफर प्राप्त कर सकता है।"
     },
     "gas_sponsorship_reserve_balance": {
-      "message": "इस खास नेटवर्क को आपके अकाउंट में %{minBalance} %{nativeTokenSymbol} का रिज़र्व बनाए रखना ज़रूरी है।",
+      "message": "इस खास नेटवर्क को आपके अकाउंट में {{minBalance}} {{nativeTokenSymbol}} का रिज़र्व बनाए रखना ज़रूरी है।",
       "title": "रिज़र्व बैलेंस ज़रूरी है"
     },
     "token_trust_signal": {
@@ -279,6 +291,8 @@
     "import_srp": "सीक्रेट रिकवरी फ्रेज़ का उपयोग करके इंपोर्ट करें",
     "sign_in_with_google": "Google के साथ साइन इन करें",
     "sign_in_with_apple": "Apple के साथ साइन इन करें",
+    "continue_with_telegram": "टेलीग्राम के साथ जारी रखें",
+    "sign_in_with_telegram": "टेलीग्राम के साथ साइन इन करें",
     "your_wallet": "आपने अपना वॉलेट सफलतापूर्वक रीसेट कर लिया है!",
     "delete_current": "वर्तमान वॉलेट रीसेट करें",
     "have_existing_wallet": "मेरे पास एक मौजूदा वॉलेट है",
@@ -435,7 +449,7 @@
     "forgot_password": "पासवर्ड भूल गए?",
     "cant_proceed": "जब तक आप ‘डिलीट’ शब्द टाइप नहीं करते तब तक आप आगे नहीं बढ़ सकते। इस कार्य के साथ आप अपने वर्तमान वॉलेट को हटाने का विकल्प चुन रहे हैं।",
     "invalid_password": "पासवर्ड गलत है, फिर से प्रयास करें।",
-    "type_delete": "कन्फर्म करने के लिए '%{erase}' टाइप करें",
+    "type_delete": "कन्फर्म करने के लिए '{{erase}}' टाइप करें",
     "erase_my": "हां, वॉलेट रीसेट करें",
     "cancel": "कैंसिल करें",
     "are_you_sure": "क्या आप सुनिश्चित हैं?",
@@ -602,6 +616,8 @@
     "invalid_qr_code_title": "अमान्य QR कोड",
     "invalid_qr_code_message": "यह QR कोड एक मान्य सीक्रेट रिकवरी फ्रेज का प्रतिनिधित्व नहीं करता ",
     "enter_your_secret_recovery_phrase": "अपना सीक्रेट रिकवरी फ्रेज दर्ज करें",
+    "or": "या",
+    "import_wallet_from_extension": "MetaMask एक्सटेंशन से इंपोर्ट करें",
     "metamask_password": "MetaMask पासवर्ड",
     "metamask_password_description": "केवल इस डिवाइस पर MetaMask को अनलॉक करता है।",
     "seed_phrase_required": "सीक्रेट रिकवरी फ्रेज़ ज़रूरी है",
@@ -710,10 +726,13 @@
     "could_not_resolve_name": "नाम हल नहीं किया जा सका",
     "invalid_address": "एड्रेस ग़लत है",
     "contractAddressError": "आप टोकन को टोकन के कॉन्ट्रैक्ट एड्रेस पर भेज रहे हैं। इससे इन टोकन को खोने की संभावना है।",
+    "compare_addresses": "एड्रेस की तुलना करें",
+    "entered_malicious": "आपके द्वारा दर्ज किया गया एड्रेस",
+    "known_safe_address": "ज्ञात एड्रेस",
     "smart_contract_address": "स्मार्ट कॉन्ट्रैक्ट एड्रेस",
     "smart_contract_address_warning": "हो सकता है कि पाने वाले का पता सीधे टोकन ट्रांसफर को सपोर्ट न करे, जिससे फंड का नुकसान हो सकता है। तभी आगे बढ़ें जब आपको पक्का हो कि यह कॉन्ट्रैक्ट आपका ट्रांसफर प्राप्त कर सकता है।",
-    "unavailable_network_connection": "Unavailable network connection",
-    "unavailable_network_connection_description": "The connection with {{network}} is unreliable. Update network connectivity details before continuing or try again later.",
+    "unavailable_network_connection": "नेटवर्क कनेक्शन उपलब्ध नहीं है",
+    "unavailable_network_connection_description": "{{network}} के साथ कनेक्शन विश्वसनीय नहीं है। आगे बढ़ने से पहले नेटवर्क कनेक्टिविटी विवरण अपडेट करें या बाद में फिर से प्रयास करें।",
     "update": "अपडेट करें",
     "i_understand": "मैं समझता हूं",
     "cancel": "कैंसिल करें",
@@ -998,7 +1017,7 @@
       "cancel_order_error": "हम आपका ऑर्डर कैंसिल नहीं कर पाए। कृपया फिर से प्रयास करें।"
     },
     "webview_modal": {
-      "error": "Webview को गड़बड़ी प्राप्त हुई: %{code}"
+      "error": "Webview को गड़बड़ी प्राप्त हुई: {{code}}"
     },
     "notifications": {
       "deposit_failed_title": "{{currency}} का डिपॉज़िट नहीं हो पाया! कृपया फिर से कोशिश करें, असुविधा के लिए खेद है!",
@@ -1027,9 +1046,11 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "टॉप ट्रेडर्स",
+      "title": "वीकली टॉप ट्रेडर्स",
       "chain_filter": {
-        "all": "सभी"
+        "all": "सभी",
+        "tokens": "टोकन",
+        "perps": "पर्प्स"
       }
     },
     "notification_preferences": {
@@ -1045,8 +1066,7 @@
       "title": "{{traderName}} से सूचनाएं",
       "allow_push_notifications": "पुश नोटिफिकेशंस की अनुमति दें",
       "allow_push_notifications_desc": "{{traderName}} की ट्रेडिंग गतिविधि पर सूचनाएं प्राप्त करें",
-      "manage_traders": "आप जिन ट्रेडर्स को फ़ॉलो करते हैं उन्हें प्रबंधित करें",
-      "save": "सेव करें"
+      "manage_traders": "आप जिन ट्रेडर्स को फ़ॉलो करते हैं उन्हें प्रबंधित करें"
     },
     "trader_notifications_setup": {
       "description": "आप जिन ट्रेडर्स को फ़ॉलो करते हैं, उनसे होने वाले ट्रेड्स पर रीयल-टाइम एलर्ट पाएं",
@@ -1062,8 +1082,8 @@
       "followers_count": "{{count}} फ़ॉलोअर",
       "followers_count_plural": "{{count}} फ़ॉलोअर्स",
       "win_rate": "विन रेट",
-      "pnl_30d": "30डी पीएंडएल",
-      "hold_time": "होल्ड टाइम",
+      "pnl_7d": "7 दिनों का P&L",
+      "hold_time": "औसत होल्ड",
       "hold_time_minutes": "{{count}}मिनट",
       "hold_time_hours": "{{count}} घंटे",
       "hold_time_days": "{{count}} दिन",
@@ -1074,28 +1094,38 @@
       "twitter_link": "X (ट्विटर) पर देखें",
       "sort": {
         "value": "वैल्यू",
+        "top_trades": "Top Trades",
         "pnl_percent": "पी एंड एल %",
         "recent": "हालिया"
       }
     },
     "trader_position": {
       "market_cap": "मार्केट कैप",
+      "price": "प्राइस",
       "position": "पोज़िशन",
-      "trades": "ट्रेड्स",
       "buy": "खरीदें",
-      "bought": "{{name}} ने खरीदा",
-      "sold": "{{name}} ने बेचा",
-      "no_trades": "इस समय के लिए कोई ट्रेड नहीं",
+      "trade": "ट्रेड करें",
+      "unsupported_market": "असमर्थित बाज़ार",
+      "bought": "खरीदा गया",
+      "sold": "बेचा गया",
+      "no_trades": "अभी तक कोई ट्रेड नहीं हुआ",
       "closed_position": "बंद पोज़िशन",
       "fallback_title": "पोज़िशन उपलब्ध नहीं है",
       "fallback_subtitle": "हम इस पोज़िशन को अभी लोड नहीं कर पाए।",
       "fallback_back_to_profile": "प्रोफ़ाइल पर वापस जाएं",
-      "fallback_back_to_leaderboard": "लीडरबोर्ड पर वापस जाएं"
+      "fallback_back_to_leaderboard": "लीडरबोर्ड पर वापस जाएं",
+      "sell": "बेचें",
+      "long": "लॉन्ग",
+      "short": "शॉर्ट",
+      "opened": "खोला गया",
+      "closed_action": "बंद किया गया"
     },
     "quick_buy": {
       "title": "{{symbol}} खरीदें",
       "market_cap_label": "मार्केट कैप",
       "pay_with": "के साथ भुगतान करें",
+      "buy_mode": "खरीदें",
+      "with": "के साथ",
       "total": "कुल",
       "network_fee": "नेटवर्क फीस",
       "slippage": "स्लिपेज (slippage)",
@@ -1103,9 +1133,30 @@
       "price_impact": "कीमत का प्रभाव",
       "est_points": "अनुमानित पॉइंट्स",
       "no_quotes": "इस टोकन के लिए कोई कोटेशन उपलब्ध नहीं है",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "लोड हो रहा है...",
       "unavailable": "स्वैप अनुपलब्ध है",
-      "unsupported_chain": "यह चेन अभी क्विक बाय के लिए सपोर्टेड नहीं है"
+      "unsupported_chain": "यह चेन अभी क्विक बाय के लिए सपोर्टेड नहीं है",
+      "quote_details_title": "कोटेशन का विवरण",
+      "select_quote_title": "कोटेशन चुनें",
+      "rate": "दर",
+      "get_new_quote": "नया कोटेशन प्राप्त करें",
+      "available_balance": "{{amount}} उपलब्ध है",
+      "toggle_amount_display": "टोकन और डॉलर राशि के बीच स्विच करें",
+      "includes_mm_fee": "इसमें {{fee}}% MM फीस शामिल है",
+      "pay_with_no_tokens": "भुगतान के लिए कोई टोकन उपलब्ध नहीं हैं",
+      "receive_with_no_tokens": "प्राप्त करने के लिए कोई टोकन उपलब्ध नहीं हैं",
+      "pay_with_filter_all": "सभी",
+      "buy_label": "खरीदें",
+      "sell_label": "बेचें",
+      "receive": "प्राप्त करें",
+      "toast_pending_buy": "{{counter}} के साथ {{symbol}} की {{amount}} खरीदी जा रही है",
+      "toast_pending_sell": "{{counter}} के लिए {{symbol}} की {{amount}} बेची जा रही है",
+      "toast_complete_buy": "{{counter}} के साथ {{symbol}} की {{amount}} खरीदी",
+      "toast_complete_sell": "{{counter}} के लिए {{symbol}} की {{amount}} बेची",
+      "toast_failed_buy": "{{symbol}} खरीद नहीं पाए",
+      "toast_failed_sell": "{{symbol}} बेच नहीं पाए"
     }
   },
   "perps": {
@@ -1128,9 +1179,13 @@
       "subtitle": "अपने P&L को {{leverage}} तक कई गुना बढ़ाएँ"
     },
     "service_interruption": {
-      "title": "We're experiencing an outage",
-      "description": "Some services may be unavailable while the team works on a fix.",
+      "title": "हम सेवा बाधा का सामना कर रहे हैं",
+      "description": "टीम समाधान पर काम कर रही है, इस दौरान कुछ सेवाएँ उपलब्ध नहीं हो सकती हैं।",
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
+    },
+    "competition_banner": {
+      "title": "प्रतियोगिता लीडरबोर्ड",
+      "description": "पर्प्स ट्रेडिंग प्रतियोगिता में अपनी रैंक देखें"
     },
     "today": "आज",
     "yesterday": "कल",
@@ -1141,6 +1196,8 @@
     "trade_perps": "पर्प्स ट्रेड करें",
     "trade_perps_description": "पर्प्स का उपयोग किसी एसेट फ्यूचर प्राइस पर ट्रेड करने के लिए करें। शुरू करने के लिए अपने पर्प्स अकाउंट में फंड जोड़ें",
     "available": "उपलब्ध",
+    "select_perps_account": "पर्प्स अकाउंट चुनें",
+    "search_account": "किसी अकाउंट को ढूंढें",
     "deposit_in_progress": "डिपॉज़िट प्रगति में है",
     "withdraw_in_progress": "निकालना प्रोग्रेस में है",
     "multiple_transactions_in_progress": "ट्रांसेक्शन प्रोग्रेस में है",
@@ -1297,7 +1354,7 @@
       "toast_completed_any_token_subtitle": "{{amount}} {{token}} आपके वॉलेट में भेजा गया",
       "toast_error_title": "कुछ गलत हो गया",
       "toast_error_description": "विदड्रॉवल नहीं हो पाया",
-      "toast_start_error_description": "Your withdrawal wasn’t started.",
+      "toast_start_error_description": "आपकी निकासी शुरू नहीं की गई थी।",
       "try_again": "फिर से प्रयास करें"
     },
     "quote": {
@@ -1412,7 +1469,8 @@
         "liquidation_warning": "यदि प्राइस {{percentage}} तक {{direction}} है तो आपकी पोजीशन लिक्विडेट कर दी जाएगी",
         "drops": "गिरती है",
         "rises": "बढ़ती है",
-        "set_leverage": "{{leverage}}x सेट करें"
+        "set_leverage": "{{leverage}}x सेट करें",
+        "price_unavailable": "कीमत की जानकारी उपलब्ध नहीं है"
       },
       "type": {
         "title": "ऑर्डर प्रकार",
@@ -1468,6 +1526,22 @@
       "pay_with_token_required": "टोकन चयन आवश्यक है",
       "select_token_to_pay_with": "कृपया अपना ऑर्डर देने से पहले भुगतान के लिए टोकन का चयन करें",
       "initializing": "ऑर्डर शुरू किया जा रहा है…"
+    },
+    "slippage": {
+      "config_title": "स्लिपेज (slippage) सेट करें",
+      "config_description": "यदि कीमत इस सीमा से आगे बदल जाती है, तो आपका ट्रांसेक्शन पूरा नहीं होगा।",
+      "set": "निर्धारित करें",
+      "cancel": "कैंसिल करें",
+      "custom": "कस्टम",
+      "use_custom_title": "कस्टम स्लिपेज (slippage) का उपयोग करें",
+      "row_format": "अनुमानित: {{est}}% / अधिकतम: {{value}}%",
+      "row_format_pending": "अनुमानित: -- / अधिकतम: {{value}}%",
+      "input_label": "अधिकतम स्लिपेज (slippage) प्रतिशत",
+      "decrement_label": "स्लिपेज (slippage) घटाएं",
+      "increment_label": "स्लिपेज (slippage) बढ़ाएं",
+      "out_of_range": "{{min}}% और {{max}}% के बीच एक मान दर्ज करें",
+      "slippage": "स्लिपेज (slippage)",
+      "exceeds_max": "अनुमानित स्लिपेज (slippage) ({{est}}%) आपके अधिकतम स्लिपेज (slippage) ({{max}}%) से अधिक है। सीमा बढ़ाएं या ऑर्डर साइज़ कम करें।"
     },
     "price_deviation_warning": {
       "message": "प्राइस फ़िलहाल स्पॉट प्राइस से बहुत ज़्यादा बदल गया है। इस समय नई पोज़िशन्स ओपन नहीं की जा सकतीं।"
@@ -1793,6 +1867,7 @@
       "position": "पोजीशन",
       "orders": "ऑर्डर",
       "go_to_activity": "अपनी गतिविधि पर जाएं",
+      "related_markets": "रिलेटेड मार्केट्स",
       "recent_trades": "हालिया गतिविधि",
       "no_trades": "हाल ही में कोई गतिविधि नहीं",
       "trading_24_7": "यह एसेट 24/7 ट्रेड की जा सकती है",
@@ -1801,10 +1876,13 @@
       "pay_attention_to_volatility": "उतार-चढ़ाव और स्लिपेज (slippage) पर ध्यान दें",
       "badge": {
         "experimental": "एक्सपेरिमेंटल",
-        "equity": "स्टॉक",
         "commodity": "कमोडिटी",
         "crypto": "क्रिप्टो",
-        "forex": "फॉरेक्स"
+        "forex": "फॉरेक्स",
+        "stock": "स्टॉक",
+        "pre-ipo": "PRE-IPO",
+        "index": "INDEX",
+        "etf": "ETF"
       }
     },
     "buttons": {
@@ -1839,7 +1917,7 @@
         "provider_fee": "प्रदाता फीस",
         "bridge_fee": "ब्रिज फीस",
         "total": "कुल फीस",
-        "discount_message": "आप MetaMask रिवार्ड्स के साथ {{percentage}}% सेव कर रहे हैं।"
+        "discount_message": "वीआईपी होने के नाते आप फीस में {{percentage}}% की बचत कर रहे हैं।"
       },
       "closing_fees": {
         "title": "क्लोज़िंग फीस",
@@ -1924,6 +2002,10 @@
       "pay_with": {
         "title": "के साथ भुगतान करें",
         "content": "इस ट्रेड के भुगतान के लिए कौन-सा टोकन या बैलेंस इस्तेमाल करना है, उसे चुनें। आप अपने पर्प्स बैलेंस से भुगतान कर सकते हैं या अपने वॉलेट से कोई अन्य टोकन चुन सकते हैं।"
+      },
+      "slippage": {
+        "title": "अनुमानित स्लिपेज (slippage)",
+        "content": "स्लिपेज (slippage) अपेक्षित कीमत और उस कीमत के बीच का अंतर है जिस पर आपका ऑर्डर पूरा होता है। बड़े ऑर्डर या कम तरलता वाले बाजारों में स्लिपेज (slippage) अधिक हो सकता है।"
       }
     },
     "connection": {
@@ -1979,17 +2061,24 @@
       "stocks_and_commodities": "स्टॉक्स और कमोडिटीज़ एक्सप्लोर करें",
       "tabs": {
         "crypto": "क्रिप्टो",
-        "stocks": "स्टॉक्स",
-        "commodities": "कमोडिटीज़",
+        "pre_ipo": "Pre-IPO",
         "forex": "फॉरेक्स",
-        "new": "नया"
+        "new": "नया",
+        "stock": "स्टॉक्स",
+        "index": "इनडाइसेज़",
+        "etf": "ETFs",
+        "commodity": "कमोडिटीज़"
       },
       "filter_by": "इसके द्वारा फिल्टर",
       "forex": "फॉरेक्स",
       "watchlist": "वॉचलिस्ट",
       "markets": "मार्केट",
       "explore_markets": "मार्केट एक्सप्लोर करें",
-      "see_all_perps": "सभी पर्प्स देखें"
+      "see_all_perps": "सभी पर्प्स देखें",
+      "products": "प्रोडक्ट्स",
+      "top_movers": "टॉप मूवर्स",
+      "gainers": "गेनर्स",
+      "losers": "लूज़र्स"
     },
     "learn_more": {
       "title": "पर्प्स के बारे में जानें",
@@ -2073,6 +2162,16 @@
     "search_by_token_symbol": "टोकन सिंबल से ढूंढें",
     "no_favorites_found": "वॉचलिस्ट में कोई मार्केट नहीं है",
     "no_favorites_description": "किसी भी मार्केट को वॉचलिस्ट में जोड़ने के लिए स्टार आइकन पर टैप करें",
+    "watchlist": {
+      "empty_title": "सबसे ज़्यादा ट्रेड होने वाले मार्केट से शुरू करें",
+      "empty_subtitle": "अपनी वॉचलिस्ट में मार्केट जोड़ने के लिए + पर टैप करें।",
+      "show_more": "{{count}} और दिखाएँ",
+      "show_less": "कम दिखाएं",
+      "add_error": "मार्केट को वॉचलिस्ट में जोड़ा नहीं जा सका",
+      "limit_reached": "वॉचलिस्ट की लिमिट पूरी हो गई ({{limit}} मार्केट्स मैक्स)",
+      "filter_badge_label": "वॉचलिस्ट",
+      "suggested": "सुझाया गया"
+    },
     "no_tokens_found": "टोकन नहीं मिले",
     "no_tokens_found_description": "हमें \"{{searchQuery}}\" नाम से कोई टोकन नहीं मिला। कृपया एक अलग सर्च से प्रयास करें।",
     "testnet": "टैस्टनेट (testnet)",
@@ -2205,6 +2304,9 @@
       "share_failed": "इमेज एक्सपोर्ट नहीं हो पाया",
       "export_success": "एक्सपोर्ट किया गया इमेज",
       "referral_code_text": "एक्स्ट्रा रिवॉर्ड कमाने के लिए मेरे रेफ़रल कोड का उपयोग करें।"
+    },
+    "market_details": {
+      "category_search": "रिलेटेड मार्केट्स ब्राउज़ करें"
     }
   },
   "market_insights": {
@@ -2240,21 +2342,46 @@
   },
   "predict": {
     "title": "MetaMask प्रिडिक्शन्स",
+    "select_predict_account": "प्रेडिक्ट अकाउंट चुनें",
+    "search_account": "किसी अकाउंट को ढूंढें",
+    "home": {
+      "live_now_title": "अब लाइव है",
+      "categories_placeholder": "कैटेगरीज़"
+    },
+    "homepage_discovery": {
+      "btc_title": "BTC प्राइस: {{price}}",
+      "btc_price_to_beat": "हराने के लिए कीमत: {{price}}",
+      "btc_live": "लाइव",
+      "fifa_world_cup_2026_title": "फीफा विश्व कप 2026",
+      "events_in_total": "कुल {{count}} इवेंट्स",
+      "events_in_total_overflow": "कुल {{count}}+ मार्केट्स",
+      "props_pill": "प्रॉप्स",
+      "championship_unavailable": "अभी दिखाने के लिए कोई चैंपियनशिप मार्केट नहीं है।",
+      "mens_world_cup_title": "पुरुष विश्व कप",
+      "mens_world_cup_events": "{{count}} पुरुषों के विश्व कप इवेंट्स",
+      "mens_world_cup_events_overflow": "{{count}}+ पुरुषों के विश्व कप इवेंट्स",
+      "winner_unavailable": "अभी दिखाने के लिए कोई वर्ल्ड कप मार्केट नहीं है।"
+    },
     "world_cup": {
       "title": "वर्ल्ड कप",
+      "predictions_title": "वर्ल्ड कप प्रेडिक्शन्स",
       "banner_title": "वर्ल्ड कप 2026",
-      "banner_description": "Trade every match, every moment.",
+      "banner_description": "हर मैच, हर पल में ट्रेड करें।",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "सभी",
         "props": "प्रॉप्स",
-        "live": "लाइव"
+        "live": "लाइव",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "ग्रुप स्टेज",
         "round_of_32": "राउंड ऑफ़ 32",
         "round_of_16": "राउंड ऑफ़ 16",
-        "quarterfinals": "क्वार्टरफ़ाइनल्स",
-        "semifinals": "सेमीफ़ाइनल्स",
+        "quarterfinals": "क्वार्टर-फाइनल्स",
+        "semifinals": "सेमी-फाइनल्स",
         "third_place": "थर्ड प्लेस",
         "final": "फाइनल",
         "group_a": "ग्रुप ए",
@@ -2310,7 +2437,9 @@
       "ended": "समाप्त हो गया",
       "resolved_early": "जल्दी समाधान किया गया",
       "disclaimer": "यह जानकारी अधूरी हो सकती है। मार्केट के सभी नियम, रिज़ॉल्यूशन क्राइटेरिया और फ़ाइनल आउटकम सिर्फ़ पॉलीमार्केट द्वारा कंट्रोल किए जाते हैं। पॉलीमार्केट पर मौजूद पूरे नियमों के आधार पर ही सभी ट्रेड करने चाहिए।",
-      "your_picks": "आपके चयन"
+      "your_picks": "आपके चयन",
+      "entry": "एंट्री",
+      "claim": "क्लेम करें"
     },
     "tab": {
       "no_predictions_description": "आपके प्रेडिक्शन यहां दिखाई देंगे, जो आपकी हिस्सेदारी और मार्केट की चाल को दिखाएंगे।",
@@ -2318,14 +2447,21 @@
       "new_prediction": "नया प्रेडिक्शन",
       "resolved_markets": "रिज़ॉल्व्ड मार्केट्स"
     },
+    "positions_empty": {
+      "description": "आपके प्रेडिक्शन यहां दिखाई देंगे, जो आपकी हिस्सेदारी और मार्केट की चाल को दिखाएंगे",
+      "browse_markets": "मार्केट ब्राउज़ करें"
+    },
     "tabs": {
       "about": "बारे में",
+      "active_positions": "एक्टिव पोज़िशन",
       "positions": "पोजीशन्स",
+      "history": "हिस्ट्री",
       "outcomes": "परिणाम"
     },
     "outcome_groups": {
       "game_lines": "गेम लाइन्स",
       "first_half": "पहला हाफ़",
+      "first_set": "पहला सेट",
       "team_totals": "टीम टोटल्स",
       "touchdowns": "टचडाउन्स",
       "rushing": "रशिंग",
@@ -2347,6 +2483,7 @@
       "moneyline": "मनीलाइन",
       "spreads": "स्प्रेड्स",
       "totals": "टोटल्स",
+      "nrfi": "क्या पहली पारी में रन बनेंगे?",
       "both_teams_to_score": "दोनों टीमों को स्कोर करना है",
       "first_half_moneyline": "1एच मनीलाइन",
       "first_half_spreads": "1एच स्प्रेड्स",
@@ -2354,6 +2491,9 @@
       "points": "पॉइंट्स",
       "assists": "असिस्ट करता है",
       "rebounds": "रिबाउंड करता है",
+      "basketball_total_points": "टोटल्स",
+      "basketball_odd_even": "ऑड/इवेन स्कोर",
+      "basketball_team_to_score_first": "पहले स्कोर करने वाली टीम",
       "goalscorers": "गोलस्कोरर्स",
       "exact_score": "सटीक स्कोर",
       "halftime_result": "हाफ़टाइम रिज़ल्ट",
@@ -2366,10 +2506,18 @@
       "soccer_anytime_goalscorer": "गोलस्कोरर्स",
       "soccer_exact_score": "सटीक स्कोर",
       "soccer_halftime_result": "हाफ़टाइम रिज़ल्ट",
-      "total_corners": "कॉर्नर्स"
+      "soccer_first_to_score": "First Team to Score",
+      "total_corners": "कॉर्नर्स",
+      "tennis_set_totals": "कुल सेट",
+      "tennis_set_handicap": "सेट हैंडीकैप",
+      "tennis_match_totals": "कुल गेम्स",
+      "tennis_first_set_totals": "पहले सेट में कुल गेम",
+      "tennis_first_set_winner": "पहले सेट का विजेता",
+      "tennis_completed_match": "पूरा हुआ मैच"
     },
     "sell_position": "सैल पोज़िशन",
     "odds": "ऑड्स",
+    "your_positions": "आपकी पोज़िशन्स",
     "cash_out": "कैश आउट करें",
     "cash_out_info": "फ़ंड आपके उपलब्ध बैलेंस में जोड़े जाएंगे",
     "buy_preview_outcome_at_price": "{{price}} पर {{outcome}}",
@@ -2406,6 +2554,21 @@
       "politics": "राजनीति",
       "hot": "हॉट"
     },
+    "feed": {
+      "live": "लाइव",
+      "popular_today": "आजकल लोकप्रिय",
+      "tabs": {
+        "basketball": "बास्केटबाल",
+        "tennis": "टेनिस",
+        "soccer": "सॉकर",
+        "baseball": "बेसबॉल",
+        "football": "फुटबॉल"
+      },
+      "filters": {
+        "all": "सभी",
+        "live": "लाइव"
+      }
+    },
     "search_placeholder": "प्रेडिक्शन मार्केट ढूंढें",
     "search_cancel": "कैंसिल करें",
     "search_empty_state": "कोई भी {{category}} मार्केट उपलब्ध नहीं है",
@@ -2414,6 +2577,11 @@
     "markets_won": "मार्केट जीते",
     "won_markets_text": "{{count}} मार्केट{{s}} जीते",
     "available_balance": "उपलब्ध बैलेंस",
+    "portfolio": {
+      "available_amount": "{{amount}} उपलब्ध है",
+      "value_accessibility": "पोर्टफोलियो मूल्य, {{value}}",
+      "value_hidden_accessibility": "पोर्टफोलियो मूल्य छिपा हुआ है"
+    },
     "claim_amount_text": "${{amount}} क्लेम करें",
     "claim_winnings_text": "जीत का ईनाम क्लेम करें",
     "claiming_text": "क्लेम किया जा रहा है...",
@@ -2462,6 +2630,11 @@
       "buy_title": "प्रेडिक्ट किया गया",
       "sell_title": "कैश आउट किया गया",
       "claim_title": "क्लेम किया गया जीत का ईनाम",
+      "claim_pending": "क्लेम अभी पूरा नहीं हुआ",
+      "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, ओपन मार्केट डिटेल्स",
+      "prediction_lost_title": "प्रेडिक्शन गंवाया",
+      "prediction_resolved_title": "प्रेडिक्शन रिसॉल्व किया गया",
+      "prediction_won_title": "प्रेडिक्शन जीता",
       "buy_detail": "{{outcome}} · {{priceCents}} प्रति शेयर पर {{amountUsd}} खरीदा",
       "sell_detail": "{{priceCents}} प्रति शेयर पर बेचा",
       "claim_detail": "क्लेम किया गया जीत का ईनाम",
@@ -2585,6 +2758,7 @@
     "error": {
       "title": "प्रीडिक्शंस से कनेक्ट नहीं हो पाया",
       "description": "प्रीडिक्शन मार्केट अस्थायी रूप से ऑफ़लाइन हैं। कृपया जाँचें करें कि आपका कनेक्शन स्थिर है और फिर से प्रयास करें।",
+      "chart_connection_error": "कनेक्ट करने में समस्या आ रही है। कृपया बाद में फिर से कोशिश करें।",
       "retry": "फिर से प्रयास करें"
     },
     "error_messages": {
@@ -2599,7 +2773,10 @@
       "order_not_fully_filled": "आपका ऑर्डर पूरा नहीं हो पाया",
       "buy_order_not_fully_filled": "मार्केट प्राइस पर अभी आपका ऑर्डर लगाने के लिए पर्याप्त शेयर उपलब्ध नहीं हैं।",
       "sell_order_not_fully_filled": "मार्केट प्राइस पर अभी कैश आउट करने के लिए पर्याप्त माँग नहीं है।",
-      "preview_not_available": "कोई प्रीव्यू उपलब्ध नहीं है"
+      "preview_not_available": "कोई प्रीव्यू उपलब्ध नहीं है",
+      "market_pending_resolution": "इस मार्केट का समाधान अभी पूरा नहीं हुआ है।",
+      "market_not_accepting_bets": "यह मार्केट अब बेट्स स्वीकार नहीं कर रहा है।",
+      "market_bettable_check_failed": "हम कन्फर्म नहीं कर सके कि यह मार्केट बेट्स स्वीकार कर रहा है। फिर से प्रयास करें।"
     },
     "game_details_footer": {
       "pick_a_winner": "एक विजेता चुनें",
@@ -2856,7 +3033,64 @@
     "disclaimer": "अस्वीकरण: MetaMask मीडिया फ़ाइल को स्रोत URL से खींचता है। यह URL कभी-कभी मार्केटप्लेस द्वारा बदल दिया जाता है जिस पर NFT को मिंट किया गया था।"
   },
   "activity_view": {
-    "title": "गतिविधि"
+    "title": "गतिविधि",
+    "search_placeholder": "टोकन, ट्रांसेक्शन के प्रकार ढूंढें...",
+    "filter_all_networks": "सभी नेटवर्क",
+    "filter_all_types": "सभी प्रकार",
+    "filter_types_selected": "प्रकार: {{label}}",
+    "filter_network_selected": "नेटवर्क: {{label}}",
+    "type_filter": {
+      "title": "प्रकार",
+      "all": "सभी प्रकार",
+      "transactions": "ट्रांसेक्शन्स",
+      "buy_sell": "खरीदें/बेचें",
+      "perps": "पर्प्स",
+      "predictions": "प्रेडिक्शंस",
+      "metamask_card": "कार्ड",
+      "money": "वित्त"
+    },
+    "empty_state": {
+      "default_funded": {
+        "description": "अभी देखने के लिए कुछ नहीं है। आज अपना पहला टोकन स्वैप करें।",
+        "action": "टोकन स्वैप करें"
+      },
+      "default_unfunded": {
+        "description": "अभी देखने के लिए कुछ नहीं है। शुरू करने के लिए अपने वॉलेट में फंड जोड़ें।",
+        "action": "फंड जोड़ें"
+      },
+      "predictions": {
+        "description": "आपकी पहली प्रेडिक्शन आपकी सबसे बेहतरीन साबित हो सकती है।",
+        "action": "एक प्रेडिक्शन करें"
+      },
+      "perps": {
+        "description": "आपकी पहली पर्प्स ट्रेड आपकी सबसे बेहतरीन साबित हो सकती है।",
+        "action": "मार्केट ब्राउज़ करें"
+      },
+      "transactions_funded": {
+        "description": "आज अपना पहला टोकन स्वैप करें।",
+        "action": "टोकन स्वैप करें"
+      },
+      "transactions_unfunded": {
+        "description": "शुरू करने के लिए अपने वॉलेट में फंड जोड़ें।",
+        "action": "फंड जोड़ें"
+      },
+      "buy_sell": {
+        "description": "शुरू करने के लिए अपने वॉलेट में फंड जोड़ें।",
+        "action": "फंड जोड़ें"
+      },
+      "money_funded": {
+        "description": "आपके पास फंड हैं—उन्हें MetaMask Money में उपयोग करें।",
+        "action": "पैसा ट्रांसफर करें"
+      },
+      "money_unfunded": {
+        "description": "MetaMask Money में ट्रांसफर करें और इसकी सभी सुविधाओं को अनलॉक करें।",
+        "action": "पैसा ट्रांसफर करें"
+      },
+      "metamask_card": {
+        "description": "अपने MetaMask कार्ड को मैनेज करें और कहीं भी क्रिप्टो खर्च करें।",
+        "action": "MetaMask कार्ड खोलें"
+      }
+    }
   },
   "transactions_view": {
     "title": "लेनदेन"
@@ -2957,12 +3191,20 @@
   "onboarding_interest_questionnaire": {
     "title": "आप MetaMask के साथ क्या करना चाहते हैं?",
     "description": "जो भी लागू हो, उसे चुनें।",
-    "option_buy_and_sell_crypto": "क्रिप्टो खरीदें और बेचें",
+    "option_buy_and_sell_crypto": "क्रिप्टो टोकन खरीदें और बेचें",
     "option_consolidate_wallets": "अपने वॉलेट को कंसोलिडेट करें",
-    "option_advanced_trades": "एडवांस्ड ट्रेड करें",
+    "option_advanced_trades": "परपेचुअल्स ट्रेड करें",
     "option_predict_sports_events": "स्पोर्ट्स और इवेंट्स प्रेडिक्ट करें",
     "option_crypto_as_money": "क्रिप्टो को पैसे की तरह इस्तेमाल करें",
     "option_connect_apps_sites": "ऐप्स या साइट से कनेक्ट करें",
+    "continue": "जारी रखें"
+  },
+  "onboarding_crypto_experience_questionnaire": {
+    "title": "क्रिप्टो के साथ आपका अनुभव क्या है?",
+    "option_new": "नया",
+    "option_beginner": "बिगिनर",
+    "option_intermediate": "इंटरमीडिएट",
+    "option_advanced": "एडवांस्ड",
     "continue": "जारी रखें"
   },
   "template_confirmation": {
@@ -3285,27 +3527,29 @@
     "notifications_desc": "अपने नोटिफिकेशंस मैनेज करें",
     "allow_notifications": "नोटिफिकेशंस की अनुमति दें",
     "enable_push_notifications": "पुश नोटिफिकेशंस को चालू करें",
-    "allow_notifications_desc": "Choose what you're notified about and how.",
+    "allow_notifications_desc": "आपको किस बारे में और कैसे सूचनाएँ मिलेंगी, यह चुनें।",
     "notifications_opts": {
-      "preferences_title": "Preferences",
-      "push_recommended": "Push",
-      "in_app": "In-app",
-      "status_push": "Push",
-      "status_in_app": "In app",
+      "preferences_title": "प्राथमिकताएं",
+      "push_recommended": "पुश",
+      "in_app": "इन-ऐप",
+      "status_push": "पुश",
+      "status_in_app": "इन ऐप",
       "status_off": "बंद",
       "select_all": "सभी को चुनें",
       "deselect_all": "सभी को अचयनित करें",
       "select_accounts_title": "एकाउंट्स",
-      "select_accounts_desc": "Choose which accounts you'd like to get notifications for.",
-      "wallet_activity_title": "Wallet Activity",
-      "wallet_activity_desc": "Buy, sells, transfers, swaps and rewards",
-      "perps_title": "Trading Activity",
-      "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
-      "social_ai_title": "Trading Signals",
-      "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
-      "marketing_title": "Updates and Rewards",
-      "marketing_desc": "Product updates, feature announcements, and new releases",
-      "marketing_disclaimer": "By turning this on, you agree to receive product news and marketing updates from MetaMask.",
+      "select_accounts_desc": "चुनें कि आप किन एकाउंट्स के लिए सूचनाएँ प्राप्त करना चाहते हैं।",
+      "wallet_activity_title": "वॉलेट गतिविधि",
+      "wallet_activity_desc": "खरीद, बिक्री, ट्रांसफर, स्वैप और रिवॉर्ड्स",
+      "perps_title": "ट्रेडिंग गतिविधि",
+      "perps_desc": "पर्प्स पोज़िशन में बदलाव, लिक्विडेशन, फंडिंग रेट और मार्जिन अपडेट्स",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
+      "social_ai_title": "ट्रेडिंग सिग्नल्स",
+      "social_ai_desc": "जिन ट्रेडर्स और एसेट्स को आप फ़ॉलो करते हैं उनसे अपडेट, साथ ही चुनी हुई मार्केट न्यूज़",
+      "marketing_title": "अपडेट्स और रिवॉर्ड्स",
+      "marketing_desc": "प्रोडक्ट अपडेट्स, फीचर घोषणाएँ और नए रिलीज़",
+      "marketing_disclaimer": "इसे चालू करके, आप MetaMask से प्रोडक्ट समाचार और मार्केटिंग अपडेट प्राप्त करने के लिए सहमत होते हैं।",
       "customize_session_title": "अपने नोटिफिकेशंस कस्टमाइज़ करें",
       "customize_session_desc": "आप जिस प्रकार के नोटिफिकेशंस प्राप्त करना चाहते हैं, उन्हें चालू करें:",
       "account_session_title": "अकाउंट एक्टिविटी",
@@ -3414,13 +3658,13 @@
     "general_heading": "सामान्य",
     "privacy_heading": "गोपनीयता",
     "failed_to_fetch_chain_id": "चेन ID नहीं लाई जा सकी। क्या आपका RPC URL सही है?",
-    "endpoint_returned_different_chain_id": "अंतिम पॉइंट ने एक अलग चेन ID: %{chainIdReturned} लौटाई",
+    "endpoint_returned_different_chain_id": "अंतिम पॉइंट ने एक अलग चेन ID: {{chainIdReturned}} लौटाई",
     "chain_id_required": "चेन ID की जरुरत है। नेटवर्क द्वारा लौटाए गए चेन ID से य़ह मेल खाना चाहिए। आप एक दशमलव या '0x'-पूर्व नियत हेक्साडेसिमल संख्या दर्ज कर सकते हैं।",
     "invalid_hex_number": "अमान्य हेक्साडेसिमल संख्या।",
     "invalid_hex_number_leading_zeros": "अमान्य हेक्साडेसिमल संख्या। किसी भी अग्रणी शून्य को हटाएं।",
     "invalid_number": "अमान्य संख्या। एक दशमलव या '0x'-पूर्व नियत हेक्साडेसिमल संख्या दर्ज करें।",
     "invalid_number_leading_zeros": "अमान्य संख्या। किसी भी अग्रणी शून्य को हटाएं।",
-    "invalid_number_range": "अमान्य संख्या। 1 और %{maxSafeChainId} के बीच एक संख्या दर्ज करें",
+    "invalid_number_range": "अमान्य संख्या। 1 और {{maxSafeChainId}} के बीच एक संख्या दर्ज करें",
     "hide_zero_balance_tokens_title": "बिना बैलेंस वाले टोकन छिपाएं",
     "hide_zero_balance_tokens_desc": "आपके टोकन की सूची में बिना बैलेंस वाले टोकन के प्रदर्शन को रोकें।",
     "haptic_feedback_title": "हैप्टिक फीडबैक",
@@ -3688,9 +3932,14 @@
         "unlink_money_account_disabled_hint": "हटाने के लिए कोई एक्टिव लिंकेज नहीं है।"
       },
       "identity": {
-        "title": "Identity",
-        "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
-        "clear_auth_session_button": "Clear persisted auth session"
+        "title": "पहचान",
+        "description": "यह स्थायी प्रमाणीकरण सत्र को हटाता है। MM_DEV_API_ENV को टॉगल करने के बाद इसका उपयोग करें — अन्यथा एक प्रोड-जनरेटेड JWT तब तक dev-API उपभोक्ताओं को मिलता रहेगा जब तक उसकी वैधता समाप्त नहीं हो जाती। वर्तमान MM_DEV_API_ENV: {{env}}।",
+        "clear_auth_session_button": "स्थायी प्रमाणीकरण सत्र हटाएं"
+      },
+      "notifications": {
+        "title": "अपने वॉलेट का उपयोग करना",
+        "description": "अगली योग्य लॉन्च पर शीट को फिर से ट्रिगर करने के लिए पुश नोटिफिकेशन प्री-प्रॉम्प्ट फ़्लैग रीसेट करें।",
+        "reset_prompt": "पुश प्री-प्रॉम्प्ट रीसेट करें"
       },
       "haptics": {
         "title": "हैप्टिक्स",
@@ -3729,6 +3978,34 @@
     "feature_flag_override": {
       "title": "फीचर फ़्लैग ओवरराइड",
       "description": "ऐप के लिए फीचर फ़्लैग्स को लोकली ओवरराइड करें।"
+    },
+    "add_device": {
+      "title": "डिवाइस जोड़ें",
+      "enter_your_password": "अपना पासवर्ड डालें",
+      "enter_your_password_desc": "अपने अकाउंट की सुरक्षा के लिए, QR कोड देखने के लिए अपना पासवर्ड दर्ज करें।",
+      "continue": "जारी रखें",
+      "add_wallets": "वॉलेट्स जोड़ें",
+      "add_wallets_desc": "उन वॉलेट्स का चयन करें जिन्हें आप इस डिवाइस पर उपयोग करना चाहते हैं। आप उन्हें बाद में जोड़ या हटा सकते हैं।",
+      "select_all": "सभी को चुनें",
+      "scan_qr_code": "QR कोड स्कैन करें",
+      "scan_qr_code_desc": "इसे उस डिवाइस पर MetaMask ऐप से स्कैन करें जिसे आप जोड़ना चाहते हैं।",
+      "enter_verification_code": "वेरिफ़िकेशन कोड दर्ज करें",
+      "enter_verification_code_desc": "सुरक्षा के लिए, अपने डिवाइस पर MetaMask ऐप में दिखाया गया कोड दर्ज करें।",
+      "add_device_to_wallet": "इस डिवाइस को वॉलेट में जोड़ें",
+      "points": {
+        "one": "अपने दूसरे डिवाइस पर MetaMask खोलें",
+        "two": "यहां जाएं",
+        "two_bold_one": "सेटिंग्स",
+        "two_bold_two": "डिवाइस जोड़ें",
+        "two_icon": ">",
+        "three": "इस डिवाइस से QR कोड स्कैन करें",
+        "four": "अपने एक्सटेंशन पर सिक्योरिटी कोड डालें"
+      },
+      "scan_qr_code_button": "QR कोड स्कैन करें",
+      "enter_code_on_extension": "एक्सटेंशन पर कोड डालें",
+      "enter_code_on_extension_desc": "सुरक्षा के लिए, अपने MetaMask एक्सटेंशन पर नीचे दिया गया वेरिफ़िकेशन कोड डालें।",
+      "done": "पूरा हुआ",
+      "device_added": "डिवाइस जोड़ा गया"
     }
   },
   "aes_crypto_test_form": {
@@ -3874,6 +4151,29 @@
     "sell": "बेचें",
     "sell_description": "कैश के लिए क्रिप्टो बेचें"
   },
+  "price_alerts": {
+    "create_title": "{{ticker}} प्राइस एलर्ट बनाएं",
+    "edit_title": "{{ticker}} प्राइस एलर्ट बदलें",
+    "price_reaches": "प्राइस पहुंच गया",
+    "price_change": "प्राइस में बदलाव",
+    "enter_target_price": "टार्गेट प्राइस दर्ज करें",
+    "approx_percent": "≈ {{percent}}%",
+    "approx_percent_above": "वर्तमान {{ticker}} प्राइस से ऊपर",
+    "approx_percent_below": "वर्तमान {{ticker}} प्राइस से नीचे",
+    "recurring": "आवर्ती",
+    "quick_percentage": "{{percentage}}%",
+    "price_change_under_development": "यह अनुभव वर्तमान में विकासाधीन है",
+    "set_price_alert": "प्राइस एलर्ट सेट करें",
+    "update_price_alert": "प्राइस एलर्ट अपडेट करें",
+    "save_success": "{{ticker}} के लिए प्राइस एलर्ट सफलतापूर्वक सेव हो गया।",
+    "delete_success": "प्राइस एलर्ट हटा दिया गया।",
+    "duplicate_threshold": "इस प्राइस पर पहले से ही एक एलर्ट मौजूद है।",
+    "manage_title": "प्राइस एलर्ट",
+    "add_alert": "एलर्ट जोड़ें",
+    "reaches_threshold": "{{threshold}} तक पहुँचता है",
+    "once_label": "एक बार",
+    "no_alerts": "इस एसेट के लिए कोई प्राइस एलर्ट सेट नहीं है।"
+  },
   "asset_overview": {
     "market_closed": "मार्केट बंद",
     "send_button": "भेजें",
@@ -3963,6 +4263,8 @@
       "3y": "3Y",
       "all": "सभी"
     },
+    "ma_picker_title": "मूविंग एवरेज",
+    "done": "पूरा हुआ",
     "no_chart_data": {
       "title": "कोई चार्ट डेटा नहीं",
       "description": "इस टोकन के लिए कोई डेटा नहीं पाया जा सका",
@@ -3985,13 +4287,18 @@
     "risky": "जोखिम से भरा",
     "malicious_token_title": "बुरी नीयत वाला टोकन",
     "malicious_token_description": "{{symbol}} एक बुरी नीयत वाला टोकन है। इसके साथ इंटरैक्ट करने या इसे ट्रेड करने से बचें।",
+    "malicious_token_description_no_symbol": "यह एक बुरी नीयत वाला टोकन है। इसके साथ इंटरैक्ट करने या इसे ट्रेड करने से बचें।",
     "malicious_token_banner_description": "{{symbol}} को गलत इरादे वाला बताया गया है। इससे इंटरैक्ट करने वाले किसी भी व्यक्ति के पैसे चोरी होने की संभावना है।",
+    "malicious_token_banner_description_no_symbol": "यह टोकन गलत इरादे वाला बताया गया है। इससे इंटरैक्ट करने वाले किसी भी व्यक्ति के पैसे चोरी होने की संभावना है।",
     "suspicious_token_description": "{{symbol}} एक संदिग्ध टोकन है।",
+    "suspicious_token_description_no_symbol": "यह एक संदिग्ध टोकन है।",
     "verified_token_title": "सत्यापित टोकन",
     "verified_token_description": "{{symbol}} एक्टिवली ट्रेड किया जाता है और यह काफ़ी जाना-माना है। वेरिफ़िकेशन को MetaMask मेटामास्क द्वारा समर्थन नहीं है।",
     "risky_token_title": "संदिग्ध टोकन",
     "risky_token_description": "{{symbol}} को गलत इरादे वाला बताया गया है। आगे बढ़ने से पहले जोखिमों पर एक नज़र डालें।",
+    "risky_token_description_no_symbol": "यह टोकन गलत इरादे वाला बताया गया है। आगे बढ़ने से पहले जोखिमों पर एक नज़र डालें।",
     "malicious_token_sheet_description": "{{symbol}} पर गंभीर जोखिम के संकेत मिले हैं। हम इस टोकन में ट्रेड न करने की सलाह देते हैं।",
+    "malicious_token_sheet_description_no_symbol": "इस टोकन पर गंभीर जोखिम के संकेत मिले हैं। हम इस टोकन में ट्रेड न करने की सलाह देते हैं।",
     "got_it": "समझ गए",
     "proceed": "आगे बढ़ें",
     "continue_anyway": "फिर भी जारी रखें",
@@ -4263,6 +4570,7 @@
     "confirmed": "पुष्ट हुआ",
     "pending": "विचाराधीन",
     "submitted": "सबमिट किया गया",
+    "queued": "कतार में",
     "failed": "असफल हुआ",
     "cancelled": "रद्द हो गया",
     "signed": "अभी पूरा नहीं हुआ",
@@ -4284,8 +4592,8 @@
     "confusable_msg": "ENS के नाम पर हमने एक भ्रमित करने वाले कैरेक्टर का पता लगाया है। संभावित स्कैम से बचने के लिए ENS नाम को जांचे",
     "similar_to": "के समान है",
     "contains_zero_width": "शून्य चौड़ाई वाला वर्ण शामिल है",
-    "dapp_suggested_gas": "यह गैस शुल्क %{origin} द्वारा सुझाया गया है। यह लेगसी गैस के अनुमान का उपयोग कर रहा है जो गलत हो सकता है। वैसे, इस गैस शुल्क को संपादित करने से आपके लेन-देन के साथ कोई समस्या हो सकती है। यदि आपके पास सवाल हैं तो कृपया %{origin} तक पहुंचें।",
-    "dapp_suggested_eip1559_gas": "यह गैस शुल्क %{origin} द्वारा सुझाया गया है। इसे ओवरराइड करने से आपके लेन-देन के साथ समस्या हो सकती है। यदि आपके पास सवाल हैं तो कृपया %{origin} तक पहुंचें।",
+    "dapp_suggested_gas": "यह गैस शुल्क {{origin}} द्वारा सुझाया गया है। यह लेगसी गैस के अनुमान का उपयोग कर रहा है जो गलत हो सकता है। वैसे, इस गैस शुल्क को संपादित करने से आपके लेन-देन के साथ कोई समस्या हो सकती है। यदि आपके पास सवाल हैं तो कृपया {{origin}} तक पहुंचें।",
+    "dapp_suggested_eip1559_gas": "यह गैस शुल्क {{origin}} द्वारा सुझाया गया है। इसे ओवरराइड करने से आपके लेन-देन के साथ समस्या हो सकती है। यदि आपके पास सवाल हैं तो कृपया {{origin}} तक पहुंचें।",
     "address_invalid": "प्राप्तकर्ता का पता अमान्य है।",
     "ens_not_found": "इस नाम के लिए कोई पता निर्धारित नहीं किया गया है।",
     "unknown_qr_code": "अमान्य क्यूआर कोड। कृपया पुन: प्रयास करें।",
@@ -4456,6 +4764,37 @@
     "tx_review_predict_withdraw": "प्रेडिक्शन विदड्रॉ",
     "tx_review_perps_withdraw": "पर्प्स विदड्रॉ",
     "tx_review_musd_conversion": "mUSD कन्वर्शन",
+    "activity_buy": "खरीदा गया",
+    "activity_sell": "बेचा गया",
+    "activity_claim_musd_bonus": "mUSD बोनस क्लेम किया गया",
+    "activity_wrap": "रैप किया गया",
+    "activity_unwrap": "अनरैप किया गया",
+    "activity_revoke_spending_cap": "खर्च सीमा रद्द की गई",
+    "activity_nft_mint": "NFT मिंट",
+    "activity_smart_account_upgrade": "स्मार्ट अकाउंट अपग्रेड",
+    "activity_prediction_cashed_out": "प्रेडिक्शन कैश आउट किया गया",
+    "activity_prediction_placed": "प्रेडिक्शन लगाया गया",
+    "activity_perps_balance": "पर्प्स बैलेंस",
+    "activity_predictions_balance": "Predictions balance",
+    "activity_prediction_account_funded": "Account funded",
+    "activity_prediction_withdrawal": "Prediction withdrawal",
+    "activity_perps_account_funded": "Account funded",
+    "activity_perps_withdrawal": "Perps withdrawal",
+    "activity_perps_open_long": "लॉन्ग ओपन किया गया",
+    "activity_perps_close_long": "लॉन्ग बंद किया गया",
+    "activity_perps_close_long_liquidated": "Closed long—liquidated",
+    "activity_perps_close_long_stop_loss": "Closed long—stop loss",
+    "activity_perps_open_short": "शॉर्ट ओपन किया गया",
+    "activity_perps_close_short": "शॉर्ट बंद किया गया",
+    "activity_perps_close_short_liquidated": "Closed short—liquidated",
+    "activity_perps_close_short_stop_loss": "Closed short—stop loss",
+    "activity_perps_paid_funding_fees": "फंडिंग फीस का भुगतान किया गया",
+    "activity_perps_received_funding_fees": "फंडिंग फीस प्राप्त हुई",
+    "activity_perps_close_short_take_profit": "Closed short—take profit",
+    "activity_perps_close_long_take_profit": "Closed long—take profit",
+    "activity_market_short": "मार्केट शॉर्ट",
+    "activity_stop_market_close_short": "Stop market—close short",
+    "activity_market_close_short": "Market—close short",
     "claim": "क्लेम करें",
     "sent_ether": "ETH भेजा",
     "self_sent_ether": "खुद को ETH भेजा",
@@ -4619,7 +4958,8 @@
     "between_account": "मेरे अकाउंट के बीच में स्थानांतरित करें",
     "others": "अन्य",
     "memo": "ज्ञापन",
-    "network": "नेटवर्क"
+    "network": "नेटवर्क",
+    "custom": "कस्टम"
   },
   "duplicate_address": {
     "title": "यह एक डुप्लीकेट एड्रेस है",
@@ -5238,6 +5578,11 @@
       "title": "यहाँ देखने के लिए कुछ नहीं है।",
       "message": "यहाँ पर आप अपने वॉलेट में गतिविधि होने पर नोटिफिकेशंस पा सकते हैं। "
     },
+    "disabled": {
+      "title": "सूचनाएँ चालू करें",
+      "message": "आपको किस बारे में और कैसे सूचनाएँ मिलेंगी, यह चुनें।",
+      "cta": "नोटिफिकेशन सेटिंग्स"
+    },
     "list": {
       "0": "सभी",
       "1": "वॉलेट",
@@ -5259,30 +5604,50 @@
     "push_onboarding": {
       "new_user": {
         "title": "कभी भी कोई मूव मिस न करें",
-        "body": "जब कीमतें आपके टारगेट तक पहुँचें, आपके ट्रेड कन्फर्म हों, और आपका पोर्टफ़ोलियो मूव करे तो रियल-टाइम अलर्ट पाएँ। साथ ही, प्रोडक्ट अपडेट और रिवॉर्ड भी मिलते रहेंगे। हम MetaMask के साथ आपके इंटरैक्शन के आधार पर अपडेट शेयर करेंगे।",
-        "button_yes": "हां",
+        "body": "आप MetaMask का इस्तेमाल कैसे करते हैं, इसके आधार पर प्राइस मूव्स, ट्रेड कन्फर्मेशन, पोर्टफोलियो एक्टिविटी और रिवॉर्ड्स पर रियल-टाइम अलर्ट पाएं।",
+        "button_yes": "नोटिफिकेशंस को चालू करें",
         "button_not_now": "अभी नहीं",
         "preview_card_1": {
-          "eyebrow": "METAMASK",
           "time": "अब",
           "title": "ETH आज 4.2% बढ़ा",
           "message": "अब $2,668.51 पर — आपके प्राइस अलर्ट से ऊपर"
         },
         "preview_card_2": {
-          "eyebrow": "METAMASK",
           "time": "1 घंटा पहले",
           "title": "0.25 ETH मिला",
           "message": "0x9a21…4f8c · $640.29 से"
+        },
+        "toast": {
+          "notifications_on": {
+            "title": "नोटिफिकेशंस चालू हैं",
+            "description": "हम आपको ट्रांसेक्शन, प्राइस अलर्ट और अपडेट भेजेंगे।"
+          },
+          "notifications_off": {
+            "title": "नोटिफिकेशंस बंद हैं",
+            "description": "इन्हें आप कभी भी सेटिंग्स → नोटिफिकेशंस में जाकर चालू करें।"
+          }
         }
       },
       "existing_user": {
         "title": "पेश है पर्सनलाइज़्ड अलर्ट",
-        "body": "अपने ट्रेड करने के तरीके से मैच करने वाले नोटिफ़िकेशन पाएं। कभी भी अपडेट करें।",
+        "body": "आप MetaMask का इस्तेमाल कैसे करते हैं, उसके आधार पर अपने ट्रेड करने के तरीके से मैच करने वाले नोटिफ़िकेशन पाएं।",
         "card_title": "आपको क्या मिलता है",
         "card_description": "आपकी ट्रेडिंग एक्टिविटी के हिसाब से पर्सनलाइज़्ड अलर्ट और अपडेट।",
         "button_confirm": "कन्फर्म करें",
-        "button_not_now": "अभी नहीं"
-      }
+        "button_not_now": "अभी नहीं",
+        "toast": {
+          "personalized_alerts_on": {
+            "title": "व्यक्तिगत एलर्ट चालू हैं",
+            "description": "इसे आप कभी भी सेटिंग्स में जाकर मैनेज करें।"
+          },
+          "personalized_alerts_off": {
+            "title": "व्यक्तिगत एलर्ट बंद हैं",
+            "description": "इसे कभी भी सेटिंग्स में जाकर चालू करें।"
+          }
+        }
+      },
+      "toast_enabled": "नोटिफिकेशन चालू हो गया",
+      "toast_settings_hint": "आप कभी भी सेटिंग्स > नोटिफिकेशंस में जाकर नोटिफिकेशंस चालू कर सकते हैं"
     }
   },
   "protect_your_wallet_modal": {
@@ -5293,6 +5658,7 @@
   },
   "transaction_update_toast": {
     "title": "ट्रांसेक्शन अपडेट नहीं हो पाया",
+    "amount_update_title": "ओह!",
     "already_confirmed": "यह ट्रांसेक्शन पहले ही कन्फर्म हो चुका है और इसे बदला नहीं जा सकता।"
   },
   "payment_request": {
@@ -5371,6 +5737,15 @@
     "message": "हम पृष्ट को लोड नहीं कर सके",
     "return_home": "होम पेज पर लौटें"
   },
+  "agentic_cli_approval": {
+    "title": "रिव्यू रिक्वेस्ट",
+    "error": {
+      "title": "कुछ गलत हो गया",
+      "load_description": "हम यह अप्रूवल रिक्वेस्ट लोड नहीं कर सके। अपना कनेक्शन चेक करें और फिर से कोशिश करें।",
+      "submit_description": "हम यह अप्रूवल पूरा नहीं कर सके। यह स्क्रीन बंद करें और CLI रिक्वेस्ट फिर से शुरू करें।",
+      "try_again": "फिर से प्रयास करें"
+    }
+  },
   "offline_mode": {
     "title": "आप ऑफलाइन हैं",
     "text": "ब्लॉकचेन होस्ट से कनेक्ट करने में सक्षम नहीं है।",
@@ -5393,7 +5768,7 @@
     "pay_with": "के साथ भुगतान करें",
     "buying_via": "{{providerName}} के ज़रिए खरीद रहे हैं।",
     "change_provider": "प्रोवाइडर बदलें।",
-    "circuit_breaker_open": "This service is temporarily unavailable. Please try again in about 30 minutes.",
+    "circuit_breaker_open": "यह सेवा अस्थायी रूप से उपलब्ध नहीं है। कृपया लगभग 30 मिनट बाद फिर से प्रयास करें।",
     "payment_error": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
     "no_payment_methods_available": "पेमेंट का कोई तरीका उपलब्ध नहीं है।",
     "error_fetching_quotes": "कुछ गलत हो गया। कृपया फिर से कोशिश करें।",
@@ -5657,6 +6032,11 @@
     "unsupported_region_modal": {
       "title": "आपके इलाके में उपलब्ध नहीं है",
       "description": "क्षेत्रीय पेमेंट प्रोवाइडर की बाध्यताओं या रेगुलेटरी पाबंदियों की वजह से आपके क्षेत्र में क्रिप्टो खरीदने की सुविधा उपलब्ध नहीं है।",
+      "got_it": "समझ गए"
+    },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
       "got_it": "समझ गए"
     },
     "region": {
@@ -6022,7 +6402,7 @@
     }
   },
   "invalid_network": {
-    "title": "कस्टम नेटवर्क के लिए चेनID  \n %{network} \n को फिर से दर्ज करना होगा। ",
+    "title": "कस्टम नेटवर्क के लिए चेन ID \n {{network}} \n को फिर से दर्ज करना होगा।",
     "message": "दुर्भावनापूर्ण या दोषपूर्ण नेटवर्क प्रदाताओं से आपकी सुरक्षा के लिए, चेन ID सारे कस्टम नेटवर्क के लिए अब जरुरी है।",
     "hint": "आप ज्यादातर लोकप्रिय नेटवर्क की चेन ID पा सकते हैं",
     "edit_network_button": "नेटवर्क संपादित करें",
@@ -6054,7 +6434,7 @@
     "cancel": "रद्द करें",
     "approve": "स्वीकृति दें",
     "unrecognized_chain": "यह कस्टम नेटवर्क मान्यता प्राप्त नहीं है",
-    "invalid_chain": "इस चेन ID के लिए %{rpcUrl} chainid.network सूचीकरण से मेल नहीं खाता है",
+    "invalid_chain": "इस चेन ID के लिए {{rpcUrl}} chainid.network सूचीकरण से मेल नहीं खाता है",
     "alert_recommend": "हम अनुशंसा करते हैं कि आप",
     "alert_verify": "चेन ID को सत्यापित करें",
     "warning_subtext_new": {
@@ -6674,34 +7054,56 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "एपीवाय की जानकारी",
+    "balance_unavailable": "बैलेंस अनुपलब्ध है",
+    "balance_unavailable_value": "$—",
+    "balance_unavailable_banner_description": "हम अस्थायी रूप से आपका बैलेंस दिखाने में असमर्थ हैं। आपके फंड सुरक्षित हैं—कृपया थोड़ी देर बाद फिर से कोशिश करें।",
+    "balance_retry": "फिर से प्रयास करें",
+    "balance_no_account": "Money अकाउंट नहीं मिला",
     "onboarding": {
-      "step_progress": "{{total}} का स्टेप {{current}}",
-      "title": "धन जोड़ें",
-      "description": "अपना अकाउंट फंड करें और APY कमाना शुरू करें।",
-      "add": "फंड जोड़ें",
-      "step2_title": "अपना MetaMask कार्ड पाएं",
-      "step2_description": "अपना Money बैलेंस पाने के साथ उसे खर्च करें, जहां भी मास्टरकार्ड स्वीकार किया जाता हो।",
-      "step2_cta": "कार्ड पाएं",
-      "link_card_title": "अपना MetaMask कार्ड लिंक करें",
-      "link_card_description": "अपना बैलेंस पाने के साथ उसे खर्च करें, जहां भी मास्टरकार्ड स्वीकार किया जाता हो।",
-      "link_card_cta": "कार्ड लिंक करें"
+      "step_1": {
+        "title": "अपना अकाउंट फंड करें",
+        "description": "कुछ फंड जमा करें। आपका Money अकाउंट बाकी सब संभाल लेगा।",
+        "cta": "फंड जोड़ें"
+      },
+      "step_2": {
+        "no_card_account": {
+          "title": "अपना MetaMask कार्ड पाएं",
+          "description": "अपना बैलेंस खर्च करें और खरीदारी पर कमाएं।",
+          "cta_primary": "कार्ड पाएं",
+          "cta_secondary": "छोड़ें"
+        },
+        "unlinked_card_account": {
+          "title": "अपना MetaMask कार्ड लिंक करें",
+          "description": "अपना बैलेंस खर्च करें और खरीदारी पर कमाएं।",
+          "cta_primary": "कार्ड लिंक करें",
+          "cta_secondary": "छोड़ें"
+        }
+      }
+    },
+    "first_time_deposit": {
+      "title": "पहला डिपॉज़िट पूरा हुआ",
+      "content": "यह आपके Money अकाउंट में है —\n और पहले से ही कमाई कर रहा है।",
+      "button_text": "पूरा हुआ"
     },
     "rive_onboarding": {
       "step1_title": "मनी अकाउंट यहां हैं",
       "step1_body": "अपने बैलेंस पर {{percentage}}% APY तक कमाएं, जो आपके पूरे वॉलेट में उपलब्ध है।",
-      "step1_footer_text": "APY वेरिएबल है और कभी भी बदल सकता है।",
+      "step1_footer_text": "APY परिवर्तनशील है और इसकी गारंटी नहीं है।",
       "step2_title": "ऑटोमैटिकली कमाएं",
       "step2_body": "बिना किसी एक्सचेंज फ़ीस के स्टेबलकॉइन मूव करें। फ़ंड तुरंत कमाना शुरू कर देते हैं।",
-      "step2_footer_text": "Provided by Veda and Steakhouse Financial.",
+      "step2_footer_text": "Money अकाउंट Veda इंफ्रास्ट्रक्चर का उपयोग करता है।",
       "step3_title": "कहीं भी खर्च करें",
-      "step3_body": "अपने मनी अकाउंट को MetaMask कार्ड से लिंक करके खरीदारी पर {{percentage}}% तक वापस पाएं।",
+      "step3_body_card_eligible": "अपने Money अकाउंट को MetaMask कार्ड से लिंक करके खरीदारी पर {{percentage}}% तक वापस पाएं।",
+      "step3_body_card_ineligible": "जल्द आ रहा है! अपने Money अकाउंट को MetaMask कार्ड से लिंक करके खरीदारी पर {{percentage}}% तक वापस पाएं।",
+      "step3_footer_text": "इसमें Steakhouse Financial मॉनिटरिंग शामिल है।",
       "step4_title": "एक ही जगह पर ट्रेड करें और कमाएं",
       "step4_body": "अपने मनी बैलेंस का इस्तेमाल MetaMask पर ट्रेड करने के लिए करें और साथ ही यील्ड भी कमाएं।",
-      "continue": "जारी रखें"
+      "step4_footer_text": "Monad द्वारा संचालित।",
+      "button_text": "जारी रखें"
     },
     "action": {
       "add": "जोड़ें",
-      "transfer": "स्थानांतरण",
+      "transfer": "भेजें",
       "card": "कार्ड"
     },
     "earnings": {
@@ -6712,8 +7114,9 @@
     },
     "how_it_works": {
       "title": "ये कैसे काम करता है",
-      "description_prefix": "अपने मनी अकाउंट में mUSD डिपॉज़िट करें और कमाएं",
-      "description_suffix": ". आपका बैलेंस डॉलर-बैक्ड है और कभी भी खर्च करने, ट्रेड करने या भेजने के लिए तैयार है।"
+      "description_prefix": "mUSD जोड़ें और इतना कमाएँ",
+      "description_suffix": " । आपका बैलेंस डॉलर-बैक्ड है और कभी भी खर्च करने, ट्रेड करने या भेजने के लिए तैयार है।",
+      "description_no_apy": "mUSD जोड़ें। आपका बैलेंस डॉलर-बैक्ड है और कभी भी खर्च करने, ट्रेड करने या भेजने के लिए तैयार है।"
     },
     "musd_row": {
       "add": "जोड़ें"
@@ -6729,43 +7132,50 @@
       "description": "देखें कि अपने क्रिप्टो को mUSD में बदलकर आपका पैसा समय के साथ कैसे बढ़ सकता है।",
       "description_with_amounts_prefix": "अपने {{total}} को एसेट्स में कन्वर्ट करें और आप कमा सकते हैं",
       "description_with_amounts_suffix": "एक साल में।",
-      "convert": "कन्वर्ट करें",
+      "add": "जोड़ें",
       "convert_cta": "अपने क्रिप्टो को कन्वर्ट करें",
-      "no_fee": "कोई MetaMask फीस नहीं",
+      "no_fee": "कोई शुल्क नहीं",
       "view_all": "सभी देखें",
       "view_potential_earnings": "संभावित कमाई देखें"
     },
     "metamask_card": {
       "title": "MetaMask कार्ड",
+      "upsell_title": "MetaMask कार्ड पाएं",
       "subtitle": "अपना पैसा कहीं भी खर्च करें।",
       "virtual_card": "वर्चुअल कार्ड",
       "metal_card": "मेटल कार्ड",
       "cashback": "{{percentage}}% mUSD वापस",
       "get_now": "अभी पाएं",
       "link_title": "MetaMask कार्ड लिंक करें",
-      "link_subtitle": "अपना मनी बैलेंस खर्च करें और खरीदारी पर कमाएं। साथ ही, आपके बैलेंस पर {{apy}}% APY तक।",
-      "link_subtitle_no_apy": "Spend your Money balance and earn on purchases.",
+      "link_subtitle": "अपना बैलेंस खर्च करें और खरीदारी पर कमाएं।",
+      "link_subtitle_no_apy": "अपना बैलेंस खर्च करें और खरीदारी पर कमाएं।",
       "link_bullet_cashback": "{{percentage}}% mUSD वापस पाएं",
-      "link_bullet_apy": "{{apy}}% APY तक कमाएं",
+      "link_bullet_apy": "~{{apy}}% APY तक कमाएं",
       "link_card": "कार्ड लिंक करें",
-      "link_pending_title": "Linking your card",
-      "link_success_title": "Your card is ready to use",
-      "link_error": "Something went wrong linking your card",
+      "link_pending_title": "आपका कार्ड लिंक किया जा रहा है",
+      "link_success_title": "आपका कार्ड उपयोग के लिए तैयार है",
+      "link_error": "आपका कार्ड लिंक करने में कुछ समस्या हुई",
+      "unlink_pending_title": "आपका कार्ड अनलिंक किया जा रहा है",
+      "unlink_success_title": "आपका कार्ड अनलिंक कर दिया गया है",
+      "unlink_error": "आपका कार्ड अनलिंक करने में कुछ समस्या हुई",
       "link_card_sheet_title": "खर्च करें और कमाएँ",
-      "link_card_sheet_description": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to {{apy}}% APY.",
-      "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
+      "link_card_sheet_description_prefix": "अपना कार्ड लिंक करें ताकि आप अपने Money बैलेंस को खर्च कर सकें और खरीदारी पर mUSD वापस कमा सकें— (वेरिएबल) तक कमाई करने के साथ",
+      "link_card_sheet_description_suffix": " ।",
+      "link_card_sheet_description_no_apy": "अपना कार्ड लिंक करें ताकि आप अपने Money बैलेंस को खर्च कर सकें और खरीदारी पर mUSD वापस कमा सकें।",
       "link_card_sheet_cta": "कार्ड लिंक करें",
       "manage_card": "मैनेज करें",
-      "avail_balance": "उपलब्ध बैलेंस"
+      "avail_balance": "उपलब्ध बैलेंस",
+      "verification_pending": "आपकी पहचान सत्यापन की समीक्षा की जा रही है। यह आम तौर पर 12 घंटे से कम समय लेता है।"
     },
     "what_you_get": {
       "title": "आपको क्या मिलता है",
       "benefit_auto_earn": "तक ऑटो-अर्न करें",
+      "benefit_auto_earn_variable": "(वेरिएबल)",
       "benefit_dollar_backed": "अपना पैसा mUSD में रखें, जो एक 1:1 डॉलर-बैक्ड स्टेबलकॉइन है",
       "benefit_liquidity": "बिना किसी लॉकअप के पूरी लिक्विडिटी पाएं, इसलिए आप कभी भी ट्रेड कर सकते हैं या निकाल सकते हैं",
       "benefit_spend_prefix": "MetaMask कार्ड के साथ 150M+ मर्चेंट पर खर्च करें और कमाएँ ",
       "benefit_spend_cashback": "1-3% mUSD वापस",
-      "benefit_transfer": "MetaMask पर अपने किसी भी वॉलेट में ट्रांसफर करें",
+      "benefit_transfer": "MetaMask पर अपने किसी भी वॉलेट में भेजें",
       "benefit_global": "दुनिया भर में पैसे भेजें और प्राप्त करें",
       "learn_more": "ज़्यादा जानें"
     },
@@ -6775,13 +7185,11 @@
     "add_money_sheet": {
       "title": "फंड जोड़ें",
       "convert_crypto": "क्रिप्टो को कन्वर्ट करें",
-      "convert_crypto_description": "किसी भी अकाउंट से",
-      "deposit_funds": "फंड्स डिपॉज़िट करें",
-      "deposit_funds_description": "डेबिट कार्ड या बैंक से",
-      "move_musd": "अपना {{amount}} mUSD ट्रांसफर करें",
-      "move_musd_no_amount": "अपना mUSD ट्रांसफर करें",
-      "move_musd_description": "आपके बैलेंस से",
-      "receive_external": "बाहरी वॉलेट से प्राप्त करें",
+      "deposit_funds": "डेबिट कार्ड या Apple Pay",
+      "bank_account": "बैंक अकाउंट",
+      "move_musd": "{{amount}} mUSD",
+      "add_musd": "mUSD जोड़ें",
+      "receive_external": "बाहरी पता",
       "coming_soon": "जल्द आ रहा है"
     },
     "more_sheet": {
@@ -6791,18 +7199,54 @@
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
     },
     "transfer_sheet": {
-      "title": "पैसा ट्रांसफर करें",
-      "between_accounts": "एकाउंट्स के बीच",
+      "title": "इनको फंड भेजें",
+      "between_accounts": "दूसरा अकाउंट",
       "perps_account": "पर्प्स अकाउंट",
       "predictions_account": "प्रेडिक्शंस अकाउंट",
-      "send_external": "बाहरी एड्रेस पर भेजें",
-      "withdraw_to_bank": "बैंक में निकालें"
+      "send_external": "बाहरी पता",
+      "withdraw_to_bank": "बैंक अकाउंट"
+    },
+    "toasts": {
+      "in_progress_title": "ट्रांसेक्शन प्रोग्रेस में है",
+      "in_progress_body": "इसमें कुछ मिनट लग सकते हैं।",
+      "deposit_in_progress_title_convert": "क्रिप्टो को कन्वर्ट किया जा रहा है",
+      "deposit_in_progress_title_add_musd": "फ़ंड जोड़े जा रहे हैं",
+      "deposit_in_progress_title_card": "डिपॉज़िट कर रहे हैं",
+      "deposit_in_progress_body_card": "कार्ड ऑर्डर में कुछ मिनट लग सकते हैं।",
+      "success_title": "ट्रांसेक्शन पूरा हुआ",
+      "deposit_success_title_convert": "कन्वर्शन पूरा हुआ",
+      "deposit_success_title_add_musd": "फंड्स जोड़े गए",
+      "deposit_success_title_card": "डिपॉज़िट पूरा हुआ",
+      "deposit_success_body": "Money अकाउंट में {{amount}} जोड़ दिया गया है।",
+      "deposit_success_body_no_amount": "Money अकाउंट में जोड़ दिया गया है।",
+      "withdraw_in_progress_title": "ट्रांसफर प्रोग्रेस में है",
+      "withdraw_success_title": "ट्रांसफर पूरा हुआ",
+      "withdraw_success_body": "{{amount}} को {{destination}} में जोड़ दिया गया है।",
+      "withdraw_success_body_no_amount": "{{destination}} में जोड़ दिया गया है।",
+      "withdraw_fallback_destination": "आपका अकाउंट",
+      "deposit_failed_title_convert": "कन्वर्शन नहीं हो पाया",
+      "deposit_failed_title_add_musd": "फंड्स जोड़ना नहीं हो पाया",
+      "deposit_failed_title_card": "डिपॉज़िट नहीं हो पाया",
+      "deposit_failed_body_convert": "कन्वर्ट करने में असमर्थ। फिर से प्रयास करें।",
+      "deposit_failed_body_add_musd": "फंड्स जोड़ने में असमर्थ। फिर से प्रयास करें।",
+      "withdraw_failed_title": "ट्रांसफर नहीं हो पाया",
+      "withdraw_failed_body": "फंड्स ट्रांसफर नहीं हो पाए। फिर से प्रयास करें।",
+      "send_in_progress_title": "फंड भेजे जा रहे हैं",
+      "send_success_title": "फंड भेजे गए",
+      "send_success_body": "{{amount}} {{destination}} में उपलब्ध है।",
+      "send_success_body_no_amount": "{{destination}} में उपलब्ध है।",
+      "send_failed_title": "भेजना नहीं हो पाया",
+      "send_failed_body": "फंड भेजने में असमर्थ। फिर से प्रयास करें।",
+      "send_destination_perps": "पर्प्स",
+      "send_destination_predict": "प्रेडिक्ट करें"
     },
     "apy_tooltip": {
       "title": "वार्षिक प्रतिशत उपज (APY)",
       "paragraph_1": "आपका Money अकाउंट अपने आप {{percentage}}% तक कमाता है।",
-      "paragraph_2": "दिखाई गई दर वर्तमान बाजार स्थितियों के आधार पर एक अनुमानित वार्षिक प्रतिशत उपज (APY) है। APY परिवर्तनशील है और विभिन्न कारकों के कारण बदल सकती है। यह दर थर्ड-पार्टी DeFi प्लेटफॉर्म द्वारा उत्पन्न की जाती है, जो फंड्स को ब्लॉकचेन प्रोटोकॉल में लगाते हैं।",
-      "paragraph_3": "जब आप अपना MetaMask कार्ड लिंक करते हैं, तो खरीदारी इसी बैलेंस से कटेगी।"
+      "paragraph_2": "दिखाया गया रेट एक अनुमानित वार्षिक प्रतिशत यील्ड (APY) है जो मौजूदा बाज़ार परिस्थितियों पर आधारित है। APY बदल सकता है और इसकी कोई गारंटी नहीं है। फंड DeFi वॉल्ट में जाते हैं, जिसे Veda द्वारा मैनेज किया जाता है और Steakhouse Financial जोखिम की निगरानी करता है, जो स्थापित लेंडिंग मार्केट्स से रिटर्न जनरेट करता है।",
+      "paragraph_3": "जब आप अपना MetaMask कार्ड लिंक करते हैं, तो खरीदारी इसी बैलेंस से कटेगी।",
+      "paragraph_4": "Money अकाउंट Monad द्वारा संचालित है।",
+      "deposit_body": "दिखाया गया रेट मौजूदा मार्केट कंडीशन के आधार पर एक अनुमानित एनुअल परसेंटेज यील्ड (APY) है। APY वेरिएबल है और इसकी गारंटी नहीं है।"
     },
     "earnings_tooltip": {
       "title": "अनुमानित कमाई",
@@ -6810,33 +7254,55 @@
     },
     "earn_crypto_info_sheet": {
       "title": "अपने क्रिप्टो पर कमाएं",
-      "body": "उदाहरण में माना गया है कि {{percentage}}% एनुअल परसेंटेज यील्ड (APY) एक साल तक नहीं बदलेगा। APY बदलता रहता है और कई वजहों से बदल सकता है। रिटर्न की कोई गारंटी नहीं है।"
+      "deposit_title": "अनुमानित 1-वर्षीय बैलेंस",
+      "body": "प्रोजेक्शन में माना गया है कि {{percentage}}% एनुअल परसेंटेज यील्ड (APY) एक वर्ष तक अपरिवर्तित रहती है। APY परिवर्तनशील है और इसकी गारंटी नहीं है।"
     },
     "activity": {
       "title": "गतिविधि",
       "view_all": "सभी देखें",
       "empty": "अभी तक कोई गतिविधि नहीं हुई",
+      "pending": "अभी पूरा नहीं हुआ",
       "filter_all": "सभी",
       "filter_deposits": "डिपॉज़िट",
-      "filter_transfers": "ट्रांसफर"
+      "filter_sends": "भेजता है"
     },
     "condensed_cards": {
       "how_it_works_title": "ये कैसे काम करता है",
-      "how_it_works_subtitle": "See how your money can grow",
+      "how_it_works_subtitle": "देखें कि आपका पैसा कैसे बढ़ सकता है",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "mUSD के बारे में ज्यादा जानें",
       "what_you_get_title": "आपको क्या मिलता है",
       "what_you_get_subtitle": "अपने फ़ायदे जानें"
     },
     "transaction": {
-      "added": "जोड़ा गया",
       "deposited": "डिपॉज़िट किया गया",
       "received": "प्राप्त किया गया",
       "sent": "भेजा गया",
-      "transferred": "ट्रांसफर किया गया",
       "card_transaction": "कार्ड ट्रांसेक्शन",
+      "cashback": "mUSD वापस",
+      "card": "कार्ड",
+      "purchase": "खरीद",
+      "musd_back": "mUSD वापस",
       "converted": "कन्वर्ट किया गया",
+      "depositing": "डिपॉज़िट कर रहे हैं",
+      "converting": "कन्वर्ट कर रहे हैं",
+      "sending": "भेजा जा रहा है",
+      "receiving": "प्राप्त कर रहे हैं",
+      "deposit_failed": "डिपॉज़िट नहीं हो पाया",
+      "conversion_failed": "कन्वर्शन नहीं हो पाया",
+      "send_failed": "भेजना नहीं हो पाया",
+      "received_from": "इनसे प्राप्त हुआ: {{address}}",
       "failed": "नहीं हो पाया"
+    },
+    "api_activity_details": {
+      "card_title": "कार्ड ट्रांसेक्शन",
+      "cashback_title": "mUSD वापस",
+      "you_spent": "आपने खर्च किया",
+      "you_earned": "आपने कमाया",
+      "completed": "पूरा किया गया",
+      "paid_to": "इनको दिया",
+      "received_from": "से प्राप्त किया गया",
+      "date": "तिथि"
     },
     "convert_stablecoins": {
       "title": "अपने स्टेबलकॉइन कन्वर्ट करें",
@@ -6855,20 +7321,35 @@
     "how_it_works_page": {
       "header_title": "वित्त",
       "section_title": "ये कैसे काम करता है",
-      "description_1": "अपने मनी अकाउंट में mUSD जमा करें और ऑटोमेटिकली {{percentage}}% APY (बदलने वाला) कमाएँ। फंड एक DeFi वॉल्ट में जाते हैं जो ऑडिट किए गए लेंडिंग मार्केट में रिटर्न देता है—कोई स्टेकिंग नहीं, कोई क्लेमिंग नहीं, कोई लॉक-अप नहीं।",
+      "description_1": "अपने Money अकाउंट में mUSD जोड़ें और स्वचालित रूप से {{percentage}}% तक APY (वेरिएबल) कमाएं। फंड्स एक DeFi वॉल्ट में जाते हैं, जिसे Veda द्वारा प्रबंधित किया जाता है और Steakhouse Financial द्वारा जोखिम की निगरानी की जाती है। यह दर थर्ड पार्टी के DeFi प्लेटफॉर्म्स द्वारा उत्पन्न होती है जो फंड्स को ब्लॉकचेन प्रोटोकॉल्स में लगाते हैं। कोई स्टेकिंग नहीं, कोई क्लेम नहीं, कोई लॉक-अप्स नहीं।",
       "description_2": "आपका Money बैलेंस आपका खर्च करने का बैलेंस है। दुनिया भर में 150M+ मर्चेंट पर खर्च करने के लिए अपना MetaMask कार्ड लिंक करें। आपका पैसा तब तक कमाता रहता है जब तक आप इसका इस्तेमाल नहीं करते।",
-      "faq_title": "अक्सर पूछे जाने वाले सवाल",
-      "faq_placeholder_answer": "जल्द आ रहा है।",
-      "faq_q1": "{{percentage}}% APY कैसे काम करता है?",
-      "faq_q2": "mUSD क्या है?",
-      "faq_q3": "यील्ड कहाँ से आती है?",
-      "faq_q4": "क्या मेरा पैसा लॉक हो गया है? क्या मैं कभी भी निकाल सकता हूँ?",
-      "faq_q5": "MetaMask कार्ड से खर्च कैसे होता है?",
-      "faq_q6": "क्या कोई फीस है?",
-      "faq_q7": "क्या APY रेट बदलता है?",
-      "faq_q8": "क्या यह सेविंग्स अकाउंट है या स्पेंडिंग अकाउंट?",
-      "faq_q9": "मेरे पैसे को कौन कंट्रोल करता है?",
-      "faq_q10": "MetaMask कार्ड से मुझे क्या mUSD वापस मिलता है?"
+      "description_3": "Money अकाउंट Monad द्वारा संचालित है।",
+      "faq_title": "सामान्य प्रश्न",
+      "faq_q1": "MetaMask मनी अकाउंट क्या है?",
+      "faq_a1": "MetaMask Money अकाउंट, MetaMask में बना एक सेल्फ-कस्टोडियल अकाउंट है जो डिपॉज़िट किए गए फंड पर {{percentage}}% तक वेरिएबल APY कमाता है—बिना किसी लॉकअप, बिना किसी विदड्रॉवल पेनल्टी और बिना किसी अकाउंट फीस के। जब आप किसी सपोर्टेड स्टेबलकॉइन ({{stablecoins}}) या aTokens को Money अकाउंट में डिपॉज़िट करते हैं, तो यह mUSD में बदल जाता है, जो MetaMask का डॉलर-बैक्ड स्टेबलकॉइन है, और इसमें कोई कन्वर्शन फीस नहीं होती है। आप कन्वर्शन फीस के साथ किसी भी टोकन को भी Money अकाउंट में डिपॉज़िट कर सकते हैं। आपका Money अकाउंट बैलेंस (mUSD) दुनिया भर में 150+ मिलियन मास्टरकार्ड मर्चेंट्स पर MetaMask कार्ड के ज़रिए कभी भी ट्रेड करने, भेजने और कमाने—या खर्च करने के लिए उपलब्ध रहता है।",
+      "faq_q2": "क्या MetaMask मनी अकाउंट सुरक्षित है?",
+      "faq_a2": "MetaMask एक सेल्फ-कस्टोडियल वॉलेट है—सिर्फ़ आप ही अपनी प्राइवेट कीज़ और फंड्स को कंट्रोल करते हैं। MetaMask आपके बैलेंस को एक्सेस, फ्रीज़ या मूव नहीं कर सकता। mUSD खुद US डॉलर और शॉर्ट-टर्म US ट्रेजरी बिल से 1:1 के अनुपात में बैक्ड है, जिसे Bridge (एक Stripe कंपनी) रेगुलेटेड कस्टडी में रखती है। हालाँकि, सभी DeFi-बेस्ड प्रोडक्ट्स की तरह, मनी अकाउंट में भी रिस्क होते हैं, जिसमें स्मार्ट-कॉन्ट्रैक्ट फेलियर, प्रोटोकॉल एक्सप्लॉइट, लिक्विडिटी की कमी, थर्ड-पार्टी फेलियर और कानूनी या रेगुलेटरी पाबंदियाँ शामिल हैं। APY वेरिएबल है और इसकी गारंटी नहीं है, और इसमें नुकसान का रिस्क है। मनी बैलेंस (mUSD) FDIC या किसी सरकारी एजेंसी द्वारा इंश्योर्ड नहीं है।",
+      "faq_q3": "मेरा MetaMask मनी अकाउंट कौन कंट्रोल करता है?",
+      "faq_a3": "आपके मनी अकाउंट पर आपका पूरा कंट्रोल होता है। MetaMask एक सेल्फ-कस्टोडियल वॉलेट है, जिसका मतलब है कि सिर्फ़ अकाउंट होल्डर की प्राइवेट कीज़ ही मनी अकाउंट में रखे mUSD को कंट्रोल करती हैं। MetaMask किसी भी मनी अकाउंट बैलेंस को एक्सेस, फ्रीज़ या मूव नहीं कर सकता है। यह ट्रेडिशनल बैंक अकाउंट और कस्टोडियल क्रिप्टो प्लेटफॉर्म से एक मुख्य अंतर है, जहाँ कोई थर्ड पार्टी यूज़र की ओर से फंड रखती है।",
+      "faq_q4": "MetaMask मनी अकाउंट की फीस क्या है?",
+      "faq_a4": "MetaMask मनी अकाउंट खोलना फ़्री है। स्टेबलकॉइन से mUSD कन्वर्ज़न 1:1 बराबरी पर होता है और इसमें कोई कन्वर्ज़न फ़ीस नहीं लगती। मनी अकाउंट में दिखाया गया APY वह नेट रेट है जो आप कमाते हैं। सभी प्रोडक्ट फ़ीस—जो MetaMask, Veda, और Steakhouse में बांटी जाती हैं—पहले ही काट ली गई हैं। MetaMask कार्ड ट्रांज़ैक्शन फ़ीस, ATM विड्रॉल फ़ीस, और फ़िएट ऑफ़रैंप कॉस्ट की जानकारी के लिए, MetaMask के अंदर फ़ीस का पूरा ब्रेकडाउन देखें।",
+      "faq_q5": "मैं MetaMask मनी अकाउंट से कितना कमा सकता हूँ?",
+      "faq_a5": "MetaMask मनी अकाउंट {{percentage}}% APY तक कमाता है। रेट बदलता रहता है और मार्केट के हालात के साथ बदलता रहता है। अभी का रेट हमेशा मनी अकाउंट के अंदर दिखता है।",
+      "faq_q6": "यील्ड कहाँ से आती है?",
+      "faq_a6": "जब Money अकाउंट में फंड डिपॉज़िट किए जाते हैं, तो ये एसेट्स एक थर्ड-पार्टी स्मार्ट कॉन्ट्रैक्ट वॉल्ट में चले जाते हैं। वॉल्ट पहले से मौजूद DeFi प्रोटोकॉल के साथ इंटरैक्ट करता है—उदाहरण के लिए, Aave और Morpho जैसे लेंडिंग मार्केट—जहां वे असली इकोनॉमिक एक्टिविटी से रिटर्न कमाते हैं, खासकर बॉरोअर्स द्वारा दिया गया इंटरेस्ट। लागू प्रोटोकॉल कॉस्ट और प्रोडक्ट फीस के बाद, कोई भी रिटर्न APY के रूप में दिखता है। कमाई MetaMask या mUSD जारी करने वाले द्वारा दिया गया इंटरेस्ट नहीं है। वे थर्ड-पार्टी DeFi प्रोटोकॉल में वॉल्ट की पोज़िशन से जनरेट होने वाले ऑनचेन रिटर्न हैं।\n\nदिखाया गया रेट एक अनुमानित वार्षिक प्रतिशत यील्ड (APY) है जो मौजूदा बाज़ार परिस्थितियों पर आधारित है। APY बदल सकता है और इसकी कोई गारंटी नहीं है। DeFi वॉल्ट Veda द्वारा मैनेज किया जाता है और Steakhouse Financial जोखिम की निगरानी करता है।",
+      "faq_q7": "मैं मनी अकाउंट में कौन से टोकन जमा कर सकता हूँ?",
+      "faq_a7": "आप निम्न स्टेबलकॉइन्स और aTokens को बिना किसी कन्वर्शन फीस के अपने Money अकाउंट में डिपॉज़िट कर सकते हैं:\n\n{{tokenBullets}}\n\nअन्य सभी EVM टोकन्स भी Money अकाउंट में डिपॉज़िट किए जा सकते हैं, लेकिन स्टैंडर्ड एक्सचेंज फीस लग सकती है। आप अपने Money अकाउंट को डेबिट कार्ड, क्रेडिट कार्ड या Apple Pay से भी फंड कर सकते हैं।\n\nनोट: लिक्विडिटी सुनिश्चित करने के लिए प्रति टोकन $100,000 की शुरुआती अधिकतम डिपॉज़िट सीमा है।",
+      "faq_q8": "क्या मैं MetaMask मनी अकाउंट से कभी भी पैसे निकाल सकता हूँ?",
+      "faq_a8": "हाँ। आपका mUSD कभी लॉक नहीं होता। आप बिना किसी नोटिस पीरियड, पेनल्टी और MetaMask से बिना किसी विदड्रॉवल फीस के किसी भी समय अपना पूरा बैलेंस ट्रेड, भेज, खर्च या विड्रॉल कर सकते हैं। विदड्रॉवल तुरंत प्रोसेस होता है, जो संबंधित ब्लॉकचेन पर स्टैंडर्ड नेटवर्क कन्फर्मेशन टाइम पर निर्भर करता है। अगर लिक्विडिटी कम है, तो कुछ समय के लिए देरी हो सकती है।",
+      "faq_q9": "क्या मुझे MetaMask मनी अकाउंट इस्तेमाल करने के लिए KYC पूरा करना होगा?",
+      "faq_a9": "मनी अकाउंट खोलने और mUSD रखने के लिए आइडेंटिटी वेरिफिकेशन की ज़रूरत नहीं होती है। हालाँकि, MetaMask के कुछ फीचर्स—जिसमें MetaMask कार्ड और Ramps शामिल हैं—के लिए लागू नियमों के अनुसार KYC (नो योर कस्टमर) वेरिफिकेशन की ज़रूरत होती है। ये चेक थर्ड-पार्टी प्रोवाइडर करते हैं जो इन रेगुलेटेड सर्विसेज़ को ऑपरेट करते हैं, MetaMask नहीं। अगर ज़रूरत हो, तो साइन-अप के दौरान ऐप के अंदर आपको प्रोसेस के बारे में गाइड किया जाएगा।",
+      "faq_q10": "MetaMask मनी अकाउंट किन देशों में उपलब्ध है?",
+      "faq_a10": "MetaMask मनी अकाउंट इन इलाकों को छोड़कर दुनिया भर में उपलब्ध है: UK, और USA की सैंक्शन लिस्ट वाले देश।"
+    },
+    "geo_block": {
+      "title": "Money अकाउंट उपलब्ध नहीं है",
+      "description": "आपके स्थान पर स्थानीय प्रतिबंधों या रुकावटों के कारण Money अकाउंट उपलब्ध नहीं है।",
+      "button": "समझ गए"
     }
   },
   "stake": {
@@ -7128,12 +7609,20 @@
     "confirm": "कन्फर्म करें",
     "pay_with_bottom_sheet": {
       "title": "के साथ भुगतान करें",
+      "receive_title": "प्राप्त करें",
       "last_used": "पिछली बार इस्तेमाल किया गया",
       "bank_and_card": "बैंक और कार्ड",
       "crypto": "क्रिप्टो",
+      "perps": "पर्प्स",
+      "perps_balance": "पर्प्स बैलेंस",
+      "predict": "प्रेडिक्ट करें",
+      "predict_balance": "बैलेंस का अनुमान लगाएं",
+      "add": "जोड़ें",
       "available_balance": "{{balance}} उपलब्ध है",
       "other_assets": "अन्य एसेट्स",
-      "other_assets_description": "अपने टोकन में से चुनें"
+      "other_assets_description": "अपने टोकन में से चुनें",
+      "other_assets_receive_description": "जिस टोकन को आप प्राप्त करना चाहते हैं, उसे चुनें",
+      "money_account": "Money अकाउंट"
     },
     "staking_footer": {
       "part1": "जारी रखकर, आप हमारी ",
@@ -7159,6 +7648,7 @@
       "pay_with": "के साथ भुगतान करें",
       "payment_method": "पेमेंट का तरीका",
       "receive_as": "प्राप्त करें",
+      "select_token": "टोकन चुनें",
       "from": "से",
       "to": "प्रति",
       "total": "कुल",
@@ -7186,8 +7676,7 @@
       "perps_withdraw": "निकालें",
       "predict_deposit": "प्रिडिक्शन फ़ंड जोड़ें",
       "predict_withdraw": "निकालें",
-      "money_account_add_money": "धन जोड़ें",
-      "money_account_transfer_money": "पैसा ट्रांसफर करें"
+      "money_account_add_money": "फंड जोड़ें"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
@@ -7218,8 +7707,11 @@
       "musd_conversion": {
         "transaction_fee": "mUSD कन्वर्शन शुल्क में नेटवर्क लागत शामिल होती है और इसमें प्रदाता शुल्क भी शामिल हो सकता है। जब आप mUSD में कन्वर्ट करते हैं, तो कोई MetaMask शुल्क लागू नहीं होता।"
       },
+      "money_account_deposit": {
+        "transaction_fee": "कन्वर्शन फ़ीस में नेटवर्क कॉस्ट और प्रोवाइडर फ़ीस शामिल हो सकती है।"
+      },
       "money_account_withdraw": {
-        "transaction_fee": "MetaMask आपके mUSD को आपके मनचाहे टोकन से स्वैप करेगा। स्वैप प्रोवाइडर फीस ले सकते हैं, लेकिन MetaMask नहीं लेगा।"
+        "transaction_fee": "कन्वर्शन फ़ीस में नेटवर्क कॉस्ट और प्रोवाइडर फ़ीस शामिल हो सकती है।"
       },
       "title": {
         "transaction_fee": "फीस"
@@ -7307,7 +7799,8 @@
       "buy_button": "क्रिप्टो खरीदें",
       "buy_predict": "प्रेडिक्शंस का उपयोग करने के लिए अपने वॉलेट में फंड्स जोड़ें।",
       "buy_perps": "पर्प्स का उपयोग करने के लिए अपने वॉलेट में फंड्स जोड़ें।",
-      "projected_five_year_balance": "अनुमानित 5-वर्षीय बैलेंस:"
+      "projected_balance": "अनुमानित {{projectedYears}}-वर्षीय बैलेंस:",
+      "earn_up_to_apy": "{{percentage}}% APY कमाएं"
     },
     "unlimited": "असीमित",
     "all": "सभी",
@@ -7349,6 +7842,7 @@
     "confirm_swap": "स्वैप करें",
     "terms_and_conditions": "नियम और शर्त",
     "select_token": "टोकन चुनें",
+    "batch_sell_transaction_label": "बैच सेल",
     "batch_sell_select_title": "5 टोकन तक चुनें",
     "batch_sell_select_subtitle": "सभी टोकन एक ही नेटवर्क पर होने चाहिए।",
     "batch_sell_empty_state_title": "कोई टोकन नहीं। कोई दिक्कत नहीं।",
@@ -7362,14 +7856,18 @@
     "batch_sell_review_title": "बैच सेल रिव्यू",
     "batch_sell_select_stablecoin": "एक स्टेबलकॉइन चुनें",
     "batch_sell_total_received": "टोटल प्राप्त हुआ",
-    "batch_sell_minimum_received": "Minimum received",
-    "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
+    "batch_sell_minimum_received": "न्यूनतम प्राप्त:",
+    "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} स्लिपेज (slippage)",
+    "batch_sell_no_quote_available": "कोई कोटेशन उपलब्ध नहीं है",
+    "batch_sell_high_price_impact": "हाई प्राइस इम्पैक्ट",
+    "batch_sell_high_price_impact_description": "इस ट्रेड का अनुमानित {{priceImpact}} प्राइस इम्पैक्ट है, जो यह दिखाता है कि आपका ट्रेड मार्केट प्राइस को कितना बदलता है। कोटेशन में यह पहले से शामिल है।",
     "batch_sell_review": "समीक्षा करें",
-    "batch_sell_you_sell": "You sell",
-    "batch_sell_token_count": "{{tokenCount}} tokens",
-    "batch_sell_toggle_you_sell": "Toggle token details",
-    "batch_sell_sell_all": "Sell all",
-    "batch_sell_includes_metamask_fee": "Includes {{fee}}% MetaMask fee",
+    "batch_sell_searching_best_quotes": "सबसे अच्छे कोट्स की खोज की जा रही है",
+    "batch_sell_you_sell": "आप बेचते हैं",
+    "batch_sell_token_count": "{{tokenCount}} टोकन",
+    "batch_sell_toggle_you_sell": "टोकन विवरण टॉगल करें",
+    "batch_sell_sell_all": "सभी को बेचें",
+    "batch_sell_includes_metamask_fee": "इसमें {{fee}}% MetaMask फीस शामिल है",
     "batch_sell_customize_token": "{{tokenSymbol}} कस्टमाइज़ करें",
     "batch_sell_remove_token": "{{tokenSymbol}} हटाएं",
     "batch_sell_checkbox_label": "बैच सेल टोकन",
@@ -7403,6 +7901,7 @@
     "quote_info_title": "रेट",
     "network_fee_info_title": "नेटवर्क फीस",
     "network_fee_info_content": "नेटवर्क फीस इस बात पर निर्भर करते हैं कि नेटवर्क कितना व्यस्त है और आपका ट्रांसेक्शन कितना जटिल है।",
+    "batch_sell_network_fee_info_content": "नेटवर्क शुल्क इस बात पर निर्भर करता है कि नेटवर्क कितना व्यस्त है और आपका ट्रांसेक्शन कितना जटिल है। यदि आपके पास शुल्क कवर करने के लिए पर्याप्त राशि नहीं है, तो हम इसे उस टोकन से ले लेंगे जिसमें आप कन्वर्ट कर रहे हैं।",
     "network_fee_info_content_sponsored": "यह नेटवर्क फीस MetaMask देता है, इसलिए आप अपने अकाउंट में {{nativeToken}} के बिना भी ट्रांसेक्शन कर सकते हैं।",
     "points": "अनुमानित पॉइंट्स",
     "points_tooltip": "पॉइंट्स",
@@ -7420,6 +7919,7 @@
     "error_banner_description": "यह ट्रेड रूट अभी उपलब्ध नहीं है। राशि, नेटवर्क या टोकन बदलने का प्रयास करें और हम सबसे अच्छा विकल्प ढूँढ लेंगे।",
     "stock_token_error_banner_description": "यह ट्रेड रूट अभी उपलब्ध नहीं है। अमाउंट, नेटवर्क या टोकन बदलने की कोशिश करें और हम सबसे अच्छा विकल्प ढूंढ लेंगे।",
     "insufficient_funds": "अपर्याप्त फंड",
+    "insufficient_balance": "अपर्याप्त बैलेंस",
     "insufficient_gas": "अपर्याप्त गैस",
     "select_amount": "राशि चुनें",
     "bridge_to": "इसपर ब्रिज करें",
@@ -7429,6 +7929,9 @@
     "title": "ब्रिज",
     "submitting_transaction": "सबमिट किया जा रहा है",
     "fetching_quote": "कोटेशन लाया जा रहा है",
+    "fee_includes": "शामिल है",
+    "fee_percentage": "{{feePercentage}}%",
+    "fee_percentage_meta_mask": "{{feePercentage}}% MM फीस।",
     "fee_disclaimer": "इसमें {{feePercentage}}% MetaMask फीस शामिल है।",
     "no_mm_fee": "कोई MM फीस नहीं",
     "token_suspicious": "संदिग्ध",
@@ -7436,6 +7939,33 @@
     "no_mm_fee_disclaimer": "{{destTokenSymbol}} में स्वैप करने पर कोई MetaMask फीस नहीं।",
     "hardware_wallet_not_supported": "हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
     "hardware_wallet_not_supported_solana": "Solana के लिए हार्डवेयर वॉलेट अभी तक सपोर्टेड नहीं हैं। जारी रखने के लिए हॉट वॉलेट का उपयोग करें।",
+    "hardware_wallet_progress": {
+      "confirm_title": "अपने हार्डवेयर वॉलेट पर कन्फर्म करें ({{current}}/{{total}})",
+      "submitted_title": "ट्रांसेक्शन सबमिट किया गया",
+      "rejected_title": "आपने अपने डिवाइस पर इस ट्रांज़ैक्शन को रिजेक्ट कर दिया है",
+      "failed_title": "ट्रांसेक्शन नहीं हो पाया",
+      "disconnected_title": "डिवाइस डिसकनेक्ट किया गया",
+      "approve_token": "{{amount}} {{symbol}} एप्रूव करें",
+      "approving_token": "{{amount}} {{symbol}} एप्रूव किया जा रहा है",
+      "approved_token": "{{amount}} {{symbol}} एप्रूव किया गया",
+      "send_token": "{{amount}} {{symbol}} भेजें",
+      "sending_token": "{{amount}} {{symbol}} भेजा जा रहा है",
+      "sent_token": "{{amount}} {{symbol}} भेजा गया",
+      "spender": "खर्च करने वाला",
+      "spender_address": "खर्च करने वाले का {{address}}",
+      "recipient": "प्राप्तकर्ता",
+      "recipient_address": "प्राप्तकर्ता का {{address}}",
+      "rejected": "रिजेक्ट किया गया",
+      "reconnect": "रीकनेक्ट करें",
+      "done": "पूरा हुआ",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
+      "scan_next_qr_code": "अगला QR कोड स्कैन करें",
+      "scan_final_qr_code": "Scan final QR code",
+      "scanner_step_text": "{{total}} में से {{current}} स्टेप: अपने वॉलेट पर दिखाए गए QR कोड को स्कैन करें",
+      "scanner_last_step_text": "आखिरी स्टेप: अपने वॉलेट पर दिखाए गए QR कोड को स्कैन करें",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
+    },
     "price_impact_info_title": "कीमत का प्रभाव",
     "price_impact_info_description": "इस तरह आपका ट्रेड किसी टोकन की मार्केट प्राइस बदलता है। यह ट्रेड साइज़, उपलब्ध लिक्विडिटी और प्रोवाइडर फीस पर निर्भर करता है। MetaMask प्राइस इम्पैक्ट को कंट्रोल नहीं करता है।",
     "price_impact_info_gasless_description": "प्राइस इम्पैक्ट यह दर्शाता है कि आपका स्वैप ऑर्डर एसेट की मार्केट प्राइस को कैसे प्रभावित करता है। अगर आपके पास गैस के लिए पर्याप्त फंड नहीं हैं, तो आपके स्रोत टोकन का एक हिस्सा ऑटोमैटिकली फीस को कवर करने के लिए इस्तेमाल किया जाएगा, जिससे प्राइस इम्पैक्ट बढ़ जाता है। MetaMask प्राइस इम्पैक्ट को प्रभावित या नियंत्रित नहीं करता।",
@@ -7470,6 +8000,18 @@
       "learn_more": "ज़्यादा जानें",
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "पूरा हुआ"
+    },
+    "post_trade_modal": {
+      "swap_in_progress": "स्वैप प्रगति पर है",
+      "swap_success": "स्वैप पूरा हुआ",
+      "swap_failed": "स्वैप नहीं हो पाया",
+      "bridge_in_progress": "ब्रिज प्रगति पर है",
+      "bridge_success": "ब्रिज पूरा हुआ",
+      "bridge_failed": "ब्रिज नहीं हो पाया",
+      "trade_subtitle": "{{sourceAmount}} {{sourceSymbol}} → {{destAmount}} {{destSymbol}}",
+      "what_to_swap_next": "आगे क्या स्वैप करना है",
+      "view_activity": "एक्टिविटी देखें",
+      "try_again": "फिर से प्रयास करें"
     },
     "submit": "सबमिट करें",
     "default_slippage_description": "अगर प्राइस स्लिपेज परसेंट से ज़्यादा बदल जाता है, तो आपका ट्रांसेक्शन पूरा नहीं होगा।",
@@ -7515,6 +8057,7 @@
   "bridge_transaction_details": {
     "status": "स्थिति",
     "date": "तिथि",
+    "network": "नेटवर्क",
     "total_gas_fee": "कुल गैस फीस",
     "estimated_completion": "अनुमानित पूर्णता",
     "bridge_step_action_bridge_complete": "{{destSymbol}} {{destChainName}} को प्राप्त किया गया",
@@ -7524,15 +8067,19 @@
     "view_on_block_explorer": "ब्लॉक एक्सप्लोरर पर देखें",
     "block_explorer_description": "यह ट्रांसेक्शन दो नेटवर्क पर होता है। पहला लिंक स्रोत दिखाता है; दूसरा कन्फर्म होने के बाद गंतव्य दिखाता है।",
     "transaction_details": "ट्रांसेक्शन संबंधी विवरण",
+    "you_swapped": "आपने स्वैप किया",
+    "you_received": "आपने प्राप्त किया",
     "bridge_to_chain": "{{chainName}} पर ब्रिज करें",
     "recipient": "प्राप्तकर्ता"
   },
   "account_status": {
     "account_already_exists": "वॉलेट पहले से मौजूद है",
     "account_already_exists_description": "\"{{accountName}}\" का उपयोग करने वाला एक वॉलेट पहले से मौजूद है। क्या आप इसके बजाय लॉग इन करना चाहेंगे?",
+    "account_already_exists_telegram_description": "इस टेलीग्राम अकाउंट में पहले से ही एक वॉलेट जुड़ा हुआ है। क्या आप इस वॉलेट को अनलॉक करना चाहते हैं?",
     "log_in": "लॉग इन करें",
     "account_not_found": "वॉलेट नहीं मिला",
     "account_not_found_description": "हमें \"{{accountName}}\" के लिए कोई वॉलेट नहीं मिला। क्या आप इस लॉगिन से एक नया वॉलेट बनाना चाहते हैं?",
+    "account_not_found_telegram_description": "हमें इस टेलीग्राम अकाउंट से जुड़ा कोई वॉलेट नहीं मिला। क्या आप इस लॉगिन के साथ एक नया वॉलेट बनाना चाहते हैं?",
     "create_new_wallet": "एक नया वॉलेट बनाएं",
     "use_different_login_method": "किसी भिन्न लॉगिन विधि का उपयोग करें",
     "account_already_exists_ios_new_user_description": "\"{{accountName}}\" नाम का उपयोग करने वाला वॉलेट पहले से मौजूद है। क्या आप इस वॉलेट को अनलॉक करना चाहते हैं?",
@@ -7678,6 +8225,8 @@
     "add_wallet_hardware_description": "ब्लूटूथ या QR कोड का इस्तेमाल करना",
     "add_hardware_wallet": "हार्डवेयर वॉलेट जोड़ें",
     "syncing": "सिंक किया जा रहा है",
+    "link_metamask_extension": "MetaMask एक्सटेंशन से एकाउंट्स इंपोर्ट करें",
+    "link_metamask_extension_description": "MetaMask एक्सटेंशन से अपने वॉलेट में एकाउंट्स इंपोर्ट करें",
     "account_details": {
       "header_title": "अकाउंट का विवरण",
       "account_name": "अकाउंट का नाम",
@@ -8179,9 +8728,8 @@
         "card_tos_title": "नियम और शर्त",
         "order_metal_card": "मेटल कार्ड",
         "order_metal_card_description": "अपना भौतिक मेटल कार्ड अभी ऑर्डर करें",
-        "cashback": "mUSD वापस",
-        "cashback_description": "सारी खर्च पर 1% mUSD वापस कमाएं",
-        "cashback_description_metal": "सारी खर्च पर 3% mUSD वापस कमाएं",
+        "cashback": "{{cashbackPercentage}}% mUSD वापस",
+        "cashback_description": "सारे खर्च पर कमाएं",
         "freeze_card": "कार्ड फ़्रीज़ करें",
         "unfreeze_card": "कार्ड अनफ़्रीज़ करें",
         "freeze_card_description": "अपने कार्ड पर सभी खर्च रोकें",
@@ -8221,13 +8769,15 @@
       "on_linea": "Linea पर",
       "account_label": "अकाउंट",
       "token_label": "टोकन",
-      "money_account_label": "Money account",
+      "money_account_label": "Money अकाउंट",
       "money_account_token_symbol": "mUSD",
-      "use_money_account_cta": "Use Money account",
-      "spend_and_earn_title": "Spend while you earn",
-      "spend_and_earn_description": "Spend with your Money account and earn up to {{apy}}% APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_description_no_apy": "Spend with your Money account and earn APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_cta": "Link to Money account"
+      "use_money_account_cta": "Money अकाउंट का उपयोग करें",
+      "spend_and_earn_title": "खर्च करें और कमाएँ",
+      "spend_and_earn_description_prefix": "अपने बैलेंस को अपने कार्ड से लिंक करें और खरीदारी पर mUSD वापस पाएं। साथ ही, अपने बैलेंस पर (वेरिएबल) तक ",
+      "spend_and_earn_description_apy": "{{apy}}% APY",
+      "spend_and_earn_description_suffix": " तक कमाएं।",
+      "spend_and_earn_description_no_apy": "अपने बैलेंस को अपने कार्ड से लिंक करें और खरीदारी पर mUSD वापस पाएं।",
+      "spend_and_earn_cta": "कार्ड लिंक करें"
     },
     "cashback_screen": {
       "title": "mUSD वापस",
@@ -8245,6 +8795,11 @@
         "title": "Linea फंडिंग सेट करें",
         "description": "mUSD कैशबैक रिडीम करने से पहले Linea पर कम से कम एक एप्रूव किया हुआ फंडिंग स्रोत होना आवश्यक है।",
         "confirm_button_label": "फंडिंग सेट करें"
+      },
+      "money_account_required": {
+        "title": "Money अकाउंट सेट अप करें",
+        "description": "mUSD वापस रिडीम करने से पहले आपको एक लिंक्ड Money अकाउंट की आवश्यकता है।",
+        "confirm_button_label": "Money अकाउंट सेट अप करें"
       }
     },
     "change_asset": {
@@ -8280,6 +8835,7 @@
       "password_label": "पासवर्ड",
       "login_button": "लॉग इन करें",
       "signup_button": "साइन अप करें",
+      "forgot_password_button": "पासवर्ड भूल गए?",
       "errors": {
         "invalid_credentials": "लॉगिन जानकारी ग़लत है",
         "invalid_otp_code": "गलत कोड, कृपया फिर से प्रयास करें",
@@ -8294,6 +8850,11 @@
         "server_error": "सर्वर गड़बड़ी। कृपया बाद में फिर से प्रयास करें।",
         "configuration_error": "सेवा अस्थायी रूप से अनुपलब्ध है। कृपया बाद में फिर से प्रयास करें।"
       }
+    },
+    "card_forgot_password": {
+      "load_error": "Something went wrong loading the page. Please try again.",
+      "try_again": "फिर से प्रयास करें",
+      "reset_success": "Password reset successful"
     },
     "card_otp_authentication": {
       "title": "अपना फ़ोन नंबर कन्फर्म करें",
@@ -8347,6 +8908,7 @@
     "report_submitted": "गड़बड़ी रिपोर्ट सबमिट कर दी गई है।"
   },
   "pay_with_modal": {
+    "modal_title": "कोई टोकन चुनें",
     "no_gas": "गैस के लिए कोई नेटिव बैलेंस नहीं है",
     "not_supported": "सपोर्ट नहीं किया गया",
     "crypto": "क्रिप्टो"
@@ -8453,20 +9015,51 @@
     },
     "main_title": "पुरस्कार",
     "vip": {
-      "bps_unit": "bps",
-      "badge_label": "VIP Fox {{tier}}",
-      "swaps_label": "Swaps",
-      "perps_label": "Perps",
-      "error_title": "We couldn’t load your VIP dashboard",
-      "error_description": "Check your connection and try again.",
-      "retry_button": "Retry",
-      "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} points",
-      "bps_value": "{{bps}} bps",
-      "equity_rebate_label": "Equity rebate",
-      "equity_rebate_header": "Equity rebate: {{value}}%",
-      "equity_rebate_next_tier": "↑ {{value}}% at next tier",
-      "equity_rebate_top_tier": "Top tier reached."
+      "progress_to_next_tier": "अगले टियर तक {{pointsRemaining}} पॉइंट्स शेष हैं",
+      "bps_unit": "बीपीएस",
+      "badge_label": "VIP {{tier}}",
+      "referral_tag_label": "VIP",
+      "swaps_label": "स्वैप्स",
+      "perps_label": "पर्प्स",
+      "points_label": "पॉइंट्स",
+      "revenue_share_label": "रेवेन्यू शेयर",
+      "swap_fees_label": "स्वैप शुल्क",
+      "perps_fees_label": "पर्प्स शुल्क",
+      "referral_points_label": "रेफरल पॉइंट्स",
+      "points_from_referrals_label": "रेफरल से पॉइंट्स",
+      "referrals_label": "वीआईपी रेफरल",
+      "tier_benefits_title": "टियर लाभ",
+      "splash_title": "गोल्ड फॉक्स\nकलेक्टिव में\nआपका स्वागत है",
+      "splash_description": "विशेष लाभ, नए फीचर्स तक जल्दी पहुँच और चुने हुए रिवॉर्ड्स अनलॉक करें। केवल आमंत्रण द्वारा।",
+      "splash_accept_invite": "आमंत्रण स्वीकार करें",
+      "splash_not_now": "अभी नहीं",
+      "next_tier_value": "{{value}} अगला टियर",
+      "equity_rebate_label": "इक्विटी रिबेट",
+      "equity_rebate_header": "इक्विटी रिबेट: {{value}}%",
+      "equity_rebate_next_tier": "अगले टियर पर ↑ {{value}}%",
+      "equity_rebate_top_tier": "शीर्ष टियर प्राप्त हो गया है।",
+      "error_title": "हम आपका वीआईपी डैशबोर्ड लोड नहीं कर सके",
+      "error_description": "अपना कनेक्शन जांचें और फिर से प्रयास करें।",
+      "retry_button": "फिर से प्रयास करें",
+      "tiers_title": "टियर्स",
+      "tier_thresholds": "{{points}} पॉइंट्स",
+      "bps_value": "{{bps}} बीपीएस",
+      "referee_splash_continue": "जारी रखें",
+      "referee_referred_by": "{{code}} द्वारा रेफर किया गया",
+      "referee_page_title": "VIP पायलट",
+      "referee_stats_title": "आँकड़े",
+      "referee_period_last_30d": "पिछले 30 दिन",
+      "referee_swaps_volume_label": "स्वैप्स वॉल्यूम",
+      "referee_perps_volume_label": "पर्प्स वॉल्यूम",
+      "referee_points_to_label": "पॉइंट्स {{code}} में",
+      "referee_error_title": "हम आपके VIP रेफरी की जानकारी लोड नहीं कर सके",
+      "referee_error_description": "अपना कनेक्शन जांचें और फिर से प्रयास करें।",
+      "referee_contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें",
+      "referee_priority_support_disclaimer": "प्रायोरिटी सपोर्ट से संपर्क करने पर आपका वॉलेट कनेक्ट हो जाएगा।",
+      "last_updated": "पिछला अपडेट इस समय पर किया गया: {{time}}",
+      "swaps_volume_info_label": "Swaps volume information",
+      "swaps_volume_info_title": "स्वैप्स वॉल्यूम",
+      "swaps_volume_info_description": "Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here."
     },
     "referral_title": "रेफरल",
     "referral_stats_earned_from_referrals": "रेफरल से अर्जित",
@@ -8568,7 +9161,7 @@
       "show_less": "कम दिखाएं",
       "linking_progress": "एकाउंट्स जोड़ा जा रहा है... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} नामांकन किया गया",
-      "accounts_added": "Accounts added",
+      "accounts_added": "एकाउंट्स जोड़े गए",
       "add_all_accounts": "सभी एकाउंट जोड़ें",
       "environment_selector": "वातावरण",
       "environment_cancel": "कैंसिल करें",
@@ -8593,13 +9186,13 @@
     },
     "optout": {
       "title": "रिवॉर्ड्स प्रगति हटाएँ",
-      "description": "This will remove your accounts from the Rewards program and your progress in any campaigns you've joined. Only do this if you are absolutely sure you want to erase your progress.",
-      "erase_button": "Erase progress",
+      "description": "यह आपके एकाउंट्स को रिवॉर्ड्स प्रोग्राम से हटा देगा और आपके द्वारा जॉइन किए गए किसी भी कैंपेन में आपकी प्रगति भी मिट जाएगी। यह केवल तभी करें जब आप पूरी तरह सुनिश्चित हों कि आप अपनी प्रगति मिटाना चाहते हैं।",
+      "erase_button": "प्रगति मिटाएं",
       "modal": {
         "confirmation_title": "क्या आप सुनिश्चित हैं?",
-        "confirmation_description": "This will erase all your progress, and can't be reversed. If you rejoin the Rewards program later, you'll start back at 0.",
-        "type_to_confirm": "Type 'erase progress' to continue",
-        "confirm_phrase": "erase progress",
+        "confirmation_description": "इससे आपकी सभी प्रगति मिट जाएगी और इसे वापस नहीं लाया जा सकता। यदि आप बाद में रिवॉर्ड्स प्रोग्राम में फिर से शामिल होते हैं, तो आपकी शुरुआत फिर से 0 से होगी।",
+        "type_to_confirm": "जारी रखने के लिए 'प्रगति मिटाएं' टाइप करें",
+        "confirm_phrase": "प्रगति मिटाएं",
         "cancel": "कैंसिल करें",
         "confirm": "कन्फर्म करें",
         "error_title": "कुछ गलत हो गया",
@@ -8607,8 +9200,8 @@
         "processing": "प्रोसेस हो रहा है..."
       },
       "request_received": {
-        "title": "Request received",
-        "description": "In about 7 days, your progress will be fully erased. If you made this request by mistake, please contact support through the app."
+        "title": "अनुरोध प्राप्त किया गया",
+        "description": "लगभग 7 दिनों में आपकी प्रगति पूरी तरह मिटा दी जाएगी। यदि आपने यह अनुरोध गलती से किया है, तो कृपया ऐप के माध्यम से सपोर्ट से संपर्क करें।"
       }
     },
     "toast_dismiss": "खारिज करें",
@@ -8643,9 +9236,9 @@
       "info": {
         "title": "अपना कोड दोस्तों के साथ शेयर करें",
         "description": "रेफरल बोनस कैंपेन के हिसाब से अलग-अलग होते हैं। डिटेल्स के लिए हर एक को देखें।",
-        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
-        "vip_referrals_label": "Referrals",
-        "vip_revenue_share_label": "Revenue share"
+        "vip_title": "हर स्वैप और पर्प पर, जो आपके रेफ़रल करते हैं, आप रेवेन्यू शेयर कमाएं। आपकी दर आपके टियर के साथ बढ़ती है।",
+        "vip_referrals_label": "रेफरल",
+        "vip_revenue_share_label": "रेवेन्यू शेयर"
       },
       "referral_code_copied": "क्लिपबोर्ड पर रेफ़रल कोड कॉपी किया गया"
     },
@@ -8755,14 +9348,25 @@
       "checking_opt_in_status": "ऑप्ट इन स्टेटस चेक किया जा रहा है",
       "swap": "स्वैप करें",
       "swap_ondo_assets": "Ondo Assets को स्वैप करें",
-      "open_position": "ओपन पोज़िशन",
+      "open_position": "अभी ट्रेड करें",
       "how_it_works": "ये कैसे काम करता है",
       "ondo": {
         "entries_closed_title": "एंट्री बंद हो गई हैं",
         "entries_closed_description": "आप ऑप्ट-इन करने से चूक गए। भविष्य में और भी कैंपेन देखने के लिए दोबारा आएं।"
       }
     },
-    "ondo_campaign_prize_pool": {
+    "campaign_ended_stats": {
+      "title": "आँकड़े",
+      "error_title": "सभी स्टैट्स लोड नहीं हो पा रहे हैं",
+      "error_description": "हमें आपके स्टैट्स लोड करने में दिक्कत हुई। कृपया बाद में फिर से कोशिश करें।",
+      "retry": "फिर से प्रयास करें",
+      "total_participants": "कुल प्रतिभागी",
+      "total_volume": "कुल वॉल्यूम",
+      "top_return": "शीर्ष रिटर्न",
+      "top_pnl": "शीर्ष PnL",
+      "total_winners": "कुल विजेता"
+    },
+    "campaign_prize_pool": {
       "title": "प्राइज़ पूल",
       "current_label": "मौजूदा",
       "next_label": "आगे",
@@ -8771,7 +9375,7 @@
       "max_badge": "मैक्स",
       "error_title": "प्राइज़ पूल लोड नहीं हो पाया",
       "error_description": "आपका प्राइज़ पूल लोड करते समय एक गड़बड़ी हुई। कृपया फिर से कोशिश करें।",
-      "retry_button": "फिर से प्रयास करें"
+      "retry": "फिर से प्रयास करें"
     },
     "ondo_campaign_portfolio": {
       "position_current_value": "वैल्यू",
@@ -8836,11 +9440,7 @@
       "qualified_title": "आप क्वालिफ़ाई कर चुके हैं",
       "qualified_description": "अपने नेट इनफ्लो को बढ़ाकर ऊंचे लेवल पर पहुंचें और ज़्यादा पेआउट का मौका पाएं।",
       "not_eligible_title": "योग्य नहीं हैं",
-      "not_eligible_description": "{{days}}-दिन की होल्ड ज़रूरत को पूरा करने के लिए बहुत देर से खोले गए ट्रेड आपके रैंक या टियर में नहीं गिने जाएंगे।",
-      "completed_label_total_participants": "कुल प्रतिभागी",
-      "completed_label_total_tvl": "कुल TVL",
-      "completed_label_top_return": "शीर्ष रिटर्न",
-      "completed_label_winners": "विनर"
+      "not_eligible_description": "{{days}}-दिन की होल्ड ज़रूरत को पूरा करने के लिए बहुत देर से खोले गए ट्रेड आपके रैंक या टियर में नहीं गिने जाएंगे।"
     },
     "ondo_campaign_activity": {
       "title": "सभी गतिविधि",
@@ -8877,7 +9477,7 @@
       "label_notional_volume": "नोशनल वॉल्यूम",
       "pending": "अभी पूरा नहीं हुआ",
       "qualified": "योग्य",
-      "open_position_cta": "ओपन पोज़िशन",
+      "open_position_cta": "अभी ट्रेड करें",
       "leaderboard_title": "लीडरबोर्ड",
       "leaderboard_total_participants": "{{count}} प्रतिभागी",
       "last_updated": "पिछला अपडेट इस समय पर किया गया: {{time}}",
@@ -8886,27 +9486,51 @@
       "leaderboard_not_yet_computed": "लीडरबोर्ड अभी तक कंप्यूट नहीं किया गया है। जल्द ही फिर से देखें।",
       "leaderboard_powered_by_prefix": "के द्वारा पावर्ड ",
       "leaderboard_hypertracker_brand": "हाइपरट्रैकर",
-      "prize_pool_title": "प्राइज़ पूल",
-      "prize_pool_current_label": "मौजूदा",
-      "prize_pool_next_label": "आगे",
-      "prize_pool_volume_subtext": "{{target}} वॉल्यूम का {{current}}",
-      "prize_pool_max_tier_subtext": "{{maxThreshold}}+ वॉल्यूम — सभी माइलस्टोन पूरे हो गए",
-      "prize_pool_max_badge": "मैक्स",
-      "prize_pool_error_title": "प्राइज़ पूल लोड नहीं हो पाया",
-      "prize_pool_error_description": "आपका प्राइज़ पूल लोड करते समय एक गड़बड़ी हुई। कृपया फिर से कोशिश करें।",
-      "prize_pool_retry_button": "फिर से प्रयास करें",
       "stats_notional_volume_threshold": "${{amount}} ज़रूरी है",
       "stats_qualified_title": "आप क्वालिफ़ाई कर चुके हैं",
       "stats_qualified_description": "लीडरबोर्ड में ऊपर आने और अपने PnL को बेहतर बनाने के लिए प्रतियोगिता खत्म होने से पहले ट्रेडिंग जारी रखें।",
-      "stats_qualify_for_rank_title": "लीडरबोर्ड के लिए क्वालिफ़ाई करें",
+      "stats_qualify_for_rank_title": "लीडरबोर्ड के लिए क्वालिफाई करें",
       "stats_qualify_for_rank_description": "योग्य बनने के लिए नोशनल वॉल्यूम में {{notionalRemaining}} और ट्रेड करें।",
       "stats_error_title": "स्टैट्स लोड नहीं हो पा रहे हैं",
       "stats_error_description": "हमें आपके स्टैट्स लोड करने में दिक्कत हुई। कृपया फिर से कोशिश करें।",
+      "stats_retry": "फिर से प्रयास करें"
+    },
+    "predict_the_pitch_campaign": {
+      "title": "पिच को प्रेडिक्ट करें",
+      "stats_title": "आँकड़े",
+      "label_rank": "रैंक",
+      "label_your_rank": "आपकी रैंक",
+      "label_roi": "ROI (फीस के बाद)",
+      "label_total_volume": "कुल वॉल्यूम",
+      "label_pnl": "PnL (फीस के बाद)",
+      "predict_now_cta": "अभी प्रेडिक्ट करें",
+      "positions_title": "आपके प्रेडिक्शन",
+      "positions_open_section": "ओपन",
+      "positions_closed_section": "बंद किया गया",
+      "position_sold_at": "{{time}} बेचा गया",
+      "positions_open_badge": "{{count}} ओपन",
+      "positions_closed_badge": "{{count}} क्लोज़्ड",
+      "positions_error": "प्रेडिक्शन लोड नहीं हो पाए",
+      "positions_error_description": "आपके प्रेडिक्शन लोड करते समय कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
+      "positions_retry": "फिर से प्रयास करें",
+      "positions_last_updated": "पिछला अपडेट इस समय पर किया गया: {{time}}",
+      "positions_empty": "अभी तक कोई प्रेडिक्शन नहीं",
+      "positions_empty_description": "आपके कैंपेन के प्रेडिक्शन आपके प्रेडिक्ट करने के बाद यहां दिखाई देंगे।",
+      "leaderboard_title": "लीडरबोर्ड",
+      "leaderboard_total_participants": "{{count}} प्रतिभागी",
+      "last_updated": "पिछला अपडेट इस समय पर किया गया: {{time}}",
+      "leaderboard_error_loading": "लीडरबोर्ड लोड नहीं हो पाया",
+      "leaderboard_error_loading_description": "लीडरबोर्ड लोड करते समय कुछ गड़बड़ हो गई। कृपया फिर से कोशिश करें।",
+      "leaderboard_not_yet_computed": "लीडरबोर्ड अभी तक कंप्यूट नहीं किया गया है। जल्द ही फिर से देखें।",
+      "stats_error_title": "स्टैट्स लोड नहीं हो पा रहे हैं",
+      "stats_error_description": "हमें आपके स्टैट्स लोड करने में दिक्कत हुई। कृपया फिर से कोशिश करें।",
+      "label_markets_traded": "ट्रेड किए गए मार्केट्स",
       "stats_retry": "फिर से प्रयास करें",
-      "completed_label_total_participants": "कुल प्रतिभागी",
-      "completed_label_total_volume": "कुल वॉल्यूम",
-      "completed_label_top_pnl": "शीर्ष PnL",
-      "completed_label_winners": "विनर"
+      "performance_title": "प्रदर्शन",
+      "stats_qualified_title": "आप क्वालिफ़ाई कर चुके हैं",
+      "stats_qualified_description": "लीडरबोर्ड में ऊपर आने और अपने ROI को बेहतर बनाने के लिए प्रतियोगिता खत्म होने से पहले ट्रेडिंग जारी रखें।",
+      "stats_qualify_for_rank_title": "लीडरबोर्ड के लिए क्वालिफाई करें",
+      "stats_qualify_for_rank_description": "कॉम्पिटिशन खत्म होने से पहले कम से कम 3 एलिजिबल मार्केट में कम से कम $10 का ट्रेड करें।"
     },
     "campaigns_preview": {
       "title": "कैंपेन",
@@ -8915,8 +9539,8 @@
     },
     "earn_rewards": {
       "title": "रिवॉर्ड्स कमाएं",
-      "musd_title": "स्टेबल्स पर 3% तक बोनस",
-      "musd_subtitle": "अपना mUSD बोनस कैलकुलेट करें",
+      "musd_title": "mUSD पर {{percentage}}% तक बोनस",
+      "musd_subtitle": "मनी अकाउंट यहां हैं",
       "card_title": "खर्च पर 3% तक वापस",
       "card_subtitle": "अपना MetaMask कार्ड अभी पाएं",
       "card_subtitle_cardholder": "अपने MetaMask कार्ड के फ़ायदे पाएं"
@@ -8996,13 +9620,29 @@
       "bridge_fee": "ब्रिज फीस",
       "provider_fee": "प्रदाता फीस",
       "network_fee": "नेटवर्क फीस",
+      "transaction_fee": "ट्रांसेक्शन फीस",
+      "transaction_fees": "ट्रांसेक्शन फीस",
       "paid_with": "के साथ भुगतान किया गया",
       "receive_token": "टोकन प्राप्त करें",
       "retry_button": "फिर से प्रयास करें",
       "total": "कुल",
+      "total_amount": "कुल रकम",
       "account": "अकाउंट",
-      "received_total": "कुल प्राप्त हुआ"
+      "received_total": "कुल प्राप्त हुआ",
+      "from": "से",
+      "to": "प्रति",
+      "order_id": "ऑर्डर ID",
+      "network": "नेटवर्क",
+      "you_sent": "आपने भेजे",
+      "you_received": "आपने प्राप्त किया",
+      "token_received": "टोकन प्राप्त किया गया",
+      "money_account": "Money अकाउंट",
+      "perps_account": "पर्प्स अकाउंट 1",
+      "predictions_account": "प्रेडिक्शंस अकाउंट 1",
+      "steps_completed": "चरण ({{count}} पूरे हुए)",
+      "summary": "सारांश"
     },
+    "view_on_block_explorer": "ब्लॉक एक्सप्लोरर पर देखें",
     "summary_title": {
       "bridge_approval": "{{approveSymbol}} एप्रूव करें",
       "bridge_approval_loading": "एप्रूव करें",
@@ -9023,6 +9663,24 @@
     },
     "perps_deposit_solution": "अब आपके पास Arbitrum पर USDC का {{fiat}} है। कृपया अपना डिपॉज़िट फिर से प्रयास करें।"
   },
+  "activity_details": {
+    "status": "स्टेटस",
+    "date": "तिथि",
+    "account": "अकाउंट",
+    "from": "से",
+    "to": "प्रति",
+    "network": "नेटवर्क",
+    "transaction_id": "ट्रांसेक्शन आईडी",
+    "network_fee": "नेटवर्क फीस",
+    "bridge_fee": "ब्रिज फीस",
+    "transaction_fee": "ट्रांसेक्शन फीस",
+    "total_amount": "कुल रकम",
+    "you_sent": "आपने भेजे",
+    "you_received": "आपने प्राप्त किया",
+    "view_on_block_explorer": "ब्लॉक एक्सप्लोरर पर देखें",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
+  },
   "sdk_connect_v2": {
     "show_loading": {
       "title": "dApp से कनेक्ट हो रहा है",
@@ -9040,6 +9698,20 @@
       "title": "सफल",
       "description": "जारी रखने के लिए ऐप पर वापस जाएँ।"
     },
+    "show_cli_link_success": {
+      "title": "MetaMask एजेंट CLI लिंक सफल रहा",
+      "description": "जारी रखने के लिए CLI पर वापस जाएँ।"
+    },
+    "show_otp": {
+      "title": "यह कोड डालें",
+      "description": "कनेक्टिंग खत्म करने के लिए {{dappName}} में {{otp}} डालें। यह कोड {{seconds}} सेकंड में एक्सपायर हो जाएगा।",
+      "modal_title": "MetaMask Agent CLI को लिंक करें",
+      "modal_description": "MetaMask Mobile को अपने MetaMask Agent CLI से पेयर करें।",
+      "code_label": "यह कोड CLI में डालें",
+      "expires_in": "{{time}} में एक्स्पायर होगा",
+      "expired": "कोड एक्सपायर हो गया",
+      "security_notice": "पहले कनेक्शन को सिक्योर किया जा रहा है। आप अगले स्टेप में CLI एक्सेस को ऑथराइज़ करेंगे"
+    },
     "show_not_found": {
       "title": "कनेक्शन नहीं मिला",
       "description": "जारी रखने के लिए कृपया ऐप से नया कनेक्शन बनाएं।"
@@ -9047,6 +9719,11 @@
     "show_internal_error": {
       "title": "कुछ गलत हो गया",
       "description": "एक अनपेक्षित गड़बड़ी हुई। कृपया फिर से कोशिश करें।"
+    },
+    "agentic_cli_dashboard_webview": {
+      "title": "प्रोजेक्ट चुनें",
+      "load_error": "अप्रूवल पेज लोड नहीं हो पा रहा है।",
+      "closed_error": "डैशबोर्ड अप्रूवल बंद हो गया है।"
     },
     "show_method_error": {
       "title": "अनुरोध सफल नहीं हो पाया",
@@ -9066,6 +9743,8 @@
     "title": "एक्सप्लोर करें",
     "crypto_movers": "क्रिप्टो मूवर्स",
     "perps_movers": "पर्प्स मूवर्स",
+    "perps_movers_pill_gainers": "गेनर्स",
+    "perps_movers_pill_losers": "लूज़र्स",
     "trending_tokens": "ट्रेंडिंग",
     "crypto": "क्रिप्टो",
     "stocks": "स्टॉक्स",
@@ -9095,28 +9774,26 @@
     "high_to_low": "ज़्यादा से कम",
     "low_to_high": "कम से ज़्यादा",
     "apply": "लागू करें",
-    "search_placeholder": "Search tokens, markets and URLs",
+    "search_placeholder": "टोकन, मार्केट और URLs ढूंढें",
+    "quick_trade": "तेज़ खरीद और बिक्री",
     "cancel": "कैंसिल करें",
     "perps": "पर्प्स",
     "rwa_perps_section": "पर्प्स",
     "macro_stocks_commodity_perps": "पर्प्स",
-    "macro_pill_stocks": "स्टॉक्स",
-    "macro_pill_commodities": "कमोडिटीज़",
-    "rwa_pill_commodities": "कमोडिटीज़",
-    "rwa_pill_stocks": "स्टॉक्स",
-    "rwa_pill_forex": "फॉरेक्स",
     "crypto_perps_section": "पर्प्स",
     "predictions": "प्रेडिक्शंस",
     "no_results": "कोई रिज़ल्ट नहीं मिला",
-    "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
-    "showing_all_results_for": "We found these results for \"{{query}}\"",
+    "no_results_for_feed": "\"{{query}}\" के लिए कोई {{feedName}} परिणाम नहीं मिला",
+    "no_results_for_query": "\"{{query}}\" के लिए कोई परिणाम नहीं मिला",
+    "no_results_check_popular": "अन्य लोकप्रिय एसेट्स देखें",
+    "showing_all_results_for": "हमें \"{{query}}\" के लिए {{count}} अन्य परिणाम मिले हैं",
     "popular": "लोकप्रिय",
     "sites": "साइट्स",
     "popular_sites": "पॉपुलर साइटें",
     "search_sites": "साइट ढूंढें",
     "view_all": "सभी देखें",
     "view_more": "अधिक देखें",
-    "view_x_more": "View {{count}} more",
+    "view_x_more": "{{count}} और देखें",
     "enable_basic_functionality": "बेसिक फंक्शनलिटी को चालू करें",
     "basic_functionality_disabled_title": "एक्सप्लोर उपलब्ध नहीं है",
     "basic_functionality_disabled_description": "बेसिक फंक्शनलिटी बंद होने पर हम ज़रूरी मेटाडेटा नहीं ला सकते।",
@@ -9139,7 +9816,7 @@
     },
     "search_tabs": {
       "all": "सभी",
-      "crypto": "Cryptos",
+      "crypto": "क्रिप्टो",
       "perps": "पर्प्स",
       "stocks": "स्टॉक्स",
       "predictions": "प्रेडिक्शंस",
@@ -9279,21 +9956,12 @@
       "money": "वित्त",
       "money_empty_description": "आपके पास अभी तक कोई mUSD नहीं है। होमपेज पर Money सेक्शन से स्टेबलकॉइन को mUSD में कन्वर्ट करें।",
       "money_empty_description_network_filter": "इस नेटवर्क पर कोई mUSD नहीं है। अपना mUSD देखने के लिए नेटवर्क बदलें।",
-      "money_empty_state": {
-        "get_started": "शुरू करें",
-        "earn": "कमाएं",
-        "earn_apy": "{{percentage}}% APY कमाएं"
-      },
-      "money_filled_state": {
-        "add": "जोड़ें",
-        "apy": "{{percentage}}% APY"
-      },
       "tokens": "टोकन",
       "perps": "पर्प्स",
       "related_assets": "संबंधित एसेट्स",
       "perpetuals": "परपेचुअल्स",
       "predictions": "प्रेडिक्शंस",
-      "top_traders": "टॉप ट्रेडर्स",
+      "top_traders": "वीकली टॉप ट्रेडर्स",
       "defi": "DeFi",
       "nfts": "NFTs",
       "trending_tokens": "ट्रेंडिंग",
@@ -9302,6 +9970,12 @@
       "import_nfts": "NFTs इंपोर्ट करें",
       "import_nfts_description": "अपने कलेक्टिबल्स आसानी से जोड़ें",
       "view_more": "अधिक देखें",
+      "more": {
+        "title": "अधिक",
+        "import_token": "एक टोकन इंपोर्ट करें",
+        "import_nft": "एक NFT इंपोर्ट करें",
+        "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
+      },
       "positions": {
         "no_tp_sl": "कोई TP/SL नहीं"
       }
@@ -9330,5 +10004,8 @@
       "social": "सोशल",
       "other": "अन्य"
     }
+  },
+  "stepper_card": {
+    "more_information": "अधिक जानकारी"
   }
 }

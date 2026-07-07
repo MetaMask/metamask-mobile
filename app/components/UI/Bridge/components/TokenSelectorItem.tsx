@@ -49,6 +49,7 @@ import { useABTest } from '../../../../hooks';
 import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutConfig,
   TokenSelectorBalanceLayoutVariant,
 } from './TokenSelectorItem.abTestConfig';
 import {
@@ -155,6 +156,13 @@ const createStyles = ({
     childrenWrapper: {
       marginLeft: 12,
     },
+    pressTargetContent: {
+      flex: 1,
+      minWidth: 0,
+    },
+    itemWrapperWithChildren: {
+      alignItems: 'center',
+    },
   });
 
 interface BalanceTextProps {
@@ -174,8 +182,11 @@ interface TokenSelectorItemProps {
   isNoFeeAsset?: boolean;
   secondaryRowContent?: React.ReactNode;
   tokenBalanceTextProps?: Partial<BalanceTextProps>;
+  balanceLayoutConfigOverride?: TokenSelectorBalanceLayoutConfig;
   shouldChangeSelectedStyle?: boolean;
   shouldShowNetworkIcon?: boolean;
+  shouldIncludeChildrenInPressTarget?: boolean;
+  pressTargetAccessibilityLabel?: string;
 }
 
 const isLoadingBalance = (balance?: string) =>
@@ -278,8 +289,11 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   isNoFeeAsset = false,
   secondaryRowContent,
   tokenBalanceTextProps,
+  balanceLayoutConfigOverride,
   shouldChangeSelectedStyle = true,
   shouldShowNetworkIcon = true,
+  shouldIncludeChildrenInPressTarget = false,
+  pressTargetAccessibilityLabel,
 }) => {
   const shouldShowSelectedStyle = isSelected && shouldChangeSelectedStyle;
   const { styles } = useStyles(createStyles, {
@@ -298,6 +312,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   const fiatValue = token.balanceFiat;
 
   const selectedVariant =
+    balanceLayoutConfigOverride ??
     variant ??
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
       TokenSelectorBalanceLayoutVariant.Control
@@ -351,7 +366,23 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
       <TouchableOpacity
         key={token.address}
         onPress={() => onPress(token)}
-        style={styles.itemWrapper}
+        style={[
+          styles.itemWrapper,
+          shouldIncludeChildrenInPressTarget && styles.itemWrapperWithChildren,
+        ]}
+        accessibilityRole={
+          shouldIncludeChildrenInPressTarget ? 'checkbox' : undefined
+        }
+        accessibilityState={
+          shouldIncludeChildrenInPressTarget
+            ? { checked: isSelected }
+            : undefined
+        }
+        accessibilityLabel={
+          shouldIncludeChildrenInPressTarget
+            ? pressTargetAccessibilityLabel
+            : undefined
+        }
         testID={getAssetTestId(`${token.chainId}-${token.symbol}`)}
       >
         <Box
@@ -359,6 +390,11 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
           gap={4}
+          style={
+            shouldIncludeChildrenInPressTarget
+              ? styles.pressTargetContent
+              : undefined
+          }
         >
           {/* Token Icon */}
           {shouldShowNetworkIcon ? (
@@ -524,9 +560,16 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
             {isStockToken(token as BridgeToken) && <StockBadge token={token} />}
           </Box>
         </Box>
+        {shouldIncludeChildrenInPressTarget && children ? (
+          <View style={styles.childrenWrapper} pointerEvents="none">
+            {children}
+          </View>
+        ) : null}
       </TouchableOpacity>
 
-      <View style={styles.childrenWrapper}>{children}</View>
+      {!shouldIncludeChildrenInPressTarget && children ? (
+        <View style={styles.childrenWrapper}>{children}</View>
+      ) : null}
     </Box>
   );
 };

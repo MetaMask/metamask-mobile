@@ -1,30 +1,39 @@
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
-  BoxAlignItems,
   AvatarToken,
   AvatarTokenSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../../../UI/Perps/utils/formatUtils';
 import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
+import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import { formatPercent } from '../../utils/formatters';
+import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface TraderTokenInfoRowProps {
   symbol: string;
   position?: Position;
   marketCap: number | undefined;
+  /** Latest price; shown in place of market cap for perps. */
+  currentPrice?: number | undefined;
   pricePercentChange: number | undefined;
   activeTimePeriodLabel: string;
   onCopyTokenAddress?: () => void;
@@ -49,9 +58,13 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   copyTokenAddressTestID,
 }) => {
   const tw = useTailwind();
+  // Perps have no on-chain token address — `tokenAddress` carries the perp
+  // symbol — so copying it is meaningless. Only spot positions expose copy.
+  const isPerp = position ? isPerpPosition(position) : false;
   const canCopyTokenAddress = Boolean(
-    position?.tokenAddress && onCopyTokenAddress,
+    position?.tokenAddress && onCopyTokenAddress && !isPerp,
   );
+  const perpDirection = position ? getPerpPositionDirection(position) : null;
 
   const content = (
     <Box
@@ -68,16 +81,24 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={1}
+          gap={2}
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
+            twClassName="shrink"
           >
             {symbol}
           </Text>
+          {perpDirection ? (
+            <PerpBadges
+              direction={perpDirection}
+              leverage={position?.perpLeverage}
+              testID="trader-position-perp-badges"
+            />
+          ) : null}
           {canCopyTokenAddress ? (
             <Icon
               name={IconName.Copy}
@@ -96,7 +117,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             }
             numberOfLines={1}
           >
-            {`${pricePercentChange >= 0 ? '+' : ''}${pricePercentChange.toFixed(1)}% `}
+            {formatPercent(pricePercentChange)}{' '}
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
@@ -131,29 +152,54 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   );
 };
 
-interface TraderMarketCapProps {
+interface TraderHeaderStatProps {
+  isPerp: boolean;
   marketCap: number | undefined;
+  currentPrice: number | undefined;
 }
 
-const TraderMarketCap: React.FC<TraderMarketCapProps> = ({ marketCap }) => (
-  <Box alignItems={BoxAlignItems.End}>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {marketCap != null ? formatCompactUsd(marketCap) : '\u2014'}
-    </Text>
-    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-      {strings('social_leaderboard.trader_position.market_cap')}
-    </Text>
-  </Box>
-);
+/**
+ * Top-right header stat. Perps have no market cap, so they surface the current
+ * price instead; spot positions keep the market cap.
+ */
+const TraderHeaderStat: React.FC<TraderHeaderStatProps> = ({
+  isPerp,
+  marketCap,
+  currentPrice,
+}) => {
+  const value = isPerp
+    ? currentPrice != null
+      ? formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+      : '\u2014'
+    : marketCap != null
+      ? formatCompactUsd(marketCap)
+      : '\u2014';
+
+  return (
+    <Box alignItems={BoxAlignItems.End}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+      >
+        {value}
+      </Text>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {strings(
+          isPerp
+            ? 'social_leaderboard.trader_position.price'
+            : 'social_leaderboard.trader_position.market_cap',
+        )}
+      </Text>
+    </Box>
+  );
+};
 
 const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
   symbol,
   position,
   marketCap,
+  currentPrice,
   pricePercentChange,
   activeTimePeriodLabel,
   onCopyTokenAddress,
@@ -172,7 +218,11 @@ const TraderTokenInfoRow: React.FC<TraderTokenInfoRowProps> = ({
       onCopyTokenAddress={onCopyTokenAddress}
       copyTokenAddressTestID={copyTokenAddressTestID}
     />
-    <TraderMarketCap marketCap={marketCap} />
+    <TraderHeaderStat
+      isPerp={position ? isPerpPosition(position) : false}
+      marketCap={marketCap}
+      currentPrice={currentPrice}
+    />
   </Box>
 );
 

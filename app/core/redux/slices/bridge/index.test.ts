@@ -37,6 +37,7 @@ import reducer, {
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
+  selectIsNonEvmSourced,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -1107,7 +1108,7 @@ describe('bridge slice', () => {
       expect(selectHardwareWalletsSwaps(mockState)).toEqual({
         ...initialHardwareWalletsSwapsState,
         status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 1,
+        currentStep: 0,
         totalSteps: 1,
         steps: expect.any(Array),
       });
@@ -1228,6 +1229,56 @@ describe('bridge slice', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectIsNonEvmSourced', () => {
+    const buildState = (sourceToken: BridgeToken | undefined) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+      };
+      return mockState as unknown as RootState;
+    };
+
+    const tokenOn = (chainId: string): BridgeToken =>
+      ({
+        address: '0xsource',
+        symbol: 'SRC',
+        decimals: 18,
+        image: '',
+        chainId: chainId as BridgeToken['chainId'],
+        name: 'Source',
+      }) as BridgeToken;
+
+    it('returns true for a Solana source token', () => {
+      const state = buildState(
+        tokenOn('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Tron source token', () => {
+      const state = buildState(tokenOn('tron:728126428'));
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Bitcoin source token', () => {
+      const state = buildState(
+        tokenOn('bip122:000000000019d6689c085ae165831e93'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns false for an EVM source token', () => {
+      const state = buildState(tokenOn('0x1'));
+      expect(selectIsNonEvmSourced(state)).toBe(false);
+    });
+
+    it('returns a falsy value when there is no source token', () => {
+      const state = buildState(undefined);
+      expect(selectIsNonEvmSourced(state)).toBeFalsy();
     });
   });
 });

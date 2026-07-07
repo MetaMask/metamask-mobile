@@ -8,6 +8,31 @@ import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
 // The port is then translated to the actual allocated port
 export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
 
+/**
+ * Optional cap for E2E wait/poll timeouts (ms). Set `E2E_WAIT_TIMEOUT_MS=30000`
+ * locally to fail fast when a step is stuck instead of waiting minutes.
+ */
+export const resolveE2EWaitTimeoutMs = (fallbackMs: number): number => {
+  const raw = process.env.E2E_WAIT_TIMEOUT_MS?.trim();
+  if (!raw) {
+    return fallbackMs;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackMs;
+};
+
+/** Bootstrap-only timeout (fixture /state.json, cold app after pm clear). */
+export const resolveE2EFixtureBootstrapTimeoutMs = (): number => {
+  const raw = process.env.E2E_FIXTURE_BOOTSTRAP_TIMEOUT_MS?.trim();
+  if (raw) {
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return process.env.E2E_WAIT_TIMEOUT_MS ? 90_000 : 300_000;
+};
+
 // Default implicit wait timeout for WebDriverIO element lookups (in ms).
 // Kept low to enable fast retries in polling loops; use withImplicitWait() for longer waits.
 export const DEFAULT_IMPLICIT_WAIT_MS = 3_500;
@@ -87,6 +112,15 @@ export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
   'dist',
 );
 
+export const DEFAULT_BITCOIN_TEST_DAPP_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'test-dapp-bitcoin',
+  'dist',
+);
+
 export const DEFAULT_BROWSER_PLAYGROUND_PATH = path.join(
   '..',
   '..',
@@ -121,6 +155,7 @@ export enum DappVariants {
   TEST_DAPP = 'test-dapp',
   MULTICHAIN_TEST_DAPP = 'multichain-test-dapp',
   SOLANA_TEST_DAPP = 'solana-test-dapp',
+  BITCOIN_TEST_DAPP = 'bitcoin-test-dapp',
   BROWSER_PLAYGROUND = 'browser-playground',
 }
 
@@ -133,6 +168,9 @@ export const TestDapps = {
   },
   [DappVariants.SOLANA_TEST_DAPP]: {
     dappPath: path.resolve(__dirname, DEFAULT_SOLANA_TEST_DAPP_PATH),
+  },
+  [DappVariants.BITCOIN_TEST_DAPP]: {
+    dappPath: path.resolve(__dirname, DEFAULT_BITCOIN_TEST_DAPP_PATH),
   },
   [DappVariants.BROWSER_PLAYGROUND]: {
     dappPath: path.resolve(__dirname, DEFAULT_BROWSER_PLAYGROUND_PATH),

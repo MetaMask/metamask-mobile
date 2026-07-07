@@ -3,7 +3,7 @@ import type {
   Position,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment } from '../../../../util/haptics';
@@ -22,12 +22,50 @@ const mockRefresh = jest.fn();
 const mockRefetchPositions = jest.fn();
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockPlayErrorNotification = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playImpact: (...args: unknown[]) => mockPlayImpact(...args),
   playSelection: (...args: unknown[]) => mockPlaySelection(...args),
+  playErrorNotification: (...args: unknown[]) =>
+    mockPlayErrorNotification(...args),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+        onOpenBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => {
+          props.onClose?.();
+          cb?.();
+        },
+        onOpenBottomSheet: (cb?: () => void) => {
+          cb?.();
+        },
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID ?? 'bottom-sheet' },
+        props.children,
+      );
+    },
+  );
+  return { ...actual, BottomSheet: MockBottomSheet };
+});
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
@@ -44,10 +82,13 @@ jest.mock('../analytics', () => {
   };
 });
 
+const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialLeaderboardEnabled: () => true,
+    selectSocialLeaderboardPerpsEnabled: () =>
+      mockSelectSocialLeaderboardPerpsEnabled(),
   }),
 );
 
@@ -59,6 +100,7 @@ let mockNotificationPreferences: SocialAIPreference = {
 };
 let mockIsLoadingPreferences = false;
 const mockSetPushNotificationsEnabled = jest.fn();
+const mockSetInAppNotificationsEnabled = jest.fn();
 const mockSetTxAmountLimit = jest.fn();
 const mockToggleTraderNotification = jest.fn();
 const mockIsTraderNotificationEnabled = jest.fn().mockReturnValue(true);
@@ -72,6 +114,7 @@ jest.mock('../NotificationPreferences/hooks', () => ({
     isLoading: mockIsLoadingPreferences,
     error: null,
     setPushNotificationsEnabled: mockSetPushNotificationsEnabled,
+    setInAppNotificationsEnabled: mockSetInAppNotificationsEnabled,
     setTxAmountLimit: mockSetTxAmountLimit,
     toggleTraderNotification: mockToggleTraderNotification,
     isTraderNotificationEnabled: mockIsTraderNotificationEnabled,
@@ -162,7 +205,7 @@ let mockRouteParams: {
   traderRank?: number;
 } = {
   traderId: 'trader-1',
-  traderName: 'dutchiono',
+  traderName: 'trader1',
   traderAddress: '0xabc',
   source: 'leaderboard',
   traderRank: 1,
@@ -182,7 +225,7 @@ const fixtureProfile: TraderProfileResponse = {
     profileId: 'trader-1',
     address: '0xabc',
     allAddresses: ['0xabc'],
-    name: 'dutchiono',
+    name: 'trader1',
     imageUrl: 'https://example.com/avatar.png',
   },
   stats: {
@@ -190,11 +233,18 @@ const fixtureProfile: TraderProfileResponse = {
     winRate30d: 0.92,
     roiPercent30d: 1.5,
     tradeCount30d: 48,
+    pnl7d: 20610,
+    winRate7d: 0.92,
+    roiPercent7d: 1.5,
+    tradeCount7d: 48,
   },
   perChainBreakdown: {
     perChainPnl: {},
     perChainRoi: {},
     perChainVolume: {},
+    perChainPnl7d: {},
+    perChainRoi7d: {},
+    perChainVolume7d: {},
   },
   socialHandles: {},
   followerCount: 45,
@@ -220,6 +270,26 @@ const fixtureOpenPositions: Position[] = [
     pnlPercent: 182,
   },
 ];
+
+const fixturePerpOpenPosition: Position = {
+  positionId: 'btc-hyperliquid-long',
+  tokenSymbol: 'BTC',
+  tokenName: 'Bitcoin',
+  tokenAddress: 'BTC',
+  chain: 'hyperliquid',
+  positionAmount: 1,
+  boughtUsd: 100000,
+  soldUsd: 0,
+  realizedPnl: 0,
+  costBasis: 100000,
+  trades: [],
+  lastTradeAt: Date.now(),
+  currentValueUSD: 125000,
+  pnlValueUsd: 25000,
+  pnlPercent: 25,
+  perpPositionType: 'long',
+  perpLeverage: 5,
+};
 
 const fixtureClosedPositions: Position[] = [
   {
@@ -298,6 +368,15 @@ jest.mock('./hooks', () => ({
   useTraderPositions: () => mockPositionsResult,
 }));
 
+const channelsDisabledPreferences: SocialAIPreference = {
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  pushNotificationsEnabled: false,
+  inAppNotificationsEnabled: false,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
+};
+
 describe('TraderProfileView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -319,6 +398,7 @@ describe('TraderProfileView', () => {
     };
     mockRefresh.mockResolvedValue(undefined);
     mockRefetchPositions.mockResolvedValue(undefined);
+    mockToggleFollow.mockResolvedValue(undefined);
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
       mutedTraderProfileIds: [
@@ -328,9 +408,10 @@ describe('TraderProfileView', () => {
     mockHasNotificationPreferences.mockReturnValue(true);
     mockIsLoadingPreferences = false;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
       traderId: 'trader-1',
-      traderName: 'dutchiono',
+      traderName: 'trader1',
       traderAddress: '0xabc',
       source: 'leaderboard',
       traderRank: 1,
@@ -344,11 +425,37 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('displays the trader name', () => {
+  it('displays the trader name in the profile header and compact nav header', () => {
     renderWithProvider(<TraderProfileView />);
-    const visibleTraderNames = screen.getAllByText('dutchiono');
-    expect(visibleTraderNames).toHaveLength(1);
-    expect(visibleTraderNames[0]).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
+      ).getByText('trader1'),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(
+          TraderProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY,
+        ),
+      ).getByText('trader1'),
+    ).toBeOnTheScreen();
+  });
+
+  it('displays compact win rate and 7D PnL in the nav header', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    const header = screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER);
+
+    expect(
+      within(header).getByTestId(
+        TraderProfileViewSelectorsIDs.HEADER_COMPACT_WIN_RATE,
+      ),
+    ).toHaveTextContent('92%');
+    expect(
+      within(header).getByTestId(
+        TraderProfileViewSelectorsIDs.HEADER_COMPACT_PNL,
+      ),
+    ).toHaveTextContent('+$20,610');
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -359,14 +466,18 @@ describe('TraderProfileView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders follower count', () => {
+  it('does not render a follower count', () => {
     renderWithProvider(<TraderProfileView />);
-    expect(screen.getByText('45 followers')).toBeOnTheScreen();
+    expect(screen.queryByText(/follower/i)).toBeNull();
   });
 
   it('renders the win rate stat', () => {
     renderWithProvider(<TraderProfileView />);
-    expect(screen.getByText('92%')).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+      ).getByText('92%'),
+    ).toBeOnTheScreen();
   });
 
   it('renders the Follow button when not following', () => {
@@ -380,16 +491,185 @@ describe('TraderProfileView', () => {
     expect(screen.getByText('Following')).toBeOnTheScreen();
   });
 
-  it('calls toggleFollow when the follow button is pressed', () => {
+  it('calls toggleFollow when the follow button is pressed', async () => {
     renderWithProvider(<TraderProfileView />);
-    fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
+    });
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+  });
+
+  const runDeferredSetupAction = async () => {
+    const setupCall = mockNavigate.mock.calls.find(
+      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+    );
+    const onSetupComplete = setupCall?.[1]?.onSetupComplete;
+    await act(async () => {
+      onSetupComplete?.();
+    });
+  };
+
+  it('navigates to the trading signals setup sheet when following with both channels off', async () => {
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      mutedTraderProfileIds: [
+        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+      ],
+    };
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+    );
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('follows immediately without a haptic when a channel is already enabled', async () => {
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.anything(),
+    );
+  });
+
+  it('performs the follow when the deferred setup action runs', async () => {
+    mockNotificationPreferences = channelsDisabledPreferences;
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    await runDeferredSetupAction();
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates to the setup sheet instead of toggling mute when both channels are off', async () => {
+    mockProfileResult.isFollowing = true;
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      mutedTraderProfileIds: ['trader-1'],
+    };
+    mockIsTraderNotificationEnabled.mockReturnValue(false);
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.MUTE_CHIP),
+      );
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+    );
+    expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+    expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the trader unmuted when the bell intercept fires for an already-unmuted trader', async () => {
+    mockProfileResult.isFollowing = true;
+    mockNotificationPreferences = channelsDisabledPreferences;
+    mockIsTraderNotificationEnabled.mockReturnValue(true);
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.MUTE_CHIP),
+      );
+    });
+
+    await runDeferredSetupAction();
+
+    expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+  });
+
+  it('unmutes the trader when the bell intercept fires for a muted trader', async () => {
+    mockProfileResult.isFollowing = true;
+    mockNotificationPreferences = {
+      ...channelsDisabledPreferences,
+      mutedTraderProfileIds: ['trader-1'],
+    };
+    mockIsTraderNotificationEnabled.mockReturnValue(false);
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.MUTE_CHIP),
+      );
+    });
+
+    await runDeferredSetupAction();
+
+    expect(mockToggleTraderNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('toggles mute normally when notifications are already enabled', async () => {
+    mockProfileResult.isFollowing = true;
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.MUTE_CHIP),
+      );
+    });
+
+    expect(mockToggleTraderNotification).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.anything(),
+    );
   });
 
   it('renders open positions', () => {
     renderWithProvider(<TraderProfileView />);
     expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
+  });
+
+  it('does not render perp positions when social leaderboard perps are disabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    mockPositionsResult.openPositions = [
+      ...fixtureOpenPositions,
+      fixturePerpOpenPosition,
+    ];
+
+    renderWithProvider(<TraderProfileView />);
+
+    expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
+    expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
   });
 
   it('navigates to the trader position view when a position is pressed', () => {
@@ -401,12 +681,13 @@ describe('TraderProfileView', () => {
       Routes.SOCIAL_LEADERBOARD.POSITION,
       {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         traderImageUrl: 'https://example.com/avatar.png',
         traderAddress: '0xabc',
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
         source: 'profile_position',
+        isClosed: false,
       },
     );
   });
@@ -430,16 +711,32 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders position skeletons when positions are loading', () => {
+    mockPositionsResult.openPositions = [];
     mockPositionsResult.isLoadingOpen = true;
     renderWithProvider(<TraderProfileView />);
     expect(screen.queryByText('STARKBOT')).not.toBeOnTheScreen();
   });
 
+  it('keeps cached positions visible during background refetch', () => {
+    mockPositionsResult.isLoadingOpen = true;
+    renderWithProvider(<TraderProfileView />);
+    expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('renders closed position skeletons when closed tab is loading', () => {
+    mockPositionsResult.closedPositions = [];
     mockPositionsResult.isLoadingClosed = true;
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(
@@ -467,86 +764,40 @@ describe('TraderProfileView', () => {
     });
   });
 
-  describe('notification bell routing', () => {
-    it('does nothing while notification preferences are still loading', () => {
-      mockIsLoadingPreferences = true;
-      renderWithProvider(<TraderProfileView />);
-
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
-      );
-
-      expect(
-        screen.queryByTestId(
-          'top-traders-notifications-setup-bottom-sheet-container',
-        ),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('trader-notifications-bottom-sheet-container'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('navigates to notification settings when preferences do not exist yet', () => {
-      mockHasNotificationPreferences.mockReturnValue(false);
-
-      renderWithProvider(<TraderProfileView />);
-
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-        screen: Routes.SETTINGS.NOTIFICATIONS,
-      });
-    });
-
-    it('opens the setup sheet when push notifications are off', () => {
-      mockNotificationPreferences = {
-        ...DEFAULT_SOCIAL_AI_PREFERENCES,
-        pushNotificationsEnabled: false,
-        mutedTraderProfileIds: [
-          ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
-        ],
-      };
-
-      renderWithProvider(<TraderProfileView />);
-
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
-      );
-
-      expect(
-        screen.getByTestId(
-          'top-traders-notifications-setup-bottom-sheet-container',
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('opens the per-trader sheet when push notifications are on', () => {
-      mockNotificationPreferences = {
-        ...DEFAULT_SOCIAL_AI_PREFERENCES,
-        pushNotificationsEnabled: true,
-        mutedTraderProfileIds: [
-          ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
-        ],
-      };
-
-      renderWithProvider(<TraderProfileView />);
-
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON),
-      );
-
-      expect(
-        screen.getByTestId('trader-notifications-bottom-sheet-container'),
-      ).toBeOnTheScreen();
-    });
+  it('keeps cached profile visible during background refetch', () => {
+    mockProfileResult.isLoading = true;
+    renderWithProvider(<TraderProfileView />);
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Follow')).toBeOnTheScreen();
   });
 
-  it('renders skeleton when profile is null even if not loading', () => {
+  it('title section onLayout sets header height for scroll animation', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    const titleSectionWrapper = screen.getByTestId(
+      TraderProfileViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+    );
+    fireEvent(titleSectionWrapper, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
+    });
+
+    expect(titleSectionWrapper).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render profile header when profile is null and not loading', () => {
     mockProfileResult.profile = null;
     renderWithProvider(<TraderProfileView />);
-    expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
+    ).not.toBeOnTheScreen();
   });
 
   describe('error state', () => {
@@ -581,7 +832,12 @@ describe('TraderProfileView', () => {
 
     it('does not show skeleton when error is present', () => {
       renderWithProvider(<TraderProfileView />);
-      expect(screen.queryByText('45 followers')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
+      ).not.toBeOnTheScreen();
       expect(screen.queryByText('Follow')).not.toBeOnTheScreen();
     });
 
@@ -600,7 +856,9 @@ describe('TraderProfileView', () => {
       expect(
         screen.queryByTestId(TraderProfileViewSelectorsIDs.ERROR_BANNER),
       ).not.toBeOnTheScreen();
-      expect(screen.getByText('45 followers')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -608,7 +866,7 @@ describe('TraderProfileView', () => {
     it('defaults source to deep_link when source param is absent', () => {
       mockRouteParams = {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         traderAddress: '0xabc',
         traderRank: 1,
       };
@@ -624,7 +882,7 @@ describe('TraderProfileView', () => {
     it('falls back to profile address when traderAddress route param is absent', () => {
       mockRouteParams = {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
         source: 'leaderboard',
         traderRank: 1,
       };
@@ -636,7 +894,7 @@ describe('TraderProfileView', () => {
     });
 
     it('does not track tab change when traderAddress is absent and profile has no address', () => {
-      mockRouteParams = { traderId: 'trader-1', traderName: 'dutchiono' };
+      mockRouteParams = { traderId: 'trader-1', traderName: 'trader1' };
       mockProfileResult = {
         ...mockProfileResult,
         profile: {
@@ -664,7 +922,7 @@ describe('TraderProfileView', () => {
         MetaMetricsEvents.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
         expect.objectContaining({
           trader_address: '0xabc',
-          trader_username: 'dutchiono',
+          trader_username: 'trader1',
           source: 'leaderboard',
           is_following: false,
           trader_rank: 1,
@@ -679,7 +937,7 @@ describe('TraderProfileView', () => {
         expect.objectContaining({
           source: 'trader_profile',
           traderAddress: '0xabc',
-          traderUsername: 'dutchiono',
+          traderUsername: 'trader1',
         }),
       );
     });
@@ -695,13 +953,18 @@ describe('TraderProfileView', () => {
       expect(screen.getByText('Value')).toBeOnTheScreen();
     });
 
-    it('cycles Open tab sort Value -> P&L % -> Value on consecutive taps', () => {
+    it('cycles Open tab sort Value -> P&L % -> Recent -> Value on consecutive taps', () => {
       renderWithProvider(<TraderProfileView />);
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
       expect(screen.getByText('P&L %')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Recent')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
@@ -709,19 +972,14 @@ describe('TraderProfileView', () => {
       expect(screen.getByText('Value')).toBeOnTheScreen();
     });
 
-    it('defaults Closed tab sort to Recent and cycles Recent -> Value -> P&L % -> Recent', () => {
+    it('defaults Closed tab sort to Top Trades and cycles Top Trades -> P&L % -> Recent -> Top Trades', () => {
       mockPositionsResult.closedPositions = fixtureClosedPositions;
       renderWithProvider(<TraderProfileView />);
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
 
-      expect(screen.getByText('Recent')).toBeOnTheScreen();
-
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
-      );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
@@ -732,6 +990,11 @@ describe('TraderProfileView', () => {
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
       expect(screen.getByText('Recent')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
     });
 
     it('preserves independent sort state when switching between tabs', () => {
@@ -746,12 +1009,12 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
-      expect(screen.getByText('Recent')).toBeOnTheScreen();
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_OPEN),
@@ -761,7 +1024,7 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
     });
 
     it('triggers a haptic on each sort tap', () => {
@@ -786,13 +1049,169 @@ describe('TraderProfileView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides the sort button while positions are loading', () => {
+    it('hides the sort button when positions are loading with no cached data', () => {
+      mockPositionsResult.openPositions = [];
       mockPositionsResult.isLoadingOpen = true;
       renderWithProvider(<TraderProfileView />);
 
       expect(
         screen.queryByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('headline PnL (7d sum across all chains incl. hyperliquid)', () => {
+    it('sums perChainPnl7d across every chain, including hyperliquid', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 999999 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
+            base: 50_000,
+            solana: 30_000,
+            ethereum: 20_000,
+            hyperliquid: 900_000,
+          },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      // Sum is 1,000,000 — hyperliquid is included; rendered with the full
+      // no-decimals formatter: 1,000,000 → +$1,000,000
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$1,000,000'),
+      ).toBeOnTheScreen();
+      // And the trader's global pnl7d (999,999) is NOT what we display
+      expect(screen.queryByText('+$999,999')).not.toBeOnTheScreen();
+    });
+
+    it('shows the Hyperliquid PnL for a perps-only trader (regression: was 0)', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        // Global pnl7d is 0 for a perps-only trader; the real PnL lives in the
+        // per-chain hyperliquid breakdown.
+        stats: { ...fixtureProfile.stats, pnl7d: 0 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: { hyperliquid: 1_474_000 },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      // 1,474,000 rendered with the full no-decimals formatter → +$1,474,000
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$1,474,000'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('$0')).not.toBeOnTheScreen();
+    });
+
+    it('sums negative per-chain values (incl. hyperliquid) into a negative total', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 12_345 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
+            base: -1_000,
+            solana: -2_500,
+            ethereum: 500,
+            hyperliquid: -50_000,
+          },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      // -1000 + -2500 + 500 + -50000 = -53000 (hyperliquid included);
+      // rendered with the full no-decimals formatter: -53,000 → -$53,000
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('-$53,000'),
+      ).toBeOnTheScreen();
+    });
+
+    it('treats a missing chain entry as 0', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 999 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: { base: 7_500 }, // solana, ethereum, hyperliquid absent
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$7,500'),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to the global stats.pnl7d when perChainPnl7d is empty', () => {
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 20_610 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {},
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$20,610'),
+      ).toBeOnTheScreen();
+    });
+
+    it('excludes Hyperliquid from headline PnL when social leaderboard perps are disabled', () => {
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 999999 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
+            base: 50_000,
+            solana: 30_000,
+            ethereum: 20_000,
+            hyperliquid: 900_000,
+          },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$100,000'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('+$1,000,000')).not.toBeOnTheScreen();
     });
   });
 });

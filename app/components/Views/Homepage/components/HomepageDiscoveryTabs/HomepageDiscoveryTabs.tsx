@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 import {
@@ -61,6 +62,9 @@ const TAB_NAMES = {
   [TAB_INDEX.PERPETUALS]: HomeTabNames.PERPETUALS,
   [TAB_INDEX.PREDICTIONS]: HomeTabNames.PREDICTIONS,
 } as const;
+
+/** Space between the discovery tab bar and the Perps / Predictions screen title. */
+const DISCOVERY_TAB_TITLE_SPACING = 32;
 
 // Static per-tab gradient color stops. Keyed by TAB_INDEX so adding a new tab
 // only requires adding an entry here.
@@ -192,13 +196,13 @@ const HomepageDiscoveryTabs = forwardRef<
 
     // Triggered directly from the scroll worklet via onHeaderHiddenChange —
     // fires in the same frame as the hide/show decision, not based on position.
-    // eslint-disable-next-line react-compiler/react-compiler -- mutating a Reanimated SharedValue is the documented pattern; it does not affect React render
     const animateIcons = useCallback(
       (hidden: boolean) => {
         const toValue = hidden ? 1 : 0;
         const duration = hidden ? 300 : 250;
 
         // UI-thread layout animation via Reanimated.
+        // eslint-disable-next-line react-compiler/react-compiler -- mutating a Reanimated SharedValue is the documented pattern; it does not affect React render
         iconCollapseProgress.value = withTiming(toValue, {
           duration,
           easing: Easing.out(Easing.cubic),
@@ -340,10 +344,17 @@ const HomepageDiscoveryTabs = forwardRef<
       ],
     );
 
+    const tabIconAnimationContextValue = useMemo(
+      () => ({ iconCollapseProgress }),
+      [iconCollapseProgress],
+    );
+
     return (
       <PerpsConnectionProvider suppressErrorView>
         <PerpsStreamProvider>
-          <TabIconAnimationContext.Provider value={{ iconCollapseProgress }}>
+          <TabIconAnimationContext.Provider
+            value={tabIconAnimationContextValue}
+          >
             <View style={styles.flex}>
               <TabsIconList
                 ref={tabsRef}
@@ -380,7 +391,7 @@ const HomepageDiscoveryTabs = forwardRef<
                     walletHeaderHeight={walletHeaderHeight}
                     tabEnterCallbackRef={perpsTabEnterRef}
                     onHeaderHiddenChange={animateIcons}
-                    topInset={22}
+                    topInset={DISCOVERY_TAB_TITLE_SPACING}
                   />
                 </DiscoveryTabView>
 
@@ -392,6 +403,7 @@ const HomepageDiscoveryTabs = forwardRef<
                   <PredictPreviewSheetProvider disableBottomSheet>
                     <PredictFeed
                       hideHeader
+                      topInset={DISCOVERY_TAB_TITLE_SPACING}
                       entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
                       walletHeaderTranslateY={walletHeaderTranslateY}
                       walletHeaderHeight={walletHeaderHeight}

@@ -72,6 +72,15 @@ export const NETWORKS_CHAIN_ID = {
   ARC: toHex('5042'),
 };
 
+/**
+ * The Arc USDC ERC-20 token contract. On Arc the native gas token is USDC, so
+ * this ERC-20 is a display duplicate of the native token. It is hidden across
+ * the UI (token list, aggregated balance, send asset picker) in favour of the
+ * native token, which is the source of truth for USDC on Arc.
+ */
+export const ARC_USDC_TOKEN_ADDRESS =
+  '0x3600000000000000000000000000000000000000';
+
 // To add a deprecation warning to a network, add it to the array
 export const DEPRECATED_NETWORKS = [
   NETWORKS_CHAIN_ID.GOERLI,

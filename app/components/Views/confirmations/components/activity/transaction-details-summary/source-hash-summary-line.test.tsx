@@ -16,6 +16,8 @@ import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useB
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { SourceHashSummaryLine } from './source-hash-summary-line';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
 
@@ -26,6 +28,9 @@ jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -71,6 +76,8 @@ describe('SourceHashSummaryLine', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    configureUseAnalyticsExternalLinkMock();
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
@@ -143,6 +150,32 @@ describe('SourceHashSummaryLine', () => {
         strings('transaction_details.summary_title.predict_withdraw', {
           sourceSymbol: 'pUSD',
           sourceChain: 'Polygon',
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders perps-withdraw title with USDC and Arbitrum network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0xa4b1' ? 'Arbitrum' : 'Monad',
+    );
+
+    const { getByText } = render({
+      id: 'parent-id',
+      chainId: '0xa4b1' as Hex,
+      submittedTime: 1755719285723,
+      type: TransactionType.perpsWithdraw,
+      metamaskPay: {
+        tokenAddress: '0xmusd' as Hex,
+        chainId: '0xmonad' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_send', {
+          sourceSymbol: 'USDC',
+          sourceChain: 'Arbitrum',
         }),
       ),
     ).toBeDefined();

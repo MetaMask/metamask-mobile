@@ -65,6 +65,6 @@ export const useOTAUpdates = () => {
     // Intentionally omit completedOnboarding: we use its value at check start time
     // so that finishing onboarding in the same session does not re-run the check
     // and show the modal (update stays deferred to next launch).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
   }, [navigation, otaUpdatesEnabled]);
 };

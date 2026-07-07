@@ -4,51 +4,52 @@ import {
   NetworkNonPemittedBottomSheetSelectorsIDs,
   NetworkNonPemittedBottomSheetSelectorsText,
 } from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class NetworkNonPemittedBottomSheet {
-  get addThisNetworkTitle(): DetoxElement {
+  get addThisNetworkTitle(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkNonPemittedBottomSheetSelectorsText.ADD_THIS_NETWORK_TITLE,
     );
   }
 
-  get sepoliaNetworkName(): DetoxElement {
+  get sepoliaNetworkName(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
     );
   }
 
-  get ethereumMainNetNetworkName(): DetoxElement {
+  get ethereumMainNetNetworkName(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
     );
   }
 
-  get addThisNetworkButton(): DetoxElement {
+  get addThisNetworkButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON,
     );
   }
 
-  get lineaSepoliaNetworkName(): DetoxElement {
+  get lineaSepoliaNetworkName(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
     );
   }
 
-  get elysiumTestnetNetworkName(): DetoxElement {
+  get elysiumTestnetNetworkName(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkNonPemittedBottomSheetSelectorsText.ELYSIUM_TESTNET_NETWORK_NAME,
     );
   }
 
-  get chooseFromPermittedNetworksButton(): DetoxElement {
+  get chooseFromPermittedNetworksButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON,
     );
   }
 
-  get editPermissionsButton(): DetoxElement {
+  get editPermissionsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON,
     );

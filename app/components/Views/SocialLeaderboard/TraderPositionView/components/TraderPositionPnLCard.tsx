@@ -1,17 +1,17 @@
-import React from 'react';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
-import { formatUsd, formatPercent } from '../../utils/formatters';
+import { formatPercent, formatUsd } from '../../utils/formatters';
 
 export interface TraderPositionPnLCardProps {
   isClosed: boolean;
@@ -28,7 +28,7 @@ const TraderPositionPnLCard: React.FC<TraderPositionPnLCardProps> = ({
   pnlPercent,
   isPnlPositive,
 }) => (
-  <Box twClassName="mx-4 p-4 bg-muted rounded-2xl">
+  <Box twClassName="mx-4 mt-3 mb-1 p-4 bg-muted rounded-2xl">
     <Box
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
@@ -61,11 +61,18 @@ const TraderPositionPnLCard: React.FC<TraderPositionPnLCardProps> = ({
         </Box>
       )}
       <Box alignItems={BoxAlignItems.End}>
+        {/* The absolute amount carries the red/green; the percentage below
+            stays neutral (white). */}
         <Text
           variant={TextVariant.HeadingMd}
           fontWeight={FontWeight.Bold}
+          color={pnlValue == null ? TextColor.TextDefault : undefined}
           twClassName={
-            isPnlPositive ? 'text-success-default' : 'text-error-default'
+            pnlValue == null
+              ? undefined
+              : isPnlPositive
+                ? 'text-success-default'
+                : 'text-error-default'
           }
         >
           {pnlValue != null ? formatPnl(pnlValue) : '\u2014'}

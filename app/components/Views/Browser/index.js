@@ -366,13 +366,17 @@ export const BrowserPure = (props) => {
   );
 
   const showTabsView = useCallback(async () => {
-    try {
-      if (!activeTabUrl) {
-        throw new Error('Active tab URL is not set');
+    // Avoid a `throw` inside try/catch (unsupported by the React Compiler) by
+    // guarding up front; behavior is unchanged (the error is still logged and
+    // the tabs view is still shown).
+    if (!activeTabUrl) {
+      Logger.error(new Error('Active tab URL is not set'));
+    } else {
+      try {
+        await takeScreenshot(activeTabUrl, activeTabId);
+      } catch (e) {
+        Logger.error(e);
       }
-      await takeScreenshot(activeTabUrl, activeTabId);
-    } catch (e) {
-      Logger.error(e);
     }
 
     setShouldShowTabs(true);
@@ -466,6 +470,7 @@ export const BrowserPure = (props) => {
               fromBenefit={route.params?.fromBenefit}
               fromCard={route.params?.fromCard}
               fromWhatsHappening={route.params?.fromWhatsHappening}
+              fromMoney={route.params?.fromMoney}
             />
           ) : (
             <DiscoveryTab
@@ -490,6 +495,7 @@ export const BrowserPure = (props) => {
       route.params?.fromBenefit,
       route.params?.fromCard,
       route.params?.fromWhatsHappening,
+      route.params?.fromMoney,
     ],
   );
 
@@ -561,12 +567,15 @@ const ConnectedBrowser = connect(mapStateToProps, mapDispatchToProps)(Browser);
 ConnectedBrowser.displayName = 'ConnectedBrowser';
 
 const MemoConnectedBrowser = ({ route, ...props }) => {
-  // Little hack to prevent some extra re-renders because route is an object that could be re-created (but stays the same) which triggers a re-render
-  const previousRoute = useRef(route);
-  if (!deepEqual(previousRoute.current, route)) {
-    previousRoute.current = route;
+  // Keep a referentially-stable `route` to prevent extra re-renders when the
+  // route object is re-created but deeply equal. Uses the render-time state
+  // update pattern instead of reading/writing a ref during render, which the
+  // React Compiler disallows.
+  const [stableRoute, setStableRoute] = useState(route);
+  if (!deepEqual(stableRoute, route)) {
+    setStableRoute(route);
   }
-  return <ConnectedBrowser route={previousRoute.current} {...props} />;
+  return <ConnectedBrowser route={stableRoute} {...props} />;
 };
 MemoConnectedBrowser.propTypes = BrowserPure.propTypes;
 

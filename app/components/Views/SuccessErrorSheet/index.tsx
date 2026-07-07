@@ -1,17 +1,7 @@
 import React, { useRef } from 'react';
 import { View } from 'react-native';
-import Text from '../../../component-library/components/Texts/Text';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
 import { useTheme } from '../../../util/theme';
 import styles from './index.styles';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -21,6 +11,15 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
 import { SuccessErrorSheetParams } from './interface';
+
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 export interface SuccessErrorSheetProps {
   route: { params: SuccessErrorSheetParams };
@@ -88,8 +87,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
 
         {typeof title === 'string' ? (
           <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
+            variant={TextVariant.HeadingMd}
+            color={TextColor.TextDefault}
             style={styles.title}
           >
             {title}
@@ -100,8 +99,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
 
         {typeof description === 'string' ? (
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
             style={
               descriptionAlign === 'center'
                 ? styles.descriptionCenter
@@ -123,9 +122,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
           >
             {secondaryButtonLabel && (
               <Button
-                variant={ButtonVariants.Secondary}
-                label={secondaryButtonLabel}
-                width={ButtonWidthTypes.Full}
+                variant={ButtonVariant.Secondary}
+                isFullWidth
                 style={
                   primaryButtonLabel && secondaryButtonLabel
                     ? styles.statusButton
@@ -133,13 +131,14 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
                 }
                 onPress={handleSecondaryButtonPress}
                 size={ButtonSize.Lg}
-              />
+              >
+                {secondaryButtonLabel}
+              </Button>
             )}
             {primaryButtonLabel && (
               <Button
-                variant={ButtonVariants.Primary}
-                label={primaryButtonLabel}
-                width={ButtonWidthTypes.Full}
+                variant={ButtonVariant.Primary}
+                isFullWidth
                 style={
                   primaryButtonLabel && secondaryButtonLabel
                     ? styles.statusButton
@@ -147,7 +146,9 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
                 }
                 onPress={handlePrimaryButtonPress}
                 size={ButtonSize.Lg}
-              />
+              >
+                {primaryButtonLabel}
+              </Button>
             )}
           </View>
         ) : (

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { AnalyticsEvents as AggregatorEvents } from '../Aggregator/types';
-import { AnalyticsEvents as DepositEvents } from '../Deposit/types';
+import { AnalyticsEvents as DepositEvents } from '../types/depositAnalytics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';

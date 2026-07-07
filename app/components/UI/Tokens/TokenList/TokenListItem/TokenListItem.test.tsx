@@ -891,7 +891,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         { timeout: 3000 },
       );
       const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
+        '../../../../../core/Analytics',
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
@@ -964,7 +964,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         { timeout: 3000 },
       );
       const { MetaMetricsEvents } = jest.requireActual(
-        '../../../../hooks/useMetrics',
+        '../../../../../core/Analytics',
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,

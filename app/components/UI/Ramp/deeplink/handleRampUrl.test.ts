@@ -3,8 +3,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import handleRampUrl from './handleRampUrl';
 import handleRedirection from './handleRedirection';
 import NavigationService from '../../../../core/NavigationService';
-import { UnifiedRampRoutingType } from '../../../../reducers/fiatOrders';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import type { Country, UserRegion } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import ReduxService from '../../../../core/redux';
 
 jest.mock('../../../../core/NavigationService', () => ({
   navigation: {
@@ -24,16 +26,17 @@ jest.mock('../../../../core/redux', () => ({
   },
 }));
 
-const mockIsRampsUnifiedV2Enabled = jest.fn();
-jest.mock('../utils/isRampsUnifiedV2Enabled', () => ({
-  isRampsUnifiedV2Enabled: (state: unknown) =>
-    mockIsRampsUnifiedV2Enabled(state),
+const mockSelectGeolocationLocation = jest.fn<string | undefined, [unknown]>(
+  () => 'us-ca',
+);
+jest.mock('../../../../selectors/geolocationController', () => ({
+  selectGeolocationLocation: (state: unknown) =>
+    mockSelectGeolocationLocation(state),
 }));
 
-const mockGetRampRoutingDecision = jest.fn();
-jest.mock('../../../../reducers/fiatOrders', () => ({
-  ...jest.requireActual('../../../../reducers/fiatOrders'),
-  getRampRoutingDecision: (state: unknown) => mockGetRampRoutingDecision(state),
+const mockSelectUserRegion = jest.fn<UserRegion | null, [unknown]>(() => null);
+const mockSelectCountries = jest.fn<{ data: Country[] }, [unknown]>(() => ({
+  data: [],
 }));
 
 const mockCreateEligibilityFailedModalNavigationDetails = jest.fn(() => [
@@ -55,11 +58,36 @@ jest.mock('../components/RampUnsupportedModal/RampUnsupportedModal', () => ({
     mockCreateRampUnsupportedModalNavigationDetails(),
 }));
 
+const mockCreateRampsServiceDisruptionModalNavigationDetails = jest.fn(() => [
+  'RAMPS_SERVICE_DISRUPTION_MODAL_ROUTE',
+]);
+jest.mock(
+  '../components/RampsServiceDisruptionModal/RampsServiceDisruptionModal',
+  () => ({
+    createRampsServiceDisruptionModalNavigationDetails: () =>
+      mockCreateRampsServiceDisruptionModalNavigationDetails(),
+  }),
+);
+
+const mockSelectRampsServiceDisruptionRegions = jest.fn<string[], [unknown]>(
+  () => [],
+);
+jest.mock(
+  '../../../../selectors/featureFlagController/rampsServiceDisruption',
+  () => ({
+    selectRampsServiceDisruptionRegions: (state: unknown) =>
+      mockSelectRampsServiceDisruptionRegions(state),
+  }),
+);
+
 const mockCreateBuildQuoteNavDetails = jest.fn(
-  (params: { assetId: string }) => ['BUILD_QUOTE_ROUTE', params],
+  (params: { assetId: string; amount?: number }) => [
+    'BUILD_QUOTE_ROUTE',
+    params,
+  ],
 );
 jest.mock('../Views/BuildQuote', () => ({
-  createBuildQuoteNavDetails: (params: { assetId: string }) =>
+  createBuildQuoteNavDetails: (params: { assetId: string; amount?: number }) =>
     mockCreateBuildQuoteNavDetails(params),
 }));
 
@@ -80,6 +108,8 @@ const mockSelectTokens = jest.fn(
 );
 jest.mock('../../../../selectors/rampsController', () => ({
   selectTokens: (state: unknown) => mockSelectTokens(state),
+  selectUserRegion: (state: unknown) => mockSelectUserRegion(state),
+  selectCountries: (state: unknown) => mockSelectCountries(state),
 }));
 
 const mockResolveRampControllerAssetId = jest.fn(
@@ -97,16 +127,25 @@ jest.mock('../../../../core/Engine', () => ({
       RampsController: {
         setSelectedToken: jest.fn(),
       },
+      GeolocationController: {
+        refreshGeolocation: jest.fn(),
+      },
     },
   },
 }));
+
+const mockRefreshGeolocation = Engine.context.GeolocationController
+  .refreshGeolocation as jest.Mock;
 
 describe('handleRampUrl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (NavigationService.navigation.navigate as jest.Mock).mockClear();
     (handleRedirection as jest.Mock).mockClear();
-    mockIsRampsUnifiedV2Enabled.mockReturnValue(false);
+    mockSelectGeolocationLocation.mockReturnValue('us-ca');
+    mockSelectUserRegion.mockReturnValue(null);
+    mockSelectCountries.mockReturnValue({ data: [] });
+    mockSelectRampsServiceDisruptionRegions.mockReturnValue([]);
   });
 
   it('handles redirection with the paths', () => {
@@ -121,17 +160,6 @@ describe('handleRampUrl', () => {
     );
   });
 
-  it('navigates to Buy route when rampType is BUY, redirectPaths length is 0 and query params do not have allowed fields', () => {
-    handleRampUrl({
-      rampPath: '?as=example',
-      rampType: RampType.BUY,
-    });
-    expect(handleRedirection).not.toHaveBeenCalled();
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      Routes.RAMP.BUY,
-    );
-  });
-
   it('navigates to Sell route when rampType is SELL, redirectPaths length is 0 and query param do not have allowed fields', () => {
     handleRampUrl({
       rampPath: '?as=example',
@@ -140,26 +168,6 @@ describe('handleRampUrl', () => {
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
       Routes.RAMP.SELL,
-    );
-  });
-
-  it('navigates to Buy route when rampType is BUY, redirectPaths length is 0 and query param is intent', () => {
-    handleRampUrl({
-      rampPath: '?chainId=1&address=0x123456',
-      rampType: RampType.BUY,
-    });
-    expect(handleRedirection).not.toHaveBeenCalled();
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-      Routes.RAMP.BUY,
-      {
-        screen: Routes.RAMP.ID,
-        params: {
-          screen: Routes.RAMP.BUILD_QUOTE,
-          params: {
-            assetId: 'eip155:1/erc20:0x123456',
-          },
-        },
-      },
     );
   });
 
@@ -183,17 +191,15 @@ describe('handleRampUrl', () => {
     );
   });
 
-  describe('when Ramps Unified V2 is enabled', () => {
-    beforeEach(() => {
-      mockIsRampsUnifiedV2Enabled.mockReturnValue(true);
-    });
-
-    it('navigates to eligibility failed modal when routing decision is ERROR', () => {
-      mockGetRampRoutingDecision.mockReturnValue(UnifiedRampRoutingType.ERROR);
-      handleRampUrl({
+  describe('BUY unified flow', () => {
+    it('navigates to eligibility failed modal when geolocation stays unknown after refresh', async () => {
+      mockSelectGeolocationLocation.mockReturnValue(UNKNOWN_LOCATION);
+      mockRefreshGeolocation.mockResolvedValue(UNKNOWN_LOCATION);
+      await handleRampUrl({
         rampPath: '?as=example',
         rampType: RampType.BUY,
       });
+      expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
       expect(handleRedirection).not.toHaveBeenCalled();
       expect(
         mockCreateEligibilityFailedModalNavigationDetails,
@@ -203,11 +209,85 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('navigates to unsupported modal when routing decision is UNSUPPORTED', () => {
-      mockGetRampRoutingDecision.mockReturnValue(
-        UnifiedRampRoutingType.UNSUPPORTED,
+    it('continues to TokenSelection when geolocation refresh resolves a known region', async () => {
+      mockSelectGeolocationLocation.mockReturnValue(UNKNOWN_LOCATION);
+      mockRefreshGeolocation.mockResolvedValue('us-ca');
+      await handleRampUrl({
+        rampPath: '?as=example',
+        rampType: RampType.BUY,
+      });
+      expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
+      expect(
+        jest.mocked(ReduxService.store.getState).mock.calls.length,
+      ).toBeGreaterThanOrEqual(2);
+      expect(mockCreateTokenSelectionNavDetails).toHaveBeenCalled();
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'TOKEN_SELECTION_ROUTE',
       );
-      handleRampUrl({
+    });
+
+    it('does not refresh geolocation when a known location is already in state', async () => {
+      mockSelectGeolocationLocation.mockReturnValue('us-ca');
+      await handleRampUrl({
+        rampPath: '?as=example',
+        rampType: RampType.BUY,
+      });
+      expect(mockRefreshGeolocation).not.toHaveBeenCalled();
+      expect(mockCreateTokenSelectionNavDetails).toHaveBeenCalled();
+    });
+
+    it('navigates to the service disruption modal when the resolved region is in an active service disruption', async () => {
+      mockSelectRampsServiceDisruptionRegions.mockReturnValue(['us-ca']);
+      mockSelectUserRegion.mockReturnValue({
+        regionCode: 'us-ca',
+        country: { isoCode: 'US' },
+        state: null,
+      } as unknown as UserRegion);
+      await handleRampUrl({
+        rampPath: '?as=example',
+        rampType: RampType.BUY,
+      });
+      expect(handleRedirection).not.toHaveBeenCalled();
+      expect(
+        mockCreateRampsServiceDisruptionModalNavigationDetails,
+      ).toHaveBeenCalled();
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'RAMPS_SERVICE_DISRUPTION_MODAL_ROUTE',
+      );
+      expect(mockCreateTokenSelectionNavDetails).not.toHaveBeenCalled();
+    });
+
+    it('shows the service disruption modal over the eligibility modal when geolocation is unknown but the region is in service disruption', async () => {
+      mockSelectGeolocationLocation.mockReturnValue(UNKNOWN_LOCATION);
+      mockRefreshGeolocation.mockResolvedValue(UNKNOWN_LOCATION);
+      mockSelectRampsServiceDisruptionRegions.mockReturnValue(['in']);
+      mockSelectUserRegion.mockReturnValue({
+        regionCode: 'in',
+        country: { isoCode: 'IN' },
+        state: null,
+      } as unknown as UserRegion);
+      await handleRampUrl({
+        rampPath: '?as=example',
+        rampType: RampType.BUY,
+      });
+      expect(
+        mockCreateRampsServiceDisruptionModalNavigationDetails,
+      ).toHaveBeenCalled();
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'RAMPS_SERVICE_DISRUPTION_MODAL_ROUTE',
+      );
+      expect(
+        mockCreateEligibilityFailedModalNavigationDetails,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('navigates to unsupported modal when the resolved region is definitively unsupported', async () => {
+      mockSelectUserRegion.mockReturnValue({
+        regionCode: 'cu',
+        country: { isoCode: 'CU', supported: { buy: false, sell: false } },
+        state: null,
+      } as unknown as UserRegion);
+      await handleRampUrl({
         rampPath: '?as=example',
         rampType: RampType.BUY,
       });
@@ -220,9 +300,8 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('navigates to TokenSelection when V2 enabled and no assetId in intent', () => {
-      mockGetRampRoutingDecision.mockReturnValue(null);
-      handleRampUrl({
+    it('navigates to TokenSelection when no assetId in intent', async () => {
+      await handleRampUrl({
         rampPath: '?as=example',
         rampType: RampType.BUY,
       });
@@ -233,15 +312,14 @@ describe('handleRampUrl', () => {
       );
     });
 
-    it('navigates to BuildQuote when V2 enabled and ramp intent has assetId', () => {
-      mockGetRampRoutingDecision.mockReturnValue(null);
+    it('navigates to BuildQuote when ramp intent has assetId', async () => {
       mockResolveRampControllerAssetId.mockReturnValue(
         'eip155:1/erc20:0x123456',
       );
       mockSelectTokens.mockReturnValue({
         data: { allTokens: [{ assetId: 'eip155:1/erc20:0x123456' }] },
       });
-      handleRampUrl({
+      await handleRampUrl({
         rampPath: '?chainId=1&address=0x123456',
         rampType: RampType.BUY,
       });
@@ -261,5 +339,45 @@ describe('handleRampUrl', () => {
         { assetId: 'eip155:1/erc20:0x123456' },
       );
     });
+
+    it('passes amount to BuildQuote when V2 enabled and ramp intent has amount', async () => {
+      mockResolveRampControllerAssetId.mockReturnValue('eip155:1/slip44:60');
+      mockSelectTokens.mockReturnValue({
+        data: { allTokens: [{ assetId: 'eip155:1/slip44:60' }] },
+      });
+
+      await handleRampUrl({
+        rampPath: '?chainId=1&amount=275',
+        rampType: RampType.BUY,
+      });
+
+      expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 275,
+      });
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        'BUILD_QUOTE_ROUTE',
+        { assetId: 'eip155:1/slip44:60', amount: 275 },
+      );
+    });
+
+    it.each(['0', '-50', 'abc', ''])(
+      'omits amount from BuildQuote when V2 enabled and amount is invalid (%s)',
+      async (invalidAmount) => {
+        mockResolveRampControllerAssetId.mockReturnValue('eip155:1/slip44:60');
+        mockSelectTokens.mockReturnValue({
+          data: { allTokens: [{ assetId: 'eip155:1/slip44:60' }] },
+        });
+
+        await handleRampUrl({
+          rampPath: `?chainId=1&amount=${invalidAmount}`,
+          rampType: RampType.BUY,
+        });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: 'eip155:1/slip44:60',
+        });
+      },
+    );
   });
 });

@@ -253,26 +253,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({}),
-  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
-    .MetaMetricsEvents,
-}));
-
-interface EventBuilder {
-  addProperties: () => EventBuilder;
-  build: () => Record<string, unknown>;
-}
-
-interface MetricsProps {
-  metrics: {
-    isEnabled: () => boolean;
-    trackEvent: (...args: unknown[]) => void;
-    enable: (enable?: boolean) => Promise<void>;
-    createEventBuilder: () => EventBuilder;
-  };
-}
-
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
 
@@ -289,41 +269,16 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
         await mockAnalytics.optIn();
       }
     },
-    addTraitsToUser: mockAnalytics.identify,
+    identify: mockAnalytics.identify,
     createDataDeletionTask: jest.fn(),
     checkDataDeleteStatus: jest.fn(),
     getDeleteRegulationCreationDate: jest.fn(),
     getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
     isEnabled: mockAnalytics.isEnabled,
     getAnalyticsId: mockAnalytics.getAnalyticsId,
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
-
-jest.mock(
-  '../../hooks/useMetrics/withMetricsAwareness',
-  () =>
-    <P extends object>(Component: React.ComponentType<P & MetricsProps>) =>
-    (props: P) => (
-      <Component
-        {...props}
-        metrics={{
-          isEnabled: () => mockAnalytics.isEnabled(),
-          trackEvent: (event: unknown) =>
-            mockAnalytics.trackEvent(event as never),
-          enable: async (enable?: boolean) => {
-            if (enable === false) {
-              await mockAnalytics.optOut();
-            } else {
-              await mockAnalytics.optIn();
-            }
-          },
-          createEventBuilder: mockCreateEventBuilder,
-        }}
-      />
-    ),
-);
 
 const mockSeedlessOnboardingEnabled = jest.fn();
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
@@ -344,8 +299,8 @@ const mockNav = {
     }
   }),
 };
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     Screen: ({
       component: ScreenComponent,

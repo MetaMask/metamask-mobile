@@ -209,7 +209,7 @@ async function invoke(
     typeof renderHook<ReturnType<typeof useContinueWithQuote>, unknown>
   >['result'],
   quote: unknown,
-  ctx: { amount: number; assetId: string } = CTX,
+  ctx: { amount: number; assetId: string; headlessSessionId?: string } = CTX,
 ): Promise<Error | undefined> {
   let caught: Error | undefined;
   await act(async () => {
@@ -315,6 +315,69 @@ describe('useContinueWithQuote', () => {
       expect(caught).toBeUndefined();
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.RAMP.ENTER_EMAIL,
+        expect.objectContaining({
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/slip44:60',
+        }),
+      );
+    });
+
+    it('throws before fetching the quote when no payment method resolves (headless)', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedProvider: NATIVE_PROVIDER,
+          selectedPaymentMethod: null,
+        }),
+      );
+      mockCheckExistingToken.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      // The missing-payment-method guard is scoped to the headless flow, so
+      // it only fires when `ctx.headlessSessionId` is set.
+      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE, {
+        ...CTX,
+        headlessSessionId: 'session-1',
+      });
+
+      expect(caught).toBeInstanceOf(Error);
+      expect(mockCheckExistingToken).not.toHaveBeenCalled();
+      expect(mockGetBuyQuote).not.toHaveBeenCalled();
+      expect(mockReportRampsError).toHaveBeenCalledWith(
+        expect.any(Error),
+        { message: 'Missing payment method for native provider flow' },
+        'deposit.buildQuote.unexpectedError',
+      );
+    });
+
+    it('does not throw at the missing-payment-method guard for the non-headless (UB2) path', async () => {
+      // UB2 (BuildQuote -> continueWithQuote -> continueNative) never sets
+      // `ctx.headlessSessionId`, so even with no resolvable payment method the
+      // guard must stay dormant and the flow proceeds unchanged.
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedProvider: NATIVE_PROVIDER,
+          selectedPaymentMethod: null,
+        }),
+      );
+      mockCheckExistingToken.mockResolvedValue(false);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE);
+
+      // It got past the guard (checkExistingToken ran) and did not report the
+      // headless-only missing-payment-method error.
+      expect(caught).toBeUndefined();
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+      expect(mockReportRampsError).not.toHaveBeenCalledWith(
+        expect.any(Error),
+        { message: 'Missing payment method for native provider flow' },
+        'deposit.buildQuote.unexpectedError',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.VERIFY_IDENTITY,
         expect.objectContaining({
           amount: '100',
           currency: 'USD',

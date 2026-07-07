@@ -22,7 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
+import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -36,6 +36,16 @@ import { isPositiveNumber } from '../../utils/number';
 import styleSheet from './MoneyPotentialEarningsView.styles';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 
 const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation();
@@ -43,30 +53,61 @@ const MoneyPotentialEarningsView = () => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
+
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { apyPercent } = useMoneyAccountBalance();
-  const apyPercentForProjection = apyPercent ?? 0;
+  const { apyDecimal } = useMoneyAccountBalance();
+  const apyDecimalForProjection = apyDecimal ?? 0;
 
   const { eligibleTokens, totalAssetsFiat, projectedAmount } =
-    useProjectedEarnings(depositTokens, apyPercent);
+    useProjectedEarnings(depositTokens, apyDecimal);
+
+  const {
+    trackButtonClicked,
+    trackScreenViewed,
+    trackTokenButtonClicked,
+    trackTokenSurfaceClicked,
+    trackTooltipClicked,
+  } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
+  });
+
+  useMountEffect(trackScreenViewed);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+    });
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackTooltipClicked]);
 
   const handleConvertPress = useCallback(async () => {
-    const defaultToken = eligibleTokens[0];
+    const tokenIndex = 0;
+    const defaultToken = eligibleTokens[tokenIndex];
 
     if (!defaultToken) {
       return;
     }
+
+    trackTokenButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_key: 'money.potential_earnings.convert_cta',
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      component_name: COMPONENT_NAMES.MONEY_CONVERT_CRYPTO_BUTTON,
+      token_symbol: defaultToken.symbol,
+      token_position_in_list: tokenIndex + 1,
+      token_chain_id: defaultToken.chainId ?? '',
+      tokens_in_list: eligibleTokens.length,
+    });
+
     try {
       await initiateDeposit({
         preferredPaymentToken: {
@@ -80,11 +121,23 @@ const MoneyPotentialEarningsView = () => {
           '[MoneyPotentialEarningsView] Failed to initiate deposit from CTA',
       });
     }
-  }, [eligibleTokens, initiateDeposit]);
+  }, [eligibleTokens, initiateDeposit, trackTokenButtonClicked]);
 
-  const handleTokenPress = useCallback(
-    (token: AssetType) => async () => {
+  const handleTokenButtonPress = useCallback(
+    (token: AssetType, tokenIndex: number) => async () => {
       try {
+        trackTokenButtonClicked({
+          button_type: MONEY_BUTTON_TYPES.TEXT,
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+          component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+          label_key: 'money.potential_earnings.add',
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+          token_symbol: token.symbol,
+          token_position_in_list: tokenIndex + 1,
+          token_chain_id: token.chainId ?? '',
+          tokens_in_list: eligibleTokens.length,
+        });
+
         await initiateDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
@@ -97,7 +150,34 @@ const MoneyPotentialEarningsView = () => {
         });
       }
     },
-    [initiateDeposit],
+    [eligibleTokens.length, initiateDeposit, trackTokenButtonClicked],
+  );
+
+  const handleTokenCardPress = useCallback(
+    (token: AssetType, tokenIndex: number) => async () => {
+      try {
+        trackTokenSurfaceClicked({
+          component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+          token_symbol: token.symbol,
+          token_position_in_list: tokenIndex + 1,
+          token_chain_id: token.chainId ?? '',
+          tokens_in_list: eligibleTokens.length,
+        });
+
+        await initiateDeposit({
+          preferredPaymentToken: {
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          },
+        });
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: '[MoneyPotentialEarningsView] Failed to initiate deposit',
+        });
+      }
+    },
+    [eligibleTokens.length, initiateDeposit, trackTokenSurfaceClicked],
   );
 
   return (
@@ -179,8 +259,9 @@ const MoneyPotentialEarningsView = () => {
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
-            apyPercent={apyPercentForProjection}
-            onPress={handleTokenPress(token)}
+            apyDecimal={apyDecimalForProjection}
+            onCardPress={handleTokenCardPress(token, index)}
+            onButtonPress={handleTokenButtonPress(token, index)}
             testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}
           />
         ))}

@@ -28,7 +28,7 @@ import {
   upsertStickyComment,
 } from './shared/pr-template-comment';
 
-const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github" , "cursor"];
+const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github" , "cursor", "mm-token-exchange-service"];
 
 // GitHub App / bot logins that cannot be resolved as User in GraphQL (user(login:) returns null).
 // Issues/PRs from these actors still get full template and label checks; we only skip the org check.
@@ -167,57 +167,79 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   } else if (labelable.type === LabelableType.PullRequest) {
-    // Draft PRs see the same checks but with informational status only, so
-    // authors can preview what to fix before flipping to "Ready for review".
-    // The check name stays identical in both states; branch protection can
-    // require it without extra wiring.
-    const isDraft = Boolean(context.payload.pull_request?.draft);
+    // PRs targeting non-main branches (e.g. release sync / cherry-pick branches) do not require
+    // a fully filled PR template — those workflows bypass manual testing and app-impact review.
+    // We exit 0 here (rather than adding a workflow-level `if:` condition) because GitHub branch
+    // protection treats a *skipped* required check as a failure; an early process.exit(0) produces
+    // a genuine green "passed" status, which is what non-main PRs need.
+    const baseBranch = context.payload.pull_request?.base?.ref;
+    if (baseBranch !== 'main') {
+      console.log(
+        `PR #${labelable.number} targets branch '${baseBranch}', not 'main'. ` +
+        `PR template checks are only enforced on PRs targeting 'main'.`,
+      );
+      // Clean up any stale failure state left from before this rule existed.
+      await removeLabelFromLabelableIfPresent(octokit, labelable, invalidPullRequestTemplateLabel);
+      await upsertStickyComment(octokit, labelable, null);
+      process.exit(0);
+    }
+
     const hasNoChangelogLabel = labelable.labels?.some(
       (label) => label.name === 'no-changelog',
     );
 
-    const failures: { ok: false; reason: string }[] = [];
+    // Section-heading check: every expected `## **…**` body heading must be present.
+    // The INVALID-PR-TEMPLATE label tracks this check only (pre-#30541 semantics) —
+    // semantic failures surface through the sticky comment and exit status instead.
+    const sectionHeadingsMissing = templateType !== TemplateType.PullRequest;
 
-    if (templateType !== TemplateType.PullRequest) {
+    if (sectionHeadingsMissing) {
+      await addLabelToLabelable(octokit, labelable, invalidPullRequestTemplateLabel);
+    } else {
+      await removeLabelFromLabelableIfPresent(octokit, labelable, invalidPullRequestTemplateLabel);
+    }
+
+    const failures: { ok: false; reason: string; blocking: boolean }[] = [];
+
+    if (sectionHeadingsMissing) {
+      // Section-heading mismatch is informational (non-blocking), matching pre-#30541 behavior.
       failures.push({
         ok: false,
         reason:
-          'PR body does not match `pull-request-template.md` (one or more section titles are missing). See https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/pr-template-checks.ts#L15-L23.',
+          'PR body does not match `pull-request-template.md` (one or more section headings are missing). See https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/pr-template-checks.ts#L15-L23.',
+        blocking: false,
       });
     } else {
       failures.push(...runAllChecks(labelable.body, Boolean(hasNoChangelogLabel)));
     }
 
     if (failures.length > 0) {
-      const bullets = failures.map((f) => `- ${f.reason}`).join('\n');
-      await addLabelToLabelable(
-        octokit,
-        labelable,
-        invalidPullRequestTemplateLabel,
-      );
+      const blockingFailures = failures.filter((f) => f.blocking);
+      const warningFailures = failures.filter((f) => !f.blocking);
+
       await upsertStickyComment(
         octokit,
         labelable,
-        renderFailureComment(failures.map((f) => f.reason), isDraft),
+        renderFailureComment({
+          blocking: blockingFailures.map((f) => f.reason),
+          warning: warningFailures.map((f) => f.reason),
+        }),
       );
 
-      if (isDraft) {
-        core.warning(
-          `PR template is not yet ready for review:\n${bullets}\n\nThis check is informational while the PR is in draft.`,
-        );
-        process.exit(0);
+      if (blockingFailures.length > 0) {
+        const bullets = blockingFailures.map((f) => `- ${f.reason}`).join('\n');
+        core.setFailed(`PR template has blocking issues:\n${bullets}`);
+        process.exit(1);
+        return;
       }
 
-      core.setFailed(`PR template is not ready for review:\n${bullets}`);
-      process.exit(1);
+      const bullets = warningFailures.map((f) => `- ${f.reason}`).join('\n');
+      core.warning(`PR template has warnings (informational, does not block merging):\n${bullets}`);
+      process.exit(0);
+      return;
     }
 
     console.log("PR matches 'pull-request-template.md' template and is materially complete.");
-    await removeLabelFromLabelableIfPresent(
-      octokit,
-      labelable,
-      invalidPullRequestTemplateLabel,
-    );
     await upsertStickyComment(octokit, labelable, null);
   } else {
     core.setFailed(

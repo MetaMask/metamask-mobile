@@ -23,6 +23,7 @@ describe('PlaywrightUtilities.launchApp', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    process.env.CI = 'true';
     executeMock.mockResolvedValue(undefined);
     terminateAppMock.mockResolvedValue(undefined);
     globalThis.driver = {
@@ -33,6 +34,7 @@ describe('PlaywrightUtilities.launchApp', () => {
 
   afterEach(() => {
     delete globalThis.driver;
+    delete process.env.CI;
     jest.useRealTimers();
     jest.clearAllMocks();
   });
@@ -44,9 +46,10 @@ describe('PlaywrightUtilities.launchApp', () => {
       },
     });
 
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(2500);
     await launchPromise;
 
+    expect(terminateAppMock).toHaveBeenCalledWith('io.metamask');
     expect(executeMock).toHaveBeenCalledWith(
       'mobile: startActivity',
       expect.objectContaining({
@@ -87,7 +90,7 @@ describe('PlaywrightUtilities.launchApp', () => {
       },
     });
 
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(2500);
     await launchPromise;
 
     const startActivityCall = executeMock.mock.calls.find(
@@ -122,7 +125,7 @@ describe('PlaywrightUtilities.launchApp', () => {
       },
     });
 
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(2500);
     await launchPromise;
 
     expect(terminateAppMock).toHaveBeenCalledWith('io.metamask');
@@ -145,4 +148,65 @@ describe('PlaywrightUtilities.launchApp', () => {
       expect.arrayContaining(['-stop', 'false', '-wait', 'false']),
     );
   });
+
+  it('launches local Android debug builds via Expo dev-client deep link', async () => {
+    jest.useRealTimers();
+    process.env.CI = 'false';
+    const execSyncMock = jest.spyOn(
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-nodejs-modules
+      require('child_process'),
+      'execSync',
+    );
+    execSyncMock.mockImplementation(() => Buffer.from(''));
+
+    const fetchMock = jest.fn((url: string | URL | Request) => {
+      const urlStr = String(url);
+      if (urlStr.includes('/status')) {
+        return Promise.resolve({
+          ok: true,
+          text: () => Promise.resolve('packager-status:running'),
+        } as Response);
+      }
+      if (urlStr.includes('index.bundle')) {
+        return Promise.resolve({
+          ok: true,
+          text: () => Promise.resolve('// metro bundle'),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${urlStr}`));
+    });
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+    try {
+      await PlaywrightUtilities.launchApp(androidDevice);
+
+      expect(execSyncMock).toHaveBeenCalledWith(
+        'adb -s emulator-5554 reverse tcp:8081 tcp:8081',
+        expect.objectContaining({ stdio: 'ignore' }),
+      );
+      expect(executeMock).toHaveBeenCalledWith(
+        'mobile: startActivity',
+        expect.objectContaining({
+          component: 'io.metamask/io.metamask.MainActivity',
+          action: 'android.intent.action.MAIN',
+          categories: ['android.intent.category.LAUNCHER'],
+        }),
+      );
+      expect(executeMock).toHaveBeenCalledWith(
+        'mobile: deepLink',
+        expect.objectContaining({
+          package: 'io.metamask',
+          url: expect.stringContaining(
+            'expo-metamask://expo-development-client',
+          ),
+        }),
+      );
+      expect(fetchMock).toHaveBeenCalled();
+    } finally {
+      globalThis.fetch = originalFetch;
+      execSyncMock.mockRestore();
+      jest.useFakeTimers();
+    }
+  }, 10_000);
 });

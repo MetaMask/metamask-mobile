@@ -10,6 +10,19 @@ export interface PerpsMarketCategoryBadgesProps {
    */
   onCategorySelect: (category: MarketTypeFilter) => void;
   /**
+   * Whether to show the watchlist (star) filter badge.
+   * Should be true only when the user has at least one market on their watchlist.
+   */
+  showWatchlistBadge?: boolean;
+  /**
+   * Whether the watchlist filter is currently active
+   */
+  isWatchlistSelected?: boolean;
+  /**
+   * Callback when the watchlist badge is pressed
+   */
+  onWatchlistToggle?: () => void;
+  /**
    * Optional test ID for E2E testing
    */
   testID?: string;

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
@@ -23,7 +23,11 @@ import {
   getSession,
   setStatus,
 } from '../../headless/sessionRegistry';
-import { setHeadlessEntryCardTouchThrough } from '../../headless/headlessEntryNavigation';
+import {
+  dismissHeadlessFlow,
+  setHeadlessEntryCardTouchThrough,
+} from '../../headless/headlessEntryNavigation';
+import { useHeadlessSessionFocusDismissal } from '../../headless/useHeadlessSessionFocusDismissal';
 import { useHeadlessSessionDismissal } from '../../headless/useHeadlessSessionDismissal';
 import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
 import useContinueWithQuote, {
@@ -48,6 +52,14 @@ export interface HeadlessHostParams {
    * then closes the session.
    */
   nativeFlowError?: string;
+  /**
+   * Set by programmatic navigations that re-reveal this Host without a user
+   * back-out (e.g. OtpCode routing back after a successful OTP with no
+   * amount/currency/assetId). Disables the focus-dismissal heuristic so the
+   * regained focus is not misread as `user_dismissed` and the live session
+   * is kept. A genuine subsequent back-out still closes the session.
+   */
+  suppressFocusDismissal?: boolean;
 }
 
 /**
@@ -62,9 +74,43 @@ function HeadlessHost() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
-  const { headlessSessionId, nativeFlowError } =
+  const { headlessSessionId, nativeFlowError, suppressFocusDismissal } =
     useParams<HeadlessHostParams>();
   const session = getSession(headlessSessionId);
+
+  // Guards the modal teardown so the transparent HEADLESS_ENTRY screen is
+  // popped exactly once on a terminal error, even if two error paths race
+  // (e.g. the continueWithQuote rejection and the nativeFlowError effect) or
+  // the existing beforeRemove / focus-dismissal listeners also fire. Mirrors
+  // Checkout's `hasTerminatedHeadlessSessionRef`.
+  const hasTerminatedHeadlessSessionRef = useRef(false);
+
+  // Terminal-error teardown: forward the error to the consumer via
+  // `failSession` (fires onError, removes the session), then pop the
+  // transparent HEADLESS_ENTRY modal so the underlying confirmation screen
+  // becomes interactive again. Without the dismissal the modal stays mounted
+  // and intercepts all touches, freezing the app until relaunch.
+  //
+  // `failSession` returns `undefined` when the session was already terminated
+  // elsewhere; in that case the other path owns teardown and we do not
+  // double-dismiss.
+  const failHeadlessSession = useCallback(
+    (
+      error: unknown,
+      fallbackCode?: Parameters<typeof failSession>[2],
+    ): boolean => {
+      if (hasTerminatedHeadlessSessionRef.current) {
+        return false;
+      }
+      if (!failSession(headlessSessionId, error, fallbackCode)) {
+        return false;
+      }
+      hasTerminatedHeadlessSessionRef.current = true;
+      dismissHeadlessFlow(navigation);
+      return true;
+    },
+    [headlessSessionId, navigation],
+  );
 
   useEffect(() => {
     setHeadlessEntryCardTouchThrough(navigation, isFocused);
@@ -75,6 +121,9 @@ function HeadlessHost() {
   }, [navigation, isFocused]);
 
   useHeadlessSessionDismissal(headlessSessionId);
+  useHeadlessSessionFocusDismissal(headlessSessionId, isFocused, {
+    disabled: Boolean(nativeFlowError) || Boolean(suppressFocusDismissal),
+  });
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -107,7 +156,10 @@ function HeadlessHost() {
   const chainId = session
     ? (getChainIdFromAssetId(session.params.assetId) as CaipChainId | null)
     : null;
-  const walletAddress = useRampAccountAddress(chainId ?? ('' as CaipChainId));
+  const resolvedWalletAddress = useRampAccountAddress(
+    chainId ?? ('' as CaipChainId),
+  );
+  const walletAddress = session?.params.walletAddress ?? resolvedWalletAddress;
 
   // Auth-loop error path: OtpCode resets back to the Host with
   // `nativeFlowError` set when post-OTP routing fails. Forward to the
@@ -121,15 +173,14 @@ function HeadlessHost() {
     if (!nativeFlowError) {
       return;
     }
-    failSession(
-      headlessSessionId,
+    failHeadlessSession(
       {
         code: 'AUTH_FAILED',
         message: nativeFlowError,
       },
       'AUTH_FAILED',
     );
-  }, [nativeFlowError, headlessSessionId]);
+  }, [nativeFlowError, failHeadlessSession]);
 
   // Process the session. Uses `useEffect` (not `useFocusEffect`) so that
   // it fires whenever `headlessSessionId` changes even when the screen is
@@ -176,7 +227,7 @@ function HeadlessHost() {
     if (!chainId) {
       const message = `HeadlessHost: invalid assetId "${currentSession.params.assetId}"`;
       Logger.error(new Error(message));
-      failSession(headlessSessionId, { code: 'UNKNOWN', message });
+      failHeadlessSession({ code: 'UNKNOWN', message });
       return;
     }
     // Defer until walletAddress resolves — avoids calling continueWithQuote
@@ -191,14 +242,17 @@ function HeadlessHost() {
     const { quote, amount, assetId, currency, paymentMethodId } =
       currentSession.params;
     // Caller override wins. Otherwise `find` is a membership check on the
-    // loaded catalog, not a remap: when it matches, `?.id` equals
-    // `quote.quote.paymentMethod`; when the quote id is absent from
-    // `paymentMethods` (stale quote, filters, load race), we omit
-    // `ctx.paymentMethodId` instead of forwarding an unverified id, and
-    // `useContinueWithQuote` falls back to controller-selected payment method.
+    // loaded catalog: when it matches, `?.id` equals
+    // `quote.quote.paymentMethod`. When the quote id is absent from
+    // `paymentMethods` (stale quote, filters, load race), fall back to the
+    // quote's own `paymentMethod` — it's the method the quote was priced
+    // with, and the native Transak flow requires a payment method on the
+    // quote fetch. Omitting it sends an empty `paymentMethod` to Transak,
+    // which rejects the request with HTTP 400.
     const resolvedPaymentMethodId =
       paymentMethodId ??
-      paymentMethods?.find((pm) => pm.id === quote.quote.paymentMethod)?.id;
+      paymentMethods?.find((pm) => pm.id === quote.quote.paymentMethod)?.id ??
+      quote.quote.paymentMethod;
 
     const ctx: ContinueWithQuoteContext = {
       amount,
@@ -230,7 +284,10 @@ function HeadlessHost() {
       if (!liveSession) {
         return;
       }
-      failSession(headlessSessionId, error);
+      // Fails the session AND pops the transparent HEADLESS_ENTRY modal so the
+      // underlying confirmation is interactive again (was previously left
+      // mounted, freezing the app).
+      failHeadlessSession(error);
     });
     return () => {
       cancelled = true;
@@ -243,6 +300,7 @@ function HeadlessHost() {
     walletAddress,
     userRegion?.country?.currency,
     continueWithQuote,
+    failHeadlessSession,
   ]);
 
   return (

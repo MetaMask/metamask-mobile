@@ -105,7 +105,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
             <ButtonIcon
               hitSlop={styles.hitSlop}
               testID="annual-rate-tooltip"
-              size={ButtonIconSizes.Sm}
+              size={ButtonIconSizes.Xs}
               iconColor={IconColor.Muted}
               iconName={IconName.Info}
               accessibilityRole="button"

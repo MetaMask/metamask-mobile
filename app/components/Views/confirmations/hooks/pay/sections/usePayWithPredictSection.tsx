@@ -73,7 +73,7 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
         size: IconSize.Md,
         color: IconColor.IconAlternative,
       }),
-      title: strings('confirm.pay_with_bottom_sheet.predict_account'),
+      title: strings('confirm.pay_with_bottom_sheet.predict_balance'),
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),

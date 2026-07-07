@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { FeatureId } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -6,6 +7,10 @@ import {
   useQuickBuyQuotes,
   QUICK_BUY_QUOTE_DEBOUNCE_MS,
 } from './hooks/useQuickBuyQuotes';
+import {
+  isQuoteStreamingEnabled,
+  streamQuickBuyQuotes,
+} from './utils/streamQuickBuyQuotes';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import {
   selectDestAddress,
@@ -15,6 +20,7 @@ import {
   selectGasIncludedQuoteParams,
   selectSourceWalletAddress,
 } from '../../../../../../selectors/bridge';
+import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../../../util/Logger';
 
 jest.mock('../../../../../../util/Logger', () => ({
@@ -50,6 +56,13 @@ jest.mock('../../../../../../selectors/featureFlagController', () => ({
   selectRemoteFeatureFlags: jest.fn(() => ({ bridgeConfig: {} })),
 }));
 
+jest.mock(
+  '../../../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialAIQuickBuyStreamQuotesEnabled: jest.fn(() => true),
+  }),
+);
+
 jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectDestAddress: jest.fn(),
   selectSlippage: jest.fn(),
@@ -63,6 +76,11 @@ jest.mock('../../../../../../core/redux/slices/bridge', () => ({
 jest.mock('../../../../../../selectors/bridge', () => ({
   selectGasIncludedQuoteParams: jest.fn(),
   selectSourceWalletAddress: jest.fn(),
+}));
+
+jest.mock('./utils/streamQuickBuyQuotes', () => ({
+  isQuoteStreamingEnabled: jest.fn(() => false),
+  streamQuickBuyQuotes: jest.fn(),
 }));
 
 const mockTrack = jest.fn();
@@ -88,6 +106,10 @@ jest.mock('@metamask/bridge-controller', () => {
 const fetchQuotesMock = Engine.context.BridgeController
   .fetchQuotes as jest.Mock;
 const useSelectorMock = useSelector as jest.Mock;
+const isQuoteStreamingEnabledMock = isQuoteStreamingEnabled as jest.Mock;
+const streamQuickBuyQuotesMock = streamQuickBuyQuotes as jest.Mock;
+const isStreamQuotesFlagEnabledMock =
+  selectSocialAIQuickBuyStreamQuotesEnabled as unknown as jest.Mock;
 
 const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
   ({
@@ -168,11 +190,28 @@ const setupSelectors = () => {
   );
 };
 
+type QuickBuyQuotesParams = Parameters<typeof useQuickBuyQuotes>[0];
+
+function quotesParams(params: QuickBuyQuotesParams): QuickBuyQuotesParams {
+  return {
+    ...params,
+    analyticsContext: {
+      source: 'leaderboard',
+      ...params.analyticsContext,
+    },
+  };
+}
+
 describe('useQuickBuyQuotes', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     setupSelectors();
+    // The QuickBuy stream flag is on by default, so `isQuoteStreamingEnabled`
+    // (bridge SSE) is the effective switch: default to the one-shot path; the
+    // streaming suite opts in explicitly.
+    isStreamQuotesFlagEnabledMock.mockReturnValue(true);
+    isQuoteStreamingEnabledMock.mockReturnValue(false);
     mockSelectBridgeQuotesBase.mockReturnValue({
       sortedQuotes: [],
       recommendedQuote: null,
@@ -185,11 +224,13 @@ describe('useQuickBuyQuotes', () => {
 
   it('returns idle state when any required input is missing', () => {
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: undefined,
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: undefined,
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     expect(result.current.activeQuote).toBeUndefined();
@@ -202,11 +243,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     expect(fetchQuotesMock).not.toHaveBeenCalled();
@@ -223,12 +266,14 @@ describe('useQuickBuyQuotes', () => {
 
     const { rerender } = renderHook(
       ({ token }: { token: number }) =>
-        useQuickBuyQuotes({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: '0.001',
-          immediateFetchToken: token,
-        }),
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+            immediateFetchToken: token,
+          }),
+        ),
       { initialProps: { token: 0 } },
     );
 
@@ -244,12 +289,14 @@ describe('useQuickBuyQuotes', () => {
 
     const { rerender } = renderHook(
       ({ amount }: { amount: string }) =>
-        useQuickBuyQuotes({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: amount,
-          immediateFetchToken: 0,
-        }),
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: amount,
+            immediateFetchToken: 0,
+          }),
+        ),
       { initialProps: { amount: '0.001' } },
     );
 
@@ -289,12 +336,14 @@ describe('useQuickBuyQuotes', () => {
 
     const { result, rerender } = renderHook(
       ({ token, amount }: { token: number; amount: string }) =>
-        useQuickBuyQuotes({
-          sourceToken: createSourceToken(),
-          destToken: createDestToken(),
-          sourceTokenAmount: amount,
-          immediateFetchToken: token,
-        }),
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: amount,
+            immediateFetchToken: token,
+          }),
+        ),
       { initialProps: { token: 0, amount: '0.001' } },
     );
 
@@ -306,7 +355,7 @@ describe('useQuickBuyQuotes', () => {
     );
 
     expect(fetchQuotesMock).toHaveBeenCalledTimes(2);
-    const firstRequestSignal = fetchQuotesMock.mock.calls[0][1];
+    const firstRequestSignal = fetchQuotesMock.mock.calls[0][2];
     expect(firstRequestSignal.aborted).toBe(true);
 
     await act(async () => {
@@ -321,11 +370,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -342,17 +393,47 @@ describe('useQuickBuyQuotes', () => {
       gasIncluded: false,
       gasIncluded7702: false,
     });
+    expect(fetchQuotesMock.mock.calls[0][1]).toBe(
+      FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
+  });
+
+  it('passes QUICK_BUY_TOKEN_DETAILS FeatureId when source is asset_details', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: { source: 'asset_details' },
+        }),
+      ),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalled());
+
+    expect(fetchQuotesMock.mock.calls[0][1]).toBe(
+      FeatureId.QUICK_BUY_TOKEN_DETAILS,
+    );
   });
 
   it('flags isNoQuotesAvailable when fetchQuotes returns an empty array', async () => {
     fetchQuotesMock.mockResolvedValue([]);
 
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -367,11 +448,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockRejectedValue(new Error('boom'));
 
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -387,11 +470,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockRejectedValue(fetchError);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -417,11 +502,13 @@ describe('useQuickBuyQuotes', () => {
 
   it('skips fetching when the atomic source amount normalizes to zero', () => {
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken({ decimals: 18 }),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken({ decimals: 18 }),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0',
+        }),
+      ),
     );
 
     act(() => {
@@ -433,13 +520,15 @@ describe('useQuickBuyQuotes', () => {
 
   it('skips fetching when sourceToken.decimals is undefined', () => {
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken({
-          decimals: undefined as unknown as number,
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken({
+            decimals: undefined as unknown as number,
+          }),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
         }),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      ),
     );
 
     act(() => {
@@ -454,16 +543,18 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([fetched]);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-        analyticsContext: {
-          traderAddress: '0xTRADER',
-          caip19: 'eip155:8453/erc20:0xDEST',
-          amountUsd: 50,
-        },
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: {
+            traderAddress: '0xTRADER',
+            caip19: 'eip155:8453/erc20:0xDEST',
+            amountUsd: 50,
+          },
+        }),
+      ),
     );
 
     act(() => {
@@ -497,15 +588,17 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockRejectedValue(new Error('network error'));
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-        analyticsContext: {
-          traderAddress: '0xTRADER',
-          caip19: 'eip155:8453/erc20:0xDEST',
-        },
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: {
+            traderAddress: '0xTRADER',
+            caip19: 'eip155:8453/erc20:0xDEST',
+          },
+        }),
+      ),
     );
 
     act(() => {
@@ -524,16 +617,18 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-        analyticsContext: {
-          traderAddress: '0xTRADER',
-          caip19: 'eip155:8453/erc20:0xDEST',
-          // amountUsd intentionally absent
-        },
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: {
+            traderAddress: '0xTRADER',
+            caip19: 'eip155:8453/erc20:0xDEST',
+            // amountUsd intentionally absent
+          },
+        }),
+      ),
     );
 
     act(() => {
@@ -555,11 +650,13 @@ describe('useQuickBuyQuotes', () => {
       .mockRejectedValue(new Error('network error'));
 
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     await act(async () => {
@@ -601,11 +698,13 @@ describe('useQuickBuyQuotes', () => {
     );
 
     const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     act(() => {
@@ -624,11 +723,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     const { result, rerender } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     await act(async () => {
@@ -653,11 +754,13 @@ describe('useQuickBuyQuotes', () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
     const { result, rerender } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
     );
 
     await act(async () => {
@@ -670,5 +773,313 @@ describe('useQuickBuyQuotes', () => {
     rerender({});
 
     expect(result.current.isQuoteRequestStale).toBe(true);
+  });
+
+  it('uses the one-shot fetch when the QuickBuy stream flag is off, even with bridge SSE on', async () => {
+    isStreamQuotesFlagEnabledMock.mockReturnValue(false);
+    isQuoteStreamingEnabledMock.mockReturnValue(true);
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+        }),
+      ),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+    expect(streamQuickBuyQuotesMock).not.toHaveBeenCalled();
+  });
+
+  describe('streaming path', () => {
+    const streamedQuote = (requestId: string) => {
+      const quote = createFetchedQuote();
+      quote.quote.requestId = requestId;
+      return quote;
+    };
+
+    interface StreamHandlers {
+      onQuote: (quote: unknown) => void;
+    }
+
+    beforeEach(() => {
+      isQuoteStreamingEnabledMock.mockReturnValue(true);
+      // Pass the injected quotes straight through so sortedQuotes reflects the
+      // accumulated stream and the first quote becomes the recommended one.
+      mockSelectBridgeQuotesBase.mockImplementation(
+        (controllerFields: { quotes: unknown[] }) => ({
+          sortedQuotes: controllerFields.quotes,
+          recommendedQuote: controllerFields.quotes[0] ?? null,
+        }),
+      );
+    });
+
+    it('accumulates streamed quotes and never calls the one-shot fetch', async () => {
+      streamQuickBuyQuotesMock.mockImplementation(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: unknown,
+          { onQuote }: StreamHandlers,
+        ) => {
+          onQuote(streamedQuote('r1'));
+          onQuote(streamedQuote('r2'));
+        },
+      );
+
+      const { result } = renderHook(() =>
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+          }),
+        ),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+
+      await waitFor(() => expect(result.current.sortedQuotes).toHaveLength(2));
+      expect(fetchQuotesMock).not.toHaveBeenCalled();
+      expect(streamQuickBuyQuotesMock).toHaveBeenCalledTimes(1);
+      expect(result.current.isQuoteLoading).toBe(false);
+      expect(result.current.isNoQuotesAvailable).toBe(false);
+      expect(result.current.refreshCount).toBe(1);
+    });
+
+    it('dedupes streamed quotes by requestId', async () => {
+      streamQuickBuyQuotesMock.mockImplementation(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: unknown,
+          { onQuote }: StreamHandlers,
+        ) => {
+          onQuote(streamedQuote('dup'));
+          onQuote(streamedQuote('dup'));
+        },
+      );
+
+      const { result } = renderHook(() =>
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+          }),
+        ),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+
+      await waitFor(() => expect(result.current.sortedQuotes).toHaveLength(1));
+    });
+
+    it('flags isNoQuotesAvailable when the stream ends with no quotes', async () => {
+      streamQuickBuyQuotesMock.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() =>
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+          }),
+        ),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+
+      await waitFor(() =>
+        expect(result.current.isNoQuotesAvailable).toBe(true),
+      );
+      expect(result.current.isQuoteLoading).toBe(false);
+    });
+
+    it('captures stream errors in quoteFetchError', async () => {
+      streamQuickBuyQuotesMock.mockRejectedValue(new Error('stream boom'));
+
+      const { result } = renderHook(() =>
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+          }),
+        ),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+
+      await waitFor(() =>
+        expect(result.current.quoteFetchError).toBe('stream boom'),
+      );
+      expect(result.current.isQuoteLoading).toBe(false);
+    });
+
+    it('keeps auto-refreshing indefinitely (refresh is never paused)', async () => {
+      streamQuickBuyQuotesMock.mockImplementation(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: unknown,
+          { onQuote }: StreamHandlers,
+        ) => {
+          onQuote(streamedQuote('r1'));
+        },
+      );
+
+      // Stable params object: inline factories would create new token /
+      // analyticsContext references each render, recreating fetchQuotes and
+      // re-firing the reactive (non-refresh) fetch — which would confuse the
+      // refresh-count assertions below.
+      const stableParams = quotesParams({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      });
+      const { result } = renderHook(() => useQuickBuyQuotes(stableParams));
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+      await waitFor(() => expect(result.current.refreshCount).toBe(1));
+
+      const callsAfterInitial = streamQuickBuyQuotesMock.mock.calls.length;
+      await act(async () => {
+        jest.advanceTimersByTime(result.current.quoteRefreshRateMs);
+        await Promise.resolve();
+      });
+
+      // A full refresh interval after settling, the next fetch fires.
+      expect(streamQuickBuyQuotesMock.mock.calls.length).toBeGreaterThan(
+        callsAfterInitial,
+      );
+    });
+
+    it('surfaces the cheapest quote as lower-cost quotes stream in', async () => {
+      // Sort the injected quotes by ascending cost, like the real selector.
+      mockSelectBridgeQuotesBase.mockImplementation(
+        (controllerFields: { quotes: { cost?: number }[] }) => {
+          const sortedQuotes = [...controllerFields.quotes].sort(
+            (a, b) => (a.cost ?? 0) - (b.cost ?? 0),
+          );
+          return { sortedQuotes, recommendedQuote: sortedQuotes[0] ?? null };
+        },
+      );
+
+      const withCost = (requestId: string, cost: number) => ({
+        ...streamedQuote(requestId),
+        cost,
+      });
+
+      let emit: (quote: unknown) => void = () => undefined;
+      streamQuickBuyQuotesMock.mockImplementationOnce(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: unknown,
+          { onQuote }: StreamHandlers,
+        ) => {
+          emit = onQuote;
+          onQuote(withCost('expensive', 10));
+          // Keep the stream open so the next quote still arrives mid-stream.
+          await new Promise<void>(() => undefined);
+        },
+      );
+
+      // Stable params so setState-driven re-renders don't recreate fetchQuotes
+      // and re-fire the reactive fetch (which would abort this stream).
+      const stableParams = quotesParams({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      });
+      const { result } = renderHook(() => useQuickBuyQuotes(stableParams));
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+      await waitFor(() =>
+        expect(result.current.activeQuote?.quote.requestId).toBe('expensive'),
+      );
+
+      // A cheaper quote arrives while the stream is still open.
+      await act(async () => {
+        emit(withCost('cheap', 1));
+        await Promise.resolve();
+      });
+
+      expect(result.current.activeQuote?.quote.requestId).toBe('cheap');
+    });
+
+    it('anchors the next auto-refresh on the stream close, not the fetch start', async () => {
+      let closeFirstStream: () => void = () => undefined;
+      streamQuickBuyQuotesMock.mockImplementationOnce(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: unknown,
+          { onQuote }: StreamHandlers,
+        ) => {
+          onQuote(streamedQuote('r1'));
+          await new Promise<void>((resolve) => {
+            closeFirstStream = resolve;
+          });
+        },
+      );
+
+      // Stable params so setState-driven re-renders don't recreate fetchQuotes
+      // and schedule extra fetches that would skew the call count.
+      const stableParams = quotesParams({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      });
+      const { result } = renderHook(() => useQuickBuyQuotes(stableParams));
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+      expect(streamQuickBuyQuotesMock).toHaveBeenCalledTimes(1);
+
+      const refreshMs = result.current.quoteRefreshRateMs;
+
+      // Stream stays open for 5s, then closes.
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(5000);
+      });
+      await act(async () => {
+        closeFirstStream();
+        await Promise.resolve();
+      });
+
+      // Start-anchored code would refetch a full interval after the fetch START
+      // (5s after close); settle-anchored code waits a full interval from CLOSE.
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(refreshMs - 1);
+      });
+      expect(streamQuickBuyQuotesMock).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(1);
+      });
+      expect(streamQuickBuyQuotesMock).toHaveBeenCalledTimes(2);
+    });
   });
 });

@@ -24,6 +24,8 @@ import {
   type PerpsMarketData,
   findEvmAccount,
 } from '@metamask/perps-controller';
+import { store } from '../../../../store';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import {
   PROVIDER_CONFIG,
   PERPS_DISK_CACHE_MARKETS,
@@ -63,12 +65,21 @@ interface StreamSubscription<T> {
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
   hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
+  // Symbols this subscriber cares about. When present, the channel can dispatch
+  // an update only to subscribers registered for the symbols that changed,
+  // instead of iterating every subscriber on every tick. Used by the price channel.
+  symbols?: string[];
 }
 
 // Base class for any stream type
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
+  // Reverse index: symbol -> set of subscriber ids registered for that symbol.
+  // Populated only for subscriptions that declare `symbols` (the price channel),
+  // so symbol-scoped channels can dispatch a tick to just the relevant
+  // subscribers. Channels without symbol subscriptions never touch this map.
+  protected readonly symbolSubscribers = new Map<string, Set<string>>();
   protected wsSubscription: (() => void) | null = null;
   readonly #onDataPersist?: () => void;
 
@@ -100,40 +111,130 @@ abstract class StreamChannel<T> {
     }
 
     this.subscribers.forEach((subscriber) => {
-      // Check if this is the first update for this subscriber
-      if (!subscriber.hasReceivedFirstUpdate) {
-        subscriber.callback(updates);
-        subscriber.hasReceivedFirstUpdate = true;
-        return; // Don't set up throttle for the first update
-      }
+      this.deliverToSubscriber(subscriber, updates);
+    });
+  }
 
-      // If no throttling (throttleMs is 0 or undefined), notify immediately
-      if (!subscriber.throttleMs) {
-        subscriber.callback(updates);
+  /**
+   * Symbol-scoped variant of {@link notifySubscribers}. Only subscribers that
+   * registered for at least one of `changedSymbols` are notified, so a tick that
+   * carries a subset of symbols does not iterate (or allocate filtered payloads
+   * for) subscribers that don't care about it. Each notified subscriber receives
+   * the exact same `updates` payload it would via notifySubscribers, so its own
+   * filtering wrapper still produces the correct slice. First-update and throttle
+   * semantics are identical because delivery goes through the shared
+   * {@link deliverToSubscriber}.
+   */
+  protected notifySubscribersForSymbols(
+    updates: T,
+    changedSymbols: Iterable<string>,
+  ) {
+    // Block emission while any pause is held (WebSocket continues receiving updates)
+    if (this.pauseCount > 0) {
+      return;
+    }
+
+    // A subscriber registered for multiple changed symbols must be delivered to
+    // exactly once per tick (not once per matching symbol).
+    const notifiedIds = new Set<string>();
+    for (const symbol of changedSymbols) {
+      const ids = this.symbolSubscribers.get(symbol);
+      if (!ids) {
+        continue;
+      }
+      ids.forEach((id) => {
+        if (notifiedIds.has(id)) {
+          return;
+        }
+        const subscriber = this.subscribers.get(id);
+        if (!subscriber) {
+          return;
+        }
+        notifiedIds.add(id);
+        this.deliverToSubscriber(subscriber, updates);
+      });
+    }
+  }
+
+  /**
+   * Deliver a single update to one subscriber, applying first-update and throttle
+   * semantics. Shared by {@link notifySubscribers} and
+   * {@link notifySubscribersForSymbols} so both dispatch paths behave identically.
+   */
+  private deliverToSubscriber(subscriber: StreamSubscription<T>, updates: T) {
+    // Check if this is the first update for this subscriber
+    if (!subscriber.hasReceivedFirstUpdate) {
+      subscriber.callback(updates);
+      subscriber.hasReceivedFirstUpdate = true;
+      return; // Don't set up throttle for the first update
+    }
+
+    // If no throttling (throttleMs is 0 or undefined), notify immediately
+    if (!subscriber.throttleMs) {
+      subscriber.callback(updates);
+      return;
+    }
+
+    // For subsequent updates with throttling, use throttle logic
+    // Store pending update
+    subscriber.pendingUpdate = updates;
+
+    // Throttle pattern: Only set timer if one isn't already running
+    // This ensures callbacks fire at most once per throttleMs interval
+    // WITHOUT resetting the countdown on every update (which would be debouncing)
+    // The conditional check prevents timer accumulation - no memory leaks
+    subscriber.timer ??= setTimeout(() => {
+      if (subscriber.pendingUpdate) {
+        subscriber.callback(subscriber.pendingUpdate);
+        subscriber.pendingUpdate = undefined;
+      }
+      subscriber.timer = undefined;
+    }, subscriber.throttleMs);
+  }
+
+  /**
+   * Register a subscription's symbols into the reverse index so symbol-scoped
+   * dispatch can find it. No-op for subscriptions without symbols.
+   */
+  private indexSubscriptionSymbols(subscription: StreamSubscription<T>) {
+    const { symbols } = subscription;
+    if (!symbols) {
+      return;
+    }
+    symbols.forEach((symbol) => {
+      let ids = this.symbolSubscribers.get(symbol);
+      if (!ids) {
+        ids = new Set<string>();
+        this.symbolSubscribers.set(symbol, ids);
+      }
+      ids.add(subscription.id);
+    });
+  }
+
+  /**
+   * Remove a subscription's symbols from the reverse index, pruning empty sets.
+   */
+  private deindexSubscriptionSymbols(subscription?: StreamSubscription<T>) {
+    const symbols = subscription?.symbols;
+    if (!subscription || !symbols) {
+      return;
+    }
+    symbols.forEach((symbol) => {
+      const ids = this.symbolSubscribers.get(symbol);
+      if (!ids) {
         return;
       }
-
-      // For subsequent updates with throttling, use throttle logic
-      // Store pending update
-      subscriber.pendingUpdate = updates;
-
-      // Throttle pattern: Only set timer if one isn't already running
-      // This ensures callbacks fire at most once per throttleMs interval
-      // WITHOUT resetting the countdown on every update (which would be debouncing)
-      // The conditional check prevents timer accumulation - no memory leaks
-      subscriber.timer ??= setTimeout(() => {
-        if (subscriber.pendingUpdate) {
-          subscriber.callback(subscriber.pendingUpdate);
-          subscriber.pendingUpdate = undefined;
-        }
-        subscriber.timer = undefined;
-      }, subscriber.throttleMs);
+      ids.delete(subscription.id);
+      if (ids.size === 0) {
+        this.symbolSubscribers.delete(symbol);
+      }
     });
   }
 
   subscribe(params: {
     callback: (data: T) => void;
     throttleMs?: number;
+    symbols?: string[];
   }): () => void {
     const id = Math.random().toString(36);
 
@@ -143,6 +244,7 @@ abstract class StreamChannel<T> {
       hasReceivedFirstUpdate: false, // Initialize as false
     };
     this.subscribers.set(id, subscription);
+    this.indexSubscriptionSymbols(subscription);
 
     // Give immediate cached data if available
     const cached = this.getCachedData();
@@ -162,6 +264,7 @@ abstract class StreamChannel<T> {
         clearTimeout(sub.timer);
         sub.timer = undefined;
       }
+      this.deindexSubscriptionSymbols(sub);
       this.subscribers.delete(id);
 
       // Disconnect if no subscribers
@@ -384,6 +487,31 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
+  /**
+   * Maps a raw price update to the cached PriceUpdate shape, stamping the
+   * receive time and applying backward-compatible defaults.
+   *
+   * Backward-compatible default for `isTradable`: pre-8.3.0 streams don't
+   * emit the field, so treat absence as tradable to avoid breaking existing
+   * market display.
+   */
+  private toPriceUpdate(update: PriceUpdate): PriceUpdate {
+    return {
+      symbol: update.symbol,
+      price: update.price,
+      timestamp: Date.now(),
+      percentChange24h: update.percentChange24h,
+      bestBid: update.bestBid,
+      bestAsk: update.bestAsk,
+      spread: update.spread,
+      markPrice: update.markPrice,
+      funding: update.funding,
+      openInterest: update.openInterest,
+      volume24h: update.volume24h,
+      isTradable: update.isTradable ?? true,
+    };
+  }
+
   protected connect() {
     if (this.wsSubscription) {
       return;
@@ -421,25 +549,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
-          // Map the update to PriceUpdate format
-          const priceUpdate: PriceUpdate = {
-            symbol: update.symbol,
-            price: update.price,
-            timestamp: Date.now(),
-            percentChange24h: update.percentChange24h,
-            bestBid: update.bestBid,
-            bestAsk: update.bestAsk,
-            spread: update.spread,
-            markPrice: update.markPrice,
-            funding: update.funding,
-            openInterest: update.openInterest,
-            volume24h: update.volume24h,
-          };
+          const priceUpdate = this.toPriceUpdate(update);
           this.priceCache.set(update.symbol, priceUpdate);
           priceMap[update.symbol] = priceUpdate;
         });
 
-        this.notifySubscribers(priceMap);
+        // Scope dispatch to subscribers registered for the symbols in this tick.
+        this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
       },
     });
   }
@@ -470,6 +586,24 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     super.clearCache();
   }
 
+  public reconnect(): void {
+    const shouldRestorePrewarm = Boolean(this.prewarmUnsubscribe);
+
+    if (shouldRestorePrewarm) {
+      this.cleanupPrewarm();
+    }
+
+    super.reconnect();
+
+    if (shouldRestorePrewarm) {
+      this.prewarm().catch((error) => {
+        Logger.error(ensureError(error, 'PriceStreamChannel.reconnect'), {
+          context: 'PriceStreamChannel.reconnect',
+        });
+      });
+    }
+  }
+
   subscribeToSymbols(params: {
     symbols: string[];
     callback: (prices: Record<string, PriceUpdate>) => void;
@@ -488,6 +622,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     }
 
     return this.subscribe({
+      // Registering symbols lets the channel scope dispatch to only the
+      // subscribers interested in the symbols present in a given tick.
+      symbols: params.symbols,
       callback: (allPrices) => {
         // Filter to only requested symbols
         const filtered: Record<string, PriceUpdate> = {};
@@ -525,7 +662,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // Start market fetch in background (non-blocking)
     // We need the symbols to register subscribers, but we can return immediately
     controller
-      .getMarkets()
+      .getMarkets({
+        useTerminalApi: selectPerpsTerminalBackendEnabledFlag(store.getState()),
+      })
       .then((markets) => {
         // If this promise is from a stale cycle, don't set up subscription
         // This prevents leaks when prewarm is called multiple times rapidly
@@ -562,31 +701,25 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           callback: (updates: PriceUpdate[]) => {
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
-              const priceUpdate: PriceUpdate = {
-                symbol: update.symbol,
-                price: update.price,
-                timestamp: Date.now(),
-                percentChange24h: update.percentChange24h,
-                bestBid: update.bestBid,
-                bestAsk: update.bestAsk,
-                spread: update.spread,
-                markPrice: update.markPrice,
-                funding: update.funding,
-                openInterest: update.openInterest,
-                volume24h: update.volume24h,
-              };
+              const priceUpdate = this.toPriceUpdate(update);
               this.priceCache.set(update.symbol, priceUpdate);
               priceMap[update.symbol] = priceUpdate;
             });
 
             if (this.subscribers.size > 0) {
-              this.notifySubscribers(priceMap);
+              // Scope dispatch to subscribers registered for the symbols in this tick.
+              this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
             }
           },
         });
 
         // Store the actual unsubscribe function
         this.actualPriceUnsubscribe = unsub;
+
+        if (this.wsSubscription) {
+          this.wsSubscription();
+          this.wsSubscription = null;
+        }
       })
       .catch((error) => {
         Logger.error(
@@ -1387,20 +1520,25 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       return;
     }
 
-    // Get current provider ID + network as a composite key.
-    // Network changes (testnet toggle) must also invalidate the market cache.
+    // Get current provider ID + network + terminal flag as a composite key.
+    // Network changes (testnet toggle) and terminal backend flag changes must
+    // also invalidate the market cache so a HyperLiquid-sourced response is
+    // never served after the flag flips to Terminal (and vice-versa).
     const controller = Engine.context.PerpsController;
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-    const currentNetworkKey = buildProviderCacheKey(
+    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+      store.getState(),
+    );
+    const currentNetworkKey = `${buildProviderCacheKey(
       currentProviderId,
       controller.state?.isTestnet ?? false,
-    );
+    )}:${terminalEnabled ? 'terminal' : 'direct'}`;
 
-    // Invalidate cache if provider OR network changed
+    // Invalidate cache if provider, network, OR terminal flag changed
     if (this.cachedProviderId && this.cachedProviderId !== currentNetworkKey) {
       DevLogger.log(
-        'PerpsStreamManager: Provider/network changed, invalidating cache',
+        'PerpsStreamManager: Provider/network/flag changed, invalidating cache',
         {
           from: this.cachedProviderId,
           to: currentNetworkKey,
@@ -1454,11 +1592,30 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       try {
         const controller = Engine.context.PerpsController;
 
+        // Read terminal flag once at the start of this fetch cycle.
+        const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+          store.getState(),
+        );
+        const terminalSuffix = terminalEnabled ? 'terminal' : 'direct';
+
         // One-time read of controller-level preloaded cache (REST snapshot).
         // This avoids an HTTP round-trip when the controller already has fresh data.
-        const controllerNetworkKey = getProviderNetworkKey(controller.state);
-        const cachedForProvider =
-          controller.getCachedMarketDataForActiveProvider?.();
+        // Include terminal flag in the key so a flag flip forces a fresh fetch.
+        const controllerNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
+
+        // The controller's preload cache (cachedMarketDataByProvider) is keyed only
+        // by provider/network and is ALWAYS sourced from the direct provider — its
+        // background preload calls getMarketDataWithPrices() without useTerminalApi,
+        // so it never contains Terminal-API data. It is therefore only safe to adopt
+        // when the Terminal backend is disabled. Adopting it while Terminal is enabled
+        // (e.g. after a flag flip, or on startup if preload ran before the remote flag
+        // settled) would serve direct HyperLiquid data and cache it as Terminal data
+        // (or the reverse). When the source can't be guaranteed to match, skip the
+        // preloaded cache and fetch fresh market data below.
+        const controllerCacheSourceMatches = !terminalEnabled;
+        const cachedForProvider = controllerCacheSourceMatches
+          ? controller.getCachedMarketDataForActiveProvider?.()
+          : undefined;
         if (
           cachedForProvider &&
           cachedForProvider.length > 0 &&
@@ -1482,19 +1639,24 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           'PerpsStreamManager: Fetching fresh market data from API',
         );
 
-        // Snapshot provider + network BEFORE the async call to avoid race conditions.
-        // If the user switches providers or toggles testnet while getMarketDataWithPrices()
-        // is in-flight, we must not tag the returned data with the new network key.
-        const preFetchNetworkKey = getProviderNetworkKey(controller.state);
+        // Snapshot provider + network + flag BEFORE the async call to avoid race conditions.
+        // If the user switches providers, toggles testnet, or the terminal flag flips while
+        // getMarketDataWithPrices() is in-flight, we must not cache data under the new key.
+        const preFetchNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
 
-        const data = await controller.getMarketDataWithPrices();
+        const data = await controller.getMarketDataWithPrices({
+          useTerminalApi: terminalEnabled,
+        });
         const fetchTime = Date.now() - fetchStartTime;
 
-        // If provider or network changed during fetch, discard stale data
-        const postFetchNetworkKey = getProviderNetworkKey(controller.state);
+        // If provider, network, or terminal flag changed during fetch, discard stale data
+        const postTerminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+          store.getState(),
+        );
+        const postFetchNetworkKey = `${getProviderNetworkKey(controller.state)}:${postTerminalEnabled ? 'terminal' : 'direct'}`;
         if (preFetchNetworkKey !== postFetchNetworkKey) {
           DevLogger.log(
-            'PerpsStreamManager: Provider/network changed during fetch, discarding data',
+            'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
             {
               fetchedFor: preFetchNetworkKey,
               current: postFetchNetworkKey,
@@ -1574,7 +1736,18 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       return cached;
     }
 
-    // Fallback: read per-provider cache via helper
+    // Fallback: read per-provider cache via helper. The controller's preload cache
+    // is always direct-sourced (its preload never passes useTerminalApi), so only
+    // serve it synchronously when the Terminal backend is disabled — otherwise we'd
+    // surface direct HyperLiquid data while in Terminal mode. When Terminal is
+    // enabled, return null so callers wait for a source-correct fetch instead.
+    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+      store.getState(),
+    );
+    if (terminalEnabled) {
+      return null;
+    }
+
     const controller = Engine.context.PerpsController;
     const fromController =
       controller.getCachedMarketDataForActiveProvider?.() ?? null;

@@ -2,6 +2,7 @@ import type { CaipChainId, Json } from '@metamask/utils';
 import {
   CardStatus,
   CardType,
+  CardWalletExternalPriorityResponse,
   DelegationSettingsResponse,
 } from '../../../../components/UI/Card/types';
 
@@ -36,6 +37,11 @@ export class CardProviderError extends Error {
     this.code = code;
     this.statusCode = statusCode;
   }
+}
+
+export function isCardAuthTokenError(error: unknown): boolean {
+  const statusCode = (error as { statusCode?: unknown }).statusCode;
+  return error instanceof Error && (statusCode === 401 || statusCode === 403);
 }
 
 export class CardLinkageInProgressError extends Error {
@@ -116,6 +122,7 @@ export interface CardProviderCapabilities {
   onboarding: CardOnboardingCapability;
   supportsPinView: boolean;
   supportsCashback: boolean;
+  supportsCredit: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -179,6 +186,8 @@ export interface CardAccountStatus {
   provisioningEligible: boolean;
   holderName: string | null;
   shippingAddress: CardShippingAddress | null;
+  countryOfResidence: string | null;
+  usState: string | null;
 }
 
 // -- Alerts & Actions --
@@ -216,6 +225,7 @@ export interface CardHomeData {
   alerts: CardAlert[];
   actions: CardAction[];
   delegationSettings: DelegationSettingsResponse | null;
+  externalWalletPriority?: CardWalletExternalPriorityResponse[];
 }
 
 export function emptyCardHomeData(): CardHomeData {
@@ -251,17 +261,6 @@ export interface DelegationChallengeResponse {
   expiresAt: string;
 }
 
-export interface CardFundingOption {
-  symbol: string;
-  asset: CardFundingAsset | null;
-}
-
-export interface CardFundingConfig {
-  maxLimit: string;
-  fundingOptions: CardFundingOption[];
-  supportedChains: CaipChainId[];
-}
-
 // -- Cashback --
 
 export interface CashbackWalletResponse {
@@ -276,6 +275,7 @@ export interface CashbackWithdrawEstimationResponse {
   wei: string;
   eth: string;
   price: string;
+  network: string;
 }
 
 export interface CashbackWithdrawParams {
@@ -285,6 +285,23 @@ export interface CashbackWithdrawParams {
 export interface CashbackWithdrawResponse {
   txHash: string;
 }
+
+// -- Credit --
+
+export interface CreditWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export type CreditWithdrawEstimationResponse =
+  CashbackWithdrawEstimationResponse;
+
+export type CreditWithdrawParams = CashbackWithdrawParams;
+
+export type CreditWithdrawResponse = CashbackWithdrawResponse;
 
 // -- Push Provisioning --
 
@@ -346,7 +363,6 @@ export interface ICardProvider {
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
   logout(tokens: CardAuthTokens): Promise<void>;
-
   getCardHomeData(
     address: string,
     tokens: CardAuthTokens,
@@ -369,7 +385,6 @@ export interface ICardProvider {
     allAssets: CardFundingAsset[],
     tokens: CardAuthTokens,
   ): Promise<void>;
-  getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
   fetchDelegationChallenge?(
     params: { network: string; address: string; faucet?: boolean },
     tokens: CardAuthTokens,
@@ -393,6 +408,15 @@ export interface ICardProvider {
     params: CashbackWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawResponse>;
+
+  getCreditWallet?(tokens: CardAuthTokens): Promise<CreditWalletResponse>;
+  getCreditWithdrawEstimation?(
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawEstimationResponse>;
+  withdrawCredit?(
+    params: CreditWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawResponse>;
 
   createGoogleWalletProvisioningRequest?(
     tokens: CardAuthTokens,

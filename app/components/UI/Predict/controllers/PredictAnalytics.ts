@@ -9,7 +9,9 @@ import type { TransactionActiveAbTestEntry } from '../../../../util/transactions
 import {
   PredictDismissalMethodValue,
   PredictEventProperties,
+  PredictEventValues,
   PredictShareStatusValue,
+  PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
@@ -65,10 +67,15 @@ export interface FeedViewedArgs {
   sessionId: string;
   feedTab: string;
   predictScreen?: string;
+  predictComponent?: string;
   numPagesViewed: number;
   sessionTime: number;
   entryPoint?: string;
   isSessionEnd?: boolean;
+  openPositionsCount?: number;
+  claimablePositionsCount?: number;
+  hasClaimableWinnings?: boolean;
+  portfolioModuleEnabled?: boolean;
 }
 
 export interface BannerArgs {
@@ -76,11 +83,85 @@ export interface BannerArgs {
   bannerType: string;
 }
 
+export interface CategoryClickedArgs {
+  categoryName: string;
+  entryPoint?: string;
+}
+
+export interface PredictPortfolioAnalyticsContextArgs {
+  actionType?: string;
+  entryPoint?: string;
+  openPositionsCount?: number;
+  claimablePositionsCount?: number;
+  hasClaimableWinnings?: boolean;
+  predictScreen?: string;
+  predictComponent?: string;
+  predictFeedTab?: string;
+}
+
+export interface PositionViewedArgs
+  extends PredictPortfolioAnalyticsContextArgs {
+  openPositionsCount?: number;
+}
+
+export interface ActivityViewedArgs
+  extends PredictPortfolioAnalyticsContextArgs {
+  activityType: string;
+}
+
+export interface PortfolioPositionsButtonTappedArgs
+  extends Omit<
+    PredictPortfolioAnalyticsContextArgs,
+    'actionType' | 'predictScreen' | 'predictComponent' | 'predictFeedTab'
+  > {
+  predictComponent?: string;
+}
+
+export interface PortfolioTransactionInitiatedArgs
+  extends Omit<
+    PredictPortfolioAnalyticsContextArgs,
+    'actionType' | 'predictScreen' | 'predictComponent' | 'predictFeedTab'
+  > {
+  predictScreen?: string;
+  predictComponent?: string;
+  transactionType: string;
+}
+
+export interface PositionsScreenViewedArgs
+  extends Omit<
+    PredictPortfolioAnalyticsContextArgs,
+    'actionType' | 'predictScreen' | 'predictComponent' | 'predictFeedTab'
+  > {
+  predictScreen?: string;
+}
+
+export interface PositionsTabViewedArgs
+  extends Omit<
+    PredictPortfolioAnalyticsContextArgs,
+    'actionType' | 'predictScreen' | 'predictComponent' | 'predictFeedTab'
+  > {
+  predictScreen?: string;
+  predictFeedTab: string;
+}
+
 export interface ShareActionArgs {
   status: PredictShareStatusValue;
   marketId?: string;
   marketSlug?: string;
 }
+
+export interface SearchInteractedArgs {
+  interactionType: string;
+  predictFeedTab?: string;
+  entryPoint?: string;
+  searchQuery?: string;
+  resultsCount?: number;
+  marketId?: string;
+  marketTitle?: string;
+}
+
+const PREDICT_PORTFOLIO_MODULE_COMPONENT =
+  PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE;
 
 export class PredictAnalytics {
   private readonly context: PredictAnalyticsContext;
@@ -118,15 +199,38 @@ export class PredictAnalytics {
         [PredictEventProperties.PREDICT_FEED_TAB]:
           analyticsProperties.predictFeedTab,
       }),
-      ...(analyticsProperties.predictScreen && {
-        [PredictEventProperties.PREDICT_SCREEN]:
-          analyticsProperties.predictScreen,
-      }),
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
       [PredictEventProperties.VOLUME]: analyticsProperties.volume,
       [PredictEventProperties.SHARE_PRICE]: sharePrice,
+      ...(analyticsProperties.actionType && {
+        [PredictEventProperties.ACTION_TYPE]: analyticsProperties.actionType,
+      }),
+      ...(analyticsProperties.predictScreen && {
+        [PredictEventProperties.PREDICT_SCREEN]:
+          analyticsProperties.predictScreen,
+      }),
+      ...(analyticsProperties.predictComponent && {
+        [PredictEventProperties.PREDICT_COMPONENT]:
+          analyticsProperties.predictComponent,
+      }),
+      ...(analyticsProperties.openPositionsCount !== undefined && {
+        [PredictEventProperties.OPEN_POSITIONS_COUNT]:
+          analyticsProperties.openPositionsCount,
+      }),
+      ...(analyticsProperties.claimablePositionsCount !== undefined && {
+        [PredictEventProperties.CLAIMABLE_POSITIONS_COUNT]:
+          analyticsProperties.claimablePositionsCount,
+      }),
+      ...(analyticsProperties.hasClaimableWinnings !== undefined && {
+        [PredictEventProperties.HAS_CLAIMABLE_WINNINGS]:
+          analyticsProperties.hasClaimableWinnings,
+      }),
+      ...(analyticsProperties.portfolioModuleEnabled !== undefined && {
+        [PredictEventProperties.PORTFOLIO_MODULE_ENABLED]:
+          analyticsProperties.portfolioModuleEnabled,
+      }),
       ...(analyticsProperties.marketType && {
         [PredictEventProperties.MARKET_TYPE]: analyticsProperties.marketType,
       }),
@@ -244,16 +348,73 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('marketDetailsOpened', params);
   }
 
-  public trackPositionViewed({
-    openPositionsCount,
-  }: {
-    openPositionsCount: number;
-  }): void {
-    this.trackConfiguredEvent('positionViewed', { openPositionsCount });
+  public trackPositionViewed(args: PositionViewedArgs): void {
+    this.trackConfiguredEvent('positionViewed', args);
   }
 
-  public trackActivityViewed({ activityType }: { activityType: string }): void {
-    this.trackConfiguredEvent('activityViewed', { activityType });
+  public trackActivityViewed(args: ActivityViewedArgs): void {
+    this.trackConfiguredEvent('activityViewed', args);
+  }
+
+  public trackPortfolioPositionsButtonTapped({
+    predictComponent = PREDICT_PORTFOLIO_MODULE_COMPONENT,
+    ...args
+  }: PortfolioPositionsButtonTappedArgs): void {
+    this.trackPositionViewed({
+      ...args,
+      actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+      predictComponent,
+    });
+  }
+
+  public trackPortfolioTransactionInitiated({
+    predictComponent = PREDICT_PORTFOLIO_MODULE_COMPONENT,
+    transactionType,
+    ...args
+  }: PortfolioTransactionInitiatedArgs): void {
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.INITIATED,
+      analyticsProperties: {
+        ...args,
+        predictComponent,
+        transactionType,
+      },
+    });
+  }
+
+  public trackPositionsScreenViewed({
+    predictScreen = PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+    ...args
+  }: PositionsScreenViewedArgs): void {
+    this.trackPositionViewed({
+      ...args,
+      actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+      predictScreen,
+    });
+  }
+
+  public trackPositionsTabViewed({
+    predictScreen = PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+    predictFeedTab,
+    ...args
+  }: PositionsTabViewedArgs): void {
+    if (predictFeedTab === PredictEventValues.PREDICT_FEED_TAB.HISTORY) {
+      this.trackActivityViewed({
+        ...args,
+        actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+        activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+        predictScreen,
+        predictFeedTab,
+      });
+      return;
+    }
+
+    this.trackPositionViewed({
+      ...args,
+      actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+      predictScreen,
+      predictFeedTab,
+    });
   }
 
   public trackGeoBlockTriggered({
@@ -273,19 +434,29 @@ export class PredictAnalytics {
     sessionId,
     feedTab,
     predictScreen,
+    predictComponent,
     numPagesViewed,
     sessionTime,
     entryPoint,
     isSessionEnd = false,
+    openPositionsCount,
+    claimablePositionsCount,
+    hasClaimableWinnings,
+    portfolioModuleEnabled,
   }: FeedViewedArgs): void {
     this.trackConfiguredEvent('feedViewed', {
       sessionId,
       feedTab,
       predictScreen,
+      predictComponent,
       numPagesViewed,
       sessionTime,
       entryPoint,
       isSessionEnd,
+      openPositionsCount,
+      claimablePositionsCount,
+      hasClaimableWinnings,
+      portfolioModuleEnabled,
     });
   }
 
@@ -293,8 +464,16 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('bannerAction', params);
   }
 
+  public trackCategoryClicked(params: CategoryClickedArgs): void {
+    this.trackConfiguredEvent('categoryClicked', params);
+  }
+
   public trackShareAction(params: ShareActionArgs): void {
     this.trackConfiguredEvent('shareAction', params);
+  }
+
+  public trackSearchInteracted(params: SearchInteractedArgs): void {
+    this.trackConfiguredEvent('searchInteracted', params);
   }
 
   private trackConfiguredEvent(

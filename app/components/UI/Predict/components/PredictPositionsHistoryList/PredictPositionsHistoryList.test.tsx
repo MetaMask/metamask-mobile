@@ -19,6 +19,7 @@ jest.mock('../../views/PredictTransactionsView', () => {
     emptyState,
     isPrivacyMode,
     isVisible,
+    shouldTrackActivityViewed,
   }: {
     claimPendingPositions?: PredictPosition[];
     onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
@@ -27,6 +28,7 @@ jest.mock('../../views/PredictTransactionsView', () => {
     emptyState: React.ReactNode;
     isPrivacyMode?: boolean;
     isVisible: boolean;
+    shouldTrackActivityViewed?: boolean;
   }) {
     return ReactLib.createElement(
       View,
@@ -54,6 +56,11 @@ jest.mock('../../views/PredictTransactionsView', () => {
       ReactLib.createElement(Text, null, `privacy:${Boolean(isPrivacyMode)}`),
       ReactLib.createElement(Text, null, `container:${containerStyle}`),
       ReactLib.createElement(Text, null, `activity:${activityContainerStyle}`),
+      ReactLib.createElement(
+        Text,
+        null,
+        `track-activity-viewed:${shouldTrackActivityViewed}`,
+      ),
       emptyState,
     );
   };
@@ -143,5 +150,11 @@ describe('PredictPositionsHistoryList', () => {
 
     expect(screen.getByText('container:p-0')).toBeOnTheScreen();
     expect(screen.getByText('activity:px-0')).toBeOnTheScreen();
+  });
+
+  it('lets the Positions screen own History tab analytics', () => {
+    render(<PredictPositionsHistoryList isVisible />);
+
+    expect(screen.getByText('track-activity-viewed:false')).toBeOnTheScreen();
   });
 });

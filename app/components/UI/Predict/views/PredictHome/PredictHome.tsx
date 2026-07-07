@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,13 +7,18 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
+import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictHeaderStacked from '../../components/PredictHeaderStacked';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
-import PredictPortfolioModule from './components/PredictPortfolioModule';
+import PredictWithdrawUnavailableSheet, {
+  type PredictWithdrawUnavailableSheetRef,
+} from '../../components/PredictWithdrawUnavailableSheet';
+import { PredictPortfolioModule } from './components/PredictPortfolio';
 import PredictLiveNowSection from './components/PredictLiveNowSection';
 import PredictCategoriesSection from './components/PredictCategoriesSection';
 import PredictPopularTodaySection from './components/PredictPopularTodaySection';
@@ -39,6 +44,11 @@ const PredictHome: React.FC = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  // Use the entry point the navigator passed; do NOT default. Falling back to a
+  // concrete value (e.g. `predict_feed`) would attribute home search engagement
+  // to the wrong surface. When unknown, the analytics mapper omits `entry_point`
+  // rather than bucketing it incorrectly.
+  const entryPoint = route.params?.entryPoint;
 
   const { scrollY, titleSectionHeight, onScroll, setTitleSectionHeight } =
     usePredictStackedHeader();
@@ -50,6 +60,14 @@ const PredictHome: React.FC = () => {
     showSearch,
     clearSearchAndClose,
   } = usePredictSearch();
+
+  const handleShowSearch = useCallback(() => {
+    Engine.context.PredictController.trackSearchInteracted({
+      interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+      entryPoint,
+    });
+    showSearch();
+  }, [entryPoint, showSearch]);
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -68,6 +86,12 @@ const PredictHome: React.FC = () => {
     [setTitleSectionHeight],
   );
 
+  const withdrawUnavailableSheetRef =
+    useRef<PredictWithdrawUnavailableSheetRef>(null);
+  const handleDepositWalletWithdrawPress = useCallback(() => {
+    withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
+  }, []);
+
   return (
     <SafeAreaView
       edges={{ bottom: 'additive' }}
@@ -82,7 +106,7 @@ const PredictHome: React.FC = () => {
           scrollY={scrollY}
           titleSectionHeight={titleSectionHeight}
           onBack={handleBackPress}
-          onSearchPress={showSearch}
+          onSearchPress={handleShowSearch}
         />
 
         <Animated.ScrollView
@@ -96,7 +120,7 @@ const PredictHome: React.FC = () => {
           <Box
             testID={PredictHomeSelectorsIDs.TITLE_SECTION}
             onLayout={handleTitleLayout}
-            twClassName="pt-2 pb-4"
+            twClassName="pt-2 pb-2"
           >
             <Text
               testID={PredictHomeSelectorsIDs.TITLE}
@@ -106,7 +130,9 @@ const PredictHome: React.FC = () => {
             </Text>
           </Box>
 
-          <PredictPortfolioModule />
+          <PredictPortfolioModule
+            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+          />
           <PredictLiveNowSection />
           <PredictCategoriesSection />
           <PredictPopularTodaySection />
@@ -119,7 +145,11 @@ const PredictHome: React.FC = () => {
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
           transactionActiveAbTests={transactionActiveAbTests}
+          entryPoint={entryPoint}
         />
+      </Box>
+      <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
+        <PredictWithdrawUnavailableSheet ref={withdrawUnavailableSheetRef} />
       </Box>
     </SafeAreaView>
   );

@@ -41,15 +41,17 @@ const styles = StyleSheet.create({
 const PotentialEarningsTokenRow = ({
   token,
   hasSubsidizedFee,
-  apyPercent,
-  onPress,
+  apyDecimal,
+  onCardPress,
+  onButtonPress,
   testID,
 }: {
   token: AssetType;
   hasSubsidizedFee: boolean;
-  /** APY as a percentage (e.g. 4 for 4%). */
-  apyPercent: number;
-  onPress: () => void;
+  /** APY as a decimal (e.g. 0.04 for 4%). */
+  apyDecimal: number;
+  onCardPress: () => void;
+  onButtonPress: () => void;
   testID?: string;
 }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -61,7 +63,7 @@ const PotentialEarningsTokenRow = ({
   const fiatBalance = tokenFiatValue(token);
   const projectedFiatNumber = calculateProjectedEarnings(
     fiatBalance,
-    apyPercent,
+    apyDecimal,
     PROJECTION_YEARS,
   );
   const projectedFiatFormatted = moneyFormatFiat(
@@ -80,7 +82,11 @@ const PotentialEarningsTokenRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="px-4 py-3 gap-4"
     >
-      <Pressable onPress={onPress} style={styles.rowPressable} testID={testID}>
+      <Pressable
+        onPress={onCardPress}
+        style={styles.rowPressable}
+        testID={testID}
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -110,11 +116,11 @@ const PotentialEarningsTokenRow = ({
                 {token.symbol}
               </Text>
               {hasSubsidizedFee && (
-                <Box twClassName="rounded bg-muted px-1.5">
+                <Box twClassName="rounded bg-primary-muted px-1.5">
                   <Text
                     variant={TextVariant.BodyXs}
                     fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
+                    color={TextColor.PrimaryDefault}
                   >
                     {strings('money.potential_earnings.no_fee')}
                   </Text>
@@ -146,7 +152,7 @@ const PotentialEarningsTokenRow = ({
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Md}
-        onPress={onPress}
+        onPress={onButtonPress}
       >
         {strings('money.potential_earnings.add')}
       </Button>

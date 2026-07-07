@@ -33,6 +33,7 @@ jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
 }));
 
 jest.mock('./hooks', () => ({
+  ...jest.requireActual('./hooks'),
   useWhatsHappening: jest.fn(() => ({
     items: [],
     isLoading: false,

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   HeaderStandard,
@@ -10,11 +10,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { exitRewardsFlow } from '../utils';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
@@ -33,8 +34,11 @@ const RewardsVipTiersViewContent: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
-  const canViewVip = Boolean(subscriptionId && isVipEnabled);
+  const canViewVip = Boolean(
+    isVipProgramEnabled && subscriptionId && isVipEnabled,
+  );
 
   const {
     dashboard,
@@ -51,7 +55,7 @@ const RewardsVipTiersViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewVip) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
     }
   }, [canViewVip, navigation]);
 
@@ -67,7 +71,7 @@ const RewardsVipTiersViewContent: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipTiersView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={{ top: 'additive', bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT}
       >

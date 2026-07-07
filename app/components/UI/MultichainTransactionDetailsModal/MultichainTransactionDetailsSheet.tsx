@@ -13,10 +13,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
 import Icon, {
   IconName,
   IconSize,
@@ -27,6 +23,9 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   BoxAlignItems,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 
 import { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
@@ -40,6 +39,8 @@ import {
 } from '../../../core/Multichain/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 
 export interface MultichainTransactionDetailsSheetParams {
   displayData: MultichainTransactionDisplayData;
@@ -71,12 +72,14 @@ const styles = StyleSheet.create({
 
 const MultichainTransactionDetailsSheet: React.FC = () => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<MultichainTransactionDetailsSheetRouteProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { typography } = useTheme();
 
   const { displayData, transaction } = route.params;
-  const { title, from, to, baseFee, priorityFee } = displayData;
+  const { title, from, to, baseFee, priorityFee, isUnlimitedApproval } =
+    displayData;
   const { id, timestamp, chain, status } = transaction;
 
   const handleClose = useCallback(() => {
@@ -84,9 +87,9 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
   }, []);
 
   const viewOnBlockExplorer = useCallback(
-    (label: string) => {
+    (rowKey: string, analyticsText?: string) => {
       let url = '';
-      switch (label) {
+      switch (rowKey) {
         case TransactionDetailRow.TransactionID:
           url = getTransactionUrl(id, chain);
           break;
@@ -102,6 +105,12 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
 
       if (!url) return;
 
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'transaction_details_modal',
+        text: analyticsText ?? rowKey,
+        url,
+      });
+
       // Close the bottom sheet and navigate to webview
       sheetRef.current?.onCloseBottomSheet(() => {
         navigation.navigate(Routes.WEBVIEW.MAIN, {
@@ -110,7 +119,15 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         });
       });
     },
-    [id, chain, from?.address, to?.address, navigation],
+    [
+      id,
+      chain,
+      createEventBuilder,
+      from?.address,
+      navigation,
+      to?.address,
+      trackEvent,
+    ],
   );
 
   const renderDetailRow = (
@@ -125,7 +142,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
       alignItems={BoxAlignItems.Center}
       twClassName="py-3 border-b border-muted"
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
         {label}
       </Text>
       <Box
@@ -134,10 +151,12 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
       >
         {isLink ? (
           <TouchableOpacity
-            onPress={() => viewOnBlockExplorer(label)}
+            onPress={() =>
+              viewOnBlockExplorer(label, formatAddress(value, 'short'))
+            }
             style={styles.blockExplorerLink}
           >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
               {formatAddress(value, 'short')}
             </Text>
             <Icon
@@ -154,7 +173,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
             context="transaction"
           />
         ) : (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {value}
           </Text>
         )}
@@ -165,12 +184,11 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>{title}</Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text variant={TextVariant.HeadingMd}>{title}</Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {timestamp && toDateFormat(new Date(timestamp * 1000))}
         </Text>
       </BottomSheetHeader>
-
       <Box twClassName="px-4 pb-4">
         {renderDetailRow(TransactionDetailRow.Status, capitalize(status))}
         {renderDetailRow(TransactionDetailRow.TransactionID, id, true)}
@@ -181,7 +199,9 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         {to &&
           renderDetailRow(
             TransactionDetailRow.Amount,
-            `${to.amount} ${to.unit}`,
+            isUnlimitedApproval
+              ? `${strings('confirm.unlimited')} ${to.unit}`
+              : `${to.amount} ${to.unit}`,
           )}
         {baseFee &&
           renderDetailRow(
@@ -194,7 +214,6 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
             `${priorityFee.amount} ${priorityFee.unit}`,
           )}
       </Box>
-
       <Box twClassName="px-4">
         <Button
           variant={ButtonVariants.Link}
@@ -202,7 +221,10 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
           size={ButtonSize.Lg}
           label={strings('networks.view_details')}
           onPress={() =>
-            viewOnBlockExplorer(TransactionDetailRow.TransactionID)
+            viewOnBlockExplorer(
+              TransactionDetailRow.TransactionID,
+              strings('networks.view_details'),
+            )
           }
           endIconName={IconName.Export}
         />

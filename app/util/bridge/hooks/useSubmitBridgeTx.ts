@@ -3,13 +3,15 @@ import type {
   QuoteMetadata,
   QuoteResponse,
 } from '@metamask/bridge-controller';
+import type { BridgeStatusController } from '@metamask/bridge-status-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import {
   selectAbTestContext,
+  selectBridgeControllerState,
   selectDestToken,
+  selectIsGasIncludedSTXSendBundleSupported,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
@@ -23,8 +25,6 @@ import {
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
-  STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
 import { useMemo } from 'react';
 
@@ -51,9 +51,10 @@ function mergeTransactionActiveAbTests(
 }
 
 export default function useSubmitBridgeTx() {
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destToken = useSelector(selectDestToken);
+  const bridgeControllerState = useSelector(selectBridgeControllerState);
   const abTestContext = useSelector(selectAbTestContext);
   const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
     useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
@@ -63,13 +64,6 @@ export default function useSubmitBridgeTx() {
   } = useABTest(
     TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  );
-  const {
-    variantName: stickyFooterVariantName,
-    isActive: isStickyFooterAbActive,
-  } = useABTest(
-    STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-    STICKY_FOOTER_SWAP_LABEL_VARIANTS,
   );
   const {
     variantName: ambientColorVariantName,
@@ -103,15 +97,6 @@ export default function useSubmitBridgeTx() {
       );
     }
 
-    if (isStickyFooterAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-          stickyFooterVariantName,
-        ),
-      );
-    }
-
     if (isAmbientColorAbActive) {
       tests.push(
         createActiveABTestAssignment(
@@ -127,8 +112,6 @@ export default function useSubmitBridgeTx() {
     numpadVariantName,
     isTokenSelectorAbActive,
     tokenSelectorVariantName,
-    isStickyFooterAbActive,
-    stickyFooterVariantName,
     isAmbientColorAbActive,
     ambientColorVariantName,
   ]);
@@ -153,18 +136,22 @@ export default function useSubmitBridgeTx() {
       transactionActiveAbTestsFromRoute,
     );
     const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
+    const inputPrimaryDenomination =
+      bridgeControllerState?.inputPrimaryDenomination ?? 'token_amount';
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
-        // check whether quoteResponse is an intent transaction
         if (quoteResponse.quote.intent) {
           return await Engine.context.BridgeStatusController.submitIntent({
-            quoteResponse,
+            quoteResponse: quoteResponse as Parameters<
+              BridgeStatusController['submitIntent']
+            >[0]['quoteResponse'],
             accountAddress: walletAddress,
             location,
             abTests,
             activeAbTests: mergedActiveAbTests,
             tokenSecurityTypeDestination,
+            inputPrimaryDenomination,
           });
         }
         return await Engine.context.BridgeStatusController.submitTx(
@@ -172,13 +159,15 @@ export default function useSubmitBridgeTx() {
           {
             ...quoteResponse,
             approval: quoteResponse.approval ?? undefined,
-          },
+          } as Parameters<BridgeStatusController['submitTx']>[1],
           stxEnabled,
           undefined, // quotesReceivedContext
           location,
           abTests,
           mergedActiveAbTests,
           tokenSecurityTypeDestination,
+          undefined, // batchSellTrades
+          inputPrimaryDenomination,
         );
       },
     );

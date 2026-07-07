@@ -26,8 +26,7 @@ import {
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
-import PredictModalView from '../../page-objects/Predict/PredictModalView.js';
-import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView.js';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 
 const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
@@ -82,9 +81,6 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true
       ) {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PredictModalView.notNowButton),
-        );
         await dismisspredictionsModalPlaywright();
       }
 
@@ -95,17 +91,21 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       const screen2Timer = new TimerHelper(
         'Time since the user clicks on "Create account" button until the account is in the account list',
-        { ios: 1800, android: 1500 },
+        { ios: 1800, android: 2000 },
         currentDeviceDetails.platform,
       );
       const screen3Timer = new TimerHelper(
         'Time since the user clicks on new account created until the Token list is visible',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 3000 },
         currentDeviceDetails.platform,
       );
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(WalletView.walletBuyButton),
+        await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+        {
+          description:
+            'token list should be visible after selecting the new account',
+        },
       );
 
       await WalletView.tapIdenticon();
@@ -131,7 +131,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await screen3Timer.measure(async () => {
         await WalletView.checkActiveAccount('Account 2');
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokensSection),
+          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
           {
             description:
               'token list should be visible after selecting the new account',

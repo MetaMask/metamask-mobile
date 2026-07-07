@@ -78,13 +78,17 @@ const createTransactionEventHandler =
       )
         .addProperties(event.properties)
         .addSensitiveProperties(event.sensitiveProperties)
-        .setSaveDataRecording(event.saveDataRecording)
         .build();
 
-      transactionEventHandlerRequest.initMessenger.call(
-        'AnalyticsController:trackEvent',
-        analyticsEvent,
-      );
+      // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+      (
+        transactionEventHandlerRequest.initMessenger as {
+          call: (
+            action: 'AnalyticsController:trackEvent',
+            event: typeof analyticsEvent,
+          ) => void;
+        }
+      ).call('AnalyticsController:trackEvent', analyticsEvent);
     } catch (error) {
       log('Error in transaction event handler', error);
     }
@@ -149,13 +153,17 @@ export async function handleTransactionFinalizedEventForMetrics(
     const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event.name)
       .addProperties(event.properties)
       .addSensitiveProperties(event.sensitiveProperties)
-      .setSaveDataRecording(event.saveDataRecording)
       .build();
 
-    transactionEventHandlerRequest.initMessenger.call(
-      'AnalyticsController:trackEvent',
-      analyticsEvent,
-    );
+    // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+    (
+      transactionEventHandlerRequest.initMessenger as {
+        call: (
+          action: 'AnalyticsController:trackEvent',
+          event: typeof analyticsEvent,
+        ) => void;
+      }
+    ).call('AnalyticsController:trackEvent', analyticsEvent);
   } catch (error) {
     log('Error in finalized transaction event handler', error);
   }

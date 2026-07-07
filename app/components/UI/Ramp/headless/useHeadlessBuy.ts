@@ -169,7 +169,7 @@ export function useHeadlessBuy(): HeadlessBuyResult {
       const session = createSession(params, callbacks);
 
       navigation.navigate(Routes.RAMP.HEADLESS_ENTRY, {
-        screen: Routes.RAMP.TOKEN_SELECTION,
+        screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         params: {
           screen: Routes.RAMP.HEADLESS_HOST,
           params: {

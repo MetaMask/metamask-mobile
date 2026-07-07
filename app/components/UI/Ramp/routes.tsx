@@ -24,9 +24,10 @@ import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
-import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
+import SsnInfoModal from './Views/Modals/SsnInfoModal';
 import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
+import PhoneCountrySelectorModal from './Views/Modals/PhoneCountrySelectorModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import LockManagerService from '../../../core/LockManagerService';
 import {
@@ -137,6 +138,10 @@ const TokenListModalsRoutes = () => (
       component={SsnInfoModal}
     />
     <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.PHONE_COUNTRY_SELECTOR}
+      component={PhoneCountrySelectorModal}
+    />
+    <ModalsStack.Screen
       name={Routes.RAMP.MODALS.STATE_SELECTOR}
       component={StateSelectorModal}
     />
@@ -161,11 +166,11 @@ const TokenListRoutes = () => {
   return (
     <QueryClientProvider client={reactQueryService.queryClient}>
       <RootStack.Navigator
-        initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+        initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
         screenOptions={{ headerShown: false }}
       >
         <RootStack.Screen
-          name={Routes.RAMP.TOKEN_SELECTION}
+          name={Routes.RAMP.TOKEN_SELECTION_ROOT}
           component={MainRoutes}
         />
         <RootStack.Screen

@@ -141,6 +141,32 @@ describe('usePredictWorldCupMarkets', () => {
     expect(result.current.hasMore).toBe(true);
   });
 
+  it('filters child more-market cards', async () => {
+    const { Wrapper } = createWrapper();
+    const parentMarket = createMarket({ id: 'parent-market' });
+    const childMarket = createMarket({
+      id: 'child-market',
+      parentMarketId: 'parent-market',
+    });
+    mockGetMarkets.mockResolvedValue({
+      markets: [parentMarket, childMarket],
+      nextCursor: null,
+    });
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupMarkets({
+          tabKey: 'all',
+          config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() =>
+      expect(result.current.marketData).toEqual([parentMarket]),
+    );
+  });
+
   it('requests Props markets with a cached paginated query', async () => {
     const { Wrapper } = createWrapper();
     const propsMarket = createMarket({ id: 'props-market' });

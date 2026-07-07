@@ -13,6 +13,18 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 
+const { strings: actualStrings } = jest.requireActual<
+  typeof import('../../../../locales/i18n')
+>('../../../../locales/i18n');
+
+jest.mock('../../../../locales/i18n', () => {
+  const actual = jest.requireActual('../../../../locales/i18n');
+  return {
+    ...actual,
+    strings: jest.fn(actual.strings),
+  };
+});
+
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 const mockNavigate = jest.fn();
@@ -134,6 +146,36 @@ describe('OnboardingInterestQuestionnaire', () => {
           ),
         ).toBeOnTheScreen();
       });
+    });
+
+    it('renders three two-column grid rows', () => {
+      renderComponent();
+
+      [0, 1, 2].forEach((rowIndex) => {
+        expect(
+          screen.getByTestId(
+            `${OnboardingInterestQuestionnaireTestIds.GRID_ROW_PREFIX}${rowIndex}`,
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('renders all option cards when labels are long', () => {
+      const longLabel =
+        'Compra y vende tokens de criptomonedas con MetaMask para varias líneas';
+      const stringsSpy = jest.mocked(strings);
+      stringsSpy.mockImplementation((key: string) => {
+        if (key.startsWith('onboarding_interest_questionnaire.option_')) {
+          return longLabel;
+        }
+        return actualStrings(key);
+      });
+
+      renderComponent();
+
+      expect(screen.getAllByText(longLabel)).toHaveLength(6);
+
+      stringsSpy.mockRestore();
     });
 
     it('renders the Continue button', () => {

@@ -1,7 +1,7 @@
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import Engine from './Engine';
 
-import { recreateVaultsWithNewPassword } from './Vault';
+import { getSeedPhrase, recreateVaultsWithNewPassword } from './Vault';
 import { KeyringSelector, KeyringTypes } from '@metamask/keyring-controller';
 import {
   createMockInternalAccount,
@@ -204,22 +204,24 @@ jest.mock('../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockMultichainWalletSnapClient = {
-  createAccount: jest.fn(),
-};
-
-jest.mock('./SnapKeyring/MultichainWalletSnapClient', () => ({
-  ...jest.requireActual('./SnapKeyring/MultichainWalletSnapClient'),
-  MultichainWalletSnapFactory: {
-    createClient: jest
-      .fn()
-      .mockImplementation(() => mockMultichainWalletSnapClient),
-  },
-}));
-
 describe('Vault', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('getSeedPhrase', () => {
+    it('calls exportSeedPhrase', async () => {
+      mockExportSeedPhrase.mockResolvedValue(new Uint8Array([1, 2, 3]));
+      const password = 'test-password';
+      const keyringId = 'keyring-1';
+
+      await getSeedPhrase(password, keyringId);
+
+      expect(mockExportSeedPhrase).toHaveBeenCalledWith(
+        { password },
+        keyringId,
+      );
+    });
   });
 
   describe('recreateVaultWithNewPassword', () => {

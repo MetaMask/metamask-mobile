@@ -2335,6 +2335,9 @@ describe('WebSocketManager', () => {
         ],
         timestamp: '2025-01-12T12:00:01Z',
       });
+      // Price emission is throttled: the first message flushes immediately
+      // (leading edge) and the second is coalesced into the trailing flush.
+      jest.advanceTimersByTime(250);
 
       expect(throwingCallback).toHaveBeenCalledTimes(2);
       expect(healthyCallback).toHaveBeenCalledTimes(2);
@@ -2378,7 +2381,7 @@ describe('WebSocketManager', () => {
         context: {
           name: 'WebSocketManager',
           data: {
-            method: 'handleMarketMessage',
+            method: 'flushMarketPriceUpdates',
             subscriptionKey: 'token1',
           },
         },
@@ -2790,7 +2793,7 @@ describe('WebSocketManager', () => {
       expect(rtdsInstance.close).not.toHaveBeenCalled();
     });
 
-    it('logs to Logger.error with structured context when RTDS heartbeat fires reconnect', () => {
+    it('does not call Logger.error on the first RTDS heartbeat timeout (transient blip)', () => {
       const manager = WebSocketManager.getInstance();
       manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
       const rtdsInstance =
@@ -2798,6 +2801,30 @@ describe('WebSocketManager', () => {
       rtdsInstance.simulateOpen();
       mockedLoggerError.mockClear();
 
+      // First timeout: should NOT reach Sentry (treated as a transient blip)
+      jest.advanceTimersByTime(20000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('logs to Logger.error with structured context on repeated RTDS heartbeat timeouts', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      mockedLoggerError.mockClear();
+
+      // First timeout: close fired, onclose schedules reconnect
+      jest.advanceTimersByTime(20000);
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+
+      // Simulate reconnect: new socket opens but stays stale again
+      const rtdsInstance2 =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance2.simulateOpen();
+
+      // Second timeout: now Logger.error should fire
       jest.advanceTimersByTime(20000);
 
       expect(mockedLoggerError).toHaveBeenCalled();

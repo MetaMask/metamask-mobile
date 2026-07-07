@@ -1,11 +1,6 @@
 import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper.js';
-import {
-  Performance,
-  System,
-  PerformanceLogin,
-  PerformanceSwaps,
-} from '../../tags.performance.js';
+import { System, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
@@ -13,7 +8,7 @@ import QuoteView from '../../page-objects/swaps/QuoteView.js';
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 
 /* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`, () => {
+test.describe(`${System} ${PerformanceSwaps}`, () => {
   test(
     'Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },

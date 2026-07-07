@@ -38,8 +38,11 @@ outputs:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
   ai_performance_test_tags:
-    description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
+    description: "Performance test tags to run. Empty string '' = run all (conservative fallback). Literal '[]' = skip (AI found no relevant changes). '[\"@Tag\",...]' = run specific tags."
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
+  ai_performance_test_reasoning:
+    description: 'Reasoning for the performance test selection'
+    value: ${{ steps.final-outputs.outputs.ai_performance_test_reasoning }}
 
 runs:
   using: 'composite'
@@ -134,18 +137,27 @@ runs:
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
-        echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
+        # Empty string = run all performance tests (conservative fallback).
+        # '[]' is reserved for "AI ran successfully and found no relevant changes".
+        echo "ai_performance_test_tags=" >> "$GITHUB_OUTPUT"
 
         if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - skip-smart-e2e-selection label found"
           echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
           echo "SKIP_REASON=skip-smart-e2e-selection label found" >> "$GITHUB_OUTPUT"
           echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
+          # Skip label → run all E2E (ALL) but do NOT launch the PR performance workflow.
+          # Performance tests are expensive and the skip label only opts out of AI selection,
+          # not into a full performance run. Use '[]' so run-performance-tests-pr is skipped.
+          echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         elif [[ "${{ steps.check-release-target.outputs.SKIP }}" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - PR targets a release or stable branch"
           echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
           echo "SKIP_REASON=PR targets a release or stable branch (release/* or stable)" >> "$GITHUB_OUTPUT"
           echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
+          # Release/stable target → the scheduled performance workflow covers these branches.
+          # No need to also trigger the PR performance job.
+          echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"
           # The script will generate the GH output variables - don't fail if script errors
@@ -156,31 +168,39 @@ runs:
       id: final-outputs
       if: always()
       shell: bash
+      env:
+        AI_E2E_TAGS: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
+        AI_CONFIDENCE: ${{ steps.ai-analysis.outputs.ai_confidence }}
+        AI_PERF_TAGS: ${{ steps.ai-analysis.outputs.ai_performance_test_tags }}
+        AI_PERF_REASONING: ${{ steps.ai-analysis.outputs.ai_performance_test_reasoning }}
       run: |
-        TAGS='${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}'
-        if [[ -n "$TAGS" ]]; then
-          printf 'ai_e2e_test_tags=%s\n' "$TAGS" >> "$GITHUB_OUTPUT"
+        if [[ -n "$AI_E2E_TAGS" ]]; then
+          printf 'ai_e2e_test_tags=%s\n' "$AI_E2E_TAGS" >> "$GITHUB_OUTPUT"
         else
           echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
-        echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
-        # Performance test tags (empty array means no performance tests)
-        PERF_TAGS='${{ steps.ai-analysis.outputs.ai_performance_test_tags }}'
-        if [[ -n "$PERF_TAGS" ]]; then
-          printf 'ai_performance_test_tags=%s\n' "$PERF_TAGS" >> "$GITHUB_OUTPUT"
-        else
-          echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
-        fi
+        printf 'ai_confidence=%s\n' "$AI_CONFIDENCE" >> "$GITHUB_OUTPUT"
+        # Performance test tags: empty string = run all (fallback); '[]' = skip (AI found no changes)
+        printf 'ai_performance_test_tags=%s\n' "$AI_PERF_TAGS" >> "$GITHUB_OUTPUT"
+        # Performance test reasoning (multi-line — must use heredoc format)
+        {
+          echo 'ai_performance_test_reasoning<<GHEOF'
+          echo "$AI_PERF_REASONING"
+          echo 'GHEOF'
+        } >> "$GITHUB_OUTPUT"
 
     - name: Display AI Analysis Outputs
       if: always()
       shell: bash
+      env:
+        PERF_REASONING: ${{ steps.final-outputs.outputs.ai_performance_test_reasoning }}
       run: |
         echo "📊 Final GitHub Action Outputs:"
         echo "================================"
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
+        echo "ai_performance_test_reasoning: $PERF_REASONING"
         echo "================================"
 
     - name: Delete previous comments

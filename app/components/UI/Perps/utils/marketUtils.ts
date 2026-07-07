@@ -97,3 +97,34 @@ export const getAssetIconUrls = (
     fallback: `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${processedSymbol}.svg`,
   };
 };
+
+/** How many markets to offer as suggestions before watchlist exclusions. */
+export const SUGGESTED_WATCHLIST_LIMIT = 5;
+
+/** Maximum number of markets a user can add to their watchlist. */
+export const WATCHLIST_LIMIT = 10;
+
+/**
+ * Returns suggested watchlist markets shown beneath the user's watchlist.
+ *
+ * Target count shrinks with the watchlist size so that watchlist + suggestions
+ * always sums to `limit`, with a floor of one suggestion:
+ * 0 watchlisted → limit suggestions
+ * 1 watchlisted → limit - 1 suggestions
+ * …
+ *
+ * limit+ watchlisted → 1 suggestion
+ *
+ * Returns [] only when every available market is already watchlisted.
+ */
+export const getSuggestedWatchlistMarkets = (
+  markets: PerpsMarketData[],
+  watchlistSymbols: string[],
+  limit = SUGGESTED_WATCHLIST_LIMIT,
+): PerpsMarketData[] => {
+  const targetCount = Math.max(1, limit - watchlistSymbols.length);
+  const nonWatchlisted = markets.filter(
+    (m) => !watchlistSymbols.includes(m.symbol),
+  );
+  return nonWatchlisted.slice(0, targetCount);
+};

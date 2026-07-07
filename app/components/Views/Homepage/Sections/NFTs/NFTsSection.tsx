@@ -8,8 +8,12 @@ import React, {
 } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import {
+  Box,
+  BoxFlexDirection,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
@@ -30,7 +34,6 @@ const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
 
 const styles = StyleSheet.create({
-  sectionGap: { gap: 12 },
   flex1: { flex: 1 },
 });
 
@@ -99,41 +102,48 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAllNfts}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('nfts')}
-        />
-        <SectionRow gap={3}>
-          {nftRows.map((row, rowIndex) => (
-            <Box
-              key={`nft-row-${rowIndex}`}
-              flexDirection={BoxFlexDirection.Row}
-              gap={3}
-            >
-              {row.map((nft) => (
-                <View
-                  key={`${nft.address}-${nft.tokenId}`}
-                  style={styles.flex1}
-                >
-                  <NftGridItem
-                    item={nft}
-                    onLongPress={handleLongPress}
-                    source="mobile-nft-list"
-                  />
-                </View>
-              ))}
-              {/* Add empty boxes to maintain grid alignment for incomplete rows */}
-              {row.length < NFTS_PER_ROW &&
-                Array.from({ length: NFTS_PER_ROW - row.length }).map(
-                  (__, i) => (
-                    <Box key={`empty-${rowIndex}-${i}`} twClassName="flex-1" />
-                  ),
-                )}
-            </Box>
-          ))}
-        </SectionRow>
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <Box paddingBottom={3}>
+          <SectionDivider />
+          <SectionHeader
+            title={title}
+            isInteractive
+            onPress={handleViewAllNfts}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('nfts')}
+          />
+          <SectionRow gap={3}>
+            {nftRows.map((row, rowIndex) => (
+              <Box
+                key={`nft-row-${rowIndex}`}
+                flexDirection={BoxFlexDirection.Row}
+                gap={3}
+              >
+                {row.map((nft) => (
+                  <View
+                    key={`${nft.address}-${nft.tokenId}`}
+                    style={styles.flex1}
+                  >
+                    <NftGridItem
+                      item={nft}
+                      onLongPress={handleLongPress}
+                      source="mobile-nft-list"
+                    />
+                  </View>
+                ))}
+                {/* Add empty boxes to maintain grid alignment for incomplete rows */}
+                {row.length < NFTS_PER_ROW &&
+                  Array.from({ length: NFTS_PER_ROW - row.length }).map(
+                    (__, i) => (
+                      <Box
+                        key={`empty-${rowIndex}-${i}`}
+                        twClassName="flex-1"
+                      />
+                    ),
+                  )}
+              </Box>
+            ))}
+          </SectionRow>
+        </Box>
         <NftGridItemBottomSheet
           isVisible={longPressedNft !== null}
           onClose={() => setLongPressedNft(null)}

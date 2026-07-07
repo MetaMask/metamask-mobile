@@ -1,12 +1,18 @@
 import React from 'react';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { formatNumber, formatUsd } from '../../utils/formatUtils';
 import type { VipVolumeDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -18,6 +24,7 @@ export const VIP_VOLUME_SECTION_TEST_IDS = {
   REFERRALS: 'vip-volume-section-referrals',
   REFERRALS_CAP: 'vip-volume-section-referrals-cap',
   SWAPS: 'vip-volume-section-swaps',
+  SWAPS_INFO: 'vip-volume-section-swaps-info',
   PERPS: 'vip-volume-section-perps',
 } as const;
 
@@ -34,6 +41,11 @@ interface VipVolumeSectionProps {
   title: string;
   period: string;
   labels: VipVolumeSectionLabels;
+  /**
+   * Optional callback fired when the swaps-volume help icon is pressed.
+   * When provided, an info icon is rendered next to the swaps-volume label.
+   */
+  onSwapsVolumeInfoPress?: () => void;
 }
 
 const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
@@ -41,6 +53,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
   title,
   period,
   labels,
+  onSwapsVolumeInfoPress,
 }) => (
   <Box twClassName="gap-3 px-4" testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}>
     <Box twClassName="gap-1">
@@ -66,9 +79,27 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
         </Text>
       </Box>
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.SWAPS}>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {labels.swapsVolume}
-        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {labels.swapsVolume}
+          </Text>
+          {onSwapsVolumeInfoPress ? (
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconAlternative }}
+              size={ButtonIconSize.Sm}
+              onPress={onSwapsVolumeInfoPress}
+              accessibilityLabel={strings(
+                'rewards.vip.swaps_volume_info_label',
+              )}
+              testID={VIP_VOLUME_SECTION_TEST_IDS.SWAPS_INFO}
+            />
+          ) : null}
+        </Box>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatUsd(volume.swapsUsd)}
         </Text>

@@ -80,12 +80,10 @@ const mockDepositTokens = [
   },
 ];
 
-jest.mock('../../hooks/useMoneyDepositTokens', () => ({
-  useMoneyDepositTokens: () => ({
+jest.mock('../../hooks/useMoneyEarnableTokens', () => ({
+  useMoneyEarnableTokens: () => ({
     tokens: mockTokens,
     isNoFeeToken: jest.fn(() => false),
-    isEligibleToken: jest.fn(() => false),
-    filterAllowedTokens: jest.fn((t) => t),
   }),
 }));
 
@@ -125,6 +123,15 @@ jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 jest.mock('../../utils/moneyFormatFiat', () => ({
   moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(() => ({
+    trackButtonClicked: jest.fn(),
+    trackScreenViewed: jest.fn(),
+    trackTokenButtonClicked: jest.fn(),
+    trackTokenSurfaceClicked: jest.fn(),
+    trackTooltipClicked: jest.fn(),
+  })),
+}));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 
@@ -140,23 +147,19 @@ describe('MoneyPotentialEarningsView', () => {
       totalFiatFormatted: '$10,000.00',
       totalFiatRaw: '10000',
       tokenTotal: undefined,
-      isAggregatedBalanceLoading: false,
+      isBalanceLoading: false,
       vaultApyQuery: {
         data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
       },
-      musdBalanceQuery: {
-        data: { balance: '10000000000' },
-        isLoading: false,
-      },
-      musdEquivalentBalanceQuery: {
+      moneyBalanceQuery: {
         data: {
-          balanceOfInAssets: '0',
+          musdBalance: '10000000000',
+          vmusdValueInMusd: '0',
+          totalBalance: '10000000000',
         },
         isLoading: false,
       },
-      musdFiatFormatted: '$10,000.00',
-      musdSHFvdFiatFormatted: '$0.00',
     } as ReturnType<typeof useMoneyAccountBalance>);
   });
 
