@@ -70,13 +70,12 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
     : null;
 
   return (
-    <Box twClassName="items-center py-3" testID={testID}>
+    <Box twClassName="w-full items-center py-3" testID={testID}>
       <FilterButtonGroup
         value={groupValue}
         onChange={handleFilterChange}
         variant={FilterButtonVariant.Primary}
-        twClassName="gap-1"
-        style={{ alignSelf: 'center' }}
+        twClassName="gap-1 self-center grow-0"
       >
         {DEFAULT_CANDLE_PERIODS.map((period) => (
           <FilterButton
