@@ -461,6 +461,16 @@ const HIGHLIGHT_SERIES_PAST_WINDOW_MS = 60 * 60 * 1000;
 const HIGHLIGHT_SERIES_FUTURE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
+ * How long an optimistic balance (set right after an order fills) stays
+ * authoritative. Settlement happens off-device on Polygon, so there is no
+ * local tx-confirmed event for it — this window is a safety cap generously
+ * sized to outlast settlement, and any confirmed Predict transaction event
+ * (deposit, withdraw, claim) clears the cached balance early so a fresh
+ * on-chain value is fetched.
+ */
+export const OPTIMISTIC_BALANCE_MAX_AGE_MS = 30 * 1000;
+
+/**
  * PredictController - Protocol-agnostic prediction markets trading controller
  *
  * Provides a unified interface for prediction markets trading across multiple protocols.
@@ -1606,7 +1616,12 @@ export class PredictController extends BaseController<
 
       const { spentAmount, receivedAmount } = result.response;
 
-      const cachedBalance = this.state.balances[signer.address]?.balance ?? 0;
+      const cachedBalanceEntry = this.state.balances[signer.address];
+      const cachedBalance = cachedBalanceEntry?.balance ?? 0;
+      // Without a known baseline, an optimistic delta would produce a bogus
+      // (possibly negative) balance — leave the cache empty so the next read
+      // fetches the real value from chain instead.
+      const hasBalanceBaseline = cachedBalanceEntry !== undefined;
       let realAmountUsd = amountUsd;
       let realSharePrice = sharePrice;
       try {
@@ -1615,26 +1630,35 @@ export class PredictController extends BaseController<
           realAmountUsd = parseFloat(spentAmount);
           realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
 
-          // Optimistically update balance
-          this.update((state) => {
-            state.balances[signer.address] = {
-              balance: cachedBalance - (realAmountUsd + totalFee),
-              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-              validUntil: Date.now() + 5000,
-            };
-          });
+          if (hasBalanceBaseline) {
+            // Optimistically update balance. Held until a confirmed
+            // transaction event clears it, capped so it can't outlive
+            // on-chain settlement.
+            this.update((state) => {
+              state.balances[signer.address] = {
+                balance: Math.max(
+                  0,
+                  cachedBalance - (realAmountUsd + totalFee),
+                ),
+                validUntil: Date.now() + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+              };
+            });
+          }
         } else {
           realAmountUsd = parseFloat(receivedAmount);
           realSharePrice = parseFloat(receivedAmount) / parseFloat(spentAmount);
 
-          // Optimistically update balance
-          this.update((state) => {
-            state.balances[signer.address] = {
-              balance: cachedBalance + realAmountUsd,
-              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-              validUntil: Date.now() + 5000,
-            };
-          });
+          if (hasBalanceBaseline) {
+            // Optimistically update balance. Held until a confirmed
+            // transaction event clears it, capped so it can't outlive
+            // on-chain settlement.
+            this.update((state) => {
+              state.balances[signer.address] = {
+                balance: cachedBalance + realAmountUsd,
+                validUntil: Date.now() + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+              };
+            });
+          }
         }
       } catch (_e) {
         // If we can't get real share price, continue without it
@@ -2843,12 +2867,27 @@ export class PredictController extends BaseController<
       this.clearPendingDepositForAddress({ address });
     }
 
+    if (status === 'confirmed') {
+      // Any confirmed Predict transaction changes on-chain funds and possibly
+      // wallet deployment — drop the cached account state and balance so the
+      // next read fetches fresh values instead of stale or optimistic ones.
+      this.provider.invalidateAccountState(address);
+      this.update((state) => {
+        // Balance entries may be keyed by checksummed addresses (signer
+        // address) while `address` is lowercased — match case-insensitively.
+        for (const key of Object.keys(state.balances)) {
+          if (key.toLowerCase() === address.toLowerCase()) {
+            delete state.balances[key];
+          }
+        }
+      });
+    }
+
     let depositWalletSyncPromise: Promise<void> | undefined;
     if (
       (type === 'deposit' || type === 'depositAndOrder') &&
       status === 'confirmed'
     ) {
-      this.provider.invalidateAccountState(address);
       depositWalletSyncPromise = this.syncDepositWalletBalanceAllowanceIfNeeded(
         {
           transactionMeta,

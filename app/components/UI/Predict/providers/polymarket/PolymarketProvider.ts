@@ -279,6 +279,20 @@ const isTransientPriceHistoryError = (error: Error): boolean =>
     error.message,
   );
 
+/**
+ * TTL for cached account states. Deployed wallets are stable, so a longer TTL
+ * is safe; a "not deployed" result is expected to change (e.g. right after a
+ * first deposit) and must expire quickly so a transient RPC failure or race
+ * can't pin a stale state indefinitely.
+ */
+export const ACCOUNT_STATE_CACHE_TTL_MS = 5 * 60 * 1000;
+export const ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS = 30 * 1000;
+
+interface CachedAccountState {
+  accountState: AccountState;
+  expiresAt: number;
+}
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -286,7 +300,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly #getFeatureFlags: () => PredictFeatureFlags;
 
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
-  #accountStateByAddress: Map<string, AccountState> = new Map();
+  #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
@@ -310,18 +324,32 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   #getCachedAccountState(ownerAddress: string): AccountState | undefined {
-    return this.#accountStateByAddress.get(
-      this.#getAccountStateCacheKey(ownerAddress),
-    );
+    const cacheKey = this.#getAccountStateCacheKey(ownerAddress);
+    const cached = this.#accountStateByAddress.get(cacheKey);
+
+    if (!cached) {
+      return undefined;
+    }
+
+    if (cached.expiresAt <= Date.now()) {
+      this.#accountStateByAddress.delete(cacheKey);
+      return undefined;
+    }
+
+    return cached.accountState;
   }
 
   #setCachedAccountState(
     ownerAddress: string,
     accountState: AccountState,
   ): void {
+    const ttl = accountState.isDeployed
+      ? ACCOUNT_STATE_CACHE_TTL_MS
+      : ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS;
+
     this.#accountStateByAddress.set(
       this.#getAccountStateCacheKey(ownerAddress),
-      accountState,
+      { accountState, expiresAt: Date.now() + ttl },
     );
   }
 
