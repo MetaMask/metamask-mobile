@@ -48,7 +48,7 @@ jobs:
             pull_requests: write
             workflows: write
       - name: Run stable branch sync
-        uses: MetaMask/github-tools/.github/actions/stable-sync@v1
+        uses: MetaMask/github-tools/.github/actions/stable-sync@v1.16.0
         with:
           semver-version: ${{ needs['get-stable-version'].outputs['stable-version'] }}
           repo-type: 'mobile'

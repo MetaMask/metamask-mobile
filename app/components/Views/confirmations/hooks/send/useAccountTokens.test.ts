@@ -10,11 +10,13 @@ import {
   selectAssetsByAccountGroupId,
 } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { Hex } from '@metamask/utils';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
@@ -46,6 +48,11 @@ const useTransactionAccountOverrideMock = jest.mocked(
   useTransactionAccountOverride,
 );
 
+jest.mock('../pay/useTransactionPayCurrency', () => ({
+  useTransactionPayCurrency: jest.fn(),
+}));
+const useTransactionPayCurrencyMock = jest.mocked(useTransactionPayCurrency);
+
 jest.mock('../../../../../selectors/accountsController', () => ({
   selectInternalAccountsById: jest.fn(),
 }));
@@ -64,6 +71,10 @@ jest.mock('../../../../../selectors/assets/assets-list', () => ({
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/settings', () => ({
+  selectShowFiatInTestnets: jest.fn(),
 }));
 
 jest.mock('../../../../hooks/useTokensData/useTokensData');
@@ -117,6 +128,7 @@ describe('useAccountTokens', () => {
     jest.clearAllMocks();
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
+    useTransactionPayCurrencyMock.mockReturnValue(undefined);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockSelectAssetsBySelectedAccountGroup.mockReturnValue(mockAssets as any);
@@ -319,6 +331,95 @@ describe('useAccountTokens', () => {
       expect(result.current[0].symbol).toBe('TOKEN2');
       expect(result.current[1].symbol).toBe('TOKEN1');
       expect(result.current[2].symbol).toBe('TOKEN3');
+    });
+  });
+
+  describe('show fiat on testnets setting', () => {
+    const mixedAssets = {
+      '0x1': [
+        {
+          chainId: '0x1',
+          accountType: 'eip155:1/erc20:0xtoken1',
+          fiat: { balance: '10' },
+          rawBalance: '0x1234',
+          symbol: 'MAINNET_TOKEN',
+        },
+      ],
+      '0xaa36a7': [
+        {
+          chainId: '0xaa36a7',
+          accountType: 'eip155:11155111/slip44:60',
+          fiat: { balance: '1000' },
+          rawBalance: '0x5678',
+          symbol: 'SepoliaETH',
+        },
+      ],
+    };
+
+    const setupSelectors = (showFiatOnTestnets: boolean) => {
+      mockIsTestNet.mockImplementation((chainId) => chainId === '0xaa36a7');
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mixedAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return mixedAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        if (selector === selectShowFiatInTestnets) {
+          return showFiatOnTestnets;
+        }
+        return undefined;
+      });
+    };
+
+    it('hides fiat for testnet assets when the setting is disabled', () => {
+      setupSelectors(false);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      const testnetAsset = result.current.find(
+        (asset) => asset.symbol === 'SepoliaETH',
+      );
+      const mainnetAsset = result.current.find(
+        (asset) => asset.symbol === 'MAINNET_TOKEN',
+      );
+
+      expect(testnetAsset?.balanceInSelectedCurrency).toBeUndefined();
+      expect(mainnetAsset?.balanceInSelectedCurrency).toBe('$100.50');
+    });
+
+    it('shows fiat for testnet assets when the setting is enabled', () => {
+      setupSelectors(true);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      const testnetAsset = result.current.find(
+        (asset) => asset.symbol === 'SepoliaETH',
+      );
+
+      expect(testnetAsset?.balanceInSelectedCurrency).toBe('$100.50');
+    });
+
+    it('sorts testnet assets below mainnet assets when the setting is disabled', () => {
+      setupSelectors(false);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current[0].symbol).toBe('MAINNET_TOKEN');
+      expect(result.current[1].symbol).toBe('SepoliaETH');
+    });
+
+    it('sorts testnet assets by fiat when the setting is enabled', () => {
+      setupSelectors(true);
+
+      const { result } = renderHook(() => useAccountTokens());
+
+      expect(result.current[0].symbol).toBe('SepoliaETH');
+      expect(result.current[1].symbol).toBe('MAINNET_TOKEN');
     });
   });
 
@@ -883,6 +984,50 @@ describe('useAccountTokens', () => {
 
       expect(result.current).toHaveLength(2);
       expect(result.current[0].symbol).toBe('TOKEN1');
+    });
+  });
+
+  describe('pay currency', () => {
+    it('uses preferred currency when useTransactionPayCurrency returns undefined', () => {
+      useTransactionPayCurrencyMock.mockReturnValue(undefined);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return mockAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'eur';
+        }
+        return undefined;
+      });
+
+      renderHook(() => useAccountTokens());
+
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+        style: 'currency',
+        currency: 'eur',
+        minimumFractionDigits: 2,
+      });
+    });
+
+    it('uses USD from useTransactionPayCurrency over preferred currency', () => {
+      useTransactionPayCurrencyMock.mockReturnValue('USD');
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return mockAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'eur';
+        }
+        return undefined;
+      });
+
+      renderHook(() => useAccountTokens());
+
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+      });
     });
   });
 });

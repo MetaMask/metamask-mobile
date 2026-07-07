@@ -146,6 +146,20 @@ jest.mock('@metamask/perps-controller', () => {
   };
 });
 
+/**
+ * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
+ * react-native-worklets, and requiring the real package eagerly initializes its
+ * native part (absent under Jest), throwing "Native part of Worklets doesn't
+ * seem to be initialized" the moment Reanimated is imported (transitively, e.g.
+ * via @metamask/design-system-react-native). The mock also installs
+ * `globalThis._getAnimationTimestamp` and a timestamp-correct
+ * `requestAnimationFrame` that animation tests rely on.
+ * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
+ */
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/lib/module/mock'),
+);
+
 // ActionSheetIOS is unavailable in Jest; use the custom sheet so CV tests can confirm options.
 jest.mock('@metamask/react-native-actionsheet', () => {
   const React = jest.requireActual('react');
