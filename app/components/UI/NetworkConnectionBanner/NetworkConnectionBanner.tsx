@@ -303,9 +303,50 @@ const getBannerContent = (
   };
 };
 
-export const NetworkConnectionBanner = () => {
+export interface NetworkConnectionBannerViewProps {
+  networkConnectionBannerState: Exclude<
+    NetworkConnectionBannerState,
+    { visible: false }
+  >;
+  onUpdateRpc: () => void;
+  onSwitchToInfura: () => void | Promise<void>;
+}
+
+export const NetworkConnectionBannerView = ({
+  networkConnectionBannerState,
+  onUpdateRpc,
+  onSwitchToInfura,
+}: NetworkConnectionBannerViewProps) => {
   const theme = useAppTheme();
   const tw = useTailwind();
+
+  const { primaryMessage, secondaryMessage, backgroundColor, icon } =
+    getBannerContent(
+      theme,
+      networkConnectionBannerState,
+      onUpdateRpc,
+      onSwitchToInfura,
+    );
+
+  return (
+    <BannerBase
+      style={{ backgroundColor, ...tw`rounded-md` }}
+      startAccessory={
+        <icon.component
+          name={icon.name}
+          size={IconSize.Sm}
+          color={icon.color}
+          // Vertically align icon with text better
+          twClassName="mt-[0.1rem]"
+        />
+      }
+      title={primaryMessage}
+      description={secondaryMessage}
+    />
+  );
+};
+
+export const NetworkConnectionBanner = () => {
   const { networkConnectionBannerState, updateRpc, switchToInfura } =
     useNetworkConnectionBanner();
 
@@ -323,28 +364,11 @@ export const NetworkConnectionBanner = () => {
     return null;
   }
 
-  const { primaryMessage, secondaryMessage, backgroundColor, icon } =
-    getBannerContent(
-      theme,
-      networkConnectionBannerState,
-      handleUpdateRpc,
-      switchToInfura,
-    );
-
   return (
-    <BannerBase
-      style={{ backgroundColor, ...tw`rounded-md` }}
-      startAccessory={
-        <icon.component
-          name={icon.name}
-          size={IconSize.Sm}
-          color={icon.color}
-          // Vertically align icon with text better
-          twClassName="mt-[0.1rem]"
-        />
-      }
-      title={primaryMessage}
-      description={secondaryMessage}
+    <NetworkConnectionBannerView
+      networkConnectionBannerState={networkConnectionBannerState}
+      onUpdateRpc={handleUpdateRpc}
+      onSwitchToInfura={switchToInfura}
     />
   );
 };
