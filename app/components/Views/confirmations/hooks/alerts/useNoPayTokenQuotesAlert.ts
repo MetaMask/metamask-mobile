@@ -9,6 +9,7 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayQuoteValidationError,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
@@ -32,6 +33,7 @@ export function useNoPayTokenQuotesAlert() {
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const transactionMeta = useTransactionMetadataRequest();
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
+  const quoteValidationError = useTransactionPayQuoteValidationError();
 
   const fiatAmount = Number(fiatPayment?.amountFiat);
   const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
@@ -135,11 +137,13 @@ export function useNoPayTokenQuotesAlert() {
       {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
-        message: strings('alert_system.no_pay_token_quotes.message'),
+        message:
+          quoteValidationError ??
+          strings('alert_system.no_pay_token_quotes.message'),
         title: strings('alert_system.no_pay_token_quotes.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [showAlert]);
+  }, [showAlert, quoteValidationError]);
 }
