@@ -8,8 +8,9 @@ import { fontStyles } from '../../../styles/common';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ElevatedView from 'react-native-elevated-view';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 
-const createStyles = (colors) =>
+const createStyles = (theme) =>
   StyleSheet.create({
     modal: {
       margin: 0,
@@ -17,7 +18,7 @@ const createStyles = (colors) =>
     },
     copyAlert: (width) => ({
       width: width || 180,
-      backgroundColor: colors.overlay.alternative,
+      backgroundColor: getElevatedSurfaceColor(theme),
       padding: 20,
       paddingTop: 30,
       alignSelf: 'center',
@@ -30,7 +31,7 @@ const createStyles = (colors) =>
     },
     copyAlertText: {
       textAlign: 'center',
-      color: colors.overlay.inverse,
+      color: theme.colors.text.default,
       fontSize: 16,
       ...fontStyles.normal,
     },
@@ -91,13 +92,13 @@ class GlobalAlert extends PureComponent {
   }
 
   getStyles = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    return createStyles(colors);
+    const theme = this.context || mockTheme;
+    return createStyles(theme);
   };
 
   renderClipboardAlert = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = this.getStyles(colors);
+    const theme = this.context || mockTheme;
+    const styles = this.getStyles();
 
     return (
       <ElevatedView
@@ -108,7 +109,7 @@ class GlobalAlert extends PureComponent {
           <Icon
             name={'check-circle'}
             size={64}
-            color={colors.overlay.inverse}
+            color={theme.colors.icon.default}
           />
         </View>
         <Text style={styles.copyAlertText}>
@@ -120,8 +121,7 @@ class GlobalAlert extends PureComponent {
 
   render = () => {
     const { content, isVisible } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = this.getStyles(colors);
+    const styles = this.getStyles();
 
     return (
       <Modal

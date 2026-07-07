@@ -134,6 +134,8 @@ const getStories = () => {
     "./app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx": require("../app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx"),
     "./app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx": require("../app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx"),
     "./app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx": require("../app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx"),
+    "./app/components/UI/GlobalAlert/GlobalAlert.stories.tsx": require("../app/components/UI/GlobalAlert/GlobalAlert.stories.tsx"),
+    "./app/components/UI/Notification/SimpleNotification/SimpleNotification.stories.tsx": require("../app/components/UI/Notification/SimpleNotification/SimpleNotification.stories.tsx"),
     "./app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx": require("../app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx"),
     "./app/components/UI/Ramp/Aggregator/components/ShapesBackgroundAnimation/index.stories.tsx": require("../app/components/UI/Ramp/Aggregator/components/ShapesBackgroundAnimation/index.stories.tsx"),
     "./app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx": require("../app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx"),
