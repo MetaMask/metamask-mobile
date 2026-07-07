@@ -16,7 +16,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import Overlay from '../../../component-library/components/Overlay';
 import { useParams } from '../../../util/navigation/navUtils';
-import { Box } from '../../UI/Box/Box';
 
 import {
   ActionListItem,
@@ -26,6 +25,7 @@ import {
   TagSeverity,
   Text,
   TextVariant,
+  Box,
 } from '@metamask/design-system-react-native';
 import {
   usePureBlack,
@@ -426,7 +426,7 @@ function TradeWalletActions() {
                     <BottomShape
                       width={buttonLayout.width * 4}
                       height={bottomMaskHeight}
-                      fill="none"
+                      strokeOnly
                       pathProps={{
                         stroke: colors.border.muted,
                         strokeWidth: 1,
