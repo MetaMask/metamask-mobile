@@ -98,11 +98,42 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
  */
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
 
+/**
+ * Transaction types that participate in the pay flow (deposits, orders,
+ * conversions, withdrawals). Token/amount displays inside these confirmations
+ * are priced in USD unless the type is also in {@link USER_CURRENCY_TYPES}.
+ */
+export const PAY_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.musdConversion,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+  TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
+  TransactionType.predictWithdraw,
+] as const;
+
 export const RELAY_DEPOSIT_TYPES = [
   TransactionType.relayDeposit,
   TransactionType.musdRelayDeposit,
   TransactionType.perpsRelayDeposit,
   TransactionType.predictRelayDeposit,
+];
+
+export const MM_PAY_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.musdClaim,
+  TransactionType.musdConversion,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
+  TransactionType.predictClaim,
+  TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
+  TransactionType.predictWithdraw,
 ];
 
 /**
