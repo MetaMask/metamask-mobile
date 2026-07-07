@@ -53,6 +53,7 @@ import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytic
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 interface OptionType {
   key: string;
@@ -148,7 +149,6 @@ const LedgerSelectAccount = () => {
       );
       setAccounts(_accounts);
     } catch (e) {
-      console.log('[LedgerSelectAccount] fetchAccounts error:', e);
       setErrorMsg((e as Error).message);
     }
   }, []);
@@ -157,7 +157,7 @@ const LedgerSelectAccount = () => {
     () => {
       const init = async () => {
         try {
-          console.log('[LedgerSelectAccount] Calling ensureDeviceReady...');
+          DevLogger.log('[LedgerSelectAccount] Calling ensureDeviceReady...');
           setTargetWalletType(HardwareWalletType.Ledger);
           const isReady = await ensureDeviceReady();
 
@@ -165,15 +165,17 @@ const LedgerSelectAccount = () => {
             // We default to the Ledger Live path BEFORE fetching accounts.
             await setHDPath(LEDGER_LIVE_PATH);
 
+            DevLogger.log(
+              '[LedgerSelectAccount] Device ready - fetching accounts',
+            );
             await fetchAccounts();
           } else {
-            console.log(
+            DevLogger.log(
               '[LedgerSelectAccount] User cancelled - navigating back',
             );
             navigation.goBack();
           }
-        } catch (err) {
-          console.log('[LedgerSelectAccount] init error:', err);
+        } catch {
           navigation.goBack();
         }
       };

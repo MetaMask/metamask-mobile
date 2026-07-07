@@ -158,8 +158,57 @@ function parseLedgerStatusCode(
 }
 
 /**
- * Parse error by checking error name
- * Ledger packages throws errors with specific names like 'DisconnectedDevice'
+ * Parse a DMK (Device Management Kit) error by its `_tag` property.
+ *
+ * DMK is Ledger's newer SDK. Unlike legacy @ledgerhq/errors, which identify
+ * errors via the standard `error.name` property, DMK errors carry a
+ * non-standard `_tag` string (e.g. 'DeviceSessionNotFound',
+ * 'DeviceLockedError'). Tag values are looked up in ERROR_NAME_MAPPINGS,
+ * which is shared with legacy error names since both map to the same
+ * ErrorCode values.
+ *
+ * @param error - The error object to parse
+ * @param walletType - The type of hardware wallet
+ * @returns A structured HardwareWalletError, or null if no `_tag` is present
+ * or the tag is not recognized
+ */
+function parseDMKErrorByTag(
+  error: unknown,
+  walletType?: HardwareWalletType | null,
+): HardwareWalletError | null {
+  if (error === null || typeof error !== 'object') {
+    return null;
+  }
+
+  const errorObj = error as Record<string, unknown>;
+  const tag =
+    '_tag' in errorObj && typeof errorObj._tag === 'string'
+      ? errorObj._tag
+      : null;
+
+  if (!tag || !ERROR_NAME_MAPPINGS[tag]) {
+    return null;
+  }
+
+  return createHardwareWalletError(
+    ERROR_NAME_MAPPINGS[tag],
+    walletType,
+    undefined,
+    {
+      cause: isErrorLike(error) ? error : undefined,
+      metadata: { errorName: tag },
+    },
+  );
+}
+
+/**
+ * Parse error by checking its `name` property.
+ *
+ * Legacy @ledgerhq/errors identify themselves via the standard JS `error.name`
+ * (e.g. 'DisconnectedDevice', 'TransportStatusError'). DMK errors do not set
+ * `name`; those are handled by parseDMKErrorByTag, which is called as a
+ * fallback when no legacy `name` is present. This preserves "name over _tag"
+ * precedence: when both fields are present, `name` wins and `_tag` is ignored.
  */
 function parseErrorByName(
   error: unknown,
@@ -169,20 +218,11 @@ function parseErrorByName(
     return null;
   }
 
-  const errorObj = error as Record<string, unknown>;
   const name =
     'name' in error && typeof error.name === 'string' ? error.name : null;
-  const tag =
-    '_tag' in errorObj && typeof errorObj._tag === 'string'
-      ? errorObj._tag
-      : null;
 
-  if (!name && !tag) {
-    return null;
-  }
-
-  // TransportStatusError requires special handling - extract and parse the status code
-  // The error name alone doesn't tell us what went wrong; the statusCode does
+  // TransportStatusError requires special handling - extract and parse the status code.
+  // The error name alone doesn't tell us what went wrong; the statusCode does.
   if (name === 'TransportStatusError') {
     const statusCode = extractStatusCode(error);
     if (statusCode !== null) {
@@ -195,18 +235,24 @@ function parseErrorByName(
     return null;
   }
 
-  // Check known error names (covers both legacy Ledger names and DMK _tag values)
-  const lookupKey = name ?? tag;
-  if (lookupKey && ERROR_NAME_MAPPINGS[lookupKey]) {
+  // Check known legacy Ledger error names.
+  if (name && ERROR_NAME_MAPPINGS[name]) {
     return createHardwareWalletError(
-      ERROR_NAME_MAPPINGS[lookupKey],
+      ERROR_NAME_MAPPINGS[name],
       walletType,
       undefined,
       {
         cause: isErrorLike(error) ? error : undefined,
-        metadata: { errorName: lookupKey },
+        metadata: { errorName: name },
       },
     );
+  }
+
+  // No legacy `name` resolved -> fall back to DMK `_tag`-based parsing.
+  // Only entered when `name` is absent, so legacy errors are never accidentally
+  // routed through the DMK path.
+  if (!name) {
+    return parseDMKErrorByTag(error, walletType);
   }
 
   return null;
@@ -280,7 +326,11 @@ function parseErrorByMessage(
     { patterns: ['bluetooth'], code: ErrorCode.BluetoothConnectionFailed },
     // DMK-specific patterns
     {
-      patterns: ['session not found', 'sessionid is not initialized', 'invalid session'],
+      patterns: [
+        'session not found',
+        'sessionid is not initialized',
+        'invalid session',
+      ],
       code: ErrorCode.DeviceDisconnected,
     },
     {

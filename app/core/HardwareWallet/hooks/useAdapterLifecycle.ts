@@ -8,8 +8,8 @@ import {
 
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter } from '../types';
-import { useEventCallback } from '../../../hooks/useEventCallback';
-import Engine from '../../Engine';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { isDmkEnabled } from '../../Ledger/dmk';
 
 interface UseAdapterLifecycleOptions {
   walletType: HardwareWalletType | null;
@@ -37,11 +37,6 @@ interface UseAdapterLifecycleResult {
  * a NonHardwareAdapter (null-object pattern) is created so consumers never
  * need to null-check. NonHardwareAdapter methods are no-ops or return "ready"
  * immediately.
- *
- * The parent-supplied callbacks (`handleDeviceEvent`, `handleError`,
- * `updateConnectionState`) are wrapped in `useEventCallback` so the adapter's
- * stored subscriptions always invoke the latest version without causing the
- * wallet-type effect to re-run on parent re-renders.
  */
 export const useAdapterLifecycle = ({
   walletType,
@@ -54,29 +49,25 @@ export const useAdapterLifecycle = ({
   const previousTransportAvailableRef = useRef<boolean | null>(null);
   const transportCleanupRef = useRef<(() => void) | null>(null);
 
-  const stableHandleDeviceEvent = useEventCallback(handleDeviceEvent);
-  const stableHandleError = useEventCallback(handleError);
-  const stableUpdateConnectionState = useEventCallback(updateConnectionState);
-
   const createAdapterWithCallbacks = useCallback(
-    (targetType: HardwareWalletType) =>
-      createAdapter(
+    (targetType: HardwareWalletType) => {
+      const enableDmk = isDmkEnabled();
+      return createAdapter(
         targetType,
         {
           onDisconnect: (error) => {
             if (error) {
-              stableHandleError(error);
+              handleError(error);
             } else {
-              stableUpdateConnectionState({
-                status: ConnectionStatus.Disconnected,
-              });
+              updateConnectionState({ status: ConnectionStatus.Disconnected });
             }
           },
-          onDeviceEvent: stableHandleDeviceEvent,
+          onDeviceEvent: handleDeviceEvent,
         },
-        Engine.controllerMessenger,
-      ),
-    [stableHandleDeviceEvent, stableHandleError, stableUpdateConnectionState],
+        enableDmk,
+      );
+    },
+    [handleDeviceEvent, handleError, updateConnectionState],
   );
 
   const initializeAdapter = useCallback(
@@ -88,12 +79,17 @@ export const useAdapterLifecycle = ({
 
       transportCleanupRef.current = adapter.onTransportStateChange(
         (isAvailable) => {
-          console.log('[HardwareWallet] Transport state changed:', isAvailable);
+          DevLogger.log(
+            '[HardwareWallet] Transport state changed:',
+            isAvailable,
+          );
           setIsTransportAvailable(isAvailable);
         },
       );
     },
-    [adapterRef],
+    // Stable ref (adapterRef) — not needed as a dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   useEffect(() => {
@@ -104,15 +100,18 @@ export const useAdapterLifecycle = ({
 
     previousTransportAvailableRef.current = null;
 
+    const enableDmk = isDmkEnabled();
+
     const adapter = walletType
       ? createAdapterWithCallbacks(walletType)
       : createAdapter(
           null,
           {
-            onDisconnect: () => undefined,
-            onDeviceEvent: stableHandleDeviceEvent,
+            // eslint-disable-next-line no-empty-function
+            onDisconnect: () => {},
+            onDeviceEvent: handleDeviceEvent,
           },
-          Engine.controllerMessenger,
+          enableDmk,
         );
 
     initializeAdapter(adapter);
@@ -125,12 +124,13 @@ export const useAdapterLifecycle = ({
         adapterRef.current = null;
       }
     };
+    // Stable ref (adapterRef) — not needed as a dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     walletType,
+    handleDeviceEvent,
     createAdapterWithCallbacks,
     initializeAdapter,
-    stableHandleDeviceEvent,
-    adapterRef,
   ]);
 
   return {

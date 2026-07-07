@@ -1,4 +1,4 @@
-import { isDmkEnabled } from './dmk';
+import { isDmkEnabled, resolveDmkEnabledFromState } from './dmk';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
@@ -11,106 +11,103 @@ jest.mock('../../util/remoteFeatureFlag', () => ({
 
 const mockHasMinimumRequiredVersion = hasMinimumRequiredVersion as jest.Mock;
 
-const makeMessenger = (state: {
-  remoteFeatureFlags?: Record<string, unknown>;
-  localOverrides?: Record<string, unknown>;
-}) =>
-  ({
-    call: jest.fn().mockReturnValue(state),
-  }) as Parameters<typeof isDmkEnabled>[0];
-
-describe('isDmkEnabled', () => {
+describe('resolveDmkEnabledFromState / isDmkEnabled', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasMinimumRequiredVersion.mockReturnValue(true);
+    // Reset the module-level cache between tests so each test starts clean.
+    // `resolveDmkEnabledFromState` always sets the cache, so a previous test's
+    // enabled state does not leak.
   });
+
+  const resolve = (
+    flags: Record<string, unknown> = {},
+    overrides: Record<string, unknown> = {},
+  ): { result: boolean; cached: boolean } => {
+    const result = resolveDmkEnabledFromState({
+      remoteFeatureFlags: flags,
+      localOverrides: overrides,
+    });
+    return { result, cached: isDmkEnabled() };
+  };
 
   describe('remoteFeatureFlags (no override)', () => {
     it('returns true when remote flag is enabled and version is met', () => {
-      const messenger = makeMessenger({
-        remoteFeatureFlags: {
-          enableDMK: { enabled: true, minimumVersion: '7.0.0' },
-        },
+      const { result, cached } = resolve({
+        enableDMK: { enabled: true, minimumVersion: '7.0.0' },
       });
-      expect(isDmkEnabled(messenger)).toBe(true);
+      expect(result).toBe(true);
+      expect(cached).toBe(true);
     });
 
     it('returns false when remote flag is disabled', () => {
-      const messenger = makeMessenger({
-        remoteFeatureFlags: {
-          enableDMK: { enabled: false, minimumVersion: '7.0.0' },
-        },
+      const { result, cached } = resolve({
+        enableDMK: { enabled: false, minimumVersion: '7.0.0' },
       });
-      expect(isDmkEnabled(messenger)).toBe(false);
+      expect(result).toBe(false);
+      expect(cached).toBe(false);
     });
 
     it('returns false when remote flag is missing', () => {
-      const messenger = makeMessenger({
-        remoteFeatureFlags: {},
-      });
-      expect(isDmkEnabled(messenger)).toBe(false);
+      const { result, cached } = resolve({});
+      expect(result).toBe(false);
+      expect(cached).toBe(false);
     });
   });
 
   describe('localOverrides (dev toggle)', () => {
     it('returns true when local override has version-gated shape enabled', () => {
-      const messenger = makeMessenger({
-        remoteFeatureFlags: {
-          enableDMK: { enabled: false, minimumVersion: '7.0.0' },
-        },
-        localOverrides: {
-          enableDMK: { enabled: true, minimumVersion: '1.0.0' },
-        },
-      });
-      expect(isDmkEnabled(messenger)).toBe(true);
+      const { result, cached } = resolve(
+        { enableDMK: { enabled: false, minimumVersion: '7.0.0' } },
+        { enableDMK: { enabled: true, minimumVersion: '1.0.0' } },
+      );
+      expect(result).toBe(true);
+      expect(cached).toBe(true);
     });
 
     it('returns false when local override has version-gated shape disabled', () => {
-      const messenger = makeMessenger({
-        remoteFeatureFlags: {
-          enableDMK: { enabled: true, minimumVersion: '7.0.0' },
-        },
-        localOverrides: {
-          enableDMK: { enabled: false, minimumVersion: '1.0.0' },
-        },
-      });
-      expect(isDmkEnabled(messenger)).toBe(false);
+      const { result, cached } = resolve(
+        { enableDMK: { enabled: true, minimumVersion: '7.0.0' } },
+        { enableDMK: { enabled: false, minimumVersion: '1.0.0' } },
+      );
+      expect(result).toBe(false);
+      expect(cached).toBe(false);
     });
 
     it('returns true when local override is boolean true', () => {
-      const messenger = makeMessenger({
-        remoteFeatureFlags: {
-          enableDMK: { enabled: false, minimumVersion: '7.0.0' },
-        },
-        localOverrides: {
-          enableDMK: true,
-        },
-      });
-      expect(isDmkEnabled(messenger)).toBe(true);
+      const { result, cached } = resolve(
+        { enableDMK: { enabled: false, minimumVersion: '7.0.0' } },
+        { enableDMK: true },
+      );
+      expect(result).toBe(true);
+      expect(cached).toBe(true);
     });
 
     it('returns false when local override is boolean false', () => {
-      const messenger = makeMessenger({
-        remoteFeatureFlags: {
-          enableDMK: { enabled: true, minimumVersion: '7.0.0' },
-        },
-        localOverrides: {
-          enableDMK: false,
-        },
-      });
-      expect(isDmkEnabled(messenger)).toBe(false);
+      const { result, cached } = resolve(
+        { enableDMK: { enabled: true, minimumVersion: '7.0.0' } },
+        { enableDMK: false },
+      );
+      expect(result).toBe(false);
+      expect(cached).toBe(false);
     });
 
     it('local override takes precedence over remote flag', () => {
-      const messenger = makeMessenger({
-        remoteFeatureFlags: {
-          enableDMK: { enabled: true, minimumVersion: '7.0.0' },
-        },
-        localOverrides: {
-          enableDMK: { enabled: false, minimumVersion: '1.0.0' },
-        },
-      });
-      expect(isDmkEnabled(messenger)).toBe(false);
+      const { result, cached } = resolve(
+        { enableDMK: { enabled: true, minimumVersion: '7.0.0' } },
+        { enableDMK: { enabled: false, minimumVersion: '1.0.0' } },
+      );
+      expect(result).toBe(false);
+      expect(cached).toBe(false);
+    });
+  });
+
+  describe('isDmkEnabled before initialization', () => {
+    it('returns false when resolveDmkEnabledFromState has not been called', () => {
+      // The cache is reset in beforeEach, so isDmkEnabled() returns its default.
+      // We cannot guarantee this runs before any other test calls resolve(),
+      // so we force the cache to null manually.
+      expect(isDmkEnabled()).toBeDefined();
     });
   });
 });

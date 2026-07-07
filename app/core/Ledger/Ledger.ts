@@ -10,6 +10,7 @@ import {
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
+import type Transport from '@ledgerhq/hw-transport';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
@@ -21,6 +22,21 @@ import { keyringTypeToName } from '@metamask/accounts-controller';
 import { getChecksumAddress, Hex } from '@metamask/utils';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
+import DevLogger from '../SDKConnect/utils/DevLogger';
+
+/**
+ * The subset of bridge methods used by the connection helpers below. Both
+ * `LedgerMobileBridge` (legacy BLE) and `LedgerDmkBridge` (DMK) satisfy this
+ * shape. `updateSessionId` is DMK-only; `updateTransportMethod` is used by the
+ * legacy path.
+ */
+interface LedgerBridgeConnection {
+  updateSessionId?: (sessionId: string) => Promise<boolean>;
+  updateTransportMethod: (transport: Transport | string) => Promise<boolean>;
+  getAppNameAndVersion: () => Promise<{ appName: string; version: string }>;
+  openEthApp: () => Promise<void>;
+  closeApps: () => Promise<void>;
+}
 
 const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
   if (!abortSignal?.aborted) {
@@ -82,13 +98,18 @@ export const withLedgerKeyring = async <CallbackResult = void>(
 };
 
 /**
- * Connects to the ledger device by requesting some metadata from it.
+ * Connect a Ledger device via a DMK session and return the running app name.
  *
- * @param sessionId - The DMK session ID from the adapter's connection
- * @param deviceId - The device ID to connect to
- * @returns The name of the currently open application on the device
+ * Called by `LedgerBluetoothDMKAdapter` after it has discovered and connected
+ * to the device through the shared DMK singleton. The session ID is forwarded
+ * to the keyring's bridge via `updateSessionId`.
+ *
+ * @param sessionId - The DMK session ID from the adapter's connection.
+ * @param deviceId - The device ID to connect to.
+ * @param abortSignal - Optional abort signal to cancel the operation.
+ * @returns The name of the currently open application on the device.
  */
-export const connectLedgerHardware = async (
+export const connectLedgerDmkHardware = async (
   sessionId: string,
   deviceId: string,
   abortSignal?: AbortSignal,
@@ -96,7 +117,7 @@ export const connectLedgerHardware = async (
   throwIfLedgerOperationAborted(abortSignal);
 
   DevLogger.log(
-    '[DMK] connectLedgerHardware - sessionId:',
+    '[Ledger] connectLedgerDmkHardware - sessionId:',
     sessionId,
     'deviceId:',
     deviceId,
@@ -104,29 +125,62 @@ export const connectLedgerHardware = async (
 
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setDeviceId(deviceId);
-
-    const ledgerBridge = keyring.bridge as MobileLedgerBridge;
-    DevLogger.log(
-      '[DMK] connectLedgerHardware - calling updateSessionId:',
-      sessionId,
-    );
-    await ledgerBridge.updateSessionId(sessionId);
-    DevLogger.log('[DMK] connectLedgerHardware - updateSessionId done');
+    const ledgerBridge = keyring.bridge as unknown as LedgerBridgeConnection;
+    await ledgerBridge.updateSessionId?.(sessionId);
     return ledgerBridge;
   });
 
   // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
   // flows are serialized at the adapter/provider layer.
   throwIfLedgerOperationAborted(abortSignal);
-  DevLogger.log('[DMK] connectLedgerHardware - calling getAppNameAndVersion');
-  const appAndVersion = await bridge.getAppNameAndVersion();
+  const { appName, version } = await bridge.getAppNameAndVersion();
+  DevLogger.log('[Ledger] connectLedgerDmkHardware - app:', appName, version);
+  return appName;
+};
+
+/**
+ * Connect a Ledger device via a legacy BLE transport and return the running
+ * app name.
+ *
+ * Called by `LedgerBluetoothAdapter` after it has discovered and opened a
+ * transport to the device through `@ledgerhq/react-native-hw-transport-ble`.
+ * The transport is forwarded to the keyring's bridge via
+ * `updateTransportMethod`.
+ *
+ * @param transport - The opened BLE transport from the legacy adapter.
+ * @param deviceId - The device ID to connect to.
+ * @param abortSignal - Optional abort signal to cancel the operation.
+ * @returns The name of the currently open application on the device.
+ */
+export const connectLedgerHardware = async (
+  transport: Transport,
+  deviceId: string,
+  abortSignal?: AbortSignal,
+): Promise<string> => {
+  throwIfLedgerOperationAborted(abortSignal);
+
   DevLogger.log(
-    '[DMK] connectLedgerHardware - app:',
-    appAndVersion.appName,
-    'version:',
-    appAndVersion.version,
+    '[Ledger] connectLedgerHardware (legacy) - deviceId:',
+    deviceId,
   );
-  return appAndVersion.appName;
+
+  const bridge = await withLedgerKeyring(async ({ keyring }) => {
+    keyring.setDeviceId(deviceId);
+    const ledgerBridge = keyring.bridge as unknown as LedgerBridgeConnection;
+    await ledgerBridge.updateTransportMethod(transport);
+    return ledgerBridge;
+  });
+
+  // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
+  // flows are serialized at the adapter/provider layer.
+  throwIfLedgerOperationAborted(abortSignal);
+  const { appName, version } = await bridge.getAppNameAndVersion();
+  DevLogger.log(
+    '[Ledger] connectLedgerHardware (legacy) - app:',
+    appName,
+    version,
+  );
+  return appName;
 };
 
 /**
@@ -134,7 +188,7 @@ export const connectLedgerHardware = async (
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
   const bridge = await withLedgerKeyring(
-    async ({ keyring }) => keyring.bridge as MobileLedgerBridge,
+    async ({ keyring }) => keyring.bridge as unknown as LedgerBridgeConnection,
   );
   await bridge.openEthApp();
 };
@@ -144,7 +198,7 @@ export const openEthereumAppOnLedger = async (): Promise<void> => {
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
   const bridge = await withLedgerKeyring(
-    async ({ keyring }) => keyring.bridge as MobileLedgerBridge,
+    async ({ keyring }) => keyring.bridge as unknown as LedgerBridgeConnection,
   );
   await bridge.closeApps();
 };

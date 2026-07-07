@@ -11,7 +11,6 @@ import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
 } from './useHardwareWalletStateManager';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
 import Logger from '../../../util/Logger';
 
 interface UseDeviceConnectionFlowOptions {
@@ -162,6 +161,20 @@ export const useDeviceConnectionFlow = ({
     [updateConnectionState],
   );
 
+  const ensureDeviceReadyOrError = useCallback(
+    async (
+      adapter: HardwareWalletAdapter,
+      targetDeviceId: string,
+    ): Promise<boolean> => {
+      const isReady = await adapter.ensureDeviceReady(targetDeviceId);
+      if (!isReady) {
+        handleError(new Error('Device not ready'));
+      }
+      return isReady;
+    },
+    [handleError],
+  );
+
   const connect = useCallback(
     async (targetDeviceId: string): Promise<void> => {
       if (refs.isConnectingRef.current) {
@@ -261,12 +274,7 @@ export const useDeviceConnectionFlow = ({
         );
         try {
           refs.abortControllerRef.current = new AbortController();
-          const isReady = await adapter.ensureDeviceReady(targetDeviceId);
-          if (!isReady) {
-            handleError(new Error('Device not ready'));
-            return false;
-          }
-          return true;
+          return await ensureDeviceReadyOrError(adapter, targetDeviceId);
         } catch (error) {
           DevLogger.log(
             '[HardwareWallet] Direct readiness check failed, falling through to full flow',
@@ -293,12 +301,7 @@ export const useDeviceConnectionFlow = ({
             DevLogger.log(
               '[HardwareWallet] Background reconnect succeeded, checking readiness',
             );
-            const isReady = await adapter.ensureDeviceReady(targetDeviceId);
-            if (!isReady) {
-              handleError(new Error('Device not ready'));
-              return false;
-            }
-            return true;
+            return await ensureDeviceReadyOrError(adapter, targetDeviceId);
           }
           DevLogger.log(
             '[HardwareWallet] Background reconnect failed, falling through to scanning UI',
@@ -384,6 +387,7 @@ export const useDeviceConnectionFlow = ({
       updateConnectionState,
       resolveOrCreateAdapter,
       tryEnsureReady,
+      ensureDeviceReadyOrError,
       checkTransportEnabledOrShowError,
       createBlockingPromise,
       onFlowStart,

@@ -13,48 +13,71 @@ interface RemoteFeatureFlagControllerState {
   localOverrides?: Record<string, unknown>;
 }
 
-export interface HasGetState {
-  call: (
-    action: 'RemoteFeatureFlagController:getState',
-  ) => RemoteFeatureFlagControllerState;
-}
+/**
+ * Cached DMK flag, resolved once at startup from wallet state via
+ * {@link resolveDmkEnabledFromState}. Consumers call {@link isDmkEnabled}
+ * (no args) to read the cached value.
+ */
+let dmkEnabledCache: boolean | null = null;
 
 /**
- * Resolves the effective DMK flag value, with local overrides taking
- * precedence over remote values. Supports both the version-gated shape
+ * Resolve whether the DMK-enabled Ledger adapter should be used, reading
+ * from the provided flag state. Local overrides take precedence over
+ * remote values. Supports both the version-gated shape
  * (`{ enabled, minimumVersion }`) and boolean dev-tool overrides.
+ *
+ * Call once at startup with the persisted
+ * `RemoteFeatureFlagController` state. The result is cached and
+ * consumed by {@link isDmkEnabled}.
+ *
+ * @param controllerState - The `RemoteFeatureFlagController` state (local
+ * overrides will be undefined at startup — they are runtime-only dev-tool values).
+ * @returns The effective DMK flag value.
  */
-export const isDmkEnabled = (messenger: HasGetState): boolean => {
+export const resolveDmkEnabledFromState = (
+  controllerState: Partial<RemoteFeatureFlagControllerState>,
+): boolean => {
   try {
-    const flagState = messenger.call('RemoteFeatureFlagController:getState');
-
     // Local overrides (dev tools) take precedence over remote flags
-    const localOverride = flagState?.localOverrides?.[DMK_FEATURE_FLAG_KEY];
-    const remoteValue = flagState?.remoteFeatureFlags?.[DMK_FEATURE_FLAG_KEY];
+    const localOverride =
+      controllerState?.localOverrides?.[DMK_FEATURE_FLAG_KEY];
+    const remoteValue =
+      controllerState?.remoteFeatureFlags?.[DMK_FEATURE_FLAG_KEY];
     const dmkFlag = localOverride ?? remoteValue;
 
     // Boolean dev-tool override (e.g. set via Developer Options toggle)
     if (typeof dmkFlag === 'boolean') {
+      dmkEnabledCache = dmkFlag;
       return dmkFlag;
     }
 
     if (dmkFlag && typeof dmkFlag === 'object' && 'enabled' in dmkFlag) {
-      return (
+      const result =
         (dmkFlag as { enabled: boolean }).enabled &&
         hasMinimumRequiredVersion(
           (dmkFlag as unknown as { minimumVersion: string }).minimumVersion,
-        )
-      );
+        );
+      dmkEnabledCache = result;
+      return result;
     }
+    dmkEnabledCache = false;
     return false;
   } catch (error) {
     DevLogger.log(
       '[DMK] Failed to resolve enableDMK feature flag, defaulting to false:',
       error,
     );
+    dmkEnabledCache = false;
     return false;
   }
 };
+
+/**
+ * Returns the cached DMK-enabled flag resolved at startup via
+ * {@link resolveDmkEnabledFromState}. Returns `false` before initialization
+ * (useful for tests that don't call `resolveDmkEnabledFromState`).
+ */
+export const isDmkEnabled = (): boolean => dmkEnabledCache ?? false;
 
 const state: { dmk: DeviceManagementKit | null } = { dmk: null };
 

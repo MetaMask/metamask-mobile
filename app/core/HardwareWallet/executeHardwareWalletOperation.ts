@@ -1,6 +1,5 @@
 import { getDeviceIdForAddress } from './helpers';
 import { isUserCancellation } from './errors';
-import DevLogger from '../SDKConnect/utils/DevLogger';
 
 /**
  * Operation type accepted by {@link executeHardwareWalletOperation}.
@@ -94,21 +93,9 @@ export async function executeHardwareWalletOperation({
 
   try {
     const deviceId = await getDeviceIdForAddress(address);
-    DevLogger.log(
-      '[DMK] executeHardwareWalletOperation - address:',
-      address,
-      'deviceId:',
-      deviceId,
-      'opType:',
-      operationType,
-    );
     const isReady = await ensureDeviceReady(deviceId);
-    DevLogger.log('[DMK] executeHardwareWalletOperation - isReady:', isReady);
 
     if (!isReady) {
-      DevLogger.log(
-        '[DMK] executeHardwareWalletOperation - device not ready, rejecting',
-      );
       await rejectOnce();
       return false;
     }
@@ -120,14 +107,12 @@ export async function executeHardwareWalletOperation({
       });
     }
 
-    DevLogger.log('[DMK] executeHardwareWalletOperation - calling execute()');
     await execute();
     if (hasShownConfirmation) {
       hideAwaitingConfirmation();
     }
     return true;
   } catch (error) {
-    DevLogger.log('[DMK] executeHardwareWalletOperation - error:', error);
     if (hasShownConfirmation) {
       hideAwaitingConfirmation();
     }

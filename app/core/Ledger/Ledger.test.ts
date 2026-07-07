@@ -1,6 +1,7 @@
 import {
   closeRunningAppOnLedger,
   connectLedgerHardware,
+  connectLedgerDmkHardware,
   forgetLedger,
   getDeviceId,
   getHDPath,
@@ -78,9 +79,15 @@ const MockRemoveAccountsFromPermissions = jest.mocked(
 const mockBridge = {
   getAppNameAndVersion: jest.fn(),
   updateSessionId: jest.fn(),
+  updateTransportMethod: jest.fn(),
   openEthApp: jest.fn(),
   closeApps: jest.fn(),
 };
+
+// Stand-in for a legacy BLE Transport object (from @ledgerhq/hw-transport-ble).
+// `connectLedgerHardware` (legacy path) accepts a Transport; `connectLedgerDmkHardware`
+// accepts a DMK session ID string.
+const mockTransport = { id: 'mock-ble-transport' } as unknown as BleTransport;
 
 const legacyLedgerKeyring = new LegacyLedgerKeyring({
   bridge: mockBridge as unknown as LedgerMobileBridge,
@@ -223,26 +230,21 @@ describe('Ledger core', () => {
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
 
-  describe('connectLedgerHardware', () => {
+  describe('connectLedgerDmkHardware', () => {
     const mockSessionId = 'mock-session-id';
     it('calls keyring.updateSessionId', async () => {
-      await connectLedgerHardware(mockSessionId, 'bar');
+      await connectLedgerDmkHardware(mockSessionId, 'bar');
       expect(mockBridge.updateSessionId).toHaveBeenCalled();
     });
 
     it('calls keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware(mockSessionId, 'bar');
+      await connectLedgerDmkHardware(mockSessionId, 'bar');
       expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
     it('returns app name correctly', async () => {
-      const value = await connectLedgerHardware(mockSessionId, 'bar');
+      const value = await connectLedgerDmkHardware(mockSessionId, 'bar');
       expect(value).toBe('appName');
-    });
-
-    it('calls keyring.setDeviceId if deviceId is different', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
 
     it('releases the keyring lock before requesting app metadata from the device', async () => {
@@ -262,9 +264,9 @@ describe('Ledger core', () => {
         },
       );
 
-      await expect(connectLedgerHardware(mockSessionId, 'bar')).resolves.toBe(
-        'Ethereum',
-      );
+      await expect(
+        connectLedgerDmkHardware(mockSessionId, 'bar'),
+      ).resolves.toBe('Ethereum');
 
       expect(mockBridge.updateSessionId).toHaveBeenCalled();
       expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
@@ -277,7 +279,7 @@ describe('Ledger core', () => {
         abortController.abort();
       });
 
-      const resultPromise = connectLedgerHardware(
+      const resultPromise = connectLedgerDmkHardware(
         mockSessionId,
         'bar',
         abortController.signal,
@@ -295,7 +297,7 @@ describe('Ledger core', () => {
       const abortController = new AbortController();
       abortController.abort();
 
-      const error = await connectLedgerHardware(
+      const error = await connectLedgerDmkHardware(
         mockSessionId,
         'bar',
         abortController.signal,
@@ -323,9 +325,19 @@ describe('Ledger core', () => {
           }),
       );
 
-      await expect(connectLedgerHardware(mockSessionId, 'bar')).rejects.toThrow(
-        'Expected LedgerKeyring',
+      await expect(
+        connectLedgerDmkHardware(mockSessionId, 'bar'),
+      ).rejects.toThrow('Expected LedgerKeyring');
+    });
+  });
+
+  describe('connectLedgerHardware (legacy)', () => {
+    it('calls updateTransportMethod and setDeviceId', async () => {
+      await connectLedgerHardware(mockTransport, 'bar');
+      expect(mockBridge.updateTransportMethod).toHaveBeenCalledWith(
+        mockTransport,
       );
+      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
   });
 

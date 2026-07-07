@@ -112,6 +112,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           <Box twClassName="items-end">
             <Switch
               value={(localValue as MinimumVersionFlagValue).enabled}
+              disabled={!isVersionSupported}
               onValueChange={(newValue: boolean) => {
                 const updatedValue = {
                   ...(localValue as MinimumVersionFlagValue),

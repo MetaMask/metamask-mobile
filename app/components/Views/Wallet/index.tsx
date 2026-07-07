@@ -56,7 +56,6 @@ import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
-import EIP7702UpgradeButton from '../../UI/EIP7702UpgradeButton';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';

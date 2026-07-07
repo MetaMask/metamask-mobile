@@ -4,7 +4,6 @@ import { LedgerBluetoothDMKAdapter } from './LedgerBluetoothDMKAdapter';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
 import { QRWalletAdapter } from './QRWalletAdapter';
 import { NonHardwareAdapter } from './NonHardwareAdapter';
-import { isDmkEnabled, type HasGetState } from '../../Ledger/dmk';
 
 /**
  * Factory function to create the appropriate hardware wallet adapter
@@ -13,29 +12,24 @@ import { isDmkEnabled, type HasGetState } from '../../Ledger/dmk';
  * This function always returns an adapter. For null or
  * unknown wallet types, it returns a NonHardwareAdapter (passthrough).
  *
- * For Ledger wallets, the adapter choice is driven by the `enableDMK`
- * feature flag, resolved via `isDmkEnabled(messenger)`. The messenger
- * is required because the flag lives on the `RemoteFeatureFlagController`
- * (which exposes both remote flags and local dev-tool overrides) — a
- * plain Redux selector is not enough to reproduce that resolution. The
- * caller is expected to obtain the messenger from
- * `Engine.controllerMessenger`.
+ * For Ledger wallets, the adapter choice is driven by the `enableDmk`
+ * flag, which the caller resolves once via `isDmkEnabled` (reading
+ * `Engine.controllerMessenger`) before invoking this factory.
  *
  * @param walletType - The type of hardware wallet (null for non-hardware accounts)
  * @param options - Adapter options including event callbacks
- * @param messenger - Object exposing `.call('RemoteFeatureFlagController:getState')`,
- * used to resolve the `enableDMK` feature flag. Required to mirror the
- * behavior of `isDmkEnabled` in `core/Ledger/dmk`.
+ * @param enableDmk - Whether the DMK adapter should be selected for Ledger wallets.
+ * Resolved by the caller via `isDmkEnabled(Engine.controllerMessenger)`.
  * @returns An adapter instance that implements HardwareWalletAdapter
  */
 export function createAdapter(
   walletType: HardwareWalletType | null,
   options: HardwareWalletAdapterOptions,
-  messenger: HasGetState,
+  enableDmk: boolean,
 ): HardwareWalletAdapter {
   switch (walletType) {
     case HardwareWalletType.Ledger: {
-      if (isDmkEnabled(messenger)) {
+      if (enableDmk) {
         return new LedgerBluetoothDMKAdapter(options);
       }
       return new LedgerBluetoothAdapter(options);

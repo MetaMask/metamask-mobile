@@ -13,7 +13,7 @@ import {
 } from '@metamask/eth-qr-keyring';
 import { QrKeyring as QrKeyringV2 } from '@metamask/eth-qr-keyring/v2';
 import {
-  LedgerDMKBridge,
+  LedgerDmkBridge,
   LedgerKeyring,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
@@ -25,6 +25,7 @@ import { MoneyKeyring } from '@metamask/eth-money-keyring';
 import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
+import Logger from '../../../util/Logger';
 import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
@@ -32,7 +33,8 @@ import {
   scanCompleted,
   scanRequested,
 } from '../../redux/slices/qrKeyringScanner';
-import { getDmk, isDmkEnabled } from '../../Ledger/dmk';
+import { isDmkEnabled } from '../../Ledger/dmk';
+import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
 import {
   snapKeyringV2AdaptedAsV1Builder,
   snapKeyringV2Builder,
@@ -80,12 +82,12 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  const useDmk = true; //isDmkEnabled(messenger);
+  const useDmk = isDmkEnabled();
   const bridge = useDmk
-    ? new LedgerDMKBridge({ dmk: getDmk() })
+    ? new LedgerDmkBridge({ transportFactory: RNBleTransportFactory })
     : new LedgerMobileBridge(new LedgerTransportMiddleware());
   Logger.log(
-    `[Ledger] Using ${useDmk ? 'LedgerDMKBridge' : 'LedgerMobileBridge'}`,
+    `[Ledger] Using ${useDmk ? 'LedgerDmkBridge' : 'LedgerMobileBridge'}`,
   );
   const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
   ledgerKeyringBuilder.type = LedgerKeyring.type;

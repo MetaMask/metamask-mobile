@@ -1,5 +1,6 @@
 import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
+import { resolveDmkEnabledFromState } from '../../Ledger/dmk';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
@@ -21,6 +22,17 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
+  // Resolve the DMK feature flag from the persisted wallet state before
+  // constructing any controller options that depend on it.
+  resolveDmkEnabledFromState(
+    ((state as Record<string, unknown>)?.RemoteFeatureFlagController as
+      | {
+          remoteFeatureFlags?: Record<string, unknown>;
+          localOverrides?: Record<string, unknown>;
+        }
+      | undefined) ?? {},
+  );
+
   const wallet = new Wallet({
     messenger,
     state,
