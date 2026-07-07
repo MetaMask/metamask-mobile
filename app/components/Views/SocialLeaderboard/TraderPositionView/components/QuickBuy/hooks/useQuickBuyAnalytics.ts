@@ -33,6 +33,7 @@ export function useQuickBuyAnalytics(
     payWithToken?: string,
     sliderPercent?: number,
     receiveToken?: string,
+    presetValue?: number,
   ) => void;
   trackTradeModeToggled: (tradeType: 'buy' | 'sell') => void;
   trackQuoteSelected: (quoteIndex: number, quoteCount: number) => void;
@@ -86,6 +87,7 @@ export function useQuickBuyAnalytics(
       payWithToken?: string,
       sliderPercent?: number,
       receiveToken?: string,
+      presetValue?: number,
     ) => {
       if (!resolvedTraderAddress || !caip19) return;
       lastTrackedAmountRef.current = String(amountUsd);
@@ -102,6 +104,9 @@ export function useQuickBuyAnalytics(
           ? { [QuickBuyEventProperties.RECEIVE_TOKEN]: receiveToken }
           : {}),
         ...(sliderPercent != null ? { slider_percent: sliderPercent } : {}),
+        ...(presetValue != null
+          ? { [QuickBuyEventProperties.PRESET_VALUE]: presetValue }
+          : {}),
       });
       dismissStageRef.current =
         QuickBuyEventValues.DISMISS_STAGE.AMOUNT_SELECTION;

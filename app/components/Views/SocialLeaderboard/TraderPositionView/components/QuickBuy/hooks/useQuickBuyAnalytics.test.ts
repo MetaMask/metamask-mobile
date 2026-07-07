@@ -21,6 +21,7 @@ jest.mock('../analytics', () => ({
     AMOUNT_USD: 'amount_usd',
     AMOUNT_SELECTION_METHOD: 'amount_selection_method',
     PAY_WITH_TOKEN: 'pay_with_token',
+    PRESET_VALUE: 'preset_value',
     RECEIVE_TOKEN: 'receive_token',
     INTERACTION_TYPE: 'interaction_type',
     QUOTE_INDEX: 'quote_index',
@@ -39,6 +40,7 @@ jest.mock('../analytics', () => ({
     AMOUNT_SELECTION_METHOD: {
       CUSTOM_INPUT: 'custom_input',
       SLIDER: 'slider',
+      PRESET: 'preset',
     },
     INTERACTION_TYPE: {
       QUOTE_SELECTED: 'quote_selected',
@@ -127,6 +129,28 @@ describe('useQuickBuyAnalytics', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
         expect.objectContaining({ slider_percent: 25 }),
+      );
+    });
+
+    it('includes preset_value when provided', () => {
+      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+
+      act(() => {
+        result.current.trackAmountSelected(
+          50,
+          QuickBuyEventValues.AMOUNT_SELECTION_METHOD.PRESET,
+          'USDC',
+          undefined,
+          undefined,
+          50,
+        );
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
+        expect.objectContaining({
+          [QuickBuyEventProperties.PRESET_VALUE]: 50,
+        }),
       );
     });
 

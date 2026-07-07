@@ -31,6 +31,7 @@ import Logger from '../../../../../../util/Logger';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
+import { toAssetId } from '../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import {
@@ -74,12 +75,23 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockTrackAmountSelected = jest.fn();
+const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
 const mockTrackTradeSubmitted = jest.fn();
 const mockTrackTradeCompleted = jest.fn();
 const mockTrackQuoteSelected = jest.fn();
 const mockTrackPayWithSelected = jest.fn();
 const mockTrackReceiveTokenSelected = jest.fn();
 const mockTrackSlippageChanged = jest.fn();
+
+jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
+  toAssetId: jest.fn(
+    () => 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+  ),
+}));
+
+jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
+}));
 
 jest.mock('./hooks/useQuickBuyAnalytics', () => ({
   useQuickBuyAnalytics: () => ({
@@ -452,6 +464,10 @@ const setupDefaultMocks = () => {
   (buildQuickBuyToastOptions as jest.Mock).mockImplementation(
     (kind: string) => ({ kind }),
   );
+  (toAssetId as jest.Mock).mockReturnValue(
+    'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+  );
+  mockGoToBuy.mockResolvedValue(undefined);
 };
 
 describe('useQuickBuyController', () => {
@@ -568,6 +584,7 @@ describe('useQuickBuyController', () => {
       const { result } = renderHook(() =>
         useQuickBuyController(createTarget(), jest.fn()),
       );
+      mockTrackAmountSelected.mockClear();
 
       act(() => {
         result.current.handleSliderChange(48);
@@ -577,6 +594,26 @@ describe('useQuickBuyController', () => {
 
       expect(result.current.sliderPercent).toBe(51);
       expect(mockTrackAmountSelected).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('sheet open defaults', () => {
+    it('defaults the slider to 50% when spendable balance is available', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.sliderPercent).toBe(50);
+      expect(Number(result.current.fiatAmount)).toBe(50);
     });
   });
 
@@ -594,6 +631,7 @@ describe('useQuickBuyController', () => {
       const { result } = renderHook(() =>
         useQuickBuyController(createTarget(), jest.fn()),
       );
+      mockTrackAmountSelected.mockClear();
 
       act(() => {
         result.current.handleSliderChange(48);
@@ -647,16 +685,22 @@ describe('useQuickBuyController', () => {
       );
 
       act(() => {
-        result.current.handleQuickAmountPress(500);
+        result.current.handleQuickAmountPress(50, 50);
       });
 
-      expect(result.current.fiatAmount).toBe('500.00');
-      expect(result.current.sliderPercent).toBe(25);
-      expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
-      expect(mockTrackAmountSelected.mock.calls[0][1]).toBe('preset');
+      expect(result.current.fiatAmount).toBe('50.00');
+      expect(result.current.sliderPercent).toBe(3);
+      expect(mockTrackAmountSelected).toHaveBeenCalledWith(
+        expect.any(Number),
+        'preset',
+        expect.any(String),
+        undefined,
+        undefined,
+        50,
+      );
     });
 
-    it('still sets amounts above the available balance for insufficient-funds handling', () => {
+    it('enables Add Funds when a pill exceeds the available balance', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '0.1',
         atomicBalance: '100000000000000000',
@@ -671,11 +715,45 @@ describe('useQuickBuyController', () => {
       );
 
       act(() => {
-        result.current.handleQuickAmountPress(3500);
+        result.current.handleQuickAmountPress(250, 250);
       });
 
-      expect(result.current.fiatAmount).toBe('3500.00');
+      expect(result.current.fiatAmount).toBe('250.00');
       expect(result.current.sliderPercent).toBe(100);
+      expect(result.current.getButtonLabel()).toBe(
+        'social_leaderboard.quick_buy.add_funds',
+      );
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('routes to Ramp buy when Add Funds is confirmed', async () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+      const onClose = jest.fn();
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), onClose),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(250, 250);
+      });
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockGoToBuy).toHaveBeenCalledWith(
+        expect.objectContaining({ assetId: expect.any(String) }),
+        { buyFlowOrigin: 'tokenInfo' },
+      );
+      expect(onClose).toHaveBeenCalled();
     });
 
     it('exposes usdToCurrentCurrencyRate from native currency rates', () => {
@@ -710,6 +788,7 @@ describe('useQuickBuyController', () => {
       const { result } = renderHook(() =>
         useQuickBuyController(createTarget(), jest.fn()),
       );
+      mockTrackAmountSelected.mockClear();
 
       act(() => {
         result.current.handleAmountChange('20');

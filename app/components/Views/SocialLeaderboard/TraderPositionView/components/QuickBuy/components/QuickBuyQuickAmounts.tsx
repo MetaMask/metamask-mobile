@@ -53,9 +53,9 @@ const QuickBuyQuickAmounts: React.FC = () => {
   );
 
   const handleBuyAmountPress = useCallback(
-    (value: number) => {
+    (value: number, presetTierUsd: number) => {
       playImpact(ImpactMoment.QuickAmountSelection);
-      handleQuickAmountPress(value);
+      handleQuickAmountPress(value, presetTierUsd);
     },
     [handleQuickAmountPress, playImpact],
   );
@@ -91,13 +91,15 @@ const QuickBuyQuickAmounts: React.FC = () => {
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 py-1">
       {buyAmounts.map((option) => (
         <Button
-          key={option.label}
+          key={option.presetTierUsd}
           {...QUICK_AMOUNT_PILL_PROPS}
           label={option.label}
-          onPress={() => handleBuyAmountPress(option.value)}
+          onPress={() =>
+            handleBuyAmountPress(option.value, option.presetTierUsd)
+          }
           isDisabled={isSliderDisabled}
           style={tw.style('min-w-0 flex-1 px-2')}
-          testID={`quick-buy-buy-pill-${option.value}`}
+          testID={`quick-buy-buy-pill-${option.presetTierUsd}`}
         />
       ))}
     </Box>

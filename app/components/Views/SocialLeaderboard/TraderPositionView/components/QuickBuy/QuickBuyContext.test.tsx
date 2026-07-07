@@ -100,6 +100,8 @@ const buildController = (
   handleClose: jest.fn(),
   handleSliderChange: jest.fn(),
   handleSliderDragEnd: jest.fn(),
+  handleQuickAmountPress: jest.fn(),
+  usdToCurrentCurrencyRate: undefined,
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),

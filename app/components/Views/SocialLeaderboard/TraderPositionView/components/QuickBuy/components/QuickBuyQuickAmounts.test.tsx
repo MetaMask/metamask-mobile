@@ -15,10 +15,10 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 
 jest.mock('../utils/quickBuyQuickAmounts', () => ({
   getBuyQuickAmounts: jest.fn(() => [
-    { value: 500, label: '$500', isUsdFallback: false },
-    { value: 1500, label: '$1,500', isUsdFallback: false },
-    { value: 2500, label: '$2,500', isUsdFallback: false },
-    { value: 3500, label: '$3,500', isUsdFallback: false },
+    { value: 10, label: '$10', presetTierUsd: 10 },
+    { value: 50, label: '$50', presetTierUsd: 50 },
+    { value: 100, label: '$100', presetTierUsd: 100 },
+    { value: 250, label: '$250', presetTierUsd: 250 },
   ]),
   SELL_QUICK_PERCENTAGES: [25, 50, 75, 100],
 }));
@@ -55,16 +55,16 @@ describe('QuickBuyQuickAmounts', () => {
   it('renders buy pills and commits the tapped fiat amount', async () => {
     renderWithProvider(<QuickBuyQuickAmounts />);
 
-    expect(screen.getByText('$500')).toBeOnTheScreen();
-    expect(screen.getByText('$3,500')).toBeOnTheScreen();
+    expect(screen.getByText('$10')).toBeOnTheScreen();
+    expect(screen.getByText('$250')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByText('$1,500'));
+    fireEvent.press(screen.getByText('$50'));
 
     await waitFor(() => {
       expect(mockPlayImpact).toHaveBeenCalledWith(
         ImpactMoment.QuickAmountSelection,
       );
-      expect(baseContext.handleQuickAmountPress).toHaveBeenCalledWith(1500);
+      expect(baseContext.handleQuickAmountPress).toHaveBeenCalledWith(50, 50);
     });
   });
 
