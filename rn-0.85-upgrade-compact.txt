@@ -1,0 +1,170 @@
+RN 0.85 UPGRADE SPIKE (COMPACT)
+Baseline: RN 0.83.6 + Expo SDK 55 (unmerged 0.83 branch) | Target: RN 0.85.3 + Expo SDK 56
+All versions verified on npm 2026-07-06. RN 0.86 / SDK 57 exist; we target one line behind the latest for stability.
+
+STRATEGY
+Land every risky library bump as its own green PR on 0.83 first. The final upgrade PR then only touches what peer-requires RN 0.85. If something breaks on 0.83, you debug one library, not the whole upgrade. Wherever an Expo module can replace a third-party native lib, switch instead of bumping: Expo modules are version-guaranteed per SDK, so every switch permanently removes one library from all future upgrade checklists.
+
+RN 0.85 BREAKING CHANGES
+- Jest preset 'react-native' removed, use '@react-native/jest-preset' (new devDep)
+- StyleSheet.absoluteFillObject removed, replace with absoluteFill (28 files)
+- Node >= 20.19.4 (we use 24, fine); Metro bumps via @react-native/metro-config
+
+EXPO ALTERNATIVES: SWITCH INSTEAD OF BUMP (all have SDK 55 versions, land pre-upgrade)
+- react-native-fs (dead since 2022, 6 files): expo-file-system, already installed
+- react-native-get-random-values (1 import in shim.js): expo-crypto 55.0.16
+- react-native-in-app-review (1 file): expo-store-review 55.0.15
+- react-native-video (3 files): expo-video 55.0.18; also removes the v6 bridgeless-crash risk on 0.85
+- react-native-localize (3 files): expo-localization 55.0.16
+- react-native-linear-gradient (42 files, near drop-in props): expo-linear-gradient 55.0.15; removes the 2.8.3-compile risk on 0.85 (2.x is dead, only 3.0-beta exists)
+- react-native-inappbrowser-reborn (16 files): expo-web-browser, already installed and in use; dedupes two browser libs. OPTIONAL, can defer post-upgrade
+- react-native-vector-icons (51 files, root pkg npm-deprecated): @expo/vector-icons 15.1.1 (SDK-managed, no font linking) OR scoped @react-native-vector-icons/* 13.x; decide in PR 6
+
+EXPO ALTERNATIVE EXISTS BUT BUMP IS SAFER (not equivalent, revisit later)
+- clipboard: expo-clipboard exists, API differs, 22 files; bump to 1.16.3
+- netinfo: expo-network exists, listener parity gaps, 15 files; bump to 12.0.1
+- async-storage: expo-sqlite/kv-store is a drop-in, but async-storage v3 is active; bump to 3.1.1
+- keychain: expo-secure-store has a 2KB value limit, unsuitable for vault; bump to 10.0.0
+- share: expo-sharing is files-only, no message/social options; bump to 12.3.1
+- device-info: expo-device + expo-application cover a subset, 87 files; bump to 15.0.2
+- vision-camera: expo-camera scans QR but worse perf/features; bump to 5.1.0 (Nitro PR)
+- permissions: Expo handles permissions per-module, architecture change; bump to 5.6.0
+
+NO EXPO EQUIVALENT
+- background-timer (dead since 2020, 12 files): bump 2.1.1 to 2.4.1 + audit call sites
+- default-preference (dead, 4 files): replace with react-native-mmkv (already in project)
+- @react-native-cookies/cookies (npm-deprecated, 6 files): replace with @preeternal/react-native-cookie-manager 6.3.3, active API-compatible fork
+- ble-plx, mmkv, quick-crypto, keyboard-controller, view-shot, datetimepicker, branch, notifee, rive, masked-view, checkbox: bump (see PRs below)
+
+PR PLAN: 6 PRs BEFORE THE UPGRADE
+
+PR 1 - Code fix + safe bumps (risk: LOW)
+- absoluteFillObject to absoluteFill codemod (28 files)
+- reanimated 4.2.1 to 4.5.1 + ADD react-native-worklets 0.10.1 (required peer, missing from package.json!) + babel.config.js: swap last plugin to 'react-native-worklets/plugin'
+- gesture-handler 2.30 to 2.32.0 (stay on v2; v3 is a post-upgrade decision)
+- safe-area-context 5.8.0, svg 15.15.5, lottie 7.3.8, flash-list 2.3.2, walletconnect/core 2.23.10, clipboard 1.16.3, slider 5.2.0, keyboard-controller 1.21.14, detox 20.51.4, branch 6.10.0, rive 9.8.3, notifee 9.1.8, masked-view 0.3.2, aes-crypto 3.3.0 (maintained after all, latest Feb 2026), inappbrowser-reborn 3.7.1
+- Keep as-is, verified safe: svg-charts 5.4.0 and render-html 6.3.4 (abandoned but pure JS, render via react-native-svg, cannot break the native build; plan replacement epic separately), react-native-modal 14.0.0-rc.1 (rc.1 IS the latest release), sovran 1.1.3, segment analytics 2.23.0 (keep patch), qrcode-svg 6.3.21, react 19.2
+
+PR 2 - Switch to Expo modules + drop abandoned libs (risk: LOW-MED)
+- react-native-fs to expo-file-system (readFile to readAsStringAsync etc.; update jest mocks in testSetup)
+- react-native-get-random-values to expo-crypto (verify crypto.getRandomValues at boot, wallet-critical)
+- react-native-in-app-review to expo-store-review (1 file)
+- react-native-video to expo-video (3 files; VideoView + useVideoPlayer API)
+- react-native-localize to expo-localization (3 files)
+- react-native-linear-gradient to expo-linear-gradient (42-file import codemod, props near-identical)
+- cookies to @preeternal/react-native-cookie-manager 6.3.3 (same CookieManager API, re-point 6 imports)
+- default-preference to mmkv (4 files; audit for native-side reads first)
+- background-timer 2.1.1 to 2.4.1 + document per-call-site replacement plan (fallback if it fails to compile on 0.85)
+Test: onboarding SRP, dapp login persistence, session lock timer, video playback, gradient visual pass, store-review prompt.
+
+PR 3 - Nitro Modules ecosystem (risk: HIGH, shared peer deps, one PR)
+- nitro-modules 0.35.5 to 0.36.1, quick-base64 2.2.0 to 3.0.0 (patch drops), quick-crypto 0.7.15 to 1.1.5 (patch rewrite), mmkv 3.2 to 4.3.2, vision-camera 4.7.3 to 5.1.0 + ADD nitro-image 0.15.1 (useCameraDevice signature changed, audit Camera usages)
+Test: vault encrypt/decrypt round-trip, QR scan, mmkv data survives upgrade from prod build.
+
+PR 4 - Firebase 20.5 to 25.1 (risk: HIGH, isolated on purpose)
+- @react-native-firebase/app + /messaging to 25.1.0 (Firebase iOS SDK 12.x / Android BoM 33.x; check google-services files, Gradle plugin, Xcode 16+)
+Test: push notifications end-to-end, both platforms.
+
+PR 5 - Patched vendors: Sentry + Braze (risk: HIGH, both patches need rework)
+- @sentry/react-native 7.11 to 8.17.2 (init API changed; align @sentry/browser/core/react devDeps)
+- @braze/react-native-sdk 19.1 to 22.0.0 (v21+ validated on RN 0.85; check if ReactModuleInfo patch still needed)
+Test: crashes reach Sentry, Braze campaigns render.
+
+PR 6 - Native majors batch (risk: MED, all peer RN "*")
+- permissions 3.7 to 5.6.0 (constants changed 4.x/5.x, only 4 files) | netinfo 11.5 to 12.0.1 (NEARBY_WIFI_DEVICES on Android 13+ if WiFi info read)
+- async-storage 2.2 to 3.1.1 (SQLite backend) | keychain 9 to 10.0.0 (vault-critical: test biometrics + password fallback)
+- device-info 9 to 15.0.2 (87 files, API additive) | share 7.3 to 12.3.1 (Share.open schema changed, 17 files)
+- blob-util 0.24.10 (+ resolutions entry) | ble-plx 3.5.1 (verify patch; Ledger test) | view-shot 5.1.1 | datetimepicker 9.1.0
+- vector-icons 10.2: prefer @expo/vector-icons 15.1.1 (SDK-managed, no font linking config), fallback scoped @react-native-vector-icons/* 13.x; 51-file import codemod either way
+Test: login/biometrics, share sheet, Ledger pairing, icon visual pass.
+
+UPGRADE PR - only what peer-requires RN 0.85
+- react-native 0.83.6 to 0.85.3; @react-native/{babel-preset,metro-config,eslint-config,typescript-config} to 0.85.3
+- metro-react-native-babel-preset/-transformer: REMOVED (metro.transform.js now uses @react-native/metro-babel-transformer; bump it 0.83.0 to 0.85.3 here). This also fixed hot reload: the old 0.76 transformer injected react-refresh 0.4 while the RN 0.83 runtime expects 0.14.
+- Jest: add @react-native/jest-preset 0.85.3; all configs preset to '@react-native/jest-preset'
+- Expo SDK 56 (sdk-56 dist-tags): expo 56.0.14, apple-authentication 56.0.4, asset 56.0.18, auth-session 56.0.15, build-properties 56.0.21, crypto 56.0.4, dev-client 56.0.22, file-system 56.0.8, font 56.0.7, haptics 56.0.3, image 56.0.11, linear-gradient 56.0.4, local-authentication 56.0.4, localization 56.0.6, screen-orientation 56.0.5, sensors 56.0.6, splash-screen 56.0.12, store-review 56.0.3, updates 56.0.21, video 56.1.4, web-browser 56.0.5, @expo/fingerprint 0.19.6
+- react-native-screens 4.23 to 4.25.2 (the hard blocker, expo-router SDK 56 requires it), pager-view to 8.0.3
+
+PR HIERARCHY AND ORDER (19 PRs in 5 waves, PRs within a wave can run in parallel)
+
+Wave 1 - Enablers, start immediately (no dependencies, low risk)
+  PR 1  - absoluteFillObject codemod, 28 files (risk: NONE, one PR). Zero-risk, unblocks nothing but removes a hard 0.85 breaker.
+  PR 2  - Safe chore bumps, ~15 libs (risk: LOW, one batch PR, trivial to revert per-line).
+  PR 3  - background-timer bump 2.4.1 + call-site audit, 12 files (risk: MED, own PR). First because its audit produces the fallback plan the upgrade PR depends on.
+  PR 4  - react-native-fs to expo-file-system, 6 files (risk: LOW, own small PR).
+
+Wave 2 - Expo switches + wallet-critical polyfill (independent migrations)
+  PR 5  - Animation stack: reanimated 4.5.1 + worklets NEW + gesture-handler 2.32 + babel plugin swap (risk: LOW, shared peer deps, one PR).
+  PR 6  - Small Expo switches: video + localize + in-app-review, 7 files (risk: LOW, one PR).
+  PR 7  - cookies to @preeternal fork + default-preference to mmkv (risk: LOW-MED, one PR).
+  PR 8  - react-native-get-random-values to expo-crypto (risk: MED, wallet-critical SRP path, own PR). Early so it soaks through a full release cycle before the upgrade.
+
+Wave 3 - High-risk isolates (early as possible for maximum soak time in beta builds; each own PR so reverts are surgical)
+  PR 9  - Nitro Modules ecosystem: nitro-modules + quick-base64 + quick-crypto + mmkv + vision-camera (risk: HIGH, shared peer deps, MUST be one PR).
+  PR 10 - Firebase 20.5 to 25.1 (risk: HIGH, isolated on purpose, one PR).
+  PR 11 - Sentry 7 to 8.17.2 + patch rework (risk: HIGH, own PR).
+  PR 12 - Braze 19 to 22 + patch rework (risk: HIGH, own PR).
+  PR 13 - keychain 9 to 10 (risk: HIGH, vault/biometrics-critical, own PR).
+
+Wave 4 - Remaining native majors
+  PR 14 - permissions 5.6 + netinfo 12 (risk: MED, permission surface together, one PR).
+  PR 15 - async-storage 2 to 3 (risk: MED, storage backend change, own PR).
+  PR 16 - Native utils batch: device-info 15 + share 12 + view-shot 5 + datetimepicker 9 + blob-util + ble-plx (risk: MED, one PR).
+
+Wave 5 - Wide codemods, land last-minute (they conflict with all ongoing feature work; merge fast, right before the upgrade)
+  PR 17 - linear-gradient to expo-linear-gradient, 42-file codemod (risk: LOW but wide, own PR).
+  PR 18 - vector-icons to @expo/vector-icons, 51-file codemod (risk: MED, mechanical but wide, own PR).
+
+Final
+  PR 19 - UPGRADE: RN 0.85.3 + @react-native/* + Expo SDK 56 + screens 4.25.2 + pager-view + jest preset (risk: HIGH, versions interlocked, MUST be one PR). Requires PRs 1-18 merged.
+
+Ordering logic: enablers and audits first (wave 1), wallet-critical and high-risk changes as early as possible so they soak in beta/nightly builds for weeks before upgrade day (waves 2-3), mechanical wide codemods last to minimize merge-conflict windows with feature teams (wave 5).
+Split logic: shared peer deps (Nitro, animation stack) and interlocked versions (upgrade PR) must ship together. Wallet-critical paths (crypto polyfill, keychain) and patch rewrites (Sentry, Braze) are isolated so a revert is surgical. Wide codemods get own PRs for reviewability.
+To reduce to 15 PRs: merge PR 4+6+7 into one Expo-switches PR and PR 14 into PR 16, with no loss of risk isolation.
+
+UPGRADE-DAY CHECKLIST (fallbacks pre-decided)
+[ ] background-timer 2.4.1 compiles, else execute PR 2 audit plan
+[ ] checkbox 0.5.20 compiles, else design-system Checkbox (4 files)
+[ ] Patches: drop @expo-cli SDK-55 patch; re-check expo-web-browser, segment, scrollable-tab-view patches
+[ ] jest transformIgnorePatterns still resolve after preset swap
+
+ALIGN-DEPS REPORT (run: yarn dlx @rnx-kit/align-deps --requirements react-native@0.85, 2026-07-07)
+22 violations reported. Breakdown:
+
+  REAL VERSION GAPS (all already covered in PR plan):
+  - react-native-gesture-handler ~2.30.0 → ^2.31.1 (PR 1/Wave 2 bumps to 2.32.0 ✓)
+  - react-native-reanimated 4.2.1 → ^4.4.0 (PR 1/Wave 2 bumps to 4.5.1 ✓)
+  - react-native-screens ~4.23.0 → ^4.25.0 (Upgrade PR bumps to 4.25.2 ✓)
+  - @react-native-community/netinfo 11.5.2 → ^12.0.1 (PR 14/Wave 4 bumps to 12.0.1 ✓)
+  - react-dom 19.2.0 → ^19.2.3 (patch bump only; add to PR 1 safe-bumps batch)
+
+  COSMETIC ONLY — range specifier vs exact pin, no actual version change needed:
+  - react-native, @react-native/babel-preset, @react-native/metro-config, @react-native-community/cli + cli-platform-*,
+    @react-native-async-storage/async-storage, react-native-safe-area-context, react-native-svg (all: "X.Y.Z" → "^X.Y.Z")
+
+  WE ARE ALREADY NEWER — align-deps profile is behind:
+  - @react-native-clipboard/clipboard ^1.16.1 (expected ^1.16.0)
+  - @react-native-community/datetimepicker ^8.5.1 (expected ^8.4.4)
+  - @react-native-masked-view/masked-view ^0.3.1 (expected ^0.3.0)
+  - react-native-modal ^14.0.0-rc.1 (expected ^13.0.0; rc.1 IS the latest release)
+  - react-native-fs ^2.20.0 (expected ^2.18.0; switching to expo-file-system anyway)
+  - react-native-render-html ^6.3.4 (expected ^6.1.0; pure JS, no native impact)
+  - jest ^29.7.0 (expected ^29.2.1)
+
+  DEFERRED — not required for RN 0.85:
+  - @react-navigation/native ^6.1.0 → ^7.1.14: align-deps recommends v7 because it is the latest stable.
+    v6 peer dep is react-native >= 0.66.0; v6 WORKS on RN 0.85. Upgrading all three nav packages
+    (native + native-stack + bottom-tabs) is a separate, significant effort unrelated to this upgrade.
+    Defer to a post-upgrade epic.
+
+  WARNING (already in upgrade PR):
+  - metro-react-native-babel-preset renamed to @react-native/babel-preset since RN 0.73; removal already
+    scheduled in Upgrade PR.
+
+  NET ACTION: add react-dom 19.2.0 → 19.2.3 to PR 1 safe-bumps. All other real gaps already in plan.
+
+SUMMARY
+PR 1 code fix + safe bumps (LOW), PR 2 Expo switches + drop abandoned libs (LOW-MED), PR 3 Nitro (HIGH), PR 4 Firebase (HIGH), PR 5 Sentry+Braze (HIGH), PR 6 native majors (MED), then UPGRADE PR (RN 0.85.3 + Expo 56 + screens + jest preset).
+Expo switches remove 6 third-party native libs for good: fs, get-random-values, in-app-review, video, localize, linear-gradient (+ optionally inappbrowser-reborn and vector-icons via @expo/vector-icons).
+Excluded on purpose: @tanstack/react-query 4 to 5 (unrelated to RN; separate effort).
+Excluded on purpose: @react-navigation v6 → v7 (not required for RN 0.85; separate post-upgrade epic).
