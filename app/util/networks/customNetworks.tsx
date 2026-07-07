@@ -255,9 +255,9 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
     ///: END:ONLY_INCLUDE_IF(tron)
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
     case XlmScope.Pubnet:
-      return require('../../images/stellar-logo.png');
+      return require('../../images/xlm.svg');
     case XlmScope.Testnet:
-      return require('../../images/stellar-logo.png');
+      return require('../../images/xlm.svg');
     ///: END:ONLY_INCLUDE_IF(stellar)
     default:
       return undefined;

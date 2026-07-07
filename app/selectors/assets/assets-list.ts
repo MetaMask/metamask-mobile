@@ -62,6 +62,7 @@ import {
   getTokensControllerAllTokens,
 } from './assets-migration';
 import { getAssetsBalance, getCustomAssets } from './assets-controller';
+import { isTrustlineAsset } from '../../util/multichain/trustline';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -380,8 +381,6 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
       selectTokenSortConfig,
       selectStakedAssets,
       selectHideZeroBalanceTokens,
-      getCustomAssets,
-      getAssetsBalance,
     ],
     (
       bip44Assets,
@@ -389,22 +388,22 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
       tokenSortConfig,
       stakedAssets,
       hideZeroBalance,
-      customAssets,
-      assetsBalance,
     ) => {
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter((asset) =>
-            shouldIncludeAssetWhenHideZeroBalance(
-              asset,
-              hideZeroBalance,
-              customAssets,
-              assetsBalance,
-            ),
-          ),
+          chainAssets.filter((asset) => {
+            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isTrustlineAsset(asset.assetId)) return false;
+            if (
+              hideZeroBalance &&
+              !asset.isNative &&
+              parseFloat(asset.balance ?? '0') === 0
+            )
+              return false;
+            return true;
+          }),
         );
-
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,
         stakedAssets,
@@ -542,29 +541,24 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       (_state: RootState, chainIds: string[]) => chainIds,
       selectStakedAssets,
       selectHideZeroBalanceTokens,
-      getCustomAssets,
-      getAssetsBalance,
     ],
     (
       bip44Assets,
       chainIds,
       stakedAssets,
       hideZeroBalance,
-      customAssets,
-      assetsBalance,
     ) => {
       const allowedIds = buildAllowedNetworkIdSet(chainIds);
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter((asset) =>
-            shouldIncludeAssetWhenHideZeroBalance(
-              asset,
-              hideZeroBalance,
-              customAssets,
-              assetsBalance,
-            ),
-          ),
+          chainAssets.filter((asset) => {
+            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isTrustlineAsset(asset.assetId)) return false;
+            if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
+              return false;
+            return true;
+          }),
         );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,

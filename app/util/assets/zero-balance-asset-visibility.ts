@@ -4,31 +4,6 @@ function isStellarClassicAssetId(assetId: string): boolean {
   return assetId.startsWith('stellar:') && assetId.includes('/asset:');
 }
 
-function getStellarClassicTrustlineLimit(
-  accountId: string,
-  assetId: string,
-  assetsBalance: AssetsControllerState['assetsBalance'],
-): number | undefined {
-  const balanceRow = assetsBalance[accountId]?.[assetId];
-  if (
-    !balanceRow ||
-    typeof balanceRow !== 'object' ||
-    !('accountAssetInfo' in balanceRow)
-  ) {
-    return undefined;
-  }
-
-  const { accountAssetInfo } = balanceRow as {
-    accountAssetInfo?: { limit?: string };
-  };
-  if (!accountAssetInfo || typeof accountAssetInfo.limit !== 'string') {
-    return undefined;
-  }
-
-  const parsedLimit = Number.parseFloat(accountAssetInfo.limit);
-  return Number.isNaN(parsedLimit) ? undefined : parsedLimit;
-}
-
 /**
  * Whether a zero-balance non-native asset should remain visible when
  * hideZeroBalanceTokens is enabled. Custom imports and Stellar classic assets
