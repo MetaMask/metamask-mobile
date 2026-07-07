@@ -37,6 +37,11 @@ jest.mock('rive-react-native', () => {
   };
 });
 
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
+
 jest.mock('../../hooks/useReduceMotion', () => ({
   useReduceMotion: jest.fn(),
 }));
@@ -53,6 +58,7 @@ describe('MoneyNextBestActionParallax', () => {
     jest.clearAllMocks();
     mockOnErrorRef.current = undefined;
     mockRiveProps.current = undefined;
+    mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
   });
 
@@ -109,6 +115,22 @@ describe('MoneyNextBestActionParallax', () => {
     expect(
       queryByTestId(MoneyNextBestActionParallaxTestIds.BACKGROUND),
     ).toBeNull();
+  });
+
+  it('renders the fallback image when the feature flag is disabled', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
   });
 
   it('renders the fallback image (with the provided source) when reduce motion is enabled', () => {

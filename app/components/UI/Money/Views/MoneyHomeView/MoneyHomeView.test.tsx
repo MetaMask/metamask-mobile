@@ -104,6 +104,14 @@ jest.mock('../../hooks/useMoneyEarnableTokens', () => ({
   useMoneyEarnableTokens: () => mockUseMoneyEarnableTokens(),
 }));
 
+// Animated Rive graphic pulls in device sensors; not exercised by these tests.
+jest.mock('../../components/MoneyNextBestActionParallax', () => ({
+  __esModule: true,
+  default: () => null,
+  PARALLAX_ARTBOARD_FUND: 'Parallax Block 1',
+  PARALLAX_ARTBOARD_CARD: 'Parallax Block 2',
+}));
+
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));

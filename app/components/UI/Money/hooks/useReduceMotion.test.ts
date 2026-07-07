@@ -22,10 +22,20 @@ describe('useReduceMotion', () => {
       });
   });
 
-  it('defaults to false before the initial value resolves', () => {
+  it('defaults to true before the initial value resolves', () => {
+    jest
+      .spyOn(AccessibilityInfo, 'isReduceMotionEnabled')
+      .mockReturnValue(new Promise(() => undefined));
+
     const { result } = renderHook(() => useReduceMotion());
 
-    expect(result.current).toBe(false);
+    expect(result.current).toBe(true);
+  });
+
+  it('resolves to false once the check reports reduce motion is off', async () => {
+    const { result } = renderHook(() => useReduceMotion());
+
+    await waitFor(() => expect(result.current).toBe(false));
   });
 
   it('resolves to true when reduce motion is enabled', async () => {

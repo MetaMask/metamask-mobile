@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
 export function useReduceMotion(): boolean {
-  const [reduceMotion, setReduceMotion] = useState(false);
+  // Default to true so callers don't animate before the async check resolves —
+  // otherwise a user with reduce-motion enabled briefly sees the animation.
+  const [reduceMotion, setReduceMotion] = useState(true);
 
   useEffect(() => {
     let mounted = true;
