@@ -18,7 +18,12 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { filterSupportedLeagues } from '../../constants/sports';
+import {
+  filterSupportedLeagues,
+  getPrimarySportsCardOutcomes,
+  isTeamToAdvanceMarketType,
+  WORLD_CUP_LEAGUE,
+} from '../../constants/sports';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
@@ -416,6 +421,96 @@ export class PolymarketProvider implements PredictProvider {
     return liveSportsEnabled
       ? GameCache.getInstance().overlayOnMarkets(markets)
       : markets;
+  }
+
+  #shouldResolveWorldCupFeedEventChildren({
+    event,
+    extendedSportsMarketsLeagues,
+  }: {
+    event: PolymarketApiEvent;
+    extendedSportsMarketsLeagues: string[];
+  }): boolean {
+    if (!extendedSportsMarketsLeagues.includes(WORLD_CUP_LEAGUE)) {
+      return false;
+    }
+
+    if (event.parentEventId) {
+      return false;
+    }
+
+    const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
+    if (eventLeague !== WORLD_CUP_LEAGUE) {
+      return false;
+    }
+
+    return !event.markets?.some((market) =>
+      isTeamToAdvanceMarketType(market.sportsMarketType),
+    );
+  }
+
+  async #addWorldCupChildMarketsToFeedEvent(
+    event: PolymarketApiEvent,
+  ): Promise<PolymarketApiEvent> {
+    try {
+      const childEvents = await fetchChildEventsFromGammaApi({
+        parentEventId: event.id,
+      });
+      const existingMarketIds = new Set(
+        (event.markets ?? []).map((market) => market.id),
+      );
+      const childMarkets = childEvents
+        .filter(
+          (childEvent) => String(childEvent.parentEventId) === String(event.id),
+        )
+        .flatMap((childEvent) => childEvent.markets ?? [])
+        .filter((market) => !existingMarketIds.has(market.id));
+
+      if (childMarkets.length === 0) {
+        return event;
+      }
+
+      return {
+        ...event,
+        markets: [...(event.markets ?? []), ...childMarkets],
+      };
+    } catch (childFetchError) {
+      DevLogger.log(
+        'Failed to fetch World Cup child markets, using feed event only:',
+        childFetchError,
+      );
+      return event;
+    }
+  }
+
+  async #resolveWorldCupFeedEvents(events: PolymarketApiEvent[]) {
+    const extendedSportsMarketsLeagues =
+      this.#getExtendedSportsMarketsLeagues();
+
+    if (
+      !events.some((event) =>
+        this.#shouldResolveWorldCupFeedEventChildren({
+          event,
+          extendedSportsMarketsLeagues,
+        }),
+      )
+    ) {
+      return events;
+    }
+
+    return Promise.all(
+      events.map(async (event) => {
+        if (
+          !this.#shouldResolveWorldCupFeedEventChildren({
+            event,
+            extendedSportsMarketsLeagues,
+          })
+        ) {
+          return event;
+        }
+
+        return this.#addWorldCupChildMarketsToFeedEvent(event);
+      }),
+    );
   }
 
   /**
@@ -967,9 +1062,10 @@ export class PolymarketProvider implements PredictProvider {
     try {
       const { events, category, nextCursor } =
         await fetchEventsFromPolymarketApi(params);
+      const resolvedEvents = await this.#resolveWorldCupFeedEvents(events);
 
       const markets = await this.#parseEventsToMarkets({
-        events,
+        events: resolvedEvents,
         category,
       });
 
@@ -1177,13 +1273,15 @@ export class PolymarketProvider implements PredictProvider {
           // winning side" bet. When Polymarket returns an event with
           // multiple markets (e.g. an e-sports match with Match Winner +
           // O/U 2.5 Games), collapse to just the moneyline outcome so
-          // users see the primary bet instead of a random pair of
-          // secondary markets. Events without a moneyline outcome are
-          // passed through unchanged.
-          const moneyline = market.outcomes.find(
-            (o) => o.sportsMarketType?.toLowerCase() === 'moneyline',
+          // users see the primary bet instead of a random pair of secondary
+          // markets. World Cup games prefer team-to-advance when available.
+          const primaryOutcomes = getPrimarySportsCardOutcomes(
+            market.outcomes,
+            market.game?.league,
           );
-          return moneyline ? { ...market, outcomes: [moneyline] } : market;
+          return primaryOutcomes === market.outcomes
+            ? market
+            : { ...market, outcomes: primaryOutcomes };
         });
 
       return liveSportsEnabled

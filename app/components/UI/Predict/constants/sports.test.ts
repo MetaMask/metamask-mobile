@@ -4,9 +4,14 @@ import {
   getMatchingSportTeam,
   getNegRiskMoneylineTeamLogo,
   getPrimaryMoneylineOutcomes,
+  getPrimarySportsCardOutcomes,
+  getTeamOutcome,
   hasNegRiskMoneylineGroupItem,
   isMoneylineLikeMarketType,
+  isTeamToAdvanceMarketType,
+  outcomeMatchesTeam,
   resolveNegRiskMoneylineShortTitles,
+  sportTeamMatchesLabel,
 } from './sports';
 import type { PredictMarketGame } from '../types';
 
@@ -194,6 +199,50 @@ describe('getPrimaryMoneylineOutcomes', () => {
   });
 });
 
+describe('getPrimarySportsCardOutcomes', () => {
+  it('prefers team-to-advance outcomes for World Cup games', () => {
+    const moneylineOutcome = { id: 'moneyline', sportsMarketType: 'moneyline' };
+    const teamToAdvanceOutcome = {
+      id: 'team-to-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+    };
+
+    const result = getPrimarySportsCardOutcomes(
+      [moneylineOutcome, teamToAdvanceOutcome],
+      'fifwc',
+    );
+
+    expect(result).toEqual([teamToAdvanceOutcome]);
+  });
+
+  it('falls back to moneyline outcomes for World Cup games without team-to-advance markets', () => {
+    const moneylineOutcome = { id: 'moneyline', sportsMarketType: 'moneyline' };
+    const spreadOutcome = { id: 'spread', sportsMarketType: 'spreads' };
+
+    const result = getPrimarySportsCardOutcomes(
+      [spreadOutcome, moneylineOutcome],
+      'fifwc',
+    );
+
+    expect(result).toEqual([moneylineOutcome]);
+  });
+
+  it('keeps moneyline as primary for non-World-Cup games', () => {
+    const moneylineOutcome = { id: 'moneyline', sportsMarketType: 'moneyline' };
+    const teamToAdvanceOutcome = {
+      id: 'team-to-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+    };
+
+    const result = getPrimarySportsCardOutcomes(
+      [teamToAdvanceOutcome, moneylineOutcome],
+      'ucl',
+    );
+
+    expect(result).toEqual([moneylineOutcome]);
+  });
+});
+
 describe('sports moneyline helpers', () => {
   it('detects neg-risk moneyline markets with group item titles', () => {
     expect(
@@ -212,9 +261,73 @@ describe('sports moneyline helpers', () => {
     ).toBe(false);
   });
 
+  it('detects team-to-advance market types case-insensitively', () => {
+    expect(isTeamToAdvanceMarketType('soccer_team_to_advance')).toBe(true);
+    expect(isTeamToAdvanceMarketType('SOCCER_TEAM_TO_ADVANCE')).toBe(true);
+    expect(isTeamToAdvanceMarketType('moneyline')).toBe(false);
+    expect(isTeamToAdvanceMarketType()).toBe(false);
+  });
+
   it('matches sport teams by name, alias, or abbreviation', () => {
     expect(getMatchingSportTeam('south korea', game)).toBe(game.homeTeam);
     expect(getMatchingSportTeam('CZE', game)).toBe(game.awayTeam);
+  });
+
+  it('matches sport team labels by name, alias, or abbreviation', () => {
+    expect(sportTeamMatchesLabel('Korea Republic', game.homeTeam)).toBe(true);
+    expect(sportTeamMatchesLabel('south korea', game.homeTeam)).toBe(true);
+    expect(sportTeamMatchesLabel('KOR', game.homeTeam)).toBe(true);
+    expect(sportTeamMatchesLabel('CZE', game.homeTeam)).toBe(false);
+  });
+
+  it('matches outcomes to teams by group item title or first token title', () => {
+    expect(
+      outcomeMatchesTeam(
+        {
+          groupItemTitle: 'South Korea',
+          tokens: [{ title: 'Yes' }],
+        },
+        game.homeTeam,
+      ),
+    ).toBe(true);
+    expect(
+      outcomeMatchesTeam(
+        {
+          tokens: [{ title: 'CZE' }],
+        },
+        game.awayTeam,
+      ),
+    ).toBe(true);
+  });
+
+  it('gets team outcomes with non-excluded fallback behavior', () => {
+    const homeOutcome = {
+      id: 'home',
+      groupItemTitle: 'South Korea',
+      tokens: [{ title: 'Yes' }],
+    };
+    const awayOutcome = {
+      id: 'away',
+      groupItemTitle: 'Czechia',
+      tokens: [{ title: 'Yes' }],
+    };
+    const fallbackOutcome = {
+      id: 'fallback',
+      groupItemTitle: 'Fallback',
+      tokens: [{ title: 'Yes' }],
+    };
+
+    expect(getTeamOutcome([homeOutcome, awayOutcome], game.awayTeam, 0)).toBe(
+      awayOutcome,
+    );
+    expect(
+      getTeamOutcome(
+        [homeOutcome, awayOutcome, fallbackOutcome],
+        game.awayTeam,
+        2,
+        awayOutcome,
+      ),
+    ).toBe(homeOutcome);
   });
 
   it('resolves neg-risk moneyline short titles for team and draw outcomes', () => {

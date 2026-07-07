@@ -64,9 +64,10 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
 ];
 
 export const WORLD_CUP_LEAGUE: PredictSportsLeague = 'fifwc';
+export const SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE = 'soccer_team_to_advance';
 
 export const DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES = [
-  'soccer_team_to_advance',
+  SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE,
   'soccer_extra_time',
   'soccer_penalty_shootout',
 ];
@@ -139,17 +140,25 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'first_half_moneyline',
   'soccer_halftime_result',
   'soccer_first_to_score',
-  'soccer_team_to_advance',
+  SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE,
   'tennis_first_set_winner',
 ]);
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
   type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
 
+export const isTeamToAdvanceMarketType = (type?: string): boolean =>
+  type?.toLowerCase() === SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE;
+
 interface NegRiskSportsMarket {
   negRisk?: boolean;
   sportsMarketType?: string;
   groupItemTitle?: string;
+}
+
+interface TeamMatchedOutcome {
+  groupItemTitle?: string;
+  tokens: { title?: string }[];
 }
 
 export const hasNegRiskMoneylineGroupItem = <T extends NegRiskSportsMarket>(
@@ -164,18 +173,47 @@ export const hasNegRiskMoneylineGroupItem = <T extends NegRiskSportsMarket>(
 const normalizeTeamLabel = (value?: string): string | undefined =>
   value?.trim().toLowerCase();
 
+export const sportTeamMatchesLabel = (
+  label: string | undefined,
+  team: PredictSportTeam,
+): boolean => {
+  const normalizedLabel = normalizeTeamLabel(label);
+  if (!normalizedLabel) {
+    return false;
+  }
+
+  return [team.name, team.alias, team.abbreviation]
+    .map(normalizeTeamLabel)
+    .some((teamLabel) => teamLabel === normalizedLabel);
+};
+
+export const outcomeMatchesTeam = <T extends TeamMatchedOutcome>(
+  outcome: T,
+  team: PredictSportTeam,
+): boolean =>
+  sportTeamMatchesLabel(outcome.groupItemTitle, team) ||
+  sportTeamMatchesLabel(outcome.tokens[0]?.title, team);
+
+export const getTeamOutcome = <T extends TeamMatchedOutcome & { id: string }>(
+  outcomes: T[],
+  team: PredictSportTeam,
+  fallbackIndex: number,
+  excludedOutcome?: T,
+): T | undefined =>
+  outcomes.find(
+    (outcome) =>
+      outcome.id !== excludedOutcome?.id && outcomeMatchesTeam(outcome, team),
+  ) ??
+  outcomes.find((outcome) => outcome.id !== excludedOutcome?.id) ??
+  outcomes[fallbackIndex];
+
 export const getMatchingSportTeam = (
   groupItemTitle: string,
   game: PredictMarketGame,
-): PredictSportTeam | undefined => {
-  const normalizedGroupItemTitle = normalizeTeamLabel(groupItemTitle);
-
-  return [game.homeTeam, game.awayTeam].find((team) =>
-    [team.name, team.alias, team.abbreviation]
-      .map(normalizeTeamLabel)
-      .some((teamLabel) => teamLabel === normalizedGroupItemTitle),
+): PredictSportTeam | undefined =>
+  [game.homeTeam, game.awayTeam].find((team) =>
+    sportTeamMatchesLabel(groupItemTitle, team),
   );
-};
 
 export const resolveNegRiskMoneylineShortTitles = (
   market: NegRiskSportsMarket,
@@ -225,4 +263,23 @@ export const getPrimaryMoneylineOutcomes = <
   );
 
   return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
+};
+
+export const getPrimarySportsCardOutcomes = <
+  T extends { sportsMarketType?: string },
+>(
+  outcomes: T[],
+  league?: PredictSportsLeague,
+): T[] => {
+  if (league === WORLD_CUP_LEAGUE) {
+    const advanceOutcomes = outcomes.filter((outcome) =>
+      isTeamToAdvanceMarketType(outcome.sportsMarketType),
+    );
+
+    if (advanceOutcomes.length > 0) {
+      return advanceOutcomes;
+    }
+  }
+
+  return getPrimaryMoneylineOutcomes(outcomes);
 };

@@ -21,6 +21,7 @@ import {
   PredictMarket,
   PredictMarketGame,
   PredictMarketStatus,
+  PredictOutcome,
   PredictOutcomeToken,
   PredictSportTeam,
 } from '../../types';
@@ -34,7 +35,14 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
 import { usePredictGame } from '../../hooks/usePredictGame';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isDrawCapableLeague } from '../../constants/sports';
+import {
+  getTeamOutcome,
+  getPrimarySportsCardOutcomes,
+  isDrawCapableLeague,
+  isTeamToAdvanceMarketType,
+  sportTeamMatchesLabel,
+  WORLD_CUP_LEAGUE,
+} from '../../constants/sports';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
@@ -101,28 +109,37 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
     : null;
   const footerTimeText = timeRemaining ?? scheduledTime;
 
-  const outcome = market.outcomes[0];
-  const matchesTeam = (
-    tokenTitle: string | undefined,
-    team: { name?: string; alias?: string },
-  ) => {
-    if (!tokenTitle) return false;
-    const lower = tokenTitle.toLowerCase();
-    return (
-      lower === team.name?.toLowerCase() ||
-      (team.alias != null && lower === team.alias.toLowerCase())
-    );
-  };
+  const primaryOutcomes = useMemo(
+    () => getPrimarySportsCardOutcomes(market.outcomes, game.league),
+    [game.league, market.outcomes],
+  );
+  const outcome = primaryOutcomes[0];
 
+  const isTeamToAdvance =
+    game.league === WORLD_CUP_LEAGUE &&
+    isTeamToAdvanceMarketType(outcome?.sportsMarketType);
+  const homeOutcome =
+    isTeamToAdvance && primaryOutcomes.length >= 2
+      ? getTeamOutcome(primaryOutcomes, game.homeTeam, 0)
+      : outcome;
+  const awayOutcome =
+    isTeamToAdvance && primaryOutcomes.length >= 2
+      ? getTeamOutcome(primaryOutcomes, game.awayTeam, 1, homeOutcome)
+      : outcome;
   const homeToken =
-    outcome?.tokens?.find((t) => matchesTeam(t.title, game.homeTeam)) ??
-    outcome?.tokens?.[0];
+    homeOutcome?.tokens?.find((t) =>
+      sportTeamMatchesLabel(t.title, game.homeTeam),
+    ) ?? homeOutcome?.tokens?.[0];
   const awayToken =
-    outcome?.tokens?.find((t) => matchesTeam(t.title, game.awayTeam)) ??
-    outcome?.tokens?.[1];
-  const drawToken = showDraw
-    ? outcome?.tokens?.find((t) => t.title?.toLowerCase() === 'draw')
-    : undefined;
+    awayOutcome?.tokens?.find((t) =>
+      sportTeamMatchesLabel(t.title, game.awayTeam),
+    ) ??
+    awayOutcome?.tokens?.find((t) => t.id !== homeToken?.id) ??
+    awayOutcome?.tokens?.[1];
+  const drawToken =
+    showDraw && !isTeamToAdvance
+      ? outcome?.tokens?.find((t) => t.title?.toLowerCase() === 'draw')
+      : undefined;
   const tokenIds = useMemo(
     () =>
       [homeToken, drawToken, awayToken]
@@ -163,13 +180,13 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   }, [market, entryPoint, navigation]);
 
   const handleBuy = useCallback(
-    (token: PredictOutcomeToken) => {
-      if (!outcome) return;
+    (token: PredictOutcomeToken, selectedOutcome?: PredictOutcome) => {
+      if (!selectedOutcome) return;
       executeGuardedAction(
         () => {
           openBuySheet({
             market,
-            outcome,
+            outcome: selectedOutcome,
             outcomeToken: token,
             entryPoint,
           });
@@ -177,11 +194,13 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [market, outcome, entryPoint, executeGuardedAction, openBuySheet],
+    [market, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   const totalVolume = calculateTotalVolume(market.outcomes);
-  const remainingOptions = Math.max(0, market.outcomes.length - 1);
+  const remainingOptions = isTeamToAdvance
+    ? 0
+    : Math.max(0, market.outcomes.length - 1);
 
   const renderTeamLogo = (team: PredictSportTeam, testID?: string) =>
     config.TeamIcon ? (
@@ -325,7 +344,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {homeToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(homeToken)}
+                  onPress={() => handleBuy(homeToken, homeOutcome)}
                   twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
@@ -345,7 +364,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {drawToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(drawToken)}
+                  onPress={() => handleBuy(drawToken, outcome)}
                   isFullWidth
                   size={ButtonBaseSize.Lg}
                 >
@@ -365,7 +384,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {awayToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(awayToken)}
+                  onPress={() => handleBuy(awayToken, awayOutcome)}
                   twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}

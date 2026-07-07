@@ -285,6 +285,114 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('ENG 62¢')).toBeOnTheScreen();
   });
 
+  it('prefers team-to-advance outcomes for World Cup games', () => {
+    const homeAdvanceOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'outcome-spain-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'Spain',
+      tokens: [
+        { id: 'token-spain-advance-yes', title: 'Spain', price: 0.72 },
+        { id: 'token-spain-advance-no', title: 'No', price: 0.28 },
+      ],
+    };
+    const awayAdvanceOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'outcome-england-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'England',
+      tokens: [
+        { id: 'token-england-advance-yes', title: 'England', price: 0.41 },
+        { id: 'token-england-advance-no', title: 'No', price: 0.59 },
+      ],
+    };
+    const marketWithTeamToAdvance: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          id: 'outcome-moneyline',
+          sportsMarketType: 'moneyline',
+        },
+        homeAdvanceOutcome,
+        awayAdvanceOutcome,
+      ],
+    };
+
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <PredictMarketSportCard
+        market={marketWithTeamToAdvance}
+        testID="sport-market-card"
+      />,
+      { state: initialState },
+    );
+
+    expect(getByText('SPA 72¢')).toBeOnTheScreen();
+    expect(getByText('ENG 41¢')).toBeOnTheScreen();
+    expect(queryByText('DRAW 15¢')).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('sport-market-card-away-button'));
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcome: awayAdvanceOutcome,
+        outcomeToken: expect.objectContaining({
+          id: 'token-england-advance-yes',
+        }),
+      }),
+    );
+  });
+
+  it('keeps moneyline outcomes for non-World-Cup games with team-to-advance outcomes', () => {
+    const homeAdvanceOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'outcome-spain-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'Spain',
+      tokens: [
+        { id: 'token-spain-advance-yes', title: 'Spain', price: 0.72 },
+        { id: 'token-spain-advance-no', title: 'No', price: 0.28 },
+      ],
+    };
+    const awayAdvanceOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'outcome-england-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'England',
+      tokens: [
+        { id: 'token-england-advance-yes', title: 'England', price: 0.41 },
+        { id: 'token-england-advance-no', title: 'No', price: 0.59 },
+      ],
+    };
+    const marketWithTeamToAdvance: PredictMarketType = {
+      ...mockMarket,
+      game: {
+        ...(mockMarket.game as PredictMarketGame),
+        league: 'ucl',
+      },
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          id: 'outcome-moneyline',
+          sportsMarketType: 'moneyline',
+        },
+        homeAdvanceOutcome,
+        awayAdvanceOutcome,
+      ],
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictMarketSportCard market={marketWithTeamToAdvance} />,
+      { state: initialState },
+    );
+
+    expect(getByText('SPA 60¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 15¢')).toBeOnTheScreen();
+    expect(getByText('ENG 62¢')).toBeOnTheScreen();
+    expect(queryByText('SPA 72¢')).not.toBeOnTheScreen();
+    expect(queryByText('ENG 41¢')).not.toBeOnTheScreen();
+  });
+
   it('renders compact carousel cards without scheduled score placeholders', () => {
     const { getByText, queryByText } = renderWithProvider(
       <PredictMarketSportCard market={mockMarket} isCarousel />,

@@ -20,8 +20,12 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import {
-  getPrimaryMoneylineOutcomes,
+  getTeamOutcome,
+  getPrimarySportsCardOutcomes,
   isDrawCapableLeague,
+  isTeamToAdvanceMarketType,
+  sportTeamMatchesLabel,
+  WORLD_CUP_LEAGUE,
 } from '../../constants/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -76,17 +80,6 @@ const formatCents = (price: number): string => `${Math.round(price * 100)}¢`;
 const getTeamButtonLabel = (team: PredictSportTeam): string =>
   (team.abbreviation || team.alias || team.name).toUpperCase();
 
-const matchesTeam = (
-  tokenTitle: string | undefined,
-  team: PredictSportTeam,
-): boolean => {
-  if (!tokenTitle) return false;
-  const lower = tokenTitle.toLowerCase();
-  return [team.name, team.alias, team.abbreviation]
-    .filter(Boolean)
-    .some((value) => lower === value?.toLowerCase());
-};
-
 const compactButtonItems = (
   items: (SportOutcomeButtonItem | undefined)[],
 ): SportOutcomeButtonItem[] =>
@@ -97,10 +90,13 @@ const buildButtonItems = (
   game: PredictMarketGame,
   showDraw: boolean,
 ): SportOutcomeButtonItem[] => {
-  const moneylineOutcomes = getPrimaryMoneylineOutcomes(market.outcomes);
+  const primaryOutcomes = getPrimarySportsCardOutcomes(
+    market.outcomes,
+    game.league,
+  );
   const sortedDrawOutcomes =
-    showDraw && moneylineOutcomes.length >= 3
-      ? [...moneylineOutcomes].sort(
+    showDraw && primaryOutcomes.length >= 3
+      ? [...primaryOutcomes].sort(
           (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
         )
       : null;
@@ -146,17 +142,59 @@ const buildButtonItems = (
     ]);
   }
 
-  const outcome = moneylineOutcomes[0];
+  const isTeamToAdvance =
+    game.league === WORLD_CUP_LEAGUE &&
+    isTeamToAdvanceMarketType(primaryOutcomes[0]?.sportsMarketType);
+
+  if (isTeamToAdvance && primaryOutcomes.length >= 2) {
+    const homeOutcome = getTeamOutcome(primaryOutcomes, game.homeTeam, 0);
+    const awayOutcome = getTeamOutcome(
+      primaryOutcomes,
+      game.awayTeam,
+      1,
+      homeOutcome,
+    );
+    const homeToken = homeOutcome?.tokens[0];
+    const awayToken = awayOutcome?.tokens[0];
+
+    return compactButtonItems([
+      homeToken && homeOutcome
+        ? {
+            key: homeToken.id,
+            label: getTeamButtonLabel(game.homeTeam),
+            token: homeToken,
+            outcome: homeOutcome,
+            teamColor: game.homeTeam.color,
+            variant: 'home',
+          }
+        : undefined,
+      awayToken && awayOutcome
+        ? {
+            key: awayToken.id,
+            label: getTeamButtonLabel(game.awayTeam),
+            token: awayToken,
+            outcome: awayOutcome,
+            teamColor: game.awayTeam.color,
+            variant: 'away',
+          }
+        : undefined,
+    ]);
+  }
+
+  const outcome = primaryOutcomes[0];
   if (!outcome) return [];
 
   const homeToken =
-    outcome.tokens.find((token) => matchesTeam(token.title, game.homeTeam)) ??
-    outcome.tokens[0];
+    outcome.tokens.find((token) =>
+      sportTeamMatchesLabel(token.title, game.homeTeam),
+    ) ?? outcome.tokens[0];
   const drawToken = showDraw
     ? outcome.tokens.find((token) => token.title?.toLowerCase() === 'draw')
     : undefined;
   const awayToken =
-    outcome.tokens.find((token) => matchesTeam(token.title, game.awayTeam)) ??
+    outcome.tokens.find((token) =>
+      sportTeamMatchesLabel(token.title, game.awayTeam),
+    ) ??
     outcome.tokens.find(
       (token) => token.id !== homeToken?.id && token.id !== drawToken?.id,
     ) ??
