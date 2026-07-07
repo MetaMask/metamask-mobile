@@ -29,7 +29,7 @@ export const BadgeNotification = {
   args: {
     iconName: SAMPLE_BADGENOTIFICATIONS_PROPS.iconName,
   },
-  render: (args: JSX.IntrinsicAttributes & BadgeNotificationsProps) => (
+  render: (args: React.JSX.IntrinsicAttributes & BadgeNotificationsProps) => (
     <View
       style={{
         height: 50,
