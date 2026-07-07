@@ -289,6 +289,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             isLoading={isPrefillPending}
             onPress={handleAmountPress}
             disabled={!hasPaymentOption}
+            showCursor={isKeyboardVisible}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&

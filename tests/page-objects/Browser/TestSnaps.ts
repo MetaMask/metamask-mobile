@@ -433,7 +433,7 @@ class TestSnaps {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
-    ) as Promise<IndexableWebElement>;
+    ) as unknown as Promise<IndexableWebElement>;
     // New gestures currently don't support web elements
     await Gestures.typeInWebElement(webElement, message);
   }

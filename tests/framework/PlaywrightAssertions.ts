@@ -1,4 +1,4 @@
-import { BASE_DEFAULTS, sleep } from './Utilities.ts';
+import Utilities, { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
@@ -285,8 +285,17 @@ export default class PlaywrightAssertions {
       await this.expectElementText(within, text, assertionOptions);
       return;
     }
-    const el = await PlaywrightMatchers.getElementByText(text);
-    await el.waitForDisplayed({ timeout: this.getTimeout(assertionOptions) });
+    const timeout = this.getTimeout(assertionOptions);
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = await PlaywrightMatchers.getElementByText(text);
+        await el.waitForDisplayed({ timeout: 100 });
+      },
+      {
+        timeout,
+        description: `Assert text "${text}" is displayed`,
+      },
+    );
   }
 
   static async expectTextNotDisplayed(
