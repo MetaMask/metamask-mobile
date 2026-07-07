@@ -91,6 +91,56 @@ const fetchOutdatedItem = async (
 };
 
 /**
+ * Derives a dedupe key from an item title. Market overview items have no id,
+ * so the title is our only stable identifier. Normalized (trimmed, lower-cased,
+ * whitespace-collapsed) so trivial formatting differences still match.
+ *
+ * @param title - The item title.
+ * @returns A normalized key for equality comparison.
+ */
+const getTitleKey = (title: string): string =>
+  title.trim().toLowerCase().replace(/\s+/gu, ' ');
+
+/**
+ * Prepends the deep-linked front-page item as the first card, deduped against
+ * the latest feed by title.
+ *
+ * A front-page item can be recent enough to also appear in the market overview.
+ * When it does (a duplicate), it is NOT outdated: we drop the feed copy and
+ * show it once, unbadged. Only when it is absent from the feed — i.e. it has
+ * genuinely dropped out — is it flagged `isOutdated`.
+ *
+ * @param outdatedItem - The fetched front-page item to prepend, or `null`.
+ * @param baseItems - The latest market overview items.
+ * @param limit - Maximum number of items to return.
+ * @returns The items to render, capped at `limit`.
+ */
+const prependOutdatedItem = (
+  outdatedItem: WhatsHappeningItem | null,
+  baseItems: WhatsHappeningItem[],
+  limit: number,
+): WhatsHappeningItem[] => {
+  if (!outdatedItem) {
+    return baseItems;
+  }
+
+  const outdatedKey = getTitleKey(outdatedItem.title);
+  const hasDuplicate = baseItems.some(
+    (item) => getTitleKey(item.title) === outdatedKey,
+  );
+
+  const item: WhatsHappeningItem = {
+    ...outdatedItem,
+    isOutdated: !hasDuplicate,
+  };
+  const rest = hasDuplicate
+    ? baseItems.filter((baseItem) => getTitleKey(baseItem.title) !== outdatedKey)
+    : baseItems;
+
+  return [item, ...rest].slice(0, limit);
+};
+
+/**
  * Hook to fetch trending "What's Happening" items for the carousel.
  *
  * Calls `AiDigestController.fetchMarketOverview()` (which handles caching
@@ -129,13 +179,12 @@ export const useWhatsHappening = (
         await Engine.context.AiDigestController.fetchMarketOverview();
       const baseItems = data === null ? [] : mapTrendsToItems(data, limit);
 
-      // When a deep link supplied an id, prepend that (older) front-page item
-      // as the first "outdated" card, keeping the total capped at `limit`.
+      // When a deep link supplied an id, prepend that front-page item as the
+      // first card, deduped against the latest feed. It is flagged "Outdated"
+      // only when it is not already in the feed (see prependOutdatedItem).
       const outdatedItem = await fetchOutdatedItem(outdatedItemId);
 
-      setItems(
-        outdatedItem ? [outdatedItem, ...baseItems].slice(0, limit) : baseItems,
-      );
+      setItems(prependOutdatedItem(outdatedItem, baseItems, limit));
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to fetch trending items',
