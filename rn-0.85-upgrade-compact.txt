@@ -42,7 +42,7 @@ PR 1 - Code fix + safe bumps (risk: LOW)
 - absoluteFillObject to absoluteFill codemod (28 files)
 - reanimated 4.2.1 to 4.5.1 + ADD react-native-worklets 0.10.1 (required peer, missing from package.json!) + babel.config.js: swap last plugin to 'react-native-worklets/plugin'
 - gesture-handler 2.30 to 2.32.0 (stay on v2; v3 is a post-upgrade decision)
-- safe-area-context 5.8.0, svg 15.15.5, lottie 7.3.8, flash-list 2.3.2, walletconnect/core 2.23.10, clipboard 1.16.3, slider 5.2.0, keyboard-controller 1.21.14, detox 20.51.4, branch 6.10.0, rive 9.8.3, notifee 9.1.8, masked-view 0.3.2, aes-crypto 3.3.0 (maintained after all, latest Feb 2026), inappbrowser-reborn 3.7.1
+- safe-area-context 5.8.0, svg 15.15.5 (+ DELETE patches/react-native-svg+15.11.2.patch — content-type guard and &quot; fix both upstreamed into 15.15.x), lottie 7.3.8, flash-list 2.3.2, walletconnect/core 2.23.10, clipboard 1.16.3, slider 5.2.0, keyboard-controller 1.21.14, detox 20.51.4, branch 6.10.0, rive 9.8.3, notifee 9.1.8, masked-view 0.3.2, aes-crypto 3.3.0 (maintained after all, latest Feb 2026), inappbrowser-reborn 3.7.1
 - Keep as-is, verified safe: svg-charts 5.4.0 and render-html 6.3.4 (abandoned but pure JS, render via react-native-svg, cannot break the native build; plan replacement epic separately), react-native-modal 14.0.0-rc.1 (rc.1 IS the latest release), sovran 1.1.3, segment analytics 2.23.0 (keep patch), qrcode-svg 6.3.21, react 19.2
 
 PR 2 - Switch to Expo modules + drop abandoned libs (risk: LOW-MED)
@@ -125,7 +125,7 @@ To reduce to 15 PRs: merge PR 4+6+7 into one Expo-switches PR and PR 14 into PR 
 UPGRADE-DAY CHECKLIST (fallbacks pre-decided)
 [ ] background-timer 2.4.1 compiles, else execute PR 2 audit plan
 [ ] checkbox 0.5.20 compiles, else design-system Checkbox (4 files)
-[ ] Patches: drop @expo-cli SDK-55 patch; re-check expo-web-browser, segment, scrollable-tab-view patches
+[ ] Patches: drop @expo-cli SDK-55 patch; drop react-native-svg+15.11.2.patch (fixes upstreamed into 15.15.x, confirmed 2026-07-07); re-check expo-web-browser, segment, scrollable-tab-view patches
 [ ] jest transformIgnorePatterns still resolve after preset swap
 
 ALIGN-DEPS REPORT (run: yarn dlx @rnx-kit/align-deps --requirements react-native@0.85, 2026-07-07)
@@ -168,3 +168,14 @@ PR 1 code fix + safe bumps (LOW), PR 2 Expo switches + drop abandoned libs (LOW-
 Expo switches remove 6 third-party native libs for good: fs, get-random-values, in-app-review, video, localize, linear-gradient (+ optionally inappbrowser-reborn and vector-icons via @expo/vector-icons).
 Excluded on purpose: @tanstack/react-query 4 to 5 (unrelated to RN; separate effort).
 Excluded on purpose: @react-navigation v6 → v7 (not required for RN 0.85; separate post-upgrade epic).
+
+SPIKE BRANCH CI FINDINGS (feat/rn-0.85, observed 2026-07-07)
+The spike branch does a raw RN 0.85 bump without the PR ladder. CI job "Build iOS E2E Apps" fails at
+"Setup project dependencies with retry" (yarn setup:github-ci --build-ios --no-build-android), all 3
+attempts, exit code 1. Root cause: yarn patch-package --error-on-fail aborts because
+patches/react-native-svg+15.11.2.patch targets 15.11.2 but the installed package is 15.15.3.
+Fix: delete the patch file (fixes are upstream). Secondary blockers that surface after the patch fix:
+- react-native-screens 4.23.0 has no RN 0.85 native support → pod install / Xcode build fails (covered by Upgrade PR)
+- react-native-reanimated 4.2.1 peer dep does not cover RN 0.85 (covered by PR 1/Wave 2)
+- react-native-gesture-handler 2.30 same (covered by PR 1/Wave 2)
+CI runner: ghcr.io/cirruslabs/macos-runner:tahoe-xl, Xcode 26.3 (build 17C529).
