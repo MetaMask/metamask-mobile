@@ -168,8 +168,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/chain-agnostic-permission": "npm:@metamask-previews/chain-agnostic-permission@1.6.2-preview-43e6d6596",
-    "@metamask/multichain-api-middleware": "npm:@metamask-previews/multichain-api-middleware@3.1.5-preview-43e6d6596",
     "@metamask/perps-controller": "^9.0.0",
     "@metamask/network-controller": "33.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
@@ -252,7 +250,7 @@
     "@metamask/bitcoin-wallet-standard": "^1.0.0",
     "@metamask/bridge-controller": "77.1.0",
     "@metamask/bridge-status-controller": "^73.0.0",
-    "@metamask/chain-agnostic-permission": "^1.5.0",
+    "@metamask/chain-agnostic-permission": "^1.7.0",
     "@metamask/chomp-api-service": "^3.1.0",
     "@metamask/client-controller": "^1.0.1",
     "@metamask/compliance-controller": "2.1.0",
@@ -305,7 +303,7 @@
     "@metamask/money-account-upgrade-controller": "^2.1.0",
     "@metamask/multichain-account-service": "^11.0.0",
     "@metamask/multichain-api-client": "^0.11.0",
-    "@metamask/multichain-api-middleware": "^3.1.1",
+    "@metamask/multichain-api-middleware": "^4.0.1",
     "@metamask/multichain-network-controller": "^3.1.0",
     "@metamask/multichain-transactions-controller": "^7.1.0",
     "@metamask/native-utils": "^0.8.0",
