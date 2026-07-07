@@ -1,7 +1,5 @@
 import React, { useMemo, useCallback, useEffect } from 'react';
-import {
-  BottomSheet,
-} from '@metamask/design-system-react-native';
+import { BottomSheet } from '@metamask/design-system-react-native';
 
 import {
   HardwareWalletType,
