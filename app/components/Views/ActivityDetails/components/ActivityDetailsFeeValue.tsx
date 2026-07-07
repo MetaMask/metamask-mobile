@@ -60,11 +60,17 @@ export function ActivityDetailsFeeValue({
 
   return (
     <Box twClassName="flex-row items-center justify-end gap-2 shrink">
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        twClassName="shrink"
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
         {value}
       </Text>
       {fee.symbol ? (
-        <Box twClassName="flex-row items-center gap-1">
+        <Box twClassName="flex-row items-center gap-1 shrink">
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
             style={styles.tokenAvatarWrapper}
@@ -93,7 +99,9 @@ export function ActivityDetailsFeeValue({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="ml-1"
+            twClassName="ml-1 shrink"
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {fee.symbol}
           </Text>

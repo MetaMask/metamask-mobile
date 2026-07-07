@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../UI/StyledButton';
@@ -126,9 +126,17 @@ const MultichainPermissionsSummary = ({
   showPermissionsOnly = false,
   isMaliciousDapp = false,
 }: MultichainPermissionsSummaryProps) => {
+  const insets = useSafeAreaInsets();
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
+  const safeAreaContainerStyle = useMemo(
+    () => [
+      styles.safeArea,
+      { paddingTop: insets.top, paddingBottom: insets.bottom },
+    ],
+    [styles.safeArea, insets.top, insets.bottom],
+  );
   const navigation = useNavigation();
   const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
@@ -568,7 +576,7 @@ const MultichainPermissionsSummary = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={safeAreaContainerStyle}>
       <View style={styles.mainContainer}>
         <View style={styles.contentContainer}>
           {renderHeader()}
@@ -698,7 +706,7 @@ const MultichainPermissionsSummary = ({
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

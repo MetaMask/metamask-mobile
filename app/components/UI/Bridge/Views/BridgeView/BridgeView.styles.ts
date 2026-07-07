@@ -22,10 +22,10 @@ export const createStyles = (params: { theme: Theme }) => {
       position: 'relative',
     },
     tokenCard: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.section,
       borderRadius: 16,
       paddingHorizontal: 12,
-      paddingVertical: 12,
+      paddingVertical: 24,
     },
     buttonContainer: {
       width: '100%',

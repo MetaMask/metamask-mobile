@@ -83,6 +83,13 @@ BUILD_CONFIG_NAME=main-e2e HAS_TEST_OVERRIDES=true METAMASK_ENVIRONMENT=e2e \
   yarn build:android:main:e2e
 ```
 
+> **Tip — skip the local Android build:** the **Build Android arm64 E2E (scheduled)** workflow
+> (`.github/workflows/build-android-arm64-scheduled.yml`) publishes a ready-to-install
+> `main-e2e-arm64-release.apk` artifact 4×/day (and on manual `workflow_dispatch`). It
+> includes `arm64-v8a` libs, so it installs on Apple Silicon emulators. Download it from
+> the workflow run to debug a CI failure against the CI-equivalent binary, instead of
+> building locally.
+
 ## Environment variables
 
 Loaded from `.e2e.env` (copy from `.e2e.env.example`). App path resolution in `playwright.smoke-appium.config.ts`:

@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   HeaderStandard,
   Icon,
@@ -44,7 +50,7 @@ import {
 } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -60,6 +66,11 @@ const PerpsMarketListView = ({
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const insets = useSafeAreaInsets();
+  const listContentContainerStyle = useMemo(
+    () => ({ paddingBottom: insets.bottom }),
+    [insets.bottom],
+  );
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
@@ -380,7 +391,8 @@ const PerpsMarketListView = ({
       return (
         <ScrollView
           style={styles.watchlistScrollContainer}
-          contentContainerStyle={styles.watchlistScrollContent}
+          contentContainerStyle={listContentContainerStyle}
+          showsVerticalScrollIndicator={false}
         >
           <PerpsWatchlistMarkets
             markets={visibleWatchlistMarkets}
@@ -437,6 +449,7 @@ const PerpsMarketListView = ({
           sortBy={sortBy}
           showBadge={false}
           filterKey={marketTypeFilter}
+          contentContainerStyle={listContentContainerStyle}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
@@ -444,8 +457,9 @@ const PerpsMarketListView = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <HeaderStandard
+        includesTopInset
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
         backButtonProps={{
@@ -498,7 +512,7 @@ const PerpsMarketListView = ({
         onOptionSelect={handleOptionChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -38,6 +38,32 @@ jest.mock('../ActivityList/preloadedActivityItemStore', () => ({
   stashPreloadedActivityItem: jest.fn(),
 }));
 
+// Speed-up / cancel pull in the hardware-wallet + navigation chain; the screen
+// test only needs the wiring to mount. Behaviour is covered in the hook + banner
+// tests.
+jest.mock('../ActivityList/useUnifiedTxActions', () => ({
+  useUnifiedTxActions: () => ({
+    speedUpIsOpen: false,
+    cancelIsOpen: false,
+    confirmDisabled: false,
+    existingTx: null,
+    isLedgerAccount: false,
+    isQRHardwareAccount: false,
+    onSpeedUpAction: jest.fn(),
+    onCancelAction: jest.fn(),
+    onSpeedUpCancelCompleted: jest.fn(),
+    speedUpTransaction: jest.fn(),
+    cancelTransaction: jest.fn(),
+    signQRTransaction: jest.fn(),
+    signLedgerTransaction: jest.fn(),
+    cancelUnsignedQRTransaction: jest.fn(),
+  }),
+}));
+
+jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => ({
+  CancelSpeedupModal: () => null,
+}));
+
 const useParamsMock = jest.mocked(useParams);
 const useActivityDetailsItemMock = jest.mocked(useActivityDetailsItem);
 const getPreloadedActivityItemMock = jest.mocked(getPreloadedActivityItem);
