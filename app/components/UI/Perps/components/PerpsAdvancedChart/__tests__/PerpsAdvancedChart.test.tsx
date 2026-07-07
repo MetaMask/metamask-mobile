@@ -126,6 +126,18 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
+  it('omits market-aware price decimals when szDecimals is not provided', () => {
+    renderChart();
+
+    expect(advancedChartProps().priceDecimals).toBeUndefined();
+  });
+
+  it('passes zero price decimals when szDecimals uses full Hyperliquid precision', () => {
+    renderChart({ szDecimals: 6 });
+
+    expect(advancedChartProps().priceDecimals).toBe(0);
+  });
+
   it('passes pagination duration into the adapter', () => {
     renderChart({ paginationDuration: TimeDuration.YearToDate });
 

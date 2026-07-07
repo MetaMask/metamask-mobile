@@ -1416,6 +1416,27 @@ describe('formatUtils', () => {
           expect(formatPerpsPrice('2.1946', { szDecimals: 2 })).toBe('$2.1946');
         });
 
+        it('returns market-aware price without currency symbol when requested', () => {
+          expect(
+            formatPerpsPrice('2.1946', {
+              szDecimals: 2,
+              includeCurrencySymbol: false,
+            }),
+          ).toBe('2.1946');
+        });
+
+        it('falls back to universal price ranges when szDecimals is null', () => {
+          expect(formatPerpsPrice(95123.45, { szDecimals: null })).toBe(
+            '$95,123',
+          );
+        });
+
+        it('falls back to universal price ranges when Hyperliquid formatting rejects the price', () => {
+          expect(formatPerpsPrice('not-a-price', { szDecimals: 2 })).toBe(
+            '$---',
+          );
+        });
+
         it('falls back to universal price ranges when szDecimals is unknown', () => {
           expect(formatPerpsPrice(95123.45)).toBe('$95,123');
         });

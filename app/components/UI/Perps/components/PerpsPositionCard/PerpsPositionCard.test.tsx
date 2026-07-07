@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
-import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type Order,
+  type Position,
+} from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
@@ -328,6 +332,48 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
 
       expect(screen.getByText('perps.order.sl $2.1946')).toBeOnTheScreen();
+    });
+
+    it('formats auto-close take profit with market-aware price precision', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        takeProfitPrice: '2.1946',
+        takeProfitCount: 1,
+      };
+
+      render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
+
+      expect(screen.getByText('perps.order.tp $2.1946')).toBeOnTheScreen();
+    });
+
+    it('formats order-level take profit and stop loss with market-aware price precision', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        takeProfitCount: 1,
+        stopLossCount: 1,
+      };
+      const orders = [
+        {
+          symbol: 'LIT',
+          isTrigger: false,
+          takeProfitPrice: '2.1946',
+          stopLossPrice: '2.1234',
+        } as Order,
+      ];
+
+      render(
+        <PerpsPositionCard
+          position={litPosition}
+          orders={orders}
+          szDecimals={2}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.tp $2.1946 • perps.order.sl $2.1234'),
+      ).toBeOnTheScreen();
     });
 
     it('renders SHORT position correctly', () => {
