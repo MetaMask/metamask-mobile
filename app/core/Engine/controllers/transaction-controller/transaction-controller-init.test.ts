@@ -126,6 +126,7 @@ function buildInitRequestMock(
   const {
     predictControllerMock: providedPredictControllerMock,
     preferencesState: providedPreferencesState,
+    selectedAccountAddress: providedSelectedAccountAddress,
     ...requestOverrides
   } = initRequestProperties;
   const predictControllerMock =
@@ -137,6 +138,7 @@ function buildInitRequestMock(
     useTransactionSimulations: true,
     advancedGasFee: {},
   };
+  const selectedAccountAddress = providedSelectedAccountAddress ?? '0x123';
   const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -155,6 +157,10 @@ function buildInitRequestMock(
 
       if (actionType === 'PreferencesController:getState') {
         return preferencesState;
+      }
+
+      if (actionType === 'AccountsController:getSelectedAccount') {
+        return { address: selectedAccountAddress };
       }
 
       if (
@@ -329,81 +335,78 @@ describe('Transaction Controller Init', () => {
               },
             },
           },
+          selectedAccountAddress: account,
         },
       );
     }
 
-    it('returns saved custom gas fees for the transaction chain and account', () => {
+    it('returns saved custom gas fees for the selected account on the chain', () => {
       const optionFn = getSavedGasFeesOption({
         userFeeLevel: UserFeeLevel.CUSTOM,
         maxBaseFee: '0x1',
         priorityFee: '0x2',
-        gasPrice: '0x3',
       });
 
-      expect(
-        optionFn?.({
-          ...MOCK_TRANSACTION_META,
-          txParams: {
-            ...MOCK_TRANSACTION_META.txParams,
-            from: '0x123',
-          },
-        }),
-      ).toEqual({
-        level: UserFeeLevel.CUSTOM,
+      expect(optionFn?.('0x1')).toEqual({
         maxBaseFee: '0x1',
         priorityFee: '0x2',
-        gasPrice: '0x3',
       });
     });
 
-    it('returns saved estimate level gas fees for the transaction chain and account', () => {
-      const optionFn = getSavedGasFeesOption({
-        userFeeLevel: GasFeeEstimateLevel.Low,
-      });
-
-      expect(optionFn?.(MOCK_TRANSACTION_META)).toEqual({
-        level: GasFeeEstimateLevel.Low,
-      });
-    });
-
-    it('normalizes the transaction account before lookup', () => {
-      const optionFn = getSavedGasFeesOption({
-        userFeeLevel: GasFeeEstimateLevel.High,
-      });
-
-      expect(
-        optionFn?.({
-          ...MOCK_TRANSACTION_META,
-          txParams: {
-            ...MOCK_TRANSACTION_META.txParams,
-            from: '0x123'.toUpperCase(),
+    it('normalizes the selected account before lookup', () => {
+      const optionFn = testConstructorOption(
+        'getSavedGasFees',
+        {},
+        {
+          preferencesState: {
+            privacyMode: false,
+            securityAlertsEnabled: true,
+            useTransactionSimulations: true,
+            advancedGasFee: {
+              '0x1': {
+                [account]: {
+                  userFeeLevel: UserFeeLevel.CUSTOM,
+                  maxBaseFee: '0x1',
+                  priorityFee: '0x2',
+                },
+              },
+            },
           },
-        }),
-      ).toEqual({
-        level: GasFeeEstimateLevel.High,
+          selectedAccountAddress: account.toUpperCase(),
+        },
+      );
+
+      expect(optionFn?.('0x1')).toEqual({
+        maxBaseFee: '0x1',
+        priorityFee: '0x2',
       });
     });
 
-    it('returns undefined for MM Pay transactions', () => {
+    it('returns undefined for estimate-level saved preferences', () => {
       const optionFn = getSavedGasFeesOption({
         userFeeLevel: GasFeeEstimateLevel.Low,
       });
 
-      expect(
-        optionFn?.({
-          ...MOCK_TRANSACTION_META,
-          metamaskPay: {} as TransactionMeta['metamaskPay'],
-        }),
-      ).toBeUndefined();
+      expect(optionFn?.('0x1')).toBeUndefined();
     });
 
-    it('returns undefined for unsupported saved fee levels', () => {
+    it('returns undefined when the custom fees are incomplete', () => {
       const optionFn = getSavedGasFeesOption({
-        userFeeLevel: 'dappSuggested',
+        userFeeLevel: UserFeeLevel.CUSTOM,
+        maxBaseFee: '0x1',
       });
 
-      expect(optionFn?.(MOCK_TRANSACTION_META)).toBeUndefined();
+      expect(optionFn?.('0x1')).toBeUndefined();
+    });
+
+    it('returns undefined when there is no saved preference for the chain', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: UserFeeLevel.CUSTOM,
+        maxBaseFee: '0x1',
+        priorityFee: '0x2',
+      });
+
+      expect(optionFn?.('0x2')).toBeUndefined();
     });
   });
 

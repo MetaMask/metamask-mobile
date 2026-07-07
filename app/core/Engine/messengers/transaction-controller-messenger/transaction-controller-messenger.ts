@@ -171,6 +171,7 @@ export function getTransactionControllerInitMessenger(
 
   rootMessenger.delegate({
     actions: [
+      'AccountsController:getSelectedAccount',
       'AccountTrackerController:getState',
       'ApprovalController:addRequest',
       'ApprovalController:endFlow',
