@@ -426,7 +426,7 @@ function TradeWalletActions() {
                     <BottomShape
                       width={buttonLayout.width * 4}
                       height={bottomMaskHeight}
-                      strokeOnly
+                      fill="none"
                       pathProps={{
                         stroke: colors.border.muted,
                         strokeWidth: 1,

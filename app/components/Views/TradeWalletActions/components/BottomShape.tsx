@@ -13,7 +13,6 @@ function BottomShape({
   peakBezierLength = DEFAULT_PEAK_BEZIER_LENGTH,
   baseBezierLength = DEFAULT_BASE_BEZIER_LENGTH,
   fill = DEFAULT_FILL,
-  strokeOnly = false,
   pathProps,
   ...svgProps
 }: {
@@ -23,7 +22,6 @@ function BottomShape({
   peakBezierLength?: number;
   baseBezierLength?: number;
   fill?: string;
-  strokeOnly?: boolean;
   pathProps?: PathProps;
 }) {
   const pathData = useMemo(() => {
@@ -36,19 +34,6 @@ function BottomShape({
     const leftBaseY = height;
     const rightBaseX = centerX + baseBezierLength;
     const rightBaseY = height;
-
-    if (strokeOnly) {
-      return `
-        M ${rightBaseX} ${rightBaseY}
-        C ${rightBaseX - peakBezierLength} ${rightBaseY}
-          ${peakX + peakBezierLength} ${peakY}
-          ${peakX} ${peakY}
-        S ${leftBaseX + peakBezierLength} ${leftBaseY}
-          ${leftBaseX} ${leftBaseY}
-      `
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
 
     return `
       M 0 ${height}
@@ -66,18 +51,11 @@ function BottomShape({
     `
       .replace(/\s+/g, ' ')
       .trim();
-  }, [
-    width,
-    height,
-    peakHeight,
-    peakBezierLength,
-    baseBezierLength,
-    strokeOnly,
-  ]);
+  }, [width, height, peakHeight, peakBezierLength, baseBezierLength]);
 
   return (
     <Svg width={width} height={height} {...svgProps}>
-      <Path d={pathData} fill={strokeOnly ? 'none' : fill} {...pathProps} />
+      <Path d={pathData} fill={fill} {...pathProps} />
     </Svg>
   );
 }
