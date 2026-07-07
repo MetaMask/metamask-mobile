@@ -653,9 +653,6 @@ const TopTradersView = () => {
         <Box twClassName="px-4 pt-2">
           <BannerAlert
             severity={BannerAlertSeverity.Info}
-            title={strings(
-              'social_leaderboard.top_traders_view.notifications_banner.title',
-            )}
             description={strings(
               'social_leaderboard.top_traders_view.notifications_banner.description',
             )}

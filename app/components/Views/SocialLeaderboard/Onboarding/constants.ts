@@ -12,7 +12,7 @@
  * Update these names if the Rive file's artboard, state machine, bindings or
  * triggers change.
  */
-export const RIVE_ARTBOARD_NAME = 'Money_Account';
+export const RIVE_ARTBOARD_NAME = 'slb_onboarding_nux';
 export const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
 
 /** Numeric data-binding inputs pushed into the artboard. */

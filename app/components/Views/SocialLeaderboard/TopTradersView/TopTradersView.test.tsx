@@ -382,7 +382,11 @@ describe('TopTradersView', () => {
       expect(
         screen.getByTestId(TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Turn on notifications')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('opens system settings and dismisses when the CTA is pressed', () => {
