@@ -254,8 +254,7 @@ export function mapLocalTransaction(
   const from = initialTransaction.txParams.from ?? '';
   const to = initialTransaction.txParams.to ?? '';
   const methodId = initialTransaction.txParams.data?.slice(0, 10);
-  // A lending withdrawal returns the underlying token to the sender; find that
-  // Transfer log to build the received (destination) token.
+
   const getLendingWithdrawalDestinationToken = () => {
     const fromAddress = from.toLowerCase();
     const receivedTokenLog = (initialTransaction.txReceipt?.logs ?? []).find(

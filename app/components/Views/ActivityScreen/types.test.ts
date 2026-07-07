@@ -89,17 +89,15 @@ describe('getPerpsSubFilterKinds', () => {
 });
 
 describe('activityKindMatchesTypeFilter', () => {
-  it('groups lending deposit and withdrawal under Transactions, not Money', () => {
+  it('groups lending and mUSD-bonus kinds under Transactions (the Money bucket is removed)', () => {
     for (const kind of [
       'lendingDeposit',
       'lendingWithdrawal',
+      'claimMusdBonus',
     ] as ActivityKind[]) {
       expect(
         activityKindMatchesTypeFilter(kind, ActivityTypeFilter.Transactions),
       ).toBe(true);
-      expect(
-        activityKindMatchesTypeFilter(kind, ActivityTypeFilter.Money),
-      ).toBe(false);
     }
   });
 });
@@ -145,9 +143,9 @@ describe('resolveInitialActivityTypeFilter', () => {
   it('prefers an explicit initialTypeFilter over legacy redirect hints', () => {
     expect(
       resolveInitialActivityTypeFilter({
-        initialTypeFilter: ActivityTypeFilter.Money,
+        initialTypeFilter: ActivityTypeFilter.Predictions,
         redirectToPerpsTransactions: true,
       }),
-    ).toBe(ActivityTypeFilter.Money);
+    ).toBe(ActivityTypeFilter.Predictions);
   });
 });
