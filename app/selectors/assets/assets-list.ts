@@ -46,7 +46,6 @@ import { selectTokenSortConfig } from '../preferencesController';
 import { selectHideZeroBalanceTokens } from '../settings';
 import { selectAllTokens } from '../tokensController';
 import { createDeepEqualSelector } from '../util';
-import { shouldRetainZeroBalanceNonNativeAsset } from '../../util/assets/zero-balance-asset-visibility';
 import {
   getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
@@ -61,7 +60,6 @@ import {
   getTokensControllerAllIgnoredTokens,
   getTokensControllerAllTokens,
 } from './assets-migration';
-import { getAssetsBalance, getCustomAssets } from './assets-controller';
 import { isTrustlineAsset } from '../../util/multichain/trustline';
 
 /**
@@ -339,37 +337,6 @@ export const selectEnabledNetworks = createDeepEqualSelector(
         .map(([networkId]) => networkId),
     ),
 );
-
-/**
- * Factory that returns a selector for sorted assets by selected account group.
- * @param enabledNetworksSelector - Selector that returns the list of enabled network IDs to filter by. Defaults to selectEnabledNetworks.
- * @returns Memoized selector returning sorted asset keys for the selected account group.
- */
-function shouldIncludeAssetWhenHideZeroBalance(
-  asset: Asset,
-  hideZeroBalance: boolean,
-  customAssets: ReturnType<typeof getCustomAssets>,
-  assetsBalance: ReturnType<typeof getAssetsBalance>,
-): boolean {
-  if (isTronSpecialAsset(asset.chainId, asset.symbol)) {
-    return false;
-  }
-
-  if (
-    !hideZeroBalance ||
-    asset.isNative ||
-    parseFloat(asset.balance ?? '0') !== 0
-  ) {
-    return true;
-  }
-
-  return shouldRetainZeroBalanceNonNativeAsset({
-    accountId: asset.accountId,
-    assetId: asset.assetId,
-    customAssets,
-    assetsBalance,
-  });
-}
 
 export const createSelectSortedAssetsBySelectedAccountGroup = (
   enabledNetworksSelector = selectEnabledNetworks,
