@@ -736,7 +736,6 @@ export class Engine {
         }
       },
     );
-    ///: END:ONLY_INCLUDE_IF
 
     // Subscribe to destinationTransactionCompleted event from BridgeStatusController and refresh assets.
     this.controllerMessenger.subscribe(
@@ -816,69 +815,6 @@ export class Engine {
           ).catch(() => {
             // Best-effort real-time refresh; the periodic poll remains a fallback.
           });
-
-          ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-          // After a Stellar trustline tx is confirmed on-chain, the backend
-          // emits a balanceUpdated push for the affected account. The balance
-          // amount is handled by handleAssetsUpdate above, but `extra.limit`
-          // (trustline active/inactive state) is NOT in the push payload — it
-          // requires a separate Horizon enrichment call.
-          //
-          // Strategy: if the push originates from a Stellar chain, re-enrich
-          // all known Stellar classic assets (namespace === 'asset') already
-          // tracked for this account in assetsBalance. We cannot rely solely on
-          // the assets listed in `payload.updates` because a changeTrust
-          // operation only changes the account's XLM reserve (fee), so the
-          // trustline asset itself may not appear in the push's updates array.
-          try {
-            const isStellarChain =
-              typeof payload.chain === 'string' &&
-              payload.chain.startsWith('stellar:');
-
-            if (isStellarChain) {
-              const knownAssetIds = Object.keys(
-                this.context.AssetsController.state.assetsBalance[accountId] ??
-                  {},
-              );
-
-              const stellarClassicAssetIds = knownAssetIds.filter(
-                (assetId): assetId is string => {
-                  try {
-                    const parsed = parseCaipAssetType(assetId as CaipAssetType);
-                    return (
-                      parsed.chain.namespace === 'stellar' &&
-                      parsed.assetNamespace === 'asset'
-                    );
-                  } catch {
-                    return false;
-                  }
-                },
-              ) as CaipAssetType[];
-
-              if (stellarClassicAssetIds.length > 0) {
-                Logger.log(
-                  '[Stellar] balanceUpdated push — refreshing trustline extras for',
-                  accountId,
-                  stellarClassicAssetIds,
-                );
-                this.context.AssetsController.refreshAccountAssetInfo(
-                  accountId,
-                  stellarClassicAssetIds,
-                ).catch((error: unknown) => {
-                  Logger.error(
-                    error as Error,
-                    '[Stellar] refreshAccountAssetInfo after balanceUpdated failed',
-                  );
-                });
-              }
-            }
-          } catch (stellarError) {
-            Logger.error(
-              stellarError as Error,
-              '[Stellar] trustline extra refresh after balanceUpdated failed',
-            );
-          }
-          ///: END:ONLY_INCLUDE_IF
         } catch (error) {
           console.error(
             'Error forwarding AccountActivityService:balanceUpdated to AssetsController:',
@@ -919,6 +855,7 @@ export class Engine {
         }
       },
     );
+    ///: END:ONLY_INCLUDE_IF
 
     this.configureControllersOnNetworkChange();
     this.handleVaultBackup();

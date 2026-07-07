@@ -4,13 +4,12 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  type CaipAssetType,
+  CaipAssetId,
   type CaipChainId,
   isCaipAssetType,
 } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
-import { selectAccountAssetInfoForToken } from '../../../../selectors/multichain/assetActivation';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import type { TokenI } from '../../Tokens/types';
 import {
@@ -22,29 +21,41 @@ import {
   requestStellarChangeTrustOptAdd,
   requestStellarChangeTrustOptDelete,
 } from '../../../../util/stellar/stellar-snap-client-requests';
+import { selectMultichainBalances } from '../../../../selectors/multichain/multichain';
 
 /**
  * Manages asset activation and deactivation for supported trustline assets.
  */
 export function useAssetActivation({
-  token,
+  asset,
   onTrustlineChanged,
 }: {
-  token: TokenI | undefined;
+  asset: TokenI | undefined;
   onTrustlineChanged?: () => void;
 }) {
-  const chainId = token?.chainId as CaipChainId | undefined;
-  const assetId = token?.address as CaipAssetType | undefined;
-  const isTrustlineToken = assetId ? isTrustlineAsset(assetId) : false;
-
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
+
+  // For non trusline asset, assetId and chainId are undefined.
+  let assetId: CaipAssetId | undefined;
+  let chainId: CaipChainId | undefined;
+  let isAssetIsTrustlineAsset: boolean = false;
+  if (asset) {
+    assetId = asset.address as CaipAssetId;
+    isAssetIsTrustlineAsset = isTrustlineAsset(assetId);
+    if (isAssetIsTrustlineAsset) {
+      chainId = asset.chainId as CaipChainId;
+    }
+  }
+
   const account = chainId ? selectAccountByScope(chainId) : undefined;
 
-  const assetMetadata = useSelector((state: RootState) =>
-    selectAccountAssetInfoForToken(state, account?.id, assetId),
+  const balances = useSelector((state: RootState) =>
+    selectMultichainBalances(state)
   );
+  const assetMetadata =  balances?.[account?.id ?? '']?.[assetId as CaipAssetId]
+    ?.accountAssetInfo
 
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
@@ -56,7 +67,7 @@ export function useAssetActivation({
 
   const canDeactivate =
     Boolean(assetId) &&
-    isTrustlineToken &&
+    isAssetIsTrustlineAsset &&
     !isAssetRequireActivate({
       assetId,
       assetMetadata,
@@ -69,7 +80,7 @@ export function useAssetActivation({
       !chainId ||
       !assetId ||
       !isCaipAssetType(assetId) ||
-      !token
+      !asset
     ) {
       return false;
     }
@@ -103,8 +114,8 @@ export function useAssetActivation({
         setErrorMessage(
           hasNonZeroBalance
             ? strings('asset_activation.deactivate_error_non_zero_balance_stellar', {
-                balance: token.balance,
-                symbol: token.symbol,
+                balance: asset.balance,
+                symbol: asset.symbol,
               })
             : strings('asset_activation.deactivate_error'),
         );
@@ -119,7 +130,7 @@ export function useAssetActivation({
     canDeactivate,
     chainId,
     onTrustlineChanged,
-    token,
+    asset,
   ]);
 
   const activateAsset = useCallback(async () => {

@@ -506,25 +506,18 @@ export const getMultiChainAssetsControllerAssetsMetadata =
           continue;
         }
 
-        const isStellarNativeAsset =
-          assetType.chain.namespace === KnownCaipNamespace.Stellar &&
-          assetType.assetNamespace === 'slip44' &&
-          assetType.assetReference === '148';
-        const displaySymbol = isStellarNativeAsset ? 'XLM' : metadata.symbol;
-        const displayName = isStellarNativeAsset ? 'XLM' : metadata.name;
-
         result[assetId as CaipAssetType] = {
           fungible: true,
           iconUrl: metadata.image ?? '',
           units: [
             {
               decimals: metadata.decimals,
-              symbol: displaySymbol,
-              name: displayName,
+              symbol: metadata.symbol,
+              name: metadata.name,
             },
           ],
-          symbol: displaySymbol,
-          name: displayName,
+          symbol: metadata.symbol,
+          name: metadata.name,
         };
       }
 

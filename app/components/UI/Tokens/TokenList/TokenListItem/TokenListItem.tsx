@@ -94,7 +94,7 @@ import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
-import { selectIsAssetRequireActivateForToken } from '../../../../../selectors/multichain/assetActivation';
+import { isAssetRequireActivate } from '../../../../../util/multichain/trustline';
 ///: END:ONLY_INCLUDE_IF
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
@@ -189,9 +189,10 @@ export const TokenListItem = React.memo(
     );
 
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    const isAssetInactive = useSelector((state: RootState) =>
-      selectIsAssetRequireActivateForToken(state, asset),
-    );
+    const isAssetInactive = isAssetRequireActivate({
+      assetId: asset?.address,
+      assetMetadata: asset?.accountAssetInfo,
+    });
     ///: END:ONLY_INCLUDE_IF
 
     const { isStockToken } = useRWAToken();
@@ -783,7 +784,7 @@ export const TokenListItem = React.memo(
                     color={TextColor.TextAlternative}
                     twClassName="uppercase"
                   >
-                    {strings('assetInactive')}
+                    {strings('asset_activation.inactive')}
                   </Text>
                 ) : (
                   ///: END:ONLY_INCLUDE_IF

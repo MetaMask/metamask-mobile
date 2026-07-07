@@ -28,7 +28,7 @@ import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTes
 import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-import { selectIsStellarChainVisible } from '../multichain/stellar';
+import { selectIsStellarAccountsEnabled } from '../featureFlagController/stellarAccountsEnabled';
 ///: END:ONLY_INCLUDE_IF
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
@@ -62,7 +62,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     selectIsBitcoinTestnetEnabled,
     ///: END:ONLY_INCLUDE_IF
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    selectIsStellarChainVisible,
+    selectIsStellarAccountsEnabled,
     ///: END:ONLY_INCLUDE_IF
   ],
   (
@@ -72,12 +72,15 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     isBitcoinTestnetEnabled: Json,
     ///: END:ONLY_INCLUDE_IF
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    isStellarChainVisible: boolean,
+    selectIsStellarAccountsEnabled: Json,
     ///: END:ONLY_INCLUDE_IF
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
+    ///: END:ONLY_INCLUDE_IF
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    const isStellarAccountsEnabled = Boolean(selectIsStellarAccountsEnabled);
     ///: END:ONLY_INCLUDE_IF
     const extendedNonEvmData: Record<
       CaipChainId,
@@ -190,7 +193,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       // TrxScope.Shasta,
       ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-      ...(isStellarChainVisible ? [XlmScope.Pubnet, XlmScope.Testnet] : []),
+      ...(isStellarAccountsEnabled ? [XlmScope.Pubnet, XlmScope.Testnet] : []),
       ///: END:ONLY_INCLUDE_IF
     ];
 

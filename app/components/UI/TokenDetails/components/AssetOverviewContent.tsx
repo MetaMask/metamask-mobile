@@ -26,8 +26,6 @@ import {
   TokenPrice,
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
-import { RootState } from '../../../../reducers';
-import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import {
   PERPS_EVENT_PROPERTY,
@@ -66,8 +64,6 @@ import {
 } from '../../MarketInsights';
 import {
   isCaipAssetType,
-  type CaipAssetType,
-  type CaipChainId,
   type Hex,
 } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
@@ -81,8 +77,6 @@ import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTra
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import {
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
   FontWeight,
   Text,
   TextColor,
@@ -97,14 +91,6 @@ import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
 import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
-import {
-  selectBaseReserveForNativeToken,
-  selectIsAssetRequireActivateForToken,
-} from '../../../../selectors/multichain/assetActivation';
-import {
-  getStellarNativeDisplayName,
-  isStellarNativeToken,
-} from '../utils/isStellarNativeToken';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -117,6 +103,8 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { computeBaseReserve } from '../../../../util/multichain/spendable-balance';
+import { isAssetRequireActivate } from '../../../../util/multichain/trustline';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -274,17 +262,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen } = useRWAToken();
 
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  const liveStellarToken = useSelector((state: RootState) =>
-    selectAsset(state, {
-      address: token.address,
-      chainId: token.chainId as string,
-      isStaked: token.isStaked || false,
-    }),
-  );
-  const stellarDisplayToken = liveStellarToken ?? token;
-  ///: END:ONLY_INCLUDE_IF
-
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalanceValue = Boolean(balance) && balance !== '0';
   const trackActionTapped = useTokenDetailsActionTracking({
@@ -294,14 +271,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  const stellarNativeToken = isStellarNativeToken(token) ? token : null;
-  const isAssetInactive = useSelector((state: RootState) =>
-    selectIsAssetRequireActivateForToken(state, stellarDisplayToken),
-  );
-  const baseReserve = useSelector((state: RootState) =>
-    selectBaseReserveForNativeToken(state, stellarNativeToken ?? undefined),
-  );
-  const showSpendableBalanceSection = baseReserve !== undefined;
+  const isAssetInactive = isAssetRequireActivate({
+    assetId: token.address,
+    assetMetadata: token.accountAssetInfo,
+  })
+  const baseReserve = computeBaseReserve({
+    assetId: token.address,
+    assetMetadata: token.accountAssetInfo,
+  });
   ///: END:ONLY_INCLUDE_IF
 
   const {
@@ -645,7 +622,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ///: BEGIN:ONLY_INCLUDE_IF(stellar)
             isAssetInactive ? (
               <AssetActivateCard
-                token={stellarDisplayToken}
+                token={token}
                 chainName="Stellar"
                 onTrustlineChanged={onTrustlineChanged}
               />
@@ -719,12 +696,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-            showSpendableBalanceSection &&
-            stellarNativeToken &&
-            baseReserve ? (
+            baseReserve !== undefined ? (
               <SpendableBalanceSection
                 totalBalance={String(mainBalance)}
-                symbol={stellarNativeToken.symbol}
+                symbol={token.symbol}
                 baseReserve={baseReserve}
                 fiatValue={secondaryBalance}
                 showFiat={Boolean(secondaryBalance)}

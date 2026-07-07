@@ -7,6 +7,6 @@ describe('AssetInactiveBadge', () => {
   it('renders the inactive label', () => {
     const { getByText } = render(<AssetInactiveBadge />);
 
-    expect(getByText(strings('assetInactive'))).toBeTruthy();
+    expect(getByText(strings('asset_activation.inactive'))).toBeTruthy();
   });
 });

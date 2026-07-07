@@ -62,16 +62,6 @@ export function resolveAssetActivationActivityTitle(
   return strings(labelKeys.title.key, { symbol: tokenSymbol ?? '' });
 }
 
-/**
- * @deprecated Use resolveAssetActivationActivityTitle instead.
- */
-export function resolveTrustlineActivityTitle(
-  tokenSymbol: string | undefined,
-  isActivate: boolean,
-): string {
-  return resolveAssetActivationActivityTitle(tokenSymbol, isActivate);
-}
-
 export function resolveAssetActivationActivityTitleFromTransaction(
   transaction: Transaction,
   tokenSymbol: string | undefined,

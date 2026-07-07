@@ -338,6 +338,11 @@ export const selectEnabledNetworks = createDeepEqualSelector(
     ),
 );
 
+/**
+ * Factory that returns a selector for sorted assets by selected account group.
+ * @param enabledNetworksSelector - Selector that returns the list of enabled network IDs to filter by. Defaults to selectEnabledNetworks.
+ * @returns Memoized selector returning sorted asset keys for the selected account group.
+ */
 export const createSelectSortedAssetsBySelectedAccountGroup = (
   enabledNetworksSelector = selectEnabledNetworks,
 ) =>
@@ -509,12 +514,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       selectStakedAssets,
       selectHideZeroBalanceTokens,
     ],
-    (
-      bip44Assets,
-      chainIds,
-      stakedAssets,
-      hideZeroBalance,
-    ) => {
+    (bip44Assets, chainIds, stakedAssets, hideZeroBalance) => {
       const allowedIds = buildAllowedNetworkIdSet(chainIds);
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => allowedIds.has(networkId))
