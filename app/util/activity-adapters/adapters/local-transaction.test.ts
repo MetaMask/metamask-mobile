@@ -869,6 +869,84 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a typed lendingWithdraw with no matching transfer log to a withdrawal without a destination token', () => {
+    const otherRecipient =
+      '0x0000000000000000000000001111111111111111111111111111111111111111';
+    const transaction = {
+      chainId: base,
+      hash: '0x9c1b7c1d9d2b3a4c5e6f70819293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c',
+      status: TransactionStatus.confirmed,
+      time: 1779912434153,
+      type: TransactionType.lendingWithdraw,
+      txParams: {
+        from,
+        to: baseAavePool,
+        data: '0x69328dec',
+      },
+      txReceipt: {
+        logs: [
+          // Log with no topics — exercises the missing event-topic / `to` branch.
+          {
+            address: baseUsdc,
+            data: '0x0000000000000000000000000000000000000000000000000000000000030d40',
+            topics: [],
+          },
+          // A Transfer to someone other than the sender — not the received token.
+          {
+            address: baseUsdc,
+            data: '0x0000000000000000000000000000000000000000000000000000000000030d40',
+            topics: [
+              '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+              '0x0000000000000000000000004e65fe4dba92790696d040ac24aa414708f5c0ab',
+              otherRecipient,
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingWithdrawal',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779912434153,
+      hash: '0x9c1b7c1d9d2b3a4c5e6f70819293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c',
+      data: {
+        destinationToken: undefined,
+      },
+    });
+  });
+
+  it('maps a typed lendingWithdraw with no receipt logs to a withdrawal without a destination token', () => {
+    const transaction = {
+      chainId: base,
+      hash: '0x5a6b7c8d9e0f10213243546576879a0b1c2d3e4f5061728394a5b6c7d8e9f001',
+      status: TransactionStatus.confirmed,
+      time: 1779912434153,
+      type: TransactionType.lendingWithdraw,
+      txParams: {
+        from,
+        to: baseAavePool,
+        data: '0x69328dec',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingWithdrawal',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779912434153,
+      hash: '0x5a6b7c8d9e0f10213243546576879a0b1c2d3e4f5061728394a5b6c7d8e9f001',
+      data: {
+        destinationToken: undefined,
+      },
+    });
+  });
+
   it('maps an EIP-7702 upgrade (authorizationList) to a smart account upgrade activity with the gas shown as a native amount', () => {
     const transaction = {
       chainId: mainnet,
