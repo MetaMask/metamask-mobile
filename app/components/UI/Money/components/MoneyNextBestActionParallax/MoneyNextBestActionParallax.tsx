@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ViewStyle,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Rive, {
@@ -17,7 +16,6 @@ import Rive, {
   useRiveNumber,
 } from 'rive-react-native';
 import { createProjectLogger } from '@metamask/utils';
-import { selectMoneyParallaxAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import { tiltToParallaxValue } from './parallax';
@@ -51,14 +49,13 @@ const MoneyNextBestActionParallax = ({
   style,
   testID,
 }: MoneyNextBestActionParallaxProps) => {
-  const flagEnabled = useSelector(selectMoneyParallaxAnimationEnabledFlag);
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);
   const [riveRef, riveInstance] = useRive();
   const [, setXValue] = useRiveNumber(riveInstance, RIVE_PROPERTY_X);
   const [, setYValue] = useRiveNumber(riveInstance, RIVE_PROPERTY_Y);
 
-  const animate = flagEnabled && !reduceMotion && !hasRiveError;
+  const animate = !reduceMotion && !hasRiveError;
 
   const applyTilt = useCallback(
     (x: number, y: number) => {

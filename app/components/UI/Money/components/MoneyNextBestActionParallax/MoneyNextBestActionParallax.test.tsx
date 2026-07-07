@@ -34,11 +34,6 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-const mockUseSelector = jest.fn();
-jest.mock('react-redux', () => ({
-  useSelector: (selector: unknown) => mockUseSelector(selector),
-}));
-
 jest.mock('../../hooks/useReduceMotion', () => ({
   useReduceMotion: jest.fn(),
 }));
@@ -54,7 +49,6 @@ describe('MoneyNextBestActionParallax', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOnErrorRef.current = undefined;
-    mockUseSelector.mockReturnValue(true);
     mockUseReduceMotion.mockReturnValue(false);
   });
 
@@ -82,7 +76,7 @@ describe('MoneyNextBestActionParallax', () => {
   });
 
   it('does not render the gradient background behind the fallback image', () => {
-    mockUseSelector.mockReturnValue(false);
+    mockUseReduceMotion.mockReturnValue(true);
 
     const { queryByTestId } = render(
       <MoneyNextBestActionParallax fallbackImage={fallbackImage} />,
@@ -93,8 +87,8 @@ describe('MoneyNextBestActionParallax', () => {
     ).toBeNull();
   });
 
-  it('renders the fallback image when the flag is disabled', () => {
-    mockUseSelector.mockReturnValue(false);
+  it('renders the fallback image (with the provided source) when reduce motion is enabled', () => {
+    mockUseReduceMotion.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(
       <MoneyNextBestActionParallax fallbackImage={fallbackImage} />,
@@ -103,19 +97,6 @@ describe('MoneyNextBestActionParallax', () => {
     expect(
       getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE).props.source,
     ).toBe(fallbackImage);
-    expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
-  });
-
-  it('renders the fallback image when reduce motion is enabled', () => {
-    mockUseReduceMotion.mockReturnValue(true);
-
-    const { getByTestId, queryByTestId } = render(
-      <MoneyNextBestActionParallax fallbackImage={fallbackImage} />,
-    );
-
-    expect(
-      getByTestId(MoneyNextBestActionParallaxTestIds.STATIC_IMAGE),
-    ).toBeOnTheScreen();
     expect(queryByTestId(MoneyNextBestActionParallaxTestIds.RIVE)).toBeNull();
   });
 
@@ -131,7 +112,7 @@ describe('MoneyNextBestActionParallax', () => {
   });
 
   it('disables the device tilt callback when not animating', () => {
-    mockUseSelector.mockReturnValue(false);
+    mockUseReduceMotion.mockReturnValue(true);
 
     render(<MoneyNextBestActionParallax fallbackImage={fallbackImage} />);
 
