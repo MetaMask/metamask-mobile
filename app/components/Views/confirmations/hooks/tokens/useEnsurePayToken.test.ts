@@ -2,6 +2,7 @@ import { act } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import Engine from '../../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -9,6 +10,7 @@ import {
   accountMock,
   otherControllersMock,
 } from '../../__mocks__/controllers/other-controllers-mock';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useEnsurePayToken } from './useEnsurePayToken';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -40,12 +42,21 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../../selectors/accountsController'),
+  selectInternalAccountByAddresses: jest.fn(() => () => []),
+}));
+
 jest.mock('../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../selectors/networkController'),
   selectNetworkConfigurations: jest.fn(() => ({})),
 }));
 
+jest.mock('../transactions/useTransactionAccountOverride');
+
 const ACCOUNT_ID_MOCK = 'mock-account-id';
+const OVERRIDE_ACCOUNT_ID_MOCK = 'mock-override-account-id';
+const OVERRIDE_ADDRESS_MOCK = '0xOverrideAddress';
 const TOKEN_ADDRESS_MOCK =
   '0x55d398326f99059fF775485246999027B3197955' as const;
 const CHAIN_ID_MOCK = '0x38' as const; // BNB
@@ -103,6 +114,10 @@ describe('useEnsurePayToken', () => {
     (selectNetworkConfigurations as unknown as jest.Mock).mockReturnValue({
       [CHAIN_ID_MOCK]: { nativeCurrency: 'BNB' },
     });
+    jest.mocked(useTransactionAccountOverride).mockReturnValue(undefined);
+    (selectInternalAccountByAddresses as unknown as jest.Mock).mockReturnValue(
+      () => [],
+    );
   });
 
   describe('unified assets state', () => {
@@ -173,6 +188,50 @@ describe('useEnsurePayToken', () => {
 
       await expect(runEnsure()).resolves.toBeUndefined();
       expect(mockGetAssets).toHaveBeenCalled();
+    });
+
+    it('registers the token under the transaction pay account override when set', async () => {
+      jest
+        .mocked(useTransactionAccountOverride)
+        .mockReturnValue(OVERRIDE_ADDRESS_MOCK);
+      (
+        selectInternalAccountByAddresses as unknown as jest.Mock
+      ).mockReturnValue(() => [
+        {
+          id: OVERRIDE_ACCOUNT_ID_MOCK,
+          address: OVERRIDE_ADDRESS_MOCK,
+          type: 'eip155:eoa',
+        },
+      ]);
+
+      await runEnsure();
+
+      expect(mockAddCustomAsset).toHaveBeenCalledWith(
+        OVERRIDE_ACCOUNT_ID_MOCK,
+        expect.any(String),
+        expect.anything(),
+      );
+      expect(mockGetAssets).toHaveBeenCalledWith(
+        [expect.objectContaining({ id: OVERRIDE_ACCOUNT_ID_MOCK })],
+        expect.anything(),
+      );
+    });
+
+    it('falls back to the selected account when the override address has no matching account', async () => {
+      jest
+        .mocked(useTransactionAccountOverride)
+        .mockReturnValue(OVERRIDE_ADDRESS_MOCK);
+      (
+        selectInternalAccountByAddresses as unknown as jest.Mock
+      ).mockReturnValue(() => []);
+
+      await runEnsure();
+
+      expect(mockAddCustomAsset).toHaveBeenCalledWith(
+        ACCOUNT_ID_MOCK,
+        expect.any(String),
+        expect.anything(),
+      );
     });
   });
 

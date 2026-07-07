@@ -4,10 +4,12 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import type { Caip19AssetId } from '@metamask/assets-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
+import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
 const log = createProjectLogger('pay-token-ensure');
 
@@ -28,6 +30,12 @@ export interface EnsurePayTokenParams {
  * user does not already hold) must be registered there via `addCustomAsset`.
  * The token's fiat rate is also refreshed best-effort. Failures are logged and
  * swallowed so token selection is never blocked.
+ *
+ * The token must be registered under the same account the pay controller
+ * uses to resolve the transaction: the transaction's pay account override
+ * when set, otherwise the globally selected account. Using the wrong account
+ * (e.g. always the globally selected one) can leave the token unresolved
+ * when an override is active.
  */
 export function useEnsurePayToken(): (
   token: EnsurePayTokenParams,
@@ -35,7 +43,17 @@ export function useEnsurePayToken(): (
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
   );
-  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const selectedEvmAccount = useSelector(
+    selectSelectedAccountGroupEvmInternalAccount,
+  );
+  const accountOverride = useTransactionAccountOverride();
+  const getInternalAccountsByAddresses = useSelector(
+    selectInternalAccountByAddresses,
+  );
+  const overrideAccount = accountOverride
+    ? getInternalAccountsByAddresses([accountOverride])[0]
+    : undefined;
+  const evmAccount = overrideAccount ?? selectedEvmAccount;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   return useCallback(
