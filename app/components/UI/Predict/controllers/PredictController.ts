@@ -25,6 +25,7 @@ import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import { errorCodes } from '@metamask/rpc-errors';
 import {
   TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
@@ -1287,8 +1288,16 @@ export class PredictController extends BaseController<
     });
   }
 
-  private isUserCancelledTransactionError(error: Error): boolean {
-    const message = error.message.toLowerCase();
+  private isUserCancelledTransactionError(error: unknown): boolean {
+    // Prefer the language-independent EIP-1193 code (4001) emitted by
+    // `providerErrors.userRejectedRequest()` over message matching, which can
+    // silently flip cancelled/failed if upstream error wording changes.
+    const errorCode = (error as { code?: unknown } | null | undefined)?.code;
+    if (errorCode === errorCodes.provider.userRejectedRequest) {
+      return true;
+    }
+
+    const message = ensureError(error).message.toLowerCase();
     return (
       message.includes('user denied transaction signature') ||
       message.includes('user rejected') ||
@@ -1318,7 +1327,7 @@ export class PredictController extends BaseController<
       return batchResult.batchId;
     } catch (error) {
       const e = ensureError(error);
-      const isUserCancelled = this.isUserCancelledTransactionError(e);
+      const isUserCancelled = this.isUserCancelledTransactionError(error);
 
       this.trackTransactionSubmissionMetric({
         status: isUserCancelled
@@ -1873,6 +1882,7 @@ export class PredictController extends BaseController<
     });
 
     const signer = this.getSigner();
+    let submittedClaim: PredictClaim | undefined;
 
     try {
       const provider = this.provider;
@@ -1961,17 +1971,16 @@ export class PredictController extends BaseController<
         missingBatchIdError:
           'Failed to get batch ID from claim transaction submission',
       });
+      submittedClaim = {
+        batchId,
+        chainId,
+        status: PredictClaimStatus.PENDING,
+      };
 
       // Store the real batchId for pending claim tracking
       this.update((state) => {
         state.pendingClaims[signer.address] = batchId;
       });
-
-      const predictClaim: PredictClaim = {
-        batchId,
-        chainId,
-        status: PredictClaimStatus.PENDING,
-      };
 
       this.update((state) => {
         state.lastError = null; // Clear any previous errors
@@ -1979,12 +1988,29 @@ export class PredictController extends BaseController<
       });
 
       traceData = { success: true, positionCount: claimablePositions.length };
-      return predictClaim;
+      return submittedClaim;
     } catch (error) {
+      const e = ensureError(error);
+
+      if (submittedClaim) {
+        // The batch was submitted, so the claim is genuinely in flight: keep
+        // the pending-claim lock and analytics stash for the terminal-status
+        // handler, and return the pending claim so the caller does not record
+        // a false failure for a local bookkeeping error.
+        traceData = { success: true, error: e.message };
+        Logger.error(
+          e,
+          this.getErrorContext('claimWithConfirmation', {
+            providerId: POLYMARKET_PROVIDER_ID,
+            operation: 'post_submission_bookkeeping',
+          }),
+        );
+        return submittedClaim;
+      }
+
       this.clearPendingClaimForAddress({ address: signer.address });
 
-      const e = ensureError(error);
-      if (this.isUserCancelledTransactionError(e)) {
+      if (this.isUserCancelledTransactionError(error)) {
         traceData = { success: false, reason: 'user_cancelled' };
 
         const claimAnalytics =
@@ -2567,7 +2593,7 @@ export class PredictController extends BaseController<
     _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
-    let transactionSubmitted = false;
+    let submittedBatchId: string | undefined;
 
     try {
       const signer = this.getSigner();
@@ -2643,7 +2669,7 @@ export class PredictController extends BaseController<
         missingBatchIdError:
           'Failed to get batch ID from transaction submission',
       });
-      transactionSubmitted = true;
+      submittedBatchId = batchId;
 
       this.update((state) => {
         state.pendingDeposits[signer.address] = batchId;
@@ -2657,24 +2683,38 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
-      const isUserCancelled = this.isUserCancelledTransactionError(e);
 
-      if (!transactionSubmitted) {
-        this.trackPredictFlowMetric({
-          transactionType:
-            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
-          status: isUserCancelled
-            ? PredictTradeStatus.CANCELLED
-            : PredictTradeStatus.FAILED,
-          failureReason: e.message,
-        });
+      if (submittedBatchId !== undefined) {
+        // The batch was submitted, so the deposit is genuinely in flight: keep
+        // the pending-deposit entry (the terminal-status handler clears it by
+        // address) and return the batchId so the caller does not surface a
+        // false deposit failure for a local bookkeeping error.
+        Logger.error(
+          e,
+          this.getErrorContext('depositWithConfirmation', {
+            providerId: POLYMARKET_PROVIDER_ID,
+            operation: 'post_submission_bookkeeping',
+          }),
+        );
+        return {
+          success: true,
+          response: { batchId: submittedBatchId },
+        };
       }
+
+      const isUserCancelled = this.isUserCancelledTransactionError(error);
+
+      this.trackPredictFlowMetric({
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        status: isUserCancelled
+          ? PredictTradeStatus.CANCELLED
+          : PredictTradeStatus.FAILED,
+        failureReason: e.message,
+      });
 
       if (isUserCancelled) {
         // Clear pending state before returning
-        if (!transactionSubmitted) {
-          this.clearPendingDeposit();
-        }
+        this.clearPendingDeposit();
         // ignore error, as the user cancelled the tx
         return {
           success: true,
@@ -2689,9 +2729,7 @@ export class PredictController extends BaseController<
         }),
       );
 
-      if (!transactionSubmitted) {
-        this.clearPendingDeposit();
-      }
+      this.clearPendingDeposit();
 
       throw new Error(
         error instanceof Error
@@ -2714,7 +2752,7 @@ export class PredictController extends BaseController<
   public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
     const address = this.requireEvmAccountAddress();
-    let transactionSubmitted = false;
+    let submittedBatchId: string | undefined;
 
     if (!this.state.activeBuyOrders[address]) {
       this.update((state) => {
@@ -2800,7 +2838,7 @@ export class PredictController extends BaseController<
         missingBatchIdError:
           'Failed to get batch ID from transaction submission',
       });
-      transactionSubmitted = true;
+      submittedBatchId = batchId;
 
       this.update((state) => {
         if (state.activeBuyOrders[address]) {
@@ -2816,17 +2854,32 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
-      const isUserCancelled = this.isUserCancelledTransactionError(e);
-      if (!transactionSubmitted) {
-        this.trackPredictFlowMetric({
-          transactionType:
-            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
-          status: isUserCancelled
-            ? PredictTradeStatus.CANCELLED
-            : PredictTradeStatus.FAILED,
-          failureReason: e.message,
-        });
+
+      if (submittedBatchId !== undefined) {
+        // The batch was submitted, so the deposit-and-order flow is genuinely
+        // in flight: report success so a local bookkeeping error does not get
+        // treated as a deposit failure.
+        Logger.error(
+          e,
+          this.getErrorContext('initPayWithAnyToken', {
+            providerId: POLYMARKET_PROVIDER_ID,
+            operation: 'post_submission_bookkeeping',
+          }),
+        );
+        return {
+          success: true,
+          response: { batchId: submittedBatchId },
+        };
       }
+
+      const isUserCancelled = this.isUserCancelledTransactionError(error);
+      this.trackPredictFlowMetric({
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        status: isUserCancelled
+          ? PredictTradeStatus.CANCELLED
+          : PredictTradeStatus.FAILED,
+        failureReason: e.message,
+      });
 
       Logger.error(
         e,
@@ -3428,7 +3481,7 @@ export class PredictController extends BaseController<
   public async prepareWithdraw(
     _params: PrepareWithdrawParams = {},
   ): Promise<Result<string>> {
-    let transactionSubmitted = false;
+    let submittedBatchId: string | undefined;
 
     try {
       const provider = this.provider;
@@ -3479,7 +3532,7 @@ export class PredictController extends BaseController<
         missingBatchIdError:
           'Failed to get batch ID from transaction submission',
       });
-      transactionSubmitted = true;
+      submittedBatchId = batchId;
 
       this.update((state) => {
         if (state.withdrawTransaction) {
@@ -3498,17 +3551,34 @@ export class PredictController extends BaseController<
           : PREDICT_ERROR_CODES.WITHDRAW_FAILED;
 
       const e = ensureError(error);
-      const isUserCancelled = this.isUserCancelledTransactionError(e);
-      if (!transactionSubmitted) {
-        this.trackPredictFlowMetric({
-          transactionType:
-            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
-          status: isUserCancelled
-            ? PredictTradeStatus.CANCELLED
-            : PredictTradeStatus.FAILED,
-          failureReason: e.message,
-        });
+
+      if (submittedBatchId !== undefined) {
+        // The batch was submitted, so the withdraw is genuinely in flight:
+        // keep `withdrawTransaction` (the terminal-status handler clears it)
+        // and report success so a local bookkeeping error does not surface a
+        // false withdraw failure.
+        Logger.error(
+          e,
+          this.getErrorContext('prepareWithdraw', {
+            providerId: POLYMARKET_PROVIDER_ID,
+            operation: 'post_submission_bookkeeping',
+          }),
+        );
+        return {
+          success: true,
+          response: submittedBatchId,
+        };
       }
+
+      const isUserCancelled = this.isUserCancelledTransactionError(error);
+      this.trackPredictFlowMetric({
+        transactionType:
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
+        status: isUserCancelled
+          ? PredictTradeStatus.CANCELLED
+          : PredictTradeStatus.FAILED,
+        failureReason: e.message,
+      });
 
       if (isUserCancelled) {
         // ignore error, as the user cancelled the tx

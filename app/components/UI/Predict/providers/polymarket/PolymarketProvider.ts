@@ -2955,12 +2955,17 @@ export class PolymarketProvider implements PredictProvider {
     );
 
     if (!depositWalletIsDeployed) {
+      // The wallet-creation metric only covers the relayer create request.
+      // Once the relayer accepts the request the wallet may be created
+      // remotely even if local waiting/polling fails afterwards, and a retry
+      // would skip this branch entirely, so reporting a post-acceptance
+      // failure would misclassify creations that actually succeeded.
+      let transactionID: string | undefined;
       try {
         const createResponse = await requestDepositWalletCreate({
           ownerAddress,
         });
-        const transactionID =
-          getDepositWalletRelayerTransactionId(createResponse);
+        transactionID = getDepositWalletRelayerTransactionId(createResponse);
 
         if (!transactionID) {
           throw new Error(
@@ -2968,41 +2973,6 @@ export class PolymarketProvider implements PredictProvider {
           );
         }
 
-        DevLogger.log('PolymarketProvider: Waiting for deposit wallet create', {
-          operation: 'deposit_wallet_create',
-          walletType: 'deposit-wallet',
-          transactionID,
-          from: ownerAddress,
-          depositWalletAddress,
-        });
-
-        await waitForDepositWalletTransaction({
-          transactionID,
-          requireCompletion: true,
-        });
-
-        DevLogger.log(
-          'PolymarketProvider: Waiting for deposit wallet relayer registry',
-          {
-            operation: 'deposit_wallet_relayer_registry',
-            walletType: 'deposit-wallet',
-            from: ownerAddress,
-            depositWalletAddress,
-          },
-        );
-
-        await waitForDepositWalletDeployed({
-          walletAddress: depositWalletAddress,
-        });
-        depositWalletDeploymentConfirmed = true;
-
-        this.#setCachedAccountState(ownerAddress, {
-          address: depositWalletAddress,
-          isDeployed: true,
-          walletType: 'deposit-wallet',
-        });
-        this.setPolymarketAccountCreatedTrait();
-        updatedState = true;
         this.trackDepositWalletCreationMetric({
           status: PredictTradeStatus.SUCCEEDED,
         });
@@ -3016,6 +2986,42 @@ export class PolymarketProvider implements PredictProvider {
         });
         throw error;
       }
+
+      DevLogger.log('PolymarketProvider: Waiting for deposit wallet create', {
+        operation: 'deposit_wallet_create',
+        walletType: 'deposit-wallet',
+        transactionID,
+        from: ownerAddress,
+        depositWalletAddress,
+      });
+
+      await waitForDepositWalletTransaction({
+        transactionID,
+        requireCompletion: true,
+      });
+
+      DevLogger.log(
+        'PolymarketProvider: Waiting for deposit wallet relayer registry',
+        {
+          operation: 'deposit_wallet_relayer_registry',
+          walletType: 'deposit-wallet',
+          from: ownerAddress,
+          depositWalletAddress,
+        },
+      );
+
+      await waitForDepositWalletDeployed({
+        walletAddress: depositWalletAddress,
+      });
+      depositWalletDeploymentConfirmed = true;
+
+      this.#setCachedAccountState(ownerAddress, {
+        address: depositWalletAddress,
+        isDeployed: true,
+        walletType: 'deposit-wallet',
+      });
+      this.setPolymarketAccountCreatedTrait();
+      updatedState = true;
     }
 
     const preflightPlan = await planDepositWalletPreflight({

@@ -1379,7 +1379,7 @@ describe('PolymarketProvider', () => {
     });
   });
 
-  it('tracks failed wallet creation when deposit-wallet deployment fails', async () => {
+  it('tracks failed wallet creation when the relayer create request fails', async () => {
     const provider = createProvider();
     mockIsSmartContractAddress.mockResolvedValueOnce(false);
     mockRequestDepositWalletCreate.mockRejectedValueOnce(
@@ -1407,6 +1407,34 @@ describe('PolymarketProvider', () => {
     expect(walletCreationEvent?.properties?.failure_reason).toBe(
       'relayer unavailable',
     );
+  });
+
+  it('does not track failed wallet creation when waiting fails after the relayer accepted', async () => {
+    const provider = createProvider();
+    mockIsSmartContractAddress.mockResolvedValueOnce(false);
+    // The relayer accepted the create request, but local polling failed
+    // afterwards — the wallet may still have been created remotely.
+    mockWaitForDepositWalletTransaction.mockRejectedValueOnce(
+      new Error('polling timed out'),
+    );
+
+    await expect(
+      provider.beforePublishDepositWalletDeposit({
+        transactionMeta: createDepositTransactionMeta({
+          recipient: depositWalletAddress,
+        }),
+        getSigner: () => signer,
+      }),
+    ).rejects.toThrow('polling timed out');
+
+    const walletCreationEvents = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .filter(
+        (event) =>
+          event?.properties?.transaction_type === 'mm_predict_wallet_creation',
+      );
+    expect(walletCreationEvents).toHaveLength(1);
+    expect(walletCreationEvents[0]?.properties?.status).toBe('succeeded');
   });
 
   it('waits for WALLET-CREATE polling before submitting allowance batch', async () => {

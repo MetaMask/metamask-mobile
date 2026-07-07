@@ -549,11 +549,11 @@ describe('PredictController', () => {
     shouldFail: () => boolean;
     errorMessage: string;
   }): { didFail: () => boolean; restore: () => void } {
-    type ControllerWithUpdate = PredictController & {
-      update: (updater: (state: PredictControllerState) => void) => void;
-    };
+    type UpdateFn = (
+      updater: (state: PredictControllerState) => void,
+    ) => unknown;
 
-    const controllerWithUpdate = controller as ControllerWithUpdate;
+    const controllerWithUpdate = controller as unknown as { update: UpdateFn };
     const originalUpdate = controllerWithUpdate.update;
     let updateFailed = false;
 
@@ -563,7 +563,7 @@ describe('PredictController', () => {
         throw new Error(errorMessage);
       }
 
-      originalUpdate.call(controller, updater);
+      return originalUpdate.call(controller, updater);
     };
 
     return {
@@ -4283,6 +4283,100 @@ describe('PredictController', () => {
         expect(controller.state.pendingClaims[signerAddress]).toBeUndefined();
       });
     });
+
+    it('treats an error with EIP-1193 code 4001 as user cancellation regardless of message', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockRejectedValue(
+            Object.assign(new Error('Some upstream wording change'), {
+              code: 4001,
+            }),
+          );
+        await controller.getPositions({ claimable: true });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find((arg) => arg?.properties?.status === 'cancelled');
+        expect(event).toBeDefined();
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+      });
+    });
+
+    it('does not record a failed claim when local bookkeeping fails after submission', async () => {
+      const signerAddress = '0x1234567890123456789012345678901234567890';
+      const mockBatchId = 'claim-batch-post-submit';
+      let batchSubmitted = false;
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+          batchSubmitted = true;
+          return { batchId: mockBatchId };
+        });
+        await controller.getPositions({ claimable: true });
+
+        const updateFailure = installOneTimeUpdateFailure({
+          controller,
+          errorMessage: 'state update failed after claim submission',
+          shouldFail: () => batchSubmitted,
+        });
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          // Act — should resolve with the pending claim rather than throwing,
+          // so the calling hook does not record a false claim failure.
+          const result = await controller.claimWithConfirmation({});
+
+          // Assert
+          expect(result).toEqual({
+            batchId: mockBatchId,
+            chainId: mockClaim.chainId,
+            status: PredictClaimStatus.PENDING,
+          });
+          expect(updateFailure.didFail()).toBe(true);
+          // The pending-claim lock is preserved while the claim is in flight.
+          expect(controller.state.pendingClaims[signerAddress]).toBe('pending');
+
+          const failedOrCancelledEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_claim' &&
+                (arg?.properties?.status === 'failed' ||
+                  arg?.properties?.status === 'cancelled'),
+            );
+          expect(failedOrCancelledEvent).toBeUndefined();
+        } finally {
+          updateFailure.restore();
+        }
+      });
+    });
   });
 
   describe('getUnrealizedPnL', () => {
@@ -5015,8 +5109,11 @@ describe('PredictController', () => {
         try {
           (analytics.trackEvent as jest.Mock).mockClear();
 
-          await expect(controller.depositWithConfirmation({})).rejects.toThrow(
-            'state update failed after submission',
+          await expect(controller.depositWithConfirmation({})).resolves.toEqual(
+            {
+              success: true,
+              response: { batchId: 'batch-123' },
+            },
           );
 
           const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
@@ -5995,8 +6092,8 @@ describe('PredictController', () => {
           (analytics.trackEvent as jest.Mock).mockClear();
 
           await expect(controller.initPayWithAnyToken()).resolves.toEqual({
-            success: false,
-            error: 'state update failed after pay-with-any-token submission',
+            success: true,
+            response: { batchId: 'batch-pay-with-any-token' },
           });
 
           const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
@@ -7854,9 +7951,10 @@ describe('PredictController', () => {
         try {
           (analytics.trackEvent as jest.Mock).mockClear();
 
-          await expect(controller.prepareWithdraw({})).rejects.toThrow(
-            'state update failed after withdraw submission',
-          );
+          await expect(controller.prepareWithdraw({})).resolves.toEqual({
+            success: true,
+            response: 'batch-withdraw',
+          });
 
           const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
             .map((call) => call[0])
