@@ -81,6 +81,7 @@ export const TestSnapViewSelectorWebIDS = {
   trackEventButton: 'trackEvent',
   startTraceButton: 'start-trace',
   endTraceButton: 'end-trace',
+  messengerCallButton: 'messenger-call',
 };
 
 export const TestSnapInputSelectorWebIDS = {
