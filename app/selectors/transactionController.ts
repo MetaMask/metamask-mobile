@@ -137,7 +137,7 @@ const selectTransactionsStrict = createSelector(
 const selectTransactionBatchesStrict = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) =>
-    transactionControllerState?.transactionBatches ?? [],
+    transactionControllerState?.transactionBatches,
 );
 
 export const selectRequiredTransactionIds = createSelector(
