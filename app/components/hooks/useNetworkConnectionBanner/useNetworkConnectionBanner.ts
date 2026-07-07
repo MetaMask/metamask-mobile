@@ -106,8 +106,7 @@ const useNetworkConnectionBanner = (): {
       return;
     }
 
-    const { chainId, status, canSwitchToInfura } =
-      networkConnectionBannerState;
+    const { chainId, status, canSwitchToInfura } = networkConnectionBannerState;
     if (!canSwitchToInfura) {
       return;
     }

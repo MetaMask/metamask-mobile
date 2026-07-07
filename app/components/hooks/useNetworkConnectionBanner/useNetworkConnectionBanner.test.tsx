@@ -241,7 +241,9 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     it('does not show the toast when the controller rejects', async () => {
-      switchToDefaultInfuraRpcEndpointMock.mockRejectedValueOnce(new Error('boom'));
+      switchToDefaultInfuraRpcEndpointMock.mockRejectedValueOnce(
+        new Error('boom'),
+      );
       selectorMock.mockReturnValue({
         visible: true,
         chainId: '0x89',
