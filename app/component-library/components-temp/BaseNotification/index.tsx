@@ -164,12 +164,22 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const dismissDurationMs = dismissDuration ?? visibilityDuration;
 
   const topOffset = 0;
+  const hasCloseIconButton = autoDismiss;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
   const baseStyle: StyleProp<ViewStyle> = useMemo(
-    () => [styles.base, animatedStyle],
-    [styles.base, animatedStyle],
+    () => [
+      styles.base,
+      hasCloseIconButton && styles.baseWithCloseIconButton,
+      animatedStyle,
+    ],
+    [
+      styles.base,
+      styles.baseWithCloseIconButton,
+      animatedStyle,
+      hasCloseIconButton,
+    ],
   );
 
   const runExitAnimation = useCallback(
@@ -262,15 +272,16 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       testID="base-notification-container"
     >
       <TouchableOpacity
-        style={styles.content}
+        style={styles.pressableContent}
         onPress={onPress}
         activeOpacity={0.8}
+        disabled={!onPress}
       >
-        <View style={styles.flashIcon}>{getIcon(status)}</View>
+        <View style={styles.startAccessoryContainer}>{getIcon(status)}</View>
         <View style={styles.flashLabel}>
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
+            fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             style={styles.flashTitle}
             testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
@@ -279,21 +290,22 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
           </Text>
           <Text
             variant={TextVariant.BodySm}
-            color={TextColor.TextDefault}
+            color={TextColor.TextAlternative}
             style={styles.flashText}
           >
             {!description ? getDescription(status, safeData) : description}
           </Text>
         </View>
-        {autoDismiss && (
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            onPress={handleManualDismiss}
-            testID="base-notification-close"
-          />
-        )}
       </TouchableOpacity>
+      {autoDismiss && (
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSize.Md}
+          onPress={handleManualDismiss}
+          style={styles.closeButton}
+          testID="base-notification-close"
+        />
+      )}
     </Animated.View>
   );
 };
