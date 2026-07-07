@@ -9344,21 +9344,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-balance-service@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@metamask/money-account-balance-service@npm:2.1.0"
+"@metamask/money-account-balance-service@file:.yalc/@metamask/money-account-balance-service::locator=metamask%40workspace%3A.":
+  version: 2.1.2
+  resolution: "@metamask/money-account-balance-service@file:.yalc/@metamask/money-account-balance-service#.yalc/@metamask/money-account-balance-service::hash=e66321&locator=metamask%40workspace%3A."
   dependencies:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
     "@metamask/base-data-service": "npm:^0.1.3"
-    "@metamask/controller-utils": "npm:^12.2.0"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
-    "@metamask/network-controller": "npm:^32.0.0"
+    "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/3bc2947f2b93c0d3ceaa5637c728998153d3dc1a2bf4b6e6d503b9cf4e8cbf8288f76189b378e190c67d324652985cd6fc48c55506511f972f94e6e837b3df89
+  checksum: 10/cddd04a1c1978cf321f95c830f0caf7856d7070eba7ccf69c3a35ed2277746c1ec11a8023ce38c5bb2c3863dbe79acf345980b52ae47bfc645688a1a9c58d43d
   languageName: node
   linkType: hard
 
@@ -35806,7 +35806,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
-    "@metamask/money-account-balance-service": "npm:^2.1.0"
+    "@metamask/money-account-balance-service": "file:.yalc/@metamask/money-account-balance-service"
     "@metamask/money-account-controller": "npm:^0.2.0"
     "@metamask/money-account-upgrade-controller": "npm:^2.2.0"
     "@metamask/multichain-account-service": "npm:^11.0.0"
