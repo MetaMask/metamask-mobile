@@ -15,8 +15,7 @@ import type {
   TokenAmount,
 } from '../types';
 import {
-  isTrustlineApproveTransaction,
-  isTrustlineDisapproveTransaction,
+  hasTrustlineTypeLabel,
 } from '../trustline';
 
 type Movement = Transaction['from'][number];
@@ -250,6 +249,25 @@ export function mapKeyringTransaction({
   }
 
   if (transaction.type === KeyringTransactionType.TokenApprove) {
+    const rawToken = getToken(transaction.from, 'out');
+
+    if (hasTrustlineTypeLabel(transaction.details)) {
+      return {
+        type: 'assetActivation',
+        chainId,
+        status,
+        timestamp,
+        hash: transaction.id,
+        raw: { type: 'keyringTransaction', data: transaction },
+        data: {
+          from,
+          to,
+          token: rawToken,
+          ...(fees ? { fees } : {}),
+        },
+      };
+    }
+
     return {
       type: 'approveSpendingCap',
       chainId,
@@ -264,36 +282,25 @@ export function mapKeyringTransaction({
     };
   }
 
-  if (isTrustlineApproveTransaction(transaction)) {
-    return {
-      type: 'trustlineActivate',
-      chainId,
-      status,
-      timestamp,
-      raw: { type: 'keyringTransaction', data: transaction },
-      data: {
-        hash: transaction.id,
-        from,
-        to,
-        token: getToken(transaction.from, 'out'),
-      },
-    };
-  }
+  if (transaction.type === KeyringTransactionType.TokenDisapprove) {
+    const rawToken = getToken(transaction.from, 'out');
 
-  if (isTrustlineDisapproveTransaction(transaction)) {
-    return {
-      type: 'trustlineDeactivate',
-      chainId,
-      status,
-      timestamp,
-      raw: { type: 'keyringTransaction', data: transaction },
-      data: {
+    if (hasTrustlineTypeLabel(transaction.details)) {
+      return {
+        type: 'assetDeactivation',
+        chainId,
+        status,
+        timestamp,
         hash: transaction.id,
-        from,
-        to,
-        token: getToken(transaction.from, 'out'),
-      },
-    };
+        raw: { type: 'keyringTransaction', data: transaction },
+        data: {
+          from,
+          to,
+          token: rawToken,
+          ...(fees ? { fees } : {}),
+        },
+      };
+    }
   }
 
   return {

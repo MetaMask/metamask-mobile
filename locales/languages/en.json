@@ -3059,7 +3059,8 @@
       "view_on_portfolio": "View on Portfolio",
       "view_on_block": "View on block explorer",
       "token_details": "Token details",
-      "remove_token": "Remove token"
+      "remove_token": "Remove token",
+      "deactivate_asset": "Deactivate asset"
     }
   },
   "nft_details": {
@@ -4869,6 +4870,12 @@
     "activity_market_close_short": "Market—close short",
     "activity_limit_short": "Limit short",
     "activity_limit_close_short": "Limit—close short",
+    "activity_trustline_activated": "Trustline activated",
+    "activity_trustline_activating": "Activating trustline",
+    "activity_trustline_activation_failed":  "Activate trustline failed",
+    "activity_trustline_deactivating": "Deactivating trustline",
+    "activity_trustline_deactivated": "Trustline deactivated",
+    "activity_trustline_deactivation_failed": "Deactivate trustline failed",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -7485,22 +7492,21 @@
       }
     }
   },
-  "stellarClassicActivateOnStellarBody": "Two steps: fund wallet with XLM, then add {{symbol}}",
-  "stellarClassicActivateOnStellarButton": "Activate",
-  "stellarClassicActivateOnStellarTitle": "Activate {{symbol}} on Stellar",
-  "stellarClassicDeactivateOnStellar": "Deactivate {{symbol}} on Stellar",
-  "stellarClassicDeactivateOnStellarDetail": "Remove trustline to deactivate",
-  "stellarClassicTrustlineAddError": "Something went wrong while adding this trustline. Try again.",
-  "stellarClassicTrustlineRemoveError": "Something went wrong while removing this trustline. Try again.",
-  "stellarClassicTrustlineRemoveNonZeroBalanceError": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar.",
-  "stellarNativeBalanceTitle": "Balance",
-  "stellarNativeReservedBalance": "Reserved (locked)",
-  "stellarNativeSpendableBalance": "Spendable",
-  "stellarNativeTotalBalance": "Total balance",
-  "stellarNativeValue": "Value",
-  "stellarTrustlineInactive": "Inactive",
-  "trustlineApprove": "Activate trustline",
-  "trustlineDisapprove": "Deactivate trustline",
+  "asset_spendable_balance": {
+    "balance": "Balance",
+    "spendable": "Spendable",
+    "base_reserved": "Reserved (locked)",
+    "fiat_value": "Value",
+    "total_balance": "Total balance"
+  },
+  "asset_activation": {
+    "activate": "Activate",
+    "activate_description": "Activate {{symbol}} on {{chainName}} to get started.",
+    "inactive": "Inactive",
+    "activate_error": "Something went wrong while adding this trustline. Try again.",
+    "deactivate_error": "Something went wrong while removing this trustline. Try again.",
+    "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
+  },
   "stake": {
     "stake": "Stake",
     "earn": "Earn",

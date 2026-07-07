@@ -11,7 +11,7 @@ import {
   isTrustlineApproveTransaction,
   isTrustlineDisapproveTransaction,
   isTrustlineTransaction,
-  resolveTrustlineActivityTitle,
+  resolveAssetActivationActivityTitleFromTransaction,
 } from '../../../util/activity-adapters/trustline';
 
 /**
@@ -134,16 +134,32 @@ export function useMultichainTransactionDisplay(
     : typeToTitle[transaction.type];
 
   if (isTrustlineApproveTransaction(transaction)) {
-    title = resolveTrustlineActivityTitle(from?.unit, true);
+    title = resolveAssetActivationActivityTitleFromTransaction(
+      transaction,
+      from?.unit,
+      true,
+    );
   } else if (isTrustlineDisapproveTransaction(transaction)) {
-    title = resolveTrustlineActivityTitle(from?.unit, false);
+    title = resolveAssetActivationActivityTitleFromTransaction(
+      transaction,
+      from?.unit,
+      false,
+    );
   } else if (typeLabel) {
     switch (typeLabel) {
       case CustomTransactionTypeLabel.TrustlineApprove:
-        title = resolveTrustlineActivityTitle(from?.unit, true);
+        title = resolveAssetActivationActivityTitleFromTransaction(
+          transaction,
+          from?.unit,
+          true,
+        );
         break;
       case CustomTransactionTypeLabel.TrustlineDisapprove:
-        title = resolveTrustlineActivityTitle(from?.unit, false);
+        title = resolveAssetActivationActivityTitleFromTransaction(
+          transaction,
+          from?.unit,
+          false,
+        );
         break;
       default:
         break;

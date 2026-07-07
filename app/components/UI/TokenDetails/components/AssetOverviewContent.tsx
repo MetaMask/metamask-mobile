@@ -26,6 +26,7 @@ import {
   TokenPrice,
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
+import { RootState } from '../../../../reducers';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import {
@@ -94,10 +95,12 @@ import TronAssetOverviewSection from './TronAssetOverviewSection';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-import { StellarClassicTrustlineActivateCard } from '../../Stellar/StellarClassicTrustlineActivateCard';
-import { StellarNativeBalanceSection } from '../../Stellar/StellarNativeBalanceSection';
-import { StellarTrustlineInactiveBadge } from '../../Stellar/StellarTrustlineInactiveBadge';
-import { useStellarTrustlineDisplay } from '../../Stellar/hooks/useStellarTrustlineDisplay';
+import { AssetActivateCard } from '../../AssetActivation/AssetActivateCard';
+import { SpendableBalanceSection } from '../../SpendableBalance/SpendableBalanceSection';
+import {
+  selectBaseReserveForNativeToken,
+  selectIsAssetRequireActivateForToken,
+} from '../../../../selectors/multichain/assetActivation';
 import {
   getStellarNativeDisplayName,
   isStellarNativeToken,
@@ -292,13 +295,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const tronNativeToken = isTronNativeToken(token) ? token : null;
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   const stellarNativeToken = isStellarNativeToken(token) ? token : null;
-  const {
-    account: stellarAccount,
-    showStellarClassicTrustlineActivate,
-    showStellarInactiveAssetHeader,
-    showStellarNativeBalanceSection,
-    stellarNativeBaseReserve,
-  } = useStellarTrustlineDisplay(stellarDisplayToken);
+  const isAssetInactive = useSelector((state: RootState) =>
+    selectIsAssetRequireActivateForToken(state, stellarDisplayToken),
+  );
+  const baseReserve = useSelector((state: RootState) =>
+    selectBaseReserveForNativeToken(state, stellarNativeToken ?? undefined),
+  );
+  const showSpendableBalanceSection = baseReserve !== undefined;
   ///: END:ONLY_INCLUDE_IF
 
   const {
@@ -640,15 +643,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
           {
             ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-            showStellarClassicTrustlineActivate &&
-            stellarAccount &&
-            token.chainId ? (
-              <StellarClassicTrustlineActivateCard
-                visible
-                account={stellarAccount}
-                chainId={token.chainId as CaipChainId}
-                assetId={stellarDisplayToken.address as CaipAssetType}
-                symbol={stellarDisplayToken.symbol}
+            isAssetInactive ? (
+              <AssetActivateCard
+                token={stellarDisplayToken}
+                chainName="Stellar"
                 onTrustlineChanged={onTrustlineChanged}
               />
             ) : null
@@ -721,13 +719,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-            showStellarNativeBalanceSection &&
+            showSpendableBalanceSection &&
             stellarNativeToken &&
-            stellarNativeBaseReserve ? (
-              <StellarNativeBalanceSection
+            baseReserve ? (
+              <SpendableBalanceSection
                 totalBalance={String(mainBalance)}
                 symbol={stellarNativeToken.symbol}
-                baseReserve={stellarNativeBaseReserve}
+                baseReserve={baseReserve}
                 fiatValue={secondaryBalance}
                 showFiat={Boolean(secondaryBalance)}
               />

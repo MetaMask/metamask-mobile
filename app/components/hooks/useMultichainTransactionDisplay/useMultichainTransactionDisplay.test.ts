@@ -80,80 +80,83 @@ const baseTransaction: Transaction = {
 };
 
 describe('useMultichainTransactionDisplay', () => {
-  it('uses trustline approve title and hides amount for trustline transactions', () => {
-    const transaction: Transaction = {
-      ...baseTransaction,
-      details: {
-        typeLabel: CustomTransactionTypeLabel.TrustlineApprove,
-      },
-    };
 
-    const displayData = useMultichainTransactionDisplay(
-      transaction,
-      'stellar:pubnet',
-    );
-
-    expect(displayData.title).toBe('transactions.trustline_activated_unit');
-    expect(displayData.shouldShowAmountOrUnit).toBe(false);
-  });
-
-  it('uses trustline disapprove title without unit when from movement is empty', () => {
-    const transaction: Transaction = {
-      ...baseTransaction,
-      from: [],
-      details: {
-        typeLabel: CustomTransactionTypeLabel.TrustlineDisapprove,
-      },
-    };
-
-    const displayData = useMultichainTransactionDisplay(
-      transaction,
-      'stellar:pubnet',
-    );
-
-    expect(displayData.title).toBe('transactions.trustline_deactivated');
-    expect(displayData.shouldShowAmountOrUnit).toBe(false);
-  });
-
-  it('uses trustline title for token approve transactions without typeLabel', () => {
-    const transaction: Transaction = {
-      ...baseTransaction,
-      type: TransactionType.TokenApprove,
-    };
-
-    const displayData = useMultichainTransactionDisplay(
-      transaction,
-      'stellar:pubnet',
-    );
-
-    expect(displayData.title).toBe('transactions.trustline_activated_unit');
-    expect(displayData.shouldShowAmountOrUnit).toBe(false);
-  });
-
-  it('shows amount for non-trustline transactions', () => {
-    const transaction: Transaction = {
-      ...baseTransaction,
-      type: TransactionType.Send,
-      to: [
-        {
-          address: 'GDEF456',
-          asset: {
-            amount: '1',
-            unit: 'USDC',
-            fungible: true,
-            type: 'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
-          },
+  describe('Trustline transactions', () => {
+    it('uses trustline approve title and hides amount for trustline transactions', () => {
+      const transaction: Transaction = {
+        ...baseTransaction,
+        details: {
+          typeLabel: CustomTransactionTypeLabel.TrustlineApprove,
         },
-      ],
-    };
+      };
 
-    const displayData = useMultichainTransactionDisplay(
-      transaction,
-      'stellar:pubnet',
-    );
+      const displayData = useMultichainTransactionDisplay(
+        transaction,
+        'stellar:pubnet',
+      );
 
-    expect(displayData.shouldShowAmountOrUnit).toBe(true);
-    expect(displayData.to?.amount).toBe('-1');
+      expect(displayData.title).toBe('transactions.activity_trustline_activated');
+      expect(displayData.shouldShowAmountOrUnit).toBe(false);
+    });
+
+    it('uses trustline disapprove title without unit when from movement is empty', () => {
+      const transaction: Transaction = {
+        ...baseTransaction,
+        from: [],
+        details: {
+          typeLabel: CustomTransactionTypeLabel.TrustlineDisapprove,
+        },
+      };
+
+      const displayData = useMultichainTransactionDisplay(
+        transaction,
+        'stellar:pubnet',
+      );
+
+      expect(displayData.title).toBe('transactions.activity_trustline_deactivated');
+      expect(displayData.shouldShowAmountOrUnit).toBe(false);
+    });
+
+    it('shows amount for generic token approve transactions without trustline typeLabel', () => {
+      const transaction: Transaction = {
+        ...baseTransaction,
+        type: TransactionType.TokenApprove,
+      };
+
+      const displayData = useMultichainTransactionDisplay(
+        transaction,
+        'stellar:pubnet',
+      );
+
+      expect(displayData.title).toBe('transactions.tx_review_approve USDC');
+      expect(displayData.shouldShowAmountOrUnit).toBe(true);
+    });
+
+    it('shows amount for non-trustline transactions', () => {
+      const transaction: Transaction = {
+        ...baseTransaction,
+        type: TransactionType.Send,
+        to: [
+          {
+            address: 'GDEF456',
+            asset: {
+              amount: '1',
+              unit: 'USDC',
+              fungible: true,
+              type: 'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+            },
+          },
+        ],
+      };
+
+      const displayData = useMultichainTransactionDisplay(
+        transaction,
+        'stellar:pubnet',
+      );
+
+      expect(displayData.shouldShowAmountOrUnit).toBe(true);
+      expect(displayData.to?.amount).toBe('-1');
+    });
   });
 
   describe('TokenApprove transactions', () => {

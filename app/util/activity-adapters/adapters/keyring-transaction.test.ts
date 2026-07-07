@@ -166,7 +166,7 @@ describe('mapKeyringTransaction', () => {
     );
   });
 
-  it('maps trustline approve transactions to trustlineActivate activity items', () => {
+  it('maps trustline approve transactions to assetActivation activity items', () => {
     const item = mapKeyringTransaction({
       transaction: {
         id: 'trustline-add-id',
@@ -197,9 +197,8 @@ describe('mapKeyringTransaction', () => {
 
     expect(item).toStrictEqual(
       expect.objectContaining({
-        type: 'trustlineActivate',
+        type: 'assetActivation',
         data: {
-          hash: 'trustline-add-id',
           from: 'GABC123',
           to: 'GABC123',
           token: {
@@ -214,7 +213,7 @@ describe('mapKeyringTransaction', () => {
     );
   });
 
-  it('maps trustline disapprove transactions to trustlineDeactivate activity items', () => {
+  it('maps trustline disapprove transactions to assetDeactivation activity items', () => {
     const item = mapKeyringTransaction({
       transaction: {
         id: 'trustline-remove-id',
@@ -244,9 +243,10 @@ describe('mapKeyringTransaction', () => {
     });
 
     expect(item).toMatchObject({
-      type: 'trustlineDeactivate',
+      type: 'assetDeactivation',
       data: {
-        hash: 'trustline-remove-id',
+        from: 'GABC123',
+        to: 'GABC123',
         token: {
           symbol: 'USDC',
           direction: 'out',

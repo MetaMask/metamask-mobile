@@ -66,8 +66,8 @@ export type ActivityKind =
   | 'limitShort'
   | 'limitCloseShort'
   | 'nftMint'
-  | 'trustlineActivate'
-  | 'trustlineDeactivate';
+  | 'assetActivation'
+  | 'assetDeactivation';
 
 export interface TokenAmount {
   amount?: string;
@@ -194,11 +194,12 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
-      'trustlineActivate' | 'trustlineDeactivate',
+      'assetActivation' | 'assetDeactivation',
       {
         from?: string;
         to?: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<

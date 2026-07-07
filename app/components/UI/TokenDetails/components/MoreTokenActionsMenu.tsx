@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useMemo, useState } from 'react';
+import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import BottomSheet, {
@@ -21,8 +21,6 @@ import {
   Hex,
   isCaipAssetType,
   parseCaipAssetType,
-  type CaipAssetType,
-  type CaipChainId,
 } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
@@ -36,11 +34,8 @@ import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-import { errorCodes } from '@metamask/rpc-errors';
-import { StellarClassicTrustlineErrorBanner } from '../../Stellar/StellarClassicTrustlineErrorBanner';
-import { useStellarTrustlineDisplay } from '../../Stellar/hooks/useStellarTrustlineDisplay';
-import { requestStellarChangeTrustOptDelete } from '../../../../util/stellar/stellar-snap-client-requests';
-import { refreshStellarAccountAssets } from '../../../../util/stellar/refresh-stellar-account-assets';
+import { AssetActivationErrorToast } from '../../AssetActivation/AssetActivationErrorToast';
+import { useAssetActivation } from '../hooks/useAssetActivation';
 ///: END:ONLY_INCLUDE_IF
 
 export interface MoreTokenActionsMenuParams {
@@ -112,16 +107,16 @@ const MoreTokenActionsMenu = () => {
         isStaked: asset.isStaked || false,
       }),
     ) ?? asset;
-  const { account: stellarAccount, hasStellarClassicTrustlineToRemove } =
-    useStellarTrustlineDisplay(liveAsset);
-  const [trustlineRemoveErrorMessage, setTrustlineRemoveErrorMessage] =
-    useState<string | null>(null);
-  const [isRemovingStellarTrustline, setIsRemovingStellarTrustline] =
-    useState(false);
-
-  const dismissTrustlineRemoveError = useCallback(() => {
-    setTrustlineRemoveErrorMessage(null);
-  }, []);
+  const {
+    deactivateAsset,
+    canDeactivate,
+    isDeactivating,
+    errorMessage,
+    dismissErrorMessage,
+  } = useAssetActivation({
+    token: liveAsset,
+    onTrustlineChanged,
+  });
   ///: END:ONLY_INCLUDE_IF
 
   const closeBottomSheetAndNavigate = useCallback(
@@ -260,62 +255,12 @@ const MoreTokenActionsMenu = () => {
   ]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  const handleRemoveStellarTrustline = useCallback(async () => {
-    if (
-      !hasStellarClassicTrustlineToRemove ||
-      !stellarAccount ||
-      !asset.chainId ||
-      !isCaipAssetType(asset.address)
-    ) {
-      return;
-    }
-
-    setTrustlineRemoveErrorMessage(null);
-    setIsRemovingStellarTrustline(true);
-    try {
-      await requestStellarChangeTrustOptDelete({
-        accountId: stellarAccount.id,
-        assetId: asset.address as CaipAssetType,
-        scope: asset.chainId as CaipChainId,
-      });
-      await refreshStellarAccountAssets({
-        account: stellarAccount,
-        chainId: asset.chainId as CaipChainId,
-        assetId: asset.address as CaipAssetType,
-        trustlineAction: 'remove',
-      });
+  const handleDeactivateTrustline = useCallback(async () => {
+    const didDeactivate = await deactivateAsset();
+    if (didDeactivate) {
       sheetRef.current?.onCloseBottomSheet();
-      onTrustlineChanged?.();
-    } catch (error: unknown) {
-      const errorCode = (error as { code?: number })?.code;
-      const isUserRejection =
-        errorCode === errorCodes.provider.userRejectedRequest;
-      if (!isUserRejection) {
-        const balanceValue = parseFloat(asset.balance || '0');
-        const hasNonZeroTokenBalance = Number.isFinite(balanceValue)
-          ? balanceValue > 0
-          : false;
-        setTrustlineRemoveErrorMessage(
-          hasNonZeroTokenBalance
-            ? strings('stellarClassicTrustlineRemoveNonZeroBalanceError', {
-                balance: asset.balance,
-                symbol: asset.symbol,
-              })
-            : strings('stellarClassicTrustlineRemoveError'),
-        );
-      }
-    } finally {
-      setIsRemovingStellarTrustline(false);
     }
-  }, [
-    asset.address,
-    asset.balance,
-    asset.chainId,
-    asset.symbol,
-    hasStellarClassicTrustlineToRemove,
-    onTrustlineChanged,
-    stellarAccount,
-  ]);
+  }, [deactivateAsset]);
   ///: END:ONLY_INCLUDE_IF
 
   const tokenIsInAccount = !!useSelector((state: RootState) =>
@@ -379,23 +324,15 @@ const MoreTokenActionsMenu = () => {
     }
 
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    if (
-      hasStellarClassicTrustlineToRemove &&
-      stellarAccount &&
-      asset.chainId &&
-      isCaipAssetType(asset.address)
-    ) {
+    if (canDeactivate) {
       actions.push({
         type: 'stellar-deactivate-trustline',
-        label: strings('stellarClassicDeactivateOnStellar', {
-          symbol: asset.symbol,
-        }),
-        description: strings('stellarClassicDeactivateOnStellarDetail'),
+        label: strings('asset_details.options.deactivate_asset'),
         iconName: IconName.Trash,
-        testID: 'more-actions-stellar-deactivate-trustline',
+        testID: 'more-actions-deactivate-asset',
         isVisible: true,
-        isDisabled: isRemovingStellarTrustline,
-        onPress: handleRemoveStellarTrustline,
+        isDisabled: isDeactivating,
+        onPress: handleDeactivateTrustline,
       });
     }
     ///: END:ONLY_INCLUDE_IF
@@ -417,20 +354,19 @@ const MoreTokenActionsMenu = () => {
     handleViewOnBlockExplorer,
     handleRemoveToken,
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    handleRemoveStellarTrustline,
-    hasStellarClassicTrustlineToRemove,
-    isRemovingStellarTrustline,
-    stellarAccount,
+    handleDeactivateTrustline,
+    canDeactivate,
+    isDeactivating,
     ///: END:ONLY_INCLUDE_IF
   ]);
 
   let trustlineRemoveErrorBanner: React.ReactNode = null;
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   trustlineRemoveErrorBanner = (
-    <StellarClassicTrustlineErrorBanner
-      message={trustlineRemoveErrorMessage}
-      onDismiss={dismissTrustlineRemoveError}
-      testID="stellar-classic-trustline-remove-error-banner"
+    <AssetActivationErrorToast
+      message={errorMessage}
+      onClose={dismissErrorMessage}
+      testID="asset-deactivation-error-toast"
     />
   );
   ///: END:ONLY_INCLUDE_IF

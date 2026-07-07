@@ -93,8 +93,8 @@ import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/Toke
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-import { StellarTrustlineInactiveBadge } from '../../../Stellar/StellarTrustlineInactiveBadge';
-import { useStellarTrustlineDisplay } from '../../../Stellar/hooks/useStellarTrustlineDisplay';
+import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
+import { selectIsAssetRequireActivateForToken } from '../../../../../selectors/multichain/assetActivation';
 ///: END:ONLY_INCLUDE_IF
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
@@ -189,7 +189,9 @@ export const TokenListItem = React.memo(
     );
 
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    const { isStellarTrustlineInactive } = useStellarTrustlineDisplay(asset);
+    const isAssetInactive = useSelector((state: RootState) =>
+      selectIsAssetRequireActivateForToken(state, asset),
+    );
     ///: END:ONLY_INCLUDE_IF
 
     const { isStockToken } = useRWAToken();
@@ -565,7 +567,7 @@ export const TokenListItem = React.memo(
     if (
       !hideFiatForScamWarning &&
       ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-      !isStellarTrustlineInactive
+      !isAssetInactive
       ///: END:ONLY_INCLUDE_IF
     ) {
       secondaryBalanceElement = secondaryBalanceDisplay.onPress ? (
@@ -710,8 +712,8 @@ export const TokenListItem = React.memo(
                   )}
                 {
                   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-                  isStellarTrustlineInactive ? (
-                    <StellarTrustlineInactiveBadge />
+                  isAssetInactive ? (
+                    <AssetInactiveBadge />
                   ) : null
                   ///: END:ONLY_INCLUDE_IF
                 }
@@ -735,7 +737,7 @@ export const TokenListItem = React.memo(
               />
             ) : (
               ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-              !isStellarTrustlineInactive && (
+              !isAssetInactive && (
                 ///: END:ONLY_INCLUDE_IF
                 <SensitiveText
                   variant={
@@ -774,14 +776,14 @@ export const TokenListItem = React.memo(
             <View style={styles.percentageChange}>
               {
                 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-                isStellarTrustlineInactive ? (
+                isAssetInactive ? (
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
                     twClassName="uppercase"
                   >
-                    {strings('stellarTrustlineInactive')}
+                    {strings('assetInactive')}
                   </Text>
                 ) : (
                   ///: END:ONLY_INCLUDE_IF
@@ -812,7 +814,7 @@ export const TokenListItem = React.memo(
             {/* Token balance */}
             {
               ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-              !isStellarTrustlineInactive && (
+              !isAssetInactive && (
                 ///: END:ONLY_INCLUDE_IF
                 <Box twClassName="shrink">
                   <SensitiveText

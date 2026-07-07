@@ -1,14 +1,20 @@
-import { Transaction, TransactionType } from '@metamask/keyring-api';
 import {
+  TransactionStatus as KeyringTransactionStatus,
+  Transaction,
+  TransactionType,
+} from '@metamask/keyring-api';
+import {
+  hasTrustlineTypeLabel,
   isTrustlineApproveTransaction,
   isTrustlineDisapproveTransaction,
   isTrustlineTransaction,
+  resolveAssetActivationActivityTitle,
   resolveTrustlineActivityTitle,
 } from './trustline';
 
 jest.mock('../../../locales/i18n', () => ({
-  strings: (key: string, params?: { unit?: string }) =>
-    params?.unit ? `${key}:${params.unit}` : key,
+  strings: (key: string, params?: { symbol?: string }) =>
+    params?.symbol ? `${key}:${params.symbol}` : key,
 }));
 
 const baseTransaction: Transaction = {
@@ -16,7 +22,7 @@ const baseTransaction: Transaction = {
   chain: 'stellar:pubnet',
   account: 'GABC123',
   type: TransactionType.Unknown,
-  status: 'confirmed',
+  status: KeyringTransactionStatus.Confirmed,
   timestamp: 1_700_000_000,
   from: [],
   to: [],
@@ -33,13 +39,13 @@ describe('trustline activity helpers', () => {
     ).toBe(true);
   });
 
-  it('detects trustline approve transactions by token approve type', () => {
+  it('does not treat generic token approve transactions as trustline approve', () => {
     expect(
       isTrustlineApproveTransaction({
         ...baseTransaction,
         type: TransactionType.TokenApprove,
       }),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('detects trustline disapprove transactions by typeLabel', () => {
@@ -51,24 +57,36 @@ describe('trustline activity helpers', () => {
     ).toBe(true);
   });
 
-  it('detects trustline transactions', () => {
+  it('detects trustline transactions by typeLabel', () => {
     expect(
       isTrustlineTransaction({
         ...baseTransaction,
-        type: TransactionType.TokenDisapprove,
+        details: { typeLabel: 'trustline-disapprove' },
       }),
     ).toBe(true);
   });
 
+  it('detects trustline transactions via hasTrustlineTypeLabel', () => {
+    expect(
+      hasTrustlineTypeLabel({ typeLabel: 'trustline-approve' }),
+    ).toBe(true);
+  });
+
   it('resolves activate title with token symbol', () => {
-    expect(resolveTrustlineActivityTitle('USDC', true)).toBe(
-      'transactions.trustline_activated_unit:USDC',
+    expect(resolveAssetActivationActivityTitle('USDC', true)).toBe(
+      'activity_assetActivation_success_title:USDC',
     );
   });
 
   it('resolves deactivate title without token symbol', () => {
-    expect(resolveTrustlineActivityTitle(undefined, false)).toBe(
-      'transactions.trustline_deactivated',
+    expect(resolveAssetActivationActivityTitle(undefined, false)).toBe(
+      'activity_assetDeactivation_success_title',
+    );
+  });
+
+  it('keeps resolveTrustlineActivityTitle as a compatibility alias', () => {
+    expect(resolveTrustlineActivityTitle('USDC', true)).toBe(
+      'activity_assetActivation_success_title:USDC',
     );
   });
 });

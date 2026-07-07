@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import React, { useMemo } from 'react';
 import {
   Box,
@@ -9,16 +8,17 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
+import { computeSpendableBalance } from '../../../util/multichain/spendable-balance';
 
-export const StellarNativeBalanceSectionTestIds = {
-  CONTAINER: 'stellar-native-balance-section',
-  TOTAL: 'stellar-native-total-balance',
-  FIAT: 'stellar-native-fiat-value',
-  SPENDABLE: 'stellar-native-spendable-balance',
-  RESERVED: 'stellar-native-reserved-balance',
+export const SpendableBalanceSectionTestIds = {
+  CONTAINER: 'spendable-balance-section',
+  TOTAL: 'spendable-balance-total-balance',
+  FIAT: 'spendable-balance-fiat-value',
+  SPENDABLE: 'spendable-balance-spendable-balance',
+  RESERVED: 'spendable-balance-base-reserved',
 } as const;
 
-export interface StellarNativeBalanceSectionProps {
+export interface SpendableBalanceSectionProps {
   totalBalance: string;
   symbol: string;
   baseReserve: string;
@@ -33,27 +33,26 @@ function formatDisplayAmount(value: number): string {
   return value.toFixed(2);
 }
 
-export const StellarNativeBalanceSection = ({
+export const SpendableBalanceSection = ({
   totalBalance,
   symbol,
   baseReserve,
   fiatValue,
   showFiat,
-}: StellarNativeBalanceSectionProps) => {
+}: SpendableBalanceSectionProps) => {
   const { totalDisplay, spendableDisplay, reservedDisplay } = useMemo(() => {
+    const spendable = computeSpendableBalance(totalBalance, baseReserve);
     const total = Number.parseFloat(totalBalance);
     const reserved = Number.parseFloat(baseReserve);
-    const spendable = Math.max(
-      0,
-      (Number.isFinite(total) ? total : 0) -
-        (Number.isFinite(reserved) ? reserved : 0),
-    );
+    const spendableNumber = Number.parseFloat(spendable);
 
     return {
       totalDisplay: `${formatDisplayAmount(
         Number.isFinite(total) ? total : 0,
       )} ${symbol}`,
-      spendableDisplay: `${formatDisplayAmount(spendable)} ${symbol}`,
+      spendableDisplay: `${formatDisplayAmount(
+        Number.isFinite(spendableNumber) ? spendableNumber : 0,
+      )} ${symbol}`,
       reservedDisplay: `${formatDisplayAmount(
         Number.isFinite(reserved) ? reserved : 0,
       )} ${symbol}`,
@@ -62,13 +61,11 @@ export const StellarNativeBalanceSection = ({
 
   return (
     <Box
-      testID={StellarNativeBalanceSectionTestIds.CONTAINER}
+      testID={SpendableBalanceSectionTestIds.CONTAINER}
       flexDirection={BoxFlexDirection.Column}
       twClassName="px-4 py-3 gap-3"
     >
-      <Text variant={TextVariant.HeadingSm}>
-        {strings('stellarNativeBalanceTitle')}
-      </Text>
+      <Text variant={TextVariant.HeadingSm}>{strings('asset_spendable_balance.balance')}</Text>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
@@ -76,12 +73,12 @@ export const StellarNativeBalanceSection = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
           >
-            {strings('stellarNativeTotalBalance')}
+            {strings('asset_spendable_balance.total_balance')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            testID={StellarNativeBalanceSectionTestIds.TOTAL}
+            testID={SpendableBalanceSectionTestIds.TOTAL}
           >
             {totalDisplay}
           </Text>
@@ -96,11 +93,11 @@ export const StellarNativeBalanceSection = ({
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
-              {strings('stellarNativeValue')}
+              {strings('asset_spendable_balance.fiat_value')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
-              testID={StellarNativeBalanceSectionTestIds.FIAT}
+              testID={SpendableBalanceSectionTestIds.FIAT}
             >
               {fiatValue ?? '—'}
             </Text>
@@ -114,12 +111,12 @@ export const StellarNativeBalanceSection = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
           >
-            {strings('stellarNativeSpendableBalance')}
+            {strings('asset_spendable_balance.spendable')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.SuccessDefault}
-            testID={StellarNativeBalanceSectionTestIds.SPENDABLE}
+            testID={SpendableBalanceSectionTestIds.SPENDABLE}
           >
             {spendableDisplay}
           </Text>
@@ -130,12 +127,12 @@ export const StellarNativeBalanceSection = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
           >
-            {strings('stellarNativeReservedBalance')}
+            {strings('asset_spendable_balance.base_reserved')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.SuccessDefault}
-            testID={StellarNativeBalanceSectionTestIds.RESERVED}
+            testID={SpendableBalanceSectionTestIds.RESERVED}
           >
             {reservedDisplay}
           </Text>
@@ -144,4 +141,3 @@ export const StellarNativeBalanceSection = ({
     </Box>
   );
 };
-///: END:ONLY_INCLUDE_IF

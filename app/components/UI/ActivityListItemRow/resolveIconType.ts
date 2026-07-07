@@ -40,8 +40,8 @@ export function resolveIconType(type: ActivityKind): string {
     case 'approveSpendingCap':
     case 'revokeSpendingCap':
     case 'increaseSpendingCap':
-    case 'trustlineActivate':
-    case 'trustlineDeactivate':
+    case 'assetActivation':
+    case 'assetDeactivation':
     case 'contractInteraction':
     case 'contractDeployment':
     case 'smartAccountUpgrade':
