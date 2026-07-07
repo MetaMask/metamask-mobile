@@ -21,13 +21,18 @@ import {
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
   setWalletHomeOnboardingStepsEligible,
 } from '../../../actions/onboarding';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { analytics } from '../../../util/analytics/analytics';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { clearAttribution } from '../../../core/redux/slices/attribution';
 
-jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn().mockReturnValue(true),
+    trackEvent: jest.fn(),
+  },
+}));
 
 jest.mock('../../../selectors/onboarding', () => ({
   ...jest.requireActual('../../../selectors/onboarding'),
@@ -44,9 +49,7 @@ jest.mock('../../../selectors/attribution', () => ({
   selectWalletSetupCompletedAttributionAnalyticsProps: jest.fn(),
 }));
 
-const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
-  typeof trackOnboarding
->;
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -186,7 +189,7 @@ describe('OnboardingSuccessComponent', () => {
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     fireEvent.press(button);
 
-    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Onboarding Completed',
         properties: expect.objectContaining({
@@ -198,7 +201,6 @@ describe('OnboardingSuccessComponent', () => {
           onboarding_type: 'seed_phrase',
         }),
       }),
-      expect.any(Function),
     );
     expect(mockDiscoverAccounts).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -229,7 +231,7 @@ describe('OnboardingSuccessComponent', () => {
     );
     fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
 
-    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Onboarding Completed',
         properties: expect.objectContaining({
@@ -243,7 +245,6 @@ describe('OnboardingSuccessComponent', () => {
           attribution_id: 'aid-1',
         }),
       }),
-      expect.any(Function),
     );
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
@@ -284,7 +285,7 @@ describe('OnboardingSuccessComponent', () => {
     );
     fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
 
-    expect(mockTrackOnboarding).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
     expect(
       mockDispatch.mock.calls.some(
         (call) => call[0]?.type === SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
