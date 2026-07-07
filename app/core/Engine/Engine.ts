@@ -169,6 +169,7 @@ import { authenticationControllerInit } from './controllers/identity/authenticat
 import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
+import { moneyAccountApiDataServiceInit } from './controllers/money-account-api-data-service-init';
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
@@ -333,6 +334,7 @@ export class Engine {
         EarnController: earnControllerInit,
         MoneyAccountController: moneyAccountControllerInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
+        MoneyAccountApiDataService: moneyAccountApiDataServiceInit,
         GeolocationApiService: geolocationApiServiceInit,
         GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
@@ -636,6 +638,8 @@ export class Engine {
       MoneyAccountController: moneyAccountController,
       MoneyAccountBalanceService:
         messengerClientsByName.MoneyAccountBalanceService,
+      MoneyAccountApiDataService:
+        messengerClientsByName.MoneyAccountApiDataService,
       GeolocationController: geolocationController,
       DeFiPositionsController: messengerClientsByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,

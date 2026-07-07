@@ -3,12 +3,12 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { useEffect } from 'react';
-import type { MoneyAccountBalanceResponse } from '@metamask/money-account-balance-service';
+import type { PositionResponse } from '@metamask/money-account-api-data-service';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
+import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import {
   isMoneyAccountTx,
   isPerpsPredictMoneyActivity,
@@ -22,28 +22,29 @@ const MAX_RETRIES = 4;
 const BASE_DELAY_MS = 500;
 const MAX_DELAY_MS = 4000;
 
-type MoneyBalanceSnapshot = MoneyAccountBalanceResponse | undefined;
+type MoneyBalanceSnapshot = PositionResponse | undefined;
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const readBalanceSnapshot = (address: string) =>
   ReactQueryService.queryClient.getQueryData<MoneyBalanceSnapshot>([
-    MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+    MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
     address,
   ]);
 
 const didBalanceChange = (
   before: MoneyBalanceSnapshot,
   after: MoneyBalanceSnapshot,
-) => before?.totalBalance !== after?.totalBalance;
+): boolean => {
+  const beforeValue = before?.positions?.[0]?.current_value_assets;
+  const afterValue = after?.positions?.[0]?.current_value_assets;
+  return beforeValue !== afterValue;
+};
 
 const invalidateBalanceQueries = async (address: string) =>
   ReactQueryService.queryClient.invalidateQueries({
-    queryKey: [
-      MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
-      address,
-    ],
+    queryKey: [MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS, address],
     refetchType: 'all',
   });
 

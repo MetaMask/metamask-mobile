@@ -120,7 +120,6 @@ const MoneyHomeView = () => {
   const {
     totalFiatFormatted,
     totalFiatRaw,
-    vaultApyQuery,
     isBalanceLoading,
     lastKnownTotalFiatFormatted,
     refetchBalance,
@@ -695,7 +694,7 @@ const MoneyHomeView = () => {
         <MoneyEarnings
           monthlyEarnings={monthlyEarnings}
           yearlyEarnings={yearlyEarnings}
-          isLoading={vaultApyQuery.isLoading || isBalanceLoading}
+          isLoading={isBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
         />
       ),
@@ -715,7 +714,7 @@ const MoneyHomeView = () => {
                   COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
               })
             }
-            isLoading={vaultApyQuery.isLoading}
+            isLoading={isBalanceLoading}
           />
           <MoneyMusdTokenRow
             onPress={() =>

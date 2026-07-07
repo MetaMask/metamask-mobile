@@ -1,16 +1,12 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useMemo, useCallback } from 'react';
-import {
-  type MoneyAccountBalanceResponse,
-  type NormalizedVaultApyResponse,
-} from '@metamask/money-account-balance-service';
+import type { PositionResponse } from '@metamask/money-account-api-data-service';
 import { useQuery } from '@metamask/react-data-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { MUSD_DECIMALS } from '../../Earn/constants/musd';
-import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
+import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
@@ -22,7 +18,6 @@ import {
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 /**
  * Fetches the live exchange rate for the mUSD token.
@@ -35,8 +30,7 @@ export const getLiveVedaVaultExchangeRate = async () =>
     .then(({ rate }) => rate);
 
 interface UseMoneyAccountBalanceResult {
-  moneyBalanceQuery: UseQueryResult<MoneyAccountBalanceResponse>;
-  vaultApyQuery: UseQueryResult<NormalizedVaultApyResponse>;
+  positionsQuery: UseQueryResult<PositionResponse>;
   isBalanceLoading: boolean;
   isBalanceFetchError: boolean;
   isBalanceFetching: boolean;
@@ -67,39 +61,26 @@ const useMoneyAccountBalance = (
     selectMoneyVaultApyRemoteConfig,
   );
 
-  const moneyBalanceQuery = useQuery({
+  // Single query replaces both balance + APY queries — the API returns
+  // positions with balance data, APY, and exchange rate all in one call.
+  const positionsQuery = useQuery({
     queryKey: [
-      MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+      MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
       moneyAccountAddress as string,
     ],
     enabled: Boolean(moneyAccountAddress),
     refetchInterval,
-  }) as UseQueryResult<MoneyAccountBalanceResponse>;
+  }) as UseQueryResult<PositionResponse>;
 
-  const vaultApyQuery = useQuery({
-    queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_VAULT_APY],
-    refetchInterval: FIVE_MINUTES_MS,
-  }) as UseQueryResult<NormalizedVaultApyResponse>;
-
-  /**
-   * True while the balance query is loading with no cached data (even if stale).
-   */
-  const isBalanceLoading = moneyBalanceQuery.isLoading;
-
-  /** Any balance fetch failure → full error state. */
-  const isBalanceFetchError = moneyBalanceQuery.isError;
-
-  /**
-   * True while a refetch is in flight. Combined with isError, lets callers
-   * distinguish retry-in-flight (show skeleton) from silent auto-refetch.
-   */
-  const isBalanceFetching = moneyBalanceQuery.isFetching;
+  const isBalanceLoading = positionsQuery.isLoading;
+  const isBalanceFetchError = positionsQuery.isError;
+  const isBalanceFetching = positionsQuery.isFetching;
 
   const refetchBalance = useCallback(
     () =>
       ReactQueryService.queryClient.invalidateQueries({
         queryKey: [
-          MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+          MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
           moneyAccountAddress,
         ],
         refetchType: 'all',
@@ -109,36 +90,39 @@ const useMoneyAccountBalance = (
 
   const { tokenTotal, totalFiat, withdrawableFiat, withdrawableMusd } =
     useMemo(() => {
-      // Total balance (mUSD + vmUSD) from the service's Multicall3 response.
-      const totalDecimal = moneyBalanceQuery.data?.totalBalance
-        ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
-            -MUSD_DECIMALS,
-          )
-        : new BigNumber(0);
+      const positions = positionsQuery.data?.positions;
 
-      // the withdrawable amount.
-      const vmusdDecimal = moneyBalanceQuery.data?.vmusdValueInMusd
-        ? new BigNumber(moneyBalanceQuery.data.vmusdValueInMusd).shiftedBy(
-            -MUSD_DECIMALS,
-          )
-        : new BigNumber(0);
+      // The API returns `current_value_usd` as a decimal string (e.g. "150.25")
+      // and `current_value_assets` as the value in underlying asset terms.
+      // Since mUSD is pegged 1:1 to USD, both are effectively equivalent.
+      const totalUsd =
+        positions?.reduce(
+          (sum, pos) => sum.plus(new BigNumber(pos.current_value_usd)),
+          new BigNumber(0),
+        ) ?? new BigNumber(0);
 
-      // Undefined while loading or on error so callers can distinguish from a genuine zero.
+      // The withdrawable amount is the vmUSD position's value in assets
+      // (all vault positions represent withdrawable vmUSD).
+      const totalAssets =
+        positions?.reduce(
+          (sum, pos) => sum.plus(new BigNumber(pos.current_value_assets)),
+          new BigNumber(0),
+        ) ?? new BigNumber(0);
+
       const computedWithdrawableMusd =
-        isBalanceLoading || isBalanceFetchError ? undefined : vmusdDecimal;
+        isBalanceLoading || isBalanceFetchError ? undefined : totalAssets;
 
       const computedTokenTotal =
-        isBalanceLoading || isBalanceFetchError ? undefined : totalDecimal;
+        isBalanceLoading || isBalanceFetchError ? undefined : totalAssets;
 
-      // mUSD is USD-pegged 1:1, so the dollar value equals the token amount —
-      // no conversion rate is needed to show the balance in dollars.
       return {
         tokenTotal: computedTokenTotal,
-        totalFiat: computedTokenTotal,
+        totalFiat:
+          isBalanceLoading || isBalanceFetchError ? undefined : totalUsd,
         withdrawableFiat: computedWithdrawableMusd,
         withdrawableMusd: computedWithdrawableMusd,
       };
-    }, [isBalanceLoading, isBalanceFetchError, moneyBalanceQuery.data]);
+    }, [isBalanceLoading, isBalanceFetchError, positionsQuery.data]);
 
   const totalFiatFormatted =
     !isBalanceFetchError && totalFiat ? moneyFormatUsd(totalFiat) : undefined;
@@ -156,9 +140,6 @@ const useMoneyAccountBalance = (
       ? withdrawableFiat.toString()
       : undefined;
 
-  // Persist every successful balance so it can be shown as the "last known"
-  // figure (for the current account/currency) the next time the live balance
-  // is unavailable — including after an app restart.
   useEffect(() => {
     if (
       moneyAccountAddress &&
@@ -184,12 +165,8 @@ const useMoneyAccountBalance = (
     isBalanceLoading,
   ]);
 
-  // True whenever there is no fresh balance to show — still loading or a fetch
-  // error.
   const isBalanceUnavailable = totalFiatFormatted === undefined;
 
-  // Last successfully fetched balance, but only when it still matches the
-  // account and currency in view; otherwise it would be misleading.
   const lastKnownTotalFiatFormatted = isPersistedMoneyBalanceUsable(
     lastKnownBalance,
     { address: moneyAccountAddress, currency: currentCurrency },
@@ -197,17 +174,17 @@ const useMoneyAccountBalance = (
     ? lastKnownBalance.value
     : undefined;
 
-  const serviceApy = vaultApyQuery.data?.apy;
+  // APY is now derived from the positions response — each vault position
+  // includes `current_apy` as a decimal string (e.g. "0.045" = 4.5%).
+  const firstPosition = positionsQuery.data?.positions?.[0];
+  const serviceApy = firstPosition
+    ? Number(firstPosition.current_apy)
+    : undefined;
 
-  // During first load with no cache, do not show fallback to avoid flicker.
-  // Show fallback on explicit APY query errors (service outage path) or when
-  // a settled query still yields no APY value.
   const shouldUseFallback =
-    !vaultApyQuery.isLoading &&
-    (vaultApyQuery.isError || serviceApy === undefined);
+    !positionsQuery.isLoading &&
+    (positionsQuery.isError || serviceApy === undefined);
 
-  // Override always wins when set; otherwise use live service value; then use
-  // fallback only when the APY query is settled/error and no live APY exists.
   const apyDecimal =
     vaultApyOverride !== undefined
       ? vaultApyOverride
@@ -225,8 +202,7 @@ const useMoneyAccountBalance = (
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
 
   return {
-    moneyBalanceQuery,
-    vaultApyQuery,
+    positionsQuery,
     isBalanceLoading,
     isBalanceFetchError,
     isBalanceFetching,
