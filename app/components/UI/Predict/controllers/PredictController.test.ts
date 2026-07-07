@@ -4293,13 +4293,11 @@ describe('PredictController', () => {
             balance: '100',
           },
         ]);
-        mockPolymarketProvider.prepareClaim = jest
-          .fn()
-          .mockRejectedValue(
-            Object.assign(new Error('Some upstream wording change'), {
-              code: 4001,
-            }),
-          );
+        mockPolymarketProvider.prepareClaim = jest.fn().mockRejectedValue(
+          Object.assign(new Error('Some upstream wording change'), {
+            code: 4001,
+          }),
+        );
         await controller.getPositions({ claimable: true });
         (analytics.trackEvent as jest.Mock).mockClear();
 
