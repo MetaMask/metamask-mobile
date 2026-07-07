@@ -29,8 +29,8 @@ type ControllerMessengerCall = (
   action: string,
   ...args: readonly unknown[]
 ) => Promise<unknown>;
-const callControllerMessenger =
-  Engine.controllerMessenger.call as unknown as ControllerMessengerCall;
+const callControllerMessenger = Engine.controllerMessenger
+  .call as unknown as ControllerMessengerCall;
 
 export async function readFromTokenWatchList(): Promise<WatchlistBlob> {
   const blob = await callControllerMessenger(GET_ASSETS_WATCHLIST_ACTION);
