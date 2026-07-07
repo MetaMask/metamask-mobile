@@ -346,6 +346,7 @@ const useMoonpayIdentityFlow = () => {
     url.searchParams.set('publicKey', keypair.publicKeyHex);
     url.searchParams.set('channelId', CHANNEL_CHECK);
     url.searchParams.set('skipKyc', 'true');
+    console.log('==========> url', url.toString());
     return url.toString();
   }, [sessionToken, keypair.publicKeyHex]);
 

@@ -3,11 +3,18 @@ import { NativeModules, Platform } from 'react-native';
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
 import Engine from '../../../core/Engine';
 
-// Android emulator uses 10.0.2.2 to reach the host machine's localhost
-const UKYC_API_BASE_URL = Platform.select({
-  android: 'http://10.0.2.2:3000',
-  default: 'http://localhost:3000',
-});
+import { UKYC_API_BASE_URL } from '../MoonpayDemo/api';
+
+async function getBearerToken(): Promise<string> {
+  const bearerToken =
+    await Engine.context.AuthenticationController.getBearerToken();
+  if (!bearerToken) {
+    throw new Error(
+      'Unable to obtain an authentication bearer token — is the wallet signed in?',
+    );
+  }
+  return bearerToken;
+}
 
 async function getBearerToken(): Promise<string> {
   const bearerToken =
