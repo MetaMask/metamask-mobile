@@ -12,7 +12,6 @@ import {
   HeaderSubpage,
   IconColor,
   IconName,
-  IconName as HeaderIconName,
   ListItemSelect,
   SegmentedControl,
   SelectButton,
@@ -374,14 +373,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       <HeaderSubpage
         includesTopInset
         twClassName="min-h-14 h-auto bg-default justify-center"
-        startAccessory={
-          <ButtonIcon
-            iconName={HeaderIconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={handleBack}
-            testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
-          />
-        }
+        onBack={handleBack}
+        backButtonProps={{
+          testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,
+        }}
         endAccessory={groupingSelectButton}
         avatar={
           <PerpsTokenLogo
