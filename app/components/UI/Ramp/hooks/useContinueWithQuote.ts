@@ -4,12 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import type { CaipChainId } from '@metamask/utils';
-import { normalizeProviderCode } from '@metamask/ramps-controller';
+import {
+  normalizeProviderCode,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
 
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { selectHasAgreedTransakNativePolicy } from '../../../../reducers/fiatOrders';
 import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
 
 import {
   buildQuoteWithRedirectUrl,
@@ -29,10 +33,29 @@ import { createCheckoutNavDetails } from '../Views/Checkout';
 import { createV2EnterEmailNavDetails } from '../Views/NativeFlow/EnterEmail';
 import { createV2VerifyIdentityNavDetails } from '../Views/NativeFlow/VerifyIdentity';
 
+import {
+  closeSession,
+  failSession,
+  getSession,
+} from '../headless/sessionRegistry';
+import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
+
 import { useRampsController } from './useRampsController';
 import { useTransakController } from './useTransakController';
 import { useTransakRouting } from './useTransakRouting';
 import useRampAccountAddress from './useRampAccountAddress';
+
+/**
+ * Order statuses that indicate the provider callback resolved to a
+ * non-completed / placeholder order (the user backed out or the order never
+ * materialized). Mirrors `BuildQuote`'s `isBailedOrderStatus`; duplicated here
+ * to avoid importing the heavy `BuildQuote` screen into this hook.
+ */
+const BAILED_ORDER_STATUSES: ReadonlySet<RampsOrderStatus> = new Set([
+  RampsOrderStatus.Precreated,
+  RampsOrderStatus.IdExpired,
+  RampsOrderStatus.Unknown,
+]);
 
 export interface ContinueWithQuoteContext {
   amount: number;
@@ -110,6 +133,8 @@ export function useContinueWithQuote(
     userRegion,
     getBuyWidgetData,
     addPrecreatedOrder,
+    getOrderFromCallback,
+    addOrder,
   } = useRampsController();
   const {
     checkExistingToken: transakCheckExistingToken,
@@ -135,6 +160,60 @@ export function useContinueWithQuote(
       });
     },
     [navigation],
+  );
+
+  // Headless external-browser terminal for iOS `InAppBrowser.openAuth` success:
+  // resolve the provider callback into an order and route it to the session's
+  // terminal callbacks instead of navigating to `RAMPS_ORDER_DETAILS`
+  // (P2.M1). A resolved, non-bailed order fires `onOrderCreated` then
+  // `onClose({ reason: 'completed' })`; a null/bailed order is a user exit
+  // (`onClose({ reason: 'user_dismissed' })`); a resolution failure is a
+  // technical error (`failSession`). Always pops the transparent headless
+  // modal so the consumer regains foreground.
+  const completeHeadlessExternalOrder = useCallback(
+    async ({
+      sessionId,
+      providerCode,
+      callbackUrl,
+      walletAddress: orderWallet,
+    }: {
+      sessionId: string;
+      providerCode: string;
+      callbackUrl: string;
+      walletAddress: string;
+    }): Promise<void> => {
+      const session = getSession(sessionId);
+      if (!session) {
+        return;
+      }
+      try {
+        const order = await getOrderFromCallback(
+          providerCode,
+          callbackUrl,
+          orderWallet,
+        );
+        if (!order || BAILED_ORDER_STATUSES.has(order.status)) {
+          closeSession(sessionId, { reason: 'user_dismissed' });
+          dismissHeadlessFlow(navigation);
+          return;
+        }
+        addOrder(order);
+        try {
+          session.callbacks.onOrderCreated(order.providerOrderId);
+        } catch (callbackError) {
+          Logger.error(
+            callbackError as Error,
+            'useContinueWithQuote: onOrderCreated callback threw',
+          );
+        }
+        closeSession(sessionId, { reason: 'completed' });
+        dismissHeadlessFlow(navigation);
+      } catch (error) {
+        failSession(sessionId, error, 'QUOTE_FAILED');
+        dismissHeadlessFlow(navigation);
+      }
+    },
+    [getOrderFromCallback, addOrder, navigation],
   );
 
   // The aggregator-format `_quote` is used only by the caller to dispatch
@@ -287,6 +366,8 @@ export function useContinueWithQuote(
           );
 
         if (useExternalBrowser) {
+          const headlessSessionId = ctx.headlessSessionId;
+
           if (effectiveOrderId && effectiveWallet) {
             addPrecreatedOrder({
               orderId: effectiveOrderId,
@@ -301,7 +382,16 @@ export function useContinueWithQuote(
             !isAndroid && (await InAppBrowser.isAvailable());
 
           if (isAndroid || !inAppBrowserAvailable) {
+            // Only the OPEN is observable here; a rejection bubbles to the
+            // outer catch and (headless) fails the session. On success the
+            // provider page and completion are unobservable synchronously.
             await Linking.openURL(buyWidget.url);
+            if (headlessSessionId) {
+              // Keep the session live: a real success returns via the deeplink
+              // path (P2.M2) and abandonment is inferred by the Host's
+              // focus-dismissal machinery. Never navigate to BuildQuote here.
+              return;
+            }
             navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
             return;
           }
@@ -313,12 +403,35 @@ export function useContinueWithQuote(
             );
 
             if (result.type !== 'success' || !result.url) {
+              // User cancelled / dismissed the auth browser.
+              if (headlessSessionId) {
+                closeSession(headlessSessionId, { reason: 'user_dismissed' });
+                dismissHeadlessFlow(navigation);
+                return;
+              }
               navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
               return;
             }
 
             if (!effectiveWallet) {
+              if (headlessSessionId) {
+                // A success URL with no wallet cannot be resolved into an
+                // order; surface a technical failure rather than a silent exit.
+                throw new Error(
+                  'Missing wallet address for external order resolution',
+                );
+              }
               navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+              return;
+            }
+
+            if (headlessSessionId) {
+              await completeHeadlessExternalOrder({
+                sessionId: headlessSessionId,
+                providerCode,
+                callbackUrl: result.url,
+                walletAddress: effectiveWallet,
+              });
               return;
             }
 
@@ -371,6 +484,7 @@ export function useContinueWithQuote(
       getBuyWidgetData,
       addPrecreatedOrder,
       navigateAfterExternalBrowser,
+      completeHeadlessExternalOrder,
     ],
   );
 

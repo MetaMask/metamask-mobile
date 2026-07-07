@@ -17,6 +17,19 @@ export interface GetQuotesOptions {
   redirectUrl?: string;
   forceRefresh?: boolean;
   ttl?: number;
+  /**
+   * When true (and no explicit `providers` list is passed), the controller
+   * runs its shared, scope-aware selection (`getSmartSelectedQuote`) and places
+   * the single best quote at `success[0]`. Lets the headless facade consume the
+   * controller's ranking instead of re-sorting quotes in the UI.
+   */
+  autoSelectProvider?: boolean;
+  /**
+   * Provider ids to prefer during selection, in priority order. Forwarded to
+   * the controller's `getSmartSelectedQuote` ranking. Only used on the
+   * auto-select path.
+   */
+  preferredProviderIds?: string[];
 }
 
 export interface UseRampsQuotesResult {

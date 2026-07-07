@@ -110,6 +110,11 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         providers: params.providerIds,
         redirectUrl: params.redirectUrl ?? getRampCallbackBaseUrl(),
         forceRefresh: params.forceRefresh,
+        // Trigger the controller's shared, scope-aware selection so the best
+        // quote lands at `success[0]` and headless consumers never rank or
+        // sort quotes locally (P2.M6). Ignored by the controller when an
+        // explicit `providers` list is passed.
+        autoSelectProvider: true,
       });
     },
     [getQuotesRaw],

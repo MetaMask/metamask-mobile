@@ -241,7 +241,22 @@ describe('useHeadlessBuy', () => {
         providers: ['/providers/transak-native'],
         redirectUrl: 'https://callback.metamask.io',
         forceRefresh: undefined,
+        autoSelectProvider: true,
       });
+    });
+
+    it('triggers the shared controller pick via autoSelectProvider so the UI never ranks locally', async () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      await act(async () => {
+        await result.current.getQuotes({
+          assetId: 'eip155:1/erc20:0xabc',
+          amount: 10,
+          walletAddress: '0xOVERRIDE',
+        });
+      });
+      expect(mockGetQuotesRaw).toHaveBeenCalledWith(
+        expect.objectContaining({ autoSelectProvider: true }),
+      );
     });
 
     it('uses an explicit walletAddress override when provided', async () => {

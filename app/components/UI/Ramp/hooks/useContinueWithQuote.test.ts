@@ -1,8 +1,19 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import { useContinueWithQuote } from './useContinueWithQuote';
+import {
+  createSession,
+  getSession,
+  setStatus,
+  __resetSessionRegistryForTests,
+} from '../headless/sessionRegistry';
+import type {
+  HeadlessBuyCallbacks,
+  HeadlessBuyParams,
+} from '../headless/types';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -112,6 +123,8 @@ const mockNavigate = jest.fn();
 const mockNavigationReset = jest.fn();
 const mockGetBuyWidgetData = jest.fn();
 const mockAddPrecreatedOrder = jest.fn();
+const mockGetOrderFromCallback = jest.fn();
+const mockAddOrder = jest.fn();
 const mockCheckExistingToken = jest.fn();
 const mockGetBuyQuote = jest.fn();
 const mockRouteAfterAuth = jest.fn();
@@ -201,6 +214,8 @@ const buildController = (overrides: ControllerOverrides = {}) => ({
   selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
   getBuyWidgetData: mockGetBuyWidgetData,
   addPrecreatedOrder: mockAddPrecreatedOrder,
+  getOrderFromCallback: mockGetOrderFromCallback,
+  addOrder: mockAddOrder,
   ...overrides,
 });
 
@@ -566,6 +581,217 @@ describe('useContinueWithQuote', () => {
         index: 0,
         routes: [{ name: Routes.RAMP.BUILD_QUOTE, params: {} }],
       });
+    });
+  });
+
+  describe('headless external-browser branch (P2.M1 / P2.M4)', () => {
+    const HEADLESS_ORDER = {
+      id: '/providers/moonpay/orders/ord-777',
+      providerOrderId: 'ord-777',
+      status: RampsOrderStatus.Pending,
+    };
+
+    const CUSTOM_ACTION_QUOTE = {
+      provider: 'paypal',
+      id: 'quote-paypal-1',
+      inputAmount: 100,
+      inputCurrency: 'USD',
+      outputAmount: '0.05',
+      outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+      quote: {
+        // No external-browser hint; the custom-action flag alone must route it
+        // through the external path.
+        isCustomAction: true,
+        buyURL: 'https://widget.example.com/checkout',
+      },
+    } as const;
+
+    let callbacks: {
+      onOrderCreated: jest.Mock;
+      onError: jest.Mock;
+      onClose: jest.Mock;
+    };
+    let sessionId: string;
+
+    const startSession = () => {
+      callbacks = {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(),
+      };
+      const session = createSession(
+        {
+          quote: WIDGET_PROVIDER_QUOTE as unknown as HeadlessBuyParams['quote'],
+          assetId: 'eip155:1/slip44:60',
+          amount: 100,
+        },
+        callbacks as unknown as HeadlessBuyCallbacks,
+      );
+      sessionId = session.id;
+      setStatus(sessionId, 'continued');
+    };
+
+    beforeEach(() => {
+      __resetSessionRegistryForTests();
+      mockDeviceIsAndroid.mockReturnValue(false);
+      mockInAppBrowser.isAvailable.mockResolvedValue(true);
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://widget.example.com/checkout',
+        browser: 'IN_APP_OS_BROWSER',
+      });
+      startSession();
+    });
+
+    it('resolves the order and fires onOrderCreated + onClose(completed) on iOS openAuth success', async () => {
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/moonpay?orderId=ord-777',
+      });
+      mockGetOrderFromCallback.mockResolvedValue(HEADLESS_ORDER);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE, {
+        ...CTX,
+        headlessSessionId: sessionId,
+      });
+
+      expect(caught).toBeUndefined();
+      expect(mockGetOrderFromCallback).toHaveBeenCalledWith(
+        'moonpay',
+        'metamask://on-ramp/providers/moonpay?orderId=ord-777',
+        '0x1234567890123456789012345678901234567890',
+      );
+      expect(mockAddOrder).toHaveBeenCalledWith(HEADLESS_ORDER);
+      expect(callbacks.onOrderCreated).toHaveBeenCalledWith('ord-777');
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'completed' });
+      expect(callbacks.onError).not.toHaveBeenCalled();
+      // Never navigates to RAMPS_ORDER_DETAILS in headless mode.
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+      expect(getSession(sessionId)).toBeUndefined();
+    });
+
+    it('fires onClose(user_dismissed) when the iOS auth browser is cancelled', async () => {
+      mockInAppBrowser.openAuth.mockResolvedValue({ type: 'cancel' });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE, {
+        ...CTX,
+        headlessSessionId: sessionId,
+      });
+
+      expect(caught).toBeUndefined();
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+      expect(callbacks.onOrderCreated).not.toHaveBeenCalled();
+      expect(callbacks.onError).not.toHaveBeenCalled();
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+    });
+
+    it('fires onClose(user_dismissed) when the resolved order is a bailed/placeholder order', async () => {
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/moonpay',
+      });
+      mockGetOrderFromCallback.mockResolvedValue({
+        ...HEADLESS_ORDER,
+        status: RampsOrderStatus.Precreated,
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE, {
+        ...CTX,
+        headlessSessionId: sessionId,
+      });
+
+      expect(caught).toBeUndefined();
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+      expect(callbacks.onOrderCreated).not.toHaveBeenCalled();
+      expect(mockAddOrder).not.toHaveBeenCalled();
+    });
+
+    it('fails the session when the callback order resolution throws', async () => {
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/moonpay',
+      });
+      mockGetOrderFromCallback.mockRejectedValue(new Error('lookup failed'));
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE, {
+        ...CTX,
+        headlessSessionId: sessionId,
+      });
+
+      expect(caught).toBeUndefined();
+      expect(callbacks.onError).toHaveBeenCalledWith(
+        expect.objectContaining({ code: 'QUOTE_FAILED' }),
+      );
+      expect(callbacks.onOrderCreated).not.toHaveBeenCalled();
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+    });
+
+    it('keeps the session live on Android/system-browser open success (deeplink return handles completion)', async () => {
+      mockDeviceIsAndroid.mockReturnValue(true);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE, {
+        ...CTX,
+        headlessSessionId: sessionId,
+      });
+
+      expect(caught).toBeUndefined();
+      expect(mockLinkingOpenURL).toHaveBeenCalledWith(
+        'https://widget.example.com/checkout',
+      );
+      // No terminal callback and no BuildQuote reset: the session stays live.
+      expect(callbacks.onOrderCreated).not.toHaveBeenCalled();
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onError).not.toHaveBeenCalled();
+      expect(mockNavigationReset).not.toHaveBeenCalled();
+      expect(getSession(sessionId)).toBeDefined();
+    });
+
+    it('throws (so the Host fails the session) when the external open is rejected', async () => {
+      mockDeviceIsAndroid.mockReturnValue(true);
+      mockLinkingOpenURL.mockRejectedValueOnce(new Error('cannot open url'));
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE, {
+        ...CTX,
+        headlessSessionId: sessionId,
+      });
+
+      expect(caught).toBeInstanceOf(Error);
+      expect(callbacks.onOrderCreated).not.toHaveBeenCalled();
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+    });
+
+    it('routes a custom-action quote through the headless external path (P2.M4)', async () => {
+      mockInAppBrowser.openAuth.mockResolvedValue({
+        type: 'success',
+        url: 'metamask://on-ramp/providers/paypal?orderId=ord-777',
+      });
+      mockGetOrderFromCallback.mockResolvedValue(HEADLESS_ORDER);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, CUSTOM_ACTION_QUOTE, {
+        ...CTX,
+        headlessSessionId: sessionId,
+      });
+
+      expect(caught).toBeUndefined();
+      // Custom-action quotes always use the external path, so openAuth ran and
+      // the terminal order-created callback fired.
+      expect(mockInAppBrowser.openAuth).toHaveBeenCalled();
+      expect(mockGetOrderFromCallback).toHaveBeenCalledWith(
+        'paypal',
+        'metamask://on-ramp/providers/paypal?orderId=ord-777',
+        '0x1234567890123456789012345678901234567890',
+      );
+      expect(callbacks.onOrderCreated).toHaveBeenCalledWith('ord-777');
     });
   });
 
