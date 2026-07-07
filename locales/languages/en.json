@@ -1110,6 +1110,7 @@
       "market_cap": "Market cap",
       "price": "Price",
       "position": "Position",
+      "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
       "unsupported_market": "Unsupported market",
