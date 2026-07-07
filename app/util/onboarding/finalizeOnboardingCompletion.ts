@@ -11,7 +11,7 @@ import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
 import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../analytics/onboardingCompletedAnalytics';
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from '../analytics/walletSetupCompletedAttribution';
-import trackOnboarding from '../metrics/TrackOnboarding/trackOnboarding';
+import { analytics } from '../analytics/analytics';
 import Logger from '../Logger';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from './walletHomeOnboardingStepsEligibility';
 
@@ -54,17 +54,20 @@ export function finalizeOnboardingCompletion({
         isBasicFunctionalityEnabled,
       });
 
-    trackOnboarding(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_COMPLETED,
-      )
-        .addProperties({
-          ...onboardingCompletedProperties,
-          ...walletSetupAttributionProps,
-        })
-        .build(),
-      (event) => dispatch(saveEvent([event])),
-    );
+    const onboardingCompletedEvent = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.ONBOARDING_COMPLETED,
+    )
+      .addProperties({
+        ...onboardingCompletedProperties,
+        ...walletSetupAttributionProps,
+      })
+      .build();
+
+    if (analytics.isEnabled()) {
+      analytics.trackEvent(onboardingCompletedEvent);
+    } else {
+      dispatch(saveEvent([onboardingCompletedEvent]));
+    }
 
     dispatch(
       setWalletHomeOnboardingStepsEligible(true, {

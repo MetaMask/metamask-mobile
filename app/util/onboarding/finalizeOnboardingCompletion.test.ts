@@ -10,11 +10,16 @@ import {
   setWalletHomeOnboardingStepsEligible,
 } from '../../actions/onboarding';
 import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
-import trackOnboarding from '../metrics/TrackOnboarding/trackOnboarding';
+import { analytics } from '../analytics/analytics';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import Logger from '../Logger';
 
-jest.mock('../metrics/TrackOnboarding/trackOnboarding');
+jest.mock('../analytics/analytics', () => ({
+  analytics: {
+    isEnabled: jest.fn(),
+    trackEvent: jest.fn(),
+  },
+}));
 jest.mock('../../multichain-accounts/discovery', () => ({
   discoverAccounts: jest.fn().mockResolvedValue(0),
 }));
@@ -29,9 +34,7 @@ jest.mock('../../core/Engine/Engine', () => ({
   },
 }));
 
-const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
-  typeof trackOnboarding
->;
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 const mockDiscoverAccounts = discoverAccounts as jest.MockedFunction<
   typeof discoverAccounts
 >;
@@ -43,7 +46,9 @@ describe('finalizeOnboardingCompletion', () => {
     jest.clearAllMocks();
   });
 
-  it('tracks ONBOARDING_COMPLETED, marks steps eligible, discovers accounts, and clears attribution for eligible flows', () => {
+  it('tracks ONBOARDING_COMPLETED directly via analytics.trackEvent when analytics is enabled', () => {
+    mockAnalytics.isEnabled.mockReturnValue(true);
+
     finalizeOnboardingCompletion({
       successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       accountType: AccountType.Metamask,
@@ -53,7 +58,7 @@ describe('finalizeOnboardingCompletion', () => {
       discoverAccountsLogContext: 'TestContext',
     });
 
-    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'Onboarding Completed',
         properties: expect.objectContaining({
@@ -63,7 +68,6 @@ describe('finalizeOnboardingCompletion', () => {
           utm_source: 'email',
         }),
       }),
-      expect.any(Function),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       setWalletHomeOnboardingStepsEligible(true, {
@@ -72,6 +76,27 @@ describe('finalizeOnboardingCompletion', () => {
     );
     expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+  });
+
+  it('buffers event via dispatch when analytics is not enabled', () => {
+    mockAnalytics.isEnabled.mockReturnValue(false);
+
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+      accountType: AccountType.Imported,
+      isBasicFunctionalityEnabled: true,
+      walletSetupAttributionProps: {},
+      dispatch: mockDispatch,
+    });
+
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      saveEvent([
+        expect.objectContaining({
+          name: 'Onboarding Completed',
+        }),
+      ]),
+    );
   });
 
   it('only clears attribution when successFlow is ineligible', () => {
@@ -83,7 +108,7 @@ describe('finalizeOnboardingCompletion', () => {
       dispatch: mockDispatch,
     });
 
-    expect(mockTrackOnboarding).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setWalletHomeOnboardingStepsEligible(true, {
@@ -102,32 +127,13 @@ describe('finalizeOnboardingCompletion', () => {
       dispatch: mockDispatch,
     });
 
-    expect(mockTrackOnboarding).not.toHaveBeenCalled();
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('buffers onboarding event via saveOnboardingEvent when trackOnboarding save callback is invoked', () => {
-    finalizeOnboardingCompletion({
-      successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-      accountType: AccountType.Imported,
-      isBasicFunctionalityEnabled: true,
-      walletSetupAttributionProps: {},
-      dispatch: mockDispatch,
-    });
-
-    const saveCallback = mockTrackOnboarding.mock.calls[0]?.[1];
-    expect(saveCallback).toBeDefined();
-
-    const mockEvent = AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.ONBOARDING_COMPLETED,
-    ).build();
-    saveCallback?.(mockEvent);
-
-    expect(mockDispatch).toHaveBeenCalledWith(saveEvent([mockEvent]));
-  });
-
   it('logs discoverAccounts failures with the provided context', async () => {
+    mockAnalytics.isEnabled.mockReturnValue(true);
     const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
       // no-op
     });
