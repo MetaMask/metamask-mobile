@@ -15,6 +15,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { Interface } from 'ethers/lib/utils';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -186,6 +187,8 @@ function getRootMessenger(): RootMessenger {
 }
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
+const HASH_ZERO_BYTES32 =
+  '0x0000000000000000000000000000000000000000000000000000000000000000';
 
 function setActiveOrderForTest(
   controller: PredictController,
@@ -5816,6 +5819,32 @@ describe('PredictController', () => {
         ],
       }) as any;
 
+    const payoutRedemptionInterface = new Interface([
+      'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
+    ]);
+
+    const createPayoutRedemptionLog = (payoutRaw: bigint) => {
+      const payoutRedemptionEvent =
+        payoutRedemptionInterface.getEvent('PayoutRedemption');
+      const encodedLog = payoutRedemptionInterface.encodeEventLog(
+        payoutRedemptionEvent,
+        [
+          accountAddress,
+          MATIC_CONTRACTS_V2.collateral,
+          HASH_ZERO_BYTES32,
+          HASH_ZERO_BYTES32,
+          [1],
+          payoutRaw,
+        ],
+      );
+
+      return {
+        address: MATIC_CONTRACTS_V2.conditionalTokens,
+        topics: encodedLog.topics,
+        data: encodedLog.data,
+      };
+    };
+
     it('does not publish transaction status when no sender address can be resolved', () => {
       withController(
         ({ messenger }) => {
@@ -5922,7 +5951,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('publishes event for predict claim transaction with confirmed status', () => {
+    it('does not use stale claimable positions as confirmed claim amount without actual payout data', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
         const claimablePositions = [
@@ -5958,7 +5987,7 @@ describe('PredictController', () => {
 
         messenger.publish('TransactionController:transactionStatusUpdated', {
           transactionMeta,
-        } as any);
+        });
 
         expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -5966,7 +5995,268 @@ describe('PredictController', () => {
             status: 'confirmed',
             senderAddress: accountAddress,
             transactionId: 'tx-1',
+            amount: 0,
+          }),
+        );
+      });
+    });
+
+    it('uses claimable positions for approved claims when simulation has no token balance changes', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.approved,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
             amount: 100,
+          }),
+        );
+      });
+    });
+
+    it('logs malformed claim simulation differences and falls back for approved claims', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.approved,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                standard: 'erc20',
+                difference: '45.5',
+                isDecrease: false,
+              },
+            ],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        (DevLogger.log as jest.Mock).mockClear();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Failed to parse claim simulation difference',
+          expect.objectContaining({
+            difference: '45.5',
+          }),
+        );
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 100,
+          }),
+        );
+      });
+    });
+
+    it('publishes zero amount for confirmed claim when payout redemption is zero', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 534,
+            cashPnl: 200,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [createPayoutRedemptionLog(0n)],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 0,
+          }),
+        );
+      });
+    });
+
+    it('uses claim simulation balance changes before claimable position totals', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 534,
+            cashPnl: 200,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                standard: 'erc20',
+                difference: '0x2b64660',
+                isDecrease: false,
+              },
+            ],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 45.5,
+          }),
+        );
+      });
+    });
+
+    it('publishes zero amount when claim simulation has no token balance changes', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 534,
+            cashPnl: 200,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 0,
           }),
         );
       });
@@ -6099,10 +6389,15 @@ describe('PredictController', () => {
             title: 'Will it rain?',
           }),
         ];
-        const transactionMeta = createPredictTransactionMeta({
-          nestedType: TransactionType.predictClaim,
-          status: TransactionStatus.confirmed,
-        });
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [createPayoutRedemptionLog(75_000_000n)],
+          },
+        };
         mockPolymarketProvider.confirmClaim = jest.fn();
 
         controller.updateStateForTesting((state) => {
@@ -6130,7 +6425,7 @@ describe('PredictController', () => {
 
         messenger.publish('TransactionController:transactionStatusUpdated', {
           transactionMeta,
-        } as unknown as { transactionMeta: TransactionMeta });
+        });
 
         const event = findPredictTradeEvent('succeeded');
         expect(event).toBeDefined();
