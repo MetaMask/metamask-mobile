@@ -16,6 +16,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       toast: {},
       iconContainer: {},
       textContainer: {},
+      description: {},
       retryButton: {},
     },
   }),
