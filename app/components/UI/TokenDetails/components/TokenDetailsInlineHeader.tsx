@@ -57,10 +57,13 @@ export const TokenDetailsInlineHeader = ({
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
 
-  const contractAddress = useMemo(
-    () => resolveTokenContractAddress(token),
-    [token],
-  );
+  const isNativeToken = token.isETH || token.isNative;
+  const contractAddress = useMemo(() => {
+    if (isNativeToken) {
+      return null;
+    }
+    return resolveTokenContractAddress(token);
+  }, [token, isNativeToken]);
   const handleCopyContractAddress = useCopyTokenContractAddress(
     contractAddress,
     onCopyAddress,

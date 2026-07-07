@@ -476,6 +476,7 @@
     "security_alert_title": "Security alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
+    "biometric_too_many_attempts": "Too many attempts, please enter your password.",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use a different login method",
@@ -1069,21 +1070,14 @@
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
     },
-    "trader_notifications": {
-      "title": "Notifications from {{traderName}}",
-      "allow_push_notifications": "Allow push notifications",
-      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow"
-    },
-    "trader_notifications_setup": {
-      "description": "Get real-time alerts on trades from the traders you follow",
-      "allow_push_notifications": "Allow push notifications",
-      "trades_over_label": "Get notified of trades over:",
-      "save": "Save",
-      "title": "Top Traders"
-    },
     "follow": "Follow",
     "following": "Following",
+    "mute": {
+      "on_accessibility_label": "Notifications on. Tap to mute this trader",
+      "muted_accessibility_label": "Muted. Tap to turn notifications back on",
+      "on_accessibility_label_named": "Notifications on for {{traderName}}. Tap to mute",
+      "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
+    },
     "all_networks": "All networks",
     "trader_profile": {
       "followers_count": "{{count}} follower",
@@ -1158,6 +1152,8 @@
       "buy_label": "Buy",
       "sell_label": "Sell",
       "receive": "Receive",
+      "max": "Max",
+      "add_funds": "Add funds",
       "toast_pending_buy": "Buying {{amount}} of {{symbol}} with {{counter}}",
       "toast_pending_sell": "Selling {{amount}} of {{symbol}} for {{counter}}",
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
@@ -2718,6 +2714,10 @@
           "title": "Claimed",
           "description": "{{amount}} added to your balance"
         },
+        "redeemed": {
+          "title": "Position redeemed",
+          "description": "Your position has been redeemed"
+        },
         "error": {
           "title": "Something went wrong",
           "description": "Failed to proceed with claim",
@@ -3096,9 +3096,6 @@
     "title": "Activity",
     "search_placeholder": "Search tokens, transaction types...",
     "filter_all_networks": "All networks",
-    "filter_all_types": "All types",
-    "filter_types_selected": "Types: {{label}}",
-    "filter_network_selected": "Network: {{label}}",
     "type_filter": {
       "title": "Types",
       "all": "All types",
@@ -3108,6 +3105,13 @@
       "predictions": "Predictions",
       "metamask_card": "Card",
       "money": "Money"
+    },
+    "perps_filter": {
+      "title": "Perps",
+      "trades": "Trades",
+      "order": "Order",
+      "fundings": "Fundings",
+      "deposits": "Deposits"
     },
     "empty_state": {
       "default_funded": {
@@ -3125,6 +3129,9 @@
       "perps": {
         "description": "Your first perps trade could be your best.",
         "action": "Browse markets"
+      },
+      "perps_sub_filter": {
+        "description": "No activity for this filter. Try a different Perps filter."
       },
       "transactions_funded": {
         "description": "Swap your first token today.",
@@ -3246,18 +3253,24 @@
     "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
     "pna25_blog_post_link": "blog post",
     "pna25_confirm_button": "Accept and close",
-    "pna25_open_settings_button": "Open Settings"
+    "pna25_open_settings_button": "Open Settings",
+    "settings": "You can also",
+    "settings_link": "manage other default settings."
   },
   "onboarding_interest_questionnaire": {
-    "title": "What do you want to do with MetaMask?",
+    "title": "How will you use MetaMask?",
     "description": "Select all that apply.",
-    "option_buy_and_sell_crypto": "Buy and sell crypto tokens",
-    "option_consolidate_wallets": "Consolidate your wallets",
-    "option_advanced_trades": "Trade perpetuals",
-    "option_predict_sports_events": "Predict sports and events",
-    "option_crypto_as_money": "Use crypto as money",
-    "option_connect_apps_sites": "Connect to apps or sites",
-    "continue": "Continue"
+    "option_swap_tokens": "Swap tokens",
+    "option_trade_perpetuals": "Trade perpetuals",
+    "option_prediction_markets": "Prediction markets",
+    "option_send_receive_crypto": "Send and receive crypto",
+    "option_earn_and_spend": "Earn and spend",
+    "option_use_other_crypto_apps": "Use other crypto apps",
+    "option_other": "Other",
+    "other_placeholder": "How else will you use MetaMask?",
+    "done": "Done",
+    "skip": "Skip",
+    "next": "Next"
   },
   "onboarding_crypto_experience_questionnaire": {
     "title": "What's your experience with crypto?",
@@ -3623,7 +3636,9 @@
       "snaps_title": "Snaps",
       "snaps_desc": "New features and updates",
       "products_announcements_title": "Product announcements",
-      "products_announcements_desc": "New products and features"
+      "products_announcements_desc": "New products and features",
+      "price_alerts_title": "Price Alerts",
+      "price_alerts_desc": "Get notified based on the alerts you've set for a token's price"
     },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts.",
@@ -7255,6 +7270,9 @@
       "unlink_pending_title": "Unlinking your card",
       "unlink_success_title": "Your card was unlinked",
       "unlink_error": "Something went wrong unlinking your card",
+      "update_pending_title": "Updating your spending limit",
+      "update_success_title": "Your spending limit was updated",
+      "update_error": "Something went wrong updating your spending limit",
       "link_card_sheet_title": "Spend and earn",
       "link_card_sheet_description_prefix": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to",
       "link_card_sheet_description_suffix": " (variable).",
@@ -7365,6 +7383,9 @@
       "title": "Activity",
       "view_all": "View all",
       "empty": "No activity yet",
+      "load_error": "Couldn't load your activity",
+      "load_error_more": "Couldn't load more activity",
+      "retry": "Retry",
       "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
@@ -8351,7 +8372,7 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
-    "link_metamask_extension" : "Import accounts from MetaMask extension",
+    "link_metamask_extension": "Import accounts from MetaMask extension",
     "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",
@@ -9925,6 +9946,7 @@
   "trending": {
     "title": "Explore",
     "crypto_movers": "Crypto movers",
+    "hot_tokens": "Hot tokens",
     "perps_movers": "Perps movers",
     "perps_movers_pill_gainers": "Gainers",
     "perps_movers_pill_losers": "Losers",

@@ -9,7 +9,14 @@ import {
   getHeadlessOrderContext,
   setHeadlessOrderContext,
 } from '../headlessOrderContextRegistry';
-import { handleOrderStatusChangedForMetrics } from './analytics';
+import {
+  __resetTerminalOrderAnalyticsRegistryForTests,
+  markTerminalOrderAnalyticsEmitted,
+} from '../terminalOrderAnalyticsRegistry';
+import {
+  emitTerminalOrderAnalyticsFromCallback,
+  handleOrderStatusChangedForMetrics,
+} from './analytics';
 
 const mockTrackEvent = jest.fn();
 
@@ -82,6 +89,9 @@ describe('handleOrderStatusChangedForMetrics', () => {
     // by one test cannot leak into the BUY/SELL/missing-fields tests and flip
     // their expected events (they assume no entry).
     __resetHeadlessOrderContextRegistryForTests();
+    // TRAM-3691: clear the terminal-emit dedup registry so a terminal emit in
+    // one test cannot suppress the callback emitter in another.
+    __resetTerminalOrderAnalyticsRegistryForTests();
   });
 
   describe('BUY orders', () => {
@@ -455,16 +465,18 @@ describe('handleOrderStatusChangedForMetrics', () => {
         previousStatus: Status.Pending,
       });
 
-      // Emit-then-delete: the HEADLESS-tagged failure event fires exactly
-      // once. The second call finds no entry, so it falls through to the
-      // generic emit (UNIFIED_BUY_2-tagged per TRAM-3534) and never re-emits
-      // the HEADLESS-tagged event. The de-dup is on ramp_type, not on name.
+      // The HEADLESS-tagged failure event fires exactly once. Per TRAM-3691 the
+      // terminal-emit dedup registry now also suppresses the second call
+      // entirely (it would otherwise fall through to the generic UNIFIED_BUY_2
+      // emit once the headless context is deleted), so a terminal order emits
+      // exactly one terminal analytics event per session.
       const headlessTaggedEmits = mockTrackEvent.mock.calls.filter(
         (call) =>
           call[0].name === 'Ramps Transaction Failed' &&
           call[0].properties.ramp_type === 'HEADLESS',
       );
       expect(headlessTaggedEmits).toHaveLength(1);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(getHeadlessOrderContext('order-1')).toBeUndefined();
     });
 
@@ -750,5 +762,141 @@ describe('handleOrderStatusChangedForMetrics', () => {
           'RampsController: Failed to track order status changed analytics',
       }),
     );
+  });
+
+  // TRAM-3691: terminal callback orders (added via addOrder, never polled)
+  // bypass orderStatusChanged. The callback sites emit the terminal event
+  // directly via this function.
+  describe('emitTerminalOrderAnalyticsFromCallback (TRAM-3691)', () => {
+    it('emits RAMPS_TRANSACTION_COMPLETED for an already-terminal UB2 buy', () => {
+      const order = createMockOrder({ status: Status.Completed });
+
+      emitTerminalOrderAnalyticsFromCallback(order);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].name).toBe(
+        'Ramps Transaction Completed',
+      );
+      expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
+      );
+    });
+
+    it('emits RAMPS_TRANSACTION_FAILED for an already-terminal Failed buy', () => {
+      const order = createMockOrder({ status: Status.Failed });
+
+      emitTerminalOrderAnalyticsFromCallback(order);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].name).toBe(
+        'Ramps Transaction Failed',
+      );
+      expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+        expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
+      );
+    });
+
+    it('does NOT emit for a non-terminal order (polled normally instead)', () => {
+      const order = createMockOrder({ status: Status.Pending });
+
+      emitTerminalOrderAnalyticsFromCallback(order);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does NOT double-emit when the polling path already emitted the terminal event', () => {
+      const order = createMockOrder({ status: Status.Completed });
+
+      // Simulate the polling subscription emitting first...
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+      // ...then a callback re-fetch of the same terminal order must be a no-op.
+      emitTerminalOrderAnalyticsFromCallback(order);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('emits only once across repeat callback observations of the same order', () => {
+      const order = createMockOrder({ status: Status.Completed });
+
+      emitTerminalOrderAnalyticsFromCallback(order);
+      emitTerminalOrderAnalyticsFromCallback(order);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('dedups against the polling path even when providerOrderId differs but id matches', () => {
+      // Polling delivers a HEALED order (providerOrderId = internal code from
+      // id); the callback delivers the RAW order (providerOrderId = provider
+      // native id). Both share the same `id`, so `getInternalOrderCode` keys
+      // them identically and the terminal event is not double-emitted.
+      const polledOrder = createMockOrder({
+        id: '/providers/transak/orders/mm-internal-code',
+        providerOrderId: 'mm-internal-code',
+        status: Status.Completed,
+      });
+      const callbackOrder = createMockOrder({
+        id: '/providers/transak/orders/mm-internal-code',
+        providerOrderId: 'transak-native-999',
+        status: Status.Completed,
+      });
+
+      handleOrderStatusChangedForMetrics({
+        order: polledOrder,
+        previousStatus: Status.Pending,
+      });
+      emitTerminalOrderAnalyticsFromCallback(callbackOrder);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT double-emit when a racing poll publishes AFTER the callback emit', () => {
+      const order = createMockOrder({ status: Status.Completed });
+
+      // Callback emits first (already-terminal on first observation)...
+      emitTerminalOrderAnalyticsFromCallback(order);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+
+      // ...then an in-flight poll resolves and publishes the Pending->Completed
+      // transition. The handler must short-circuit on the dedup registry.
+      handleOrderStatusChangedForMetrics({
+        order,
+        previousStatus: Status.Pending,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('is a no-op when the order code was already recorded as emitted', () => {
+      const order = createMockOrder({ status: Status.Completed });
+      markTerminalOrderAnalyticsEmitted(order);
+
+      emitTerminalOrderAnalyticsFromCallback(order);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('tags a headless terminal failure as HEADLESS when a context entry exists', () => {
+      const order = createMockOrder({
+        status: Status.Failed,
+        providerOrderId: 'headless-callback-1',
+      });
+      setHeadlessOrderContext(order.providerOrderId, {
+        rampSurface: 'money_account',
+        region: 'US',
+      });
+
+      emitTerminalOrderAnalyticsFromCallback(order);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].name).toBe(
+        'Ramps Transaction Failed',
+      );
+      expect(mockTrackEvent.mock.calls[0][0].properties).toEqual(
+        expect.objectContaining({ ramp_type: 'HEADLESS' }),
+      );
+    });
   });
 });
