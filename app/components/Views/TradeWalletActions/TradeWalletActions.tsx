@@ -288,7 +288,7 @@ function TradeWalletActions() {
   return (
     <View style={tw.style('flex-1 justify-end')}>
       <MaskedView
-        style={{ ...StyleSheet.absoluteFillObject }}
+        style={{ ...StyleSheet.absoluteFill }}
         maskElement={
           <OverlayWithHole
             width={windowWidth}
