@@ -240,10 +240,6 @@ export interface RewardsState {
 
   // Subscribed campaign start reminders (keyed by `${subscriptionId}:${campaignId}`)
   subscribedCampaignReminders: Record<string, boolean>;
-
-  // One-time guard: the First Predict On Us onboarding splash has been shown.
-  // Persisted so the campaign is only presented once per install.
-  firstPredictOnUsSplashShown: boolean;
 }
 
 /**
@@ -371,8 +367,6 @@ export const initialState: RewardsState = {
   dismissedCampaignOutcomeToasts: {},
 
   subscribedCampaignReminders: {},
-
-  firstPredictOnUsSplashShown: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -552,7 +546,6 @@ const rewardsSlice = createSlice({
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
           subscribedCampaignReminders: state.subscribedCampaignReminders,
-          firstPredictOnUsSplashShown: state.firstPredictOnUsSplashShown,
           vipSplashAccepted: state.vipSplashAccepted,
           vipRefereeSplashAccepted: state.vipRefereeSplashAccepted,
           versionGuardMinimumMobileVersion:
@@ -1237,10 +1230,6 @@ const rewardsSlice = createSlice({
       );
       state.subscribedCampaignReminders[key] = true;
     },
-
-    markFirstPredictOnUsSplashShown: (state) => {
-      state.firstPredictOnUsSplashShown = true;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -1310,9 +1299,6 @@ const rewardsSlice = createSlice({
 
               subscribedCampaignReminders:
                 action.payload.rewards.subscribedCampaignReminders ?? {},
-
-              firstPredictOnUsSplashShown:
-                action.payload.rewards.firstPredictOnUsSplashShown ?? false,
 
               // Bulk link state - preserve interrupted status for resume capability
               bulkLink: {
@@ -1423,7 +1409,6 @@ export const {
   setPendingDeeplink,
   dismissCampaignOutcomeToast,
   subscribeCampaignReminder,
-  markFirstPredictOnUsSplashShown,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

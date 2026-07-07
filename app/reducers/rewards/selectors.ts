@@ -454,10 +454,6 @@ export const selectSubscribedCampaignReminders = (
   state.rewards.subscribedCampaignReminders ??
   initialState.subscribedCampaignReminders;
 
-export const selectFirstPredictOnUsSplashShown = (state: RootState): boolean =>
-  state.rewards.firstPredictOnUsSplashShown ??
-  initialState.firstPredictOnUsSplashShown;
-
 export const selectIsCampaignOutcomeToastDismissed =
   (
     subscriptionId: string | undefined,
