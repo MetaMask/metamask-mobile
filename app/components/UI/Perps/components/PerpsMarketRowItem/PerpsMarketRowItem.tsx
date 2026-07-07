@@ -50,6 +50,9 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    name: {
+      flexShrink: 1,
+    },
   });
 
 const PerpsMarketRowItem = ({
@@ -204,7 +207,13 @@ const PerpsMarketRowItem = ({
             alignItems={BoxAlignItems.Center}
             gap={2}
           >
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={styles.name}
+            >
               {displayMarket.name ||
                 getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
