@@ -59,6 +59,6 @@ The legacy native Deposit flow fires `RAMPS_ORDER_PROPOSED` later in the journey
 - Schema PR (HEADLESS / `ramp_surface`): Consensys/segment-schema#621
 - Funnel implementation: MetaMask/metamask-mobile#31716
 
-## Open item
+## Analytics owner sign-off (TRAM-3658)
 
-Analytics-owner sign-off (Amitabh Aggarwal): confirm documented `0` placeholder is acceptable for Preset / Mixpanel funnels and that downstream dashboards filter correctly.
+Confirmed by Amitabh Aggarwal (analytics owner): documented `0` placeholder is acceptable for Preset / Mixpanel funnels; downstream reports and dashboards will not misread `amount_destination = 0` on `RAMPS_ORDER_PROPOSED` as zero crypto (e.g. averaging across the funnel). Option A is validated — no schema or client change required.
