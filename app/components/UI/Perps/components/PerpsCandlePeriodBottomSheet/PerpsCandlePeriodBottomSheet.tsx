@@ -121,8 +121,8 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     : null;
 
   const handleClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet(onClose);
-  }, [onClose]);
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const handlePeriodSelect = useCallback(
     (period: CandlePeriod) => {

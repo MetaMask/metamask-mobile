@@ -316,7 +316,7 @@ describe('PerpsCandlePeriodBottomSheet', () => {
 
       fireEvent.press(screen.getByTestId('close-button'));
 
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
     it('handles period selection without onPeriodChange callback', () => {
