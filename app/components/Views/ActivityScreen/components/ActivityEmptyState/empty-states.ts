@@ -10,7 +10,6 @@ export enum ActivityEmptyStateAction {
   AddFunds = 'addFunds',
   MakePrediction = 'makePrediction',
   BrowsePerpsMarkets = 'browsePerpsMarkets',
-  TransferToMoney = 'transferToMoney',
   OpenMetamaskCard = 'openMetamaskCard',
 }
 

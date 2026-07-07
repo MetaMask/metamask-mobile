@@ -3101,8 +3101,7 @@
       "buy_sell": "Buy/Sell",
       "perps": "Perps",
       "predictions": "Predictions",
-      "metamask_card": "Card",
-      "money": "Money"
+      "metamask_card": "Card"
     },
     "perps_filter": {
       "title": "Perps",
@@ -3142,14 +3141,6 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
-      },
-      "money_funded": {
-        "description": "You've got funds—put them to work in MetaMask Money.",
-        "action": "Transfer funds"
-      },
-      "money_unfunded": {
-        "description": "Transfer to MetaMask Money and unlock all it has to offer.",
-        "action": "Transfer funds"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",
