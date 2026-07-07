@@ -766,7 +766,11 @@ describe('useQuickBuyController', () => {
         options: [sourceWithRate],
       });
       const onClose = jest.fn();
-      (toAssetId as jest.Mock).mockReturnValueOnce(undefined);
+      (toAssetId as jest.Mock).mockImplementation((address: string) =>
+        address === sourceWithRate.address
+          ? undefined
+          : 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+      );
 
       const { result } = renderHook(() =>
         useQuickBuyController(createTarget(), onClose),
