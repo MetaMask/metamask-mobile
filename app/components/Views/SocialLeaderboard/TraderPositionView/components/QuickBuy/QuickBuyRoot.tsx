@@ -196,16 +196,20 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
             onLayout={handleContentLayout}
             style={
               lockedHeight !== null
-                ? {
-                    // Scroll-only screens reclaim the bottom safe-area inset
-                    // that BottomSheetDialog adds, so they sit flush to the
-                    // edge while keeping the same overall sheet height as the
-                    // CTA screens (no layout shift between screens).
-                    height: hasBottomCta
-                      ? lockedHeight
-                      : lockedHeight + bottomInset,
-                    ...(hasBottomCta ? {} : { marginBottom: -bottomInset }),
-                  }
+                ? hasBottomCta
+                  ? // CTA screens use a min-height floor so content taller than
+                    // the locked height (e.g. once the rate row appears) can
+                    // expand instead of being clipped, while keeping the bottom
+                    // safe-area inset that BottomSheetDialog adds.
+                    { minHeight: lockedHeight }
+                  : {
+                      // Scroll-only screens reclaim the bottom safe-area inset
+                      // that BottomSheetDialog adds, so they sit flush to the
+                      // edge while keeping the same overall sheet height as the
+                      // CTA screens (no layout shift between screens).
+                      height: lockedHeight + bottomInset,
+                      marginBottom: -bottomInset,
+                    }
                 : undefined
             }
           >
@@ -213,7 +217,10 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
               key={activeScreen}
               entering={hasNavigated ? entering : undefined}
               exiting={isClosing ? undefined : exiting}
-              style={lockedHeight !== null ? tw.style('flex-1') : undefined}
+              // `grow` (flexGrow:1, flexBasis:auto) lets content drive the
+              // height so screens taller than the locked floor expand
+              // instead of being clipped
+              style={lockedHeight !== null ? tw.style('grow') : undefined}
             >
               {renderActiveScreen(activeScreen, children)}
             </Animated.View>

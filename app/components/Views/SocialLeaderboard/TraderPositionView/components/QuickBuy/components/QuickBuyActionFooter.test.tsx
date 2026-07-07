@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import QuickBuyActionFooter from './QuickBuyActionFooter';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
@@ -55,6 +55,9 @@ const baseContext = {
   selectedDestStable: undefined,
   features: { payWithSheet: true },
   setActiveScreen: jest.fn(),
+  formattedRate: undefined,
+  formattedExchangeRate: '1 ETH = 1000 USDC',
+  isPriceImpactError: false,
 };
 
 describe('QuickBuyActionFooter', () => {
@@ -78,5 +81,43 @@ describe('QuickBuyActionFooter', () => {
     render(<QuickBuyActionFooter />);
     expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     expect(screen.getByText('confirm-button:loading')).toBeOnTheScreen();
+  });
+
+  it('renders the rate row when an exchange rate is available', () => {
+    render(<QuickBuyActionFooter />);
+    expect(screen.getByTestId('quick-buy-rate-row')).toBeOnTheScreen();
+    expect(screen.getByText('1 ETH = 1000 USDC')).toBeOnTheScreen();
+  });
+
+  it('hides the rate row when no rate is available', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      formattedRate: undefined,
+      formattedExchangeRate: undefined,
+    });
+    render(<QuickBuyActionFooter />);
+    expect(screen.queryByTestId('quick-buy-rate-row')).not.toBeOnTheScreen();
+  });
+
+  it('navigates to quoteDetails when the rate row is pressed', () => {
+    const setActiveScreen = jest.fn();
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      setActiveScreen,
+    });
+    render(<QuickBuyActionFooter />);
+    fireEvent.press(screen.getByTestId('quick-buy-rate-row-pressable'));
+    expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
+  });
+
+  it('shows price impact warning in the rate row when isPriceImpactError is true', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      isPriceImpactError: true,
+    });
+    render(<QuickBuyActionFooter />);
+    expect(
+      screen.getByText('bridge.price_impact_warning_title'),
+    ).toBeOnTheScreen();
   });
 });
