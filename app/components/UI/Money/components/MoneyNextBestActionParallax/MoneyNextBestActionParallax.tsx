@@ -25,7 +25,10 @@ import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParalla
 
 const log = createProjectLogger('money-parallax');
 
-const RIVE_ARTBOARD_NAME = 'Parallax Block 1';
+// Artboard names inside next_best_action_module_v1.riv, one per onboarding step.
+export const PARALLAX_ARTBOARD_FUND = 'Parallax Block 1';
+export const PARALLAX_ARTBOARD_CARD = 'Parallax Block 2';
+
 const RIVE_PROPERTY_X = 'xValue';
 const RIVE_PROPERTY_Y = 'yValue';
 
@@ -38,6 +41,8 @@ const PARALLAX_BACKGROUND_COLORS = [
 ];
 
 interface MoneyNextBestActionParallaxProps {
+  /** Rive artboard to render (see PARALLAX_ARTBOARD_* constants). */
+  artboardName: string;
   /** Static image shown when the animation is unavailable or disabled. */
   fallbackImage: ImageSourcePropType;
   style?: StyleProp<ViewStyle>;
@@ -45,6 +50,7 @@ interface MoneyNextBestActionParallaxProps {
 }
 
 const MoneyNextBestActionParallax = ({
+  artboardName,
   fallbackImage,
   style,
   testID,
@@ -84,7 +90,7 @@ const MoneyNextBestActionParallax = ({
         <Rive
           ref={riveRef}
           source={NextBestActionParallaxAnimation}
-          artboardName={RIVE_ARTBOARD_NAME}
+          artboardName={artboardName}
           dataBinding={AutoBind(true)}
           fit={Fit.Contain}
           style={styles.media}

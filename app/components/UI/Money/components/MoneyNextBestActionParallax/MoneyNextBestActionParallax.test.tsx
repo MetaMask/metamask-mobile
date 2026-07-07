@@ -11,6 +11,7 @@ const mockSetYValue = jest.fn();
 const mockRefCallback = jest.fn();
 const mockRiveInstance = {};
 const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
+const mockRiveProps: { current?: { artboardName?: string } } = {};
 
 jest.mock('rive-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -26,9 +27,11 @@ jest.mock('rive-react-native', () => {
     ],
     default: (props: {
       testID?: string;
+      artboardName?: string;
       onError?: (error: { message: string }) => void;
     }) => {
       mockOnErrorRef.current = props.onError;
+      mockRiveProps.current = { artboardName: props.artboardName };
       return ReactActual.createElement(RNView, { testID: props.testID });
     },
   };
@@ -49,12 +52,16 @@ describe('MoneyNextBestActionParallax', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOnErrorRef.current = undefined;
+    mockRiveProps.current = undefined;
     mockUseReduceMotion.mockReturnValue(false);
   });
 
   it('renders the Rive animation when enabled and reduce motion is off', () => {
     const { getByTestId, queryByTestId } = render(
-      <MoneyNextBestActionParallax fallbackImage={fallbackImage} />,
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
     );
 
     expect(
@@ -67,7 +74,10 @@ describe('MoneyNextBestActionParallax', () => {
 
   it('renders the gradient background behind the Rive when animating', () => {
     const { getByTestId } = render(
-      <MoneyNextBestActionParallax fallbackImage={fallbackImage} />,
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
     );
 
     expect(
@@ -75,11 +85,25 @@ describe('MoneyNextBestActionParallax', () => {
     ).toBeOnTheScreen();
   });
 
+  it('passes the given artboard name through to Rive', () => {
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 2"
+        fallbackImage={fallbackImage}
+      />,
+    );
+
+    expect(mockRiveProps.current?.artboardName).toBe('Parallax Block 2');
+  });
+
   it('does not render the gradient background behind the fallback image', () => {
     mockUseReduceMotion.mockReturnValue(true);
 
     const { queryByTestId } = render(
-      <MoneyNextBestActionParallax fallbackImage={fallbackImage} />,
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
     );
 
     expect(
@@ -91,7 +115,10 @@ describe('MoneyNextBestActionParallax', () => {
     mockUseReduceMotion.mockReturnValue(true);
 
     const { getByTestId, queryByTestId } = render(
-      <MoneyNextBestActionParallax fallbackImage={fallbackImage} />,
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
     );
 
     expect(
@@ -101,7 +128,12 @@ describe('MoneyNextBestActionParallax', () => {
   });
 
   it('enables the device tilt callback when animating', () => {
-    render(<MoneyNextBestActionParallax fallbackImage={fallbackImage} />);
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
 
     expect(mockUseDeviceOrientation).toHaveBeenCalledWith(
       expect.any(Function),
@@ -114,7 +146,12 @@ describe('MoneyNextBestActionParallax', () => {
   it('disables the device tilt callback when not animating', () => {
     mockUseReduceMotion.mockReturnValue(true);
 
-    render(<MoneyNextBestActionParallax fallbackImage={fallbackImage} />);
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
 
     expect(mockUseDeviceOrientation).toHaveBeenCalledWith(
       expect.any(Function),
@@ -125,7 +162,12 @@ describe('MoneyNextBestActionParallax', () => {
   });
 
   it('drives the bound Rive number properties from mapped tilt values', () => {
-    render(<MoneyNextBestActionParallax fallbackImage={fallbackImage} />);
+    render(
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
+    );
 
     const applyTilt = mockUseDeviceOrientation.mock.calls[0][0] as (
       x: number,
@@ -140,7 +182,10 @@ describe('MoneyNextBestActionParallax', () => {
 
   it('falls back to the static image when Rive reports an error', () => {
     const { getByTestId, queryByTestId } = render(
-      <MoneyNextBestActionParallax fallbackImage={fallbackImage} />,
+      <MoneyNextBestActionParallax
+        artboardName="Parallax Block 1"
+        fallbackImage={fallbackImage}
+      />,
     );
 
     act(() => mockOnErrorRef.current?.({ message: 'boom' }));
