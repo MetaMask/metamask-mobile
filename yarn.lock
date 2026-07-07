@@ -8494,7 +8494,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^6.3.0, @metamask/core-backend@npm:^6.3.3, @metamask/core-backend@npm:^6.5.0":
+"@metamask/core-backend@npm:^6.3.0, @metamask/core-backend@npm:^6.5.0":
   version: 6.5.0
   resolution: "@metamask/core-backend@npm:6.5.0"
   dependencies:
@@ -9916,18 +9916,6 @@ __metadata:
   peerDependencies:
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
   checksum: 10/50194c608fb308cee268c6eefb8c8d439a9d07aa41d07cb5ddcd7e706819aea7e746150f32688fe06d20309b49346440855b5d56aacf286b343da6fcb217cc12
-  languageName: node
-  linkType: hard
-
-"@metamask/ramps-controller@npm:^15.0.0, @metamask/ramps-controller@npm:^15.1.0":
-  version: 15.1.0
-  resolution: "@metamask/ramps-controller@npm:15.1.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/profile-sync-controller": "npm:^28.2.0"
-  checksum: 10/54f664646ece5a30dba4913c8d00d4a77a8894b640cf54a61d50ebe0dd5c582e8fa55df3113d5c87cd352c2440b4418a8e50f5658aee17de7b53a1fe835eae1b
   languageName: node
   linkType: hard
 
