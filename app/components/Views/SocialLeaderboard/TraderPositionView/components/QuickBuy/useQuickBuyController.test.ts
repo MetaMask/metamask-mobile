@@ -644,6 +644,13 @@ describe('useQuickBuyController', () => {
 
       expect(result.current.sliderPercent).toBe(51);
       expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+      expect(mockTrackAmountSelected).toHaveBeenCalledWith(
+        expect.any(Number),
+        'slider',
+        expect.any(String),
+        51,
+        undefined,
+      );
     });
 
     it('deduplicates identical commit values (Tap + Pan double-fire guard)', () => {

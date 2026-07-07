@@ -103,7 +103,9 @@ export function useQuickBuyAnalytics(
         ...(receiveToken
           ? { [QuickBuyEventProperties.RECEIVE_TOKEN]: receiveToken }
           : {}),
-        ...(sliderPercent != null ? { slider_percent: sliderPercent } : {}),
+        ...(sliderPercent != null
+          ? { [QuickBuyEventProperties.SLIDER_PERCENT]: sliderPercent }
+          : {}),
         ...(presetValue != null
           ? { [QuickBuyEventProperties.PRESET_VALUE]: presetValue }
           : {}),

@@ -22,6 +22,7 @@ jest.mock('../analytics', () => ({
     AMOUNT_SELECTION_METHOD: 'amount_selection_method',
     PAY_WITH_TOKEN: 'pay_with_token',
     PRESET_VALUE: 'preset_value',
+    SLIDER_PERCENT: 'slider_percent',
     RECEIVE_TOKEN: 'receive_token',
     INTERACTION_TYPE: 'interaction_type',
     QUOTE_INDEX: 'quote_index',
@@ -128,7 +129,9 @@ describe('useQuickBuyAnalytics', () => {
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
-        expect.objectContaining({ slider_percent: 25 }),
+        expect.objectContaining({
+          [QuickBuyEventProperties.SLIDER_PERCENT]: 25,
+        }),
       );
     });
 
@@ -165,7 +168,7 @@ describe('useQuickBuyAnalytics', () => {
       });
 
       const call = mockTrack.mock.calls[0][1];
-      expect(call).not.toHaveProperty('slider_percent');
+      expect(call).not.toHaveProperty(QuickBuyEventProperties.SLIDER_PERCENT);
     });
 
     it('is a no-op when traderAddress is empty', () => {
