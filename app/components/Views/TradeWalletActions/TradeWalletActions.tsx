@@ -16,7 +16,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import Overlay from '../../../component-library/components/Overlay';
 import { useParams } from '../../../util/navigation/navUtils';
-import { Box } from '../../UI/Box/Box';
 
 import {
   ActionListItem,
@@ -26,10 +25,15 @@ import {
   TagSeverity,
   Text,
   TextVariant,
+  Box,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  usePureBlack,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { useElevatedSurface } from '../../../util/theme/themeUtils';
+import { useTheme } from '../../../util/theme';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -103,6 +107,8 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
+  const { colors } = useTheme();
+  const isPureBlack = usePureBlack();
   const surfaceClass = useElevatedSurface();
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
@@ -282,7 +288,7 @@ function TradeWalletActions() {
   return (
     <View style={tw.style('flex-1 justify-end')}>
       <MaskedView
-        style={{ ...StyleSheet.absoluteFillObject }}
+        style={{ ...StyleSheet.absoluteFill }}
         maskElement={
           <OverlayWithHole
             width={windowWidth}
@@ -312,10 +318,6 @@ function TradeWalletActions() {
                   <BottomShape
                     width={buttonLayout.width * 4}
                     height={bottomMaskHeight}
-                    peakHeight={16}
-                    peakBezierLength={25}
-                    baseBezierLength={55}
-                    fill="black"
                   />
                   <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
                 </View>
@@ -330,10 +332,13 @@ function TradeWalletActions() {
               })}
             >
               <Box
+                testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
                 style={tw.style(
-                  `${surfaceClass} p-4 rounded-2xl mx-4`,
+                  surfaceClass,
+                  'relative p-4 rounded-2xl mx-4',
                   `pb-[${bottomMaskHeight - 12}px]`,
-                  `px-0`,
+                  'px-0',
+                  isPureBlack && 'border border-muted',
                 )}
               >
                 {shouldRenderBatchSell && (
@@ -410,6 +415,25 @@ function TradeWalletActions() {
                     style={tw.style('bg-transparent')}
                   />
                 )}
+                {isPureBlack ? (
+                  <View
+                    pointerEvents="none"
+                    style={tw.style('absolute bottom-0 inset-x-0 items-center')}
+                    testID={
+                      WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE
+                    }
+                  >
+                    <BottomShape
+                      width={buttonLayout.width * 4}
+                      height={bottomMaskHeight}
+                      strokeOnly
+                      pathProps={{
+                        stroke: colors.border.muted,
+                        strokeWidth: 1,
+                      }}
+                    />
+                  </View>
+                ) : null}
               </Box>
             </Animated.View>
           </MaskedView>
