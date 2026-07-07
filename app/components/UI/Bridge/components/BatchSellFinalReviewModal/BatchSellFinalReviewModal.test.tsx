@@ -4,7 +4,6 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from '../BatchSellQuoteDetailsModal/BatchSellQuoteDetailsModal.testIds';
 import { BatchSellFinalReviewModal } from './index';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
@@ -147,10 +146,6 @@ const defaultQuoteData: MockBatchSellQuoteData = {
 };
 let mockSelectedTokens = defaultSelectedTokens;
 let mockBatchSellQuoteData = defaultQuoteData;
-
-jest.mock('../../../../../util/navigation/replaceWithTransactionsView', () => ({
-  replaceWithTransactionsView: jest.fn(),
-}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -316,7 +311,7 @@ describe('BatchSellFinalReviewModal', () => {
       type: 'bridge/setIsSubmittingTx',
       payload: false,
     });
-    expect(replaceWithTransactionsView).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
   it('closes the sheet before navigating to activity after submit', async () => {
@@ -334,9 +329,9 @@ describe('BatchSellFinalReviewModal', () => {
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     });
     expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-    expect(replaceWithTransactionsView).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     expect(mockOnCloseBottomSheet.mock.invocationCallOrder[0]).toBeLessThan(
-      jest.mocked(replaceWithTransactionsView).mock.invocationCallOrder[0],
+      mockNavigate.mock.invocationCallOrder[0],
     );
   });
 
