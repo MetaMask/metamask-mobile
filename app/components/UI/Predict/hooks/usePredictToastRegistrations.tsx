@@ -83,11 +83,13 @@ const showSuccessToast = ({
   title,
   description,
   iconColor,
+  iconName = IconName.Confirmation,
 }: {
   showToast: ToastRef['showToast'];
   title: string;
   description: string;
   iconColor: string;
+  iconName?: IconName;
 }) =>
   showToast({
     variant: ToastVariants.Icon,
@@ -96,7 +98,7 @@ const showSuccessToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
-    iconName: IconName.Confirmation,
+    iconName,
     iconColor,
     hasNoTimeout: false,
   });
@@ -266,10 +268,21 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
+          if ((amount ?? 0) <= 0) {
+            showSuccessToast({
+              showToast,
+              title: strings('predict.claim.toasts.redeemed.title'),
+              description: strings('predict.claim.toasts.redeemed.description'),
+              iconName: IconName.Info,
+              iconColor: theme.colors.primary.default,
+            });
+            return;
+          }
+
           showSuccessToast({
             showToast,
-            title: strings('predict.deposit.account_ready'),
-            description: strings('predict.deposit.account_ready_description', {
+            title: strings('predict.claim.toasts.confirmed.title'),
+            description: strings('predict.claim.toasts.confirmed.description', {
               amount: formattedClaimAmount,
             }),
             iconColor: theme.colors.success.default,
@@ -413,6 +426,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       queryClient,
       theme.colors.accent04.normal,
       theme.colors.error.default,
+      theme.colors.primary.default,
       theme.colors.success.default,
       withdraw,
       withdrawTransaction?.amount,

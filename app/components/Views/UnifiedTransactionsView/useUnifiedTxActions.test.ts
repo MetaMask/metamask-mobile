@@ -54,6 +54,16 @@ jest.mock('../../../util/number/bigint', () => ({
   addHexPrefix: jest.fn(),
 }));
 
+const mockGetGasValuesForReplacement = jest.fn();
+jest.mock('../../../util/confirmation/gas', () => {
+  const actual = jest.requireActual('../../../util/confirmation/gas');
+  return {
+    ...actual,
+    getGasValuesForReplacement: (...args: unknown[]) =>
+      mockGetGasValuesForReplacement(...args),
+  };
+});
+
 jest.mock('../../../util/transaction-controller', () => ({
   speedUpTransaction: jest.fn(),
   getPreviousGasFromController: jest.fn(() => undefined),
@@ -165,6 +175,10 @@ describe('useUnifiedTxActions', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockGetGasValuesForReplacement.mockImplementation(
+      jest.requireActual('../../../util/confirmation/gas')
+        .getGasValuesForReplacement,
+    );
     engineContext.TransactionController.getTransactions = jest.fn(() => []);
     mockShowToast.mockClear();
 
@@ -377,6 +391,29 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.speedUpIsOpen).toBe(false);
       expect(result.current.speedUpTxId).toBe('8');
       expect(result.current.existingTx).toBe(tx);
+    });
+
+    it('shows toast when gas value computation fails', async () => {
+      mockGetGasValuesForReplacement.mockImplementationOnce(() => {
+        throw new Error('gas computation failed');
+      });
+
+      const { result } = renderUnifiedTxActions();
+      const tx = { id: 'gas-fail' } as unknown as TransactionMeta;
+
+      act(() => result.current.onSpeedUpAction(true, tx));
+      await act(async () => {
+        await result.current.speedUpTransaction();
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          descriptionOptions: {
+            description: 'gas computation failed',
+          },
+        }),
+      );
+      expect(result.current.speedUpIsOpen).toBe(false);
     });
 
     it('uses GasFeeController estimates when type is missing', async () => {
