@@ -119,12 +119,6 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
     reduxState?.engine?.backgroundState?.AccountsController?.internalAccounts
       ?.accounts ?? {};
 
-  const srpSessionData =
-    reduxState?.engine?.backgroundState?.AuthenticationController
-      ?.srpSessionData;
-  const canonicalProfileId = Object.entries(srpSessionData ?? {})?.[0]?.[1]
-    ?.profile?.canonicalProfileId;
-
   const traits: AnalyticsUserTraits = {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
       preferencesController?.displayNftMedia
@@ -153,9 +147,6 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
   };
   if (accountType) {
     traits[UserProfileProperty.ACCOUNT_TYPE] = accountType;
-  }
-  if (canonicalProfileId) {
-    traits[UserProfileProperty.CANONICAL_PROFILE_ID] = canonicalProfileId;
   }
   return traits;
 };

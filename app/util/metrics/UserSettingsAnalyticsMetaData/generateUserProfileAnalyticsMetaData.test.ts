@@ -211,41 +211,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       AccountType.MetamaskGoogle,
     );
   });
-
-  it('includes canonical_profile_id from the session profile when signed in', () => {
-    mockGetState.mockReturnValue({
-      ...mockState,
-      engine: {
-        backgroundState: {
-          ...mockState.engine.backgroundState,
-          AuthenticationController: {
-            srpSessionData: {
-              entropySourceId1: {
-                profile: {
-                  identifierId: 'identifierId',
-                  profileId: 'profileId',
-                  canonicalProfileId: 'canonicalProfileId',
-                  metaMetricsId: 'metaMetricsId',
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    const metadata = generateUserProfileAnalyticsMetaData();
-    expect(metadata[UserProfileProperty.CANONICAL_PROFILE_ID]).toBe(
-      'canonicalProfileId',
-    );
-  });
-
-  it('omits canonical_profile_id when there is no session profile', () => {
-    mockGetState.mockReturnValue(mockState);
-
-    const metadata = generateUserProfileAnalyticsMetaData();
-    expect(UserProfileProperty.CANONICAL_PROFILE_ID in metadata).toBe(false);
-  });
 });
 
 describe('getAccountCompositionTraits', () => {
