@@ -38,6 +38,13 @@ export const formatPerpsPrice = (
   },
 ): string => {
   const includeCurrencySymbol = options?.includeCurrencySymbol ?? true;
+  const numericPrice =
+    typeof price === 'number' ? price : Number.parseFloat(String(price));
+
+  if (Number.isNaN(numericPrice) || !Number.isFinite(numericPrice)) {
+    return '$---';
+  }
+
   const fallback = () =>
     formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
 
