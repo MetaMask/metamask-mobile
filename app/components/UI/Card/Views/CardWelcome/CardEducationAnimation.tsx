@@ -7,11 +7,11 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import Rive, { Fit, RNRiveError } from 'rive-react-native';
+import Rive, { Fit, Alignment, RNRiveError } from 'rive-react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { selectCardEducationAnimationEnabledFlag } from '../../../Money/selectors/featureFlags';
-import CardEducationAnimationSource from '../../../../../animations/onboarding_card_education_v2.riv';
+import CardEducationAnimationSource from '../../../../../animations/onboarding_card_education_v3.riv';
 import { CardEducationAnimationTestIds } from './CardEducationAnimation.testIds';
 
 const log = createProjectLogger('card-education-animation');
@@ -54,8 +54,10 @@ const CardEducationAnimation = ({
   return (
     <Rive
       source={CardEducationAnimationSource}
+      artboardName="cards_container"
       autoplay
       fit={Fit.Contain}
+      alignment={Alignment.Center}
       style={riveStyle}
       onError={handleError}
       testID={testID ?? CardEducationAnimationTestIds.RIVE}
