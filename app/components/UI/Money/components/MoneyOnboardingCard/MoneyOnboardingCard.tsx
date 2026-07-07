@@ -10,6 +10,7 @@ import { isPositiveNumber } from '../../utils/number';
 import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
+import MoneyNextBestActionParallax from '../MoneyNextBestActionParallax';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -268,6 +269,11 @@ const MoneyOnboardingCard = () => {
         onPress: handleStep1CtaPressed,
       },
       image: moneyOnboardingStepperStep1,
+      media: (
+        <MoneyNextBestActionParallax
+          fallbackImage={moneyOnboardingStepperStep1}
+        />
+      ),
     };
 
     // Case 1: Cardholder, or authenticated with a card not yet linked.
