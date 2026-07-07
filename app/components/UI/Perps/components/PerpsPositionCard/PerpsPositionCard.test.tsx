@@ -372,7 +372,7 @@ describe('PerpsPositionCard', () => {
       );
 
       expect(
-        screen.getByText('perps.order.tp $2.1946 • perps.order.sl $2.1234'),
+        screen.getByText('perps.order.tp $2.1946, perps.order.sl $2.1234'),
       ).toBeOnTheScreen();
     });
 
