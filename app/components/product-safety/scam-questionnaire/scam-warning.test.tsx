@@ -4,7 +4,7 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 
 import { ScamWarning } from './scam-warning';
 import { PROCEED_DELAY_SECONDS } from './scam-questionnaire.constants';
-import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 

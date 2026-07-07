@@ -18,9 +18,8 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
-import ScamQuestionnaire, {
-  useSendScamQuestionnaire,
-} from '../../external/scam-questionnaire';
+import { ScamQuestionnaire } from '../../../../product-safety/scam-questionnaire/scam-questionnaire';
+import { useSendScamQuestionnaire } from '../../../../product-safety/scam-questionnaire/useSendScamQuestionnaire';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';

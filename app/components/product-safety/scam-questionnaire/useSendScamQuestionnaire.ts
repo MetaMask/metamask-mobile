@@ -2,15 +2,15 @@ import { useCallback, useState } from 'react';
 import { providerErrors } from '@metamask/rpc-errors';
 import { TransactionType } from '@metamask/transaction-controller';
 
-import { AlertKeys } from '../../constants/alerts';
-import { ResultType } from '../../constants/signatures';
+import { AlertKeys } from '../../Views/confirmations/constants/alerts';
+import { ResultType } from '../../Views/confirmations/constants/signatures';
 import {
   MMM_ORIGIN,
   TRANSFER_TRANSACTION_TYPES,
-} from '../../constants/confirmations';
-import { useAlerts } from '../../context/alert-system-context';
-import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
-import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+} from '../../Views/confirmations/constants/confirmations';
+import { useAlerts } from '../../Views/confirmations/context/alert-system-context';
+import { useSecurityAlertResponse } from '../../Views/confirmations/hooks/alerts/useSecurityAlertResponse';
+import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { ScamQuestionnaireProps } from './scam-questionnaire';
 
 interface UseSendScamQuestionnaireOptions {

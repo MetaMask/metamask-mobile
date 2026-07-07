@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 
 import { ScamQuestionnaire } from './scam-questionnaire';
-import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 const mockTrackStarted = jest.fn();
 const mockTrackQuestionAnswered = jest.fn();

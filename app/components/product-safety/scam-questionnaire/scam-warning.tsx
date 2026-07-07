@@ -4,19 +4,19 @@ import { Linking, ScrollView, TouchableOpacity, View } from 'react-native';
 import Icon, {
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '../../../component-library/components/Texts/Text';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { useStyles } from '../../../../../component-library/hooks';
-import { useTheme } from '../../../../../util/theme';
-import { strings } from '../../../../../../locales/i18n';
-import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+} from '../../../component-library/components/Buttons/Button';
+import { useStyles } from '../../../component-library/hooks';
+import { useTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { PROCEED_DELAY_SECONDS } from './scam-questionnaire.constants';
 import styleSheet from './scam-questionnaire.styles';
 

@@ -6,16 +6,18 @@ import {
 } from '@metamask/transaction-controller';
 
 import { useSendScamQuestionnaire } from './useSendScamQuestionnaire';
-import { AlertKeys } from '../../constants/alerts';
-import { ResultType } from '../../constants/signatures';
-import { MMM_ORIGIN } from '../../constants/confirmations';
-import { useAlerts } from '../../context/alert-system-context';
-import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
-import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { AlertKeys } from '../../Views/confirmations/constants/alerts';
+import { ResultType } from '../../Views/confirmations/constants/signatures';
+import { MMM_ORIGIN } from '../../Views/confirmations/constants/confirmations';
+import { useAlerts } from '../../Views/confirmations/context/alert-system-context';
+import { useSecurityAlertResponse } from '../../Views/confirmations/hooks/alerts/useSecurityAlertResponse';
+import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 
-jest.mock('../../context/alert-system-context');
-jest.mock('../../hooks/alerts/useSecurityAlertResponse');
-jest.mock('../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../Views/confirmations/context/alert-system-context');
+jest.mock('../../Views/confirmations/hooks/alerts/useSecurityAlertResponse');
+jest.mock(
+  '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+);
 
 const mockUseAlerts = jest.mocked(useAlerts);
 const mockUseSecurityAlertResponse = jest.mocked(useSecurityAlertResponse);

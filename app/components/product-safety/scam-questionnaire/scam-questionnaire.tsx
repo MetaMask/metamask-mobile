@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, StatusBar, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { useTheme } from '../../../../../util/theme';
-import { AppThemeKey } from '../../../../../util/theme/models';
+import { useTheme } from '../../../util/theme';
+import { AppThemeKey } from '../../../util/theme/models';
 
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../../../component-library/hooks';
-import { strings } from '../../../../../../locales/i18n';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../component-library/hooks';
+import { strings } from '../../../../locales/i18n';
 import {
   Answers,
   Q1_OPTIONS,
@@ -224,5 +224,3 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
     </Modal>
   );
 };
-
-export default ScamQuestionnaire;

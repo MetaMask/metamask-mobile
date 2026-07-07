@@ -87,7 +87,6 @@ app/selectors/cardController.ts                            @MetaMask/card
 # Confirmation Team
 app/components/Views/confirmations                              @MetaMask/confirmations
 app/components/Views/confirmations/external/staking             @MetaMask/confirmations @MetaMask/earn
-app/components/Views/confirmations/external/scam-questionnaire  @MetaMask/confirmations @MetaMask/directu-mmcx-product-safety-developer
 app/core/Analytics/events/confirmations                         @MetaMask/confirmations
 app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
 app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
@@ -108,6 +107,9 @@ app/selectors/transactionPayController.*                        @MetaMask/confir
 app/util/confirmation/                                          @MetaMask/confirmations
 app/util/transaction-controller/                               @MetaMask/confirmations
 app/util/transactions/                                         @MetaMask/confirmations
+
+# Product Safety Team
+**/product-safety/**                                            @MetaMask/product-safety
 
 # Wallet integrations Team
 app/actions/sdk/                                            @MetaMask/wallet-integrations

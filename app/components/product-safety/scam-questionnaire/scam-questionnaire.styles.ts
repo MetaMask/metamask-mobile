@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-import { Theme } from '../../../../../util/theme/models';
-import Device from '../../../../../util/device';
+import { Theme } from '../../../util/theme/models';
+import Device from '../../../util/device';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
