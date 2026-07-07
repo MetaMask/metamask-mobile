@@ -14,14 +14,13 @@ import { RootMessenger } from '../types';
  * @returns The NetworkConnectionBannerControllerMessenger.
  */
 export function getNetworkConnectionBannerControllerMessenger(
-  rootMessenger: RootMessenger,
-): NetworkConnectionBannerControllerMessenger {
-  const messenger = new Messenger<
-    'NetworkConnectionBannerController',
+  rootMessenger: RootMessenger<
     MessengerActions<NetworkConnectionBannerControllerMessenger>,
-    MessengerEvents<NetworkConnectionBannerControllerMessenger>,
-    RootMessenger
-  >({
+    // @ts-expect-error ClientController:stateChanged is not yet on GlobalEvents
+    MessengerEvents<NetworkConnectionBannerControllerMessenger>
+  >,
+): NetworkConnectionBannerControllerMessenger {
+  const messenger: NetworkConnectionBannerControllerMessenger = new Messenger({
     namespace: 'NetworkConnectionBannerController',
     parent: rootMessenger,
   });
@@ -31,6 +30,7 @@ export function getNetworkConnectionBannerControllerMessenger(
       'NetworkController:getState',
       'NetworkController:getNetworkConfigurationByChainId',
       'NetworkController:updateNetwork',
+      'NetworkController:setActiveNetwork',
       'NetworkEnablementController:getState',
       'ConnectivityController:getState',
     ],
@@ -38,6 +38,9 @@ export function getNetworkConnectionBannerControllerMessenger(
       'NetworkController:stateChange',
       'NetworkEnablementController:stateChange',
       'ConnectivityController:stateChange',
+      'ClientController:stateChanged',
+      'KeyringController:unlock',
+      'KeyringController:lock',
     ],
     messenger,
   });

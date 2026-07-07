@@ -25,20 +25,22 @@ export const selectNetworkConnectionBannerState = createSelector(
   (controllerState): NetworkConnectionBannerState => {
     if (
       !controllerState ||
-      controllerState.status === 'available' ||
-      !controllerState.network
+      controllerState.networkConnectionBannerStatus === 'available' ||
+      !controllerState.networkConnectionBannerNetwork
     ) {
       return { visible: false };
     }
+    const { networkConnectionBannerStatus, networkConnectionBannerNetwork } =
+      controllerState;
     return {
       visible: true,
-      chainId: controllerState.network.chainId,
-      status: controllerState.status as NetworkConnectionBannerStatus,
-      networkName: controllerState.network.networkName,
-      rpcUrl: controllerState.network.rpcUrl,
-      isInfuraEndpoint: controllerState.network.isInfuraEndpoint,
-      infuraNetworkClientId:
-        controllerState.network.infuraNetworkClientId ?? undefined,
+      chainId: networkConnectionBannerNetwork.chainId,
+      status: networkConnectionBannerStatus as NetworkConnectionBannerStatus,
+      networkName: networkConnectionBannerNetwork.name,
+      rpcUrl: networkConnectionBannerNetwork.rpcUrl,
+      isInfuraEndpoint: networkConnectionBannerNetwork.isInfuraEndpoint,
+      canSwitchToInfura:
+        networkConnectionBannerNetwork.switchableInfuraNetworkClientId !== null,
     };
   },
 );

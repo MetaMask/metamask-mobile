@@ -682,8 +682,8 @@
     "nonEvmTransactions": {}
   },
   "NetworkConnectionBannerController": {
-    "status": "available",
-    "network": null
+    "networkConnectionBannerStatus": "available",
+    "networkConnectionBannerNetwork": null
   },
   "MultichainAssetsController": {
     "accountsAssets": {},

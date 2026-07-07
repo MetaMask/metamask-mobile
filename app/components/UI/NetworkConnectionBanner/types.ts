@@ -25,9 +25,9 @@ export type NetworkConnectionBannerState =
       rpcUrl: string;
       isInfuraEndpoint: boolean;
       /**
-       * Network client ID of an available Infura endpoint (for custom networks
-       * that have one) that can be used to switch to Infura. Undefined if no
-       * Infura endpoint is available.
+       * Whether the chain has an Infura endpoint the user can switch to.
+       * False when the failing endpoint is already Infura or when no Infura
+       * alternative exists.
        */
-      infuraNetworkClientId?: string;
+      canSwitchToInfura: boolean;
     };

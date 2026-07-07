@@ -106,9 +106,9 @@ const useNetworkConnectionBanner = (): {
       return;
     }
 
-    const { chainId, status, infuraNetworkClientId } =
+    const { chainId, status, canSwitchToInfura } =
       networkConnectionBannerState;
-    if (!infuraNetworkClientId) {
+    if (!canSwitchToInfura) {
       return;
     }
 
@@ -127,8 +127,8 @@ const useNetworkConnectionBanner = (): {
     );
 
     try {
-      await Engine.context.NetworkConnectionBannerController.switchToDefaultInfuraRpc(
-        { chainId },
+      await Engine.context.NetworkConnectionBannerController.switchToDefaultInfuraRpcEndpoint(
+        chainId,
       );
 
       toastRef?.current?.showToast({
@@ -143,8 +143,12 @@ const useNetworkConnectionBanner = (): {
         iconName: IconName.Confirmation,
         hasNoTimeout: false,
       });
-    } catch {
-      // updateNetwork already surfaces a warning toast on failure.
+    } catch (error) {
+      // Do not show the success toast on failure
+      console.error(
+        'Failed to switch to the default Infura RPC endpoint:',
+        error,
+      );
     }
   }, [networkConnectionBannerState, trackEvent, createEventBuilder, toastRef]);
 

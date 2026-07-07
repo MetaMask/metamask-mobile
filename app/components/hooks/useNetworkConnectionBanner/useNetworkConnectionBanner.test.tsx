@@ -39,7 +39,7 @@ const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
 
-const switchToDefaultInfuraRpcMock = jest.fn(async () => undefined);
+const switchToDefaultInfuraRpcEndpointMock = jest.fn(async () => undefined);
 
 const selectorMock = jest.mocked(selectNetworkConnectionBannerState);
 
@@ -70,7 +70,7 @@ describe('useNetworkConnectionBanner', () => {
     // @ts-expect-error - mocking Engine context
     Engine.context = {
       NetworkConnectionBannerController: {
-        switchToDefaultInfuraRpc: switchToDefaultInfuraRpcMock,
+        switchToDefaultInfuraRpcEndpoint: switchToDefaultInfuraRpcEndpointMock,
       },
     };
   });
@@ -110,6 +110,7 @@ describe('useNetworkConnectionBanner', () => {
       networkName: 'Ethereum Mainnet',
       rpcUrl: 'https://mainnet.infura.io/v3/test-infura-project-id',
       isInfuraEndpoint: true,
+      canSwitchToInfura: false,
     });
 
     renderHookWithProviders();
@@ -189,7 +190,7 @@ describe('useNetworkConnectionBanner', () => {
         await result.current.switchToInfura();
       });
 
-      expect(switchToDefaultInfuraRpcMock).not.toHaveBeenCalled();
+      expect(switchToDefaultInfuraRpcEndpointMock).not.toHaveBeenCalled();
     });
 
     it('is a no-op when no Infura endpoint is available', async () => {
@@ -200,6 +201,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
+        canSwitchToInfura: false,
       });
       const { result } = renderHookWithProviders();
 
@@ -207,7 +209,7 @@ describe('useNetworkConnectionBanner', () => {
         await result.current.switchToInfura();
       });
 
-      expect(switchToDefaultInfuraRpcMock).not.toHaveBeenCalled();
+      expect(switchToDefaultInfuraRpcEndpointMock).not.toHaveBeenCalled();
     });
 
     it('delegates to the controller, fires analytics, and shows a success toast', async () => {
@@ -218,7 +220,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraNetworkClientId: 'polygon-mainnet-infura',
+        canSwitchToInfura: true,
       });
       const { result } = renderHookWithProviders();
 
@@ -226,9 +228,7 @@ describe('useNetworkConnectionBanner', () => {
         await result.current.switchToInfura();
       });
 
-      expect(switchToDefaultInfuraRpcMock).toHaveBeenCalledWith({
-        chainId: '0x89',
-      });
+      expect(switchToDefaultInfuraRpcEndpointMock).toHaveBeenCalledWith('0x89');
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
       );
@@ -241,7 +241,7 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     it('does not show the toast when the controller rejects', async () => {
-      switchToDefaultInfuraRpcMock.mockRejectedValueOnce(new Error('boom'));
+      switchToDefaultInfuraRpcEndpointMock.mockRejectedValueOnce(new Error('boom'));
       selectorMock.mockReturnValue({
         visible: true,
         chainId: '0x89',
@@ -249,7 +249,7 @@ describe('useNetworkConnectionBanner', () => {
         networkName: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
         isInfuraEndpoint: false,
-        infuraNetworkClientId: 'polygon-mainnet-infura',
+        canSwitchToInfura: true,
       });
       const { result } = renderHookWithProviders();
 
