@@ -155,7 +155,11 @@ const mockGoToBuy = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(),
+  useNavigation: jest.fn(() => ({
+    setOptions: jest.fn(),
+    addListener: jest.fn(() => jest.fn()),
+    goBack: jest.fn(),
+  })),
   useRoute: jest.fn(() => ({ params: {} })),
 }));
 
