@@ -9640,15 +9640,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^15.0.0, @metamask/ramps-controller@npm:^15.1.0":
-  version: 15.1.0
-  resolution: "@metamask/ramps-controller@npm:15.1.0"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@15.1.0-preview-685219bbf":
+  version: 15.1.0-preview-685219bbf
+  resolution: "@metamask-previews/ramps-controller@npm:15.1.0-preview-685219bbf"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.2.0"
-  checksum: 10/54f664646ece5a30dba4913c8d00d4a77a8894b640cf54a61d50ebe0dd5c582e8fa55df3113d5c87cd352c2440b4418a8e50f5658aee17de7b53a1fe835eae1b
+  checksum: 10/4ca574eba554517f720b20d3539e71020632ffa09c9176713852687355dd24fc2613184c07a236e48af1af23065bdc0a50c54c53661f1b8b6e48c0843304a0df
   languageName: node
   linkType: hard
 
@@ -35469,7 +35469,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.2.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^15.1.0"
+    "@metamask/ramps-controller": "npm:^15.2.0"
     "@metamask/react-data-query": "npm:^0.2.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
