@@ -40877,8 +40877,8 @@ __metadata:
 
 "react-native-share@patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch":
   version: 7.3.7
-  resolution: "react-native-share@patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch::version=7.3.7&hash=e0f81a"
-  checksum: 10/4efb135c79ddee907e43ef9def31492ed497fd30a5adeda5f354283c63aa1a53ad389fd68e4ad05d30cbdfdb677aecbba47540c23ca2ac76ce3b8f09a3a1e578
+  resolution: "react-native-share@patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch::version=7.3.7&hash=39fbda"
+  checksum: 10/63e64747b31a93ac4f05238338acab9c63a5512d7b7927ec24f99b0e6c1ffcdf86906265c83f47146f720b04c5ba8eae083dafef7577ff81549242f5ad89e0a7
   languageName: node
   linkType: hard
 

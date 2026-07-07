@@ -51,6 +51,20 @@ describe('buildWebDownloadInterceptorScript', () => {
     expect(script).toContain('__mmBlobRegistry');
   });
 
+  it('only intercepts anchors with an explicit download attribute', () => {
+    const script = buildWebDownloadInterceptorScript();
+
+    expect(script).toContain('hasDownloadIntent');
+    expect(script).toContain("hasAttribute('download')");
+  });
+
+  it('bounds the blob registry to avoid unbounded memory retention', () => {
+    const script = buildWebDownloadInterceptorScript();
+
+    expect(script).toContain('BLOB_REGISTRY_LIMIT');
+    expect(script).toContain('blobRegistry.size >= BLOB_REGISTRY_LIMIT');
+  });
+
   it('disables the react-native-webview built-in blob interceptor', () => {
     const script = buildWebDownloadInterceptorScript();
 

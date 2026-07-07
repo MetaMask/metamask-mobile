@@ -268,8 +268,10 @@ export const WEB_DOWNLOAD_MESSAGE_TYPE = 'WEB_DOWNLOAD';
  * silently does nothing. This reads the bytes in-page and hands them to the
  * native side (via postMessage) to be written to disk.
  *
- * Regular `http(s)` downloads are intentionally left untouched so they keep
- * flowing through the native download path.
+ * Only anchors with an explicit `download` attribute are intercepted; plain
+ * blob:/data: links (meant to be viewed/opened) are left untouched. Regular
+ * `http(s)` downloads are also left untouched so they keep flowing through the
+ * native download path.
  */
 export const buildWebDownloadInterceptorScript = (): string =>
   `(function () {
@@ -279,6 +281,10 @@ export const buildWebDownloadInterceptorScript = (): string =>
   // This bridge replaces its download path entirely.
   window.blobDownloadInjected = true;
 
+  // Bounded so a page that mints many object URLs without revoking them cannot
+  // pin an unbounded number of Blobs in memory. Evicted URLs still download
+  // correctly via the fetch() fallback in readBlobUrl.
+  var BLOB_REGISTRY_LIMIT = 100;
   var blobRegistry = window.__mmBlobRegistry || new Map();
   window.__mmBlobRegistry = blobRegistry;
 
@@ -288,6 +294,12 @@ export const buildWebDownloadInterceptorScript = (): string =>
   }
   URL.createObjectURL = function (blob) {
     var url = window.__mmNativeCreateObjectURL.call(URL, blob);
+    if (blobRegistry.size >= BLOB_REGISTRY_LIMIT) {
+      var oldest = blobRegistry.keys().next().value;
+      if (oldest !== undefined) {
+        blobRegistry.delete(oldest);
+      }
+    }
     blobRegistry.set(url, blob);
     return url;
   };
@@ -351,8 +363,15 @@ export const buildWebDownloadInterceptorScript = (): string =>
       .catch(function () {});
   }
 
+  // Only intercept links that express explicit download intent (a "download"
+  // attribute). Plain blob:/data: anchors are meant to be viewed/opened, so we
+  // must leave those clicks untouched to avoid hijacking normal page behavior.
+  function hasDownloadIntent(anchor) {
+    return !!(anchor && anchor.hasAttribute && anchor.hasAttribute('download'));
+  }
+
   function handleAnchor(anchor) {
-    if (!anchor) return false;
+    if (!anchor || !hasDownloadIntent(anchor)) return false;
     var href = anchor.getAttribute('href') || anchor.href || '';
     if (href.indexOf('blob:') !== 0 && href.indexOf('data:') !== 0) {
       return false;
