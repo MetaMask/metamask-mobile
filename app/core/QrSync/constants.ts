@@ -39,7 +39,7 @@ export const QrSyncPhases = {
  * - failed — Phase C failed; metadata retained for potential retry
  */
 export const QrSyncProvisioningStatuses = {
-  AWAITING_PASSWORD: 'awaiting_password',
+  AWAITING_PASSWORD: 'awaiting_password', // NOSONAR - this is not password. False positive.
   SECRETS_IMPORTED: 'secrets_imported',
   COMPLETED: 'completed',
   FAILED: 'failed',
