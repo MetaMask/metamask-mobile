@@ -1,6 +1,8 @@
 import {
   WEB_SHARE_MESSAGE_TYPE,
   buildWebSharePolyfillScript,
+  WEB_CLIPBOARD_IMAGE_UNSUPPORTED_MESSAGE,
+  buildWebClipboardPolyfillScript,
   WEB_DOWNLOAD_MESSAGE_TYPE,
   buildWebDownloadInterceptorScript,
 } from './browserScripts';
@@ -24,6 +26,30 @@ describe('buildWebSharePolyfillScript', () => {
 
     expect(forcedScript).not.toContain('typeof navigator.canShare');
     expect(optionalScript).toContain('typeof navigator.canShare');
+  });
+});
+
+describe('buildWebClipboardPolyfillScript', () => {
+  it('rejects image clipboard writes on Android with NotAllowedError', () => {
+    const script = buildWebClipboardPolyfillScript(true);
+
+    expect(script).toContain('navigator.clipboard.write');
+    expect(script).toContain('itemsContainImage');
+    expect(script).toContain("type.indexOf('image/')");
+    expect(script).toContain('NotAllowedError');
+    expect(script).toContain(WEB_CLIPBOARD_IMAGE_UNSUPPORTED_MESSAGE);
+    expect(script).toContain('__mmNativeClipboardWrite');
+  });
+
+  it('passes non-image writes through to the native implementation', () => {
+    const script = buildWebClipboardPolyfillScript(true);
+
+    expect(script).toContain('__mmNativeClipboardWrite(items)');
+    expect(script).toContain('itemsContainImage(items)');
+  });
+
+  it('returns a no-op script when forceInstall is false', () => {
+    expect(buildWebClipboardPolyfillScript(false)).toBe('true;');
   });
 });
 

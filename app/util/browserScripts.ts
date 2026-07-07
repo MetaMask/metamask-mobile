@@ -258,6 +258,74 @@ true;`;
  */
 export const WEB_SHARE_API_POLYFILL_SCRIPT = buildWebSharePolyfillScript(true);
 
+/** Shown when Android WebView resolves image clipboard writes without copying. */
+export const WEB_CLIPBOARD_IMAGE_UNSUPPORTED_MESSAGE =
+  'Image clipboard is not supported in this browser.';
+
+/**
+ * Patches `navigator.clipboard.write` on Android so image writes reject instead
+ * of falsely resolving. Text clipboard writes are left to the WebView.
+ *
+ * @param forceInstall - When true, always installs (Android). When false, skips
+ * if clipboard.write is unavailable (iOS — image writes already fail loudly).
+ */
+export const buildWebClipboardPolyfillScript = (
+  forceInstall = false,
+): string => {
+  if (!forceInstall) {
+    return 'true;';
+  }
+
+  return `(function () {
+  if (!navigator.clipboard || typeof navigator.clipboard.write !== 'function') {
+    return;
+  }
+
+  function isImageMimeType(type) {
+    return typeof type === 'string' && type.indexOf('image/') === 0;
+  }
+
+  function itemsContainImage(items) {
+    if (!items || !items.length) {
+      return false;
+    }
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var types = item && item.types;
+      if (!types) {
+        continue;
+      }
+      for (var j = 0; j < types.length; j++) {
+        if (isImageMimeType(types[j])) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  if (!window.__mmNativeClipboardWrite) {
+    window.__mmNativeClipboardWrite = navigator.clipboard.write.bind(
+      navigator.clipboard,
+    );
+  }
+
+  // Re-apply on every injection so a page cannot permanently clobber the patch.
+  navigator.clipboard.write = function (items) {
+    if (itemsContainImage(items)) {
+      return Promise.reject(
+        new DOMException(
+          ${JSON.stringify(WEB_CLIPBOARD_IMAGE_UNSUPPORTED_MESSAGE)},
+          'NotAllowedError',
+        ),
+      );
+    }
+    return window.__mmNativeClipboardWrite(items);
+  };
+})();
+true;`;
+};
+
 export const WEB_DOWNLOAD_MESSAGE_TYPE = 'WEB_DOWNLOAD';
 
 /**

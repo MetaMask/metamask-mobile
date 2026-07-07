@@ -60,9 +60,15 @@ describe('handleWebDownload', () => {
     jest.spyOn(Alert, 'alert').mockImplementation(pressDialogButton('default'));
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
-      .mockImplementation((task: () => void) => {
-        task();
-        return { cancel: jest.fn() };
+      .mockImplementation((task) => {
+        if (typeof task === 'function') {
+          task();
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
       });
   });
 

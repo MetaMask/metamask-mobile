@@ -32,6 +32,7 @@ import {
   DOCUMENT_URL_FOR_URL_BAR,
   WEB_SHARE_MESSAGE_TYPE,
   buildWebSharePolyfillScript,
+  buildWebClipboardPolyfillScript,
   WEB_DOWNLOAD_MESSAGE_TYPE,
   buildWebDownloadInterceptorScript,
   buildDocumentUrlForUrlBarScript,
@@ -236,7 +237,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     // blob:/data: downloads are broken in the WebView on both platforms, so the
     // interceptor is installed everywhere (it is idempotent via a window guard).
     const webBrowserBridgeScript = useMemo(
-      () => webSharePolyfillScript + buildWebDownloadInterceptorScript(),
+      () =>
+        webSharePolyfillScript +
+        buildWebDownloadInterceptorScript() +
+        buildWebClipboardPolyfillScript(Device.isAndroid()),
       [webSharePolyfillScript],
     );
 

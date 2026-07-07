@@ -66,6 +66,15 @@ const runAfterInteractions = (): Promise<void> =>
     });
   });
 
+/** Avoid blocking forever when InteractionManager never idles (e.g. active WebView). */
+const runAfterInteractionsOrTimeout = (timeoutMs = 500): Promise<void> =>
+  Promise.race([
+    runAfterInteractions(),
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, timeoutMs);
+    }),
+  ]);
+
 /**
  * Matches the confirmation shown by the native WebView download flow ("Do you
  * want to download <file>?") so blob/data downloads behave like regular HTTPS
@@ -146,7 +155,7 @@ export async function handleWebDownload(
   let tempPath: string | undefined;
   try {
     if (Platform.OS === 'android') {
-      await runAfterInteractions();
+      await runAfterInteractionsOrTimeout();
     }
 
     const { base64, mimeType: dataUrlMime } = parseFileData(payload.data);
