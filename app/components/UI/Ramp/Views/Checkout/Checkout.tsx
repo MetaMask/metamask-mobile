@@ -26,7 +26,6 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import {
   BottomSheet,
   HeaderStandard,
@@ -416,13 +415,6 @@ const Checkout = () => {
             throw new Error('Order could not be retrieved from callback');
           }
           addOrder(rampsOrder);
-
-          // TRAM-3691: headless callback skips OrderDetails, so an
-          // already-terminal order here is never polled and its terminal
-          // metrics event would be lost. Emit it directly (no-ops for
-          // non-terminal orders and dedups against the polling path).
-          emitTerminalOrderAnalyticsFromCallback(rampsOrder);
-
           dispatch(protectWalletModalVisible());
           try {
             session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
