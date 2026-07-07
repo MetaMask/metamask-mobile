@@ -4,10 +4,12 @@ import { deflate } from 'pako';
 import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
+  QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
 } from '../constants';
 import type { QrSyncReadyData, QrSyncSyncReadyMessage } from '../types';
 import {
+  isQrSyncConnectionRequest,
   isQrSyncReadyForSecretImport,
   isQrSyncSessionRequest,
   parseQrSyncConnectionRequest,
@@ -75,6 +77,15 @@ describe('qr-sync-validation', () => {
       expect(result).toEqual({ sessionRequest });
     });
 
+    it('parses wrapped { sessionRequest } MWP connection payloads', () => {
+      const sessionRequest = createSessionRequest();
+      const deeplink = createMwpDeeplink(encodeBase64Json({ sessionRequest }));
+
+      const result = parseQrSyncConnectionRequest(deeplink);
+
+      expect(result).toEqual({ sessionRequest });
+    });
+
     it('throws when metamask://connect/mwp deeplink is missing p parameter', () => {
       const deeplink = `${QR_SYNC_MWP_DEEPLINK_PREFIX}?c=1`;
 
@@ -103,12 +114,35 @@ describe('qr-sync-validation', () => {
     });
 
     it('throws when JSON does not contain a session request', () => {
-      const rawQrData = JSON.stringify({ foo: 'bar' });
-      const invalidJsonDeeplink = createMwpDeeplink(rawQrData);
+      const invalidJsonDeeplink = createMwpDeeplink(
+        encodeBase64Json({ foo: 'bar' }),
+      );
 
       expect(() => parseQrSyncConnectionRequest(invalidJsonDeeplink)).toThrow(
-        'Invalid session request payload.',
+        'QR sync scan payload does not contain a valid session request.',
       );
+    });
+  });
+
+  describe('isQrSyncConnectionRequest', () => {
+    it('returns true for a bare session request', () => {
+      expect(isQrSyncConnectionRequest(createSessionRequest())).toBe(true);
+    });
+
+    it('returns true for a wrapped session request', () => {
+      const sessionRequest = createSessionRequest();
+
+      expect(isQrSyncConnectionRequest({ sessionRequest })).toBe(true);
+    });
+
+    it('returns false when sessionRequest is missing or invalid', () => {
+      expect(isQrSyncConnectionRequest(null)).toBe(false);
+      expect(isQrSyncConnectionRequest({ foo: 'bar' })).toBe(false);
+      expect(
+        isQrSyncConnectionRequest({
+          sessionRequest: { ...createSessionRequest(), id: 'not-a-uuid' },
+        }),
+      ).toBe(false);
     });
   });
 
@@ -562,7 +596,7 @@ describe('qr-sync-validation', () => {
     it('returns true when awaiting_password with pending secrets', () => {
       expect(
         isQrSyncReadyForSecretImport({
-          provisioningStatus: 'awaiting_password',
+          provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
           pendingSecretImports,
         }),
       ).toBe(true);
@@ -571,7 +605,7 @@ describe('qr-sync-validation', () => {
     it('returns false when provisioning status is not awaiting_password', () => {
       expect(
         isQrSyncReadyForSecretImport({
-          provisioningStatus: 'secrets_imported',
+          provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
           pendingSecretImports,
         }),
       ).toBe(false);
@@ -580,13 +614,13 @@ describe('qr-sync-validation', () => {
     it('returns false when pending secrets are empty or missing', () => {
       expect(
         isQrSyncReadyForSecretImport({
-          provisioningStatus: 'awaiting_password',
+          provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
           pendingSecretImports: [],
         }),
       ).toBe(false);
       expect(
         isQrSyncReadyForSecretImport({
-          provisioningStatus: 'awaiting_password',
+          provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
           pendingSecretImports: null,
         }),
       ).toBe(false);
@@ -623,7 +657,7 @@ describe('qr-sync-validation', () => {
       expect(
         resolveQrSyncProvisioningEntryForEnrichment(
           {
-            provisioningStatus: 'awaiting_password',
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
             pendingSecretImports,
             provisioningMetadata,
           },
@@ -639,7 +673,7 @@ describe('qr-sync-validation', () => {
       expect(() =>
         resolveQrSyncProvisioningEntryForEnrichment(
           {
-            provisioningStatus: 'secrets_imported',
+            provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
             pendingSecretImports,
             provisioningMetadata,
           },
@@ -652,7 +686,7 @@ describe('qr-sync-validation', () => {
       expect(() =>
         resolveQrSyncProvisioningEntryForEnrichment(
           {
-            provisioningStatus: 'awaiting_password',
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
             pendingSecretImports,
             provisioningMetadata: null,
           },
@@ -665,7 +699,7 @@ describe('qr-sync-validation', () => {
       expect(() =>
         resolveQrSyncProvisioningEntryForEnrichment(
           {
-            provisioningStatus: 'awaiting_password',
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
             pendingSecretImports,
             provisioningMetadata,
           },

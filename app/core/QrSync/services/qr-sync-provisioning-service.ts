@@ -40,7 +40,7 @@ import type {
   QrSyncControllerGetStateAction,
   QrSyncControllerMarkProvisioningFailedAction,
 } from '../controller-types';
-import { QrSyncSecretTypes } from '../constants';
+import { QrSyncProvisioningStatuses, QrSyncSecretTypes } from '../constants';
 import type {
   QrSyncAccountGroup,
   QrSyncProvisioningMetadata,
@@ -230,9 +230,9 @@ export class QrSyncProvisioningService {
     provisioningStatus: string | null,
     provisioningMetadata: QrSyncProvisioningMetadata | null,
   ): asserts provisioningMetadata is QrSyncProvisioningMetadata {
-    if (provisioningStatus !== 'secrets_imported') {
+    if (provisioningStatus !== QrSyncProvisioningStatuses.SECRETS_IMPORTED) {
       throw new Error(
-        'QR sync metadata provisioning requires provisioningStatus secrets_imported',
+        `QR sync metadata provisioning requires provisioningStatus ${QrSyncProvisioningStatuses.SECRETS_IMPORTED}`,
       );
     }
 

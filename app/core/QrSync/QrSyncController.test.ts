@@ -10,6 +10,7 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
 } from './constants';
 import {
@@ -408,7 +409,9 @@ describe('QrSyncController', () => {
           },
         ],
       });
-      expect(controller.state.provisioningStatus).toBe('awaiting_password');
+      expect(controller.state.provisioningStatus).toBe(
+        QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+      );
       expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
         type: QrSyncActionTypes.SYNC_COMPLETED,
         version: QrSyncMessageVersion.V1,
@@ -471,7 +474,9 @@ describe('QrSyncController', () => {
           type: QrSyncSecretTypes.PRIVATE_KEY,
         },
       ]);
-      expect(controller.state.provisioningStatus).toBe('awaiting_password');
+      expect(controller.state.provisioningStatus).toBe(
+        QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+      );
     });
 
     it('returns to idle when the extension sends sync-cancel', async () => {
@@ -632,7 +637,9 @@ describe('QrSyncController', () => {
       expect(controller.state.provisioningMetadata).toEqual(
         metadataBeforeFailure,
       );
-      expect(controller.state.provisioningStatus).toBe('failed');
+      expect(controller.state.provisioningStatus).toBe(
+        QrSyncProvisioningStatuses.FAILED,
+      );
     });
 
     it('importRemainingSecrets delegates vault imports to the provisioning service', async () => {
@@ -662,7 +669,7 @@ describe('QrSyncController', () => {
         [],
       );
       expect(orchestratingController.state.provisioningStatus).toBe(
-        'secrets_imported',
+        QrSyncProvisioningStatuses.SECRETS_IMPORTED,
       );
     });
 

@@ -30,6 +30,21 @@ export const QrSyncPhases = {
   FAILED: 'failed',
 } as const;
 
+/**
+ * Persisted provisioning pipeline status for QR sync vault import.
+ *
+ * - awaiting_password — secrets held in memory until the user sets a password
+ * - secrets_imported — vault import done; metadata layout (QrSync Phase C) pending
+ * - completed — provisioning finished; metadata cleared
+ * - failed — Phase C failed; metadata retained for potential retry
+ */
+export const QrSyncProvisioningStatuses = {
+  AWAITING_PASSWORD: 'awaiting_password',
+  SECRETS_IMPORTED: 'secrets_imported',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+} as const;
+
 export const QrSyncActionTypes = {
   /**
    * Init Sync Session

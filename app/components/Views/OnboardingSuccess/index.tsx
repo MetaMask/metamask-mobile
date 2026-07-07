@@ -92,6 +92,40 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     navigation.navigate(Routes.ONBOARDING.DEFAULT_SETTINGS);
   };
 
+  const runDiscoverAccounts = useCallback(async () => {
+    try {
+      await discoverAccounts(
+        Engine.context.KeyringController.state.keyrings[0].metadata.id,
+      );
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'OnboardingSuccess: discoverAccounts failed',
+      );
+    }
+  }, []);
+
+  const runQrProvisioning = useCallback(async () => {
+    const { QrSyncProvisioningService } = Engine.context;
+
+    if (!QrSyncProvisioningService) {
+      Logger.error(
+        new Error('QR sync provisioning service is unavailable'),
+        'OnboardingSuccess: provisionFromMetadata failed',
+      );
+      return;
+    }
+
+    try {
+      await QrSyncProvisioningService.provisionFromMetadata();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'OnboardingSuccess: provisionFromMetadata failed',
+      );
+    }
+  }, []);
+
   const handleOnDone = useCallback(() => {
     if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
       const onboardingCompletedProperties =
@@ -119,40 +153,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     }
 
-    const runDiscoverAccounts = async () => {
-      try {
-        await discoverAccounts(
-          Engine.context.KeyringController.state.keyrings[0].metadata.id,
-        );
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'OnboardingSuccess: discoverAccounts failed',
-        );
-      }
-    };
-
-    const runQrProvisioning = async () => {
-      const { QrSyncProvisioningService } = Engine.context;
-
-      if (!QrSyncProvisioningService) {
-        Logger.error(
-          new Error('QR sync provisioning service is unavailable'),
-          'OnboardingSuccess: provisionFromMetadata failed',
-        );
-        return;
-      }
-
-      try {
-        await QrSyncProvisioningService.provisionFromMetadata();
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'OnboardingSuccess: provisionFromMetadata failed',
-        );
-      }
-    };
-
     dispatch(clearAttribution());
 
     if (needsQrProvisioning) {
@@ -171,6 +171,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     onDone,
     successFlow,
     walletSetupAttributionProps,
+    runDiscoverAccounts,
+    runQrProvisioning,
   ]);
 
   const getTitleString = () => {

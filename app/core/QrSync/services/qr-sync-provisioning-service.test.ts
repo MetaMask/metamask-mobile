@@ -10,7 +10,11 @@ import type {
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
 
-import { QrSyncSecretTypes, QrSyncMessageVersion } from '../constants';
+import {
+  QrSyncMessageVersion,
+  QrSyncProvisioningStatuses,
+  QrSyncSecretTypes,
+} from '../constants';
 import { defaultQrSyncControllerState } from '../QrSyncController';
 import type { QrSyncControllerState } from '../controller-types';
 import type { QrSyncProvisioningMetadata } from '../types';
@@ -131,7 +135,7 @@ const createSecretsImportedState = (
   ...defaultQrSyncControllerState,
   pendingSecretImports: null,
   provisioningMetadata: createSecretsImportedMetadata(),
-  provisioningStatus: 'secrets_imported',
+  provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
   ...overrides,
 });
 
@@ -512,14 +516,14 @@ describe('QrSyncProvisioningService', () => {
 
     it('throws when provisioning status is not secrets_imported', async () => {
       mockMessenger.call = createMessengerCallMock({
-        provisioningStatus: 'awaiting_password',
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
       });
       provisionService = new QrSyncProvisioningService({
         messenger: asProvisioningMessenger(mockMessenger),
       });
 
       await expect(provisionService.provisionFromMetadata()).rejects.toThrow(
-        'QR sync metadata provisioning requires provisioningStatus secrets_imported',
+        `QR sync metadata provisioning requires provisioningStatus ${QrSyncProvisioningStatuses.SECRETS_IMPORTED}`,
       );
     });
   });

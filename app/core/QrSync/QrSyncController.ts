@@ -28,6 +28,7 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
   RELAY_URL,
 } from './constants';
@@ -287,7 +288,7 @@ export class QrSyncController extends BaseController<
    */
   public markProvisioningFailed(): void {
     this.update((state) => {
-      state.provisioningStatus = 'failed';
+      state.provisioningStatus = QrSyncProvisioningStatuses.FAILED;
       state.pendingSecretImports = null;
     });
   }
@@ -298,7 +299,7 @@ export class QrSyncController extends BaseController<
   public completeProvisioning(): void {
     this.update(() => ({
       ...defaultQrSyncControllerState,
-      provisioningStatus: 'completed',
+      provisioningStatus: QrSyncProvisioningStatuses.COMPLETED,
     }));
   }
 
@@ -381,7 +382,8 @@ export class QrSyncController extends BaseController<
           this.update((state) => {
             state.pendingSecretImports = pendingSecretImports;
             state.provisioningMetadata = provisioningMetadata;
-            state.provisioningStatus = 'awaiting_password';
+            state.provisioningStatus =
+              QrSyncProvisioningStatuses.AWAITING_PASSWORD;
           });
         }
 
@@ -506,7 +508,7 @@ export class QrSyncController extends BaseController<
 
     this.update((state) => {
       state.pendingSecretImports = null;
-      state.provisioningStatus = 'secrets_imported';
+      state.provisioningStatus = QrSyncProvisioningStatuses.SECRETS_IMPORTED;
     });
   }
 
@@ -622,7 +624,9 @@ export class QrSyncController extends BaseController<
   }
 
   private clearControllerState(): void {
-    this.update(() => defaultQrSyncControllerState);
+    this.update(() => ({
+      ...defaultQrSyncControllerState,
+    }));
   }
 
   private toClientSyncError(error: Error): QrSyncError {

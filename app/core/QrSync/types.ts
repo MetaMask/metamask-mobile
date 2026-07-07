@@ -5,6 +5,7 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
 } from './constants';
 
@@ -260,11 +261,9 @@ export type QrSyncProvisioningMetadata = {
   entries: QrSyncProvisioningEntry[];
 };
 
+/** Persisted provisioning pipeline status for QR sync vault import. */
 export type QrSyncProvisioningStatus =
-  | 'awaiting_password'
-  | 'secrets_imported'
-  | 'completed'
-  | 'failed';
+  (typeof QrSyncProvisioningStatuses)[keyof typeof QrSyncProvisioningStatuses];
 
 /** Phase B secret-import preconditions used by the QR sync controller. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

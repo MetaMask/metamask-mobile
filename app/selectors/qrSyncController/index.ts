@@ -1,6 +1,10 @@
 import { createSelector } from 'reselect';
 import type { RootState } from '../../reducers';
-import { QrSyncPhases, QrSyncSecretTypes } from '../../core/QrSync/constants';
+import {
+  QrSyncPhases,
+  QrSyncProvisioningStatuses,
+  QrSyncSecretTypes,
+} from '../../core/QrSync/constants';
 import type { QrSyncControllerState } from '../../core/QrSync/controller-types';
 
 const selectQrSyncControllerState = (state: RootState): QrSyncControllerState =>
@@ -80,7 +84,8 @@ export const selectQrSyncShouldShowOtpSheet = createSelector(
 export const selectQrSyncShouldNavigateToImport = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
-    qrSyncState.provisioningStatus === 'awaiting_password' &&
+    qrSyncState.provisioningStatus ===
+      QrSyncProvisioningStatuses.AWAITING_PASSWORD &&
     qrSyncState.pendingSecretImports !== null &&
     qrSyncState.pendingSecretImports.length > 0,
 );
@@ -88,6 +93,7 @@ export const selectQrSyncShouldNavigateToImport = createSelector(
 export const selectQrSyncNeedsProvisioning = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
-    qrSyncState.provisioningStatus === 'secrets_imported' &&
+    qrSyncState.provisioningStatus ===
+      QrSyncProvisioningStatuses.SECRETS_IMPORTED &&
     qrSyncState.provisioningMetadata !== null,
 );

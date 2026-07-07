@@ -5,6 +5,7 @@ import { isUUID } from '../../SDKConnect/utils/isUUID';
 import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
+  QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
 } from '../constants';
 import type {
@@ -108,6 +109,21 @@ export function isQrSyncSessionRequest(data: unknown): data is SessionRequest {
   return true;
 }
 
+/** Validates the QR entry payload shape after decoding/parsing. */
+export function isQrSyncConnectionRequest(
+  data: unknown,
+): data is QrSyncConnectionRequest | SessionRequest {
+  if (isQrSyncSessionRequest(data)) {
+    return true;
+  }
+
+  if (!isRecord(data) || !('sessionRequest' in data)) {
+    return false;
+  }
+
+  return isQrSyncSessionRequest(data.sessionRequest);
+}
+
 const parseQrSyncScanPayloadJson = (rawQrData: string): unknown => {
   if (!rawQrData || typeof rawQrData !== 'string') {
     throw new Error('QR sync scan payload must be a non-empty string.');
@@ -141,20 +157,25 @@ const parseQrSyncScanPayloadJson = (rawQrData: string): unknown => {
  * Parses the raw QR scan payload into a validated QR sync connection request.
  *
  * Primary format: `metamask://connect/mwp?p=<base64-encoded-json>` with
- * optional `&c=1` when the `p` value is compressed.
+ * optional `&c=1` when the `p` value is compressed. Accepts either a bare
+ * `SessionRequest` or the wrapped `{ sessionRequest }` MWP connection shape.
  */
 export function parseQrSyncConnectionRequest(
   rawQrData: string,
 ): QrSyncConnectionRequest {
   const parsed = parseQrSyncScanPayloadJson(rawQrData);
 
-  if (!isQrSyncSessionRequest(parsed)) {
+  if (!isQrSyncConnectionRequest(parsed)) {
     throw new Error(
       'QR sync scan payload does not contain a valid session request.',
     );
   }
 
-  return { sessionRequest: parsed };
+  const sessionRequest = isQrSyncSessionRequest(parsed)
+    ? parsed
+    : parsed.sessionRequest;
+
+  return { sessionRequest };
 }
 
 // --- Sync-ready payload parsing ---
@@ -316,7 +337,7 @@ export function isQrSyncReadyForSecretImport(
   const { provisioningStatus, pendingSecretImports } = preconditions;
 
   return (
-    provisioningStatus === 'awaiting_password' &&
+    provisioningStatus === QrSyncProvisioningStatuses.AWAITING_PASSWORD &&
     Boolean(pendingSecretImports?.length)
   );
 }

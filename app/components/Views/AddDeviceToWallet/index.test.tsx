@@ -5,6 +5,7 @@ import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
   QrSyncPhases,
+  QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
@@ -276,7 +277,7 @@ describe('AddDeviceToWallet', () => {
 
     it('navigates to import when awaiting password with pending secrets', async () => {
       renderComponent({
-        provisioningStatus: 'awaiting_password',
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
         pendingSecretImports,
       });
 
@@ -301,7 +302,7 @@ describe('AddDeviceToWallet', () => {
     it('navigates to import after sync completes while secrets are still pending', async () => {
       renderComponent({
         phase: QrSyncPhases.COMPLETED,
-        provisioningStatus: 'awaiting_password',
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
         pendingSecretImports,
       });
 

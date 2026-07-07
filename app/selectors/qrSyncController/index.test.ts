@@ -1,6 +1,7 @@
 import {
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncProvisioningStatuses,
   QrSyncSecretTypes,
 } from '../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../core/QrSync/QrSyncController';
@@ -40,7 +41,7 @@ describe('qrSyncController selectors', () => {
       expect(
         selectQrSyncShouldNavigateToImport(
           buildState({
-            provisioningStatus: 'awaiting_password',
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
             pendingSecretImports,
           }),
         ),
@@ -52,7 +53,7 @@ describe('qrSyncController selectors', () => {
         selectQrSyncShouldNavigateToImport(
           buildState({
             phase: QrSyncPhases.COMPLETED,
-            provisioningStatus: 'awaiting_password',
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
             pendingSecretImports,
           }),
         ),
@@ -63,7 +64,7 @@ describe('qrSyncController selectors', () => {
       expect(
         selectQrSyncShouldNavigateToImport(
           buildState({
-            provisioningStatus: 'secrets_imported',
+            provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
             pendingSecretImports,
           }),
         ),
@@ -88,7 +89,7 @@ describe('qrSyncController selectors', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
-            provisioningStatus: 'secrets_imported',
+            provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
             provisioningMetadata,
           }),
         ),
@@ -99,7 +100,7 @@ describe('qrSyncController selectors', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
-            provisioningStatus: 'awaiting_password',
+            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
             provisioningMetadata,
           }),
         ),
@@ -110,7 +111,7 @@ describe('qrSyncController selectors', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
-            provisioningStatus: 'secrets_imported',
+            provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
             provisioningMetadata: null,
           }),
         ),
@@ -121,7 +122,7 @@ describe('qrSyncController selectors', () => {
       expect(
         selectQrSyncNeedsProvisioning(
           buildState({
-            provisioningStatus: 'completed',
+            provisioningStatus: QrSyncProvisioningStatuses.COMPLETED,
             provisioningMetadata: null,
           }),
         ),
