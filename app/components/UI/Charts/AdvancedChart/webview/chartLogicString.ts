@@ -4892,6 +4892,9 @@ function bootstrap() {
                         attachTapDismiss(widget);
                         attachMarkerHitTest(widget, chart);
                         attachVisibleRangeListeners(chart);
+                        chart.selection().onChanged().subscribe(null, () => {
+                            chart.selection().clear();
+                        });
                         attachLegendResizeListener(widget);
                         slbScheduleInitialCentering();
                         scheduleChartLayoutSettledNotify();
