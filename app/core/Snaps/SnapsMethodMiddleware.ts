@@ -55,6 +55,12 @@ const snapMethodMiddlewareBuilder = (
 
         return `${baseVersion}-${buildType}.0`;
       },
+      getMessenger: ({ actions, events }) =>
+        controllerMessenger.buildChild({
+          namespace: origin,
+          actions,
+          events,
+        }),
       // @ts-expect-error Type 'string' is not assignable to type 'TraceName'.
       startTrace: trace,
       // @ts-expect-error Type 'string' is not assignable to type 'TraceName'.
