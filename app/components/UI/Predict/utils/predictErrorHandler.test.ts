@@ -39,7 +39,6 @@ jest.mock('../../../../util/Logger', () => ({
 const mockTheme = {
   colors: {
     error: { default: 'error-color' },
-    accent04: { normal: 'accent-color' },
   },
 };
 
@@ -103,7 +102,6 @@ describe('predictErrorHandler', () => {
         ],
         iconName: IconName.Error,
         iconColor: 'error-color',
-        backgroundColor: 'accent-color',
         hasNoTimeout: false,
       });
     });

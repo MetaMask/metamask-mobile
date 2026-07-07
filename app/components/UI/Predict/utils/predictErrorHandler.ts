@@ -26,7 +26,7 @@ export function ensureError(error: unknown): Error {
 
 export function createDepositErrorToast(
   theme: {
-    colors: { error: { default: string }; accent04: { normal: string } };
+    colors: { error: { default: string } };
   },
   onRetry?: () => void,
 ) {
@@ -42,7 +42,6 @@ export function createDepositErrorToast(
     ],
     iconName: IconName.Error,
     iconColor: theme.colors.error.default,
-    backgroundColor: theme.colors.accent04.normal,
     hasNoTimeout: false,
     ...(onRetry && {
       linkButtonOptions: {
