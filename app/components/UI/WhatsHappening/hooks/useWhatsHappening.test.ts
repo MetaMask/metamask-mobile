@@ -269,51 +269,6 @@ describe('useWhatsHappening', () => {
       expect(result.current.items[1].isOutdated).toBeUndefined();
     });
 
-    it('dedupes a latest-feed item that shares the outdated item title', async () => {
-      const duplicateTrend = { ...mockTrend, title: mockFrontPage.item.title };
-      mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
-      mockFetchMarketOverview.mockResolvedValue({
-        ...mockOverview,
-        trends: [duplicateTrend, mockTrend],
-      });
-
-      const { result } = renderHook(() =>
-        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
-      );
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-      // The title appears exactly once — as the outdated (first) card.
-      const withTitle = result.current.items.filter(
-        (item) => item.title === mockFrontPage.item.title,
-      );
-      expect(withTitle).toHaveLength(1);
-      expect(result.current.items[0].isOutdated).toBe(true);
-      // The non-duplicate latest item is still present.
-      expect(
-        result.current.items.some((item) => item.title === mockTrend.title),
-      ).toBe(true);
-    });
-
-    it('dedupes case- and whitespace-insensitively', async () => {
-      const noisyDuplicate = {
-        ...mockTrend,
-        title: `  ${mockFrontPage.item.title.replace(/ /gu, '   ').toUpperCase()}  `,
-      };
-      mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
-      mockFetchMarketOverview.mockResolvedValue({
-        ...mockOverview,
-        trends: [noisyDuplicate],
-      });
-
-      const { result } = renderHook(() =>
-        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
-      );
-      await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-      expect(result.current.items).toHaveLength(1);
-      expect(result.current.items[0].isOutdated).toBe(true);
-    });
-
     it('keeps the total capped at the limit with the outdated item first', async () => {
       mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
       mockFetchMarketOverview.mockResolvedValue({

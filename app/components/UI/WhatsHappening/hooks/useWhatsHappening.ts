@@ -91,44 +91,6 @@ const fetchOutdatedItem = async (
 };
 
 /**
- * Derives a dedupe key from an item title. Market overview items have no id,
- * so the title is our only stable identifier. Normalized (trimmed, lower-cased,
- * whitespace-collapsed) so trivial formatting differences still match.
- *
- * @param title - The item title.
- * @returns A normalized key for equality comparison.
- */
-const getTitleKey = (title: string): string =>
-  title.trim().toLowerCase().replace(/\s+/gu, ' ');
-
-/**
- * Prepends the deep-linked "outdated" item as the first card, removing any
- * latest-feed item with the same title. A front-page item can be recent enough
- * to also appear in the market overview; without this it would render twice.
- *
- * @param outdatedItem - The outdated item to prepend, or `null`.
- * @param baseItems - The latest market overview items.
- * @param limit - Maximum number of items to return.
- * @returns The items to render, capped at `limit`.
- */
-const prependOutdatedItem = (
-  outdatedItem: WhatsHappeningItem | null,
-  baseItems: WhatsHappeningItem[],
-  limit: number,
-): WhatsHappeningItem[] => {
-  if (!outdatedItem) {
-    return baseItems;
-  }
-
-  const outdatedKey = getTitleKey(outdatedItem.title);
-  const deduped = baseItems.filter(
-    (item) => getTitleKey(item.title) !== outdatedKey,
-  );
-
-  return [outdatedItem, ...deduped].slice(0, limit);
-};
-
-/**
  * Hook to fetch trending "What's Happening" items for the carousel.
  *
  * Calls `AiDigestController.fetchMarketOverview()` (which handles caching
@@ -168,11 +130,12 @@ export const useWhatsHappening = (
       const baseItems = data === null ? [] : mapTrendsToItems(data, limit);
 
       // When a deep link supplied an id, prepend that (older) front-page item
-      // as the first "outdated" card, de-duplicated by title against the
-      // latest feed and capped at `limit`.
+      // as the first "outdated" card, keeping the total capped at `limit`.
       const outdatedItem = await fetchOutdatedItem(outdatedItemId);
 
-      setItems(prependOutdatedItem(outdatedItem, baseItems, limit));
+      setItems(
+        outdatedItem ? [outdatedItem, ...baseItems].slice(0, limit) : baseItems,
+      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to fetch trending items',
