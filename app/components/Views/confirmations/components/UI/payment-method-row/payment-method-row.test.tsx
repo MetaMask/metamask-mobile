@@ -9,12 +9,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const mockUseElevatedSurface = jest.fn(() => 'bg-default');
-
-jest.mock('../../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => mockUseElevatedSurface(),
-}));
-
 const baseProps = {
   id: 'usdc',
   icon: <Text testID="icon">USDC-icon</Text>,
@@ -22,16 +16,6 @@ const baseProps = {
 };
 
 describe('PaymentMethodRow', () => {
-  beforeEach(() => {
-    mockUseElevatedSurface.mockReturnValue('bg-default');
-  });
-
-  it('uses elevated surface class for unselected rows', () => {
-    render(<PaymentMethodRow {...baseProps} />);
-
-    expect(mockUseElevatedSurface).toHaveBeenCalled();
-  });
-
   it('renders title and icon with derived testID', () => {
     const { getByTestId } = render(<PaymentMethodRow {...baseProps} />);
 
