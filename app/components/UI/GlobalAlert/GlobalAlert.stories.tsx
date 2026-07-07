@@ -8,10 +8,7 @@ import GlobalAlert from './index';
 
 const mockStore = configureMockStore();
 
-const createAlertStore = (data: {
-  msg: string;
-  width?: number;
-}) =>
+const createAlertStore = (data: { msg: string; width?: number }) =>
   mockStore({
     ...storybookStore,
     alert: {

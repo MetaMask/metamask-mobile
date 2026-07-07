@@ -12,7 +12,11 @@ jest.mock('react-native-modal', () => {
 
   return ({ children, isVisible }) =>
     isVisible
-      ? ReactMock.createElement(View, { testID: 'global-alert-modal' }, children)
+      ? ReactMock.createElement(
+          View,
+          { testID: 'global-alert-modal' },
+          children,
+        )
       : null;
 });
 
