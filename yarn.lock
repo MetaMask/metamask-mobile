@@ -7958,15 +7958,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@metamask/ai-controllers@npm:0.7.0"
+"@metamask/ai-controllers@npm:@metamask-previews/ai-controllers@0.7.0-preview-8980fa5":
+  version: 0.7.0-preview-8980fa5
+  resolution: "@metamask-previews/ai-controllers@npm:0.7.0-preview-8980fa5"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/129d02a26595f16362c6bb1905ef3885b369529eb0a174da46ed7add5fd1d6ffa4d00ba29e09f7583ef70a299dc99f33c82efc45eeea08ab7e5e712c4a3dc11d
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/0b4405a6c5a8aed033f630c380594036b411a29e6f1393c1fbc625743fb813e25e0230a0a6fee937c711704964dda1c75331db15c955626049695ad9230e58e9
   languageName: node
   linkType: hard
 
