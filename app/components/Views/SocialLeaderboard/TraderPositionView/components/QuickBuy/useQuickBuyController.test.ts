@@ -2828,6 +2828,83 @@ describe('useQuickBuyController', () => {
       expect(mockTrackQuoteSelected).toHaveBeenCalledWith(1, 2);
       expect(result.current.selectedQuoteRequestId).toBe('quote-b');
     });
+
+    it('drops a manual selection when the next refresh returns a new quote batch', () => {
+      let sortedQuotes = [
+        quoteWithRequestId('quote-a'),
+        quoteWithRequestId('quote-b'),
+      ];
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      }));
+
+      const props = { target: createTarget(), onClose: jest.fn() };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      // Lock onto a genuinely different provider (index 1).
+      act(() => {
+        result.current.handleSelectQuote('quote-b');
+      });
+      expect(result.current.selectedQuoteRequestId).toBe('quote-b');
+
+      // Auto-refresh is never paused, so the next batch (new requestIds) drops
+      // the selection and the active quote falls back to the recommended.
+      sortedQuotes = [
+        quoteWithRequestId('quote-c'),
+        quoteWithRequestId('quote-d'),
+      ];
+      rerender(props);
+      expect(result.current.selectedQuoteRequestId).toBeUndefined();
+    });
+
+    it('never asks the quotes hook to pause auto-refresh', () => {
+      const sortedQuotes = [quoteWithRequestId('quote-a')];
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.setSelectedQuoteRequestId('quote-a');
+      });
+
+      // Selecting a quote must not pass a `pauseAutoRefresh` flag — refresh
+      // always runs (streams terminate on their own via the server `complete`).
+      const lastCall = (useQuickBuyQuotes as jest.Mock).mock.calls.at(-1)?.[0];
+      expect(lastCall).not.toHaveProperty('pauseAutoRefresh');
+    });
   });
 
   describe('quick buy interacted analytics', () => {

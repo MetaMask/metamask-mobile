@@ -1,5 +1,6 @@
 import {
   selectAiSocialLeaderboardOnboardingEnabled,
+  selectSocialAIQuickBuyStreamQuotesEnabled,
   selectSocialLeaderboardEnabled,
   selectSocialLeaderboardPerpsEnabled,
 } from '.';
@@ -195,6 +196,74 @@ describe('selectAiSocialLeaderboardOnboardingEnabled', () => {
       aiSocialLeaderboardOnboardingEnabled: {
         enabled: true,
         minimumVersion: '99.0.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectSocialAIQuickBuyStreamQuotesEnabled', () => {
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    const result = selectSocialAIQuickBuyStreamQuotesEnabled.resultFunc({
+      socialAIQuickBuyStreamQuotes: {
+        enabled: true,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    const result = selectSocialAIQuickBuyStreamQuotesEnabled.resultFunc({
+      socialAIQuickBuyStreamQuotes: {
+        enabled: false,
+        minimumVersion: '7.72.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when version requirement is not met', () => {
+    mockHasMinimumRequiredVersion.mockReturnValue(false);
+    const result = selectSocialAIQuickBuyStreamQuotesEnabled.resultFunc({
+      socialAIQuickBuyStreamQuotes: {
+        enabled: true,
+        minimumVersion: '99.0.0',
+      },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remote flag is absent', () => {
+    const result = selectSocialAIQuickBuyStreamQuotesEnabled.resultFunc({});
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when remote flag has an invalid shape', () => {
+    const result = selectSocialAIQuickBuyStreamQuotesEnabled.resultFunc({
+      socialAIQuickBuyStreamQuotes: {
+        enabled: 'invalid',
+        minimumVersion: 123,
       },
     });
 

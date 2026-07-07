@@ -34,3 +34,13 @@ export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
   },
 );
+
+export const selectSocialAIQuickBuyStreamQuotesEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.socialAIQuickBuyStreamQuotes as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
