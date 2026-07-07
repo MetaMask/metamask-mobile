@@ -15,6 +15,8 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
   /^https:\/\/developer\.metamask\.io$/,
+  /^https:\/\/develop-developer\.metamask\.io$/,
+  /^https:\/\/staging-developer\.metamask\.io$/,
 ];
 
 /** Non-prod dashboard hosts used when `MM_DEV_API_ENV=dev`. */
@@ -207,7 +209,7 @@ export const AgenticCliDashboardWebviewService = {
         completeRequest(requestId, (pending) =>
           pending.reject(new Error('Dashboard approval timed out.')),
         );
-        dismissOpenWebview();
+        // dismissOpenWebview();
       }, WEBVIEW_TIMEOUT_MS);
 
       pendingRequests.set(requestId, {
