@@ -762,8 +762,7 @@ export type RewardsControllerGetClientVersionRequirementsAction = {
 /**
  * Fetch the visible first predict on us content from the public API.
  * Cached for 1 minute using controller state, matching the API Cache-Control header.
- * This is a public (unauthenticated) endpoint that does not require
- * the rewards feature to be enabled.
+ * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
  */
 export type RewardsControllerGetFirstPredictOnUsAction = {
   type: `RewardsController:getFirstPredictOnUs`;
