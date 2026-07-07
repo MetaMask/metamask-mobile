@@ -20,9 +20,10 @@ const cryptoMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$1M',
+  openInterest: '$500K',
 };
 
-/** Commodity market (HIP-3): counted in marketCounts.commodity so "Commodities" badge appears */
+/** Commodity market (HIP-3): counted in marketCounts.commodities so "Commodities" badge appears */
 const commodityMarket: PerpsMarketData = {
   symbol: 'XAU',
   name: 'Gold',
@@ -31,6 +32,7 @@ const commodityMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$500K',
+  openInterest: '$250K',
   marketType: 'commodity',
   isHip3: true,
 };
@@ -57,21 +59,21 @@ describe('PerpsMarketListView', () => {
         `${sortFiltersId}-categories-crypto`,
       );
       const commoditiesBadge = screen.getByTestId(
-        `${sortFiltersId}-categories-commodities`,
+        `${sortFiltersId}-categories-commodity`,
       );
       expect(cryptoBadge).toBeOnTheScreen();
       expect(commoditiesBadge).toBeOnTheScreen();
 
       fireEvent.press(cryptoBadge);
       await waitFor(() => {
-        expect(screen.getByText('BTC')).toBeOnTheScreen();
-        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
+        expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+        expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
       });
 
       fireEvent.press(commoditiesBadge);
       await waitFor(() => {
-        expect(screen.getByText('XAU')).toBeOnTheScreen();
-        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+        expect(screen.getByText('Gold')).toBeOnTheScreen();
+        expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
       });
     });
 
@@ -89,21 +91,19 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByText(strings('perps.no_tokens_found')),
         ).toBeOnTheScreen();
-        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
-        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
       });
     });
 
-    it('shows empty favorites state when view starts in watchlist-only mode with no favorites', async () => {
+    it('shows empty watchlist state when view starts in watchlist-only mode with no favorites', async () => {
       renderPerpsMarketListView({
         initialParams: { showWatchlistOnly: true },
+        streamOverrides: { marketData: marketDataWithCategories },
       });
 
       expect(
-        await screen.findByText(strings('perps.no_favorites_found')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.no_favorites_description')),
+        await screen.findByText(strings('perps.watchlist.empty_subtitle')),
       ).toBeOnTheScreen();
     });
   });

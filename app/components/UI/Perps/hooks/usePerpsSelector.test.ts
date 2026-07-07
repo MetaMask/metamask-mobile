@@ -142,7 +142,8 @@ describe('usePerpsSelector', () => {
     const mockState: PerpsControllerState = {
       accountState: {
         totalBalance: '1000.00',
-        availableBalance: '750.00',
+        spendableBalance: '750.00',
+        withdrawableBalance: '750.00',
         marginUsed: '250.00',
       },
     } as PerpsControllerState;
@@ -158,7 +159,7 @@ describe('usePerpsSelector', () => {
     ) => ({
       total: Number.parseFloat(state?.accountState?.totalBalance ?? '0'),
       available: Number.parseFloat(
-        state?.accountState?.availableBalance ?? '0',
+        state?.accountState?.spendableBalance ?? '0',
       ),
       used: Number.parseFloat(state?.accountState?.marginUsed ?? '0'),
     });

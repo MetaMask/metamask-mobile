@@ -93,7 +93,7 @@ jest.mock('react-redux', () => ({
 
 describe('ApproveTransactionHeader', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <ApproveTransactionHeader
         chainId={CHAIN_IDS.SEPOLIA}
         from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
@@ -107,7 +107,7 @@ describe('ApproveTransactionHeader', () => {
       />,
       { state: mockInitialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(getByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeOnTheScreen();
   });
 
   it('should render with domain title', () => {
@@ -125,7 +125,7 @@ describe('ApproveTransactionHeader', () => {
       />,
       { state: mockInitialState },
     );
-    expect(getByText('https://metamask.github.io')).toBeDefined();
+    expect(getByText('https://metamask.github.io')).toBeOnTheScreen();
   });
 
   it('should get origin when present', () => {
@@ -143,11 +143,11 @@ describe('ApproveTransactionHeader', () => {
       />,
       { state: mockInitialState },
     );
-    expect(getByText('https://metamask.github.io')).toBeDefined();
+    expect(getByText('https://metamask.github.io')).toBeOnTheScreen();
   });
 
   it('should return origin to be null when not present', () => {
-    const container = renderWithProvider(
+    const { queryByTestId } = renderWithProvider(
       <ApproveTransactionHeader
         chainId={CHAIN_IDS.SEPOLIA}
         from="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
@@ -161,7 +161,7 @@ describe('ApproveTransactionHeader', () => {
       />,
       { state: mockInitialState },
     );
-    expect(container).toMatchSnapshot();
+    expect(queryByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeNull();
   });
 
   it('should not show an origin pill if origin is deeplink', () => {

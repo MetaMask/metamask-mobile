@@ -55,6 +55,10 @@ export const ConfirmationFooterSelectorIDs = {
   CONFIRM_BUTTON: 'confirm-button',
 } as const;
 
+export const ConfirmationLoaderSelectorIDs = {
+  TRANSFER: 'confirm-loader-transfer',
+} as const;
+
 export const ConfirmAlertModalSelectorsIDs = {
   CONFIRM_ALERT_CHECKBOX: 'confirm-alert-checkbox',
   CONFIRM_ALERT_BUTTON: 'confirm-alert-confirm-button',
@@ -92,6 +96,20 @@ export const GasFeeTokenModalSelectorsText = {
   GAS_FEE_TOKEN_BALANCE: 'gas-fee-token-list-item-balance',
   GAS_FEE_TOKEN_SYMBOL: 'gas-fee-token-list-item-symbol',
   GAS_FEE_TOKEN_AMOUNT_FIAT: 'gas-fee-token-list-item-amount-fiat',
+} as const;
+
+export const PerpsAccountPickerSelectorsIDs = {
+  ROW: 'perps-account-picker-row',
+  SHEET: 'perps-account-picker-sheet',
+  SEARCH_INPUT: 'perps-account-picker-search',
+  ACCOUNT_ITEM: 'perps-account-picker-item',
+} as const;
+
+export const PredictAccountPickerSelectorsIDs = {
+  ROW: 'predict-account-picker-row',
+  SHEET: 'predict-account-picker-sheet',
+  SEARCH_INPUT: 'predict-account-picker-search',
+  ACCOUNT_ITEM: 'predict-account-picker-item',
 } as const;
 
 export const TransactionPayComponentIDs = {

@@ -1,5 +1,4 @@
 import { PredictGamePeriod, Side } from '../../types';
-import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
   conditionId: string;
@@ -29,85 +28,6 @@ export enum UtilsSide {
   SELL,
 }
 
-export interface OrderData {
-  /**
-   * Maker of the order, i.e the source of funds for the order
-   */
-  maker: string;
-
-  /**
-   * Address of the order taker. The zero address is used to indicate a public order
-   */
-  taker: string;
-
-  /**
-   * Token Id of the CTF ERC1155 asset to be bought or sold.
-   * If BUY, this is the tokenId of the asset to be bought, i.e the makerAssetId
-   * If SELL, this is the tokenId of the asset to be sold, i.e the  takerAssetId
-   */
-  tokenId: string;
-
-  /**
-   * Maker amount, i.e the max amount of tokens to be sold
-   */
-  makerAmount: string;
-
-  /**
-   * Taker amount, i.e the minimum amount of tokens to be received
-   */
-  takerAmount: string;
-
-  /**
-   * The side of the order, BUY or SELL
-   */
-  side: UtilsSide;
-
-  /**
-   * Fee rate, in basis points, charged to the order maker, charged on proceeds
-   */
-  feeRateBps: string;
-
-  /**
-   * Nonce used for onchain cancellations
-   */
-  nonce: string;
-
-  /**
-   * Signer of the order. Optional, if it is not present the signer is the maker of the order.
-   */
-  signer?: string;
-
-  /**
-   * Timestamp after which the order is expired.
-   * Optional, if it is not present the value is '0' (no expiration)
-   */
-  expiration?: string;
-
-  /**
-   * Signature type used by the Order. Default value 'EOA'
-   */
-  signatureType?: SignatureType;
-}
-
-/**
- * SignedOrder
- *
- * Based on the response from buildMarketOrderCreationArgs, which returns
- * OrderData combined with a generated salt. A SignedOrder augments that
- * structure with the EIP-712 signature string produced by the signer.
- */
-export type SignedOrder = (OrderData & { salt: string }) & {
-  signature: string;
-};
-
-export interface ClobOrderObject {
-  order: Omit<SignedOrder, 'side' | 'salt'> & {
-    side: Side;
-    salt: number;
-  };
-  owner: string;
-  orderType: OrderType;
-}
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ClobHeaders = {
   POLY_ADDRESS: string;
@@ -117,10 +37,22 @@ export type ClobHeaders = {
   POLY_PASSPHRASE: string;
 };
 
-export interface PolymarketOffchainTradeParams {
-  clobOrder: ClobOrderObject;
-  headers: ClobHeaders;
-  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+export interface ClobFeeDetails {
+  /** Fee rate returned by the CLOB API, e.g. 0.02 means 2%. */
+  r?: number | null;
+  /** Exponent used by the CLOB fee curve. */
+  e?: number | null;
+  /** Whether taker-only fees apply for this market. */
+  to?: boolean | null;
+}
+
+export interface ClobMarketInfo {
+  /** Fee details used to calculate conservative market fees. */
+  fd?: ClobFeeDetails;
+  /** Minimum tick size for orders in this market. */
+  mts?: number;
+  /** Minimum order size for this market. */
+  mos?: number;
 }
 
 // Polymarket API response types
@@ -142,8 +74,9 @@ export interface PolymarketApiMarket {
   outcomePrices: string;
   closed: boolean;
   active: boolean;
+  acceptingOrders?: boolean;
   resolvedBy: string;
-  orderPriceMinTickSize: number;
+  orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
   line?: number;
@@ -177,9 +110,11 @@ export interface PolymarketApiEvent {
   icon: string;
   endDate?: string;
   closed: boolean;
+  active?: boolean;
   series: PolymarketApiSeries[];
   markets: PolymarketApiMarket[];
   tags: PolymarketApiTag[];
+  teams?: PolymarketApiTeam[];
   liquidity: number;
   volume: number;
   sortBy?: 'price' | 'ascending' | 'descending';
@@ -191,11 +126,16 @@ export interface PolymarketApiEvent {
   period?: PredictGamePeriod;
   live?: boolean;
   ended?: boolean;
+  parentEventId?: string | number | null;
+  eventMetadata?: {
+    priceToBeat?: number | string | null;
+  };
 }
 
 export interface PolymarketApiActivity {
   type: 'TRADE' | 'REDEEM';
   side: 'BUY' | 'SELL' | '';
+  size?: number | string | null;
   price: number;
   usdcSize: number;
   timestamp: number;
@@ -205,14 +145,15 @@ export interface PolymarketApiActivity {
   title: string;
   outcome?: 'Yes' | 'No' | '';
   icon: string;
+  slug?: string;
+  eventSlug?: string;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
 }
 
-export interface PolymarketApiEventsResponse {
-  data: PolymarketApiEvent[];
-  pagination: {
-    hasMore: boolean;
-    totalResults: number;
-  };
+export interface PolymarketApiEventsKeysetResponse {
+  events: PolymarketApiEvent[];
+  next_cursor?: string | null;
 }
 
 export interface ContractConfig {
@@ -229,7 +170,7 @@ export interface RoundConfig {
   readonly amount: number;
 }
 
-export type TickSize = '0.1' | '0.01' | '0.001' | '0.0001';
+export type TickSize = string;
 
 export const COLLATERAL_TOKEN_DECIMALS = 6;
 export const CONDITIONAL_TOKEN_DECIMALS = 6;
@@ -256,6 +197,11 @@ export enum SignatureType {
    * EIP712 signatures signed by EOAs that own Polymarket Gnosis safes
    */
   POLY_GNOSIS_SAFE,
+
+  /**
+   * ERC-1271 signatures validated by Polymarket deposit wallets
+   */
+  POLY_1271,
 }
 
 // Simplified market order for users
@@ -332,12 +278,6 @@ export interface TickSizeResponse {
   minimum_tick_size: TickSize;
 }
 
-export interface ClobOrderParams {
-  owner: string;
-  order: ClobOrderObject;
-  orderType: OrderType;
-}
-
 export interface OrderSummary {
   price: string;
   size: string;
@@ -362,6 +302,7 @@ export interface PolymarketApiTeam {
   abbreviation: string;
   color: string;
   alias: string;
+  league?: string;
 }
 
 export interface PolymarketApiGameEvent {

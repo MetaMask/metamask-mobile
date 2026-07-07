@@ -1,5 +1,50 @@
-import { Asset, TokenRwaData } from '@metamask/assets-controllers';
-import { Hex, CaipChainId } from '@metamask/utils';
+import type { Asset, TokenRwaData } from '@metamask/assets-controllers';
+import type { Hex, CaipChainId, CaipAssetType } from '@metamask/utils';
+
+export enum SecurityDataType {
+  Info = 'Info',
+  Benign = 'Benign',
+  Verified = 'Verified',
+  Warning = 'Warning',
+  Spam = 'Spam',
+  Malicious = 'Malicious',
+}
+
+export interface SecurityFeature {
+  featureId: string;
+  type: SecurityDataType;
+  description: string;
+}
+
+export interface SecurityData {
+  type: SecurityDataType;
+  metadata?: { features: SecurityFeature[] };
+}
+
+export interface PopularToken {
+  assetId: CaipAssetType;
+  decimals: number;
+  iconUrl: string;
+  name: string;
+  symbol: string;
+  isVerified?: boolean;
+  noFee?: {
+    isSource: boolean;
+    isDestination: boolean;
+  };
+  securityData?: SecurityData;
+}
+
+export interface IncludeAsset {
+  assetId: CaipAssetType;
+  name: string;
+  symbol: string;
+  decimals: number;
+  rwaData?: TokenRwaData;
+  iconUrl?: string;
+  isVerified?: boolean;
+  securityData?: SecurityData;
+}
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
 export interface BridgeToken {
@@ -25,6 +70,7 @@ export interface BridgeToken {
   aggregators?: string[];
   metadata?: Record<string, unknown>;
   rwaData?: TokenRwaData;
+  securityData?: SecurityData;
 }
 
 export enum BridgeViewMode {

@@ -28,9 +28,12 @@ import { isMetaMaskUniversalLink } from '../../../core/DeeplinkManager/util/deep
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { derivePredefinedRecipientParams } from '../confirmations/utils/address';
 import { getURLProtocol } from '../../../util/general';
 import {
@@ -39,8 +42,10 @@ import {
 } from '../../../util/validators';
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChainType } from '../confirmations/utils/send';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -218,6 +223,22 @@ const QRScanner = ({
       }
 
       if (SDKConnectV2.isMwpDeeplink(response.data)) {
+        if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
+          shouldReadBarCodeRef.current = false;
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
+          end();
+          onScanSuccess({ content }, content);
+          return;
+        }
+
         // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
         // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
         // parent components don't need to be notified.
@@ -375,6 +396,23 @@ const QRScanner = ({
           mountedRef.current = false;
         }
       } else {
+        if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
+          shouldReadBarCodeRef.current = false;
+          data = { content };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
+          end();
+          onScanSuccess(data, content);
+          return;
+        }
+
         if (
           !failedSeedPhraseRequirements(content) &&
           isValidMnemonic(content)

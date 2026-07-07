@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
-import { InteractionManager } from 'react-native';
+import { InteractionManager, RefreshControl } from 'react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -64,27 +64,12 @@ jest.mock('../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
     Screen: ({ children }: { children: React.ReactNode }) => children,
   }),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: View,
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 375, height: 812 }),
-  };
-});
 
 // Minimal mock to add testID pattern for icon assertions
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
@@ -140,6 +125,17 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
     },
   };
 });
+
+const mockOpenBuySheet = jest.fn();
+const mockOpenSellSheet = jest.fn();
+let mockIsBuySheetOpen = false;
+jest.mock('../../contexts', () => ({
+  usePredictPreviewSheet: () => ({
+    openBuySheet: mockOpenBuySheet,
+    openSellSheet: mockOpenSellSheet,
+    isBuySheetOpen: mockIsBuySheetOpen,
+  }),
+}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
@@ -198,6 +194,16 @@ jest.mock('../../hooks/usePredictMarket', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useCurrentPredictMarketFromSeries', () => ({
+  useCurrentPredictMarketFromSeries: jest.fn(() => ({
+    market: undefined,
+    marketId: undefined,
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/usePredictPriceHistory', () => ({
   usePredictPriceHistory: jest.fn(() => ({
     priceHistories: [],
@@ -215,6 +221,10 @@ jest.mock('../../hooks/usePredictPositions', () => ({
     error: null,
     refetch: jest.fn(),
   })),
+}));
+
+jest.mock('../../hooks/usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePredictBalance', () => ({
@@ -244,6 +254,15 @@ jest.mock('../../hooks/usePredictPrices', () => ({
     isFetching: false,
     error: null,
     refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    prices: new Map(),
+    getPrice: jest.fn(() => undefined),
+    isConnected: false,
+    lastUpdateTime: null,
   })),
 }));
 
@@ -320,6 +339,40 @@ jest.mock('../../components/PredictGameDetailsContent', () => {
     );
   };
 });
+
+jest.mock('../../components/PredictCryptoUpDownDetails', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPredictCryptoUpDownDetails() {
+    return <View testID="predict-crypto-up-down-details" />;
+  };
+});
+
+jest.mock('../../utils/cryptoUpDown', () => ({
+  isCryptoUpDown: jest.fn(() => false),
+  UP_OR_DOWN_TAG: 'up-or-down',
+  CRYPTO_TAG: 'crypto',
+}));
+
+let mockSelectPredictUpDownEnabledFlag = false;
+const mockSelectPredictFeeCollectionFlag = {
+  enabled: true,
+  collector: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+  metamaskFee: 0.02,
+  providerFee: 0.02,
+  waiveList: ['middle-east'],
+  executors: [],
+  permit2Enabled: false,
+};
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictUpDownEnabledFlag: jest.fn(
+    () => mockSelectPredictUpDownEnabledFlag,
+  ),
+  selectPredictFeeCollectionFlag: jest.fn(
+    () => mockSelectPredictFeeCollectionFlag,
+  ),
+  selectNonRegTimeSportsMarketTypes: jest.fn(() => ['soccer_team_to_advance']),
+}));
 
 jest.mock('../../../../Base/TabBar', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -470,6 +523,7 @@ const isSplitPositionsOverride = (
 
 interface HookOverrides {
   market?: HookOverrideShape;
+  currentSeriesMarket?: HookOverrideShape;
   priceHistory?: HookOverrideShape;
   positions?: PositionsOverride;
   eligibility?: HookOverrideShape;
@@ -483,6 +537,15 @@ function setupPredictMarketDetailsTest(
   jest.clearAllMocks();
   runAfterInteractionsCallbacks.length = 0;
   mockRunAfterInteractions.mockImplementation(runAfterInteractionsMockImpl);
+
+  const { selectPredictUpDownEnabledFlag, selectPredictFeeCollectionFlag } =
+    jest.requireMock('../../selectors/featureFlags');
+  selectPredictUpDownEnabledFlag.mockReturnValue(
+    mockSelectPredictUpDownEnabledFlag,
+  );
+  selectPredictFeeCollectionFlag.mockReturnValue(
+    mockSelectPredictFeeCollectionFlag,
+  );
 
   const mockNavigate = jest.fn();
   const mockSetOptions = jest.fn();
@@ -520,11 +583,17 @@ function setupPredictMarketDetailsTest(
   mockUseRoute.mockReturnValue(mockRoute);
 
   const { usePredictMarket } = jest.requireMock('../../hooks/usePredictMarket');
+  const { useCurrentPredictMarketFromSeries } = jest.requireMock(
+    '../../hooks/useCurrentPredictMarketFromSeries',
+  );
   const { usePredictPriceHistory } = jest.requireMock(
     '../../hooks/usePredictPriceHistory',
   );
   const { usePredictPositions } = jest.requireMock(
     '../../hooks/usePredictPositions',
+  );
+  const { usePredictLivePositions } = jest.requireMock(
+    '../../hooks/usePredictLivePositions',
   );
   const { usePredictEligibility } = jest.requireMock(
     '../../hooks/usePredictEligibility',
@@ -542,6 +611,15 @@ function setupPredictMarketDetailsTest(
     isFetching: false,
     refetch: jest.fn(),
     ...hookOverrides.market,
+  });
+
+  useCurrentPredictMarketFromSeries.mockReturnValue({
+    market: undefined,
+    marketId: undefined,
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+    ...hookOverrides.currentSeriesMarket,
   });
 
   usePredictPriceHistory.mockReturnValue({
@@ -588,6 +666,7 @@ function setupPredictMarketDetailsTest(
     ({ claimable }: { claimable?: boolean }) =>
       claimable ? claimablePositionsHook : activePositionsHook,
   );
+  usePredictLivePositions.mockImplementation(() => undefined);
 
   // Set up usePredictOrderPreview mock to return preview data matching position currentValue
   mockUsePredictOrderPreview.mockImplementation(
@@ -672,7 +751,7 @@ const extractText = (node: React.ReactNode): string => {
   }
 
   if (React.isValidElement(node)) {
-    return extractText(node.props.children);
+    return extractText((node.props as { children?: React.ReactNode }).children);
   }
 
   return '';
@@ -698,6 +777,7 @@ describe('PredictMarketDetails', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockRunAfterInteractions.mockReset();
+    mockIsBuySheetOpen = false;
   });
 
   afterAll(() => {
@@ -717,6 +797,31 @@ describe('PredictMarketDetails', () => {
       const { mockMarket } = setupPredictMarketDetailsTest();
 
       expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
+    });
+
+    it('tracks market details opened with explore entry point from route params', async () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {
+          params: {
+            marketId: 'market-1',
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+          },
+        },
+      );
+
+      const trackMarketDetailsOpened =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../../../../../core/Engine').context.PredictController
+          .trackMarketDetailsOpened;
+
+      await waitFor(() => {
+        expect(trackMarketDetailsOpened).toHaveBeenCalledWith(
+          expect.objectContaining({
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+          }),
+        );
+      });
     });
 
     it('displays loading state when market is fetching', () => {
@@ -744,6 +849,49 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
+    it('resolves the details market from route series params', () => {
+      const routeSeries = {
+        id: 'btc-series',
+        slug: 'btc-up-or-down-5m',
+        title: 'BTC Up or Down',
+        recurrence: '5m',
+      };
+      const liveMarket = createMockMarket({
+        id: 'live-market',
+        series: routeSeries,
+      });
+
+      setupPredictMarketDetailsTest(
+        {},
+        { params: { series: routeSeries } },
+        {
+          currentSeriesMarket: {
+            market: liveMarket,
+            marketId: liveMarket.id,
+          },
+          market: { data: liveMarket },
+        },
+      );
+
+      const { useCurrentPredictMarketFromSeries } = jest.requireMock(
+        '../../hooks/useCurrentPredictMarketFromSeries',
+      );
+      const { usePredictMarket } = jest.requireMock(
+        '../../hooks/usePredictMarket',
+      );
+
+      expect(useCurrentPredictMarketFromSeries).toHaveBeenCalledWith({
+        series: routeSeries,
+        seriesId: undefined,
+        seriesRecurrence: undefined,
+        enabled: true,
+      });
+      expect(usePredictMarket).toHaveBeenCalledWith({
+        id: liveMarket.id,
+        enabled: true,
+      });
+    });
+
     it('displays fallback title when market data is unavailable', () => {
       setupPredictMarketDetailsTest({}, {}, { market: { data: null } });
 
@@ -751,6 +899,51 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the market unavailable state when no marketId or series id can be resolved', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {
+          params: {
+            series: {
+              id: '',
+              slug: '',
+              title: '',
+              recurrence: '5m',
+            },
+          },
+        },
+        {
+          market: { data: null, isLoading: false, isFetching: false },
+          currentSeriesMarket: {
+            market: undefined,
+            marketId: undefined,
+            isLoading: false,
+            isFetching: false,
+          },
+        },
+      );
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the market unavailable state while the market is still loading', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        {
+          market: { data: null, isLoading: true, isFetching: true },
+        },
+      );
+
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE,
+        ),
+      ).toBeNull();
     });
 
     it('renders back button with correct accessibility', () => {
@@ -1325,12 +1518,14 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithoutPrice);
 
-      // The component now shows 0% in the action buttons when price is undefined
+      // Each button now shows its own token's price: the Yes token has no
+      // price so it shows 0c, while the No token shows its real 35c (no longer
+      // the synthetic 100 - yes complement).
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
       expect(buttonLabels).toEqual(
-        expect.arrayContaining(['Yes•0¢', 'No•100¢']),
+        expect.arrayContaining(['Yes•0¢', 'No•35¢']),
       );
     });
   });
@@ -1401,7 +1596,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
     });
 
-    it('handles cash out button press', () => {
+    it('cash out uses context sell sheet instead of navigation', () => {
       const mockPosition = {
         id: 'position-1',
         outcomeId: 'outcome-1',
@@ -1414,13 +1609,12 @@ describe('PredictMarketDetails', () => {
         icon: 'https://example.com/icon.png',
       };
 
-      const { mockNavigate } = setupPredictMarketDetailsTest(
+      setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
         { positions: { data: [mockPosition] } },
       );
 
-      // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
         getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
@@ -1429,18 +1623,15 @@ describe('PredictMarketDetails', () => {
       const cashOutButton = screen.getByText('predict.cash_out');
       fireEvent.press(cashOutButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.SELL_PREVIEW,
-        {
+      expect(mockOpenSellSheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           position: mockPosition,
-          outcome: expect.any(Object),
-          market: expect.any(Object),
           entryPoint: 'predict_market_details',
-        },
+        }),
       );
     });
 
-    it('handles Yes button press for betting', () => {
+    it('calls openBuySheet via context when Yes button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1456,25 +1647,23 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const yesButton = findActionButtonByPrice(65);
       expect(yesButton).toBeDefined();
       fireEvent.press(yesButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[0],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 
-    it('handles No button press for betting', () => {
+    it('calls openBuySheet via context when No button is pressed', () => {
       const singleOutcomeMarket = createMockMarket({
         status: 'open',
         outcomes: [
@@ -1490,21 +1679,19 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { mockNavigate } =
-        setupPredictMarketDetailsTest(singleOutcomeMarket);
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       const noButton = findActionButtonByPrice(35);
       expect(noButton).toBeDefined();
       fireEvent.press(noButton as ReactTestInstance);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PREDICT.MODALS.BUY_PREVIEW,
-        {
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
           market: singleOutcomeMarket,
           outcome: singleOutcomeMarket.outcomes[0],
           outcomeToken: singleOutcomeMarket.outcomes[0].tokens[1],
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        },
+          entryPoint: 'predict_market_details',
+        }),
       );
     });
 
@@ -1538,17 +1725,14 @@ describe('PredictMarketDetails', () => {
     it('attaches a themed RefreshControl to the scroll view', () => {
       setupPredictMarketDetailsTest();
 
-      const scrollView = screen.getByTestId(
-        'predict-market-details-scrollable-tab-view',
-      );
-      const refreshControlProps = scrollView.props.refreshControl.props;
+      const refreshControl = screen.UNSAFE_getByType(RefreshControl);
 
-      expect(scrollView.props.refreshControl).toBeDefined();
-      expect(refreshControlProps.tintColor).toBeTruthy();
-      expect(refreshControlProps.colors).toEqual([
-        refreshControlProps.tintColor,
+      expect(refreshControl).toBeTruthy();
+      expect(refreshControl.props.tintColor).toBeTruthy();
+      expect(refreshControl.props.colors).toEqual([
+        refreshControl.props.tintColor,
       ]);
-      expect(refreshControlProps.refreshing).toBe(false);
+      expect(refreshControl.props.refreshing).toBe(false);
     });
 
     it('triggers market, price history, and active positions refresh', async () => {
@@ -1566,12 +1750,10 @@ describe('PredictMarketDetails', () => {
         },
       );
 
-      const scrollView = screen.getByTestId(
-        'predict-market-details-scrollable-tab-view',
-      );
+      const refreshControl = screen.UNSAFE_getByType(RefreshControl);
 
       await act(async () => {
-        await scrollView.props.refreshControl.props.onRefresh();
+        await fireEvent(refreshControl, 'refresh');
       });
 
       await waitFor(() => {
@@ -1753,6 +1935,57 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  describe('Crypto Up/Down Branching', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectPredictUpDownEnabledFlag = false;
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      isCryptoUpDown.mockReturnValue(false);
+    });
+
+    it('renders PredictCryptoUpDownDetails when upDownEnabled and isCryptoUpDown are true', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = true;
+      isCryptoUpDown.mockReturnValue(true);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId('predict-crypto-up-down-details'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders default market details when upDownEnabled is false', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = false;
+      isCryptoUpDown.mockReturnValue(true);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-crypto-up-down-details'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders default market details when isCryptoUpDown returns false', () => {
+      const { isCryptoUpDown } = jest.requireMock('../../utils/cryptoUpDown');
+      mockSelectPredictUpDownEnabledFlag = true;
+      isCryptoUpDown.mockReturnValue(false);
+
+      setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-crypto-up-down-details'),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('Data Processing Functions', () => {
     it('handles position with groupItemTitle correctly', () => {
       const mockMarket = createMockMarket({
@@ -1918,9 +2151,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithUndefinedPrice);
 
-      // The component now shows 0% in the action buttons when price is undefined
+      // Yes has no price -> 0c; No shows its own price (35c), not 100 - yes.
       const yesButton = findActionButtonByPrice(0);
-      const noButton = findActionButtonByPrice(100);
+      const noButton = findActionButtonByPrice(35);
 
       expect(yesButton).toBeDefined();
       expect(noButton).toBeDefined();
@@ -3339,6 +3572,69 @@ describe('PredictMarketDetails', () => {
       );
     });
 
+    it('pauses and resumes broad outcome price updates as buy sheet visibility changes', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
+      );
+      const worldCupWinnerMarket = createMockMarket({
+        status: 'open',
+        outcomes: Array.from({ length: 64 }, (_, index) => ({
+          id: `outcome-${index + 1}`,
+          title: `Team ${index + 1}`,
+          groupItemTitle: `Team ${index + 1}`,
+          status: 'open',
+          tokens: [
+            { id: `token-${index + 1}-yes`, title: 'Yes', price: 0.5 },
+            { id: `token-${index + 1}-no`, title: 'No', price: 0.5 },
+          ],
+          volume: 1000000,
+        })),
+      });
+
+      mockIsBuySheetOpen = false;
+      const { rerender } = setupPredictMarketDetailsTest(worldCupWinnerMarket);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
+        enabled: true,
+      });
+
+      mockIsBuySheetOpen = true;
+      rerender(<PredictMarketDetails />);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: false,
+          queries: [],
+          pollingInterval: undefined,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith([], {
+        enabled: false,
+      });
+
+      mockIsBuySheetOpen = false;
+      rerender(<PredictMarketDetails />);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
+        enabled: true,
+      });
+    });
+
     it('handles price fetching errors gracefully', () => {
       const { usePredictPrices } = jest.requireMock(
         '../../hooks/usePredictPrices',
@@ -3583,6 +3879,33 @@ describe('PredictMarketDetails', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('NFL: Team A vs Team B')).toBeOnTheScreen();
+    });
+
+    it('threads childMarketIds to usePredictPositions for both active and claimable queries', () => {
+      const marketWithChildren = createMockMarket({
+        childMarketIds: ['child-1', 'child-2'],
+      });
+
+      setupPredictMarketDetailsTest(marketWithChildren);
+
+      const { usePredictPositions } = jest.requireMock(
+        '../../hooks/usePredictPositions',
+      );
+
+      const calls = usePredictPositions.mock.calls;
+      const activeCall = calls.find(
+        ([args]: [{ claimable: boolean }]) => !args.claimable,
+      );
+      const claimableCall = calls.find(
+        ([args]: [{ claimable: boolean }]) => args.claimable,
+      );
+
+      expect(activeCall[0]).toEqual(
+        expect.objectContaining({ childMarketIds: ['child-1', 'child-2'] }),
+      );
+      expect(claimableCall[0]).toEqual(
+        expect.objectContaining({ childMarketIds: ['child-1', 'child-2'] }),
+      );
     });
 
     it('renders regular market details when market has no game property', () => {

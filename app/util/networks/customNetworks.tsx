@@ -28,6 +28,7 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
   'monad-mainnet': () => process.env.QUICKNODE_MONAD_URL,
   'hyperevm-mainnet': () => process.env.QUICKNODE_HYPEREVM_URL,
+  'arc-mainnet': () => process.env.QUICKNODE_ARC_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -117,17 +118,6 @@ export const PopularList = [
     },
   },
   {
-    chainId: toHex('11297108109'),
-    nickname: 'Palm',
-    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
-    ticker: 'PALM',
-    rpcPrefs: {
-      blockExplorerUrl: 'https://palm.chainlens.com',
-      imageUrl: 'PALM',
-      imageSource: require('../../images/palm.png'),
-    },
-  },
-  {
     chainId: toHex('137'),
     nickname: 'Polygon',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -142,7 +132,8 @@ export const PopularList = [
   {
     chainId: toHex('324'),
     nickname: 'zkSync Era',
-    rpcUrl: `https://mainnet.era.zksync.io`,
+    rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -159,7 +150,7 @@ export const PopularList = [
     ticker: 'SEI',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://seitrace.com/',
+      blockExplorerUrl: 'https://seiscan.io/',
       imageUrl: 'SEI',
       imageSource: require('../../images/sei.png'),
     },
@@ -188,6 +179,32 @@ export const PopularList = [
       blockExplorerUrl: 'https://megaeth.blockscout.com/',
       imageUrl: 'MEGAETH',
       imageSource: require('../../images/megaeth-mainnet-logo.png'),
+    },
+  },
+  {
+    chainId: toHex('4217'),
+    nickname: 'Tempo',
+    rpcUrl: `https://rpc.tempo.xyz/`,
+    failoverRpcUrls: [],
+    ticker: 'USD',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explore.tempo.xyz/',
+      imageUrl: 'TEMPO',
+      imageSource: require('../../images/tempo.png'),
+    },
+  },
+  {
+    chainId: toHex('5042'),
+    nickname: 'Arc',
+    rpcUrl: `https://arc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arc-mainnet'),
+    ticker: 'USDC',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.arc.io',
+      imageUrl: 'ARC',
+      imageSource: require('../../images/arc-network-logo.png'),
     },
   },
 ];
@@ -343,6 +360,18 @@ export const UnpopularNetworkList = [
       imageSource: require('../../images/harmony.png'),
     },
   },
+  {
+    chainId: toHex('11297108109'),
+    nickname: 'Palm',
+    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
+    ticker: 'PALM',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://palm.chainlens.com',
+      imageUrl: 'PALM',
+      imageSource: require('../../images/palm.png'),
+    },
+  },
 ];
 
 export const NETWORK_CHAIN_ID: {
@@ -391,6 +420,8 @@ export const NETWORK_CHAIN_ID: {
   readonly TEMPO_MAINNET: '0x1079';
   readonly CHILIZ: '0x15b38';
   readonly STABLE_MAINNET: '0x3dc';
+  readonly ARC: '0x13b2';
+  readonly KONET_MAINNET: '0x4341';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -437,6 +468,8 @@ export const NETWORK_CHAIN_ID: {
   TEMPO_MAINNET: '0x1079',
   CHILIZ: '0x15b38',
   STABLE_MAINNET: '0x3dc',
+  ARC: '0x13b2',
+  KONET_MAINNET: '0x4341',
   ...CHAIN_IDS,
 };
 
@@ -488,4 +521,8 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.TEMPO_MAINNET]: require('../../images/tempo.png'),
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
   [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
+  [NETWORK_CHAIN_ID.MANTLE]: require('../../images/mantle.png'),
+  [NETWORK_CHAIN_ID.SCROLL]: require('../../images/scroll-mainnet-logo.png'),
+  [NETWORK_CHAIN_ID.ARC]: require('../../images/arc-network-logo.png'),
+  [NETWORK_CHAIN_ID.KONET_MAINNET]: require('../../images/konet.png'),
 };

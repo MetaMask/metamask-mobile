@@ -100,14 +100,24 @@ const createStyles = (colors, shadows) =>
 const setAnimatedValue = (animatedValue, value) =>
   animatedValue.setValue(value);
 
+/**
+ * @param {object} props
+ * @param {number[]} props.range
+ * @param {number} props.increment
+ * @param {(value: number) => void} props.onChange
+ * @param {number} props.value
+ * @param {(text: number) => string} props.formatTooltipText
+ * @param {boolean} [props.disabled]
+ * @param {boolean} [props.changeOnRelease]
+ */
 const SlippageSlider = ({
   range,
   increment,
   onChange,
   value,
   formatTooltipText,
-  disabled,
-  changeOnRelease,
+  disabled = false,
+  changeOnRelease = false,
 }) => {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);

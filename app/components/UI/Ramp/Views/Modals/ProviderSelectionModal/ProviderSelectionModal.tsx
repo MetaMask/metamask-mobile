@@ -3,9 +3,10 @@ import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
 import { useSelector } from 'react-redux';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   createNavigationDetails,
@@ -16,14 +17,18 @@ import ProviderSelection from './ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
 import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
+import { parseUserFacingError } from '../../../utils/parseUserFacingError';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { strings } from '../../../../../../../locales/i18n';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -111,6 +116,7 @@ function ProviderSelectionModal() {
             amount,
             walletAddress,
             assetId,
+            redirectUrl: getRampCallbackBaseUrl(),
             providers: providerIds,
             paymentMethods: [selectedPaymentMethod.id],
           }
@@ -130,12 +136,13 @@ function ProviderSelectionModal() {
     loading: quotesLoading,
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
+  const surfaceClass = useElevatedSurface();
 
   const handleDismiss = useCallback(
     (hasPendingAction?: boolean) => {
       if (!hasPendingAction && skipQuotes) {
         navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
+          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         });
       }
     },
@@ -171,13 +178,26 @@ function ProviderSelectionModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={handleDismiss}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      onClose={handleDismiss}
+      twClassName={surfaceClass}
+    >
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}
+          amount={amount}
           quotes={quotes}
           quotesLoading={quotesLoading}
-          quotesError={quotesError}
+          quotesError={
+            quotesError
+              ? parseUserFacingError(
+                  quotesError,
+                  strings('fiat_on_ramp.no_quotes_available'),
+                )
+              : null
+          }
           showQuotes={!skipQuotes && amount > 0 && !!selectedPaymentMethod}
           showBackButton={hasPaymentModalInStack}
           ordersProviders={ordersProviders.filter(

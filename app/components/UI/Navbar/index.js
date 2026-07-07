@@ -5,7 +5,6 @@ import ModalNavbarTitle from '../ModalNavbarTitle';
 import {
   Alert,
   Image,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -21,9 +20,7 @@ import { analytics } from '../../../util/analytics/analytics';
 import { Authentication } from '../../../core';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
+import { NavbarSelectorsIDs } from './Navbar.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
 import {
@@ -40,9 +37,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../Views/Settings/Contacts/AddContactView.testIds';
 import { SettingsViewSelectorsIDs } from '../../Views/Settings/SettingsView.testIds';
-import HeaderBase, {
-  HeaderBaseVariant,
-} from '../../../component-library/components/HeaderBase';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -55,6 +49,7 @@ import {
   BadgeWrapper,
   ButtonIcon,
   ButtonIconSize,
+  HeaderBase,
   IconColor as MMDSIconColor,
 } from '@metamask/design-system-react-native';
 
@@ -602,7 +597,7 @@ export function getClosableNavigationOptions(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.backButton}
-          {...generateTestId(Platform, NAV_ANDROID_BACK_BUTTON)}
+          testID={NavbarSelectorsIDs.ANDROID_BACK_BUTTON}
         >
           <IonicIcon
             name={'arrow-back'}
@@ -1130,7 +1125,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
 
   return getHeaderCompactStandardNavbarOptions({
     title,
-    onClose: () => navigation.getParent()?.pop(),
+    onBack: () => navigation.goBack(),
     includesTopInset: true,
   });
 }
@@ -1229,7 +1224,7 @@ export function getDepositNavbarOptions(
     closeButtonProps = {
       iconName: IconName.Setting,
       onPress: onConfigurationPress,
-      testID: 'deposit-configuration-menu-button',
+      testID: NavbarSelectorsIDs.DEPOSIT_CONFIGURATION_BUTTON,
     };
   }
 
@@ -1238,6 +1233,9 @@ export function getDepositNavbarOptions(
     startButtonIconProps,
     closeButtonProps,
     includesTopInset: true,
+    style: {
+      backgroundColor: theme.colors.background.default,
+    },
   });
 }
 
@@ -1432,28 +1430,6 @@ export function getStakingNavbar(
       ) : (
         <></>
       ),
-  };
-}
-
-/**
- * Function that returns the navigation options for the DeFi Protocol Positions Details screen
- *
- * @param {Object} navigation - Navigation object required to push new views
- * @returns {Object} - Corresponding navbar options
- */
-export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
-  return {
-    headerTitle: () => null,
-    headerLeft: () => (
-      <ButtonIcon
-        style={styles.headerLeftButton}
-        onPress={() => navigation.pop()}
-        testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-        size={ButtonIconSize.Md}
-        iconName={IconName.ArrowLeft}
-        iconColor={IconColor.Default}
-      />
-    ),
   };
 }
 

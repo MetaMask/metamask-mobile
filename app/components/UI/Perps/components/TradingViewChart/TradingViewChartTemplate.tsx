@@ -1,4 +1,5 @@
 import { Theme } from '../../../../../util/theme/models';
+import { hexToRgba } from '../../utils/chartColors';
 
 export const createTradingViewChartTemplate = (
   theme: Theme,
@@ -375,7 +376,8 @@ export const createTradingViewChartTemplate = (
         window.ZOOM_LIMITS = {
             MIN_CANDLES: 10,  // Minimum candles visible when zoomed in
             MAX_CANDLES: 250, // Maximum candles visible when zoomed out
-            DEFAULT_CANDLES: 30 // Default visible candles (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
+            DEFAULT_CANDLES: 30, // Default visible candles (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
+            RIGHT_MARGIN_CANDLES: 2 // Small right margin after the latest candle
         };
         
         // Performance optimization variables
@@ -808,7 +810,7 @@ export const createTradingViewChartTemplate = (
                 // Use the old API: chart.addSeries(SeriesType, options, paneIndex)
                 // Pane index 1 creates a NEW separate pane below the default pane 0
                 window.volumeSeries = window.chart.addSeries(window.LightweightCharts.HistogramSeries, {
-                    color: '${theme.colors.success.default}',
+                    color: '${hexToRgba(theme.colors.success.default, 0.3)}',
                     priceFormat: {
                         type: 'custom',
                         formatter: window.formatVolumeEmpty, // Use empty formatter to hide Y-axis labels
@@ -1005,8 +1007,8 @@ export const createTradingViewChartTemplate = (
                                     time: candle.time,
                                     value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
                                     color: window.coloredVolume
-                                        ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
-                                        : '${theme.colors.border.muted}'
+                                        ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                        : '${hexToRgba(theme.colors.border.muted, 0.3)}'
                                 }));
                                 window.volumeSeries.setData(volumeData);
 
@@ -1189,7 +1191,7 @@ export const createTradingViewChartTemplate = (
                 // - from = dataLength - actualCandleCount (first visible bar index)
                 // - to = dataLength - 1 + small offset for right padding
                 const fromIndex = Math.max(0, dataLength - actualCandleCount);
-                const toIndex = dataLength - 1 + 2; // +2 for a small right margin
+                const toIndex = dataLength - 1 + window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES;
 
                 window.chart.timeScale().setVisibleLogicalRange({
                     from: fromIndex,
@@ -1380,8 +1382,8 @@ export const createTradingViewChartTemplate = (
                                                 time: candle.time,
                                                 value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
                                                 color: window.coloredVolume
-                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
-                                                    : '${theme.colors.border.muted}'
+                                                    ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                                    : '${hexToRgba(theme.colors.border.muted, 0.3)}'
                                             }));
 
                                             window.volumeSeries.setData(volumeData);
@@ -1426,6 +1428,80 @@ export const createTradingViewChartTemplate = (
 
                                 // Price line is updated via ADD_AUXILIARY_LINES with mark price from React Native
                                 // Do NOT use candle close price here - it differs from header's mark price
+                            }
+                        }
+                        break;
+                    case 'UPDATE_LAST_CANDLE':
+                        // Incremental update path: apply only the last 1-2 candles
+                        // via series.update() instead of resetting the full dataset.
+                        // This preserves the user's visible range / zoom and avoids
+                        // the viewport flicker that series.setData() causes — the
+                        // bug that appeared when revisiting a previously-visited
+                        // interval while live ticks continued to stream in.
+                        if (
+                            window.chart &&
+                            window.candlestickSeries &&
+                            Array.isArray(message.candles) &&
+                            message.candles.length > 0
+                        ) {
+                            try {
+                                const previousDataLength = window.allCandleData ? window.allCandleData.length : 0;
+                                const visibleLogicalRangeBefore = window.chart.timeScale().getVisibleLogicalRange();
+                                const rightEdgeBefore = previousDataLength > 0 ? previousDataLength - 1 + window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES : 0;
+                                const realtimeFollowThreshold = 3;
+                                const wasTrackingRealtime = !visibleLogicalRangeBefore ||
+                                    visibleLogicalRangeBefore.to >= rightEdgeBefore - realtimeFollowThreshold;
+                                let appendedCandle = false;
+
+                                message.candles.forEach(function (candle) {
+                                    // Update candlestick series (handles both in-place
+                                    // tick updates and newly appended bars).
+                                    window.candlestickSeries.update(candle);
+
+                                    // Keep allCandleData in sync so zoom/price-range
+                                    // calculations use the latest candle values.
+                                    if (window.allCandleData && window.allCandleData.length > 0) {
+                                        let existingIndex = -1;
+                                        for (let i = window.allCandleData.length - 1; i >= 0; i--) {
+                                            if (window.allCandleData[i].time === candle.time) {
+                                                existingIndex = i;
+                                                break;
+                                            }
+                                        }
+                                        if (existingIndex >= 0) {
+                                            window.allCandleData[existingIndex] = candle;
+                                        } else {
+                                            window.allCandleData.push(candle);
+                                            appendedCandle = true;
+                                        }
+                                    }
+
+                                    // Mirror the update on the volume series when visible.
+                                    if (window.volumeSeries) {
+                                        const volumePoint = {
+                                            time: candle.time,
+                                            value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
+                                            color: window.coloredVolume
+                                                ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                                : '${hexToRgba(theme.colors.border.muted, 0.3)}'
+                                        };
+                                        window.volumeSeries.update(volumePoint);
+                                    }
+                                });
+
+                                // When a new interval bar is appended while the user is
+                                // already following realtime, advance the logical range so
+                                // the new bar enters the viewport. If the user has panned
+                                // away from realtime, preserve their current viewport.
+                                if ((message.isNewBar || appendedCandle) && wasTrackingRealtime) {
+                                    window.applyZoom(window.visibleCandleCount, false);
+                                }
+
+                                // Refresh dynamic Y-axis decimal precision without
+                                // triggering a zoom/range change.
+                                window.updateVisiblePriceRange();
+                            } catch (error) {
+                                console.error('TradingView: Error applying incremental update:', error);
                             }
                         }
                         break;
@@ -1534,8 +1610,8 @@ export const createTradingViewChartTemplate = (
                                                 time: candle.time,
                                                 value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
                                                 color: window.coloredVolume
-                                                    ? (candle.close >= candle.open ? '${theme.colors.success.default}' : '${theme.colors.error.default}')
-                                                    : '${theme.colors.border.muted}'
+                                                    ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
+                                                    : '${hexToRgba(theme.colors.border.muted, 0.3)}'
                                             }));
                                             window.volumeSeries.setData(volumeData);
                                         }

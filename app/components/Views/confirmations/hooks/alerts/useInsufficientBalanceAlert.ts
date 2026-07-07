@@ -10,13 +10,20 @@ import { useConfirmActions } from '../useConfirmActions';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../utils/transaction';
+import {
+  hasTransactionType,
+  shouldApplyGasFeeSponsorship,
+} from '../../utils/transaction';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
-import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
+} from '../pay/useTransactionPayData';
 
 const IGNORE_TYPES = [
+  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
   TransactionType.predictWithdraw,
 ];
@@ -37,13 +44,20 @@ export const useInsufficientBalanceAlert = ({
   const { hasInsufficientBalance, nativeCurrency } =
     useHasInsufficientBalance();
   const isQuotesLoading = useIsTransactionPayLoading();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return useMemo(() => {
-    if (!transactionMetadata || isTransactionValueUpdating || isUsingPay) {
+    if (
+      !transactionMetadata ||
+      isTransactionValueUpdating ||
+      isUsingPay ||
+      isFiatPaymentSelected
+    ) {
       return [];
     }
 
-    const { selectedGasFeeToken, isGasFeeSponsored, gasFeeTokens } =
+    const { selectedGasFeeToken, gasFeeTokens, excludeNativeTokenForFee } =
       transactionMetadata;
 
     const isGasFeeTokensEmpty = gasFeeTokens?.length === 0;
@@ -52,13 +66,23 @@ export const useInsufficientBalanceAlert = ({
     const isGaslessCheckComplete = !isGaslessCheckPending;
 
     // Transaction is sponsored only if it's marked as sponsored AND gasless is supported
-    const isSponsoredTransaction = isGasFeeSponsored && isGaslessSupported;
+    const isSponsoredTransaction = shouldApplyGasFeeSponsorship({
+      transactionMeta: transactionMetadata,
+      isGaslessSupported,
+    });
 
     // Simulation is complete if it's disabled, or if enabled and gasFeeTokens is loaded
     const isSimulationComplete = !isSimulationEnabled || Boolean(gasFeeTokens);
 
     // Check if user has selected a gas fee token (or we're ignoring that check)
-    const hasNoGasFeeTokenSelected = ignoreGasFeeToken || !selectedGasFeeToken;
+    // Note: In the case of chains with no native token (ex: Tempo), `selectedGasFeeToken`
+    // may be populated despite no gas token being available.
+    // For those chains, `excludeNativeTokenForFee` will always be `true`, hence we can
+    // rely on the combination of `excludeNativeTokenForFee` and `isGasFeeTokensEmpty`.
+    const hasNoGasFeeTokenSelected =
+      ignoreGasFeeToken ||
+      !selectedGasFeeToken ||
+      (excludeNativeTokenForFee && isGasFeeTokensEmpty);
 
     // Gasless check is complete AND one of:
     //  - Gasless is NOT supported (native currency needed for gas)
@@ -107,14 +131,15 @@ export const useInsufficientBalanceAlert = ({
   }, [
     transactionMetadata,
     isTransactionValueUpdating,
+    isFiatPaymentSelected,
     isGaslessCheckPending,
     isGaslessSupported,
     isSimulationEnabled,
     ignoreGasFeeToken,
     isUsingPay,
     hasInsufficientBalance,
-    nativeCurrency,
     isQuotesLoading,
+    nativeCurrency,
     goToBuy,
     onReject,
   ]);

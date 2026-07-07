@@ -58,6 +58,7 @@ import type {
 } from './types.ts';
 import type { PreferencesState } from '@metamask/preferences-controller';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
+import { CardControllerState } from '../../../app/core/Engine/controllers/card-controller/types.ts';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -187,7 +188,6 @@ class FixtureBuilder {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
-      '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;
@@ -495,34 +495,6 @@ class FixtureBuilder {
 
     // Use the provided region or fallback to the default
     this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
-    return this;
-  }
-
-  /**
-   * Seeds ramps unified buy V1/V2 flags in RemoteFeatureFlagController so deeplinks
-   * and early navigation match the intended path before the remote config API responds.
-   * Uses minimumVersion 0.0.0 so any E2E app build passes the version gate.
-   */
-  withRampsUnifiedBuyRemoteFlagsSeededForE2E(options?: {
-    rampsUnifiedBuyV1?: boolean;
-    rampsUnifiedBuyV2?: boolean;
-  }) {
-    const rampsUnifiedBuyV1 = options?.rampsUnifiedBuyV1 ?? true;
-    const rampsUnifiedBuyV2 = options?.rampsUnifiedBuyV2 ?? true;
-    merge(this.fixture.state.engine.backgroundState, {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          rampsUnifiedBuyV1: {
-            active: rampsUnifiedBuyV1,
-            minimumVersion: '0.0.0',
-          },
-          rampsUnifiedBuyV2: {
-            enabled: rampsUnifiedBuyV2,
-            minimumVersion: '0.0.0',
-          },
-        },
-      },
-    });
     return this;
   }
 
@@ -1448,6 +1420,19 @@ class FixtureBuilder {
   }
 
   /**
+   * Enables basic functionality in settings.
+   * Required for remote feature flags and other external-service gated features.
+   * @returns The current instance for method chaining.
+   */
+  withBasicFunctionalityEnabled() {
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
    * Disables profile syncing in the fixture.
    * @returns The current instance for method chaining.
    */
@@ -1481,17 +1466,6 @@ class FixtureBuilder {
       allTokens: {
         [chainId]: {
           [account]: tokens,
-        },
-      },
-    });
-    return this;
-  }
-
-  withDetectedTokens(tokens: Record<string, unknown>[]) {
-    merge(this.fixture.state.engine.backgroundState.TokensController, {
-      allDetectedTokens: {
-        [CHAIN_IDS.MAINNET]: {
-          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
         },
       },
     });
@@ -1993,9 +1967,6 @@ class FixtureBuilder {
     });
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
-    merge(this.fixture.state.fiatOrders, {
-      rampRoutingDecision: 'AGGREGATOR',
-    });
 
     this.withDetectedGeolocation('US');
 
@@ -2064,6 +2035,135 @@ class FixtureBuilder {
         );
     }
 
+    return this;
+  }
+
+  /**
+   * Seeds CardController identity state and pre-populates the cardFeature
+   * RemoteFeatureFlag so BaanxProvider has a valid chain config at init time.
+   * The actual cardHomeData is populated by BaanxProvider.getOnChainAssets()
+   * on unlock, whose balance-scanner eth_call is intercepted by the mock server.
+   *
+   * @param isAuthenticated - Whether the cardholder is authenticated (default: false).
+   * @param walletAddress - EVM address of the cardholder (default: standard fixture account).
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withCardController(
+    isAuthenticated: boolean = false,
+    walletAddress: string = DEFAULT_FIXTURE_ACCOUNT,
+  ) {
+    merge(this.fixture.state.engine.backgroundState, {
+      CardController: {
+        selectedCountry: null,
+        providerData: {},
+        isAuthenticated,
+        cardholderAccounts: [`eip155:0:${walletAddress}`],
+        activeProviderId: 'baanx',
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          cardFeature: {
+            constants: {
+              accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+              onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
+            },
+            chains: {
+              'eip155:59144': {
+                enabled: true,
+                balanceScannerAddress:
+                  '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
+                foxConnectAddresses: {
+                  global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+                  us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+                },
+                tokens: [
+                  {
+                    symbol: 'USDC',
+                    address: '0x176211869cA2b568f2A7D4EE941E073a821EE1ff',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'USD Coin',
+                  },
+                  {
+                    symbol: 'USDT',
+                    address: '0xA219439258ca9da29E9Cc4cE5596924745e12B93',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'Tether USD',
+                  },
+                  {
+                    symbol: 'WETH',
+                    address: '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f',
+                    decimals: 18,
+                    enabled: true,
+                    name: 'Wrapped Ether',
+                  },
+                  {
+                    symbol: 'EURe',
+                    address: '0x3ff47c5Bf409C86533FE1f4907524d304062428D',
+                    decimals: 18,
+                    enabled: true,
+                    name: 'EURe',
+                  },
+                  {
+                    symbol: 'GBPe',
+                    address: '0x3Bce82cf1A2bc357F956dd494713Fe11DC54780f',
+                    decimals: 18,
+                    enabled: true,
+                    name: 'GBPe',
+                  },
+                  {
+                    symbol: 'aUSDC',
+                    address: '0x374D7860c4f2f604De0191298dD393703Cce84f3',
+                    decimals: 6,
+                    enabled: true,
+                    name: 'Aave USDC',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Preloads persisted attribution + marketing consent for E2E coverage of
+   * `Wallet Setup Completed` acquisition properties.
+   * @param attributionFields - Acquisition fields (capturedAt defaults to Date.now()).
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withWalletSetupAttributionForE2e(attributionFields: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_term?: string;
+    utm_content?: string;
+    attribution_id?: string;
+    capturedAt?: number;
+  }) {
+    if (!this.fixture.state) {
+      this.fixture.state = {} as Fixture['state'];
+    }
+    const { capturedAt: capturedAtInput, ...restFields } = attributionFields;
+    const capturedAt = capturedAtInput ?? Date.now();
+    merge(this.fixture.state, {
+      security: {
+        allowLoginWithRememberMe: false,
+        dataCollectionForMarketing: true,
+        isNFTAutoDetectionModalViewed: false,
+        osAuthEnabled: true,
+      },
+      attribution: {
+        attribution: {
+          ...restFields,
+          capturedAt,
+        },
+        _persist: { version: -1, rehydrated: true },
+      },
+    });
     return this;
   }
 

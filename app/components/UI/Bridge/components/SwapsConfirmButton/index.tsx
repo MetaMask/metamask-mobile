@@ -13,12 +13,13 @@ import {
   selectIsSubmittingTx,
   selectSourceAmount,
   selectSourceToken,
-  selectDestTokenWarning,
+  selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
+import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -34,29 +35,31 @@ import {
   exceedsPriceImpactErrorThreshold,
   parsePriceImpact,
 } from '../../utils/getPriceImpactViewData';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
+import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
   testID?: string;
   location: MetaMetricsSwapsEventSource;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const SwapsConfirmButton = ({
   latestSourceBalance,
   testID,
   location,
+  transactionActiveAbTests,
 }: Props) => {
   const navigation = useNavigation();
-  const handleConfirm = useBridgeConfirm({
-    latestSourceBalance,
-    location,
-  });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const tokenWarning = useSelector(selectDestTokenWarning);
+  const destToken = useSelector(selectDestToken);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -83,11 +86,30 @@ export const SwapsConfirmButton = ({
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+    isActiveQuoteForCurrentTokenPair,
+  } = useBridgeQuoteDataContext();
+
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    walletAddress,
+    activeQuote,
   });
 
+  const hasInsufficientNativeReserveError = Boolean(
+    insufficientNativeReserveError,
+  );
+
+  const handleConfirm = useBridgeConfirm({
+    activeQuote,
+    location,
+    transactionActiveAbTests,
+  });
+
+  const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas = !isNetworkFeeUnavailable && !hasSufficientGas;
 
   // Check both the display amount and the atomic amount are non-zero.
   // An amount like 0.000000001 BTC (8 decimals) is non-zero as a number but
@@ -143,27 +165,40 @@ export const SwapsConfirmButton = ({
   const isSubmitDisabled =
     !hasNonZeroSourceAmount ||
     isAwaitingQuote ||
+    (activeQuote && !isActiveQuoteForCurrentTokenPair) ||
     isPendingQuoteRefresh ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
+    hasInsufficientNativeReserveError ||
+    isNetworkFeeUnavailable ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     hasError ||
-    !hasSufficientGas ||
+    hasInsufficientGas ||
     !walletAddress;
 
   const handleContinue = async () => {
-    if (tokenWarning) {
+    const securityData = destToken?.securityData;
+    if (isNegativeSecurityType(securityData?.type)) {
       const params: TokenWarningModalParams = {
-        warningType:
-          tokenWarning.type as TokenWarningModalParams['warningType'],
-        description: tokenWarning.description,
+        warningType: securityData.type,
+        features: securityData.metadata?.features ?? [],
         mode: TokenWarningModalMode.Execution,
         location,
       };
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
         params,
+      });
+      return;
+    }
+
+    if (hasMissingPriceData(activeQuote)) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location,
+        },
       });
       return;
     }
@@ -218,8 +253,13 @@ export const SwapsConfirmButton = ({
       return strings('bridge.confirm_swap');
     }
 
-    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
-    if (!hasSufficientGas) return strings('bridge.insufficient_gas');
+    if (
+      hasInsufficientBalance ||
+      hasInsufficientNativeReserveError ||
+      isNetworkFeeUnavailable
+    )
+      return strings('bridge.insufficient_funds');
+    if (hasInsufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
     return strings('bridge.confirm_swap');
@@ -228,7 +268,9 @@ export const SwapsConfirmButton = ({
     isLoading,
     sourceAmount,
     hasInsufficientBalance,
-    hasSufficientGas,
+    hasInsufficientNativeReserveError,
+    isNetworkFeeUnavailable,
+    hasInsufficientGas,
     isSubmittingTx,
     needsNewQuote,
   ]);

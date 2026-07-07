@@ -6,8 +6,7 @@ import Routes from '../../constants/navigation/Routes';
 import StorageWrapper from '../../store/storage-wrapper';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../constants/storage';
 
-const isE2ETest =
-  process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
+const hasTestOverrides = process.env.HAS_TEST_OVERRIDES === 'true';
 
 /**
  * Hook to handle showing the multichain accounts intro modal
@@ -45,7 +44,7 @@ export const useMultichainAccountsIntroModal = () => {
     const shouldShow =
       !hasSeenIntroModal && isUpdate && isMultichainAccountsUpdate;
 
-    if (shouldShow && !isE2ETest) {
+    if (shouldShow && !hasTestOverrides) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO,
       });

@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -7,36 +7,63 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletView from '../../page-objects/wallet/WalletView';
 import RedesignedSendView from '../../page-objects/Send/RedesignedSendView';
-import { Assertions, Gestures, LocalNode, Matchers } from '../../framework';
+import { Assertions, Gestures, Matchers } from '../../framework';
 import BrowserView from '../../page-objects/Browser/BrowserView';
-import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
+import { getDecodedProxiedURL } from '../notifications/utils/helpers';
 
 jest.setTimeout(150_000);
 
 const TOKEN = 'Ethereum';
 
-describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
+describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
   it('displays the resolved recipient address in the send flow', async () => {
     await withFixtures(
       {
-        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
-          const node = localNodes?.[0] as unknown as AnvilManager;
-
-          return new FixtureBuilder()
-            .withNetworkController({
-              chainId: '0x1',
-              rpcUrl: `http://localhost:${node.getPort() ?? AnvilPort()}`,
-              type: 'custom',
-              nickname: 'Local RPC',
-              ticker: 'ETH',
-            })
-            .build();
-        },
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
+        testSpecificMock: async (mockServer) => {
+          await mockServer
+            .forPost('/proxy')
+            .matching((request) => {
+              try {
+                const url = getDecodedProxiedURL(request.url);
+                return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+                  url,
+                );
+              } catch {
+                return false;
+              }
+            })
+            .asPriority(1001)
+            .thenCallback(async (request) => {
+              let addresses: string[] = [];
+              try {
+                const text = await request.body.getText();
+                if (text) {
+                  const parsed = JSON.parse(text) as unknown;
+                  if (Array.isArray(parsed)) {
+                    addresses = parsed.filter(
+                      (a): a is string => typeof a === 'string',
+                    );
+                  }
+                }
+              } catch {
+                /* ignore malformed body */
+              }
+              return {
+                statusCode: 200,
+                json: addresses.map((address) => ({
+                  address,
+                  blocked: false,
+                })),
+              };
+            });
+        },
       },
       async () => {
         await loginToApp();
@@ -48,7 +75,11 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapHome();
         await device.disableSynchronization();
-        await WalletView.waitForTokenToBeReady(TOKEN);
+        await WalletView.tapOnNewTokensSection();
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.changeNetworkTo('Localhost');
+
         await WalletView.tapOnToken(TOKEN);
         await TokenOverview.tapSendButton();
 

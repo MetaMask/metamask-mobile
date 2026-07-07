@@ -15,8 +15,8 @@ jest.mock('@react-navigation/native', () => ({
   createNavigatorFactory: jest.fn(),
 }));
 
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: jest.fn(() => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn(() => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
     Screen: ({ children }: { children: React.ReactNode }) => children,
   })),
@@ -31,14 +31,6 @@ jest.mock('./useSendActions', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
-    SafeAreaView: View,
-  };
-});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -68,8 +60,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 describe('useSendNavbar', () => {
+  const mockParentNavigate = jest.fn();
   const mockNavigation = {
     navigate: mockNavigate,
+    getParent: jest.fn(),
   };
 
   const createMockNavigationState = (
@@ -78,16 +72,34 @@ describe('useSendNavbar', () => {
       params?: Record<string, unknown>;
       state?: unknown;
     }[],
+    index = routes.length - 1,
   ) => ({
-    index: 0,
+    index,
     routes,
   });
 
+  const mockParentStackState = (
+    routes: {
+      name: string;
+      params?: Record<string, unknown>;
+      state?: unknown;
+    }[],
+    index = routes.length - 1,
+  ) => {
+    const state = createMockNavigationState(routes, index);
+    mockNavigation.getParent.mockReturnValue({
+      navigate: mockParentNavigate,
+      getState: () => state,
+    });
+    return state;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockParentStackState([{ name: 'Send' }]);
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useNavigationState as jest.Mock).mockReturnValue(
-      createMockNavigationState([{ name: 'Send' }]),
+      createMockNavigationState([{ name: Routes.SEND.ASSET }]),
     );
   });
 
@@ -130,9 +142,7 @@ describe('useSendNavbar', () => {
     });
 
     it('navigates to wallet view when back button is pressed with no previous routes', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([{ name: 'Send' }]),
-      );
+      mockParentStackState([{ name: 'Send' }]);
 
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
@@ -143,16 +153,14 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('navigates to previous main route when back button is pressed', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([
-          { name: 'SomeOtherRoute', params: { test: 'data' } },
-          { name: 'Send' },
-        ]),
-      );
+      mockParentStackState([
+        { name: 'SomeOtherRoute', params: { test: 'data' } },
+        { name: 'Send' },
+      ]);
 
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
@@ -163,15 +171,13 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
+      expect(mockParentNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
         test: 'data',
       });
     });
 
     it('navigates to wallet view when previous route is Home', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([{ name: 'Home' }, { name: 'Send' }]),
-      );
+      mockParentStackState([{ name: 'Home' }, { name: 'Send' }]);
 
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
@@ -182,24 +188,19 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
     it('navigates within Send sub-routes when nested routes exist', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([
-          {
-            name: 'Send',
-            state: {
-              index: 1,
-              routes: [
-                { name: Routes.SEND.ASSET },
-                { name: Routes.SEND.AMOUNT },
-              ],
-            },
+      mockParentStackState([
+        {
+          name: 'Send',
+          state: {
+            index: 1,
+            routes: [{ name: Routes.SEND.ASSET }, { name: Routes.SEND.AMOUNT }],
           },
-        ]),
-      );
+        },
+      ]);
 
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
@@ -210,26 +211,21 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.ASSET,
       });
     });
 
     it('navigates to Asset screen when at first route in nested Send stack', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([
-          {
-            name: 'Send',
-            state: {
-              index: 0,
-              routes: [
-                { name: Routes.SEND.ASSET },
-                { name: Routes.SEND.AMOUNT },
-              ],
-            },
+      mockParentStackState([
+        {
+          name: 'Send',
+          state: {
+            index: 0,
+            routes: [{ name: Routes.SEND.ASSET }, { name: Routes.SEND.AMOUNT }],
           },
-        ]),
-      );
+        },
+      ]);
 
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Amount } = result.current;
@@ -240,7 +236,7 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.ASSET,
       });
     });
@@ -313,12 +309,10 @@ describe('useSendNavbar', () => {
     });
 
     it('uses same back navigation logic as Amount route', () => {
-      (useNavigationState as jest.Mock).mockReturnValue(
-        createMockNavigationState([
-          { name: 'SomeOtherRoute', params: { test: 'data' } },
-          { name: 'Send' },
-        ]),
-      );
+      mockParentStackState([
+        { name: 'SomeOtherRoute', params: { test: 'data' } },
+        { name: 'Send' },
+      ]);
 
       const { result } = renderHookWithProvider(() => useSendNavbar());
       const { Recipient } = result.current;
@@ -329,7 +323,7 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
+      expect(mockParentNavigate).toHaveBeenCalledWith('SomeOtherRoute', {
         test: 'data',
       });
     });

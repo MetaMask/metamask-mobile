@@ -17,15 +17,11 @@
  *   },
  * );
  *
- * // Track with single JSON property (no per-test schema changes)
- * trackEvent('Screen Viewed', {
- *   screen: 'details',
- *   ...(isActive && {
- *     active_ab_tests: [
- *       { key: 'swapsSWAPS4135AbtestButtonColor', value: variantName },
- *     ],
- *   }),
- * });
+ * const buttonColor = variant.color;
+ *
+ * if (isActive) {
+ *   // Optionally branch UI or copy for an active experiment assignment
+ * }
  * ```
  */
 
@@ -34,6 +30,7 @@ import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../selectors/featureFlagController';
 import { MetaMetricsEvents } from '../core/Analytics';
 import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
+import { resolveABTestAssignment } from '../util/abTest';
 
 /**
  * Type constraint for variants object - must include a 'control' key
@@ -82,6 +79,50 @@ const rememberExposureAssignment = (assignmentKey: string) => {
   trackedExposureAssignments.add(assignmentKey);
 };
 
+interface EmitExposureArgs<T extends ABTestVariants> {
+  flagKey: string;
+  variationId: string;
+  assignmentKey: string;
+  experimentName?: string;
+  variationName?: string;
+  trackEvent: ReturnType<typeof useAnalytics>['trackEvent'];
+  createEventBuilder: ReturnType<typeof useAnalytics>['createEventBuilder'];
+}
+
+// Extracted out of the hook body. The properties object below uses conditional
+// spreads (value blocks), which the React Compiler cannot yet handle inside a
+// try/catch. Keeping the emit in a plain function lets the hook compile while
+// preserving the exact tracking behavior.
+const emitExposureEvent = <T extends ABTestVariants>({
+  flagKey,
+  variationId,
+  assignmentKey,
+  experimentName,
+  variationName,
+  trackEvent,
+  createEventBuilder,
+}: EmitExposureArgs<T>) => {
+  try {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
+        .addProperties({
+          experiment_id: flagKey,
+          variation_id: variationId,
+          ...(experimentName && {
+            experiment_name: experimentName,
+          }),
+          ...(variationName && {
+            variation_name: variationName,
+          }),
+        })
+        .build(),
+    );
+    rememberExposureAssignment(assignmentKey);
+  } catch {
+    // Do not cache failed emits so the hook can retry next evaluation.
+  }
+};
+
 /**
  * Generic hook for A/B testing in React components
  *
@@ -111,53 +152,8 @@ const rememberExposureAssignment = (assignmentKey: string) => {
  * }
  * ```
  *
- * @example Tracking A/B test in analytics
- * ```typescript
- * const { variantName, isActive } = useABTest(
- *   'swapsSWAPS4135AbtestButtonStyle',
- *   {
- *   control: { style: 'default' },
- *   bold: { style: 'bold' },
- *   },
- * );
- *
- * trackEvent(
- *   createEventBuilder(MetaMetricsEvents.BUTTON_CLICKED)
- *     .addProperties({
- *       button_id: 'submit',
- *       ...(isActive && {
- *         active_ab_tests: [
- *           { key: 'swapsSWAPS4135AbtestButtonStyle', value: variantName },
- *         ],
- *       }),
- *     })
- *     .build()
- * );
- * ```
- *
- * @example Multiple concurrent tests
- * ```typescript
- * const buttonTest = useABTest('swapsSWAPS4135AbtestButtonColor', {
- *   control: { color: 'green' },
- *   treatment: { color: 'blue' },
- * });
- *
- * const ctaTest = useABTest('swapsSWAPS4135AbtestCtaText', {
- *   control: { text: 'Get Started' },
- *   urgent: { text: 'Start Now!' },
- * });
- *
- * trackEvent('Screen Viewed', {
- *   active_ab_tests: [
- *     ...(buttonTest.isActive
- *       ? [{ key: 'swapsSWAPS4135AbtestButtonColor', value: buttonTest.variantName }]
- *       : []),
- *     ...(ctaTest.isActive
- *       ? [{ key: 'swapsSWAPS4135AbtestCtaText', value: ctaTest.variantName }]
- *       : []),
- *   ],
- * });
- * ```
+ * Business-event attribution (`active_ab_tests`) is configured separately
+ * through the A/B analytics mapping flow documented in `docs/ab-testing.md`.
  */
 export function useABTest<T extends ABTestVariants>(
   flagKey: string,
@@ -166,27 +162,11 @@ export function useABTest<T extends ABTestVariants>(
 ): UseABTestResult<T> {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const flags = useSelector(selectRemoteFeatureFlags);
-  const flagData = flags?.[flagKey];
-
-  // Handle both object format { name } from controller and legacy string format
-  // The RemoteFeatureFlagController stores A/B test results as { name: "variant_name" }
-  // after processing array-based flags with scope thresholds
-  const flagValue =
-    typeof flagData === 'object' && flagData !== null && 'name' in flagData
-      ? (flagData as { name: string }).name
-      : (flagData as string | undefined);
-
-  // Determine the variant name: use flag value if it's a valid variant, otherwise fallback to 'control'
-  // Use hasOwnProperty to avoid matching prototype methods (e.g. "toString", "constructor")
-  // since flagValue comes from remote feature flags (external data)
-  const hasVariant = (key: string) =>
-    Object.prototype.hasOwnProperty.call(variants, key);
-
-  const variantName =
-    flagValue && hasVariant(flagValue) ? flagValue : 'control';
-
-  // Check if the test is active (flag is set AND matches a valid variant)
-  const isActive = Boolean(flagValue && hasVariant(flagValue));
+  const { variantName, isActive } = resolveABTestAssignment(
+    flags,
+    flagKey,
+    Object.keys(variants),
+  );
   const activeVariationName =
     exposureMetadata?.variationNames?.[variantName as Extract<keyof T, string>];
 
@@ -203,26 +183,15 @@ export function useABTest<T extends ABTestVariants>(
       return;
     }
 
-    try {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.EXPERIMENT_VIEWED)
-          .addProperties({
-            experiment_id: flagKey,
-            variation_id: variationId,
-            ...(exposureMetadata?.experimentName && {
-              experiment_name: exposureMetadata.experimentName,
-            }),
-            ...(activeVariationName && {
-              variation_name: activeVariationName,
-            }),
-          })
-          .build(),
-      );
-      rememberExposureAssignment(assignmentKey);
-    } catch {
-      // Do not cache failed emits so the hook can retry next evaluation.
-      return;
-    }
+    emitExposureEvent<T>({
+      flagKey,
+      variationId,
+      assignmentKey,
+      experimentName: exposureMetadata?.experimentName,
+      variationName: activeVariationName,
+      trackEvent,
+      createEventBuilder,
+    });
   }, [
     createEventBuilder,
     activeVariationName,

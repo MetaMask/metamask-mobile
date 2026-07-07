@@ -11,16 +11,18 @@ import {
 import { mockNetworkState } from '../../util/test/network';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
-import { NetworkController } from '@metamask/network-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
+import { ConnectivityController } from '@metamask/connectivity-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { isEmpty } from 'lodash';
+import { store } from '../../store';
+import Logger from '../../util/Logger';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -57,6 +59,7 @@ jest.mock('../../store', () => ({
         },
       },
     })),
+    subscribe: jest.fn(),
   },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
@@ -95,6 +98,18 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
   }),
 }));
 
+// `__esModule: true` lets the override test mutate
+// `isRemoteFeatureFlagOverrideActivated` live; interop would otherwise snapshot
+// the export. Other exports are preserved via `requireActual`.
+jest.mock('./controllers/remote-feature-flag-controller', () => ({
+  __esModule: true,
+  ...jest.requireActual('./controllers/remote-feature-flag-controller'),
+  isRemoteFeatureFlagOverrideActivated: false,
+}));
+const mockRemoteFeatureFlagControllerModule = jest.requireMock(
+  './controllers/remote-feature-flag-controller',
+) as { isRemoteFeatureFlagOverrideActivated: boolean };
+
 jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),
   rejectOriginApprovals: jest.fn(),
@@ -125,7 +140,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
-    expect(engine.context).toHaveProperty('TokenListController');
     expect(engine.context).toHaveProperty('TokenDetectionController');
     expect(engine.context).toHaveProperty('NftDetectionController');
     expect(engine.context).toHaveProperty('NftController');
@@ -162,6 +176,31 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('ConnectivityController');
     expect(engine.context).toHaveProperty('AiDigestController');
     expect(engine.context).toHaveProperty('MoneyAccountController');
+  });
+
+  it('hydrates address poisoning known recipients from persisted address book state', () => {
+    const knownAddress = '0x111122223333444455556666777788889999aaaa';
+    const candidateAddress = '0x1111ffffffffffffffffffffffffffffffffaaaa';
+
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      AddressBookController: {
+        addressBook: {
+          '0x1': {
+            [knownAddress]: {
+              address: knownAddress,
+              chainId: '0x1',
+              isEns: false,
+              memo: '',
+              name: 'Known recipient',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      engine.context.PhishingController.checkAddressPoisoning(candidateAddress),
+    ).toEqual([expect.objectContaining({ knownAddress })]);
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -297,168 +336,177 @@ describe('Engine', () => {
     );
   });
 
-  it('getSnapKeyring gets or creates a snap keyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementation(() => [mockSnapKeyring]);
+  describe('RemoteFeatureFlagController startup fetch', () => {
+    afterEach(() => {
+      // `jest.mock` return values survive `restoreAllMocks()`, so reset the
+      // ones these tests override back to their file-level defaults.
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: matches the file-level default shape.
+        .mockReturnValue({ remoteFeatureFlags: {}, cacheTimestamp: 0 });
+      mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = false;
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+    });
 
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
+    it('logs and skips the fetch when basic functionality is disabled', () => {
+      // The selector is read twice per init (the RFFC instance-options builder
+      // seeds `disabled`, then the Engine startup gate re-reads it), so use a
+      // persistent return rather than `mockReturnValueOnce`.
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const fetchRemoteFeatureFlags = jest.fn();
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const logSpy = jest.spyOn(Logger, 'log');
 
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
-  });
+      Engine.init(TEST_ANALYTICS_ID, {});
 
-  it('getSnapKeyring creates a new snap keyring if none exists', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
+      expect(logSpy).toHaveBeenCalledWith('Feature flag controller disabled.');
+      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+    });
 
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementationOnce(() => [])
-      .mockImplementationOnce(() => [mockSnapKeyring]);
+    it('logs and skips the fetch when the override is active', () => {
+      mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = true;
+      const fetchRemoteFeatureFlags = jest.fn();
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const logSpy = jest.spyOn(Logger, 'log');
 
-    jest
-      .spyOn(engine.keyringController, 'addNewKeyring')
-      .mockResolvedValue({ id: '1234', name: 'Snap Keyring' });
+      Engine.init(TEST_ANALYTICS_ID, {});
 
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
+      expect(logSpy).toHaveBeenCalledWith(
+        'Remote feature flags override activated.',
+      );
+      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+    });
 
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: true,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const enableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'enableRpcFailover',
-    );
-
-    Engine.init(TEST_ANALYTICS_ID, state);
-
-    expect(enableRpcFailoverSpy).toHaveBeenCalled();
-  });
-
-  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already disabled', () => {
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: false,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const disableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'disableRpcFailover',
-    );
-
-    Engine.init(TEST_ANALYTICS_ID, state);
-
-    expect(disableRpcFailoverSpy).toHaveBeenCalled();
-  });
-
-  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is enabled later', async () => {
-    (Date.now as jest.Mock).mockReturnValue(1000000);
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: false,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const keyringState = null;
-    const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
-    const enableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'enableRpcFailover',
-    );
-    ClientConfigApiServiceMock
-      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
-      // all we need to override is `fetchRemoteFeatureFlags`
-      .mockReturnValue({
-        async fetchRemoteFeatureFlags() {
-          return {
-            remoteFeatureFlags: {
-              walletFrameworkRpcFailoverEnabled: true,
-            },
+    it('logs success after the startup fetch resolves', async () => {
+      (Date.now as jest.Mock).mockReturnValue(1000000);
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({
+          fetchRemoteFeatureFlags: jest.fn().mockResolvedValue({
+            remoteFeatureFlags: {},
             cacheTimestamp: 1,
-          };
+          }),
+        });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+          cacheTimestamp: 0,
         },
       });
 
-    Engine.init(analyticsId, state, keyringState);
+      while (
+        !logSpy.mock.calls.some(
+          ([message]) => message === 'Feature flags updated',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
 
-    // We can't await RemoteFeatureFlagController:stateChange because can't
-    // guarantee it hasn't been called already, so this is the next best option
-    while (enableRpcFailoverSpy.mock.calls.length === 0) {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 100);
+      expect(logSpy).toHaveBeenCalledWith('Feature flags updated');
+    });
+
+    it('logs failure when the startup fetch rejects', async () => {
+      (Date.now as jest.Mock).mockReturnValue(1000000);
+      const fetchError = new Error('Network error');
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({
+          fetchRemoteFeatureFlags: jest.fn().mockRejectedValue(fetchError),
+        });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        },
       });
-    }
-    expect(enableRpcFailoverSpy).toHaveBeenCalled();
+
+      while (
+        !logSpy.mock.calls.some(
+          ([message]) => message === 'Feature flags update failed: ',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'Feature flags update failed: ',
+        fetchError,
+      );
+    });
+
+    it('clears cached remote flags when basic functionality is disabled at init', () => {
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const controller = engine.context.RemoteFeatureFlagController;
+
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 0,
+        }),
+      );
+    });
+
+    it('subscribes to basic functionality changes', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(store.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('syncs controller when basic functionality changes', () => {
+      jest.mocked(store.subscribe).mockClear();
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const subscribeCallback = jest.mocked(store.subscribe).mock
+        .calls[0][0] as () => void;
+      const controller = engine.context.RemoteFeatureFlagController;
+      const disableSpy = jest.spyOn(controller, 'disable');
+
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      subscribeCallback();
+
+      expect(disableSpy).toHaveBeenCalled();
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        }),
+      );
+    });
   });
 
-  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is disabled later', async () => {
-    (Date.now as jest.Mock).mockReturnValue(1000000);
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: true,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const keyringState = null;
-    const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
-    const disableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'disableRpcFailover',
-    );
-    ClientConfigApiServiceMock
-      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
-      // all we need to override is `fetchRemoteFeatureFlags`
-      .mockReturnValue({
-        async fetchRemoteFeatureFlags() {
-          return {
-            remoteFeatureFlags: {
-              walletFrameworkRpcFailoverEnabled: false,
-            },
-            cacheTimestamp: 1,
-          };
-        },
-      });
+  describe('ConnectivityController startup seeding', () => {
+    it('seeds the initial connectivity status via init() on startup', () => {
+      const initSpy = jest
+        .spyOn(ConnectivityController.prototype, 'init')
+        .mockResolvedValue(undefined);
 
-    Engine.init(analyticsId, state, keyringState);
+      Engine.init(TEST_ANALYTICS_ID, {});
 
-    // We can't await RemoteFeatureFlagController:stateChange because can't
-    // guarantee it hasn't been called already, so this is the next best option
-    while (disableRpcFailoverSpy.mock.calls.length === 0) {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 100);
-      });
-    }
-    expect(disableRpcFailoverSpy).toHaveBeenCalled();
+      expect(initSpy).toHaveBeenCalled();
+    });
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
@@ -512,23 +560,29 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          AccountTrackerController: {
-            accountsByChainId: {
-              [chainId]: {
-                [selectedAddress]: {
-                  balance: '0',
-                  stakedBalance: '0',
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            AccountTrackerController: {
+              accountsByChainId: {
+                [chainId]: {
+                  [selectedAddress]: {
+                    balance: '0',
+                    stakedBalance: '0',
+                  },
                 },
               },
             },
           },
         },
-        null,
-      );
+      });
+
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
@@ -543,22 +597,27 @@ describe('Engine', () => {
     it('calculates when theres only ETH', () => {
       const ethPricePercentChange1d = 5; // up 5%
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as Partial<MarketDataDetails> as MarketDataDetails,
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            TokenRatesController: {
+              marketData: {
+                [chainId]: {
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as Partial<MarketDataDetails> as MarketDataDetails,
+                },
               },
             },
           },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -598,56 +657,61 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          TokensController: {
-            allTokens: {
-              [chainId]: {
-                [selectedAddress]: tokens.map(
-                  ({ address, balance, decimals, symbol }) => ({
-                    address,
-                    balance,
-                    decimals,
-                    symbol,
-                  }),
-                ),
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            TokensController: {
+              allTokens: {
+                [chainId]: {
+                  [selectedAddress]: tokens.map(
+                    ({ address, balance, decimals, symbol }) => ({
+                      address,
+                      balance,
+                      decimals,
+                      symbol,
+                    }),
+                  ),
+                },
+              },
+              allIgnoredTokens: {},
+              allDetectedTokens: {},
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                [selectedAddress as Hex]: {
+                  [chainId]: {
+                    [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
+                    [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  },
+                },
               },
             },
-            allIgnoredTokens: {},
-            allDetectedTokens: {},
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              [selectedAddress as Hex]: {
+            TokenRatesController: {
+              marketData: {
                 [chainId]: {
-                  [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                  [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token1Address]: {
+                    price: tokens[0].price,
+                    pricePercentChange1d: tokens[0].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token2Address]: {
+                    price: tokens[1].price,
+                    pricePercentChange1d: tokens[1].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
                 },
               },
             },
           },
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token1Address]: {
-                  price: tokens[0].price,
-                  pricePercentChange1d: tokens[0].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token2Address]: {
-                  price: tokens[1].price,
-                  pricePercentChange1d: tokens[1].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-              },
-            },
-          },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -698,68 +762,74 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          AccountTrackerController: {
-            accountsByChainId: {
-              [chainId]: {
-                [selectedAddress]: {
-                  balance: (ethBalance * 1e18).toString(),
-                  stakedBalance: (stakedEthBalance * 1e18).toString(),
-                },
-              },
-            },
-          },
-          TokensController: {
-            allTokens: {
-              [chainId]: {
-                [selectedAddress]: tokens.map(
-                  ({ address, balance, decimals, symbol }) => ({
-                    address,
-                    balance,
-                    decimals,
-                    symbol,
-                  }),
-                ),
-              },
-            },
-            allIgnoredTokens: {},
-            allDetectedTokens: {},
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              [selectedAddress as Hex]: {
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            AccountTrackerController: {
+              accountsByChainId: {
                 [chainId]: {
-                  [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                  [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  [selectedAddress]: {
+                    balance: (ethBalance * 1e18).toString(),
+                    stakedBalance: (stakedEthBalance * 1e18).toString(),
+                  },
                 },
               },
             },
-          },
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token1Address]: {
-                  price: tokens[0].price,
-                  pricePercentChange1d: tokens[0].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token2Address]: {
-                  price: tokens[1].price,
-                  pricePercentChange1d: tokens[1].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
+            TokensController: {
+              allTokens: {
+                [chainId]: {
+                  [selectedAddress]: tokens.map(
+                    ({ address, balance, decimals, symbol }) => ({
+                      address,
+                      balance,
+                      decimals,
+                      symbol,
+                    }),
+                  ),
+                },
+              },
+              allIgnoredTokens: {},
+              allDetectedTokens: {},
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                [selectedAddress as Hex]: {
+                  [chainId]: {
+                    [token1Address]: '0x0de0b6b3a7640000',
+                    [token2Address]: '0x1bc16d674ec80000',
+                  },
+                },
+              },
+            },
+            TokenRatesController: {
+              marketData: {
+                [chainId]: {
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token1Address]: {
+                    price: tokens[0].price,
+                    pricePercentChange1d: tokens[0].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token2Address]: {
+                    price: tokens[1].price,
+                    pricePercentChange1d: tokens[1].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                },
               },
             },
           },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
+
       const ethFiat = (ethBalance + stakedEthBalance) * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
         ([fiat, fiat1d], token) => {
@@ -791,17 +861,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: true,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -822,17 +888,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: true,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -860,7 +922,7 @@ describe('Engine', () => {
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
-      expect.anything(),
+      undefined,
     );
   });
 
@@ -872,17 +934,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: false,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: false,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -891,7 +949,7 @@ describe('Engine', () => {
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
-      expect.anything(),
+      undefined,
     );
   });
 
@@ -1238,13 +1296,6 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         EVM_CAIP_ASSET,
@@ -1254,7 +1305,6 @@ describe('Engine', () => {
       expect(updateBalancesSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
       expect(findNetworkClientIdSpy).toHaveBeenCalledWith('0xa');
       expect(refreshSpy).toHaveBeenCalledWith([mockNetworkClientId]);
-      expect(updateIncomingSpy).toHaveBeenCalled();
     });
 
     it('does not refresh anything for non-EVM destination chains', () => {
@@ -1269,13 +1319,6 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         NON_EVM_CAIP_ASSET,
@@ -1284,10 +1327,9 @@ describe('Engine', () => {
       expect(detectTokensSpy).not.toHaveBeenCalled();
       expect(updateBalancesSpy).not.toHaveBeenCalled();
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(updateIncomingSpy).not.toHaveBeenCalled();
     });
 
-    it('still updates incoming transactions when findNetworkClientIdByChainId throws', () => {
+    it('does not refresh balance when findNetworkClientIdByChainId throws', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
       jest
@@ -1304,20 +1346,12 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         EVM_CAIP_ASSET,
       );
 
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(updateIncomingSpy).toHaveBeenCalled();
     });
   });
 
@@ -1334,7 +1368,8 @@ describe('Engine', () => {
             'state' in controller &&
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
-              controllerName === 'ComplianceController'),
+              controllerName === 'ComplianceController' ||
+              controllerName === 'MoneyAccountUpgradeController'),
         )
         .map(([controllerName]) => controllerName);
 
@@ -1343,6 +1378,19 @@ describe('Engine', () => {
       const sortedControllersInState = Object.keys(state).sort();
       const sortedExpectedControllers = controllersWithState.sort();
       expect(sortedControllersInState).toEqual(sortedExpectedControllers);
+    });
+  });
+
+  describe('resetState', () => {
+    it('calls MoneyAccountController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
     });
   });
 });

@@ -12,7 +12,7 @@ import { clone } from 'lodash';
 import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
 import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import initialRootState from '../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { TokenList } from './TokenList/TokenList';
@@ -70,6 +70,10 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
+}));
+
+jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
+  TokenListControlBar: jest.fn().mockImplementation(() => null),
 }));
 
 /**
@@ -176,7 +180,7 @@ const arrangeMockInteractionManager = () => {
 const arrangeMockState = () => clone(initialRootState);
 const initialState = arrangeMockState();
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const renderComponent = (
   state = initialState,
   isFullView: boolean = false,
@@ -318,7 +322,6 @@ describe('Tokens', () => {
             addSensitiveProperties: jest.fn().mockReturnThis(),
             removeProperties: jest.fn().mockReturnThis(),
             removeSensitiveProperties: jest.fn().mockReturnThis(),
-            setSaveDataRecording: jest.fn().mockReturnThis(),
             build: jest.fn(),
           }),
         }),
@@ -394,24 +397,21 @@ describe('Tokens', () => {
   });
 
   describe('showOnlyMusd (Cash view)', () => {
-    it('passes showAddToken false and hideSort true to TokenListControlBar', async () => {
+    it('does not render TokenListControlBar when showOnlyMusd', async () => {
       const { mockSelectSortedAssetsBySelectedAccountGroup } =
         arrangeMockSelectors();
       mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
 
-      renderComponent(initialState, true, true);
+      const { queryByTestId } = renderComponent(initialState, true, true);
 
       await waitFor(() => {
-        expect(
-          TokenListControlBarModule.TokenListControlBar,
-        ).toHaveBeenCalledWith(
-          expect.objectContaining({
-            showAddToken: false,
-            hideSort: true,
-          }),
-          expect.anything(),
-        );
+        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
       });
+
+      expect(queryByTestId('token-list-control-bar')).toBeNull();
+      expect(
+        TokenListControlBarModule.TokenListControlBar,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not render add token button when showOnlyMusd', async () => {
@@ -489,12 +489,12 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
 
-    it('includes mUSD when conversion flow is enabled but homepage sections are disabled (legacy wallet view)', async () => {
+    it('includes mUSD when conversion flow is enabled but Money Hub is disabled', async () => {
       const stateWithMusdEnabled = clone(initialRootState);
       (
         stateWithMusdEnabled as Record<string, unknown> &
@@ -530,12 +530,12 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
 
-    it('excludes mUSD from token list when both conversion flow and homepage sections are enabled', async () => {
+    it('excludes mUSD from token list when conversion flow and Money Hub are enabled', async () => {
       const stateWithBothEnabled = clone(initialRootState);
       (
         stateWithBothEnabled as Record<string, unknown> &
@@ -548,7 +548,7 @@ describe('Tokens', () => {
             enabled: true,
             minimumVersion: '1.0.0',
           },
-          homepageSectionsV1: {
+          earnMoneyHubEnabled: {
             enabled: true,
             minimumVersion: '1.0.0',
           },
@@ -575,7 +575,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });

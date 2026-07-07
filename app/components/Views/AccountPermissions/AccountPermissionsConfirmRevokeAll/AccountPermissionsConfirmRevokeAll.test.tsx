@@ -23,19 +23,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
@@ -51,7 +38,7 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <AccountPermissionsConfirmRevokeAll
         route={{
           params: {
@@ -62,7 +49,10 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId('revoke-all-permissions-cancel-button'),
+    ).toBeOnTheScreen();
+    expect(getByTestId('confirm_disconnect_networks')).toBeOnTheScreen();
   });
 
   it('handles cancel button press', () => {
@@ -119,6 +109,6 @@ describe('AccountPermissionsConfirmRevokeAll', () => {
       dappUrl: testOrigin,
     });
 
-    expect(getByText(expectedText)).toBeTruthy();
+    expect(getByText(expectedText)).toBeOnTheScreen();
   });
 });

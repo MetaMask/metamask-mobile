@@ -4,23 +4,19 @@ import V2EnterEmail from './EnterEmail';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
-    setOptions: mockSetOptions,
+    goBack: mockGoBack,
   }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   I18nEvents: { addListener: jest.fn() },
-}));
-
-jest.mock('../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn(() => ({})),
 }));
 
 const mockSendUserOtp = jest.fn();
@@ -46,23 +42,30 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../Deposit/utils', () => ({
-  ...jest.requireActual('../../Deposit/utils'),
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
+}));
+
+jest.mock('../../utils/depositUtils', () => ({
+  ...jest.requireActual('../../utils/depositUtils'),
   validateEmail: (email: string) => /\S+@\S+\.\S+/.test(email),
   generateThemeParameters: jest.fn(() => ({})),
 }));
 
-jest.mock(
-  '../../Deposit/components/DepositProgressBar/DepositProgressBar',
-  () => {
-    const { createElement } = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () => createElement(View, { testID: 'deposit-progress-bar' }),
-    };
-  },
-);
+jest.mock('../../components/DepositProgressBar/DepositProgressBar', () => {
+  const { createElement } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => createElement(View, { testID: 'deposit-progress-bar' }),
+  };
+});
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(
@@ -74,11 +77,6 @@ const renderWithTheme = (component: React.ReactElement) =>
 describe('V2EnterEmail', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('matches snapshot', () => {
-    const { toJSON } = renderWithTheme(<V2EnterEmail />);
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders the email input and submit button', () => {
@@ -133,6 +131,15 @@ describe('V2EnterEmail', () => {
       queryByText('deposit.enter_email.validation_error'),
     ).toBeOnTheScreen();
     expect(mockSendUserOtp).not.toHaveBeenCalled();
+  });
+
+  it('calls navigation.goBack when header back is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2EnterEmail />);
+
+    fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('shows error message when sendUserOtp fails', async () => {

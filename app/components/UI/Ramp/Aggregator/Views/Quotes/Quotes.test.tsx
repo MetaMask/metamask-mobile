@@ -19,6 +19,7 @@ import {
 
 import Quotes, { QuotesParams } from './Quotes';
 import { mockQuotesData } from './Quotes.constants';
+import { QuoteSelectors } from './Quotes.testIds';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
@@ -46,6 +47,31 @@ function render(Component: React.ComponentType) {
     },
   );
 }
+
+jest.mock('../../components/LoadingAnimation', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockLoadingAnimation({
+    title,
+    finish,
+    onAnimationEnd,
+  }: {
+    title: string;
+    finish: boolean;
+    onAnimationEnd?: () => void;
+  }) {
+    ReactMock.useEffect(() => {
+      if (finish && onAnimationEnd) {
+        onAnimationEnd();
+      }
+    }, [finish, onAnimationEnd]);
+    return (
+      <View>
+        <Text>{title}</Text>
+      </View>
+    );
+  };
+});
 
 jest.unmock('react-redux');
 
@@ -217,25 +243,13 @@ describe('Quotes', () => {
     };
   });
 
-  it('calls setOptions when rendering', async () => {
-    mockUseQuotesAndCustomActionsValues = {
-      ...mockUseQuotesAndCustomActionsInitialValues,
-      isFetching: true,
-      quotes: undefined,
-      quotesWithoutError: [],
-      quotesWithError: [],
-      quotesByPriceWithoutError: [],
-      quotesByReliabilityWithoutError: [],
-      recommendedQuote: undefined,
-    };
+  it('tracks event on close button press', async () => {
     render(Quotes);
-    expect(mockSetOptions).toHaveBeenCalled();
-  });
-
-  it('navigates and tracks event on back button press', async () => {
-    render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
-    expect(mockPop).toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    fireEvent.press(screen.getByTestId(QuoteSelectors.CLOSE_BUTTON));
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Quotes Screen',
@@ -248,12 +262,16 @@ describe('Quotes', () => {
     });
   });
 
-  it('navigates and tracks event on SELL back button press', async () => {
+  it('tracks event on SELL close button press', async () => {
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
     mockUseRampSDKValues.isBuy = false;
     render(Quotes);
-    fireEvent.press(screen.getByTestId('deposit-back-navbar-button'));
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    fireEvent.press(screen.getByTestId(QuoteSelectors.CLOSE_BUTTON));
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',
@@ -276,7 +294,6 @@ describe('Quotes', () => {
     render(Quotes);
     const fetchingQuotesText = screen.getByText('Fetching quotes');
     expect(fetchingQuotesText).toBeTruthy();
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly after animation without quotes', async () => {
@@ -293,7 +310,6 @@ describe('Quotes', () => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
     });
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('No providers available')).toBeTruthy();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
@@ -306,7 +322,9 @@ describe('Quotes', () => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
     });
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    ).toBeOnTheScreen();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
@@ -344,7 +362,6 @@ describe('Quotes', () => {
         },
       ]
     `);
-    expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
@@ -535,7 +552,7 @@ describe('Quotes', () => {
         jest.advanceTimersByTime(3000);
         jest.clearAllTimers();
       });
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByLabelText('Paypal (Staging)')).toBeOnTheScreen();
       act(() => {
         jest.useFakeTimers({ legacyFakeTimers: true });
       });
@@ -880,6 +897,59 @@ describe('Quotes', () => {
     });
   });
 
+  it('does not fetch new quotes while a quote is being processed', async () => {
+    if (!mockUseQuotesAndCustomActionsInitialValues.recommendedQuote) {
+      throw new Error('No recommended quote found');
+    }
+
+    const mockedRecommendedQuote = {
+      ...mockUseQuotesAndCustomActionsInitialValues.recommendedQuote,
+    } as QuoteResponse;
+
+    const mockQuoteProviderName = mockedRecommendedQuote.provider
+      ?.name as string;
+
+    mockedRecommendedQuote.buy = () => new Promise(() => undefined);
+
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      recommendedQuote: mockedRecommendedQuote,
+    };
+
+    render(Quotes);
+
+    // Advance past loading animation so polling starts
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+
+    const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
+    fireEvent.press(quoteToSelect);
+
+    const quoteContinueButton = screen.getByRole('button', {
+      name: `Continue with ${mockQuoteProviderName}`,
+    });
+
+    // Press Continue — this sets isQuoteLoading to true, pausing the timer
+    await act(async () => {
+      fireEvent.press(quoteContinueButton);
+    });
+
+    mockQueryGetQuotes.mockClear();
+
+    // Advance well past the polling interval; timer should NOT trigger a fetch
+    act(() => {
+      jest.advanceTimersByTime(15000);
+      jest.clearAllTimers();
+    });
+
+    expect(mockQueryGetQuotes).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+  });
+
   it('renders "quotes expire" text in the last cycle', async () => {
     render(Quotes);
     act(() => {
@@ -901,7 +971,6 @@ describe('Quotes', () => {
       },
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('Quotes timeout', { exact: false })).toBeTruthy();
     fireEvent.press(screen.getByRole('button', { name: 'Get new quotes' }));
     expect(mockQueryGetQuotes).toHaveBeenCalledTimes(1);
@@ -1063,7 +1132,6 @@ describe('Quotes', () => {
       sdkError: new Error('Example SDK Error'),
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('Example SDK Error')).toBeTruthy();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
@@ -1091,7 +1159,7 @@ describe('Quotes', () => {
       error: 'Test Error',
     };
     render(Quotes);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeOnTheScreen();
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
@@ -1113,8 +1181,7 @@ describe('Quotes', () => {
 
 describe('LoadingQuotes component', () => {
   it('renders correctly', () => {
-    renderComponent(<LoadingQuotes />);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(() => renderComponent(<LoadingQuotes />)).not.toThrow();
   });
 });
 
@@ -1148,7 +1215,17 @@ describe('Timer component', () => {
           remainingTime={remainingTime}
         />,
       );
-      expect(screen.toJSON()).toMatchSnapshot();
+      if (isFetchingQuotes) {
+        expect(screen.getByText(/Fetching new quotes/)).toBeOnTheScreen();
+      } else if (pollingCyclesLeft > 0) {
+        expect(
+          screen.getByText(/New quotes in/, { exact: false }),
+        ).toBeOnTheScreen();
+      } else {
+        expect(
+          screen.getByText(/Quotes expire in/, { exact: false }),
+        ).toBeOnTheScreen();
+      }
     },
   );
 });

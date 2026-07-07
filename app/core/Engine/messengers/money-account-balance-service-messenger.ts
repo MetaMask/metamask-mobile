@@ -1,0 +1,38 @@
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+} from '@metamask/messenger';
+import { type MoneyAccountBalanceServiceMessenger } from '@metamask/money-account-balance-service';
+import { RootMessenger } from '../types';
+
+/**
+ * Get the messenger for the money account balance service. This is scoped to the
+ * actions and events that the money account balance service is allowed to handle.
+ *
+ * @param rootMessenger - The root messenger.
+ * @returns The MoneyAccountBalanceServiceMessenger.
+ */
+export function getMoneyAccountBalanceServiceMessenger(
+  rootMessenger: RootMessenger<
+    MessengerActions<MoneyAccountBalanceServiceMessenger>,
+    MessengerEvents<MoneyAccountBalanceServiceMessenger>
+  >,
+): MoneyAccountBalanceServiceMessenger {
+  const messenger: MoneyAccountBalanceServiceMessenger = new Messenger({
+    namespace: 'MoneyAccountBalanceService',
+    parent: rootMessenger,
+  });
+
+  rootMessenger.delegate({
+    messenger,
+    actions: [
+      'NetworkController:getNetworkConfigurationByChainId',
+      'NetworkController:getNetworkClientById',
+      'RemoteFeatureFlagController:getState',
+    ],
+    events: ['RemoteFeatureFlagController:stateChange'],
+  });
+
+  return messenger;
+}

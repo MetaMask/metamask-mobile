@@ -1,4 +1,9 @@
 export { parse } from './utils';
 
 export { HexSchema } from './common';
-export { PredictFeeCollectionSchema } from './flags';
+export {
+  PredictFeeCollectionSchema,
+  PredictWimbledonTabSchema,
+  PredictWorldCupSchema,
+  PredictWorldCupStageSchema,
+} from './flags';

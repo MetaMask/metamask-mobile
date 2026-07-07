@@ -9,15 +9,18 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Icon, {
-  IconSize,
+import {
+  Box,
+  Icon,
+  IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import { Box } from '@metamask/design-system-react-native';
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsModifyActionSheet.styles';
 import type { ModifyAction } from './PerpsModifyActionSheet.types';
 import { type Position } from '@metamask/perps-controller';
+import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
 
 interface ActionOption {
   action: ModifyAction;
@@ -31,7 +34,7 @@ interface PerpsModifyActionSheetProps {
   onClose: () => void;
   position: Position | null;
   onActionSelect: (action: ModifyAction) => void;
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
   testID?: string;
 }
 
@@ -41,7 +44,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
   position,
   onActionSelect,
   sheetRef: externalSheetRef,
-  testID,
+  testID = PerpsModifyActionSheetSelectorsIDs.SHEET,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const internalSheetRef = useRef<BottomSheetRef>(null);
@@ -126,7 +129,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
               <Icon
                 name={option.iconName}
                 size={IconSize.Md}
-                color={styles.iconColor.color}
+                color={IconColor.IconDefault}
               />
             </View>
             <View style={styles.actionTextContainer}>

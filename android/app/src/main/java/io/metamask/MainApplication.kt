@@ -12,16 +12,11 @@ import android.database.CursorWindow
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
-import com.facebook.react.ReactNativeHost
-import com.facebook.react.ReactPackage
 import com.facebook.react.ReactHost
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
-import com.facebook.react.defaults.DefaultReactNativeHost
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
+import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 import expo.modules.ApplicationLifecycleDispatcher
-import expo.modules.ReactNativeHostWrapper
+import expo.modules.ExpoReactHostFactory.getDefaultReactHost
 
 import cl.json.ShareApplication
 import io.branch.rnbranch.RNBranchModule
@@ -30,35 +25,30 @@ import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
 import com.braze.BrazeActivityLifecycleCallbackListener
+import com.margelo.nitro.nitrofetch.AutoPrefetcher
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
     override fun getFileProviderAuthority(): String = "${BuildConfig.APPLICATION_ID}.provider"
 
-    override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
-        this,
-        object : DefaultReactNativeHost(this) {
-            override fun getPackages(): List<ReactPackage> {
-                val packages = PackageList(this).packages.toMutableList()
+    // Expo SDK 55 removed `ReactNativeHostWrapper`; the New Architecture entry point
+    // is now `ExpoReactHostFactory.getDefaultReactHost`, which wires in Expo modules'
+    // host handlers (dev launcher, updates, etc.). `reactNativeHost` is intentionally
+    // not overridden — it's deprecated in RN 0.83 and throws by default in the New
+    // Architecture. `jsMainModulePath` defaults to ".expo/.virtual-metro-entry" and
+    // the JS engine is Hermes, matching the previous configuration.
+    override val reactHost: ReactHost by lazy {
+        getDefaultReactHost(
+            applicationContext,
+            packageList = PackageList(this).packages.apply {
                 // Add all our custom packages
-                packages.add(PreventScreenshotPackage())
-                packages.add(RCTMinimizerPackage())
-                packages.add(RNTarPackage())
-                packages.add(NotificationPackage())
-                return packages
-            }
-
-            override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"
-
-            override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
-
-            override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
-            override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
-        }
-    )
-
-    override val reactHost: ReactHost
-        get() = ReactNativeHostWrapper.createReactHost(applicationContext, reactNativeHost)
+                add(PreventScreenshotPackage())
+                add(RCTMinimizerPackage())
+                add(RNTarPackage())
+                add(NotificationPackage())
+            },
+        )
+    }
 
     @Suppress("OVERRIDE_DEPRECATION")
     override fun registerReceiver(receiver: BroadcastReceiver?, filter: IntentFilter): Intent? {
@@ -71,7 +61,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
-        
+
         // Initialize Branch
         RNBranchModule.getAutoInstance(this)
 
@@ -89,13 +79,25 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             WebView.setWebContentsDebuggingEnabled(true)
         }
 
-        // Initialize SoLoader
-        SoLoader.init(this, OpenSourceMergedSoMapping)
-        
-        if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-            // If you opted-in for the New Architecture, we load the native entry point for this app.
-            load()
+        try {
+            AutoPrefetcher.registerPrefetch(
+                this,
+                "https://phishing-detection.api.cx.metamask.io/v1/stalelist",
+                "phishing-stalelist",
+                emptyMap(),
+            )
+            AutoPrefetcher.registerPrefetch(
+                this,
+                "https://client-side-detection.api.cx.metamask.io/v1/request-blocklist",
+                "phishing-c2-blocklist",
+                emptyMap(),
+            )
+            AutoPrefetcher.prefetchOnStart(this)
+        } catch (_: Throwable) {
+            // Non-fatal: if prefetch fails the app continues on the standard fetch path.
         }
+
+        loadReactNative(this)
 
         registerActivityLifecycleCallbacks(BrazeActivityLifecycleCallbackListener())
         ApplicationLifecycleDispatcher.onApplicationCreate(this)
@@ -105,4 +107,4 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         super.onConfigurationChanged(newConfig)
         ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
     }
-} 
+}

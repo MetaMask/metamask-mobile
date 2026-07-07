@@ -49,9 +49,10 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 }));
 
 // Mock homepage redesign selector
-jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageRedesignV1Enabled: jest.fn(),
-}));
+jest.mock(
+  '../../../../../selectors/featureFlagController/homepage',
+  () => ({}),
+);
 
 // Mock PerpsConnectionProvider
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
@@ -73,11 +74,26 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   usePerpsStream: jest.fn(() => ({
-    prices: { subscribe: jest.fn(() => jest.fn()) },
-    positions: { subscribe: jest.fn(() => jest.fn()) },
-    orders: { subscribe: jest.fn(() => jest.fn()) },
-    account: { subscribe: jest.fn(() => jest.fn()) },
-    marketData: { subscribe: jest.fn(() => jest.fn()) },
+    prices: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    positions: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    orders: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    account: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
+    marketData: {
+      subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
+    },
   })),
 }));
 
@@ -97,16 +113,17 @@ jest.mock('../../hooks', () => ({
   usePerpsTabExploreData: jest.fn(() => ({
     exploreMarkets: [],
     watchlistMarkets: [],
+    suggestedWatchlistMarkets: [],
     isLoading: false,
+    hasWatchlistSymbols: false,
   })),
 }));
-
-// Mock stream hooks separately since they're imported from different path
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveOrders: jest.fn(() => ({ orders: [] })),
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      availableBalance: '1000.00',
+      spendableBalance: '1000.00',
+      withdrawableBalance: '1000.00',
       marginUsed: '0.00',
       unrealizedPnl: '0.00',
       returnOnEquity: '0.00',
@@ -134,29 +151,15 @@ jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
 // Mock RemoteImage
 jest.mock('../../../../Base/RemoteImage', () => jest.fn(() => null));
 
-// Mock components
-jest.mock('../../components/PerpsTabControlBar', () => ({
-  PerpsTabControlBar: ({
-    onManageBalancePress,
-    hasPositions,
-    hasOrders,
-  }: {
-    onManageBalancePress: () => void;
-    hasPositions?: boolean;
-    hasOrders?: boolean;
-  }) => {
-    const { TouchableOpacity, Text } = jest.requireActual('react-native');
-    return (
-      <TouchableOpacity
-        testID="manage-balance-button"
-        onPress={onManageBalancePress}
-      >
-        <Text>Manage Balance</Text>
-        <Text testID="has-positions">{hasPositions ? 'true' : 'false'}</Text>
-        <Text testID="has-orders">{hasOrders ? 'true' : 'false'}</Text>
-      </TouchableOpacity>
-    );
-  },
+// Mock usePerpsTabExploreData from its direct import path (PerpsTabView imports it directly)
+jest.mock('../../hooks/usePerpsTabExploreData', () => ({
+  usePerpsTabExploreData: jest.fn(() => ({
+    exploreMarkets: [],
+    watchlistMarkets: [],
+    suggestedWatchlistMarkets: [],
+    isLoading: false,
+    hasWatchlistSymbols: false,
+  })),
 }));
 
 // Mock selectors
@@ -252,9 +255,6 @@ describe('PerpsTabView', () => {
   const mockSelectPerpsEligibility = jest.requireMock(
     '../../selectors/perpsController',
   ).selectPerpsEligibility;
-  const mockSelectHomepageRedesignV1Enabled = jest.requireMock(
-    '../../../../../selectors/featureFlagController/homepage',
-  ).selectHomepageRedesignV1Enabled;
   const mockSelectSelectedInternalAccountByScope = jest.requireMock(
     '../../../../../selectors/multichainAccounts/accounts',
   ).selectSelectedInternalAccountByScope;
@@ -342,9 +342,6 @@ describe('PerpsTabView', () => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
-      if (selector === mockSelectHomepageRedesignV1Enabled) {
-        return false; // Default: V1 disabled
-      }
       if (selector === mockSelectSelectedInternalAccountByScope) {
         return () => ({
           address: '0x1234567890123456789012345678901234567890',
@@ -416,8 +413,9 @@ describe('PerpsTabView', () => {
 
   describe('User Interactions', () => {
     it('shows explore section when no positions or orders exist', () => {
-      const mockUsePerpsTabExploreData =
-        jest.requireMock('../../hooks').usePerpsTabExploreData;
+      const mockUsePerpsTabExploreData = jest.requireMock(
+        '../../hooks/usePerpsTabExploreData',
+      ).usePerpsTabExploreData;
       mockUsePerpsTabExploreData.mockReturnValue({
         exploreMarkets: [mockMarket, mockMarketBTC],
         watchlistMarkets: [],
@@ -432,8 +430,8 @@ describe('PerpsTabView', () => {
       render(<PerpsTabView />);
 
       // Confirm the explore state is rendered (market data should be visible)
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
@@ -621,35 +619,8 @@ describe('PerpsTabView', () => {
       render(<PerpsTabView />);
 
       // Verify that the component renders without errors and has the refresh capability
-      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
+      expect(screen.toJSON()).toBeTruthy();
       expect(mockLoadPositions).toHaveBeenCalledTimes(0); // Should not be called on render
-    });
-
-    it('should navigate to markets list when available balance is pressed', () => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        // Handle the multichain selector
-        if (typeof selector === 'function') {
-          return () => ({
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:eoa',
-          });
-        }
-        return undefined;
-      });
-
-      render(<PerpsTabView />);
-
-      const manageBalanceButton = screen.getByTestId('manage-balance-button');
-
-      act(() => {
-        fireEvent.press(manageBalanceButton);
-      });
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB },
-      });
     });
   });
 
@@ -666,8 +637,9 @@ describe('PerpsTabView', () => {
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
       // Mock explore data with markets
-      const mockUsePerpsTabExploreData =
-        jest.requireMock('../../hooks').usePerpsTabExploreData;
+      const mockUsePerpsTabExploreData = jest.requireMock(
+        '../../hooks/usePerpsTabExploreData',
+      ).usePerpsTabExploreData;
       mockUsePerpsTabExploreData.mockReturnValue({
         exploreMarkets: [mockMarket, mockMarketBTC],
         watchlistMarkets: [],
@@ -678,63 +650,12 @@ describe('PerpsTabView', () => {
       render(<PerpsTabView />);
 
       // Assert - Component should render explore state with market data
-      expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-    });
-
-    it('should pass correct hasPositions prop to PerpsTabControlBar when positions exist', () => {
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [mockPosition],
-        isInitialLoading: false,
-      });
-
-      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
-
-      render(<PerpsTabView />);
-
-      expect(screen.getByTestId('has-positions')).toHaveTextContent('true');
-      expect(screen.getByTestId('has-orders')).toHaveTextContent('false');
-    });
-
-    it('should pass correct hasOrders prop to PerpsTabControlBar when orders exist', () => {
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
-
-      mockUsePerpsLiveOrders.mockReturnValue({
-        orders: [{ orderId: '123', symbol: 'ETH', size: '1.0' }],
-      });
-
-      render(<PerpsTabView />);
-
-      expect(screen.getByTestId('has-positions')).toHaveTextContent('false');
-      expect(screen.getByTestId('has-orders')).toHaveTextContent('true');
-    });
-
-    it('should pass false for both props when no positions or orders exist', () => {
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [],
-        isInitialLoading: false,
-      });
-
-      mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
-
-      render(<PerpsTabView />);
-
-      expect(screen.getByTestId('has-positions')).toHaveTextContent('false');
-      expect(screen.getByTestId('has-orders')).toHaveTextContent('false');
+      expect(screen.toJSON()).toBeTruthy();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
     });
   });
 
   describe('Accessibility', () => {
-    it('has proper accessibility for manage balance button', () => {
-      render(<PerpsTabView />);
-
-      const manageBalanceButton = screen.getByTestId('manage-balance-button');
-      expect(manageBalanceButton).toBeOnTheScreen();
-    });
-
     it('renders positions section title when positions exist', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
@@ -749,13 +670,10 @@ describe('PerpsTabView', () => {
     });
   });
 
-  describe('Homepage Redesign V1 Feature', () => {
-    it('renders content without ScrollView when isHomepageRedesignV1Enabled is true', () => {
+  describe('Scroll container behaviour', () => {
+    it('renders content without ScrollView on homepage', () => {
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        if (selector === mockSelectHomepageRedesignV1Enabled) {
           return true;
         }
         if (selector === mockSelectSelectedInternalAccountByScope) {
@@ -783,45 +701,9 @@ describe('PerpsTabView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders content with ScrollView when isHomepageRedesignV1Enabled is false', () => {
+    it('displays explore state when no positions or orders', () => {
       (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        if (selector === mockSelectHomepageRedesignV1Enabled) {
-          return false;
-        }
-        if (selector === mockSelectSelectedInternalAccountByScope) {
-          return () => ({
-            address: '0x1234567890123456789012345678901234567890',
-            id: 'mock-account-id',
-            type: 'eip155:eoa',
-          });
-        }
-        return undefined;
-      });
-
-      mockUsePerpsLivePositions.mockReturnValue({
-        positions: [mockPosition],
-        isInitialLoading: false,
-      });
-
-      render(<PerpsTabView />);
-
-      expect(
-        screen.getByTestId(PerpsTabViewSelectorsIDs.SCROLL_VIEW),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.position.title')),
-      ).toBeOnTheScreen();
-    });
-
-    it('displays explore state when homepage redesign is enabled and no positions or orders', () => {
-      (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-        if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        if (selector === mockSelectHomepageRedesignV1Enabled) {
           return true;
         }
         if (selector === mockSelectSelectedInternalAccountByScope) {
@@ -842,8 +724,9 @@ describe('PerpsTabView', () => {
       mockUsePerpsLiveOrders.mockReturnValue({ orders: [] });
 
       // Mock explore data with markets
-      const mockUsePerpsTabExploreData =
-        jest.requireMock('../../hooks').usePerpsTabExploreData;
+      const mockUsePerpsTabExploreData = jest.requireMock(
+        '../../hooks/usePerpsTabExploreData',
+      ).usePerpsTabExploreData;
       mockUsePerpsTabExploreData.mockReturnValue({
         exploreMarkets: [mockMarket, mockMarketBTC],
         watchlistMarkets: [],
@@ -852,8 +735,8 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
     });
   });
 });

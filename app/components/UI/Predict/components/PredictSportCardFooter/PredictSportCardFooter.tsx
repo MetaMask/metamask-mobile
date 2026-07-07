@@ -12,15 +12,14 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
-import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import { PREDICT_SPORT_CARD_FOOTER_TEST_IDS } from './PredictSportCardFooter.testIds';
 
 interface PredictSportCardFooterProps {
@@ -28,6 +27,8 @@ interface PredictSportCardFooterProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: (marketId: string) => void;
 }
 
 const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
@@ -35,26 +36,18 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel,
+  onBuyButtonPress,
 }) => {
   const tw = useTailwind();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,
     claimable: false,
-    refetchInterval: 10000,
+    livePriceUpdates: true,
   });
 
   const { data: claimablePositions = [] } = usePredictPositions({
@@ -67,7 +60,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   });
 
   const { claim, isClaimPending } = usePredictClaim();
-  const { navigateToBuyPreview } = usePredictNavigation();
+  const { openBuySheet } = usePredictPreviewSheet();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
@@ -83,23 +76,15 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           ),
         ) ?? market.outcomes?.[0];
 
+      onBuyButtonPress?.(market.id);
       executeGuardedAction(
         () => {
-          // When accessed from Carousel, we're outside the Predict navigator,
-          // so we need to navigate through the ROOT first
-          const throughRoot =
-            isCarousel ||
-            resolvedEntryPoint === PredictEventValues.ENTRY_POINT.CAROUSEL;
-
-          navigateToBuyPreview(
-            {
-              market,
-              outcome: matchingOutcome,
-              outcomeToken: token,
-              entryPoint: resolvedEntryPoint,
-            },
-            { throughRoot },
-          );
+          openBuySheet({
+            market,
+            outcome: matchingOutcome,
+            outcomeToken: token,
+            entryPoint: resolvedEntryPoint,
+          });
         },
         {
           attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
@@ -108,21 +93,25 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     },
     [
       executeGuardedAction,
-      isCarousel,
       resolvedEntryPoint,
-      navigateToBuyPreview,
+      openBuySheet,
       market,
+      onBuyButtonPress,
     ],
   );
 
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        // Claims are aggregate; market attribution is derived controller-side.
+        await claim({
+          entryPoint:
+            resolvedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [executeGuardedAction, claim]);
+  }, [executeGuardedAction, claim, resolvedEntryPoint]);
 
   const hasPositions = positions.length > 0;
   const hasClaimablePositions = claimablePositions.length > 0;

@@ -1,1 +1,1 @@
-export { default } from './AccountSelector';
+export { default, AccountSelectorSkeleton } from './AccountSelector';

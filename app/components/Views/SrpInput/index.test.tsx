@@ -21,8 +21,7 @@ describe('SrpInput', () => {
   });
   it('renders default settings correctly', () => {
     const wrapper = render(<SrpInput />);
-
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.getByTestId(TEXTFIELD_TEST_ID)).toBeOnTheScreen();
   });
 
   it('renders SrpInput', () => {

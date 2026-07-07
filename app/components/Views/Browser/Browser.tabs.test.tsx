@@ -14,13 +14,14 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { act } from '@testing-library/react-native';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { captureScreen } from 'react-native-view-shot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Tabs from '../../UI/Tabs';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as ComponentType<BrowserComponentProps>;
@@ -111,14 +112,6 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
-
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
   getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
@@ -161,7 +154,7 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 const mockStore = configureMockStore();
 
 const routeMock = {
@@ -205,7 +198,7 @@ describe('Browser - Tab Operations', () => {
         { id: 2, url: 'https://test.com', image: '', isArchived: false },
       ];
 
-      const { toJSON } = renderWithProvider(
+      renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
           <NavigationContainer independent>
             <Stack.Navigator>
@@ -229,7 +222,7 @@ describe('Browser - Tab Operations', () => {
         { state: mockInitialState },
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(BrowserTab).toHaveBeenCalled();
     });
 
     it('navigates away when closing tabs view with zero tabs', async () => {

@@ -68,7 +68,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         symbol: 'BTC',
-        name: 'BTC',
+        name: 'Bitcoin', // Human-readable name from HYPERLIQUID_ASSET_NAMES (@metamask/perps-controller 8.1.0)
         maxLeverage: '50x',
         price: '$52,000', // PRICE_RANGES_UNIVERSAL: 5 sig figs, 0 decimals for $10k-$100k
         change24h: '+$2,000', // No trailing zeros
@@ -309,7 +309,7 @@ describe('marketDataTransform', () => {
       expect(result[0].fundingIntervalHours).toBeUndefined();
     });
 
-    it('extracts marketSource and marketType for HIP-3 equity assets', () => {
+    it('extracts marketSource and marketType for HIP-3 index assets', () => {
       const xyzAsset = {
         name: 'xyz:XYZ100',
         maxLeverage: 20,
@@ -331,7 +331,7 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('xyz:XYZ100');
       expect(result[0].marketSource).toBe('xyz');
-      expect(result[0].marketType).toBe('equity');
+      expect(result[0].marketType).toBe('index');
       expect(result[0].isHip3).toBe(true);
       expect(result[0].isNewMarket).toBe(false); // Explicitly mapped, not "new"
     });
@@ -997,11 +997,11 @@ describe('marketDataTransform', () => {
 
     it('handles negative numbers in formatting functions', () => {
       // Arrange & Act & Assert
-      // formatPerpsFiat is not designed for negative values - returns "<$value" with absolute value
-      // Use formatChange() for signed values instead
-      // PRICE_RANGES_UNIVERSAL: 5 sig figs, max 2 decimals for $10-$100, trailing zeros removed: 100 → $10 (5 sig figs)
+      // formatPerpsFiat passes negative values through — |−100| = 100 > threshold (10), no < prefix
+      // Use formatChange() for signed display; formatPerpsFiat with negatives returns the raw negative
+      // PRICE_RANGES_UNIVERSAL $10-$100 range: 5 sig figs, max 4 decimals → -100.00 → strip → -$100
       expect(formatPerpsFiat(-100, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
-        '<$10',
+        '-$100',
       );
       expect(formatVolume(-1000000)).toBe('-$1.00M'); // formatVolume handles negatives
     });

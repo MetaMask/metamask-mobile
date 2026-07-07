@@ -3,6 +3,7 @@ import {
   Gestures,
   Matchers,
   PlaywrightAssertions,
+  PlaywrightGestures,
   PlaywrightMatchers,
   UnifiedGestures,
   asDetoxElement,
@@ -347,6 +348,48 @@ class SocialLoginView {
         await UnifiedGestures.waitAndTap(this.accountNotFoundCreateButton, {
           description: 'Create New Wallet button on Account Not Found screen',
         });
+      },
+    });
+  }
+  get updateModalContinueButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('Continue'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('Continue', { exact: true }),
+    });
+  }
+
+  /**
+   * Dismiss the "iOS Update Required" modal if present by tapping "Continue".
+   * Silently does nothing if the modal is not showing.
+   */
+  async dismissUpdateModalIfPresent(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        try {
+          await Assertions.expectElementToBeVisible(
+            asDetoxElement(this.updateModalContinueButton),
+            { timeout: 3000, description: 'iOS update modal' },
+          );
+          await Gestures.waitAndTap(
+            asDetoxElement(this.updateModalContinueButton),
+            { elemDescription: 'Continue button on iOS update modal' },
+          );
+        } catch {
+          // Modal not present
+        }
+      },
+      appium: async () => {
+        try {
+          const btn = asPlaywrightElement(this.updateModalContinueButton);
+          await PlaywrightAssertions.expectElementToBeVisible(btn, {
+            timeout: 3000,
+            description: 'iOS update modal',
+          });
+          await PlaywrightGestures.waitAndTap(await btn);
+        } catch {
+          // Modal not present
+        }
       },
     });
   }

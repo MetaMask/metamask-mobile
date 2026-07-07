@@ -7,16 +7,17 @@ import {
   Alert,
   Modal,
   KeyboardAvoidingView,
-  DevSettings,
   TextInput,
   ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { reloadAppAsync } from 'expo';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
 import {
   captureSentryFeedback,
   captureExceptionForced,
 } from '../../../util/sentry/utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
@@ -37,8 +38,9 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import AppConstants from '../../../core/AppConstants';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { useSelector } from 'react-redux';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -151,7 +153,11 @@ export const Fallback = (props) => {
   const handleContactSupport = () =>
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
 
-  const handleTryAgain = () => DevSettings.reload();
+  const handleTryAgain = () => {
+    reloadAppAsync('Error boundary Try again').catch((error) => {
+      Logger.log(error, 'Error reloading app after Try again pressed');
+    });
+  };
 
   const handleSubmit = () => {
     toggleModal();
@@ -160,9 +166,12 @@ export const Fallback = (props) => {
   };
 
   const forceSentryReport = async (error) => {
+    // Resolve the view outside the try: the React Compiler cannot yet optimize
+    // "value blocks" (optional chaining / logical expressions) inside try/catch.
+    const view = props.onboardingErrorConfig?.view || 'Unknown';
     try {
       await captureExceptionForced(error, {
-        view: props.onboardingErrorConfig?.view || 'Unknown',
+        view,
         context: 'ErrorBoundary forced report',
       });
     } catch (sentryError) {
@@ -243,7 +252,7 @@ export const Fallback = (props) => {
         />
       )}
 
-      {isTest && !isOnboardingError && (
+      {isTestEnvironment && !isOnboardingError && (
         <Text
           onPress={props.showExportSeedphrase}
           variant={TextVariant.BodyMD}
@@ -444,10 +453,6 @@ class ErrorBoundary extends Component {
     });
   }
 
-  resetError = () => {
-    this.setState({ error: null });
-  };
-
   showExportSeedphrase = () => {
     this.setState({ backupSeedphrase: true });
   };
@@ -472,7 +477,7 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = 'https://support.metamask.io';
+    const url = METAMASK_SUPPORT_URL;
     Linking.openURL(url);
   };
 
@@ -504,7 +509,6 @@ class ErrorBoundary extends Component {
         ? this.renderWithSafeArea(
             <Fallback
               errorMessage={this.getErrorMessage()}
-              resetError={this.resetError}
               showExportSeedphrase={this.showExportSeedphrase}
               copyErrorToClipboard={this.copyErrorToClipboard}
               openTicket={this.openTicket}

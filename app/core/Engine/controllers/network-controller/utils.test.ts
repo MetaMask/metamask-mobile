@@ -421,6 +421,7 @@ function setQuicknodeEnvironmentVariables() {
   process.env.QUICKNODE_SEI_URL = 'https://example.quicknode.com/sei';
   process.env.QUICKNODE_MONAD_URL = 'https://example.quicknode.com/monad';
   process.env.QUICKNODE_HYPEREVM_URL = 'https://example.quicknode.com/hyperevm';
+  process.env.QUICKNODE_ARC_URL = 'https://example.quicknode.com/arc';
 }
 
 /**

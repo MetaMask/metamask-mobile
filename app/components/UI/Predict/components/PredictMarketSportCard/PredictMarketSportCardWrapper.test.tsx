@@ -6,10 +6,16 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictMarketSportCardWrapper from './PredictMarketSportCardWrapper';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { Recurrence, PredictMarket as PredictMarketType } from '../../types';
 
 jest.mock('../../hooks/usePredictMarket');
 const mockUsePredictMarket = jest.mocked(usePredictMarket);
+
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -30,39 +36,35 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
   },
 }));
 
-jest.mock('../PredictSportScoreboard/PredictSportScoreboard', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockPredictSportScoreboard({
-      testID,
-    }: {
-      testID?: string;
-    }) {
-      return (
-        <View testID={testID ?? 'mock-scoreboard'}>
-          <Text>Mock Scoreboard</Text>
-        </View>
-      );
-    },
-  };
-});
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
+  usePredictPreviewSheet: () => ({
+    openBuySheet: jest.fn(),
+  }),
+}));
 
-jest.mock('../PredictSportCardFooter', () => {
-  const { View, Text } = jest.requireActual('react-native');
-  return {
-    PredictSportCardFooter: function MockPredictSportCardFooter({
-      testID,
-    }: {
-      testID?: string;
-    }) {
-      return (
-        <View testID={testID ?? 'mock-footer'}>
-          <Text>Mock Footer</Text>
-        </View>
-      );
-    },
-  };
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void) => action(),
+  }),
+}));
+
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
+}));
+
+jest.mock('../../constants/sportLeagueConfigs', () => ({
+  getLeagueConfig: () => ({}),
+}));
+
+jest.mock('../PredictSportTeamLogo/PredictSportTeamLogo', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ testID }: { testID?: string }) => (
+    <View testID={testID ?? 'predict-sport-team-logo'} />
+  );
 });
 
 const mockMarket: PredictMarketType = {
@@ -128,16 +130,18 @@ const initialState = {
 describe('PredictMarketSportCardWrapper', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
     mockUsePredictMarket.mockReturnValue({
       data: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     } as unknown as ReturnType<typeof usePredictMarket>);
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   describe('loading state', () => {

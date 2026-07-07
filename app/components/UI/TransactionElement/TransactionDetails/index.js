@@ -14,6 +14,9 @@ import {
   getBlockExplorerTxUrl,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
@@ -49,7 +52,10 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
-import { hasGasFeeTokenSelected } from '../../../Views/confirmations/utils/transaction';
+import {
+  hasGasFeeTokenSelected,
+  isTransactionMarkedAsGasFeeSponsored,
+} from '../../../Views/confirmations/utils/transaction';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -58,6 +64,7 @@ import { AvatarAccountType } from '../../../../component-library/components/Avat
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { TransactionType } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
+import { isHardwareAccount } from '../../../../util/address';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -256,6 +263,17 @@ class TransactionDetails extends PureComponent {
     const { rpcBlockExplorer } = this.state;
     try {
       const { url, title } = getBlockExplorerTxUrl(RPC, hash, rpcBlockExplorer);
+      trackBlockExplorerLinkClicked(
+        analytics.trackEvent,
+        AnalyticsEventBuilder.createEventBuilder,
+        {
+          location: 'transaction_details',
+          text: `${strings('transactions.view_on')} ${getBlockExplorerName(
+            rpcBlockExplorer,
+          )}`,
+          url,
+        },
+      );
       navigation.push('Webview', {
         screen: 'SimpleWebview',
         params: { url, title },
@@ -333,6 +351,10 @@ class TransactionDetails extends PureComponent {
     );
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
+    const fromAddress = txParams?.from;
+    const isHardwareWallet = Boolean(
+      fromAddress && isHardwareAccount(fromAddress),
+    );
     const isBridgeTransaction =
       transactionObject?.type === TransactionType.bridge;
     const renderTxActions =
@@ -443,19 +465,19 @@ class TransactionDetails extends PureComponent {
             </View>
           </DetailsModal.Column>
         </DetailsModal.Section>
-        <DetailsModal.Section>
-          <DetailsModal.Column>
-            <DetailsModal.SectionTitle upper>
-              {strings('transactions.nonce')}
-            </DetailsModal.SectionTitle>
-            {!!txParams?.nonce && (
+        {!!txParams?.nonce && (
+          <DetailsModal.Section>
+            <DetailsModal.Column>
+              <DetailsModal.SectionTitle upper>
+                {strings('transactions.nonce')}
+              </DetailsModal.SectionTitle>
               <Text small primary>{`#${parseInt(
                 txParams.nonce.replace(regex.transactionNonce, ''),
                 16,
               )}`}</Text>
-            )}
-          </DetailsModal.Column>
-        </DetailsModal.Section>
+            </DetailsModal.Column>
+          </DetailsModal.Section>
+        )}
         <View
           style={[
             styles.summaryWrapper,
@@ -474,6 +496,10 @@ class TransactionDetails extends PureComponent {
             gasEstimationReady
             transactionType={updatedTransactionDetails.transactionType}
             chainId={chainId}
+            isGasFeeSponsored={
+              isTransactionMarkedAsGasFeeSponsored(transactionObject) &&
+              !isHardwareWallet
+            }
           />
         </View>
         {updatedTransactionDetails.hash &&

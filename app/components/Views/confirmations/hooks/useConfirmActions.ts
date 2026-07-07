@@ -1,17 +1,22 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+
 import { isSignatureRequest } from '../utils/confirm';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
+import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
+import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
 
 export const useConfirmActions = () => {
   const {
@@ -20,9 +25,14 @@ export const useConfirmActions = () => {
     approvalRequest,
   } = useApprovalRequest();
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
+  const transactionMetadata = useTransactionMetadataRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
-  const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
-    useQRHardwareContext();
+  const {
+    cancelQRScanRequestIfPresent,
+    isSigningQRObject,
+    setScannerVisible,
+    setSigningConfirmed,
+  } = useQRHardwareContext();
   const navigation = useNavigation();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
@@ -30,6 +40,7 @@ export const useConfirmActions = () => {
     approvalType && approvalType === ApprovalType.Transaction;
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
+  const isQrAccount = useIsConfirmationFromQrAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -83,17 +94,28 @@ export const useConfirmActions = () => {
     captureSignatureMetrics,
   ]);
 
-  const ledgerConfirmOptions = useMemo(
+  const sharedConfirmOptions = useMemo(
     () => ({
+      fromAddress:
+        (approvalRequest?.requestData?.from as string) ||
+        (transactionMetadata?.txParams?.from as string),
       onReject,
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
     }),
-    [onReject, onTransactionConfirm, executeApproval, isTransactionReq],
+    [
+      approvalRequest?.requestData?.from,
+      transactionMetadata?.txParams?.from,
+      onReject,
+      onTransactionConfirm,
+      executeApproval,
+      isTransactionReq,
+    ],
   );
 
-  const { onConfirm: onLedgerConfirm } = useLedgerConfirm(ledgerConfirmOptions);
+  const { onConfirm: onLedgerConfirm } = useLedgerConfirm(sharedConfirmOptions);
+  const { onConfirm: onQrConfirm } = useQrConfirm(sharedConfirmOptions);
 
   const onConfirm = useCallback(async () => {
     if (isLedgerAccount) {
@@ -101,25 +123,51 @@ export const useConfirmActions = () => {
       return;
     }
 
+    if (isQrAccount) {
+      // MM-native sends (simpleSend / tokenMethodTransfer) defer to the
+      // HardwareWalletsSwaps step-progress screen instead of routing
+      // through onQrConfirm, which calls executeHardwareWalletOperation
+      // and shows an awaiting-confirmation bottom sheet that gets
+      // orphaned when deferHwSend navigates away immediately after.
+      if (
+        isTransactionReq &&
+        transactionMetadata &&
+        (transactionMetadata.type === TransactionType.simpleSend ||
+          transactionMetadata.type === TransactionType.tokenMethodTransfer)
+      ) {
+        await onTransactionConfirm();
+        return;
+      }
+      await onQrConfirm();
+      return;
+    }
+
     if (isSigningQRObject) {
+      setSigningConfirmed();
       setScannerVisible(true);
       return;
     }
 
     if (isTransactionReq) {
+      setSigningConfirmed();
       await onTransactionConfirm();
       return;
     }
 
+    setSigningConfirmed();
     await executeApproval();
   }, [
     isLedgerAccount,
+    isQrAccount,
     isSigningQRObject,
     isTransactionReq,
     setScannerVisible,
+    setSigningConfirmed,
     onTransactionConfirm,
     executeApproval,
     onLedgerConfirm,
+    onQrConfirm,
+    transactionMetadata,
   ]);
 
   return { onConfirm, onReject };

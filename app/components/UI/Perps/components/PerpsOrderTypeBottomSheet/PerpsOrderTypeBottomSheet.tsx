@@ -27,7 +27,7 @@ interface PerpsOrderTypeBottomSheetProps {
   currentOrderType?: OrderType;
   asset?: string;
   direction?: 'long' | 'short';
-  sheetRef?: React.RefObject<BottomSheetRef>;
+  sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
 const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
@@ -91,11 +91,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      shouldNavigateBack={!externalSheetRef}
-      onClose={externalSheetRef ? undefined : onClose}
-    >
+    <BottomSheet ref={sheetRef} shouldNavigateBack={false} onClose={onClose}>
       <BottomSheetHeader onClose={onClose}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.order.type.title')}

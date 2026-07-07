@@ -1,46 +1,43 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
 import {
-  FontWeight,
-  TextVariant,
-  Text,
+  BannerAlert,
+  Box,
+  BoxFlexDirection,
+  BannerAlertSeverity,
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../util/theme';
-import createStyles from './CardMessageBox.styles';
 import { CardMessageBoxType, CardMessageBoxVariant } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
+import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 
 interface CardMessageBoxProps {
   messageType: CardMessageBoxType;
   onConfirm?: () => void;
   onConfirmLoading?: boolean;
   onDismiss?: () => void;
+  values?: Record<string, string | number>;
 }
 
-/**
- * Configuration for each message type including variant, title, description, and optional confirm button
- */
 interface MessageConfig {
   variant: CardMessageBoxVariant;
   title: string;
-  description: string;
+  description?: string;
   confirmButtonLabel?: string;
 }
+
+const SEVERITY_MAP: Record<CardMessageBoxVariant, BannerAlertSeverity> = {
+  [CardMessageBoxVariant.Warning]: BannerAlertSeverity.Warning,
+  [CardMessageBoxVariant.Info]: BannerAlertSeverity.Info,
+};
 
 const CardMessageBox = ({
   messageType,
   onConfirm,
   onConfirmLoading,
   onDismiss,
+  values,
 }: CardMessageBoxProps) => {
-  const theme = useTheme();
-
   const messageConfigs: Record<CardMessageBoxType, MessageConfig> = useMemo(
     () => ({
       [CardMessageBoxType.CloseSpendingLimit]: {
@@ -65,44 +62,80 @@ const CardMessageBox = ({
           'card.card_home.messages.card_provisioning.description',
         ),
       },
+      [CardMessageBoxType.AuthPrompt]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.card_authentication.auth_prompt_info'),
+      },
+      [CardMessageBoxType.CashbackFundingRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.cashback_screen.funding_required.title'),
+        description: strings(
+          'card.cashback_screen.funding_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.cashback_screen.funding_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CashbackMoneyAccountRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.cashback_screen.money_account_required.title'),
+        description: strings(
+          'card.cashback_screen.money_account_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.cashback_screen.money_account_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditFundingRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_screen.funding_required.title'),
+        description: strings('card.credit_screen.funding_required.description'),
+        confirmButtonLabel: strings(
+          'card.credit_screen.funding_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditMoneyAccountRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_screen.money_account_required.title'),
+        description: strings(
+          'card.credit_screen.money_account_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.credit_screen.money_account_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditAvailable]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.credit_banner.title', values),
+        description: strings('card.credit_banner.description'),
+        confirmButtonLabel: strings('card.credit_banner.confirm_button_label'),
+      },
+      [CardMessageBoxType.CreditAvailableNoMoneyAccount]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.credit_banner.title', values),
+        description: strings('card.credit_banner.description_no_money_account'),
+        confirmButtonLabel: strings('card.credit_banner.confirm_button_label'),
+      },
     }),
-    [],
+    [values],
   );
 
   const config = messageConfigs[messageType];
-  const styles = createStyles(theme, config.variant);
-
-  const iconName =
-    config.variant === CardMessageBoxVariant.Warning
-      ? IconName.Danger
-      : IconName.Info;
-
-  const iconColor =
-    config.variant === CardMessageBoxVariant.Warning
-      ? theme.colors.warning.default
-      : theme.colors.info.default;
 
   return (
-    <View style={styles.container} testID="card-message-box">
-      <Icon
-        name={iconName}
-        size={IconSize.Xl}
-        color={iconColor}
-        testID="icon"
-      />
-      <View style={styles.contentContainer}>
-        <View style={styles.textsContainer}>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {config.title}
-          </Text>
-          <Text variant={TextVariant.BodyMd}>{config.description}</Text>
-        </View>
-
-        <View
-          style={[
-            styles.buttonsContainer,
-            !(onConfirm || onDismiss) ? styles.isHidden : undefined,
-          ]}
+    <BannerAlert
+      severity={SEVERITY_MAP[config.variant]}
+      title={config.title}
+      description={config.description}
+      style={FLAT_BANNER_ALERT_STYLE}
+      testID="card-message-box"
+    >
+      {(onConfirm || onDismiss) && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          gap={2}
+          twClassName="mt-4"
+          testID="card-message-box-actions"
         >
           {onDismiss && (
             <Button
@@ -123,9 +156,9 @@ const CardMessageBox = ({
               {config.confirmButtonLabel}
             </Button>
           ) : null}
-        </View>
-      </View>
-    </View>
+        </Box>
+      )}
+    </BannerAlert>
   );
 };
 

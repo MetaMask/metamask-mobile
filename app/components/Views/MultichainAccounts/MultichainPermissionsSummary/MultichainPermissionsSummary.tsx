@@ -1,10 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import {
-  ImageSourcePropType,
-  SafeAreaView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import StyledButton from '../../../UI/StyledButton';
@@ -20,12 +16,11 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import TextComponent, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
 import {
+  Text,
+  TextColor,
+  TextVariant,
   Button,
   ButtonVariant,
   ButtonBaseSize,
@@ -46,6 +41,7 @@ import ButtonIcon, {
 import TabBar from '../../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SDKSelectorsIDs } from '../../SDK/SDK.testIds';
 import { useSelector } from 'react-redux';
 import {
@@ -53,8 +49,9 @@ import {
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -63,14 +60,15 @@ import Badge, {
 } from '../../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
-import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
+import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../reducers';
+
+const TAB_BAR_HORIZONTAL_PADDING = 0;
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -128,9 +126,17 @@ const MultichainPermissionsSummary = ({
   showPermissionsOnly = false,
   isMaliciousDapp = false,
 }: MultichainPermissionsSummaryProps) => {
+  const insets = useSafeAreaInsets();
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
+  const safeAreaContainerStyle = useMemo(
+    () => [
+      styles.safeArea,
+      { paddingTop: insets.top, paddingBottom: insets.bottom },
+    ],
+    [styles.safeArea, insets.top, insets.bottom],
+  );
   const navigation = useNavigation();
   const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
@@ -280,12 +286,9 @@ const MultichainPermissionsSummary = ({
         <Icon size={IconSize.Md} name={IconName.ArrowRight} />
       ) : (
         <View style={styles.editTextContainer}>
-          <TextComponent
-            color={TextColor.Primary}
-            variant={TextVariant.BodyMDMedium}
-          >
+          <Text color={TextColor.PrimaryDefault} variant={TextVariant.BodyMd}>
             {strings('permissions.edit')}
-          </TextComponent>
+          </Text>
         </View>
       )}
     </View>
@@ -304,7 +307,6 @@ const MultichainPermissionsSummary = ({
   }, [onRevokeAll, hostname, navigation]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
-    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -316,7 +318,6 @@ const MultichainPermissionsSummary = ({
         onRevokeAll: onRevokeAllHandler,
       },
     });
-    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [onRevokeAllHandler, hostname, navigate]);
 
   const getNetworkLabel = useCallback(() => {
@@ -363,48 +364,47 @@ const MultichainPermissionsSummary = ({
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity onPress={handleEditAccountsButtonPress}>
-        <View
-          style={styles.accountPermissionRequestInfoCard}
-          testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
-        >
-          <Avatar
-            variant={AvatarVariant.Icon}
-            style={styles.walletIcon}
-            name={IconName.Wallet}
-            size={AvatarSize.Md}
-            backgroundColor={colors.shadow.default}
-            iconColor={colors.icon.alternative}
-          />
-          <View style={styles.accountPermissionRequestDetails}>
-            <TextComponent variant={TextVariant.BodyMD}>
-              {strings('permissions.see_your_accounts')}
-            </TextComponent>
-            <View style={styles.permissionRequestAccountInfo}>
-              <View style={styles.permissionRequestAccountName}>
-                <TextComponent
-                  testID={
-                    PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
-                  }
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  <TextComponent variant={TextVariant.BodySM}>
-                    {strings('permissions.requesting_for')}
-                  </TextComponent>
-                </TextComponent>
-              </View>
-              <View style={styles.avatarGroup}>
-                <AvatarGroup
-                  avatarPropsList={selectedAccountGroups.map((accountGroup) =>
-                    renderAccountAvatar(accountGroup),
-                  )}
-                />
-              </View>
+      <TouchableOpacity
+        onPress={handleEditAccountsButtonPress}
+        style={styles.accountPermissionRequestInfoCard}
+        testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
+      >
+        <Avatar
+          variant={AvatarVariant.Icon}
+          style={styles.walletIcon}
+          name={IconName.Wallet}
+          size={AvatarSize.Md}
+          backgroundColor={colors.shadow.default}
+          iconColor={colors.icon.alternative}
+        />
+        <View style={styles.accountPermissionRequestDetails}>
+          <Text variant={TextVariant.BodyMd}>
+            {strings('permissions.see_your_accounts')}
+          </Text>
+          <View style={styles.permissionRequestAccountInfo}>
+            <View style={styles.permissionRequestAccountName}>
+              <Text
+                testID={
+                  PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
+                }
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                <Text variant={TextVariant.BodySm}>
+                  {strings('permissions.requesting_for')}
+                </Text>
+              </Text>
+            </View>
+            <View style={styles.avatarGroup}>
+              <AvatarGroup
+                avatarPropsList={selectedAccountGroups.map((accountGroup) =>
+                  renderAccountAvatar(accountGroup),
+                )}
+              />
             </View>
           </View>
-          {renderEndAccessory()}
         </View>
+        {renderEndAccessory()}
       </TouchableOpacity>
     );
   }
@@ -427,23 +427,23 @@ const MultichainPermissionsSummary = ({
             iconColor={colors.icon.alternative}
           />
           <View style={styles.networkPermissionRequestDetails}>
-            <TextComponent variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMd}>
               {strings('permissions.use_enabled_networks')}
-            </TextComponent>
+            </Text>
             <View style={styles.permissionRequestNetworkInfo}>
               {(isNetworkSwitch || isNonDappNetworkSwitch) && (
                 <>
                   <View style={styles.permissionRequestNetworkName}>
-                    <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                      <TextComponent variant={TextVariant.BodySM}>
+                    <Text numberOfLines={1} ellipsizeMode="tail">
+                      <Text variant={TextVariant.BodySm}>
                         {strings('permissions.requesting_for')}
-                      </TextComponent>
-                      <TextComponent variant={TextVariant.BodySMMedium}>
+                      </Text>
+                      <Text variant={TextVariant.BodyMd}>
                         {isNonDappNetworkSwitch
                           ? networkName || providerConfig.nickname
                           : chainName}
-                      </TextComponent>
-                    </TextComponent>
+                      </Text>
+                    </Text>
                   </View>
                   <Avatar
                     variant={AvatarVariant.Network}
@@ -466,11 +466,11 @@ const MultichainPermissionsSummary = ({
               {!isNetworkSwitch && !isNonDappNetworkSwitch && (
                 <>
                   <View style={styles.permissionRequestNetworkName}>
-                    <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                      <TextComponent variant={TextVariant.BodySM}>
+                    <Text numberOfLines={1} ellipsizeMode="tail">
+                      <Text variant={TextVariant.BodySm}>
                         {getNetworkLabel()}
-                      </TextComponent>
-                    </TextComponent>
+                      </Text>
+                    </Text>
                   </View>
                   <View style={styles.avatarGroup}>
                     <AvatarGroup
@@ -517,7 +517,11 @@ const MultichainPermissionsSummary = ({
 
   const renderTabBar = useCallback(
     (props: Record<string, unknown>) => (
-      <TabBar backgroundColor={colors.background.default} {...props} />
+      <TabBar
+        backgroundColor={colors.background.default}
+        tabPadding={TAB_BAR_HORIZONTAL_PADDING}
+        {...props}
+      />
     ),
     [colors],
   );
@@ -572,7 +576,7 @@ const MultichainPermissionsSummary = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={safeAreaContainerStyle}>
       <View style={styles.mainContainer}>
         <View style={styles.contentContainer}>
           {renderHeader()}
@@ -582,12 +586,12 @@ const MultichainPermissionsSummary = ({
               PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER
             }
           >
-            <TextComponent
+            <Text
               style={styles.connectionTitle}
-              variant={TextVariant.HeadingMD}
+              variant={TextVariant.HeadingMd}
               color={
                 isMaliciousDapp && !isAlreadyConnected
-                  ? TextColor.Error
+                  ? TextColor.ErrorDefault
                   : undefined
               }
             >
@@ -598,19 +602,16 @@ const MultichainPermissionsSummary = ({
                   : strings('permissions.title_dapp_url_has_approval_to', {
                       dappUrl: hostname,
                     })}
-            </TextComponent>
+            </Text>
             {isMaliciousDapp && !isAlreadyConnected && <MaliciousDappUrlIcon />}
-            <TextComponent variant={TextVariant.BodyMD}>
+            <Text variant={TextVariant.BodyMd}>
               {strings('account_dapp_connections.account_summary_header')}
-            </TextComponent>
+            </Text>
           </View>
           {isNonDappNetworkSwitch && (
-            <TextComponent
-              variant={TextVariant.BodyMD}
-              style={styles.description}
-            >
+            <Text variant={TextVariant.BodyMd} style={styles.description}>
               {strings('permissions.non_permitted_network_description')}
-            </TextComponent>
+            </Text>
           )}
           {!nonTabView ? (
             <View style={styles.tabsContainer}>{renderTabsContent()}</View>
@@ -705,7 +706,7 @@ const MultichainPermissionsSummary = ({
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

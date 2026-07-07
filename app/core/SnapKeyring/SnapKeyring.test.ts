@@ -10,7 +10,7 @@ import {
   KeyringRpcMethod,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { snapKeyringBuilder } from './SnapKeyring';
+import { legacySnapKeyringBuilder } from './SnapKeyring';
 import {
   SnapKeyringBuilderAllowActions,
   SnapKeyringBuilderMessenger,
@@ -52,9 +52,7 @@ const mockInternalAccount: InternalAccount = {
   scopes: [EthScope.Eoa],
   metadata: {
     snap: {
-      enabled: true,
       id: mockSnapId,
-      name: mockSnapName,
     },
     name: accountNameSuggestion,
     keyring: {
@@ -124,6 +122,10 @@ const createControllerMessenger = ({
         return mockEndFlow.mockReturnValue(true)(params);
       case 'KeyringController:getAccounts':
         return mockGetAccounts.mockResolvedValue([])();
+      case 'KeyringController:persistAllKeyrings':
+        return mockPersisKeyringHelper();
+      case 'KeyringController:removeAccount':
+        return mockRemoveAccountHelper(...params);
       case 'AccountsController:getAccountByAddress':
         return mockGetAccountByAddress.mockReturnValue(account)(params);
       case 'AccountsController:setSelectedAccount':
@@ -159,10 +161,7 @@ async function waitForAllPromises(): Promise<void> {
 }
 
 const createSnapKeyringBuilder = () =>
-  snapKeyringBuilder(createControllerMessenger(), {
-    persistKeyringHelper: mockPersisKeyringHelper,
-    removeAccountHelper: mockRemoveAccountHelper,
-  });
+  legacySnapKeyringBuilder(createControllerMessenger());
 
 // Mock the isSnapPreinstalled function
 jest.mock('./utils/snaps', () => ({

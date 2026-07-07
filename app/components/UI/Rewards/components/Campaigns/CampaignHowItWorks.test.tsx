@@ -4,26 +4,13 @@ import type { Json } from '@metamask/utils';
 import CampaignHowItWorks, {
   CAMPAIGN_HOW_IT_WORKS_TEST_IDS,
 } from './CampaignHowItWorks';
-import type { OndoCampaignHowItWorks } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignHowItWorks as CampaignHowItWorksData } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    ...actual,
-    Icon: ({ testID }: { testID?: string }) =>
-      ReactActual.createElement(View, { testID }),
-  };
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
 });
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
-
-jest.mock('../../utils/formatUtils', () => ({
-  getIconName: (name: string) => name,
-}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -51,8 +38,8 @@ const makeRichText = (text: string): Json => ({
 });
 
 const createHowItWorks = (
-  overrides: Partial<OndoCampaignHowItWorks> = {},
-): OndoCampaignHowItWorks => ({
+  overrides: Partial<CampaignHowItWorksData> = {},
+): CampaignHowItWorksData => ({
   title: 'How it works',
   description: 'Hold tokens to earn rewards',
   steps: [
@@ -143,12 +130,14 @@ describe('CampaignHowItWorks', () => {
     ).toBeNull();
   });
 
-  it('renders step icon for each step', () => {
+  it('renders circled step index for each step', () => {
     const { getByTestId } = render(
       <CampaignHowItWorks howItWorks={createHowItWorks()} />,
     );
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_ICON}-0`),
-    ).toBeDefined();
+    const stepIndex = getByTestId(
+      `${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_INDEX}-0`,
+    );
+    expect(stepIndex).toBeDefined();
+    expect(stepIndex).toHaveTextContent('1');
   });
 });

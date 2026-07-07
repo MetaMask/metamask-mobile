@@ -14,10 +14,12 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteExpiredModal.styles';
 import { DEPOSIT_CONFIG } from '@metamask/perps-controller';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 const PerpsQuoteExpiredModal = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(createStyles, {});
+  const surfaceClass = useElevatedSurface();
   const refreshRate = DEPOSIT_CONFIG.RefreshRate / 1000; // Convert to seconds
 
   const handleGetNewQuote = () => {
@@ -27,7 +29,7 @@ const PerpsQuoteExpiredModal = () => {
   };
 
   return (
-    <BottomSheet goBack={navigation.goBack}>
+    <BottomSheet goBack={navigation.goBack} twClassName={surfaceClass}>
       <BottomSheetHeader onClose={navigation.goBack}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.deposit.quote_expired_modal.title')}

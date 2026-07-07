@@ -80,7 +80,7 @@ jest.mock('../../../hooks/useVaultMetadata', () => ({
 }));
 
 describe('AccountCard', () => {
-  it('render matches snapshot', () => {
+  it('renders staking from, interacting with, network, and contract name labels', () => {
     const props: AccountCardProps = {
       contractName: MOCK_STAKING_CONTRACT_NAME,
       primaryLabel: strings('stake.staking_from'),
@@ -88,16 +88,13 @@ describe('AccountCard', () => {
       chainId: 1,
     };
 
-    const { getByText, toJSON } = renderWithProvider(
-      <AccountCard {...props} />,
-      { state: mockInitialState },
-    );
+    const { getByText } = renderWithProvider(<AccountCard {...props} />, {
+      state: mockInitialState,
+    });
 
-    expect(getByText(strings('stake.staking_from'))).toBeDefined();
-    expect(getByText(strings('stake.interacting_with'))).toBeDefined();
-    expect(getByText(strings('asset_details.network'))).toBeDefined();
-    expect(getByText(props.contractName)).toBeDefined();
-
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('stake.staking_from'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.interacting_with'))).toBeOnTheScreen();
+    expect(getByText(strings('asset_details.network'))).toBeOnTheScreen();
+    expect(getByText(props.contractName)).toBeOnTheScreen();
   });
 });

@@ -71,7 +71,14 @@ export const initialStateWallet = (options?: InitialStateWalletOptions) => {
           MultichainTransactionsController: {
             nonEvmTransactions: {},
           },
+          NftController: {
+            allNfts: {},
+            allNftContracts: {},
+          },
         },
+      },
+      collectibles: {
+        favorites: {},
       },
     } as unknown as DeepPartial<RootState>);
 

@@ -9,6 +9,7 @@ import {
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
@@ -16,7 +17,7 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class ImportWalletView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportFromSeedSelectorsIDs.CONTAINER_ID);
   }
 
@@ -34,13 +35,13 @@ class ImportWalletView {
     });
   }
 
-  get newPasswordInput(): DetoxElement {
+  get newPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
-  get confirmPasswordInput(): DetoxElement {
+  get confirmPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
@@ -155,16 +156,27 @@ class ImportWalletView {
         );
       },
       appium: async () => {
-        for (const [i, word] of srpArray.entries()) {
-          const suffix = i === srpArray.length - 1 ? '' : ' ';
-          await UnifiedGestures.typeText(
-            // once merged, remove me and create a typeText in Playwright Gestures
-            this.seedPhraseInput(i, onboarding),
-            `${word}${suffix}`,
+        const isAndroid = await PlatformDetector.isAndroid();
+        if (isAndroid) {
+          await UnifiedGestures.replaceText(
+            this.seedPhraseInput(0, onboarding),
+            secretRecoveryPhrase,
             {
               description: 'Import Wallet Secret Recovery Phrase Input Box',
             },
           );
+        } else {
+          for (const [i, word] of srpArray.entries()) {
+            const suffix = i === srpArray.length - 1 ? '' : ' ';
+            await UnifiedGestures.typeText(
+              // once merged, remove me and create a typeText in Playwright Gestures
+              this.seedPhraseInput(i, onboarding),
+              `${word}${suffix}`,
+              {
+                description: 'Import Wallet Secret Recovery Phrase Input Box',
+              },
+            );
+          }
         }
         await PlaywrightGestures.hideKeyboard();
       },

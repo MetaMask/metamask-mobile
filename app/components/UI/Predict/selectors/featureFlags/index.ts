@@ -122,6 +122,16 @@ export const selectPredictFeatureFlags = createSelector(
     resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
 );
 
+export const selectExtendedSportsMarketsLeagues = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.extendedSportsMarketsLeagues,
+);
+
+export const selectNonRegTimeSportsMarketTypes = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.nonRegTimeSportsMarketTypes,
+);
+
 export const selectPredictFeeCollectionFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.feeCollection,
@@ -137,12 +147,99 @@ export const selectPredictWithAnyTokenEnabledFlag = createSelector(
   (flags) => flags.predictWithAnyTokenEnabled,
 );
 
+export const selectPredictUpDownEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictUpDownEnabled,
+);
+
+export const selectPredictWorldCupConfig = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictWorldCup,
+);
+
+export const selectPredictWimbledonTabFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictWimbledonTab,
+);
+
+export const selectPredictWorldCupEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled,
+);
+
+export const selectPredictWorldCupMainFeedBannerEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled && config.showMainFeedBanner,
+);
+
+export const selectPredictWorldCupMainFeedTabEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled && config.showMainFeedTab,
+);
+
+export const selectPredictWorldCupScreenEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled && config.showWorldCupScreen,
+);
+
+export const selectPredictWorldCupHubV2EnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled && config.showWorldCupScreen && config.showHubV2,
+);
+
+// The banner is only mounted inside the V2 hub (`PredictWorldCupHub`), so it
+// must also require `showHubV2`. Without this, enabling `showHubBanner` while
+// `showHubV2` is off would silently render nothing (the V1 hub has no banner).
+export const selectPredictWorldCupHubBannerEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) =>
+    config.enabled &&
+    config.showWorldCupScreen &&
+    config.showHubV2 &&
+    config.showHubBanner,
+);
+
+export const selectPredictPortfolioEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictPortfolioEnabled,
+);
+
+export const selectPredictHomeRedesignEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictHomeRedesignEnabled,
+);
+
+export const selectPredictSportCardLivePricesEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictSportCardLivePricesEnabled,
+);
+
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
     validatedVersionGatedFeatureFlag(
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
         remoteFeatureFlags?.predictTabFeaturedCarousel,
+      ),
+    ) ?? false,
+);
+
+/**
+ * Selector for Predict BottomSheet enablement
+ *
+ * Uses version-gated feature flag `predictBottomSheet` from remote config.
+ * When enabled, buy/sell previews render inside a BottomSheet overlay
+ * instead of navigating to full-screen pages.
+ * Falls back to `false` if remote flag is unavailable or invalid.
+ *
+ * @returns {boolean} True if BottomSheet mode is enabled
+ */
+export const selectPredictBottomSheetEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+        remoteFeatureFlags?.predictBottomSheet,
       ),
     ) ?? false,
 );

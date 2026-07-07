@@ -1,9 +1,14 @@
-import type { Theme } from '../../../../util/theme/models';
+import { AppThemeKey, type Theme } from '../../../../util/theme/models';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
+  type ChartLabelStyleOverrides,
   type LineChromeOptions,
+  type LegendOverlayConfig,
   resolveLineChromeOptions,
+  resolveCurrentPriceColor,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
+import { getIndicatorColorsForWebview } from './indicatorColors';
 
 /**
  * CDN base URL for the TradingView charting library assets.
@@ -43,10 +48,39 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
+const formatTradingViewCssColor = (hex: string): string => {
+  if (hex.length !== 9 || !hex.startsWith('#')) {
+    return hex;
+  }
+
+  const red = Number.parseInt(hex.slice(1, 3), 16);
+  const green = Number.parseInt(hex.slice(3, 5), 16);
+  const blue = Number.parseInt(hex.slice(5, 7), 16);
+  const alpha = Number.parseInt(hex.slice(7, 9), 16) / 255;
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
+};
+
+const getChartSuccessColor = (theme: Theme): string =>
+  theme.themeAppearance === AppThemeKey.light
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : theme.colors.success.default;
+
 interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   lineChrome?: LineChromeOptions;
+  useSubscriptPriceFormat?: boolean;
+  hidePaneSeparator?: boolean;
+  gridLineColorOverride?: string;
+  lineColorOverride?: string;
+  successColorOverride?: string;
+  errorColorOverride?: string;
+  currentPriceLineColorOverride?: string;
+  labelStyleOverrides?: ChartLabelStyleOverrides;
+  volumeSuccessColorOverride?: string;
+  volumeErrorColorOverride?: string;
+  legendOverlay?: LegendOverlayConfig;
 }
 
 const createConfigScript = (
@@ -55,27 +89,69 @@ const createConfigScript = (
   features: ChartFeatures,
 ): string => {
   const lc = resolveLineChromeOptions(features.lineChrome);
+  const successColor =
+    features.successColorOverride ?? getChartSuccessColor(theme);
+  const lineColor = features.lineColorOverride ?? successColor;
+  const errorColor = features.errorColorOverride ?? theme.colors.error.default;
+  const labelStyles = features.labelStyleOverrides;
+  const sectionBackgroundColor = stripHexAlpha(
+    labelStyles?.crosshairBackgroundColor ?? theme.colors.background.section,
+  );
+  const textDefaultColor = stripHexAlpha(
+    labelStyles?.crosshairTextColor ?? theme.colors.text.default,
+  );
+  const axisTextColor = stripHexAlpha(
+    labelStyles?.axisTextColor ?? theme.colors.text.muted,
+  );
+  const legendTextColor = stripHexAlpha(
+    labelStyles?.legendTextColor ?? theme.colors.text.alternative,
+  );
+  const resolvedCurrentPriceColor = resolveCurrentPriceColor({
+    lastValuePillColor: labelStyles?.lastValuePillColor,
+    currentPriceLineColorOverride: features.currentPriceLineColorOverride,
+    lineColorOverride: features.lineColorOverride,
+    successColorOverride: features.successColorOverride,
+    themeSuccessDefault: getChartSuccessColor(theme),
+  });
+  const volumeSuccessColor =
+    features.volumeSuccessColorOverride ?? successColor;
+  const volumeErrorColor = features.volumeErrorColorOverride ?? errorColor;
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
   theme: {
     backgroundColor: '${theme.colors.background.default}',
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
-    textColor: '${stripHexAlpha(theme.colors.text.muted)}',
-    successColor: '${theme.colors.success.default}',
-    errorColor: '${theme.colors.error.default}',
-    primaryColor: '${theme.colors.primary.default}'
+    textColor: '${axisTextColor}',
+    textDefaultColor: '${textDefaultColor}',
+    sectionBackgroundColor: '${sectionBackgroundColor}',
+    crosshairBackgroundColor: '${sectionBackgroundColor}',
+    crosshairTextColor: '${textDefaultColor}',
+    legendTextColor: '${legendTextColor}',
+    textAlternativeColor: '${legendTextColor}',
+    successColor: '${successColor}',
+    lineColor: '${lineColor}',
+    gridLineColor: '${features.gridLineColorOverride ? formatTradingViewCssColor(features.gridLineColorOverride) : 'transparent'}',
+    errorColor: '${errorColor}',
+    volumeSuccessColor: '${volumeSuccessColor}',
+    volumeErrorColor: '${volumeErrorColor}',
+    primaryColor: '${theme.colors.primary.default}',
+    currentPriceColor: '${resolvedCurrentPriceColor}'
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
-    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])}
+    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
+    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'}
   },
   lineChrome: {
     hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
     useCustomLineEndMarker: ${lc.useCustomLineEndMarker ? 'true' : 'false'},
     useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
-  }
+  },
+  legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
+  useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
+  indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };
 `;
 };
@@ -90,6 +166,10 @@ export const createAdvancedChartTemplate = (
   theme: Theme,
   features: ChartFeatures = {},
 ): string => {
+  const resolvedLineColor =
+    features.lineColorOverride ?? getChartSuccessColor(theme);
+  const resolvedCurrentPriceLabelColor =
+    features.currentPriceLineColorOverride ?? resolvedLineColor;
   const configInline = createConfigScript(
     CHARTING_LIBRARY_URL,
     theme,
@@ -102,7 +182,7 @@ export const createAdvancedChartTemplate = (
     <meta charset="UTF-8">
     <title>TradingView Advanced Chart</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${CHARTING_LIBRARY_BASE_URL}; script-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; style-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; img-src 'self' data: ${CHARTING_LIBRARY_BASE_URL}; font-src ${CHARTING_LIBRARY_BASE_URL}; worker-src blob:; frame-src 'self' blob: ${CHARTING_LIBRARY_ORIGIN}; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${CHARTING_LIBRARY_BASE_URL}; script-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; style-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; img-src 'self' data: ${CHARTING_LIBRARY_BASE_URL}; font-src ${CHARTING_LIBRARY_BASE_URL}; worker-src blob:; frame-src 'self' blob: ${CHARTING_LIBRARY_ORIGIN}; connect-src https://price.api.cx.metamask.io; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
     <style>
         /*
          * Page root: fill the WebView, no scrolling. TradingView draws inside this area.
@@ -114,19 +194,16 @@ export const createAdvancedChartTemplate = (
             height: 100%;
             overflow: hidden;
             background: ${theme.colors.background.default};
+            --chart-background: ${stripHexAlpha(theme.colors.background.default)};
             position: relative;
         }
         /*
-         * Chart area sits below a small top inset (16px) so absolutely positioned pills
-         * that use top + translateY(-50%) for vertical centering are not clipped by
-         * body { overflow: hidden } when the crosshair is near the top of the chart.
+         * Chart area fills the entire WebView so TradingView gets the full
+         * height passed from React Native.
          */
         #chart_surface {
             position: absolute;
-            left: 0;
-            right: 0;
-            top: 16px;
-            bottom: 0;
+            inset: 0;
             width: 100%;
             box-sizing: border-box;
         }
@@ -206,11 +283,12 @@ export const createAdvancedChartTemplate = (
             transform: translateX(-50%);
         }
         /*
-         * Last-close: green pill (matches TV last-price line), same stacking context as the overlay.
+         * Last-close: filled pill matching the current-price line override when supplied,
+         * otherwise matching the default chart line color.
          */
         #last-close-price-label {
             z-index: 50;
-            background: ${stripHexAlpha(theme.colors.success.default)};
+            background: ${resolvedCurrentPriceLabelColor};
             color: ${stripHexAlpha(theme.colors.success.inverse)};
         }
         /*
@@ -222,14 +300,29 @@ export const createAdvancedChartTemplate = (
         #custom-series-last-value-label {
             z-index: 55;
             background: transparent;
-            border: 1px solid ${stripHexAlpha(theme.colors.success.default)};
-            color: ${stripHexAlpha(theme.colors.success.default)};
+            border: 1px solid ${stripHexAlpha(resolvedLineColor)};
+            color: ${stripHexAlpha(resolvedLineColor)};
         }
         /*
          * Crosshair price pill draws above last-close when both share the same Y so text stays readable.
          */
         #crosshair-price-label {
             z-index: 60;
+        }
+        /*
+         * Study legend pills (chartLogic.js): semi-transparent background via color-mix.
+         */
+        .legend-pill {
+            display: inline-flex;
+            align-items: center;
+            box-sizing: border-box;
+            font-family: Geist, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 1;
+            padding: 1px 6px;
+            border-radius: 2px;
+            background: color-mix(in srgb, var(--chart-background) 75%, transparent);
         }
         /*
          * Full-screen loading state until the chart is ready; centered message, above all chart UI.

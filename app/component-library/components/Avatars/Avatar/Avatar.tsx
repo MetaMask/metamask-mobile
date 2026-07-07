@@ -16,6 +16,16 @@ import { AvatarTokenProps } from './variants/AvatarToken/AvatarToken.types';
 // Internal dependencies.
 import { AvatarProps, AvatarVariant } from './Avatar.types';
 
+/**
+ * @deprecated Please update your code to use the individual avatar components from `@metamask/design-system-react-native`
+ * such as `AvatarAccount`, `AvatarFavicon`, `AvatarIcon`, `AvatarNetwork`, or `AvatarToken`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarAccount/README.md AvatarAccount}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarFavicon/README.md AvatarFavicon}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarIcon/README.md AvatarIcon}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarNetwork/README.md AvatarNetwork}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarToken/README.md AvatarToken}
+ */
 const Avatar = ({ variant, ...props }: AvatarProps) => {
   switch (variant) {
     case AvatarVariant.Account:

@@ -5,6 +5,7 @@ import { type PredictPosition, PredictPositionStatus } from '../types';
 import { usePredictPositions } from './usePredictPositions';
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
+const SECOND_MOCK_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
 const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
 jest.mock('./usePredictNetworkManagement', () => ({
@@ -13,7 +14,10 @@ jest.mock('./usePredictNetworkManagement', () => ({
   }),
 }));
 
-const mockGetEvmAccountFromSelectedAccountGroup = jest.fn(() => ({
+const mockGetEvmAccountFromSelectedAccountGroup = jest.fn<
+  { address: string; type: string } | null,
+  []
+>(() => ({
   address: MOCK_ADDRESS,
   type: 'eip155:eoa',
 }));
@@ -32,6 +36,10 @@ jest.mock(
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: () => unknown) => selector(),
+}));
+
+jest.mock('./usePredictLivePositions', () => ({
+  usePredictLivePositions: jest.fn(),
 }));
 
 const mockGetPositions = jest.fn<
@@ -91,11 +99,20 @@ const createWrapper = () => {
   return { Wrapper, queryClient };
 };
 
+const mockUsePredictLivePositions = jest.requireMock(
+  './usePredictLivePositions',
+).usePredictLivePositions as jest.Mock;
+
 describe('usePredictPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: MOCK_ADDRESS,
+      type: 'eip155:eoa',
+    });
     mockGetPositions.mockResolvedValue([]);
+    mockUsePredictLivePositions.mockImplementation(() => undefined);
   });
 
   it('returns empty positions when query returns no positions', async () => {
@@ -111,6 +128,58 @@ describe('usePredictPositions', () => {
 
     expect(result.current.data).toEqual([]);
     expect(result.current.error).toBeNull();
+  });
+
+  it('does not fetch positions when no EVM account is selected', () => {
+    const { Wrapper } = createWrapper();
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
+
+    renderHook(() => usePredictPositions(), {
+      wrapper: Wrapper,
+    });
+
+    expect(mockGetPositions).not.toHaveBeenCalled();
+    expect(mockUsePredictLivePositions).toHaveBeenCalledWith([], {
+      enabled: false,
+      cacheAddress: '',
+    });
+  });
+
+  it('fetches against the new address after the selected account changes', async () => {
+    const { Wrapper } = createWrapper();
+    const firstAccountPosition = createPosition('first-account-position');
+    const secondAccountPosition = createPosition('second-account-position');
+    mockGetPositions.mockImplementation(({ address }) =>
+      Promise.resolve(
+        address === SECOND_MOCK_ADDRESS
+          ? [secondAccountPosition]
+          : [firstAccountPosition],
+      ),
+    );
+
+    const { result, rerender } = renderHook(() => usePredictPositions(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([firstAccountPosition]);
+    });
+
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: SECOND_MOCK_ADDRESS,
+      type: 'eip155:eoa',
+    });
+
+    rerender({});
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([secondAccountPosition]);
+    });
+
+    expect(mockGetPositions).toHaveBeenCalledWith({ address: MOCK_ADDRESS });
+    expect(mockGetPositions).toHaveBeenCalledWith({
+      address: SECOND_MOCK_ADDRESS,
+    });
   });
 
   it('returns active and claimable positions when claimable is undefined', async () => {
@@ -154,6 +223,13 @@ describe('usePredictPositions', () => {
     });
 
     expect(result.current.data).toEqual([activePosition]);
+    expect(mockUsePredictLivePositions).toHaveBeenLastCalledWith(
+      [activePosition],
+      {
+        enabled: false,
+        cacheAddress: MOCK_ADDRESS,
+      },
+    );
   });
 
   it('returns only claimable positions when claimable is true', async () => {
@@ -176,6 +252,13 @@ describe('usePredictPositions', () => {
     });
 
     expect(result.current.data).toEqual([claimablePosition]);
+    expect(mockUsePredictLivePositions).toHaveBeenLastCalledWith(
+      [claimablePosition],
+      {
+        enabled: false,
+        cacheAddress: MOCK_ADDRESS,
+      },
+    );
   });
 
   it('filters positions by marketId', async () => {
@@ -220,6 +303,10 @@ describe('usePredictPositions', () => {
     expect(mockGetPositions).not.toHaveBeenCalled();
     expect(result.current.data).toBeUndefined();
     expect(result.current.isFetching).toBe(false);
+    expect(mockUsePredictLivePositions).toHaveBeenLastCalledWith([], {
+      enabled: false,
+      cacheAddress: MOCK_ADDRESS,
+    });
   });
 
   it('returns query error message when query fails', async () => {
@@ -270,5 +357,318 @@ describe('usePredictPositions', () => {
     });
 
     expect(result.current.data).toEqual([claimableTargetMarket]);
+  });
+
+  describe('childMarketIds filtering', () => {
+    it('filters positions by childMarketIds when provided', async () => {
+      const { Wrapper } = createWrapper();
+      const parentPosition = createPosition('parent-1', {
+        marketId: 'parent-1',
+      });
+      const child1Position = createPosition('child-1', {
+        marketId: 'child-1',
+      });
+      const child2Position = createPosition('child-2', {
+        marketId: 'child-2',
+      });
+      const unrelatedPosition = createPosition('unrelated-3', {
+        marketId: 'unrelated-3',
+      });
+      mockGetPositions.mockResolvedValue([
+        parentPosition,
+        child1Position,
+        child2Position,
+        unrelatedPosition,
+      ]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'parent-1',
+            childMarketIds: ['parent-1', 'child-1', 'child-2'],
+          }),
+        {
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([
+        parentPosition,
+        child1Position,
+        child2Position,
+      ]);
+    });
+
+    it('falls back to marketId filtering when childMarketIds is empty', async () => {
+      const { Wrapper } = createWrapper();
+      const parentPosition = createPosition('parent-1', {
+        marketId: 'parent-1',
+      });
+      const childPosition = createPosition('child-1', {
+        marketId: 'child-1',
+      });
+      mockGetPositions.mockResolvedValue([parentPosition, childPosition]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'parent-1',
+            childMarketIds: [],
+          }),
+        {
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([parentPosition]);
+    });
+
+    it('falls back to marketId filtering when childMarketIds is undefined', async () => {
+      const { Wrapper } = createWrapper();
+      const parentPosition = createPosition('parent-1', {
+        marketId: 'parent-1',
+      });
+      const childPosition = createPosition('child-1', {
+        marketId: 'child-1',
+      });
+      mockGetPositions.mockResolvedValue([parentPosition, childPosition]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'parent-1',
+          }),
+        {
+          wrapper: Wrapper,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([parentPosition]);
+    });
+  });
+
+  describe('marketIds filtering', () => {
+    it('filters positions across the supplied marketIds set', async () => {
+      const { Wrapper } = createWrapper();
+      const seriesMarketA = createPosition('series-a', {
+        marketId: 'series-market-a',
+      });
+      const seriesMarketB = createPosition('series-b', {
+        marketId: 'series-market-b',
+      });
+      const otherMarket = createPosition('other', {
+        marketId: 'unrelated-market',
+      });
+      mockGetPositions.mockResolvedValue([
+        seriesMarketA,
+        seriesMarketB,
+        otherMarket,
+      ]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketIds: ['series-market-a', 'series-market-b'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([seriesMarketA, seriesMarketB]);
+    });
+
+    it('takes precedence over marketId and childMarketIds when non-empty', async () => {
+      const { Wrapper } = createWrapper();
+      const seriesMarket = createPosition('series-1', {
+        marketId: 'series-market-1',
+      });
+      const otherMarket = createPosition('other', {
+        marketId: 'other-market',
+      });
+      mockGetPositions.mockResolvedValue([seriesMarket, otherMarket]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'other-market',
+            childMarketIds: ['other-market'],
+            marketIds: ['series-market-1'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([seriesMarket]);
+    });
+
+    it('falls back to marketId filtering when marketIds is empty', async () => {
+      const { Wrapper } = createWrapper();
+      const targetPosition = createPosition('target', {
+        marketId: 'target-market',
+      });
+      const otherPosition = createPosition('other', {
+        marketId: 'other-market',
+      });
+      mockGetPositions.mockResolvedValue([targetPosition, otherPosition]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            marketId: 'target-market',
+            marketIds: [],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([targetPosition]);
+    });
+
+    it('combines with the claimable filter', async () => {
+      const { Wrapper } = createWrapper();
+      const activeInSeries = createPosition('active-series', {
+        marketId: 'series-market-a',
+        claimable: false,
+      });
+      const claimableInSeries = createPosition('claimable-series', {
+        marketId: 'series-market-b',
+        claimable: true,
+      });
+      const activeOutsideSeries = createPosition('active-outside', {
+        marketId: 'unrelated-market',
+        claimable: false,
+      });
+      mockGetPositions.mockResolvedValue([
+        activeInSeries,
+        claimableInSeries,
+        activeOutsideSeries,
+      ]);
+
+      const { result } = renderHook(
+        () =>
+          usePredictPositions({
+            claimable: false,
+            marketIds: ['series-market-a', 'series-market-b'],
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data).toEqual([activeInSeries]);
+    });
+  });
+
+  it('updates returned data through cache sync while keeping claimable rows unchanged', async () => {
+    const { Wrapper } = createWrapper();
+    const activePosition = createPosition('active-cache-sync', {
+      claimable: false,
+      currentValue: 100,
+      cashPnl: 8,
+      percentPnl: 12,
+    });
+    const claimablePosition = createPosition('claimable-cache-sync', {
+      claimable: true,
+      currentValue: 40,
+      cashPnl: 30,
+      percentPnl: 300,
+      marketId: 'market-claimable',
+    });
+    mockGetPositions.mockResolvedValue([activePosition, claimablePosition]);
+
+    mockUsePredictLivePositions.mockImplementation(
+      (
+        positions: PredictPosition[],
+        options?: { enabled?: boolean; cacheAddress?: string },
+      ) => {
+        const { useEffect } = jest.requireActual('react');
+        const { useQueryClient } = jest.requireActual('@tanstack/react-query');
+        const queryClient = useQueryClient();
+
+        useEffect(() => {
+          if (!options?.enabled || !options.cacheAddress) {
+            return;
+          }
+
+          queryClient.setQueryData(
+            ['predict', 'positions', options.cacheAddress],
+            (cachedPositions: PredictPosition[] | undefined) => {
+              if (!cachedPositions) {
+                return cachedPositions;
+              }
+
+              let hasChanges = false;
+
+              const nextPositions = cachedPositions.map(
+                (position: PredictPosition) => {
+                  if (position.id !== activePosition.id || position.claimable) {
+                    return position;
+                  }
+
+                  if (
+                    position.currentValue === 150 &&
+                    position.cashPnl === 58 &&
+                    position.percentPnl === 63
+                  ) {
+                    return position;
+                  }
+
+                  hasChanges = true;
+
+                  return {
+                    ...position,
+                    currentValue: 150,
+                    cashPnl: 58,
+                    percentPnl: 63,
+                  };
+                },
+              );
+
+              return hasChanges ? nextPositions : cachedPositions;
+            },
+          );
+        }, [options?.cacheAddress, options?.enabled, queryClient, positions]);
+      },
+    );
+
+    const { result } = renderHook(
+      () => usePredictPositions({ livePriceUpdates: true }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([
+        expect.objectContaining({
+          id: activePosition.id,
+          currentValue: 150,
+          cashPnl: 58,
+          percentPnl: 63,
+        }),
+        claimablePosition,
+      ]);
+    });
   });
 });

@@ -7,10 +7,20 @@ import { predictQueries } from '../queries';
 import { predictMarketKeys } from '../queries/market';
 import type { GetSeriesParams } from '../types';
 
-export const usePredictSeries = (params: GetSeriesParams) => {
+interface UsePredictSeriesOptions {
+  enabled?: boolean;
+}
+
+export const usePredictSeries = (
+  params: GetSeriesParams,
+  options: UsePredictSeriesOptions = {},
+) => {
   const queryClient = useQueryClient();
 
-  const query = useQuery(predictQueries.series.options(params));
+  const query = useQuery({
+    ...predictQueries.series.options(params),
+    enabled: options.enabled ?? true,
+  });
 
   useEffect(() => {
     if (!query.data) return;
@@ -21,7 +31,7 @@ export const usePredictSeries = (params: GetSeriesParams) => {
   }, [query.data, queryClient]);
 
   useEffect(() => {
-    if (!query.error) return;
+    if (!query.error || options.enabled === false) return;
 
     Logger.error(ensureError(query.error), {
       tags: {
@@ -38,7 +48,7 @@ export const usePredictSeries = (params: GetSeriesParams) => {
         },
       },
     });
-  }, [query.error, params.seriesId]);
+  }, [query.error, options.enabled, params.seriesId]);
 
   return query;
 };

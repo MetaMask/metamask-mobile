@@ -49,6 +49,15 @@ async function handleEthereumUrl({
       return;
     }
 
+    // eth-url-parser serialises large uint256 values in scientific notation
+    // (e.g. "1e+21"). Convert to a plain decimal string so that downstream
+    // toHex calls don't throw. See issue #23672.
+    if (ethUrl.parameters?.uint256) {
+      ethUrl.parameters.uint256 = formattedDeeplinkParsedValue(
+        ethUrl.parameters.uint256,
+      );
+    }
+
     if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
       await addTransactionForDeeplink({
         ...txMeta,

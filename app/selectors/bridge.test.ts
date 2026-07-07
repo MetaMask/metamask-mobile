@@ -209,6 +209,46 @@ describe('bridge selectors', () => {
       expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
     });
 
+    it('returns gasIncluded true with 7702 false for Solana source token regardless of STX and 7702 flags', () => {
+      const solanaToken = {
+        ...mockToken,
+        chainId:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as `${string}:${string}`,
+      };
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: solanaToken,
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: false,
+        },
+      } as unknown as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
+    it('returns gasIncluded true with 7702 false for Solana when STX send bundle is supported', () => {
+      const solanaToken = {
+        ...mockToken,
+        chainId:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as `${string}:${string}`,
+      };
+      const mockState = {
+        bridge: {
+          ...initialState,
+          sourceToken: solanaToken,
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+        },
+      } as unknown as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
     it('STX send bundle takes priority over bridge flag', () => {
       jest
         .mocked(getGaslessBridgeWith7702EnabledForChain)

@@ -1,9 +1,14 @@
-import { pinKeys, pinTokenMutationFn } from './pin';
+import { pinKeys } from './pin';
 import {
   cashbackKeys,
   cashbackWalletOptions,
   cashbackWithdrawEstimationOptions,
 } from './cashback';
+import {
+  creditKeys,
+  creditWalletOptions,
+  creditWithdrawEstimationOptions,
+} from './credit';
 import { dashboardKeys } from './dashboard';
 import { authKeys } from './auth';
 
@@ -16,12 +21,16 @@ export const cardQueries = {
   },
   pin: {
     keys: pinKeys,
-    tokenMutationFn: pinTokenMutationFn,
   },
   cashback: {
     keys: cashbackKeys,
     walletOptions: cashbackWalletOptions,
     withdrawEstimationOptions: cashbackWithdrawEstimationOptions,
+  },
+  credit: {
+    keys: creditKeys,
+    walletOptions: creditWalletOptions,
+    withdrawEstimationOptions: creditWithdrawEstimationOptions,
   },
   auth: {
     keys: authKeys,

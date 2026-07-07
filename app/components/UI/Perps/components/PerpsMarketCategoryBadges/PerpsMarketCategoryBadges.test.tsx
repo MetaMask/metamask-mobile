@@ -1,17 +1,31 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketCategoryBadges from './PerpsMarketCategoryBadges';
+import type { PerpsCategory } from '../../hooks/usePerpsCategories';
 
-// Mock i18n strings
+const DEFAULT_CATEGORIES: PerpsCategory[] = [
+  { id: 'crypto', label: 'Crypto' },
+  { id: 'stock', label: 'Stocks' },
+  { id: 'commodity', label: 'Commodities' },
+  { id: 'forex', label: 'Forex' },
+];
+
+jest.mock('../../hooks/usePerpsCategories', () => ({
+  usePerpsCategories: () => DEFAULT_CATEGORIES,
+}));
+
+jest.mock('../../hooks/useHasNewMarkets', () => ({
+  useHasNewMarkets: () => false,
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'perps.home.tabs.crypto': 'Crypto',
-      'perps.home.tabs.stocks': 'Stocks',
-      'perps.home.tabs.commodities': 'Commodities',
-      'perps.home.tabs.forex': 'Forex',
+      'perps.home.tabs.all': 'All',
+      'perps.home.tabs.new': 'New',
+      'perps.watchlist.filter_badge_label': 'Watchlist',
     };
-    return translations[key] || key;
+    return translations[key] ?? key;
   },
 }));
 
@@ -27,11 +41,12 @@ describe('PerpsMarketCategoryBadges', () => {
   });
 
   describe('All state (no category selected)', () => {
-    it('renders all category badges when selectedCategory is "all"', () => {
+    it('renders All and all category badges when selectedCategory is "all"', () => {
       const { getByText } = render(
         <PerpsMarketCategoryBadges {...defaultProps} />,
       );
 
+      expect(getByText('All')).toBeTruthy();
       expect(getByText('Crypto')).toBeTruthy();
       expect(getByText('Stocks')).toBeTruthy();
       expect(getByText('Commodities')).toBeTruthy();
@@ -51,47 +66,10 @@ describe('PerpsMarketCategoryBadges', () => {
       expect(onCategorySelect).toHaveBeenCalledWith('crypto');
 
       fireEvent.press(getByText('Stocks'));
-      expect(onCategorySelect).toHaveBeenCalledWith('stocks');
+      expect(onCategorySelect).toHaveBeenCalledWith('stock');
     });
 
-    it('filters badges based on availableCategories', () => {
-      const { getByText, queryByText } = render(
-        <PerpsMarketCategoryBadges
-          {...defaultProps}
-          availableCategories={['crypto', 'stocks']}
-        />,
-      );
-
-      expect(getByText('Crypto')).toBeTruthy();
-      expect(getByText('Stocks')).toBeTruthy();
-      expect(queryByText('Commodities')).toBeNull();
-      expect(queryByText('Forex')).toBeNull();
-    });
-  });
-
-  describe('Selected state (category selected)', () => {
-    it('shows all badges when a category is selected, with dismiss icon on selected one', () => {
-      const { getByText, getByTestId, queryByTestId } = render(
-        <PerpsMarketCategoryBadges
-          {...defaultProps}
-          selectedCategory="crypto"
-        />,
-      );
-
-      // All badges should remain visible
-      expect(getByText('Crypto')).toBeTruthy();
-      expect(getByText('Stocks')).toBeTruthy();
-      expect(getByText('Commodities')).toBeTruthy();
-      expect(getByText('Forex')).toBeTruthy();
-
-      // Selected badge should show dismiss icon, others should not
-      expect(getByTestId('category-badges-crypto-dismiss')).toBeTruthy();
-      expect(queryByTestId('category-badges-stocks-dismiss')).toBeNull();
-      expect(queryByTestId('category-badges-commodities-dismiss')).toBeNull();
-      expect(queryByTestId('category-badges-forex-dismiss')).toBeNull();
-    });
-
-    it('calls onCategorySelect with "all" when selected badge is tapped again (toggle off)', () => {
+    it('calls onCategorySelect with "all" when All badge is pressed', () => {
       const onCategorySelect = jest.fn();
       const { getByTestId } = render(
         <PerpsMarketCategoryBadges
@@ -101,9 +79,25 @@ describe('PerpsMarketCategoryBadges', () => {
         />,
       );
 
-      // Tapping the already-selected badge should deselect (back to 'all')
-      fireEvent.press(getByTestId('category-badges-crypto'));
+      fireEvent.press(getByTestId('category-badges-all'));
       expect(onCategorySelect).toHaveBeenCalledWith('all');
+    });
+  });
+
+  describe('Selected state (category selected)', () => {
+    it('shows all badges when a category is selected', () => {
+      const { getByText } = render(
+        <PerpsMarketCategoryBadges
+          {...defaultProps}
+          selectedCategory="crypto"
+        />,
+      );
+
+      expect(getByText('All')).toBeTruthy();
+      expect(getByText('Crypto')).toBeTruthy();
+      expect(getByText('Stocks')).toBeTruthy();
+      expect(getByText('Commodities')).toBeTruthy();
+      expect(getByText('Forex')).toBeTruthy();
     });
 
     it('calls onCategorySelect with new category when unselected badge is tapped', () => {
@@ -116,14 +110,13 @@ describe('PerpsMarketCategoryBadges', () => {
         />,
       );
 
-      // Tapping a different badge should select that category
       fireEvent.press(getByText('Stocks'));
-      expect(onCategorySelect).toHaveBeenCalledWith('stocks');
+      expect(onCategorySelect).toHaveBeenCalledWith('stock');
     });
 
     it('renders all badges for each selected category type', () => {
-      const categories = ['crypto', 'stocks', 'commodities', 'forex'] as const;
-      const allLabels = ['Crypto', 'Stocks', 'Commodities', 'Forex'];
+      const categories = ['crypto', 'stock', 'commodity', 'forex'] as const;
+      const allLabels = ['All', 'Crypto', 'Stocks', 'Commodities', 'Forex'];
 
       categories.forEach((category) => {
         const { getByText } = render(
@@ -133,7 +126,6 @@ describe('PerpsMarketCategoryBadges', () => {
           />,
         );
 
-        // All badges should be visible regardless of which is selected
         allLabels.forEach((label) => {
           expect(getByText(label)).toBeTruthy();
         });
@@ -141,51 +133,63 @@ describe('PerpsMarketCategoryBadges', () => {
     });
   });
 
-  describe('edge cases', () => {
-    it('falls back to "all" view when selected category is not in availableCategories', () => {
+  describe('watchlist filter', () => {
+    it('renders watchlist badge inside the group when showWatchlistBadge is true', () => {
+      const { getByTestId } = render(
+        <PerpsMarketCategoryBadges
+          {...defaultProps}
+          showWatchlistBadge
+          onWatchlistToggle={jest.fn()}
+        />,
+      );
+
+      expect(getByTestId('category-badges-watchlist')).toBeOnTheScreen();
+    });
+
+    it('calls onWatchlistToggle when watchlist badge is pressed', () => {
+      const onWatchlistToggle = jest.fn();
+      const { getByTestId } = render(
+        <PerpsMarketCategoryBadges
+          {...defaultProps}
+          showWatchlistBadge
+          onWatchlistToggle={onWatchlistToggle}
+        />,
+      );
+
+      fireEvent.press(getByTestId('category-badges-watchlist'));
+      expect(onWatchlistToggle).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onCategorySelect with "all" and onWatchlistToggle when All is pressed while watchlist is active', () => {
       const onCategorySelect = jest.fn();
-      const { getByText, queryByText } = render(
+      const onWatchlistToggle = jest.fn();
+      const { getByTestId } = render(
         <PerpsMarketCategoryBadges
           {...defaultProps}
-          selectedCategory="forex"
-          availableCategories={['crypto', 'stocks']}
+          showWatchlistBadge
+          isWatchlistSelected
           onCategorySelect={onCategorySelect}
+          onWatchlistToggle={onWatchlistToggle}
         />,
       );
 
-      // Should show available categories (fallback to "all" view)
-      // No auto-reset - user must explicitly dismiss via badge click
-      expect(getByText('Crypto')).toBeTruthy();
-      expect(getByText('Stocks')).toBeTruthy();
-      // Forex is not in availableCategories, so it shouldn't show
-      expect(queryByText('Forex')).toBeNull();
-      // No auto-reset - filter is only reset when user clicks dismiss on a selected badge
-      expect(onCategorySelect).not.toHaveBeenCalled();
+      fireEvent.press(getByTestId('category-badges-all'));
+      expect(onCategorySelect).toHaveBeenCalledWith('all');
+      expect(onWatchlistToggle).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('shows all default categories when availableCategories is empty', () => {
-      const { getByText } = render(
-        <PerpsMarketCategoryBadges
-          {...defaultProps}
-          availableCategories={[]}
-        />,
-      );
-
-      expect(getByText('Crypto')).toBeTruthy();
-      expect(getByText('Stocks')).toBeTruthy();
-      expect(getByText('Commodities')).toBeTruthy();
-      expect(getByText('Forex')).toBeTruthy();
-    });
-
+  describe('edge cases', () => {
     it('has correct testIDs for all badges', () => {
       const { getByTestId } = render(
         <PerpsMarketCategoryBadges {...defaultProps} testID="badges" />,
       );
 
-      expect(getByTestId('badges-crypto')).toBeTruthy();
-      expect(getByTestId('badges-stocks')).toBeTruthy();
-      expect(getByTestId('badges-commodities')).toBeTruthy();
-      expect(getByTestId('badges-forex')).toBeTruthy();
+      expect(getByTestId('badges-all')).toBeOnTheScreen();
+      expect(getByTestId('badges-crypto')).toBeOnTheScreen();
+      expect(getByTestId('badges-stock')).toBeOnTheScreen();
+      expect(getByTestId('badges-commodity')).toBeOnTheScreen();
+      expect(getByTestId('badges-forex')).toBeOnTheScreen();
     });
   });
 });

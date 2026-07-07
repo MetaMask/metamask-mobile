@@ -24,9 +24,17 @@ export enum FillType {
   AutoDeleveraging = 'auto_deleveraging',
 }
 
+export enum PerpsTransactionType {
+  Trade = 'trade',
+  Order = 'order',
+  Funding = 'funding',
+  Deposit = 'deposit',
+  Withdrawal = 'withdrawal',
+}
+
 export interface PerpsTransaction {
   id: string;
-  type: 'trade' | 'order' | 'funding' | 'deposit' | 'withdrawal';
+  type: `${PerpsTransactionType}`;
   category:
     | 'position_open'
     | 'position_close'

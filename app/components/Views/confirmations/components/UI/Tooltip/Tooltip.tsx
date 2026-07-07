@@ -1,23 +1,22 @@
 import React, { ReactNode, useState } from 'react';
-import { View, ViewStyle } from 'react-native';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import {
+import { HeaderStandard } from '@metamask/design-system-react-native';
+import { TouchableOpacity, View, ViewStyle } from 'react-native';
+import Icon, {
   IconColor,
   IconName,
+  IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomModal from '../bottom-modal';
 import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
   content: string | ReactNode;
+  disabled?: boolean;
   iconColor?: IconColor;
   iconName?: IconName;
-  iconSize?: ButtonIconSizes;
+  iconSize?: IconSize;
   iconStyle?: ViewStyle;
   onPress?: () => void;
   title?: string;
@@ -44,7 +43,7 @@ export const TooltipModal = ({
   return (
     <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
       <View style={styles.modalView}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={title}
           onClose={() => setOpen(false)}
           closeButtonProps={{
@@ -63,33 +62,39 @@ export const TooltipModal = ({
   );
 };
 
+const TOOLTIP_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
+
 const Tooltip = ({
   content,
+  disabled,
   title,
   tooltipTestId = 'info-row-tooltip',
   onPress,
   iconName = IconName.Info,
   iconColor = IconColor.Muted,
-  iconSize = ButtonIconSizes.Sm,
-  iconStyle = {},
+  iconSize = IconSize.Sm,
+  iconStyle,
 }: TooltipProps) => {
   const [open, setOpen] = useState(false);
+  const { styles } = useStyles(styleSheet, {});
 
   const handlePress = () => {
+    if (disabled) return;
     setOpen(true);
     onPress?.();
   };
 
   return (
     <View>
-      <ButtonIcon
-        iconColor={iconColor}
-        iconName={iconName}
+      <TouchableOpacity
         onPress={handlePress}
-        size={iconSize}
+        disabled={disabled}
+        hitSlop={TOOLTIP_HIT_SLOP}
         testID={`${tooltipTestId}-open-btn`}
-        style={iconStyle}
-      />
+        style={[styles.iconButton, iconStyle]}
+      >
+        <Icon name={iconName} size={iconSize} color={iconColor} />
+      </TouchableOpacity>
       <TooltipModal
         open={open}
         setOpen={setOpen}

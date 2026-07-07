@@ -5,6 +5,11 @@ import Text from '../Text/Text';
 // internal dependencies
 import { SensitiveTextProps, SensitiveTextLength } from './SensitiveText.types';
 
+/**
+ * @deprecated Please update your code to use `SensitiveText` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/SensitiveText/README.md}
+ */
 const SensitiveText: React.FC<SensitiveTextProps> = ({
   isHidden = false,
   children = '',

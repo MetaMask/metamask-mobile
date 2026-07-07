@@ -1,9 +1,10 @@
 import React from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
-import { AddAccountBottomSheetSelectorsIDs } from '../AddAccountActions/AddAccountBottomSheet.testIds';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import {
@@ -18,16 +19,6 @@ import {
   createMockState,
 } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-
-// Feature flag mocks
-const mockSelectFullPageAccountListEnabledFlag = jest.fn(() => false);
-jest.mock(
-  '../../../selectors/featureFlagController/fullPageAccountList',
-  () => ({
-    selectFullPageAccountListEnabledFlag: () =>
-      mockSelectFullPageAccountListEnabledFlag(),
-  }),
-);
 
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
@@ -95,12 +86,13 @@ jest.mock('../../hooks/useAccounts', () => ({
 // Mock navigation
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
-    dispatch: jest.fn(),
+    dispatch: mockDispatch,
     isFocused: jest.fn(() => true),
   }),
 }));
@@ -130,7 +122,13 @@ const createTestState = (
   selectedGroupId?: string,
 ) => {
   const wallets = accountGroups.map((group, index) => {
-    const walletId = `wallet${index + 1}`;
+    // Extract wallet ID from group ID (e.g., 'entropy:wallet1/group1' -> 'entropy:wallet1')
+    const groupIdStr = group.id as string;
+    const slashIndex = groupIdStr.indexOf('/');
+    const walletId =
+      slashIndex !== -1
+        ? groupIdStr.substring(0, slashIndex)
+        : `wallet${index + 1}`;
     return createMockEntropyWallet(walletId, `Wallet ${index + 1}`, [group]);
   });
 
@@ -150,7 +148,7 @@ const createTestState = (
 };
 
 const defaultRouteParams: AccountSelectorParams = {
-  onSelectAccount: jest.fn((address: string) => address),
+  onSelectAccount: jest.fn(),
   disablePrivacyMode: false,
 };
 
@@ -170,9 +168,6 @@ describe('AccountSelector', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Reset feature flags
-    mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
 
     // Reset loading states to default
     mockUseAccountsOperationsLoadingStates.mockReturnValue({
@@ -249,7 +244,7 @@ describe('AccountSelector', () => {
       expect(addButton).toHaveTextContent('Add wallet');
     });
 
-    it('opens MultichainAddWalletActions when Add wallet button is pressed', () => {
+    it('navigates to AddWallet page when Add wallet button is pressed', () => {
       jest.useRealTimers();
 
       renderScreen(
@@ -264,12 +259,14 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      // Header should change to "Add wallet" (replaces "Accounts")
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
+
+      // Footer still shows a single "Add wallet" label; add-wallet UI opens via navigation
       expect(screen.getByText('Add wallet')).toBeOnTheScreen();
 
-      // Import SRP button should be visible
+      // Account list remains on this screen (navigation is mocked)
       expect(
-        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
+        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
       ).toBeOnTheScreen();
 
       jest.useFakeTimers();
@@ -318,7 +315,7 @@ describe('AccountSelector', () => {
       // Button should have syncing message and be in disabled state
       expect(addButton).toHaveTextContent('Syncing...');
       // Verify the button is disabled
-      expect(addButton.props.disabled).toBe(true);
+      expect(addButton).toBeDisabled();
     });
 
     it('shows "Add wallet" text when syncing completes', () => {
@@ -442,7 +439,7 @@ describe('AccountSelector', () => {
   });
 
   describe('Navigation to Add Account Actions', () => {
-    it('navigates directly to MultichainAddWalletActions when navigateToAddAccountActions is set', () => {
+    it('navigates directly to AddWallet page when navigateToAddAccountActions is set', async () => {
       jest.useRealTimers();
 
       const routeWithNavigation: AccountSelectorProps['route'] = {
@@ -459,35 +456,17 @@ describe('AccountSelector', () => {
         { state: mockState },
       );
 
-      // Should already be on the add wallet actions screen
-      expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
-
-      jest.useFakeTimers();
-    });
-
-    it('navigates directly to AddAccountActions when specified', () => {
-      jest.useRealTimers();
-
-      const routeWithNavigation: AccountSelectorProps['route'] = {
-        params: {
-          ...defaultRouteParams,
-          navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
-        },
-      };
-
-      renderScreen(
-        () => <AccountSelector route={routeWithNavigation} />,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
+      await waitFor(() =>
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.replace(Routes.SHEET.ADD_WALLET),
+        ),
       );
 
-      // Should be on the add account actions screen
-      // AddAccountActions shows "Add Ethereum account" button
       expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+        screen.queryByTestId(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
         ),
-      ).toBeOnTheScreen();
+      ).not.toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
@@ -547,121 +526,342 @@ describe('AccountSelector', () => {
 
       jest.useFakeTimers();
     });
-  });
 
-  describe('Full-Page Account List Feature Flag', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('renders BottomSheet when feature flag is disabled', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(false);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      // Should render header with title
-      expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Account list should be present
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders full-page modal when feature flag is enabled', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      // Should render header with title
-      expect(screen.getByText('Accounts')).toBeOnTheScreen();
-      // Account list should be present
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders add button in full-page mode', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
-
-      renderScreen(
-        AccountSelectorWrapper,
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
-        { state: mockState },
-        mockRoute.params,
-      );
-
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-      );
-      expect(addButton).toBeOnTheScreen();
-    });
-
-    it('opens add wallet bottom sheet overlay in full-page mode', () => {
+    it('invokes the optional onSelectAccount route param with the tapped account group when the user picks a different account', async () => {
       jest.useRealTimers();
 
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
+      const onSelectAccount = jest.fn();
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
+      };
+      const routeWithCallback: AccountSelectorProps['route'] = { params };
 
+      // mockState has selectedAccountGroup = mockAccountGroup1.id, so tapping
+      // Account 2 is a genuine "different account" selection that DOES cause a
+      // Redux state change.
       renderScreen(
-        AccountSelectorWrapper,
+        () => <AccountSelector route={routeWithCallback} />,
         { name: Routes.SHEET.ACCOUNT_SELECTOR },
         { state: mockState },
-        mockRoute.params,
+        params,
       );
 
-      const addButton = screen.getByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      await waitFor(() => {
+        expect(screen.getByText('Account 2')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Account 2'));
+
+      await waitFor(() => {
+        expect(onSelectAccount).toHaveBeenCalledTimes(1);
+      });
+      expect(onSelectAccount).toHaveBeenCalledWith(
+        expect.objectContaining({ id: mockAccountGroup2.id }),
       );
-      fireEvent.press(addButton);
-
-      // Should show the add wallet actions overlay (button in background + header in overlay)
-      // There should be at least 2 "Add wallet" texts - but we check for the overlay content
-      expect(
-        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
-      ).toBeOnTheScreen();
-
-      // Account list should still be visible in background
-      expect(
-        screen.getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-      ).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });
 
-    it('hides add button in full-page mode when disableAddAccountButton is true', () => {
-      mockSelectFullPageAccountListEnabledFlag.mockReturnValue(true);
+    it('fires onSelectAccount even when the tapped account is already the selected one', async () => {
+      jest.useRealTimers();
 
-      const routeWithDisabledButton: AccountSelectorProps['route'] = {
-        params: {
-          ...defaultRouteParams,
-          disableAddAccountButton: true,
-        },
+      const onSelectAccount = jest.fn();
+      // mockState's selectedAccountGroup is already mockAccountGroup1.id, so
+      // tapping Account 1 will NOT cause a Redux state change. The callback
+      // must still fire so the caller knows a commit happened.
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
       };
 
       renderScreen(
-        () => <AccountSelector route={routeWithDisabledButton} />,
+        () => <AccountSelector route={{ params }} />,
         { name: Routes.SHEET.ACCOUNT_SELECTOR },
         { state: mockState },
+        params,
       );
 
-      const addButton = screen.queryByTestId(
-        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Account 1'));
+
+      await waitFor(() => {
+        expect(onSelectAccount).toHaveBeenCalledTimes(1);
+      });
+      expect(onSelectAccount).toHaveBeenCalledWith(
+        expect.objectContaining({ id: mockAccountGroup1.id }),
       );
-      expect(addButton).toBeNull();
+
+      jest.useFakeTimers();
+    });
+
+    it('does not throw when onSelectAccount is not provided', async () => {
+      jest.useRealTimers();
+
+      const paramsWithoutCallback: AccountSelectorParams = {
+        disablePrivacyMode: false,
+      };
+
+      renderScreen(
+        () => <AccountSelector route={{ params: paramsWithoutCallback }} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        paramsWithoutCallback,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      expect(() =>
+        fireEvent.press(screen.getByText('Account 1')),
+      ).not.toThrow();
+
+      await waitFor(() => {
+        expect(
+          Engine.context.AccountTreeController.setSelectedAccountGroup,
+        ).toHaveBeenCalled();
+      });
+
+      jest.useFakeTimers();
+    });
+
+    it('calls setSelectedAccountGroup BEFORE onSelectAccount BEFORE goBack on a single tap', async () => {
+      jest.useRealTimers();
+
+      const onSelectAccount = jest.fn();
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
+      };
+
+      renderScreen(
+        () => <AccountSelector route={{ params }} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 2')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Account 2'));
+
+      await waitFor(() => {
+        expect(onSelectAccount).toHaveBeenCalledTimes(1);
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+
+      // Contract: callers reading Redux state inside `onSelectAccount` must
+      // see the updated `selectedAccountGroup`, and the picker must still be
+      // mounted (goBack runs after the callback).
+      const setSelectedCallOrder = (
+        Engine.context.AccountTreeController
+          .setSelectedAccountGroup as jest.Mock
+      ).mock.invocationCallOrder[0];
+      const callbackCallOrder = onSelectAccount.mock.invocationCallOrder[0];
+      const goBackCallOrder = mockGoBack.mock.invocationCallOrder[0];
+
+      expect(setSelectedCallOrder).toBeLessThan(callbackCallOrder);
+      expect(callbackCallOrder).toBeLessThan(goBackCallOrder);
+
+      jest.useFakeTimers();
+    });
+
+    it('passes the full AccountGroupObject (not just the id) to onSelectAccount', async () => {
+      jest.useRealTimers();
+
+      const onSelectAccount = jest.fn();
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
+      };
+
+      renderScreen(
+        () => <AccountSelector route={{ params }} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 2')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Account 2'));
+
+      await waitFor(() => {
+        expect(onSelectAccount).toHaveBeenCalledTimes(1);
+      });
+
+      const receivedGroup = onSelectAccount.mock
+        .calls[0][0] as AccountGroupObject;
+      expect(receivedGroup.id).toBe(mockAccountGroup2.id);
+      expect(receivedGroup.accounts).toEqual(mockAccountGroup2.accounts);
+      expect(receivedGroup.metadata?.name).toBe(
+        mockAccountGroup2.metadata.name,
+      );
+
+      jest.useFakeTimers();
+    });
+
+    it('does NOT invoke onSelectAccount when the user dismisses the picker via the back arrow', async () => {
+      jest.useRealTimers();
+
+      const onSelectAccount = jest.fn();
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
+      };
+
+      renderScreen(
+        () => <AccountSelector route={{ params }} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        params,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+
+      expect(onSelectAccount).not.toHaveBeenCalled();
+      expect(
+        Engine.context.AccountTreeController.setSelectedAccountGroup,
+      ).not.toHaveBeenCalled();
+
+      jest.useFakeTimers();
+    });
+
+    it('invokes onSelectAccount once per tap when the user selects multiple accounts sequentially', async () => {
+      jest.useRealTimers();
+
+      const onSelectAccount = jest.fn();
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
+      };
+
+      renderScreen(
+        () => <AccountSelector route={{ params }} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+        expect(screen.getByText('Account 2')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Account 2'));
+      fireEvent.press(screen.getByText('Account 1'));
+
+      await waitFor(() => {
+        expect(onSelectAccount).toHaveBeenCalledTimes(2);
+      });
+      expect(onSelectAccount.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ id: mockAccountGroup2.id }),
+      );
+      expect(onSelectAccount.mock.calls[1][0]).toEqual(
+        expect.objectContaining({ id: mockAccountGroup1.id }),
+      );
+
+      jest.useFakeTimers();
+    });
+
+    it('still fires analytics tracking and setSelectedAccountGroup when onSelectAccount is provided', async () => {
+      jest.useRealTimers();
+
+      const onSelectAccount = jest.fn();
+      const params: AccountSelectorParams = {
+        ...defaultRouteParams,
+        onSelectAccount,
+      };
+
+      renderScreen(
+        () => <AccountSelector route={{ params }} />,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 2')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Account 2'));
+
+      await waitFor(() => {
+        expect(onSelectAccount).toHaveBeenCalledTimes(1);
+      });
+      expect(
+        Engine.context.AccountTreeController.setSelectedAccountGroup,
+      ).toHaveBeenCalledWith(mockAccountGroup2.id);
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalled();
+
+      jest.useFakeTimers();
+    });
+  });
+
+  describe('Reload Accounts', () => {
+    it('dispatches setReloadAccounts(false) on mount when state.accounts.reloadAccounts is true', async () => {
+      jest.useRealTimers();
+
+      const stateWithReload = {
+        ...mockState,
+        accounts: { reloadAccounts: true },
+      };
+
+      const { store } = renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: stateWithReload },
+        mockRoute.params,
+      );
+
+      await waitFor(() => {
+        expect(store.getState().accounts.reloadAccounts).toBe(false);
+      });
+
+      jest.useFakeTimers();
+    });
+
+    it('does NOT dispatch setReloadAccounts when state.accounts.reloadAccounts is already false', async () => {
+      jest.useRealTimers();
+
+      const { store } = renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Account 1')).toBeOnTheScreen();
+      });
+
+      expect(store.getState().accounts.reloadAccounts).toBe(false);
+
+      jest.useFakeTimers();
     });
   });
 
   describe('Screen Navigation', () => {
-    it('navigates to add wallet actions screen when button is pressed', () => {
+    it('navigates to AddWallet page when button is pressed', () => {
       jest.useRealTimers();
 
       renderScreen(
@@ -677,11 +877,8 @@ describe('AccountSelector', () => {
       );
       fireEvent.press(addButton);
 
-      // Verify we're on add wallet actions screen - header shows "Add wallet"
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_WALLET);
       expect(screen.getByText('Add wallet')).toBeOnTheScreen();
-
-      // Import wallet option should be visible
-      expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
 
       jest.useFakeTimers();
     });

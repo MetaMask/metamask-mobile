@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Animated } from 'react-native';
 import { FLipQuoteButton } from './index';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { initialState } from '../../_mocks_/initialState';
@@ -17,6 +18,9 @@ const renderFlipQuoteButton = (disabled: boolean = false) =>
 describe('FLipQuoteButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Animated, 'timing').mockReturnValue({
+      start: jest.fn(),
+    } as unknown as Animated.CompositeAnimation);
   });
 
   afterEach(() => {
@@ -25,24 +29,22 @@ describe('FLipQuoteButton', () => {
 
   describe('Rendering', () => {
     it('renders with enabled state', () => {
-      const { toJSON, getByTestId } = renderFlipQuoteButton(false);
+      const { getByTestId } = renderFlipQuoteButton(false);
 
-      expect(getByTestId('arrow-button')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('arrow-button')).toBeOnTheScreen();
     });
 
     it('renders with disabled state', () => {
-      const { toJSON, getByTestId } = renderFlipQuoteButton(true);
+      const { getByTestId } = renderFlipQuoteButton(true);
 
-      expect(getByTestId('arrow-button')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('arrow-button')).toBeOnTheScreen();
     });
 
     it('renders SwapVertical icon', () => {
       const { getByTestId } = renderFlipQuoteButton(false);
       const button = getByTestId('arrow-button');
 
-      expect(button).toBeTruthy();
+      expect(button).toBeOnTheScreen();
     });
   });
 
@@ -63,7 +65,7 @@ describe('FLipQuoteButton', () => {
       fireEvent(button, 'pressIn');
 
       // Component should handle pressIn without errors
-      expect(button).toBeTruthy();
+      expect(button).toBeOnTheScreen();
     });
 
     it('handles onPressOut event when enabled', () => {
@@ -73,7 +75,7 @@ describe('FLipQuoteButton', () => {
       fireEvent(button, 'pressOut');
 
       // Component should handle pressOut without errors
-      expect(button).toBeTruthy();
+      expect(button).toBeOnTheScreen();
     });
 
     it('handles complete press cycle with pressIn and pressOut', () => {
@@ -114,7 +116,7 @@ describe('FLipQuoteButton', () => {
       const { getByTestId } = renderFlipQuoteButton(true);
       const button = getByTestId('arrow-button');
 
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
@@ -126,7 +128,7 @@ describe('FLipQuoteButton', () => {
       fireEvent(button, 'pressIn');
 
       // Pressed state should be true, affecting the button's style
-      expect(button).toBeTruthy();
+      expect(button).toBeOnTheScreen();
     });
 
     it('resets pressed state on pressOut', () => {
@@ -137,7 +139,7 @@ describe('FLipQuoteButton', () => {
       fireEvent(button, 'pressOut');
 
       // Pressed state should be false, resetting the button's style
-      expect(button).toBeTruthy();
+      expect(button).toBeOnTheScreen();
     });
 
     it('maintains pressed state when transitioning from pressIn to press', () => {
@@ -148,7 +150,7 @@ describe('FLipQuoteButton', () => {
       fireEvent.press(button);
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
-      expect(button).toBeTruthy();
+      expect(button).toBeOnTheScreen();
     });
   });
 
@@ -165,13 +167,13 @@ describe('FLipQuoteButton', () => {
       const button = getByTestId('arrow-button');
 
       expect(button.props.accessible).toBe(true);
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('has testID for test identification', () => {
       const { getByTestId } = renderFlipQuoteButton(false);
 
-      expect(getByTestId('arrow-button')).toBeTruthy();
+      expect(getByTestId('arrow-button')).toBeOnTheScreen();
     });
   });
 
@@ -194,7 +196,7 @@ describe('FLipQuoteButton', () => {
       fireEvent(button, 'pressIn');
       // No pressOut called
 
-      expect(button).toBeTruthy();
+      expect(button).toBeOnTheScreen();
     });
 
     it('handles pressOut without preceding pressIn', () => {
@@ -203,7 +205,7 @@ describe('FLipQuoteButton', () => {
 
       fireEvent(button, 'pressOut');
 
-      expect(button).toBeTruthy();
+      expect(button).toBeOnTheScreen();
     });
 
     it('maintains disabled state with all handlers undefined', () => {
@@ -213,7 +215,7 @@ describe('FLipQuoteButton', () => {
       expect(button.props.onPress).toBeUndefined();
       expect(button.props.onPressIn).toBeUndefined();
       expect(button.props.onPressOut).toBeUndefined();
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 
@@ -244,7 +246,7 @@ describe('FLipQuoteButton', () => {
       const { getByTestId } = renderFlipQuoteButton(true);
       const button = getByTestId('arrow-button');
 
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
       expect(button.props.onPress).toBeUndefined();
     });
   });

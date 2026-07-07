@@ -1,19 +1,23 @@
-import { Matchers, Gestures, Assertions } from '../../framework';
 import {
-  PredictBalanceSelectorsIDs,
-  PredictBalanceSelectorsText,
-} from '../../../app/components/UI/Predict/Predict.testIds';
+  Matchers,
+  Gestures,
+  Assertions,
+  Utilities,
+  EncapsulatedElementType,
+} from '../../framework';
+import { PredictBalanceSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictBalance {
-  get balanceCard(): DetoxElement {
+  get balanceCard(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
   }
 
-  get withdrawButton(): DetoxElement {
-    return Matchers.getElementByText(PredictBalanceSelectorsText.WITHDRAW);
+  get withdrawButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(PredictBalanceSelectorsIDs.WITHDRAW_BUTTON);
   }
 
   async tapWithdraw(): Promise<void> {
+    await Utilities.waitForElementToBeEnabled(this.withdrawButton, 15000);
     await Gestures.waitAndTap(this.withdrawButton, {
       elemDescription: 'Predict Withdraw button',
     });

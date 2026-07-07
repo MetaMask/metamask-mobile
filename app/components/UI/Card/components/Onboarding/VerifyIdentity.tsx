@@ -206,6 +206,7 @@ const VerifyIdentity = () => {
       description={strings('card.card_onboarding.verify_identity.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="close-with-confirmation"
     />
   );
 };

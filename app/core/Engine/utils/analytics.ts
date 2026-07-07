@@ -1,12 +1,20 @@
 import type { ControllerMessenger } from '../types';
-import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
+import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import type {
   AnalyticsUnfilteredProperties,
   IMetaMetricsEvent,
   ITrackingEvent,
 } from '../../../util/analytics/analytics.types';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 import Logger from '../../../util/Logger';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { store } from '../../../store';
+import {
+  enrichWithABTests,
+  getRemoteFeatureFlagsFromState,
+} from '../../../util/analytics/enrichWithABTests';
 
 /**
  * Track an analytics event using the initMessenger.
@@ -22,15 +30,30 @@ export const trackEvent = (
   initMessenger: ControllerMessenger,
   event: AnalyticsTrackingEvent,
 ): void => {
+  let enrichedEvent: AnalyticsTrackingEvent;
+
   try {
+    enrichedEvent = enrichWithABTests(
+      event,
+      getRemoteFeatureFlagsFromState(store.getState()),
+    );
+  } catch {
+    enrichedEvent = event;
+  }
+
+  try {
+    // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
     (
       initMessenger as ControllerMessenger & {
         call: (
           action: 'AnalyticsController:trackEvent',
-          event: AnalyticsTrackingEvent,
+          event: PackageAnalyticsTrackingEvent,
         ) => void;
       }
-    ).call('AnalyticsController:trackEvent', event);
+    ).call(
+      'AnalyticsController:trackEvent',
+      enrichedEvent as unknown as PackageAnalyticsTrackingEvent,
+    );
   } catch (error) {
     // Analytics tracking failures should not break controller functionality
     // Error is logged but not thrown

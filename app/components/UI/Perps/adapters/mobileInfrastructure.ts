@@ -6,6 +6,7 @@
  */
 
 import Logger from '../../../../util/Logger';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -35,12 +36,44 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import { store } from '../../../../store';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import {
   formatVolume,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
+
+import { TERMINAL_API_URLS } from '../constants/terminalApi';
+
+/**
+ * Resolves the Terminal API base URL based on build environment.
+ *
+ * Mapping:
+ * - dev / test / e2e → DEV (takes priority over beta build type)
+ * - beta build type (non-dev envs) → UAT
+ * - production / rc → PRD
+ * - all other environments (local, undefined, etc.) → UAT
+ */
+export function getTerminalApiUrl(): string {
+  const env = process.env.METAMASK_ENVIRONMENT;
+
+  if (env === 'dev' || env === 'test' || env === 'e2e') {
+    return TERMINAL_API_URLS.DEV;
+  }
+
+  // Beta builds target UAT (except dev/test/e2e which are handled above).
+  if (process.env.METAMASK_BUILD_TYPE === 'beta') {
+    return TERMINAL_API_URLS.UAT;
+  }
+
+  if (env === 'production' || env === 'rc') {
+    return TERMINAL_API_URLS.PRD;
+  }
+
+  return TERMINAL_API_URLS.UAT;
+}
 
 /**
  * Type conversion helper - isolated cast for platform bridge.
@@ -287,13 +320,32 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     // === Cache Invalidation ===
     cacheInvalidator: createCacheInvalidatorAdapter(),
 
+    // === Disk Cache (cold-start persistence via MMKV) ===
+    diskCache: {
+      getItem: (key: string) => StorageWrapper.getItem(key),
+      getItemSync: (key: string) => StorageWrapper.getItemSync(key),
+      setItem: (key: string, value: string) =>
+        StorageWrapper.setItem(key, value),
+      removeItem: (key: string) =>
+        StorageWrapper.removeItem(key).then(() => undefined),
+    },
+
+    // === Terminal API (preferred market data source with HyperLiquid fallback) ===
+    terminalApiUrl: getTerminalApiUrl(),
+
     // === Rewards (DI — no RewardsController in Core yet) ===
     rewards: {
       getPerpsDiscountForAccount(
         caipAccountId: `${string}:${string}:${string}`,
+        baseFeeBips: number,
       ) {
+        const isVipEnabled = selectVipProgramEnabled(store.getState());
+        if (!isVipEnabled) {
+          return Promise.resolve(0);
+        }
         return Engine.context.RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
+          baseFeeBips,
         );
       },
     },

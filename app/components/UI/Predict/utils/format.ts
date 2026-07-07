@@ -1,4 +1,5 @@
 import { Dimensions } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import { PredictSeries, Recurrence } from '../types';
 import {
   formatSubscriptNotation,
@@ -147,8 +148,11 @@ export const formatPrice = (
  * @example formatPriceWithSubscriptNotation(1.2345, 'EUR') => "€1.23"
  * @example formatPriceWithSubscriptNotation(0.00003415, 'USD', { maxDigitsAfterSubscript: 2 }) => "$0.0₄34"
  */
-export type FormatPriceWithSubscriptNotationOptions =
-  FormatSubscriptNotationOptions;
+export interface FormatPriceWithSubscriptNotationOptions
+  extends FormatSubscriptNotationOptions {
+  /** Override the default max decimal places (2 for ≥1, 4 for <1). */
+  maximumFractionDigits?: number;
+}
 
 export const formatPriceWithSubscriptNotation = (
   price: string | number,
@@ -175,10 +179,12 @@ export const formatPriceWithSubscriptNotation = (
   const subscript = formatSubscriptNotation(num, options);
   if (subscript) return addSymbol(subscript);
 
+  const maximumFractionDigits =
+    options?.maximumFractionDigits ?? (num >= 1 ? 2 : 4);
   const formattedNumber = new Intl.NumberFormat('en-US', {
     style: 'decimal',
     minimumFractionDigits: 2,
-    maximumFractionDigits: num >= 1 ? 2 : 4,
+    maximumFractionDigits,
   }).format(num);
   return addSymbol(formattedNumber);
 };
@@ -365,7 +371,7 @@ export const formatCurrencyValue = (
   value?: number,
   options: { showSign?: boolean } = {},
 ): string | undefined => {
-  if (value === undefined || value === null) {
+  if (value === undefined || value === null || !Number.isFinite(value)) {
     return undefined;
   }
 
@@ -375,6 +381,10 @@ export const formatCurrencyValue = (
   });
 
   if (!options.showSign) {
+    return formatted;
+  }
+
+  if (value === 0) {
     return formatted;
   }
 
@@ -430,6 +440,28 @@ export const estimateLineCount = (text: string | undefined): number => {
 };
 
 /**
+ * Formats a market end date into a user-friendly date/time string
+ * using the user's local timezone.
+ * @param endDate - ISO 8601 datetime string (e.g., "2026-04-09T19:45:00Z")
+ * @returns Formatted string (e.g., "April 9, 1:45 PM" in MDT)
+ * @example formatMarketEndDate("2026-04-09T19:45:00Z") => "April 9, 1:45 PM"
+ */
+export const formatMarketEndDate = (endDate: string): string => {
+  const dateObj = new Date(endDate);
+
+  if (isNaN(dateObj.getTime())) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(dateObj);
+};
+
+/**
  * Formats a game start time into separate date and time strings for display.
  * Uses locale-aware formatting via Intl.DateTimeFormat.
  * @param startTime - ISO 8601 datetime string (e.g., "2026-02-08T20:30:00Z")
@@ -461,4 +493,36 @@ export const formatGameStartTime = (
   }).format(dateObj);
 
   return { date, time };
+};
+
+/**
+ * Builds the localised cashout info subtitle string
+ * used in both the sell sheet header and the full-screen sell preview.
+ */
+export const getCashoutInfoText = ({
+  initialValue,
+  avgPrice,
+  outcomeSideText,
+  outcomeGroupTitle,
+}: {
+  initialValue: number;
+  avgPrice: number;
+  outcomeSideText: string;
+  outcomeGroupTitle: string;
+}): string => {
+  const amount = formatPrice(initialValue);
+  const initialPrice = formatCents(avgPrice);
+
+  return outcomeGroupTitle
+    ? strings('predict.cashout_info_multiple', {
+        amount,
+        outcomeGroupTitle,
+        outcome: outcomeSideText,
+        initialPrice,
+      })
+    : strings('predict.cashout_info', {
+        amount,
+        outcome: outcomeSideText,
+        initialPrice,
+      });
 };

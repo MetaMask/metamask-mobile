@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import CopyableField from './CopyableField';
 
@@ -38,6 +39,17 @@ describe('CopyableField', () => {
       expect(getByText('Test Label')).toBeTruthy();
       expect(getByText('test-value')).toBeTruthy();
     });
+
+    it('should render trailingAccessory before the copy button', () => {
+      const { getByText } = render(
+        <CopyableField
+          {...defaultProps}
+          trailingAccessory={<Text>VIP accessory</Text>}
+        />,
+      );
+
+      expect(getByText('VIP accessory')).toBeTruthy();
+    });
   });
 
   describe('copy functionality', () => {
@@ -71,14 +83,14 @@ describe('CopyableField', () => {
       );
 
       const copyButton = getByLabelText('Copy');
-      expect(copyButton.props.disabled).toBe(true);
+      expect(copyButton).toBeDisabled();
     });
 
     it('should enable copy button when value is provided', () => {
       const { getByLabelText } = render(<CopyableField {...defaultProps} />);
 
       const copyButton = getByLabelText('Copy');
-      expect(copyButton.props.disabled).toBe(false);
+      expect(copyButton).toBeEnabled();
     });
   });
 
@@ -101,7 +113,7 @@ describe('CopyableField', () => {
       expect(getByText('-')).toBeTruthy();
 
       const copyButton = getByLabelText('Copy');
-      expect(copyButton.props.disabled).toBe(true);
+      expect(copyButton).toBeDisabled();
     });
 
     it('should handle long values', () => {

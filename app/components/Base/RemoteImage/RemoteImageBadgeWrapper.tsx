@@ -23,6 +23,8 @@ import {
   PopularList,
   UnpopularNetworkList,
 } from '../../../util/networks/customNetworks';
+import styleSheet from './RemoteImageBadgeWrapper.styles';
+import { useStyles } from '../../../component-library/hooks';
 
 interface RemoteImageBadgeWrapperProps {
   chainId?: number;
@@ -32,6 +34,7 @@ interface RemoteImageBadgeWrapperProps {
 const RemoteImageBadgeWrapper = (
   props: PropsWithChildren<RemoteImageBadgeWrapperProps>,
 ) => {
+  const { styles } = useStyles(styleSheet, {});
   // The chainId would be passed in props from parent for collectible media
   //TODO remove once migrated to TS and chainID is properly typed to hex
   const currentChainId = useSelector(selectChainId);
@@ -71,6 +74,7 @@ const RemoteImageBadgeWrapper = (
         bottom: 5,
         right: 5,
       }}
+      style={styles.remoteImageBadgeWrapper}
       anchorElementShape={BadgeAnchorElementShape.Rectangular}
       badgeElement={
         <Badge

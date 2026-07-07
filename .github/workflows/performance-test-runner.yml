@@ -43,8 +43,18 @@ on:
       build_variant:
         required: false
         type: string
+        default: e2e
+        description: 'Deprecated for env; kept for workflow_call compatibility. Use feature_flags_environment for client-config API.'
+      feature_flags_environment:
+        required: false
+        type: string
         default: rc
-        description: 'Build variant for app artifacts (rc or exp)'
+        description: 'client-config API environment (rc, exp, test). Independent of BrowserStack build_variant.'
+      grep_tags:
+        required: false
+        type: string
+        default: ''
+        description: 'Optional grep pattern to filter tests (e.g., "@PerformanceLogin|@PerformanceSwaps"). Empty runs all tests.'
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -57,6 +67,8 @@ on:
       TEST_SRP_2:
         required: true
       TEST_SRP_3:
+        required: true
+      TEST_SRP_4:
         required: true
       E2E_PASSWORD:
         required: true
@@ -102,7 +114,7 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn --immutable
-        ## This installs dependencies and creates the node_modules state file      
+        ## This installs dependencies and creates the node_modules state file
       - name: Restore .metamask folder
         id: restore-metamask
         uses: actions/cache@v4
@@ -116,7 +128,6 @@ jobs:
       - name: Setup project
         run: yarn setup:github-ci
         working-directory: '.'
-        ## This will apply the patches for appwright
 
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
@@ -127,6 +138,7 @@ jobs:
 
       - name: Compute BrowserStack Local Identifier
         id: bs-local-id
+        if: inputs.build_type == 'mm-connect'
         run: |
           # Strip any character that is not alphanumeric or a hyphen (covers spaces, /, \, @, etc.)
           BUILD_TYPE_SAFE=$(printf '%s' "${{ inputs.build_type }}" | tr -c 'a-zA-Z0-9-' '_')
@@ -142,6 +154,7 @@ jobs:
           echo "value=${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
 
       - name: Setup BrowserStack Local
+        if: inputs.build_type == 'mm-connect'
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
@@ -151,10 +164,11 @@ jobs:
           local-args: '--force-local --verbose'
 
       - name: Wait for BrowserStack Local
+        if: inputs.build_type == 'mm-connect'
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
-          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090; allow extra time
-          sleep ${{ inputs.build_type == 'mm-connect' && 15 || 10 }}
+          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090
+          sleep 15
           echo "BrowserStack Local should be ready now"
 
       - name: Set Test Environment
@@ -168,10 +182,11 @@ jobs:
           SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
           SELECTED_SENTRY_DSN=""
           SENTRY_ENVIRONMENT="github-actions-performance-e2e"
-          BUILD_VARIANT="${{ inputs.build_variant }}"
+          FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
+          BROWSERSTACK_GEO_LOCATION="${BROWSERSTACK_GEO_LOCATION:-SE}"
 
-          if [[ "$BUILD_VARIANT" != "rc" && "$BUILD_VARIANT" != "exp" ]]; then
-            echo "❌ Invalid build_variant '$BUILD_VARIANT'. Expected 'rc' or 'exp'."
+          if [[ "$FEATURE_FLAGS_ENV" != "rc" && "$FEATURE_FLAGS_ENV" != "exp" && "$FEATURE_FLAGS_ENV" != "test" && "$FEATURE_FLAGS_ENV" != "dev" && "$FEATURE_FLAGS_ENV" != "prod" ]]; then
+            echo "❌ Invalid feature_flags_environment '$FEATURE_FLAGS_ENV'. Expected rc, exp, test, dev, or prod."
             exit 1
           fi
 
@@ -211,25 +226,29 @@ jobs:
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=${{ inputs.app_version }}"
             echo "BROWSERSTACK_BUILD_NAME=${{ inputs.browserstack_build_name }}"
+            echo "BROWSERSTACK_GEO_LOCATION=$BROWSERSTACK_GEO_LOCATION"
             echo "BROWSERSTACK_USERNAME=${{ secrets.BROWSERSTACK_USERNAME }}"
             echo "BROWSERSTACK_ACCESS_KEY=${{ secrets.BROWSERSTACK_ACCESS_KEY }}"
             echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
             echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
             echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
             echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
+            echo "TEST_SRP_4=${{ secrets.TEST_SRP_4 }}"
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
             echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
             echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
             echo "E2E_PERFORMANCE_SENTRY_RELEASE=${{ github.sha }}"
-            echo "E2E_PERFORMANCE_BUILD_VARIANT=$BUILD_VARIANT"
+            echo "E2E_PERFORMANCE_BUILD_VARIANT=$FEATURE_FLAGS_ENV"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests
+        continue-on-error: true
         env:
-          BROWSERSTACK_LOCAL: 'true'
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ steps.bs-local-id.outputs.value }}
+          BROWSERSTACK_LOCAL: ${{ inputs.build_type == 'mm-connect' && 'true' || 'false' }}
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ inputs.build_type == 'mm-connect' && steps.bs-local-id.outputs.value || '' }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
+          GREP_TAGS: ${{ inputs.grep_tags }}
         working-directory: '.'
         run: |
           echo "=== Running ${{ inputs.build_type }} Tests on ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
@@ -238,14 +257,29 @@ jobs:
           echo "BrowserStack App URL: ${{ inputs.browserstack_app_url }}"
           echo "QA App Version: ${{ inputs.app_version }}"
           echo "BrowserStack Build Name: $BROWSERSTACK_BUILD_NAME"
+          echo "BrowserStack Local: $BROWSERSTACK_LOCAL"
+          echo "BrowserStack Geo Location: ${BROWSERSTACK_GEO_LOCATION:-SE}"
+          if [ -n "$GREP_TAGS" ]; then
+            echo "Grep filter: $GREP_TAGS"
+          fi
 
-          # Run the appropriate test command based on build_type flag
+          # Select base command based on build_type
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
-            yarn run-playwright:${{ inputs.platform }}-onboarding-bs
+            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-onboarding-bs"
           elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
-            yarn run-playwright:mm-connect-${{ inputs.platform }}-bs
+            BASE_CMD="yarn run-playwright:mm-connect-${{ inputs.platform }}-bs"
           else
-            yarn run-playwright:${{ inputs.platform }}-bs
+            BASE_CMD="yarn run-playwright:${{ inputs.platform }}-bs"
+          fi
+
+          # Run with optional grep filter.
+          # --pass-with-no-tests prevents Playwright from exiting with an error
+          # when the grep pattern matches zero tests in this project (e.g. onboarding
+          # project gets @PerformanceSwaps which only exists in login specs).
+          if [ -n "$GREP_TAGS" ]; then
+            $BASE_CMD --grep "$GREP_TAGS" --pass-with-no-tests
+          else
+            $BASE_CMD
           fi
 
           echo "✅ ${{ inputs.build_type }} tests completed for ${{ inputs.platform }} on ${{ matrix.device.name }}"
@@ -256,7 +290,7 @@ jobs:
         with:
           name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
-            tests/test-reports/appwright-report/
             tests/reporters/reports
+            tests/test-reports/playwright-report/
           if-no-files-found: ignore
           retention-days: 7

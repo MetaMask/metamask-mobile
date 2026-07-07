@@ -5,7 +5,10 @@ import {
 } from '@metamask/bridge-controller';
 import { fetch as expoFetch } from 'expo/fetch';
 
-import { ControllerInitFunction, ControllerInitRequest } from '../../types';
+import {
+  MessengerClientInitFunction,
+  MessengerClientInitRequest,
+} from '../../types';
 import type { BridgeControllerInitMessenger } from '../../messengers/bridge-controller-messenger';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { buildAndTrackEvent } from '../../utils/analytics';
@@ -19,6 +22,11 @@ import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
 import packageJSON from '../../../../../package.json';
+import {
+  ASSETS_UNIFY_STATE_FLAG,
+  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+  isAssetsUnifyStateFeatureEnabled,
+} from '../../../../selectors/featureFlagController/assetsUnifyState';
 
 const { version: clientVersion } = packageJSON;
 
@@ -26,14 +34,20 @@ export const handleBridgeFetch = async (
   url: RequestInfo | URL,
   options: RequestInit = {},
 ) => {
-  if (url.toString().includes('Stream')) {
-    // @ts-expect-error - expoFetch has a different RequestInit type
-    return expoFetch(url.toString(), options);
+  const urlString = url.toString();
+
+  if (urlString.includes('Stream')) {
+    return expoFetch(urlString, options);
   }
+
+  if (urlString.includes('/obtainGaslessBatch')) {
+    return fetch(urlString, options);
+  }
+
   return handleFetch(url, options);
 };
 
-export const bridgeControllerInit: ControllerInitFunction<
+export const bridgeControllerInit: MessengerClientInitFunction<
   BridgeController,
   BridgeControllerMessenger,
   BridgeControllerInitMessenger
@@ -72,6 +86,25 @@ export const bridgeControllerInit: ControllerInitFunction<
         );
       },
       traceFn: trace as TraceCallback,
+
+      getUseAssetsControllerForRates: () => {
+        try {
+          const remoteFeatureFlagState = initMessenger.call(
+            'RemoteFeatureFlagController:getState',
+          );
+          const featureFlag =
+            remoteFeatureFlagState?.remoteFeatureFlags?.[
+              ASSETS_UNIFY_STATE_FLAG
+            ];
+
+          return isAssetsUnifyStateFeatureEnabled(
+            featureFlag,
+            ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+          );
+        } catch {
+          return false;
+        }
+      },
     });
 
     return { controller: bridgeController };
@@ -82,12 +115,12 @@ export const bridgeControllerInit: ControllerInitFunction<
 };
 
 function getControllers(
-  request: ControllerInitRequest<
+  request: MessengerClientInitRequest<
     BridgeControllerMessenger,
     BridgeControllerInitMessenger
   >,
 ) {
   return {
-    transactionController: request.getController('TransactionController'),
+    transactionController: request.getMessengerClient('TransactionController'),
   };
 }

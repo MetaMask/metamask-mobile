@@ -3,7 +3,9 @@
 > **⚠️ ESSENTIAL:** Read [E2E Testing Overview](../../docs/readme/e2e-testing.md) for complete setup guide
 
 - [E2E Framework Structure](#e2e-framework-structure)
+- [Playwright: local emulator `buildPath` and app install](PLAYWRIGHT_LOCAL_EMULATOR.md)
 - [E2E Testing Best Practices](#e2e-testing-best-practices)
+- [Playwright Node Runtime Shims](#playwright-node-runtime-shims)
 - [E2E Test Examples and Patterns](#e2e-test-examples-and-patterns)
 - [E2E Testing Anti-Patterns (AVOID THESE)](#e2e-testing-anti-patterns-avoid-these)
 - [E2E Code Review Checklist](#e2e-code-review-checklist)
@@ -12,12 +14,15 @@
 ## E2E Framework Structure
 
 - **Regression Testing Scenarios (`tests/regression/`)** - Regression Test files organized by feature
-- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature
+- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature (Detox)
+- **Appium smoke (`tests/smoke-appium/`)** - Playwright + Appium smoke parity with `tests/smoke/` — see [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
 - **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
 - **Selectors (`tests/selectors/`)**: Element selectors organized by feature
 - **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
 - **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
+- **WebSocket Mocking (`tests/websocket/`)**: Local WebSocket server for mocking real-time connections ([docs](WEBSOCKET_MOCKING.md))
+- **Playwright local emulator (Appium)**: When using `EmulatorProvider`, `use.app.buildPath` vs no path controls install vs pre-installed app — [PLAYWRIGHT_LOCAL_EMULATOR.md](PLAYWRIGHT_LOCAL_EMULATOR.md)
 
 **Core E2E Framework Classes:**
 
@@ -30,7 +35,8 @@
 **Key E2E Directories:**
 
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
-- `tests/smoke/` - Smoke Test files organized by feature
+- `tests/smoke/` - Detox smoke tests organized by feature
+- `tests/smoke-appium/` - Appium smoke tests (Playwright); same layout as `tests/smoke/`
 - `tests/regression/` - Regression Test files organized by feature
 - `tests/page-objects/` - Page Object classes following POM pattern
 - `tests/selectors/` - Element selectors (avoid direct use in tests)
@@ -87,6 +93,17 @@ await withFixtures(
 - Default mocks are loaded from `tests/api-mocking/mock-responses/defaults/`
 - Feature flags mocked via `setupRemoteFeatureFlagsMock` helper
 
+## Playwright Node Runtime Shims
+
+Playwright specs and `FixtureBuilder` run in Node, while the app runs in React Native/Metro. If a native-only module fails during Playwright import or fixture setup, keep the app on the native implementation and isolate the Node workaround in test infrastructure.
+
+We need this shim mechanism because some app dependencies patch CommonJS packages to call native modules such as `@metamask/native-utils`. Those calls are valid in the mobile app, but Playwright loads the same dependency graph in Node where React Native/Nitro native modules are unavailable.
+
+- Use `tests/framework/nodeNativeUtilsShim.cjs` for `@metamask/native-utils` in Playwright's Node process.
+- Register Node shims from Playwright framework entrypoints before importing code that may load native modules.
+- Do not add JS fallbacks to shared dependency patches unless the app runtime also needs them.
+- Validate with `yarn playwright test --list --project android --config tests/playwright.config.ts` before running devices.
+
 **Element State Configuration:**
 
 ```typescript
@@ -116,7 +133,7 @@ await Gestures.tap(loadingButton, {
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
 - **Debugging**: Check test output for unmocked API requests and framework warnings
 - **Performance**: Use `checkStability: false` by default, enable only for animated elements
-- Check `.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
+- Check [`docs/testing/e2e-testing.md`](../../docs/testing/e2e-testing.md) for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**
 

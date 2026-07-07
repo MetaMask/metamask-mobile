@@ -6,17 +6,21 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
-import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
+import {
+  KeyringControllerSignEip7702AuthorizationAction,
+  KeyringControllerSignPersonalMessageAction,
+  KeyringControllerSignTypedMessageAction,
+} from '@metamask/keyring-controller';
+import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
+import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
 
 export function getTransactionPayControllerMessenger(
-  rootMessenger: RootMessenger,
-): TransactionPayControllerMessenger {
-  const messenger = new Messenger<
-    'TransactionPayController',
+  rootMessenger: RootMessenger<
     MessengerActions<TransactionPayControllerMessenger>,
-    MessengerEvents<TransactionPayControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<TransactionPayControllerMessenger>
+  >,
+): TransactionPayControllerMessenger {
+  const messenger: TransactionPayControllerMessenger = new Messenger({
     namespace: 'TransactionPayController',
     parent: rootMessenger,
   });
@@ -25,12 +29,13 @@ export function getTransactionPayControllerMessenger(
     actions: [
       'AccountTrackerController:getState',
       'AssetsController:getStateForTransactionPay',
-      'BridgeController:fetchQuotes',
-      'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
+      'NetworkController:getNetworkConfigurationByChainId',
+      'RampsController:getOrder',
+      'RampsController:getQuotes',
       'RemoteFeatureFlagController:getState',
       'TokenBalancesController:getState',
       'TokenRatesController:getState',
@@ -40,10 +45,10 @@ export function getTransactionPayControllerMessenger(
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'KeyringController:getState',
       'KeyringController:signTypedMessage',
     ],
     events: [
-      'BridgeStatusController:stateChange',
       'TransactionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
     ],
@@ -55,22 +60,27 @@ export function getTransactionPayControllerMessenger(
 
 type InitMessengerActions =
   | DelegationControllerSignDelegationAction
-  | KeyringControllerSignEip7702AuthorizationAction;
+  | KeyringControllerSignEip7702AuthorizationAction
+  | KeyringControllerSignPersonalMessageAction
+  | KeyringControllerSignTypedMessageAction
+  | NetworkControllerGetNetworkConfigurationByChainIdAction
+  | TransactionControllerIsAtomicBatchSupportedAction;
+
 type InitMessengerEvents = never;
 
-export type TransactionPayControllerInitMessenger = ReturnType<
-  typeof getTransactionPayControllerInitMessenger
+export type TransactionPayControllerInitMessenger = Messenger<
+  'TransactionPayControllerInit',
+  InitMessengerActions,
+  InitMessengerEvents
 >;
 
 export function getTransactionPayControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'TransactionPayControllerInit',
-    InitMessengerActions,
-    InitMessengerEvents,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<TransactionPayControllerInitMessenger>,
+    MessengerEvents<TransactionPayControllerInitMessenger>
+  >,
+): TransactionPayControllerInitMessenger {
+  const messenger: TransactionPayControllerInitMessenger = new Messenger({
     namespace: 'TransactionPayControllerInit',
     parent: rootMessenger,
   });
@@ -79,6 +89,10 @@ export function getTransactionPayControllerInitMessenger(
     actions: [
       'DelegationController:signDelegation',
       'KeyringController:signEip7702Authorization',
+      'KeyringController:signPersonalMessage',
+      'KeyringController:signTypedMessage',
+      'NetworkController:getNetworkConfigurationByChainId',
+      'TransactionController:isAtomicBatchSupported',
     ],
     events: [],
     messenger,

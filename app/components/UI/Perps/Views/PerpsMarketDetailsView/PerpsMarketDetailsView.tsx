@@ -1,7 +1,12 @@
 import {
-  Box,
+  Button as DSButton,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
+  ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
-  IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   useNavigation,
@@ -15,15 +20,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, RefreshControl, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import {
   CandlePeriod,
   TimeDuration,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
-  getPerpsDisplaySymbol,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -32,19 +35,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -62,18 +54,12 @@ import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
-  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
   PerpsCompactOrderRowSelectorsIDs,
 } from '../../Perps.testIds';
-import HeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated';
-import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
-import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
-import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
-import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
-import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
 import PerpsNavigationCard, {
@@ -84,11 +70,21 @@ import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
+import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
+import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvancedChart';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsButtonColorTestVariant,
+  selectPerpsOrderBookEnabledFlag,
+  selectPerpsRelatedMarketsEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
 import {
@@ -119,17 +115,16 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
+import usePerpsToasts from '../../hooks/usePerpsToasts';
+import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import {
-  selectPerpsButtonColorTestVariant,
-  selectPerpsOrderBookEnabledFlag,
-} from '../../selectors/featureFlags';
 import {
   MarketInsightsEntryCard,
   MarketInsightsEntryCardSkeleton,
   MarketInsightsDisclaimerBottomSheet,
   useMarketInsights,
 } from '../../../MarketInsights';
+import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import {
   createSelectIsWatchlistMarket,
@@ -142,6 +137,10 @@ import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
+import {
+  type TransactionActiveAbTestEntry,
+  withPendingTransactionActiveAbTests,
+} from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
@@ -152,12 +151,15 @@ interface MarketDetailsRouteParams {
   monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
+  source_section?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
   const {
     navigateToHome,
+    navigateToMarketList,
     navigateToOrder,
     navigateToTutorial,
     navigateToClosePosition,
@@ -188,14 +190,29 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market: routeMarket, monitoringIntent, source } = route.params || {};
+  const {
+    market: routeMarket,
+    monitoringIntent,
+    source,
+    source_section,
+    transactionActiveAbTests,
+  } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const isRelatedMarketsEnabled = useSelector(
+    selectPerpsRelatedMarketsEnabledFlag,
+  );
+  const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
   // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
-  // Skip fetching if routeMarket already has maxLeverage (performance optimization)
-  const needsEnrichment = !routeMarket?.maxLeverage;
-  const { markets } = usePerpsMarkets({ skipInitialFetch: !needsEnrichment });
+  // Skip fetching if routeMarket already has a formatted maxLeverage.
+  const hasFormattedMaxLeverage =
+    typeof routeMarket?.maxLeverage === 'string' &&
+    routeMarket.maxLeverage.endsWith('x');
+  const needsEnrichment = !hasFormattedMaxLeverage;
+  const { markets } = usePerpsMarkets({
+    skipInitialFetch: !needsEnrichment,
+  });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
     if (!needsEnrichment) return routeMarket;
@@ -229,6 +246,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // This prevents stale closure issues where the captured position is outdated
   // Initialized to null, will be updated via useEffect when existingPosition is available
   const currentPositionRef = useRef<Position | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -236,13 +254,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
-  // Feature flag for Order Book visibility
+  // Feature flags
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
+  const isAdvancedChartEnabled = useSelector(
+    selectPerpsAdvancedChartEnabledFlag,
+  );
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
 
   // Feature flag for Market Insights in Perps
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
   const {
     report: perpsInsightsReport,
+    reportAssetId: perpsInsightsAssetId,
     timeAgo: perpsInsightsTimeAgo,
     isLoading: isPerpsInsightsLoading,
   } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
@@ -252,33 +277,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     () => createSelectIsWatchlistMarket(market?.symbol || ''),
     [market?.symbol],
   );
-  const isWatchlistFromRedux = useSelector(selectIsWatchlist);
-
-  // Optimistic local state for instant UI feedback
-  const [optimisticWatchlist, setOptimisticWatchlist] = useState<
-    boolean | null
-  >(null);
-  const isWatchlist = optimisticWatchlist ?? isWatchlistFromRedux;
-
-  // Reset optimistic state when market changes
-  useEffect(() => {
-    setOptimisticWatchlist(null);
-  }, [market?.symbol]);
+  // Source of truth for the favorite icon. The controller applies its own
+  // synchronous optimistic update (so the icon flips on the same tick the toggle
+  // fires) and reverts internally on remote-write failure, so no separate
+  // component-level optimistic copy is needed — a second copy could disagree with
+  // Redux if the controller's optimistic-then-revert collapsed before a reconcile.
+  const isWatchlist = useSelector(selectIsWatchlist);
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {
     currentMarketSymbolRef.current = market?.symbol;
   }, [market?.symbol]);
 
-  // Clear optimistic state once Redux has caught up
+  // Auto-scroll to top when navigating to a different market (e.g. related markets)
   useEffect(() => {
-    if (
-      optimisticWatchlist !== null &&
-      optimisticWatchlist === isWatchlistFromRedux
-    ) {
-      setOptimisticWatchlist(null);
-    }
-  }, [isWatchlistFromRedux, optimisticWatchlist]);
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+  }, [market?.symbol]);
 
   const {
     scrollY: scrollYShared,
@@ -297,6 +311,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
+  const [advancedChartResetKey, setAdvancedChartResetKey] = useState(0);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -402,6 +417,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const lastCandle = candleData.candles.at(-1);
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
   }, [candleData]);
+  const [advancedChartCurrentPrice, setAdvancedChartCurrentPrice] = useState<
+    number | undefined
+  >(undefined);
+  const syncedChartCurrentPrice =
+    isAdvancedChartEnabled && advancedChartCurrentPrice !== undefined
+      ? advancedChartCurrentPrice
+      : chartCurrentPrice;
+
+  useEffect(() => {
+    setAdvancedChartCurrentPrice(undefined);
+  }, [isAdvancedChartEnabled, market?.symbol, selectedCandlePeriod]);
 
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
@@ -435,17 +461,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const availableBalance = Number.parseFloat(
-    account?.availableBalance?.toString() ?? '0',
+  const spendableBalance = Number.parseFloat(
+    account?.spendableBalance?.toString() ?? '0',
   );
-  const showAddFundsCTA =
-    isEligible &&
-    !isLoadingPosition &&
-    !existingPosition &&
-    !isAtOICap &&
+  const hasDirectOrderFundingPath =
     !isLoadingAccount &&
-    availableBalance < PERPS_MIN_BALANCE_THRESHOLD &&
-    defaultPayTokenWhenNoPerpsBalance === null;
+    (spendableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
+      defaultPayTokenWhenNoPerpsBalance !== null);
 
   const handleAddFunds = useCallback(async () => {
     if (!isEligible) {
@@ -460,13 +482,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     }
     try {
       navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-      await depositWithConfirmation();
+      await withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
+        depositWithConfirmation(),
+      );
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
       });
     }
-  }, [isEligible, track, navigateToConfirmation, depositWithConfirmation]);
+  }, [
+    isEligible,
+    track,
+    navigateToConfirmation,
+    depositWithConfirmation,
+    transactionActiveAbTests,
+  ]);
 
   // Keep current position ref in sync for callbacks stored in route params
   // This must be after useHasExistingPosition since it depends on existingPosition
@@ -486,10 +516,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   );
 
   // Compute TP/SL lines for the chart based on existing position
-  // Use chartCurrentPrice (from candle close) to ensure price line syncs with live candle
+  // Use the active chart candle close so the header and current price line stay in sync.
   const tpslLines = useMemo(() => {
     const chartPriceStr =
-      chartCurrentPrice > 0 ? chartCurrentPrice.toString() : undefined;
+      syncedChartCurrentPrice > 0
+        ? syncedChartCurrentPrice.toString()
+        : undefined;
 
     if (existingPosition) {
       return {
@@ -503,7 +535,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     // Even without position, show current price line on chart
     return chartPriceStr ? { currentPrice: chartPriceStr } : undefined;
-  }, [existingPosition, chartCurrentPrice]);
+  }, [existingPosition, syncedChartCurrentPrice]);
 
   // Stop loss prompt banner logic
   // Hook handles visibility orchestration including fade-out animation
@@ -561,12 +593,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // reflects the actual display state rather than a loading-time snapshot.
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    resetKey: market?.symbol,
     conditions: [
       !!market,
       !!marketStats,
       !isLoadingHistory,
       !isLoadingPosition,
       !isPerpsInsightsLoading,
+      // Guard against stale insights from a prior symbol (the loading flag
+      // may not flip to true until the next render after a symbol change).
+      // Uses reportAssetId (the input identifier) instead of report.asset
+      // to avoid casing mismatches between the API response and market symbol.
+      !isPerpsInsightsEnabled ||
+        !perpsInsightsReport ||
+        perpsInsightsAssetId === market?.symbol,
     ],
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
@@ -574,10 +614,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
       [PERPS_EVENT_PROPERTY.SOURCE]:
         source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      ...(source_section && {
+        [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: source_section,
+      }),
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
       market_insights_displayed:
         isPerpsInsightsEnabled && Boolean(perpsInsightsReport),
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       // A/B Test context (TAT-1937) - for baseline exposure tracking
       ...(isButtonColorTestEnabled && {
         [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
@@ -619,7 +664,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setVisibleCandleCount(45);
 
       // Reset chart view to default position
-      chartRef.current?.resetToDefault();
+      if (isAdvancedChartEnabled) {
+        setAdvancedChartResetKey((key) => key + 1);
+      } else {
+        chartRef.current?.resetToDefault();
+      }
 
       // WebSocket streaming provides real-time data - no manual refresh needed
       // Just reset the UI state and the chart will update automatically
@@ -631,7 +680,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [isAdvancedChartEnabled]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -652,12 +701,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleWatchlistPress = useCallback(() => {
     if (!market?.symbol) return;
 
-    // Optimistic update - instant UI feedback
-    const newWatchlistState = !isWatchlist;
-    setOptimisticWatchlist(newWatchlistState);
-
-    // Actual state update
     const controller = Engine.context.PerpsController;
+    const isAdding = !isWatchlist;
+
+    // Guard: block adding when the watchlist is already full
+    if (
+      isAdding &&
+      controller.getWatchlistMarkets().length >= WATCHLIST_LIMIT
+    ) {
+      showToast(PerpsToastOptions.watchlist.limitReached);
+      return;
+    }
+
+    // Controller applies its own synchronous optimistic update (instant UI
+    // feedback via Redux) and reverts internally on remote-write failure;
+    // fire-and-forget here.
     controller.toggleWatchlistMarket(market.symbol);
 
     // Track watchlist toggle event
@@ -666,14 +724,32 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
-      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: newWatchlistState
+      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: isAdding
         ? PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET
         : PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
       [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistCount,
     });
-  }, [market, isWatchlist, track]);
+  }, [market, isWatchlist, track, showToast, PerpsToastOptions]);
+
+  const handleCategorySearchPress = useCallback(() => {
+    if (!market) return;
+
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS,
+      [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
+    });
+
+    navigateToMarketList({
+      source: PERPS_EVENT_VALUE.SOURCE.MAGNIFYING_GLASS,
+    });
+  }, [market, track, navigateToMarketList]);
 
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') =>
@@ -730,6 +806,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
           defaultSzDecimals: marketData?.szDecimals,
           defaultMaxLeverage: marketData?.maxLeverage,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
         });
       }),
     [
@@ -739,6 +818,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigation,
       track,
       navigateToOrder,
+      transactionActiveAbTests,
       market?.symbol,
       marketData,
       isButtonColorTestEnabled,
@@ -1066,6 +1146,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!market?.symbol) return;
     track(MetaMetricsEvents.MARKET_INSIGHTS_OPENED, {
       perps_market: market.symbol,
+      source: 'perps',
       ...(perpsInsightsReport && {
         asset_symbol: perpsInsightsReport.asset,
         digest_id: perpsInsightsReport.digestId,
@@ -1080,6 +1161,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       assetIdentifier: market.symbol,
       isPerps: true,
       hasPerpsPosition: !!existingPosition,
+      isAtOICap,
+      source: 'perps',
     });
   }, [
     market?.symbol,
@@ -1087,6 +1170,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     track,
     perpsInsightsReport,
     existingPosition,
+    isAtOICap,
   ]);
 
   // Handler for order selection - navigates to order details
@@ -1114,12 +1198,28 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setIsFullscreenChartVisible(false);
   }, []);
 
-  const handleChartError = useCallback(() => {
-    // Log the error but don't block the UI
-    Logger.error(new Error('Chart rendering error in market details view'), {
-      tags: { feature: PERPS_CONSTANTS.FeatureName },
-    });
-  }, []);
+  const handleChartError = useCallback(
+    (error?: Error | string) => {
+      const errorMessage =
+        typeof error === 'string'
+          ? error
+          : (error?.message ?? 'Chart rendering error in market details view');
+      // Log the error but don't block the UI
+      Logger.error(new Error(errorMessage), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+      });
+      track(MetaMetricsEvents.PERPS_ERROR, {
+        [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+        [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
+        [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+          PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+        [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
+      });
+    },
+    [market?.symbol, track],
+  );
 
   // Determine market hours content key based on current status - recalculated on each render to stay current
   const marketHoursContentKey = (() => {
@@ -1163,7 +1263,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
             {strings('perps.market.details.error_message')}
           </Text>
         </View>
@@ -1174,100 +1274,48 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const shouldShowNewPositionActions =
     hasLongShortButtons && !existingPosition && !isAtOICap;
   const shouldShowAddFundsCTASection =
-    shouldShowNewPositionActions && showAddFundsCTA;
+    shouldShowNewPositionActions &&
+    isEligible &&
+    !isLoadingAccount &&
+    !isLoadingPosition &&
+    !hasDirectOrderFundingPath;
   const shouldShowLongShortButtonsOnly =
-    shouldShowNewPositionActions && !showAddFundsCTA;
+    shouldShowNewPositionActions && !shouldShowAddFundsCTASection;
 
   const shouldShowPerpsMarketInsights =
     isPerpsInsightsEnabled &&
     Boolean(market?.symbol) &&
     (Boolean(perpsInsightsReport) || isPerpsInsightsLoading);
 
-  const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
-
   return (
     <SafeAreaView
       style={styles.mainContainer}
+      edges={['bottom', 'left', 'right']}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandardAnimated
-        scrollY={scrollYShared}
-        titleSectionHeight={titleSectionHeightSv}
-        title={displayTitle}
-        subtitle={
-          <LivePriceHeader
-            symbol={market.symbol}
-            currentPrice={chartCurrentPrice}
-            testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-            testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-            throttleMs={1000}
-          />
-        }
-        onBack={handleBackPress}
-        backButtonProps={{
-          onPress: handleBackPress,
-          testID: PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Expand,
-            onPress: handleFullscreenChartOpen,
-            testID: `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
-          },
-          {
-            iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
-            onPress: handleWatchlistPress,
-            testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
-          },
-        ]}
+      <PerpsMarketInlineHeader
+        market={market}
+        currentPrice={syncedChartCurrentPrice}
+        onBackPress={handleBackPress}
+        onFullscreenPress={handleFullscreenChartOpen}
+        onFavoritePress={handleWatchlistPress}
+        onCategorySearchPress={handleCategorySearchPress}
+        isFavorite={isWatchlist}
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+        fullscreenButtonTestID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`}
       />
 
       <View style={styles.scrollableContentContainer}>
-        <Animated.ScrollView
+        <ScrollView
+          ref={scrollViewRef}
           style={styles.mainContentScrollView}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
-          <Box
-            testID={PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER}
-            onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
-          >
-            <TitleSubpage
-              startAccessory={
-                <PerpsTokenLogo symbol={market.symbol} size={40} />
-              }
-              title={displayTitle}
-              titleAccessory={
-                market.maxLeverage ? (
-                  <Box twClassName="ml-1">
-                    <PerpsLeverage maxLeverage={market.maxLeverage} />
-                  </Box>
-                ) : undefined
-              }
-              bottomAccessory={
-                <LivePriceHeader
-                  symbol={market.symbol}
-                  currentPrice={chartCurrentPrice}
-                  testIDPrice={
-                    PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION
-                  }
-                  testIDChange={
-                    PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_TITLE_SECTION
-                  }
-                  throttleMs={1000}
-                />
-              }
-              twClassName="px-4 pt-1 pb-3"
-            />
-          </Box>
-
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
             <ComponentErrorBoundary
@@ -1286,7 +1334,26 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 />
               )}
 
-              {hasHistoricalData ? (
+              {isAdvancedChartEnabled && market?.symbol ? (
+                <PerpsAdvancedChart
+                  key={`${market.symbol}-${advancedChartResetKey}`}
+                  symbol={market.symbol}
+                  interval={selectedCandlePeriod}
+                  visibleCandleCount={
+                    visibleCandleCount ??
+                    PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT
+                  }
+                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                  tpslLines={tpslLines}
+                  positionSize={existingPosition?.size}
+                  onCrosshairDataChange={setOhlcData}
+                  onLatestPriceChange={setAdvancedChartCurrentPrice}
+                  onError={handleChartError}
+                  fallbackCandleData={candleData}
+                  fallbackFetchMoreHistory={fetchMoreHistory}
+                  paginationDuration={TimeDuration.YearToDate}
+                />
+              ) : hasHistoricalData ? (
                 <TradingViewChart
                   ref={chartRef}
                   candleData={candleData}
@@ -1324,6 +1391,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               />
             )}
           </View>
+
+          {/* Service Interruption Banner */}
+          <PerpsServiceInterruptionBanner
+            testID={
+              PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+            }
+          />
 
           {/* OI Cap Warning - Shows when market is at capacity */}
           {market?.symbol && isAtOICap && (
@@ -1374,7 +1448,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Orders Section - Compact view (includes standalone TP/SL orders) */}
           {displayOrders.length > 0 && (
             <View style={styles.section}>
-              <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+              <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
                 {strings('perps.market.orders')}
               </Text>
               {displayOrders.map((order, index) => (
@@ -1400,6 +1474,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 timeAgo={perpsInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
                 onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                source="perps"
+                testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
               />
             ) : (
               <MarketInsightsEntryCardSkeleton />
@@ -1421,6 +1497,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
+          {/* Related Markets Section */}
+          {isRelatedMarketsEnabled && market ? (
+            <PerpsRelatedMarkets currentMarket={market} />
+          ) : null}
+
           {/* Recent Trades Section */}
           {market?.symbol && (
             <View style={styles.section}>
@@ -1437,20 +1518,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <View style={styles.section}>
             <Text
               style={styles.riskDisclaimer}
-              variant={TextVariant.BodyXS}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
             >
               {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
               <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
                 onPress={handleTradingViewPress}
               >
                 TradingView.
               </Text>
             </Text>
           </View>
-        </Animated.ScrollView>
+        </ScrollView>
       </View>
 
       {/* Fixed Actions Footer */}
@@ -1458,102 +1539,95 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         <View style={styles.actionsFooter}>
           {/* Show Modify/Close buttons when position exists */}
           {hasLongShortButtons && existingPosition && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.market.modify')}
-                  onPress={handleModifyPress}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON}
-                />
-              </View>
+            <View style={styles.actionsContainer} accessible={false}>
+              <DSButton
+                variant={ButtonVariant.Secondary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleModifyPress}
+                style={styles.actionButtonWrapper}
+                testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON}
+              >
+                {strings('perps.market.modify')}
+              </DSButton>
 
-              <View style={styles.actionButtonWrapper}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={
-                    parseFloat(existingPosition.size) >= 0
-                      ? strings('perps.market.close_long')
-                      : strings('perps.market.close_short')
-                  }
-                  onPress={handleClosePosition}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON}
-                />
-              </View>
+              <DSButton
+                variant={ButtonVariant.Primary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleClosePosition}
+                style={styles.actionButtonWrapper}
+                testID={PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON}
+              >
+                {parseFloat(existingPosition.size) >= 0
+                  ? strings('perps.market.close_long')
+                  : strings('perps.market.close_short')}
+              </DSButton>
             </View>
           )}
 
           {/* Show Add funds CTA when no perps balance and no allowlist token to preselect */}
           {shouldShowAddFundsCTASection && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.add_funds')}
-                  onPress={handleAddFunds}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
-                />
-              </View>
+            <View style={styles.actionsContainer} accessible={false}>
+              <DSButton
+                variant={ButtonVariant.Primary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleAddFunds}
+                style={styles.actionButtonWrapper}
+                testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
+              >
+                {strings('perps.add_funds')}
+              </DSButton>
             </View>
           )}
           {/* Show Long/Short buttons when no position exists and user can trade */}
           {shouldShowLongShortButtonsOnly && (
-            <View style={styles.actionsContainer}>
-              <View style={styles.actionButtonWrapper}>
-                {buttonColorVariant === 'monochrome' ? (
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
-                    label={strings('perps.market.long')}
-                    onPress={handleLongPress}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                  />
-                ) : (
-                  <ButtonSemantic
-                    severity={ButtonSemanticSeverity.Success}
-                    onPress={handleLongPress}
-                    isFullWidth
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                  >
-                    {strings('perps.market.long')}
-                  </ButtonSemantic>
-                )}
-              </View>
+            <View style={styles.actionsContainer} accessible={false}>
+              {buttonColorVariant === 'monochrome' ? (
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  onPress={handleLongPress}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </DSButton>
+              ) : (
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Success}
+                  onPress={handleLongPress}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+                >
+                  {strings('perps.market.long')}
+                </ButtonSemantic>
+              )}
 
-              <View style={styles.actionButtonWrapper}>
-                {buttonColorVariant === 'monochrome' ? (
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
-                    label={strings('perps.market.short')}
-                    onPress={handleShortPress}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                  />
-                ) : (
-                  <ButtonSemantic
-                    severity={ButtonSemanticSeverity.Danger}
-                    onPress={handleShortPress}
-                    isFullWidth
-                    size={ButtonSizeRNDesignSystem.Lg}
-                    isDisabled={isAtOICap}
-                    testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                  >
-                    {strings('perps.market.short')}
-                  </ButtonSemantic>
-                )}
-              </View>
+              {buttonColorVariant === 'monochrome' ? (
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  onPress={handleShortPress}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </DSButton>
+              ) : (
+                <ButtonSemantic
+                  severity={ButtonSemanticSeverity.Danger}
+                  onPress={handleShortPress}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </ButtonSemantic>
+              )}
             </View>
           )}
         </View>
@@ -1622,6 +1696,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         visibleCandleCount={visibleCandleCount}
         onClose={handleFullscreenChartClose}
         onIntervalChange={handleCandlePeriodChange}
+        isAdvancedChartEnabled={isAdvancedChartEnabled}
+        symbol={market?.symbol}
+        positionSize={existingPosition?.size}
       />
 
       {/* Market Insights Disclaimer Bottom Sheet */}
@@ -1638,6 +1715,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           position={existingPosition ?? undefined}
           onClose={closeModifySheet}
           onReversePosition={handleReversePosition}
+          testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_ACTION_SHEET}
         />
       )}
 

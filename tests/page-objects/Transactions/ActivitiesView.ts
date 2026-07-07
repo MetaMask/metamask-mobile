@@ -11,74 +11,97 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
+import UnifiedGestures from '../../framework/UnifiedGestures';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class ActivitiesView {
-  get title(): DetoxElement {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
-  get predictionsTab(): DetoxElement {
-    return Matchers.getElementByLabel(
-      ActivitiesViewSelectorsText.PREDICTIONS_TAB,
-    );
+  get predictionsTab(): EncapsulatedElementType {
+    const label = ActivitiesViewSelectorsText.PREDICTIONS_TAB;
+    return encapsulated({
+      detox: () => Matchers.getElementByLabel(label),
+      appium: () => PlaywrightMatchers.getElementByText(label),
+    });
   }
-  get transferTab(): DetoxElement {
+  get transferTab(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
   }
 
-  get tabsBar(): DetoxElement {
+  get tabsBar(): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
     );
   }
 
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
   }
 
-  get confirmedLabel(): DetoxElement {
+  get confirmedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
-  get stakeDepositedLabel(): DetoxElement {
+  get stakeDepositedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get stakeMoreDepositedLabel(): DetoxElement {
+  get stakeMoreDepositedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.STAKE_DEPOSIT,
       0,
     );
   }
 
-  get unstakeLabel(): DetoxElement {
+  get unstakeLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
-  get stackingClaimLabel(): DetoxElement {
+  get stackingClaimLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
-  get approveActivity(): DetoxElement {
+  get approveActivity(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  get predictDeposit(): DetoxElement {
+  get lendingDepositActivity(): EncapsulatedElementType {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.LENDING_DEPOSIT,
+    );
+  }
+
+  get lendingWithdrawalActivity(): EncapsulatedElementType {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
+    );
+  }
+
+  get predictDeposit(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
     );
   }
 
-  get predictWithdraw(): DetoxElement {
+  get predictWithdraw(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
     );
   }
 
-  transactionStatus(row: number): DetoxElement {
+  transactionStatus(row: number): EncapsulatedElementType {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
-  transactionItem(row: number): DetoxElement {
+  transactionItem(row: number): EncapsulatedElementType {
     return Matchers.getElementByID(`transaction-item-${row}`);
   }
 
@@ -101,17 +124,17 @@ class ActivitiesView {
   swapActivityTitle(
     sourceToken: string,
     destinationToken: string,
-  ): DetoxElement {
+  ): EncapsulatedElementType {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  swapApprovalActivityTitle(): DetoxElement {
+  swapApprovalActivityTitle(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  bridgeActivityTitle(destNetwork: string): DetoxElement {
+  bridgeActivityTitle(destNetwork: string): EncapsulatedElementType {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
     );
@@ -141,16 +164,32 @@ class ActivitiesView {
   }
 
   async tapOnPredictionsTab(): Promise<void> {
-    // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
-    await Gestures.swipe(this.tabsBar, 'left', {
-      percentage: 0.5,
-      speed: 'slow',
-      elemDescription: 'Activity View Tabs Bar',
-    });
-    await Gestures.waitAndTap(this.predictionsTab, {
-      elemDescription: 'Predictions Tab in Activity View',
-      timeout: 3500,
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          try {
+            await Assertions.expectElementToBeVisible(this.predictionsTab, {
+              timeout: 1000,
+            });
+            break;
+          } catch {
+            await UnifiedGestures.swipe(this.tabsBar, 'left', {
+              percentage: 0.5,
+              speed: 'slow',
+              description: `Swipe activity tabs to reveal Predictions (attempt ${attempt + 1})`,
+            });
+          }
+        }
+        await UnifiedGestures.waitAndTap(this.predictionsTab, {
+          description: 'Predictions Tab in Activity View',
+          timeout: 10_000,
+        });
+      },
+      {
+        timeout: 30_000,
+        description: 'Tap Predictions tab in Activity View',
+      },
+    );
   }
 
   async tapOnTransfersTab(): Promise<void> {
@@ -169,7 +208,7 @@ class ActivitiesView {
   rampsOrderCryptoAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): DetoxElement {
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       getOrderRowCryptoAmountTestId(orderType, rowIndex),
     );
@@ -178,7 +217,7 @@ class ActivitiesView {
   rampsOrderFiatAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): DetoxElement {
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       getOrderRowFiatAmountTestId(orderType, rowIndex),
     );
@@ -233,6 +272,49 @@ class ActivitiesView {
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       rowIndex,
     );
+  }
+
+  /**
+   * Wait for a transaction to show "Confirmed" status in the activity list.
+   * Works in both Detox and Playwright/Appium contexts.
+   * For real on-chain transactions, polls with a longer timeout.
+   * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
+   */
+  async waitForTransactionConfirmed(
+    rowIndex = 0,
+    timeoutMs = 120_000,
+  ): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          this.transactionStatus(rowIndex),
+          {
+            description: `Transaction row ${rowIndex} should be confirmed`,
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectConditionWithRetry(
+          async () => {
+            const statusEl = await PlaywrightMatchers.getElementById(
+              `transaction-status-${rowIndex}`,
+              { exact: true },
+            );
+            const label = await statusEl.textContent();
+            if (label !== ActivitiesViewSelectorsText.CONFIRM_TEXT) {
+              throw new Error(
+                `Row ${rowIndex} status: "${label}" (waiting for "${ActivitiesViewSelectorsText.CONFIRM_TEXT}")`,
+              );
+            }
+          },
+          {
+            maxRetries: Math.ceil(timeoutMs / 3_000),
+            interval: 3_000,
+            description: `Transaction row ${rowIndex} should be confirmed`,
+          },
+        );
+      },
+    });
   }
 }
 

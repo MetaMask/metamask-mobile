@@ -6,11 +6,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
@@ -28,18 +28,19 @@ const ChangePassword = () => {
       style={styles.setting}
       testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER}
     >
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('password_reset.password_title')}
       </Text>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('password_reset.password_desc')}
       </Text>
       <Button
-        variant={ButtonVariant.Primary}
+        variant={ButtonVariant.Secondary}
         onPress={resetPassword}
         style={styles.confirm}
         isFullWidth

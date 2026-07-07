@@ -4,6 +4,7 @@ import {
   selectIsAccountSyncingEnabled,
   selectIsContactSyncingEnabled,
   selectIsSignedIn,
+  selectNeedsProfilePairing,
 } from './index';
 import { RootState } from '../../reducers';
 
@@ -13,6 +14,7 @@ describe('Notification Selectors', () => {
       backgroundState: {
         AuthenticationController: {
           isSignedIn: true,
+          needsProfilePairing: false,
         },
         UserStorageController: {
           isBackupAndSyncEnabled: true,
@@ -56,5 +58,23 @@ describe('Notification Selectors', () => {
     expect(selectIsSignedIn(mockState)).toEqual(
       mockState.engine.backgroundState.AuthenticationController.isSignedIn,
     );
+  });
+
+  it('selectNeedsProfilePairing returns the persisted value when present', () => {
+    expect(selectNeedsProfilePairing(mockState)).toBe(false);
+  });
+
+  it('selectNeedsProfilePairing defaults to true when the field is absent', () => {
+    const stateWithoutField = {
+      engine: {
+        backgroundState: {
+          AuthenticationController: {
+            isSignedIn: true,
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(selectNeedsProfilePairing(stateWithoutField)).toBe(true);
   });
 });

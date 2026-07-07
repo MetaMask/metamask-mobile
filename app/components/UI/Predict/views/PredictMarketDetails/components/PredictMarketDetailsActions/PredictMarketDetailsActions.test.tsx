@@ -1,5 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import type {
+  ReactTestRendererJSON,
+  ReactTestRendererNode,
+} from 'react-test-renderer';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import {
   PredictMarket,
@@ -57,12 +61,45 @@ const createProps = (
   isMarketLoading: false,
   market: createMarket(),
   openOutcomes: [createOutcome()],
-  yesPercentage: 65,
   onClaimPress: jest.fn(),
   onBuyPress: jest.fn(),
   isClaimPending: false,
   ...overrides,
 });
+
+const flattenStyle = (style: unknown): Record<string, unknown> => {
+  if (Array.isArray(style)) {
+    return Object.assign({}, ...style.map(flattenStyle));
+  }
+
+  if (style && typeof style === 'object') {
+    return style as Record<string, unknown>;
+  }
+
+  return {};
+};
+
+type JsonTree = ReactTestRendererNode | ReactTestRendererNode[] | null;
+
+const findJsonNodes = (
+  node: JsonTree,
+  predicate: (jsonNode: ReactTestRendererJSON) => boolean,
+): ReactTestRendererJSON[] => {
+  if (Array.isArray(node)) {
+    return node.flatMap((child) => findJsonNodes(child, predicate));
+  }
+
+  if (!node || typeof node !== 'object') {
+    return [];
+  }
+
+  const jsonNode = node as ReactTestRendererJSON;
+
+  return [
+    ...(predicate(jsonNode) ? [jsonNode] : []),
+    ...findJsonNodes(jsonNode.children ?? [], predicate),
+  ];
+};
 
 describe('PredictMarketDetailsActions', () => {
   beforeEach(() => {
@@ -84,23 +121,49 @@ describe('PredictMarketDetailsActions', () => {
     expect(claimButton).toBeOnTheScreen();
   });
 
-  it('renders buy buttons for open single-outcome market and handles presses', () => {
+  it('labels buy buttons with the ask (buyPrice), not the mid, and handles presses', () => {
     const onBuyPress = jest.fn();
-    const openOutcome = createOutcome();
+    // Wide spread: mid 0.65/0.35 but ask 0.71/0.41 -> buttons must show the ask.
+    const openOutcome = createOutcome({
+      tokens: [
+        { id: 'token-yes', title: 'Yes', price: 0.65, buyPrice: 0.71 },
+        { id: 'token-no', title: 'No', price: 0.35, buyPrice: 0.41 },
+      ],
+    });
     const props = createProps({
       hasPositivePnl: false,
       onBuyPress,
       openOutcomes: [openOutcome],
-      yesPercentage: 70,
     });
 
     renderWithProvider(<PredictMarketDetailsActions {...props} />);
 
-    fireEvent.press(screen.getByText('Yes • 70¢'));
-    fireEvent.press(screen.getByText('No • 30¢'));
+    fireEvent.press(screen.getByText('Yes • 71¢'));
+    fireEvent.press(screen.getByText('No • 41¢'));
+    // The mid must NOT be shown on the CTA.
+    expect(screen.queryByText('Yes • 65¢')).toBeNull();
 
     expect(onBuyPress).toHaveBeenNthCalledWith(1, openOutcome.tokens[0]);
     expect(onBuyPress).toHaveBeenNthCalledWith(2, openOutcome.tokens[1]);
+  });
+
+  it('reserves button height in the action columns', () => {
+    const props = createProps();
+
+    const { toJSON } = renderWithProvider(
+      <PredictMarketDetailsActions {...props} />,
+    );
+
+    const actionColumns = findJsonNodes(toJSON(), (node) => {
+      const style = flattenStyle(node.props.style);
+      return (
+        node.props.accessibilityRole !== 'button' &&
+        style.flexGrow === 1 &&
+        style.minHeight === 48
+      );
+    });
+
+    expect(actionColumns).toHaveLength(2);
   });
 
   it('falls back to market tokens when open outcomes are unavailable', () => {
@@ -110,7 +173,6 @@ describe('PredictMarketDetailsActions', () => {
       market: fallbackMarket,
       openOutcomes: [],
       onBuyPress,
-      yesPercentage: 65,
     });
 
     renderWithProvider(<PredictMarketDetailsActions {...props} />);
@@ -126,6 +188,43 @@ describe('PredictMarketDetailsActions', () => {
       2,
       fallbackMarket.outcomes[0].tokens[1],
     );
+  });
+
+  it('formats payout estimates with fixed USD decimals', () => {
+    const props = createProps({
+      showPayoutEstimate: true,
+      openOutcomes: [
+        createOutcome({
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 0.65 },
+            { id: 'token-no', title: 'No', price: 0.004 },
+          ],
+        }),
+      ],
+    });
+
+    renderWithProvider(<PredictMarketDetailsActions {...props} />);
+
+    expect(screen.getByText('$100.00 -> $153.85')).toBeOnTheScreen();
+    expect(screen.getByText('$100.00 -> --')).toBeOnTheScreen();
+  });
+
+  it('hides payout estimates for prices outside the display range', () => {
+    const props = createProps({
+      showPayoutEstimate: true,
+      openOutcomes: [
+        createOutcome({
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 1 },
+            { id: 'token-no', title: 'No', price: 0.0012820513 },
+          ],
+        }),
+      ],
+    });
+
+    renderWithProvider(<PredictMarketDetailsActions {...props} />);
+
+    expect(screen.getAllByText('$100.00 -> --')).toHaveLength(2);
   });
 
   it('renders skeleton while market details are loading', () => {

@@ -1,4 +1,6 @@
 import React, { useCallback, useLayoutEffect } from 'react';
+import { Platform } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
@@ -12,9 +14,23 @@ import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  saveOnboardingEvent as saveEvent,
+  setWalletHomeOnboardingStepsEligible,
+} from '../../../actions/onboarding';
+import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboarding/walletHomeOnboardingStepsEligibility';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../../../util/analytics/onboardingCompletedAnalytics';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import Logger from '../../../util/Logger';
 import {
   Box,
   BoxAlignItems,
@@ -53,6 +69,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   successFlow,
 }) => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const accountType = useSelector(selectOnboardingAccountType);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
 
   const tw = useTailwind();
 
@@ -67,15 +91,55 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   };
 
   const handleOnDone = useCallback(() => {
-    const onOnboardingSuccess = async () => {
-      // Run discovery on all account providers (EVM and non-EVM)
-      await discoverAccounts(
-        Engine.context.KeyringController.state.keyrings[0].metadata.id,
+    if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
+      const onboardingCompletedProperties =
+        getOnboardingCompletedAnalyticsPropsFromSuccessFlow(successFlow, {
+          accountType,
+          isBasicFunctionalityEnabled,
+        });
+
+      trackOnboarding(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ONBOARDING_COMPLETED,
+        )
+          .addProperties({
+            ...onboardingCompletedProperties,
+            ...walletSetupAttributionProps,
+          })
+          .build(),
+        (event) => dispatch(saveEvent([event])),
       );
-    };
-    onOnboardingSuccess();
-    onDone();
-  }, [onDone]);
+
+      dispatch(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
+      );
+    }
+
+    dispatch(clearAttribution());
+
+    Promise.resolve(
+      discoverAccounts(
+        Engine.context.KeyringController.state.keyrings[0].metadata.id,
+      ),
+    ).catch((error: unknown) => {
+      Logger.error(
+        error as Error,
+        'OnboardingSuccess: discoverAccounts failed',
+      );
+    });
+    queueMicrotask(() => {
+      onDone();
+    });
+  }, [
+    accountType,
+    dispatch,
+    isBasicFunctionalityEnabled,
+    onDone,
+    successFlow,
+    walletSetupAttributionProps,
+  ]);
 
   const getTitleString = () => {
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
@@ -123,10 +187,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   };
 
   return (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
+    <Box twClassName="flex-1 bg-default">
       <Box
         twClassName="flex-1 px-4"
         testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
@@ -139,7 +200,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
           {renderContent()}
         </Box>
 
-        <Box alignItems={BoxAlignItems.Center} twClassName="pb-1 gap-y-3">
+        <SafeAreaView
+          edges={['top', 'left', 'right', 'bottom']}
+          style={tw.style('items-center pb-1 gap-y-3')}
+        >
           <Button
             testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
             variant={ButtonVariant.Primary}
@@ -150,9 +214,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             {strings('onboarding_success.done')}
           </Button>
           {renderFooter()}
-        </Box>
+        </SafeAreaView>
       </Box>
-    </SafeAreaView>
+    </Box>
   );
 };
 

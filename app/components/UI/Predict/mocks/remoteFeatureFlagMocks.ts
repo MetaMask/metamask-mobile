@@ -21,7 +21,11 @@ export const mockPredictMarketHighlightsFlag: PredictMarketHighlightsFlag = {
       category: 'trending',
       markets: ['market-highlight-1', 'market-highlight-2'],
     },
-    { category: 'crypto', markets: ['market-highlight-3'] },
+    {
+      category: 'crypto',
+      markets: ['market-highlight-3'],
+      series: ['series-highlight-1'],
+    },
     {
       category: 'sports',
       markets: ['market-highlight-4', 'market-highlight-5'],

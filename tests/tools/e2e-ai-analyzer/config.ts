@@ -16,7 +16,7 @@ export const MODEL_PRICING: Record<
 > = {
   'gpt-5.2-chat-latest': { inputPerM: 1.75, outputPerM: 14.0 },
   'claude-sonnet-4-6': { inputPerM: 3.0, outputPerM: 15.0 },
-  'gemini-2.0-flash': { inputPerM: 0.1, outputPerM: 0.4 },
+  'gemini-2.5-flash': { inputPerM: 0.1, outputPerM: 0.4 },
 };
 
 /**
@@ -45,7 +45,7 @@ export const LLM_CONFIG = {
       envKey: 'E2E_OPENAI_API_KEY',
     } as ProviderConfig,
     google: {
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       envKey: 'E2E_GEMINI_API_KEY',
     } as ProviderConfig,
   },

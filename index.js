@@ -1,6 +1,10 @@
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
 
+// Native C++ networking (nitro-fetch + nitro-websockets). Must run after shim.
+import './app/core/NitroFetchSetup';
+import './app/core/NitroWebSocketSetup';
+
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
 import 'react-native-gesture-handler';
@@ -11,12 +15,24 @@ import './wdyr';
 // Required for EAS Updates to resolve assets (.riv, .png, etc.) from OTA bundles
 import 'expo-asset';
 
+// Root entry is plain JS; TypeScript import resolver does not resolve expo here.
+// eslint-disable-next-line import-x/no-unresolved -- expo-splash-screen is a runtime dependency (see package.json)
+import { preventAutoHideAsync } from 'expo-splash-screen';
+
+// Keep the native splash visible until we explicitly hide it in FoxLoader
+// This prevents the white flash between native splash and first RN render
+try {
+  preventAutoHideAsync();
+} catch (_e) {
+  // Non-fatal — app can still start if the native splash is unavailable
+}
+
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import-x/no-namespace
 import { setupSentry } from './app/util/sentry/utils';
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
-import { isE2E } from './app/util/test/utils.js';
+import { hasTestOverrides } from './app/util/test/utils.js';
 import { Performance } from './app/core/Performance';
 import {
   handleCustomError,
@@ -107,7 +123,7 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  */
 AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
-  isE2E ? Root : Sentry.wrap(Root),
+  hasTestOverrides ? Root : Sentry.wrap(Root),
 );
 
 function setupGlobalErrorHandler() {

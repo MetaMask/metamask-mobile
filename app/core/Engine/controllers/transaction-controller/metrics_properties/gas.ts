@@ -11,6 +11,8 @@ import type {
   TransactionMetricsBuilderRequest,
 } from '../types';
 import type { RootState } from '../../../../../reducers';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { safeToChecksumAddress } from '../../../../../util/address';
 
 export function getGasMetricsProperties({
   transactionMeta,
@@ -88,10 +90,13 @@ function getNativeBalance(
   chainId: string,
   address: string,
 ): BigNumber {
-  const accountsByChainId =
-    state.engine?.backgroundState?.AccountTrackerController?.accountsByChainId;
+  const accountsByChainId = selectAccountsByChainId(state);
 
-  const account = accountsByChainId?.[chainId]?.[address?.toLowerCase()];
+  const checksummedAddress = safeToChecksumAddress(address);
+  const account =
+    checksummedAddress !== undefined
+      ? accountsByChainId?.[chainId]?.[checksummedAddress]
+      : undefined;
 
   return new BigNumber((account?.balance as Hex) ?? '0x0');
 }

@@ -1,6 +1,6 @@
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { MessengerClientInitRequest } from '../../types';
 import {
   RewardsController,
   RewardsControllerMessenger,
@@ -9,22 +9,13 @@ import {
 import { rewardsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import {
-  selectBitcoinRewardsEnabledFlag,
-  selectTronRewardsEnabledFlag,
-} from '../../../../selectors/featureFlagController/rewards/rewardsEnabled';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { isVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('./RewardsController');
 jest.mock('../../../../selectors/settings');
-jest.mock(
-  '../../../../selectors/featureFlagController/rewards/rewardsEnabled',
-  () => ({
-    selectBitcoinRewardsEnabledFlag: jest.fn(),
-    selectTronRewardsEnabledFlag: jest.fn(),
-  }),
-);
+jest.mock('../../../../selectors/featureFlagController/vipProgram');
 jest.mock('../../../../util/remoteFeatureFlag');
 
 describe('rewardsControllerInit', () => {
@@ -32,16 +23,11 @@ describe('rewardsControllerInit', () => {
   const selectBasicFunctionalityEnabledMock = jest.mocked(
     selectBasicFunctionalityEnabled,
   );
-  const selectBitcoinRewardsEnabledFlagMock = jest.mocked(
-    selectBitcoinRewardsEnabledFlag,
-  );
-  const selectTronRewardsEnabledFlagMock = jest.mocked(
-    selectTronRewardsEnabledFlag,
-  );
+  const selectVipProgramEnabledMock = jest.mocked(selectVipProgramEnabled);
   const isVersionGatedFeatureFlagMock = jest.mocked(isVersionGatedFeatureFlag);
 
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<RewardsControllerMessenger>
+    MessengerClientInitRequest<RewardsControllerMessenger>
   >;
   let mockControllerInstance: jest.Mocked<RewardsController>;
   let mockControllerMessenger: jest.Mocked<RewardsControllerMessenger>;
@@ -76,9 +62,9 @@ describe('rewardsControllerInit', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
 
-    // Create controller init request mock
+    // Create messenger client init request mock
     initRequestMock = {
-      ...buildControllerInitRequestMock(baseControllerMessenger),
+      ...buildMessengerClientInitRequestMock(baseControllerMessenger),
       controllerMessenger:
         mockControllerMessenger as unknown as RewardsControllerMessenger,
       persistedState: {},
@@ -89,8 +75,7 @@ describe('rewardsControllerInit', () => {
 
     // Default mock return values
     selectBasicFunctionalityEnabledMock.mockReturnValue(true);
-    selectBitcoinRewardsEnabledFlagMock.mockReturnValue(false);
-    selectTronRewardsEnabledFlagMock.mockReturnValue(false);
+    selectVipProgramEnabledMock.mockReturnValue(true);
     isVersionGatedFeatureFlagMock.mockReturnValue(false);
   });
 
@@ -155,57 +140,28 @@ describe('rewardsControllerInit', () => {
     });
   });
 
-  describe('isBitcoinOptinEnabled function', () => {
-    it('returns true when bitcoin rewards flag is enabled', () => {
-      selectBitcoinRewardsEnabledFlagMock.mockReturnValue(true);
+  describe('isVipDisabled function', () => {
+    it('returns false when the VIP program is enabled', () => {
+      selectVipProgramEnabledMock.mockReturnValue(true);
 
       rewardsControllerInit(initRequestMock);
 
       const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
-      const isBitcoinOptinEnabledFn =
-        constructorArgs.isBitcoinOptinEnabled as () => boolean;
-      expect(isBitcoinOptinEnabledFn()).toBe(true);
-      expect(selectBitcoinRewardsEnabledFlagMock).toHaveBeenCalledWith(
+      const isVipDisabledFn = constructorArgs.isVipDisabled as () => boolean;
+      expect(isVipDisabledFn()).toBe(false);
+      expect(selectVipProgramEnabledMock).toHaveBeenCalledWith(
         initRequestMock.getState(),
       );
     });
 
-    it('returns false when bitcoin rewards flag is disabled', () => {
-      selectBitcoinRewardsEnabledFlagMock.mockReturnValue(false);
+    it('returns true when the VIP program is disabled', () => {
+      selectVipProgramEnabledMock.mockReturnValue(false);
 
       rewardsControllerInit(initRequestMock);
 
       const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
-      const isBitcoinOptinEnabledFn =
-        constructorArgs.isBitcoinOptinEnabled as () => boolean;
-      expect(isBitcoinOptinEnabledFn()).toBe(false);
-    });
-  });
-
-  describe('isTronOptinEnabled function', () => {
-    it('returns true when tron rewards flag is enabled', () => {
-      selectTronRewardsEnabledFlagMock.mockReturnValue(true);
-
-      rewardsControllerInit(initRequestMock);
-
-      const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
-      const isTronOptinEnabledFn =
-        constructorArgs.isTronOptinEnabled as () => boolean;
-      expect(isTronOptinEnabledFn()).toBe(true);
-      expect(selectTronRewardsEnabledFlagMock).toHaveBeenCalledWith(
-        initRequestMock.getState(),
-      );
-    });
-
-    it('returns false when tron rewards flag is disabled', () => {
-      selectTronRewardsEnabledFlagMock.mockReturnValue(false);
-
-      rewardsControllerInit(initRequestMock);
-
-      const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
-      const isTronOptinEnabledFn =
-        constructorArgs.isTronOptinEnabled as () => boolean;
-      expect(isTronOptinEnabledFn()).toBe(false);
+      const isVipDisabledFn = constructorArgs.isVipDisabled as () => boolean;
+      expect(isVipDisabledFn()).toBe(true);
     });
   });
 });

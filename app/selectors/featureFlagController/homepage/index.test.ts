@@ -1,6 +1,6 @@
 import {
-  selectHomepageRedesignV1Enabled,
-  selectHomepageSectionsV1Enabled,
+  selectHubPageDiscoveryTabsABTest,
+  selectOnboardingChecklistStepperAbTest,
 } from '.';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
@@ -25,99 +25,66 @@ describe('Homepage Feature Flag Selectors', () => {
     mockHasMinimumRequiredVersion?.mockRestore();
   });
 
-  describe('selectHomepageRedesignV1Enabled', () => {
-    it('returns true when remote flag is valid and enabled', () => {
-      const result = selectHomepageRedesignV1Enabled.resultFunc({
-        homepageRedesignV1: {
-          enabled: true,
-          minimumVersion: '1.0.0',
-        },
+  describe('selectHubPageDiscoveryTabsABTest', () => {
+    it('returns treatment assignment when flag is set to treatment string', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({
+        coreMCU589AbtestHubPageDiscoveryTabs: 'treatment',
       });
-      expect(result).toBe(true);
+      expect(result).toEqual({ variantName: 'treatment', isActive: true });
     });
 
-    it('returns false when remote flag is valid but disabled', () => {
-      const result = selectHomepageRedesignV1Enabled.resultFunc({
-        homepageRedesignV1: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
+    it('returns control assignment when flag is set to control string', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({
+        coreMCU589AbtestHubPageDiscoveryTabs: 'control',
       });
-      expect(result).toBe(false);
+      expect(result).toEqual({ variantName: 'control', isActive: true });
     });
 
-    it('returns false when version check fails', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
-      const result = selectHomepageRedesignV1Enabled.resultFunc({
-        homepageRedesignV1: {
-          enabled: true,
-          minimumVersion: '99.0.0',
-        },
+    it('resolves controller object format ({ name }) for treatment', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({
+        coreMCU589AbtestHubPageDiscoveryTabs: { name: 'treatment' },
       });
-      expect(result).toBe(false);
+      expect(result).toEqual({ variantName: 'treatment', isActive: true });
     });
 
-    it('returns false when remote flag is invalid', () => {
-      const result = selectHomepageRedesignV1Enabled.resultFunc({
-        homepageRedesignV1: {
-          enabled: 'invalid',
-          minimumVersion: 123,
-        },
-      });
-      expect(result).toBe(false);
+    it('falls back to control and isActive false when flag is missing', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({});
+      expect(result).toEqual({ variantName: 'control', isActive: false });
     });
 
-    it('returns false when remote feature flags are empty', () => {
-      const result = selectHomepageRedesignV1Enabled.resultFunc({});
-      expect(result).toBe(false);
+    it('falls back to control and isActive false when flag value is invalid', () => {
+      const result = selectHubPageDiscoveryTabsABTest.resultFunc({
+        coreMCU589AbtestHubPageDiscoveryTabs: 'unknown_variant',
+      });
+      expect(result).toEqual({ variantName: 'control', isActive: false });
     });
   });
 
-  describe('selectHomepageSectionsV1Enabled', () => {
-    it('returns true when remote flag is valid and enabled', () => {
-      const result = selectHomepageSectionsV1Enabled.resultFunc({
-        homepageSectionsV1: {
-          enabled: true,
-          minimumVersion: '1.0.0',
-        },
+  describe('selectOnboardingChecklistStepperAbTest', () => {
+    it('returns treatment assignment when flag is set to treatment', () => {
+      const result = selectOnboardingChecklistStepperAbTest.resultFunc({
+        homeTMCU828AbtestOnboardingChecklistStepper: 'treatment',
       });
-      expect(result).toBe(true);
+      expect(result).toEqual({ variantName: 'treatment', isActive: true });
     });
 
-    it('returns false when remote flag is valid but disabled', () => {
-      const result = selectHomepageSectionsV1Enabled.resultFunc({
-        homepageSectionsV1: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
+    it('returns control assignment when flag is set to control', () => {
+      const result = selectOnboardingChecklistStepperAbTest.resultFunc({
+        homeTMCU828AbtestOnboardingChecklistStepper: 'control',
       });
-      expect(result).toBe(false);
+      expect(result).toEqual({ variantName: 'control', isActive: true });
     });
 
-    it('returns false when version check fails', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
-      const result = selectHomepageSectionsV1Enabled.resultFunc({
-        homepageSectionsV1: {
-          enabled: true,
-          minimumVersion: '99.0.0',
-        },
-      });
-      expect(result).toBe(false);
+    it('falls back to control and isActive false when flag is missing', () => {
+      const result = selectOnboardingChecklistStepperAbTest.resultFunc({});
+      expect(result).toEqual({ variantName: 'control', isActive: false });
     });
 
-    it('returns false when remote flag is invalid', () => {
-      const result = selectHomepageSectionsV1Enabled.resultFunc({
-        homepageSectionsV1: {
-          enabled: 'invalid',
-          minimumVersion: 123,
-        },
+    it('falls back to control and isActive false when flag value is invalid', () => {
+      const result = selectOnboardingChecklistStepperAbTest.resultFunc({
+        homeTMCU828AbtestOnboardingChecklistStepper: 'unknown_variant',
       });
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote feature flags are empty', () => {
-      const result = selectHomepageSectionsV1Enabled.resultFunc({});
-      expect(result).toBe(false);
+      expect(result).toEqual({ variantName: 'control', isActive: false });
     });
   });
 });

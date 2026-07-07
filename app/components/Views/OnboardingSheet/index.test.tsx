@@ -13,19 +13,6 @@ const mockOnPressContinueWithApple = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseRoute = jest.fn();
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -53,18 +40,20 @@ describe('OnboardingSheet', () => {
     mockUseRoute.mockReturnValue({ params: defaultParams });
   });
 
-  describe('Snapshots', () => {
+  describe('Rendering', () => {
     it('renders correctly with createWallet=false (import mode)', () => {
-      const { toJSON } = render(<OnboardingSheet />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = render(<OnboardingSheet />);
+      expect(getByText(strings('onboarding.import_srp'))).toBeOnTheScreen();
     });
 
     it('renders correctly with createWallet=true (create mode)', () => {
       mockUseRoute.mockReturnValue({
         params: { ...defaultParams, createWallet: true },
       });
-      const { toJSON } = render(<OnboardingSheet />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = render(<OnboardingSheet />);
+      expect(
+        getByText(strings('onboarding.continue_with_srp')),
+      ).toBeOnTheScreen();
     });
   });
 

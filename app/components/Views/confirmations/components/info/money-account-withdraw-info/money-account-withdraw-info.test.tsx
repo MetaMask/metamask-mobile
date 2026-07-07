@@ -25,13 +25,21 @@ jest.mock('../custom-amount-info', () => ({
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) =>
+    ({ 'confirm.title.money_account_send': 'Send' })[key] ?? key,
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
   useTransactionPayWithdraw: jest.fn(() => ({
     isWithdraw: true,
     canSelectWithdrawToken: true,
+  })),
+}));
+
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    withdrawableFiatFormatted: '$42.00',
   })),
 }));
 
@@ -54,9 +62,7 @@ describe('MoneyAccountWithdrawInfo', () => {
 
     render(<MoneyAccountWithdrawInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith(
-      'confirm.title.money_account_withdraw',
-    );
+    expect(useNavbar).toHaveBeenCalledWith('Send');
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
@@ -96,7 +102,43 @@ describe('MoneyAccountWithdrawInfo', () => {
 
     expect(getByTestId('money-account-withdraw-balance')).toBeOnTheScreen();
     expect(
-      getByText('confirm.available_balance$0.00', { exact: false }),
+      getByText('confirm.available_balance$42.00', { exact: false }),
+    ).toBeOnTheScreen();
+  });
+
+  it('passes supportAccountSelection=true to CustomAmountInfo', () => {
+    render(<MoneyAccountWithdrawInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.supportAccountSelection).toBe(true);
+  });
+
+  it('passes hasMax=true to CustomAmountInfo so the last percentage button renders as Max', () => {
+    render(<MoneyAccountWithdrawInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.hasMax).toBe(true);
+  });
+
+  it('renders empty balance when withdrawableFiatFormatted is undefined', () => {
+    const useMoneyAccountBalance = jest.requireMock(
+      '../../../../../UI/Money/hooks/useMoneyAccountBalance',
+    ).default;
+    useMoneyAccountBalance.mockReturnValueOnce({
+      withdrawableFiatFormatted: undefined,
+    });
+
+    const { getByTestId, getByText } = render(<MoneyAccountWithdrawInfo />);
+
+    expect(getByTestId('money-account-withdraw-balance')).toBeOnTheScreen();
+    expect(
+      getByText('confirm.available_balance', { exact: false }),
     ).toBeOnTheScreen();
   });
 });

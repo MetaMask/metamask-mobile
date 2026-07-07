@@ -1,6 +1,8 @@
 import {
+  FeatureId,
   formatChainIdToCaip,
   formatChainIdToHex,
+  isNativeAddress,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
@@ -28,14 +30,24 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
+export const isBridgeTxHistoryItemBridge = (
+  bridgeTxHistoryItem: BridgeHistoryItem,
+) =>
+  bridgeTxHistoryItem.quote.srcChainId !==
+  bridgeTxHistoryItem.quote.destChainId;
+
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,
+  is7702Batch: boolean = false,
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
 
+  if (bridgeTxHistoryItem.featureId === FeatureId.BATCH_SELL && is7702Batch) {
+    return strings('bridge.batch_sell_transaction_label');
+  }
+
   // Swap
-  const isSwap = quote.srcAsset.chainId === quote.destAsset.chainId;
-  if (isSwap) {
+  if (!isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)) {
     return strings('swaps.transaction_label.swap', {
       sourceToken: quote.srcAsset.symbol,
       destinationToken: quote.destAsset.symbol,
@@ -140,12 +152,15 @@ export const decodeSwapsTx = (args: {
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const destTokenSymbol = quote.destAsset?.symbol;
-  const rawSourceAmount = parseFloat(
-    ethers.utils.formatUnits(
-      bridgeTxHistoryItem.quote.srcTokenAmount,
-      quote.srcAsset.decimals,
-    ),
-  );
+  const rawSourceAmount =
+    quote.gasSponsored && bridgeTxHistoryItem.pricingData?.amountSent
+      ? parseFloat(bridgeTxHistoryItem.pricingData.amountSent)
+      : parseFloat(
+          ethers.utils.formatUnits(
+            bridgeTxHistoryItem.quote.srcTokenAmount,
+            quote.srcAsset.decimals,
+          ),
+        );
   const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
 
   const renderTo = tx.txParams.to;
@@ -231,7 +246,68 @@ export const decodeSwapsTx = (args: {
     ...summary,
   };
 
-  return [transactionElement, transactionDetails];
+  return [
+    {
+      ...transactionElement,
+      actionKey: getSwapBridgeTxActivityTitle(bridgeTxHistoryItem),
+    },
+    transactionDetails,
+  ];
+};
+
+export const decodeBatchSellTx = (args: {
+  tx: TransactionMeta;
+  currentCurrency: string;
+  conversionRate: number; // gas token to current currency rate
+  bridgeTxHistoryData: {
+    bridgeTxHistoryItem: BridgeHistoryItem;
+    batchTotalDestAmount: number;
+    is7702Batch: boolean;
+  };
+  txChainId: Hex;
+  ticker: string; // the gas token symbol
+  contractExchangeRates: Record<string, { price: number }>; // token to gas token rate
+  primaryCurrency: string; // Settings > General > Primary Currency
+}) => {
+  const {
+    currentCurrency,
+    contractExchangeRates,
+    conversionRate,
+    bridgeTxHistoryData,
+  } = args;
+
+  const { bridgeTxHistoryItem, batchTotalDestAmount, is7702Batch } =
+    bridgeTxHistoryData;
+
+  const { destAsset } = bridgeTxHistoryItem.quote;
+  const destAmount = parseFloat(
+    ethers.utils.formatUnits(batchTotalDestAmount, destAsset.decimals),
+  );
+
+  const destExchangeRate = isNativeAddress(destAsset.address)
+    ? 1
+    : contractExchangeRates?.[toFormattedAddress(destAsset.address)]?.price;
+
+  const destAmountFiatNumber = balanceToFiatNumber(
+    destAmount,
+    conversionRate,
+    destExchangeRate,
+  );
+
+  const destFiatValue = addCurrencySymbol(
+    destAmountFiatNumber,
+    currentCurrency,
+  );
+
+  return [
+    {
+      value: `${destAmount} ${destAsset.symbol}`,
+      fiatValue: destFiatValue,
+      transactionType: TRANSACTION_TYPES.BATCH_SELL_TRANSACTION,
+      actionKey: getSwapBridgeTxActivityTitle(bridgeTxHistoryItem, is7702Batch),
+    },
+    {},
+  ];
 };
 
 export const handleUnifiedSwapsTxHistoryItemClick = ({
@@ -252,8 +328,8 @@ export const handleUnifiedSwapsTxHistoryItemClick = ({
 
   // Reset attempts if the bridge transaction has reached the max attempts and user has clicked on the transaction
   if (bridgeTxHistoryItem) {
-    const { quote, attempts } = bridgeTxHistoryItem;
-    const isBridge = quote.srcAsset.chainId !== quote.destAsset.chainId;
+    const { attempts } = bridgeTxHistoryItem;
+    const isBridge = isBridgeTxHistoryItemBridge(bridgeTxHistoryItem);
 
     if (isBridge && attempts && attempts.counter >= MAX_ATTEMPTS) {
       Engine.context.BridgeStatusController.restartPollingForFailedAttempts({

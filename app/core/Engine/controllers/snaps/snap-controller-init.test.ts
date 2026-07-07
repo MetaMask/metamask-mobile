@@ -2,14 +2,14 @@ import {
   SnapController,
   SnapControllerMessenger,
 } from '@metamask/snaps-controllers';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
   SnapControllerInitMessenger,
 } from '../../messengers/snaps';
 import { snapControllerInit } from './snap-controller-init';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import {
   KeyringControllerLockEvent,
@@ -17,13 +17,11 @@ import {
 } from '@metamask/keyring-controller';
 import { store, runSaga } from '../../../../store';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { buildAndTrackEvent } from '../../utils/analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
 
 jest.mock('@metamask/snaps-controllers');
-jest.mock('../../utils/analytics');
-jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
 
 jest.mock('.../../../../store', () => ({
   store: {
@@ -34,15 +32,22 @@ jest.mock('.../../../../store', () => ({
     .mockReturnValue({ toPromise: jest.fn().mockResolvedValue(undefined) }),
 }));
 
+jest.mock('../../../../util/test/utils', () => ({
+  isTestEnvironment: false,
+}));
+
 function getInitRequestMock(
   baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): jest.Mocked<
-  ControllerInitRequest<SnapControllerMessenger, SnapControllerInitMessenger>
+  MessengerClientInitRequest<
+    SnapControllerMessenger,
+    SnapControllerInitMessenger
+  >
 > {
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getSnapControllerMessenger(baseMessenger),
     initMessenger: getSnapControllerInitMessenger(baseMessenger),
   };
@@ -53,23 +58,6 @@ function getInitRequestMock(
 describe('SnapControllerInit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Mock AnalyticsEventBuilder
-    (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({
-        name: 'mock-event',
-        properties: {},
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return false;
-        },
-      } as unknown as AnalyticsTrackingEvent),
-    });
   });
 
   it('initializes the controller', () => {
@@ -99,12 +87,15 @@ describe('SnapControllerInit', () => {
         forcePreinstalledSnaps: false,
         autoUpdatePreinstalledSnaps: true,
       },
+      clientConfig: {
+        type: 'mobile',
+        version: '1.0.0',
+      },
       getFeatureFlags: expect.any(Function),
       getMnemonicSeed: expect.any(Function),
       maxIdleTime: expect.any(Number),
       maxRequestTime: expect.any(Number),
       preinstalledSnaps: expect.any(Array),
-      trackEvent: expect.any(Function),
       ensureOnboardingComplete: expect.any(Function),
     });
   });
@@ -166,83 +157,6 @@ describe('SnapControllerInit', () => {
       expect(getFeatureFlags()).toEqual({
         disableSnaps: false,
       });
-    });
-  });
-
-  describe('trackEvent', () => {
-    it('calls buildAndTrackEvent utility with messenger, event, and properties', () => {
-      const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
-
-      const mockInitMessenger = {
-        call: jest.fn(),
-        subscribe: jest.fn(),
-      } as unknown as SnapControllerInitMessenger;
-
-      const requestMock = {
-        ...buildControllerInitRequestMock(baseMessenger),
-        controllerMessenger: getSnapControllerMessenger(baseMessenger),
-        initMessenger: mockInitMessenger,
-      };
-
-      snapControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(SnapController);
-      const trackEventFn = controllerMock.mock.calls[0]?.[0]?.trackEvent;
-
-      expect(trackEventFn).toBeDefined();
-      // @ts-expect-error: Our wrapper function has a different signature than SnapController expects
-      trackEventFn({
-        event: 'test-event',
-        properties: {
-          testProperty: 'test-value',
-        },
-      });
-
-      // Verify buildAndTrackEvent was called with correct parameters
-      expect(buildAndTrackEvent).toHaveBeenCalledWith(
-        mockInitMessenger,
-        'test-event',
-        {
-          testProperty: 'test-value',
-        },
-      );
-    });
-
-    it('calls buildAndTrackEvent utility with empty properties when properties are not provided', () => {
-      const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
-
-      const mockInitMessenger = {
-        call: jest.fn(),
-        subscribe: jest.fn(),
-      } as unknown as SnapControllerInitMessenger;
-
-      const requestMock = {
-        ...buildControllerInitRequestMock(baseMessenger),
-        controllerMessenger: getSnapControllerMessenger(baseMessenger),
-        initMessenger: mockInitMessenger,
-      };
-
-      snapControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(SnapController);
-      const trackEventFn = controllerMock.mock.calls[0]?.[0]?.trackEvent;
-
-      expect(trackEventFn).toBeDefined();
-      // @ts-expect-error: Our wrapper function has a different signature than SnapController expects
-      trackEventFn({
-        event: 'test-event',
-      });
-
-      // Verify buildAndTrackEvent was called with correct parameters
-      expect(buildAndTrackEvent).toHaveBeenCalledWith(
-        mockInitMessenger,
-        'test-event',
-        undefined,
-      );
     });
   });
 

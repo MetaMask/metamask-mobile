@@ -1,6 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -13,6 +16,8 @@ import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useB
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { SourceHashSummaryLine } from './source-hash-summary-line';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
 
@@ -23,6 +28,9 @@ jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -31,11 +39,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-function render() {
+function render(parentTransaction?: Partial<TransactionMeta>) {
   return renderWithProvider(
     <SourceHashSummaryLine
       parentTransaction={
-        {
+        (parentTransaction ?? {
           id: 'parent-id',
           chainId: '0x1',
           submittedTime: 1755719285723,
@@ -43,7 +51,7 @@ function render() {
             tokenAddress: '0x123',
             chainId: '0x1',
           },
-        } as unknown as TransactionMeta
+        }) as unknown as TransactionMeta
       }
       sourceHash={'0xabc' as Hex}
     />,
@@ -68,6 +76,8 @@ describe('SourceHashSummaryLine', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    configureUseAnalyticsExternalLinkMock();
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
@@ -117,5 +127,57 @@ describe('SourceHashSummaryLine', () => {
         title: 'Explorer',
       },
     });
+  });
+
+  it('renders predict-withdraw title with pUSD and target network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0x89' ? 'Polygon' : 'Ethereum',
+    );
+
+    const { getByText } = render({
+      id: 'parent-id',
+      chainId: '0x89' as Hex,
+      submittedTime: 1755719285723,
+      type: TransactionType.predictWithdraw,
+      metamaskPay: {
+        tokenAddress: '0x123' as Hex,
+        chainId: '0x1' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.predict_withdraw', {
+          sourceSymbol: 'pUSD',
+          sourceChain: 'Polygon',
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders perps-withdraw title with USDC and Arbitrum network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0xa4b1' ? 'Arbitrum' : 'Monad',
+    );
+
+    const { getByText } = render({
+      id: 'parent-id',
+      chainId: '0xa4b1' as Hex,
+      submittedTime: 1755719285723,
+      type: TransactionType.perpsWithdraw,
+      metamaskPay: {
+        tokenAddress: '0xmusd' as Hex,
+        chainId: '0xmonad' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_send', {
+          sourceSymbol: 'USDC',
+          sourceChain: 'Arbitrum',
+        }),
+      ),
+    ).toBeDefined();
   });
 });

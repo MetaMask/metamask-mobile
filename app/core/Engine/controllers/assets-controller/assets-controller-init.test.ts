@@ -3,12 +3,14 @@ import {
   getAssetsControllerMessenger,
   getAssetsControllerInitMessenger,
   type AssetsControllerInitMessenger,
-  type AssetsControllerMessenger,
 } from '../../messengers/assets-controller';
-import type { ControllerInitRequest } from '../../types';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import type { MessengerClientInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { assetsControllerInit } from './assets-controller-init';
-import { AssetsController } from '@metamask/assets-controller';
+import {
+  AssetsController,
+  AssetsControllerMessenger,
+} from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import {
   ASSETS_UNIFY_STATE_FLAG,
@@ -113,7 +115,7 @@ function getInitRequestMock(overrides?: {
   remoteFeatureFlagState?: RemoteFeatureFlagState;
   remoteFeatureFlagGetStateThrows?: boolean;
 }): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     AssetsControllerMessenger,
     AssetsControllerInitMessenger
   >
@@ -124,12 +126,12 @@ function getInitRequestMock(overrides?: {
   const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
   return {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger,
     initMessenger,
     persistedState: {},
   } as jest.Mocked<
-    ControllerInitRequest<
+    MessengerClientInitRequest<
       AssetsControllerMessenger,
       AssetsControllerInitMessenger
     >
@@ -143,6 +145,12 @@ describe('assetsControllerInit', () => {
     jest.resetModules();
     jest.mocked(store.getState).mockReturnValue({
       settings: { basicFunctionalityEnabled: true },
+      onboarding: { completedOnboarding: false },
+      engine: {
+        backgroundState: {
+          KeyringController: { isUnlocked: true },
+        },
+      },
     } as ReturnType<typeof store.getState>);
   });
 
@@ -159,9 +167,9 @@ describe('assetsControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith(
       expect.objectContaining({
         messenger: expect.any(Object),
-        state: expect.any(Object),
         isBasicFunctionality: expect.any(Function),
         isEnabled: expect.any(Function),
+        isOnboarded: expect.any(Function),
         queryApiClient: expect.any(Object),
         rpcDataSourceConfig: expect.objectContaining({
           tokenDetectionEnabled: expect.any(Function),
@@ -173,7 +181,6 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
-        trace: expect.any(Function),
       }),
     );
   });
@@ -197,7 +204,7 @@ describe('assetsControllerInit', () => {
     );
   });
 
-  it('uses empty state when persisted state is not available', () => {
+  it('passes undefined state when persisted state is not available', () => {
     const requestMock = getInitRequestMock();
     requestMock.persistedState = {};
 
@@ -206,7 +213,7 @@ describe('assetsControllerInit', () => {
     const controllerMock = jest.mocked(AssetsController);
     expect(controllerMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        state: expect.any(Object),
+        state: undefined,
       }),
     );
   });
@@ -256,7 +263,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when feature version does not match', () => {
+    it('returns true when feature version does not match while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: {
           remoteFeatureFlags: {
@@ -278,7 +285,49 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when RemoteFeatureFlagController:getState throws', () => {
+    it('returns false when the keyring is locked, regardless of feature flag', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: false },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const requestMock = getInitRequestMock();
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isEnabled = constructorCall.isEnabled as () => boolean;
+
+      expect(isEnabled()).toBe(false);
+    });
+
+    it('returns true when keyring is unlocked and feature flag is enabled', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+        engine: {
+          backgroundState: {
+            KeyringController: { isUnlocked: true },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const requestMock = getInitRequestMock();
+      assetsControllerInit(requestMock);
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isEnabled = constructorCall.isEnabled as () => boolean;
+
+      expect(isEnabled()).toBe(true);
+    });
+
+    it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagGetStateThrows: true,
       });
@@ -292,7 +341,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when feature flag is undefined', () => {
+    it('returns true when feature flag is undefined while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: { remoteFeatureFlags: {} },
       });
@@ -342,7 +391,7 @@ describe('assetsControllerInit', () => {
       const initMessenger = getAssetsControllerInitMessenger(baseMessenger);
 
       const requestMock = {
-        ...buildControllerInitRequestMock(baseMessenger),
+        ...buildMessengerClientInitRequestMock(baseMessenger),
         controllerMessenger,
         initMessenger,
         persistedState: {},
@@ -360,10 +409,47 @@ describe('assetsControllerInit', () => {
     });
   });
 
-  describe('isBasicFunctionality', () => {
-    it('returns value from Redux store (true when basicFunctionalityEnabled is true)', () => {
+  describe('isOnboarded', () => {
+    it('returns true when completedOnboarding is true', () => {
       jest.mocked(store.getState).mockReturnValue({
         settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: true },
+      } as ReturnType<typeof store.getState>);
+
+      assetsControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isOnboarded = constructorCall.isOnboarded as
+        | (() => boolean)
+        | undefined;
+      expect(isOnboarded).toBeDefined();
+      expect(isOnboarded?.()).toBe(true);
+    });
+
+    it('returns false when completedOnboarding is false', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
+      } as ReturnType<typeof store.getState>);
+
+      assetsControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AssetsController);
+      const constructorCall = controllerMock.mock.calls[0][0];
+      const isOnboarded = constructorCall.isOnboarded as
+        | (() => boolean)
+        | undefined;
+      expect(isOnboarded).toBeDefined();
+      expect(isOnboarded?.()).toBe(false);
+    });
+  });
+
+  describe('isBasicFunctionality', () => {
+    it('returns true when basicFunctionalityEnabled is true, regardless of onboarding state', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        onboarding: { completedOnboarding: false },
       } as ReturnType<typeof store.getState>);
 
       assetsControllerInit(getInitRequestMock());
@@ -377,9 +463,10 @@ describe('assetsControllerInit', () => {
       expect(isBasicFunctionality?.()).toBe(true);
     });
 
-    it('returns value from Redux store (false when basicFunctionalityEnabled is false)', () => {
+    it('returns false when basicFunctionalityEnabled is false', () => {
       jest.mocked(store.getState).mockReturnValue({
         settings: { basicFunctionalityEnabled: false },
+        onboarding: { completedOnboarding: true },
       } as ReturnType<typeof store.getState>);
 
       assetsControllerInit(getInitRequestMock());

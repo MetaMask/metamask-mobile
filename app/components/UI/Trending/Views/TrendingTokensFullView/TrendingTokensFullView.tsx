@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, TouchableOpacity, RefreshControl } from 'react-native';
+import TrendingQuickBuy from '../../components/TrendingQuickBuy/TrendingQuickBuy';
+import { View, RefreshControl } from 'react-native';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import TrendingTokensList, {
@@ -10,14 +12,9 @@ import {
   SortTrendingBy,
   type TrendingAsset,
 } from '@metamask/assets-controllers';
-import Icon, {
-  IconName,
-  IconColor,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../component-library/components/Texts/Text';
 import {
   TrendingTokenTimeBottomSheet,
+  mapTimeOptionToSortBy,
   PriceChangeOption,
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
@@ -28,9 +25,30 @@ import EmptyErrorTrendingState from '../../../../Views/TrendingView/components/E
 import EmptySearchResultState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptySearchResultState';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracking';
+import { FilterButton } from '../../components/FilterBar/FilterBar';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import type { Theme } from '../../../../../util/theme/models';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../../../../Views/TrendingView/search/abTestConfig';
+import type { QuickBuySheetSource } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
+
+export type TrendingTokensFullViewEntryPoint =
+  | 'crypto_movers'
+  | 'trending_tokens';
+
+export interface TrendingTokensFullViewParams {
+  initialTimeOption?: TimeOption;
+  /** Quick Buy analytics source. Defaults to `explore_trending`. */
+  quickBuySource?: QuickBuySheetSource;
+  /** Entry surface for title and analytics context. */
+  entryPoint?: TrendingTokensFullViewEntryPoint;
+}
 
 export interface TrendingTokensDataProps {
   isLoading: boolean;
@@ -40,6 +58,9 @@ export interface TrendingTokensDataProps {
   selectedTimeOption: TimeOption;
   filterContext: TrendingFilterContext;
   theme: Theme;
+  onLoadMore?: () => void;
+  isLoadingMore?: boolean;
+  onQuickTrade?: (token: TrendingAsset) => void;
 
   search: {
     searchResults: TrendingAsset[];
@@ -57,6 +78,9 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
     selectedTimeOption,
     filterContext,
     theme,
+    onLoadMore,
+    isLoadingMore,
+    onQuickTrade,
   } = props;
 
   const tw = useTailwind();
@@ -88,6 +112,9 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
         trendingTokens={trendingTokens}
         selectedTimeOption={selectedTimeOption}
         filterContext={filterContext}
+        onLoadMore={onLoadMore}
+        isLoadingMore={isLoadingMore}
+        onQuickTrade={onQuickTrade}
         refreshControl={
           <RefreshControl
             colors={[theme.colors.primary.default]}
@@ -102,21 +129,43 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 };
 
 const TrendingTokensFullView = () => {
-  const tw = useTailwind();
   const sessionManager = TrendingFeedSessionManager.getInstance();
-  const filters = useTokenListFilters();
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+  const { params } =
+    useRoute<
+      RouteProp<{ TrendingTokensFullView: TrendingTokensFullViewParams }>
+    >();
+  const initialTimeOption = params?.initialTimeOption;
+  const quickBuySource = params?.quickBuySource ?? 'explore_trending';
+  const pageTitle =
+    params?.entryPoint === 'crypto_movers'
+      ? strings('trending.crypto_movers')
+      : strings('trending.trending_tokens');
+  const filters = useTokenListFilters({ timeOption: initialTimeOption });
 
-  const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(
+    initialTimeOption ? mapTimeOptionToSortBy(initialTimeOption) : undefined,
+  );
   const [showTimeBottomSheet, setShowTimeBottomSheet] = useState(false);
 
   const {
     data: searchResults,
     isLoading,
     refetch: refetchTokensSection,
+    loadMore,
+    isLoadingMore,
   } = useTrendingSearch({
     searchQuery: filters.searchQuery || undefined,
     sortBy,
     chainIds: filters.selectedNetwork,
+    filterLowQuality: true,
   });
 
   const trendingTokens = useMemo(() => {
@@ -213,33 +262,27 @@ const TrendingTokensFullView = () => {
     }
   }, [refetchTokensSection, setRefreshing]);
 
+  const closeQuickBuy = useCallback(() => {
+    setQuickTradeToken(null);
+  }, []);
+
+  useQuickBuySearchKeyboard(
+    quickBuyVariant.showQuickTradeButton ? quickTradeToken : null,
+    closeQuickBuy,
+  );
+
   const timeFilterButton = (
-    <TouchableOpacity
+    <FilterButton
       testID="24h-button"
       onPress={handle24hPress}
-      style={tw.style(
-        'shrink-0 items-center rounded-lg bg-muted p-2',
-        filters.searchQuery?.trim() && 'opacity-50',
-      )}
-      activeOpacity={0.2}
+      label={filters.selectedTimeOption}
       disabled={!!filters.searchQuery?.trim()}
-    >
-      <View style={tw`flex-row items-center justify-center gap-1`}>
-        <Text style={tw`min-w-0 shrink text-[14px] font-semibold text-default`}>
-          {filters.selectedTimeOption}
-        </Text>
-        <Icon
-          name={IconName.ArrowDown}
-          color={IconColor.Alternative}
-          size={IconSize.Xs}
-        />
-      </View>
-    </TouchableOpacity>
+    />
   );
 
   return (
     <TokenListPageLayout
-      title={strings('trending.trending_tokens')}
+      title={pageTitle}
       testID="trending-tokens-header"
       filters={filters}
       tokens={trendingTokens}
@@ -248,12 +291,24 @@ const TrendingTokensFullView = () => {
       onRefresh={handleRefresh}
       allowedNetworks={TRENDING_NETWORKS_LIST}
       extraFilters={timeFilterButton}
+      onLoadMore={loadMore}
+      isLoadingMore={isLoadingMore}
       extraBottomSheets={
         <TrendingTokenTimeBottomSheet
           isVisible={showTimeBottomSheet}
           onClose={() => setShowTimeBottomSheet(false)}
           onTimeSelect={handleTimeSelect}
           selectedTime={filters.selectedTimeOption}
+        />
+      }
+      onQuickTrade={
+        quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+      }
+      quickBuyNode={
+        <TrendingQuickBuy
+          token={quickTradeToken}
+          onClose={closeQuickBuy}
+          source={quickBuySource}
         />
       }
     />

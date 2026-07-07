@@ -10,6 +10,7 @@ import {
   RequestStatus,
   type QuoteResponse,
   MetaMetricsSwapsEventSource,
+  BRIDGE_MM_FEE_RATE,
 } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -36,6 +37,15 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
+
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
+  const { useBridgeQuoteData } = jest.requireMock(
+    '../../hooks/useBridgeQuoteData',
+  );
+  return {
+    useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
+  };
+});
 
 jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
@@ -64,6 +74,39 @@ jest.mock('../../components/ApprovalText', () => {
       MockReact.createElement(View, { testID: 'approval-tooltip' }),
   };
 });
+
+jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
+
+jest.mock(
+  '../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',
+  () => {
+    const MockReact = jest.requireActual('react');
+    const { Text, View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ label }: { label: string }) =>
+        MockReact.createElement(
+          View,
+          { testID: 'rewards-discount-badge' },
+          MockReact.createElement(Text, null, label),
+        ),
+      RewardsDiscountBadge: ({ label }: { label: string }) =>
+        MockReact.createElement(
+          View,
+          { testID: 'rewards-discount-badge' },
+          MockReact.createElement(Text, null, label),
+        ),
+    };
+  },
+);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -294,6 +337,88 @@ describe('BridgeViewFooter', () => {
       });
     });
 
+    it('shows standard fee disclaimer when fee is less than base fee but discountType is absent', async () => {
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: {
+            ...mockQuoteWithMetadata,
+            quote: {
+              feeData: { metabridge: { quoteBpsFee: 57.5, baseBpsFee: 90 } },
+            },
+          },
+        }));
+
+      const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+        ).toHaveTextContent('Includes 0.575% MetaMask fee');
+      });
+    });
+
+    it.each([
+      {
+        discountType: 'vip',
+        expectedBadgeTestId: 'rewards-vip-badge',
+        expectedBadgeLabel: undefined,
+      },
+      {
+        discountType: 'promo',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'Promo',
+      },
+      {
+        discountType: 'dao',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'DAO',
+      },
+      {
+        discountType: 'seasonal',
+        expectedBadgeTestId: 'rewards-discount-badge',
+        expectedBadgeLabel: 'Promo',
+      },
+    ])(
+      'shows discounted fee disclaimer and badge for $discountType discountType',
+      async ({ discountType, expectedBadgeTestId, expectedBadgeLabel }) => {
+        jest
+          .mocked(useBridgeQuoteData as unknown as jest.Mock)
+          .mockImplementation(() => ({
+            ...mockUseBridgeQuoteData,
+            activeQuote: {
+              ...mockQuoteWithMetadata,
+              quote: {
+                feeData: {
+                  metabridge: {
+                    quoteBpsFee: 57.5,
+                    baseBpsFee: 90,
+                    discountType,
+                  },
+                },
+              },
+            },
+          }));
+
+        const { getByTestId, getByText } = renderFooter(
+          buildActiveQuoteState(),
+        );
+
+        await waitFor(() => {
+          expect(getByTestId(expectedBadgeTestId)).toBeTruthy();
+          if (expectedBadgeLabel) {
+            expect(getByText(expectedBadgeLabel)).toBeTruthy();
+          }
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+          ).toHaveTextContent(
+            `${expectedBadgeLabel ?? ''}0.9%0.575% MetaMask fee`,
+          );
+        });
+      },
+    );
+
     it('shows no MM fee disclaimer when dest token is mUSD and fee is zero', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 
@@ -304,7 +429,14 @@ describe('BridgeViewFooter', () => {
           isLoading: false,
           activeQuote: {
             ...(mockQuoteWithMetadata as unknown as QuoteResponse),
-            quote: { feeData: { metabridge: { quoteBpsFee: 0 } } },
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              destAsset: {
+                ...mockQuoteWithMetadata.quote.destAsset,
+                symbol: 'mUSD',
+              },
+              feeData: { metabridge: { quoteBpsFee: 0, baseBpsFee: 87.5 } },
+            },
           } as unknown as QuoteResponse,
         }));
 
@@ -341,6 +473,72 @@ describe('BridgeViewFooter', () => {
         expect(
           getByText(
             strings('bridge.no_mm_fee_disclaimer', { destTokenSymbol: 'mUSD' }),
+          ),
+        ).toBeTruthy();
+      });
+    });
+
+    it('shows fee disclaimer when fee is undefined', async () => {
+      const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: {
+            ...(mockQuoteWithMetadata as unknown as QuoteResponse),
+            quote: {
+              ...mockQuoteWithMetadata.quote,
+              destAsset: {
+                ...mockQuoteWithMetadata.quote.destAsset,
+                symbol: 'mUSD',
+              },
+              feeData: {
+                metabridge: { quoteBpsFee: undefined, baseBpsFee: undefined },
+              },
+            },
+          } as unknown as QuoteResponse,
+        }));
+
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x1' as Hex,
+            decimals: 18,
+            image: '',
+            name: 'Ether',
+            symbol: 'ETH',
+          },
+          destToken: {
+            address: musdAddress,
+            chainId: '0x1' as Hex,
+            decimals: 6,
+            image: '',
+            name: 'MetaMask USD',
+            symbol: 'mUSD',
+          },
+        },
+      });
+
+      const { getByText } = renderFooter(testState as DeepPartial<RootState>);
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('bridge.fee_disclaimer', {
+              feePercentage: BRIDGE_MM_FEE_RATE,
+            }),
+            {
+              exact: false,
+            },
           ),
         ).toBeTruthy();
       });

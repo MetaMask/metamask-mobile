@@ -32,6 +32,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [NETWORK_CHAIN_ID.MONAD]: 'Monad',
   [NETWORK_CHAIN_ID.HYPE]: 'HyperEVM',
   [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: 'MegaETH',
+  [NETWORK_CHAIN_ID.ARC]: 'Arc',
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'BTC',
   [TrxScope.Mainnet]: 'Tron',
@@ -41,3 +42,5 @@ export const BRIDGE_API_BASE_URL =
   process.env.BRIDGE_USE_DEV_APIS === 'true'
     ? BRIDGE_DEV_API_BASE_URL
     : BRIDGE_PROD_API_BASE_URL;
+
+export const BATCH_SELL_ENABLED = process.env.MM_BATCH_SELL_ENABLED === 'true';

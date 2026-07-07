@@ -26,6 +26,7 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -33,7 +34,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   ClaimRewardDto,
   SeasonRewardType,
@@ -513,7 +513,7 @@ const EndOfSeasonClaimBottomSheet = ({
       testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}
       keyboardAvoidingViewEnabled={!needsKeyboardAvoiding}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={title}
         onClose={handleModalClose}
         closeButtonProps={{ testID: 'close-button' }}

@@ -4,7 +4,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
-import { DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrderType } from '../../../types/legacyDeposit';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
@@ -14,10 +14,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import {
-  MOCK_USDC_TOKEN,
-  MOCK_USDT_TOKEN,
-} from '../../../Deposit/testUtils/constants';
+import { MOCK_USDC_TOKEN, MOCK_USDT_TOKEN } from '../../../testUtils/constants';
 import { AccountGroupType } from '@metamask/account-api';
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 
@@ -222,7 +219,7 @@ function render(Component: React.ReactElement, orders = testOrders) {
 }
 
 const mockNavigate = jest.fn();
-const mockGoToDeposit = jest.fn();
+const mockGoToBuy = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -235,30 +232,34 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
+  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
 }));
 
 describe('OrdersList', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
-    mockGoToDeposit.mockClear();
+    mockGoToBuy.mockClear();
   });
 
   it('renders correctly', () => {
     render(<OrdersList />);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'All' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Purchased' })).toBeOnTheScreen();
+    expect(screen.getByRole('button', { name: 'Sold' })).toBeOnTheScreen();
   });
 
   it('renders buy only correctly when pressing buy filter', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.queryByRole('button', { name: /Sold ETH/ }),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders sell only correctly when pressing sell filter', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: /Sold ETH/ })).toBeOnTheScreen();
   });
 
   it('renders empty sell message', () => {
@@ -267,7 +268,9 @@ describe('OrdersList', () => {
       [testOrders[0]], // a buy order,
     );
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.queryByRole('button', { name: /Sold ETH/ }),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders empty buy message', () => {
@@ -276,15 +279,21 @@ describe('OrdersList', () => {
       [testOrders[1]], // a sell order,
     );
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.queryByRole('button', { name: /Purchased ETH/ }),
+    ).not.toBeOnTheScreen();
   });
 
   it('resets filter to all after other filter was set', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getAllByRole('button', { name: /Sold ETH/ }).length,
+    ).toBeGreaterThan(0);
     fireEvent.press(screen.getByRole('button', { name: 'All' }));
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(
+      screen.getAllByRole('button', { name: /Purchased ETH/ }).length,
+    ).toBeGreaterThan(0);
   });
 
   it('navigates when pressing item', () => {
@@ -323,12 +332,12 @@ describe('OrdersList', () => {
     });
   });
 
-  it('navigates to deposit flow when pressing created deposit order item', () => {
+  it('navigates to buy flow when pressing created deposit order item', () => {
     render(<OrdersList />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
 
-    expect(mockGoToDeposit).toHaveBeenCalledWith();
+    expect(mockGoToBuy).toHaveBeenCalledWith();
   });
 });

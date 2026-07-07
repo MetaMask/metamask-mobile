@@ -10,7 +10,7 @@ import { ToastContext } from '../../../../../../component-library/components/Toa
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../Deposit/utils/ProviderTokenVault';
+} from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 import type { Provider } from '@metamask/ramps-controller';
 
@@ -72,7 +72,7 @@ const createMockTransakStagingProvider = (
   ...overrides,
 });
 
-jest.mock('../../../Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../../utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
   resetProviderToken: jest.fn(),
 }));
@@ -176,12 +176,6 @@ describe('SettingsModal', () => {
     });
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(SettingsModal);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('displays settings title in header', () => {
     const { getByText } = renderWithProvider(SettingsModal);
 
@@ -248,7 +242,7 @@ describe('SettingsModal', () => {
 
       const { queryByText } = renderWithProvider(SettingsModal);
 
-      expect(queryByText('Contact support')).toBeNull();
+      expect(queryByText('Contact support')).not.toBeOnTheScreen();
     });
   });
 
@@ -337,7 +331,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText(/Log out of/)).toBeNull();
+        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
       });
     });
   });
@@ -355,7 +349,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText('Log out of Transak')).toBeNull();
+        expect(queryByText('Log out of Transak')).not.toBeOnTheScreen();
       });
     });
   });
@@ -368,7 +362,7 @@ describe('SettingsModal', () => {
     it('hides contact support option', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
-      expect(queryByText('Contact support')).toBeNull();
+      expect(queryByText('Contact support')).not.toBeOnTheScreen();
     });
 
     it('hides logout option even when authenticated', async () => {
@@ -384,7 +378,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText(/Log out of/)).toBeNull();
+        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
       });
     });
   });

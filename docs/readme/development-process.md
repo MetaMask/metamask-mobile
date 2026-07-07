@@ -77,3 +77,7 @@ Run from repo root:
 | Apply changes | You merge or copy changes yourself              | "Apply" in the UI merges the agent’s worktree changes into your current branch         |
 
 To see Cursor-created worktrees: `git worktree list` (they appear as paths under `~/.cursor/worktrees/metamask-mobile/`). You can enable `git.showCursorWorktrees` in Cursor settings to show them in the SCM pane. The `yarn worktree:create` script uses the same `.cursor/worktrees.json` for post-setup, so behavior stays in sync with Cursor.
+
+## AI tooling usage collection
+
+Usage of Yarn scripts, Claude Code skills, and Cursor skills is automatically recorded to a local SQLite database on your machine — never sent outside. See [`scripts/tooling/README.md`](../../scripts/tooling/README.md) for details.

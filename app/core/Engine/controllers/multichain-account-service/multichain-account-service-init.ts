@@ -5,9 +5,7 @@ import {
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
 } from '@metamask/multichain-account-service';
-import { ControllerInitFunction } from '../../types';
-import Engine from '../../Engine';
-import { forwardSelectedAccountGroupToSnapKeyring } from '../../../SnapKeyring/utils/forwardSelectedAccountGroupToSnapKeyring';
+import { MessengerClientInitFunction } from '../../types';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 
 /**
@@ -17,7 +15,7 @@ import { MultichainAccountServiceInitMessenger } from '../../messengers/multicha
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized service.
  */
-export const multichainAccountServiceInit: ControllerInitFunction<
+export const multichainAccountServiceInit: MessengerClientInitFunction<
   MultichainAccountService,
   MultichainAccountServiceMessenger,
   MultichainAccountServiceInitMessenger
@@ -35,7 +33,7 @@ export const multichainAccountServiceInit: ControllerInitFunction<
     },
     createAccounts: {
       timeoutMs: 3000,
-      batched: false,
+      batched: true,
     },
     resyncAccounts: {
       autoRemoveExtraSnapAccounts: false,
@@ -54,21 +52,6 @@ export const multichainAccountServiceInit: ControllerInitFunction<
       /// END:ONLY_INCLUDE_IF
     },
   });
-
-  // TODO: Move this logic to the SnapKeyring directly.
-  initMessenger.subscribe(
-    'MultichainAccountService:multichainAccountGroupUpdated',
-    (group) => {
-      const { AccountTreeController } = Engine.context;
-
-      // If the current group gets updated, then maybe there are more accounts being "selected"
-      // now, so we have to forward them to the Snap keyring too!
-      if (AccountTreeController.getSelectedAccountGroup() === group.id) {
-        // eslint-disable-next-line no-void
-        void forwardSelectedAccountGroupToSnapKeyring(group.id);
-      }
-    },
-  );
 
   return { controller, memStateKey: null, persistedStateKey: null };
 };

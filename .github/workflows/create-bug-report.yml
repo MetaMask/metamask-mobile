@@ -9,8 +9,11 @@ jobs:
       - name: Extract version from branch name if release branch
         id: extract_version
         run: |
-          if [[ "$GITHUB_REF" =~ ^refs/heads/release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ "$GITHUB_REF" =~ ^refs/heads/release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
             version="${GITHUB_REF#refs/heads/release/}"
+            # Strip `-ota` suffix: it is a branch-name convention only. Downstream
+            # (create-bug-report-issue.ts → isValidVersionFormat) expects strict X.Y.Z.
+            version="${version%-ota}"
             echo "New release branch($version), continue next steps"
             echo "version=$version" >> "$GITHUB_OUTPUT"
           else

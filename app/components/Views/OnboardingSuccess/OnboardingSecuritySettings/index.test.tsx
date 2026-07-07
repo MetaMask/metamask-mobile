@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -77,8 +78,10 @@ describe('OnboardingSecuritySettings', () => {
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
       });
-      const { toJSON } = renderWithProvider(<OnboardingSecuritySettings />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSecuritySettings />,
+      );
+      expect(getByTestId('use-chains-list-validation')).toBeOnTheScreen();
     });
 
     it('should always render NetworkDetailsCheckSettings regardless of auth connection', () => {
@@ -90,7 +93,20 @@ describe('OnboardingSecuritySettings', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSecuritySettings />,
       );
-      expect(getByTestId('use-chains-list-validation')).toBeTruthy();
+      expect(getByTestId('use-chains-list-validation')).toBeOnTheScreen();
+    });
+
+    it('navigates back when the header back button is pressed', () => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectUseSafeChainsListValidation) return false;
+        if (selector === selectSeedlessOnboardingLoginFlow) return false;
+        return null;
+      });
+      const { getAllByTestId } = renderWithProvider(
+        <OnboardingSecuritySettings />,
+      );
+      fireEvent.press(getAllByTestId('button-icon')[0]);
+      expect(mockNavigation.goBack).toHaveBeenCalled();
     });
   });
 
@@ -106,11 +122,11 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -125,11 +141,11 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -187,7 +203,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockMetaMetricsAndDataCollectionSection).toHaveBeenCalledWith(
         expect.objectContaining({ hideMarketingSection: true }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -196,7 +212,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -205,7 +221,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: expect.any(Boolean) }),
-        expect.anything(),
+        undefined,
       );
     });
   });
@@ -258,7 +274,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: false }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -271,7 +287,7 @@ describe('OnboardingSecuritySettings', () => {
 
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: true }),
-        expect.anything(),
+        undefined,
       );
     });
 
@@ -298,7 +314,7 @@ describe('OnboardingSecuritySettings', () => {
       expect(mockIsEnabled).toHaveBeenCalled();
       expect(mockDeleteMetaMetricsData).toHaveBeenCalledWith(
         expect.objectContaining({ metricsOptin: true }),
-        expect.anything(),
+        undefined,
       );
     });
   });

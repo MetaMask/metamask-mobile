@@ -2,7 +2,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useAssetBalances } from './useAssetBalances';
-import { AllowanceState, CardTokenAllowance } from '../types';
+import { FundingStatus, CardFundingToken } from '../types';
 import { CaipChainId } from '@metamask/utils';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 import { formatWithThreshold } from '../../../../util/assets';
@@ -10,6 +10,7 @@ import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import Engine from '../../../../core/Engine';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../Tokens/util', () => ({
@@ -55,12 +56,12 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn((chainId: string) => chainId.startsWith('solana:')),
 }));
-jest.mock('../../Ramp/Deposit/constants/networks', () => ({
+jest.mock('../../Ramp/constants/networks', () => ({
   SOLANA_MAINNET: {
     chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   },
 }));
-jest.mock('../../../../util/number', () => ({
+jest.mock('../../../../util/number/bigint', () => ({
   balanceToFiatNumber: jest.fn((balance: string, rate: number) => {
     const bal = parseFloat(balance);
     return (bal * rate).toString();
@@ -93,39 +94,61 @@ const mockUseTokensWithBalance = useTokensWithBalance as jest.MockedFunction<
 >;
 
 describe('useAssetBalances', () => {
-  const mockEvmToken: CardTokenAllowance = {
+  const mockEvmToken: CardFundingToken = {
     address: '0x1234567890123456789012345678901234567890',
     caipChainId: 'eip155:59144' as CaipChainId,
     decimals: 18,
     symbol: 'USDC',
     name: 'USD Coin',
-    allowanceState: AllowanceState.Enabled,
-    allowance: '1000',
-    availableBalance: '500.50',
+    fundingStatus: FundingStatus.Enabled,
+    spendableBalance: '500.50',
     walletAddress: '0xwallet1',
   };
 
-  const mockSolanaToken: CardTokenAllowance = {
+  const mockSolanaToken: CardFundingToken = {
     address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
     caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
     decimals: 6,
     symbol: 'USDC',
     name: 'USD Coin',
-    allowanceState: AllowanceState.Enabled,
-    allowance: '1000',
-    availableBalance: '250.25',
+    fundingStatus: FundingStatus.Enabled,
+    spendableBalance: '250.25',
     walletAddress: 'DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK',
   };
 
-  const mockNotEnabledToken: CardTokenAllowance = {
+  const mockNotEnabledToken: CardFundingToken = {
     address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
     caipChainId: 'eip155:59144' as CaipChainId,
     decimals: 18,
     symbol: 'DAI',
     name: 'Dai Stablecoin',
-    allowanceState: AllowanceState.NotEnabled,
-    allowance: '0',
+    fundingStatus: FundingStatus.NotEnabled,
+    spendableBalance: '0',
     walletAddress: '0xwallet1',
+  };
+
+  const defaultSelectorMockState = {
+    engine: {
+      backgroundState: {
+        TokensController: {
+          allTokens: {},
+        },
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            '0xe708': {
+              nativeCurrency: 'ETH',
+            },
+          },
+        },
+        CurrencyRateController: {
+          currencyRates: {
+            ETH: {
+              conversionRate: 2000,
+            },
+          },
+        },
+      },
+    },
   };
 
   beforeEach(() => {
@@ -135,31 +158,7 @@ describe('useAssetBalances', () => {
     mockUseSelector.mockImplementation((selector: any) => {
       if (typeof selector === 'function') {
         // Mock state structure - includes TokensController for the refactored useAssetBalances
-        const state = {
-          engine: {
-            backgroundState: {
-              TokensController: {
-                allTokens: {},
-                allDetectedTokens: {},
-              },
-              NetworkController: {
-                networkConfigurationsByChainId: {
-                  '0xe708': {
-                    nativeCurrency: 'ETH',
-                  },
-                },
-              },
-              CurrencyRateController: {
-                currencyRates: {
-                  ETH: {
-                    conversionRate: 2000,
-                  },
-                },
-              },
-            },
-          },
-        };
-        return selector(state);
+        return selector(defaultSelectorMockState);
       }
       return 'USD';
     });
@@ -198,7 +197,7 @@ describe('useAssetBalances', () => {
     });
 
     it('returns empty map when all tokens have invalid caipChainId', () => {
-      const invalidTokens: CardTokenAllowance[] = [
+      const invalidTokens: CardFundingToken[] = [
         { ...mockEvmToken, caipChainId: undefined as any },
         { ...mockSolanaToken, caipChainId: null as any },
       ];
@@ -210,7 +209,7 @@ describe('useAssetBalances', () => {
   });
 
   describe('single token handling', () => {
-    it('returns balance info for single EVM token with availableBalance', () => {
+    it('returns balance info for single EVM token with spendableBalance', () => {
       // Set up proper market data for EVM token
       mockUseSelector.mockImplementation((selector: any) => {
         if (typeof selector === 'function') {
@@ -219,7 +218,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -266,14 +264,29 @@ describe('useAssetBalances', () => {
     });
 
     it('returns balance info for single Solana token with conversion rate', () => {
-      (
-        Engine.context.MultichainAssetsRatesController as any
-      ).state.conversionRates = {
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
-          {
-            rate: '1.0',
-          },
-      };
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+          const state = {
+            ...defaultSelectorMockState,
+            engine: {
+              ...defaultSelectorMockState.engine,
+              backgroundState: {
+                ...defaultSelectorMockState.engine.backgroundState,
+                MultichainAssetsRatesController: {
+                  conversionRates: {
+                    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v':
+                      {
+                        rate: '1.0',
+                      },
+                  },
+                },
+              },
+            },
+          };
+          return selector(state);
+        }
+        return 'USD';
+      });
 
       mockFormatWithThreshold.mockReturnValue('$250.25');
 
@@ -361,11 +374,11 @@ describe('useAssetBalances', () => {
   });
 
   describe('balance source priority', () => {
-    it('uses availableBalance for enabled tokens', () => {
+    it('uses spendableBalance for enabled tokens', () => {
       const enabledToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Enabled,
-        availableBalance: '100.5',
+        fundingStatus: FundingStatus.Enabled,
+        spendableBalance: '100.5',
       };
 
       mockFormatWithThreshold.mockReturnValue('$100.50');
@@ -378,11 +391,11 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.rawTokenBalance).toBe(100.5);
     });
 
-    it('uses filteredToken balance when enabled token has no availableBalance', () => {
+    it('uses filteredToken balance when enabled token has no spendableBalance', () => {
       const enabledToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Enabled,
-        availableBalance: undefined,
+        fundingStatus: FundingStatus.Enabled,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([
@@ -404,11 +417,11 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.rawTokenBalance).toBe(250.75);
     });
 
-    it('uses walletAsset balance when enabled token has no availableBalance or filteredToken', () => {
+    it('uses walletAsset balance when enabled token has no spendableBalance or filteredToken', () => {
       const enabledToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Enabled,
-        availableBalance: undefined,
+        fundingStatus: FundingStatus.Enabled,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -435,7 +448,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -470,8 +482,8 @@ describe('useAssetBalances', () => {
     it('uses zero balance when enabled token has no balance sources', () => {
       const enabledToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Enabled,
-        availableBalance: undefined,
+        fundingStatus: FundingStatus.Enabled,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -532,7 +544,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -590,7 +601,7 @@ describe('useAssetBalances', () => {
     it('uses zero balance when no source available', () => {
       const tokenWithoutBalance = {
         ...mockNotEnabledToken,
-        availableBalance: undefined,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -606,11 +617,11 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.rawTokenBalance).toBe(0);
     });
 
-    it('uses availableBalance for limited tokens', () => {
+    it('uses spendableBalance for limited tokens', () => {
       const limitedToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Limited,
-        availableBalance: '50.25',
+        fundingStatus: FundingStatus.Limited,
+        spendableBalance: '50.25',
       };
 
       mockFormatWithThreshold.mockReturnValue('$50.25');
@@ -623,11 +634,11 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.rawTokenBalance).toBe(50.25);
     });
 
-    it('uses filteredToken balance when limited token has no availableBalance', () => {
+    it('uses filteredToken balance when limited token has no spendableBalance', () => {
       const limitedToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Limited,
-        availableBalance: undefined,
+        fundingStatus: FundingStatus.Limited,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([
@@ -649,11 +660,11 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.rawTokenBalance).toBe(125.5);
     });
 
-    it('uses walletAsset balance when limited token has no availableBalance or filteredToken', () => {
+    it('uses walletAsset balance when limited token has no spendableBalance or filteredToken', () => {
       const limitedToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Limited,
-        availableBalance: undefined,
+        fundingStatus: FundingStatus.Limited,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -680,7 +691,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -715,8 +725,8 @@ describe('useAssetBalances', () => {
     it('uses zero balance when limited token has no balance sources', () => {
       const limitedToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Limited,
-        availableBalance: undefined,
+        fundingStatus: FundingStatus.Limited,
+        spendableBalance: '',
       };
 
       mockUseTokensWithBalance.mockReturnValue([]);
@@ -740,7 +750,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -790,7 +799,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -856,7 +864,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {},
@@ -925,7 +932,7 @@ describe('useAssetBalances', () => {
     it('formats balance with 6 decimal places', () => {
       const tokenWithLongBalance = {
         ...mockEvmToken,
-        availableBalance: '123.456789123',
+        spendableBalance: '123.456789123',
       };
 
       const { result } = renderHook(() =>
@@ -941,7 +948,7 @@ describe('useAssetBalances', () => {
     it('handles comma decimal separator', () => {
       const tokenWithComma = {
         ...mockEvmToken,
-        availableBalance: '100,50',
+        spendableBalance: '100,50',
       };
 
       const { result } = renderHook(() => useAssetBalances([tokenWithComma]));
@@ -963,12 +970,12 @@ describe('useAssetBalances', () => {
     });
   });
 
-  describe('Limited allowance state', () => {
-    it('uses availableBalance for limited tokens', () => {
+  describe('Limited funding status', () => {
+    it('uses spendableBalance for limited tokens', () => {
       const limitedToken = {
         ...mockEvmToken,
-        allowanceState: AllowanceState.Limited,
-        availableBalance: '50.25',
+        fundingStatus: FundingStatus.Limited,
+        spendableBalance: '50.25',
       };
 
       const { result } = renderHook(() => useAssetBalances([limitedToken]));
@@ -981,7 +988,7 @@ describe('useAssetBalances', () => {
   });
 
   describe('proportional fiat calculation', () => {
-    it('calculates proportional fiat when availableBalance is half of wallet balance', () => {
+    it('calculates proportional fiat when spendableBalance is half of wallet balance', () => {
       const walletAsset = {
         address: mockEvmToken.address,
         chainId: '0xe708',
@@ -1003,7 +1010,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1039,7 +1045,7 @@ describe('useAssetBalances', () => {
 
       const tokenWithHalfBalance = {
         ...mockEvmToken,
-        availableBalance: '500',
+        spendableBalance: '500',
       };
 
       const { result } = renderHook(() =>
@@ -1053,7 +1059,7 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.rawFiatNumber).toBe(500);
     });
 
-    it('calculates proportional fiat when availableBalance equals wallet balance', () => {
+    it('calculates proportional fiat when spendableBalance equals wallet balance', () => {
       const walletAsset = {
         address: mockEvmToken.address,
         chainId: '0xe708',
@@ -1075,7 +1081,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1111,7 +1116,7 @@ describe('useAssetBalances', () => {
 
       const tokenWithFullBalance = {
         ...mockEvmToken,
-        availableBalance: '1000',
+        spendableBalance: '1000',
       };
 
       const { result } = renderHook(() =>
@@ -1147,7 +1152,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1183,7 +1187,7 @@ describe('useAssetBalances', () => {
 
       const tokenWithCommaBalance = {
         ...mockEvmToken,
-        availableBalance: '250,00',
+        spendableBalance: '250,00',
       };
 
       const { result } = renderHook(() =>
@@ -1219,7 +1223,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1255,7 +1258,7 @@ describe('useAssetBalances', () => {
 
       const tokenWithSmallBalance = {
         ...mockEvmToken,
-        availableBalance: '0.1',
+        spendableBalance: '0.1',
       };
 
       const { result } = renderHook(() =>
@@ -1277,7 +1280,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1323,7 +1325,7 @@ describe('useAssetBalances', () => {
 
       const tokenWithBalance = {
         ...mockEvmToken,
-        availableBalance: '100',
+        spendableBalance: '100',
       };
 
       const { result } = renderHook(() => useAssetBalances([tokenWithBalance]));
@@ -1334,7 +1336,7 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.balanceFiat).toBe('100.000000 USDC');
     });
 
-    it('falls back to token symbol when availableBalance is zero', () => {
+    it('falls back to token symbol when spendableBalance is zero', () => {
       mockUseSelector.mockImplementation((selector: any) => {
         if (typeof selector === 'function') {
           const state = {
@@ -1342,7 +1344,6 @@ describe('useAssetBalances', () => {
               backgroundState: {
                 TokensController: {
                   allTokens: {},
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1377,7 +1378,7 @@ describe('useAssetBalances', () => {
 
       const tokenWithZeroBalance = {
         ...mockEvmToken,
-        availableBalance: '0',
+        spendableBalance: '0',
       };
 
       const { result } = renderHook(() =>
@@ -1412,7 +1413,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1448,7 +1448,7 @@ describe('useAssetBalances', () => {
 
       const tokenWithBalance = {
         ...mockEvmToken,
-        availableBalance: '500.25',
+        spendableBalance: '500.25',
       };
 
       const { result } = renderHook(() => useAssetBalances([tokenWithBalance]));
@@ -1482,7 +1482,6 @@ describe('useAssetBalances', () => {
                       'mock-account': [walletAsset],
                     },
                   },
-                  allDetectedTokens: {},
                 },
                 NetworkController: {
                   networkConfigurationsByChainId: {
@@ -1517,7 +1516,7 @@ describe('useAssetBalances', () => {
 
       const tokenWithBalance = {
         ...mockEvmToken,
-        availableBalance: '500',
+        spendableBalance: '500',
       };
 
       const { result } = renderHook(() => useAssetBalances([tokenWithBalance]));
@@ -1565,7 +1564,7 @@ describe('useAssetBalances', () => {
     it('handles zero balance correctly', () => {
       const tokenWithZeroBalance = {
         ...mockEvmToken,
-        availableBalance: '0',
+        spendableBalance: '0',
       };
 
       const { result } = renderHook(() =>
@@ -1581,7 +1580,7 @@ describe('useAssetBalances', () => {
     it('handles very large balance', () => {
       const tokenWithLargeBalance = {
         ...mockEvmToken,
-        availableBalance: '999999999.123456',
+        spendableBalance: '999999999.123456',
       };
 
       const { result } = renderHook(() =>
@@ -1601,7 +1600,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1632,7 +1631,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1663,7 +1662,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1694,7 +1693,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1725,7 +1724,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1765,7 +1764,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1796,7 +1795,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         mockUseTokensWithBalance.mockReturnValue([
@@ -1838,7 +1837,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         const walletAsset = {
@@ -1863,7 +1862,6 @@ describe('useAssetBalances', () => {
                         'mock-account': [walletAsset],
                       },
                     },
-                    allDetectedTokens: {},
                   },
                   NetworkController: {
                     networkConfigurationsByChainId: {
@@ -1905,7 +1903,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         const walletAsset = {
@@ -1930,7 +1928,6 @@ describe('useAssetBalances', () => {
                         'mock-account': [walletAsset],
                       },
                     },
-                    allDetectedTokens: {},
                   },
                   NetworkController: {
                     networkConfigurationsByChainId: {
@@ -1973,7 +1970,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         const walletAsset = {
@@ -1998,7 +1995,6 @@ describe('useAssetBalances', () => {
                         'mock-account': [walletAsset],
                       },
                     },
-                    allDetectedTokens: {},
                   },
                   NetworkController: {
                     networkConfigurationsByChainId: {
@@ -2040,7 +2036,7 @@ describe('useAssetBalances', () => {
         const notEnabledToken = {
           ...mockNotEnabledToken,
           symbol: 'USDC',
-          availableBalance: undefined,
+          spendableBalance: '',
         };
 
         const walletAsset = {
@@ -2065,7 +2061,6 @@ describe('useAssetBalances', () => {
                         'mock-account': [walletAsset],
                       },
                     },
-                    allDetectedTokens: {},
                   },
                   NetworkController: {
                     networkConfigurationsByChainId: {
@@ -2111,6 +2106,91 @@ describe('useAssetBalances', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('money account (mUSD) fiat conversion', () => {
+    const mockMoneyAccountToken: CardFundingToken = {
+      address: '0xveda000000000000000000000000000000000001',
+      caipChainId: 'eip155:59144' as CaipChainId,
+      decimals: 6,
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      fundingStatus: FundingStatus.Enabled,
+      spendableBalance: '100',
+      walletAddress: '0xwallet1',
+      isMoneyAccountEntry: true,
+    } as CardFundingToken;
+
+    const setupSelectorMock = (marketData: Record<string, unknown>) => {
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+          const state = {
+            engine: {
+              backgroundState: {
+                TokensController: { allTokens: {} },
+                NetworkController: {
+                  networkConfigurationsByChainId: {
+                    '0x1': { nativeCurrency: 'ETH' },
+                    '0xe708': { nativeCurrency: 'ETH' },
+                  },
+                },
+                CurrencyRateController: {
+                  currencyRates: { ETH: { conversionRate: 2000 } },
+                },
+                TokenRatesController: { marketData },
+              },
+            },
+          };
+          return selector(state);
+        }
+        return 'USD';
+      });
+    };
+
+    it('converts the USD-denominated balance into the display currency using the mUSD fiat rate', () => {
+      // mUSD price-in-native-currency (0.00046 ETH) × ETH→currency rate (2000)
+      // → mUSD fiat rate of 0.92, so 100 mUSD spend power = 92 in display currency.
+      setupSelectorMock({
+        '0x1': {
+          [MUSD_TOKEN_ADDRESS.toLowerCase()]: { price: 0.00046 },
+        },
+      });
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBeCloseTo(92, 5);
+      expect(balanceInfo?.balanceFiat).toBe('$92.00');
+    });
+
+    it('falls back to a 1:1 label when the mUSD fiat rate is unavailable', () => {
+      // No mUSD market data → no rate → balance is shown 1:1 (correct for USD).
+      setupSelectorMock({});
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBe(100);
+      expect(balanceInfo?.balanceFiat).toBe('$100.00');
     });
   });
 });

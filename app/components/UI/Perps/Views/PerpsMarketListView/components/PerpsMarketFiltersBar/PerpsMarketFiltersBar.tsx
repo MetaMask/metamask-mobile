@@ -28,29 +28,35 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   onSortPress,
   marketTypeFilter,
   onCategorySelect,
-  availableCategories,
+  showWatchlistBadge,
+  isWatchlistSelected,
+  onWatchlistToggle,
   testID,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.container} testID={testID}>
-      {/* Row 1: Category Badges */}
+      {/* Row 1: Category Badges (+ optional watchlist star badge) */}
       <PerpsMarketCategoryBadges
         selectedCategory={marketTypeFilter}
         onCategorySelect={onCategorySelect}
-        availableCategories={availableCategories}
+        showWatchlistBadge={showWatchlistBadge}
+        isWatchlistSelected={isWatchlistSelected}
+        onWatchlistToggle={onWatchlistToggle}
         testID={testID ? `${testID}-categories` : undefined}
       />
 
-      {/* Row 2: Sort Dropdown */}
-      <View style={styles.sortRow}>
-        <PerpsMarketSortDropdowns
-          selectedOptionId={selectedOptionId}
-          onSortPress={onSortPress}
-          testID={testID ? `${testID}-sort` : undefined}
-        />
-      </View>
+      {/* Row 2: Sort Dropdown — hidden when watchlist filter is active */}
+      {!isWatchlistSelected && (
+        <View style={styles.sortRow}>
+          <PerpsMarketSortDropdowns
+            selectedOptionId={selectedOptionId}
+            onSortPress={onSortPress}
+            testID={testID ? `${testID}-sort` : undefined}
+          />
+        </View>
+      )}
     </View>
   );
 };

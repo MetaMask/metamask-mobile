@@ -1,12 +1,11 @@
 import { Platform } from 'react-native';
 import { getCardProvider, getWalletProvider } from './providers';
-import { GalileoCardAdapter } from './adapters/card';
+import { ControllerCardAdapter } from './adapters/card';
 import { GoogleWalletAdapter, AppleWalletAdapter } from './adapters/wallet';
-import { CardSDK } from '../sdk/CardSDK';
 
 jest.mock('./adapters/card', () => ({
-  GalileoCardAdapter: jest.fn().mockImplementation(() => ({
-    providerId: 'galileo',
+  ControllerCardAdapter: jest.fn().mockImplementation(() => ({
+    providerId: 'controller',
   })),
 }));
 
@@ -22,7 +21,6 @@ jest.mock('./adapters/wallet', () => ({
 }));
 
 describe('Push Provisioning Providers', () => {
-  const mockCardSDK = {} as CardSDK;
   const originalPlatform = Platform.OS;
 
   beforeEach(() => {
@@ -37,22 +35,22 @@ describe('Push Provisioning Providers', () => {
   });
 
   describe('getCardProvider', () => {
-    it('returns GalileoCardAdapter for US location', () => {
-      const result = getCardProvider('us', mockCardSDK);
+    it('returns ControllerCardAdapter for US location', () => {
+      const result = getCardProvider('us');
 
       expect(result).toBeDefined();
-      expect(GalileoCardAdapter).toHaveBeenCalledWith(mockCardSDK);
+      expect(ControllerCardAdapter).toHaveBeenCalled();
     });
 
     it('returns null for international location', () => {
-      const result = getCardProvider('international', mockCardSDK);
+      const result = getCardProvider('international');
 
       expect(result).toBeNull();
     });
 
     it('returns null for unknown location', () => {
       // @ts-expect-error - Testing invalid input
-      const result = getCardProvider('unknown', mockCardSDK);
+      const result = getCardProvider('unknown');
 
       expect(result).toBeNull();
     });

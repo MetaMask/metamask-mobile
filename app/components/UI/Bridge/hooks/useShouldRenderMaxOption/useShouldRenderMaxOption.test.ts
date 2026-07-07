@@ -1,10 +1,11 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isNativeAddress } from '@metamask/bridge-controller';
+import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { useShouldRenderMaxOption } from '.';
 import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
+import { ARC_USDC_BRIDGE_TOKEN } from '../../../../../enablement/assets/arc';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -19,6 +20,7 @@ jest.mock('@metamask/bridge-controller', () => {
   return {
     ...actual,
     isNativeAddress: jest.fn(),
+    isSolanaChainId: jest.fn(),
   };
 });
 
@@ -28,6 +30,9 @@ const mockUseTokenAddress = useTokenAddress as jest.MockedFunction<
 >;
 const mockIsNativeAddress = isNativeAddress as jest.MockedFunction<
   typeof isNativeAddress
+>;
+const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
+  typeof isSolanaChainId
 >;
 
 const mockToken: BridgeToken = {
@@ -61,6 +66,7 @@ describe('useShouldRenderMaxOption', () => {
     setSelectorValues();
     mockUseTokenAddress.mockReturnValue(mockToken.address);
     mockIsNativeAddress.mockReturnValue(false);
+    mockIsSolanaChainId.mockReturnValue(false);
   });
 
   it('returns false when token is undefined', () => {
@@ -131,6 +137,34 @@ describe('useShouldRenderMaxOption', () => {
     expect(result.current).toBe(false);
   });
 
+  it('returns true for ERC20 USDC on Arc when 7702 is enabled', () => {
+    setSelectorValues({
+      gasIncluded: false,
+      gasIncluded7702: true,
+    });
+    mockIsNativeAddress.mockReturnValue(false);
+
+    const { result } = renderHook(() =>
+      useShouldRenderMaxOption(ARC_USDC_BRIDGE_TOKEN, '1.25'),
+    );
+
+    expect(result.current).toBe(true);
+  });
+
+  it('returns false for ERC20 USDC on Arc when gasIncluded and 7702 are both disabled', () => {
+    setSelectorValues({
+      gasIncluded: false,
+      gasIncluded7702: false,
+    });
+    mockIsNativeAddress.mockReturnValue(false);
+
+    const { result } = renderHook(() =>
+      useShouldRenderMaxOption(ARC_USDC_BRIDGE_TOKEN, '1.25'),
+    );
+
+    expect(result.current).toBe(false);
+  });
+
   it('returns false for sponsored native quote when gasIncluded paths are disabled', () => {
     setSelectorValues({
       gasIncluded: false,
@@ -173,6 +207,25 @@ describe('useShouldRenderMaxOption', () => {
     });
     mockUseTokenAddress.mockReturnValue(solanaToken.address);
     mockIsNativeAddress.mockReturnValue(true);
+    mockIsSolanaChainId.mockReturnValue(true);
+
+    const { result } = renderHook(() =>
+      useShouldRenderMaxOption(solanaToken, '3'),
+    );
+
+    expect(result.current).toBe(false);
+  });
+
+  it('returns false for Solana native token even when gasIncluded is true', () => {
+    const solanaToken: BridgeToken = {
+      ...nativeToken,
+      chainId:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as `${string}:${string}`,
+    };
+    setSelectorValues({ gasIncluded: true });
+    mockUseTokenAddress.mockReturnValue(solanaToken.address);
+    mockIsNativeAddress.mockReturnValue(true);
+    mockIsSolanaChainId.mockReturnValue(true);
 
     const { result } = renderHook(() =>
       useShouldRenderMaxOption(solanaToken, '3'),

@@ -51,13 +51,6 @@ describe('ChangeInSimulationModal', () => {
     };
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<ChangeInSimulationModal />, {
-      state: mockInitialState,
-    });
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('calls onProceed and onReject callbacks', () => {
     const mockOnReject = jest.fn();
     const mockOnProceed = jest.fn();

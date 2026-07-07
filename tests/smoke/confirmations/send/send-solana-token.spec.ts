@@ -1,32 +1,12 @@
-import TokenOverview from '../../../page-objects/wallet/TokenOverview';
-import WalletView from '../../../page-objects/wallet/WalletView';
-import { SmokeConfirmations } from '../../../tags';
-import { loginToApp } from '../../../flows/wallet.flow';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { Assertions } from '../../../framework';
+/* eslint-disable jest/no-disabled-tests -- E2E skipped; covered by component view tests */
 
-// const RECIPIENT = '4Nd1mZyJY5ZqzR3n8bQF7h5L2Q9gY1yTtM6nQhc7P1Dp';
+import { SmokeConfirmations } from '../../../tags';
 
 describe(SmokeConfirmations('Send SOL token'), () => {
-  it('should send solana to an address', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await device.disableSynchronization();
-        await WalletView.tapOnToken('Solana');
-        await TokenOverview.tapSendButton();
+  // Moved to cv tests (send.non-evm.view.test.tsx)
 
-        // Since we're not yet mockign Solana and there's residual balance that
-        // can be flaky when loading we're only checking that we're on the
-        // correct screen and sending the correct token.
-        await Assertions.expectTextDisplayed('Send');
-        await Assertions.expectTextDisplayed('SOL');
-      },
-    );
+  it.skip('should send solana to an address', async () => {
+    // TODO: Update the test so if does a full e2e (define what should do). Keep this test to have something tested on e2e.
+    // https://consensyssoftware.atlassian.net/browse/MMQA-1792
   });
 });

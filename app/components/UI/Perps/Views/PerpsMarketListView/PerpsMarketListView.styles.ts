@@ -135,9 +135,14 @@ const styleSheet = (params: { theme: Theme }) => {
     animatedListContainer: {
       flex: 1,
     },
+    watchlistScrollContainer: {
+      flex: 1,
+    },
+    watchlistScrollContent: {
+      paddingBottom: 120,
+    },
     searchBarRow: {
       paddingHorizontal: 16,
-      paddingTop: 12,
       paddingBottom: 8,
     },
     searchContainer: {

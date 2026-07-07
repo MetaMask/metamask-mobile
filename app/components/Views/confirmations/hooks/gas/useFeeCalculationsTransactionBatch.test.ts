@@ -170,7 +170,7 @@ describe('useFeeCalculationsTransactionBatch', () => {
       },
     );
 
-    expect(result.current.estimatedFeeFiat).toBe('< $0.01');
+    expect(result.current.estimatedFeeFiat).toBe('$0');
     expect(result.current.estimatedFeeNative).toBe('0');
     expect(result.current.preciseNativeFeeInHex).toBe('0x2632e314a000');
     expect(result.current.calculateGasEstimate).toBeDefined();
@@ -189,7 +189,7 @@ describe('useFeeCalculationsTransactionBatch', () => {
       },
     );
 
-    expect(result.current.estimatedFeeFiat).toBe('< $0.01');
+    expect(result.current.estimatedFeeFiat).toBe('$0');
     expect(result.current.estimatedFeeNative).toBe('0');
     expect(result.current.preciseNativeFeeInHex).toBe('0x0');
     expect(result.current.calculateGasEstimate).toBeDefined();
@@ -208,7 +208,7 @@ describe('useFeeCalculationsTransactionBatch', () => {
       },
     );
 
-    expect(result.current.estimatedFeeFiat).toBe('< $0.01');
+    expect(result.current.estimatedFeeFiat).toBe('$0');
     expect(result.current.estimatedFeeNative).toBe('0');
     expect(result.current.preciseNativeFeeInHex).toBe('0x0');
     expect(result.current.calculateGasEstimate).toBeDefined();

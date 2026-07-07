@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../../../../reducers';
@@ -175,7 +176,10 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
     const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-    expect(switchComponent.props.disabled).toBe(true);
+    expect(
+      switchComponent.props.accessibilityState?.disabled ??
+        switchComponent.props.disabled,
+    ).toBe(true);
   });
 
   it('disables switch for standard account when upgradeContractAddress is missing', () => {
@@ -192,7 +196,10 @@ describe('Account Network Row', () => {
       { state: MOCK_STATE },
     );
     const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
-    expect(switchComponent.props.disabled).toBe(true);
+    expect(
+      switchComponent.props.accessibilityState?.disabled ??
+        switchComponent.props.disabled,
+    ).toBe(true);
   });
 
   it('does not navigate to wallet view when switch is pressed', () => {

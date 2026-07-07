@@ -1,3 +1,4 @@
+import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import TokensFullView from './TokensFullView';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +20,14 @@ jest.mock('@react-navigation/native', () => ({
 // Mock AssetPollingProvider to avoid Engine/controller polling setup
 jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenSortConfig: jest.fn(),
+    },
+  },
 }));
 
 // Mock Tokens component to avoid complex Redux state setup
@@ -58,13 +67,13 @@ describe('TokensFullView', () => {
 
   it('renders header with title and back button', () => {
     // Arrange
-    const { getByTestId } = renderScreen(TokensFullView, {
+    const { getByTestId, getByText } = renderScreen(TokensFullView, {
       name: 'TokensFullView',
     });
 
     // Act & Assert
-    expect(getByTestId('header')).toBeOnTheScreen();
-    expect(getByTestId('header-title')).toBeOnTheScreen();
+    expect(getByTestId('back-button')).toBeOnTheScreen();
+    expect(getByText('Tokens')).toBeOnTheScreen();
     expect(getByTestId('tokens-component')).toBeOnTheScreen();
   });
 
@@ -76,7 +85,7 @@ describe('TokensFullView', () => {
 
     // Act
     const backButton = getByTestId('back-button');
-    backButton.props.onPress();
+    fireEvent.press(backButton);
 
     // Assert
     expect(mockGoBack).toHaveBeenCalledTimes(1);

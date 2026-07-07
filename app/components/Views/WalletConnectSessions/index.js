@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
   Alert,
   ScrollView,
@@ -18,9 +19,8 @@ import PropTypes from 'prop-types';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ExperimentalSelectorsIDs } from '../Settings/ExperimentalSettings/ExperimentalView.testIds';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -201,7 +201,7 @@ export default class WalletConnectSessions extends PureComponent {
         style={styles.wrapper}
         testID={ExperimentalSelectorsIDs.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('experimental_settings.wallet_connect_dapps')}
           onBack={() => this.props.navigation.goBack()}
           backButtonProps={{

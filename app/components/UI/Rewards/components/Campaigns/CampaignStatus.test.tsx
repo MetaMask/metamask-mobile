@@ -12,9 +12,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return { ...actual };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('./CampaignTile.utils', () => ({
   getCampaignStatusInfo: jest.fn().mockReturnValue({
@@ -23,22 +25,6 @@ jest.mock('./CampaignTile.utils', () => ({
     dateLabel: 'Ends March 15',
     dateLabelIcon: 'Clock',
   }),
-}));
-
-jest.mock('../../utils/formatUtils', () => ({
-  ...jest.requireActual('../../utils/formatUtils'),
-  formatUTCDate: jest.fn((_date: string) => 'Fri, April 16'),
-}));
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: Record<string, string | number>) => {
-    const translations: Record<string, string> = {
-      'rewards.campaign_status.deposit_window': 'Deposit Window',
-      'rewards.campaign_status.deposit_closes': `Closes ${params?.date ?? ''}`,
-      'rewards.campaign_status.deposit_closed_on': `Closed on ${params?.date ?? ''}`,
-    };
-    return translations[key] ?? key;
-  },
 }));
 
 const createTestCampaign = (overrides = {}): CampaignDto => ({
@@ -51,6 +37,7 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
   excludedRegions: [],
   details: null,
   featured: true,
+  showUpcomingDate: false,
   ...overrides,
 });
 
@@ -132,48 +119,6 @@ describe('CampaignStatus', () => {
     expect(
       queryByTestId(CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_TITLE),
     ).toBeNull();
-  });
-
-  it('renders deposit window with "Closes" when cutoff is in the future', () => {
-    const campaign = createTestCampaign({
-      details: {
-        howItWorks: { title: '', description: '', phases: [] },
-        depositCutoffDate: '2099-12-31T00:00:00.000Z',
-      },
-    });
-    const { getByTestId } = render(<CampaignStatus campaign={campaign} />);
-    const depositWindow = getByTestId(CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW);
-    expect(depositWindow).toBeDefined();
-    expect(depositWindow).toHaveTextContent(/Deposit Window/);
-    expect(depositWindow).toHaveTextContent(/Closes Fri, April 16/);
-  });
-
-  it('renders deposit window with "Closed on" when cutoff is in the past', () => {
-    const campaign = createTestCampaign({
-      details: {
-        howItWorks: { title: '', description: '', phases: [] },
-        depositCutoffDate: '2000-01-01T00:00:00.000Z',
-      },
-    });
-    const { getByTestId } = render(<CampaignStatus campaign={campaign} />);
-    const depositWindow = getByTestId(CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW);
-    expect(depositWindow).toHaveTextContent(/Closed on Fri, April 16/);
-  });
-
-  it('does not render deposit window when depositCutoffDate is absent', () => {
-    const campaign = createTestCampaign({
-      details: {
-        howItWorks: { title: 'Title', description: '', phases: [] },
-      },
-    });
-    const { queryByTestId } = render(<CampaignStatus campaign={campaign} />);
-    expect(queryByTestId(CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW)).toBeNull();
-  });
-
-  it('does not render deposit window when details is null', () => {
-    const campaign = createTestCampaign({ details: null });
-    const { queryByTestId } = render(<CampaignStatus campaign={campaign} />);
-    expect(queryByTestId(CAMPAIGN_STATUS_TEST_IDS.DEPOSIT_WINDOW)).toBeNull();
   });
 
   it('calls getCampaignStatusInfo with campaign', () => {

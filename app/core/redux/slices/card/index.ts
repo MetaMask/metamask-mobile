@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../reducers';
+import { CardEntryPoint } from '../../../../components/UI/Card/util/metrics';
 
 export interface OnboardingState {
   onboardingId: string | null;
@@ -12,6 +13,7 @@ export interface CardSliceState {
   hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
+  pendingMoneyAccountCardLink: CardEntryPoint | null;
 }
 
 export const initialState: CardSliceState = {
@@ -22,6 +24,7 @@ export const initialState: CardSliceState = {
     consentSetId: null,
   },
   isDaimoDemo: false,
+  pendingMoneyAccountCardLink: null,
 };
 
 const name = 'card';
@@ -52,6 +55,12 @@ const slice = createSlice({
         contactVerificationId: null,
         consentSetId: null,
       };
+    },
+    setPendingMoneyAccountCardLink: (
+      state,
+      action: PayloadAction<CardEntryPoint | null>,
+    ) => {
+      state.pendingMoneyAccountCardLink = action.payload;
     },
   },
 });
@@ -88,6 +97,11 @@ export const selectConsentSetId = createSelector(
   (card) => card.onboarding.consentSetId,
 );
 
+export const selectPendingMoneyAccountCardLink = createSelector(
+  selectCardState,
+  (card) => card.pendingMoneyAccountCardLink,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -97,4 +111,5 @@ export const {
   setConsentSetId,
   resetOnboardingState,
   setIsDaimoDemo,
+  setPendingMoneyAccountCardLink,
 } = actions;

@@ -3,10 +3,12 @@ import React, { useCallback, useEffect } from 'react';
 import { View, Switch, Linking, InteractionManager } from 'react-native';
 // import { useNavigation } from '@react-navigation/native';
 
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 // import { strings } from '../../../../../locales/i18n';
 import styles from './BackupAndSyncToggle.styles';
@@ -150,7 +152,7 @@ const BackupAndSyncToggle = ({
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
-        <Text variant={TextVariant.HeadingSM}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('backupAndSync.title')}
         </Text>
         <Switch
@@ -165,9 +167,18 @@ const BackupAndSyncToggle = ({
           testID={BACKUP_AND_SYNC_TOGGLE_TEST_IDS.TOGGLE}
         />
       </View>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {strings('backupAndSync.enable.description')}
-        <Text color={TextColor.Info} onPress={handleLink}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.InfoDefault}
+          onPress={handleLink}
+        >
           {strings('backupAndSync.privacyLink')}
         </Text>
       </Text>

@@ -10,8 +10,11 @@ import React, {
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import {
+  SectionDivider,
+  Box,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
@@ -29,17 +32,16 @@ import { SectionRefreshHandle, HomeSectionMode } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { SolScope } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
-import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
 import TokenListSkeleton from '../../../../UI/Tokens/TokenList/TokenListSkeleton/TokenListSkeleton';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
+import { useRefreshTokens } from '../../../../UI/Tokens/hooks/useRefreshTokens';
 import useHomeViewedEvent, {
   HomeSectionNames,
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
@@ -47,6 +49,11 @@ import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdC
 import { useTrendingRequest } from '../../../../UI/Trending/hooks/useTrendingRequest/useTrendingRequest';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
+import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -122,10 +129,10 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       );
     }, [evmNetworkConfigurationsByChainId, popularChainIds]);
     const selectedAccountId = useSelector(selectSelectedInternalAccountId);
-    const selectedSolanaAccount =
-      useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
-      null;
-    const isSolanaSelected = selectedSolanaAccount !== null;
+
+    const { refresh: refreshTokensForGroup } = useRefreshTokens({
+      evmNetworkConfigurationsByChainId: evmNetworkConfigurationsForRefresh,
+    });
 
     const prevAccountIdRef = useRef(selectedAccountId);
     // Reset section error when account changes (not on initial mount) so the new account gets a fresh state
@@ -139,12 +146,13 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
+    const isCashSectionEnabled =
+      isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
 
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
-
     // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
     const displayTokenKeys = useMemo(
       () =>
@@ -177,37 +185,46 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         await popularTokensListRef.current?.refresh();
       } else {
         try {
-          await refreshTokens({
-            isSolanaSelected,
-            evmNetworkConfigurationsByChainId:
-              evmNetworkConfigurationsForRefresh,
-            selectedAccountId,
-          });
+          await refreshTokensForGroup();
         } catch {
           setHasTokensError(true);
         }
       }
-    }, [
-      isZeroBalanceAccount,
-      isSolanaSelected,
-      evmNetworkConfigurationsForRefresh,
-      selectedAccountId,
-    ]);
+    }, [isZeroBalanceAccount, refreshTokensForGroup]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
-    const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
+    const isPositionsTokenRowsLoading =
+      isPositionsOnly &&
+      !isZeroBalanceAccount &&
+      displayTokenKeys.length === 0 &&
+      sortedTokenKeys.length === 0;
+    const sectionIsEmpty = isPositionsOnly
+      ? !isPositionsTokenRowsLoading && displayTokenKeys.length === 0
+      : isZeroBalanceAccount || showTokensError;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef:
         isPositionsOnly && isZeroBalanceAccount ? null : sectionViewRef,
-      isLoading: false,
+      isLoading: isPositionsTokenRowsLoading,
       sectionName: analyticsName,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: sectionIsEmpty,
       itemCount,
+    });
+
+    useSectionPerformance({
+      sectionId: analyticsName,
+      contentReady:
+        showTokensError || isZeroBalanceAccount || displayTokenKeys.length > 0,
+      isEmpty: isZeroBalanceAccount || showTokensError,
+      contentStateForTrace: showTokensError ? 'error' : undefined,
+      isLoading:
+        displayTokenKeys.length === 0 &&
+        sortedTokenKeys.length === 0 &&
+        !showTokensError,
     });
 
     const handleViewAllTokens = useCallback(() => {
@@ -226,8 +243,14 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
+        <SectionDivider />
+        <SectionHeader
+          title={title}
+          isInteractive
+          onPress={handleViewAllTokens}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+        />
         <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllTokens} />
           {showTokensError ? (
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
@@ -256,7 +279,6 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                     privacyMode={privacyMode}
                     showPercentageChange
                     shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-                    isVisible
                   />
                 ))
               )}
@@ -294,6 +316,8 @@ const TokensSectionTrendingOnly = forwardRef<
     const navigation = useNavigation();
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
+    const trendingTransactionActiveAbTests =
+      useHomepageTrendingTransactionActiveAbTests();
     const {
       results: trendingTokens,
       isLoading: isTrendingLoading,
@@ -338,8 +362,14 @@ const TokensSectionTrendingOnly = forwardRef<
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <SectionHeader title={title} onPress={handleViewAllTokens} />
+        <Box paddingBottom={3}>
+          <SectionDivider />
+          <SectionHeader
+            title={title}
+            isInteractive
+            onPress={handleViewAllTokens}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
+          />
           <SectionRow>
             {isTrendingLoading
               ? Array.from({ length: 3 }, (_, i) => (
@@ -350,6 +380,8 @@ const TokensSectionTrendingOnly = forwardRef<
                     key={token.assetId}
                     token={token}
                     position={index}
+                    tokenDetailsSource={TokenDetailsSource.HomepageTrending}
+                    transactionActiveAbTests={trendingTransactionActiveAbTests}
                   />
                 ))}
           </SectionRow>

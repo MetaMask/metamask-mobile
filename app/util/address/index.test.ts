@@ -627,8 +627,6 @@ describe('isHDOrFirstPartySnapAccount', () => {
           ...MOCK_SOLANA_ACCOUNT.metadata,
           snap: {
             id: 'third-party-snap',
-            name: 'Third Party Snap',
-            enabled: true,
           },
         },
         options: {},

@@ -25,7 +25,7 @@ const PredictMarketSkeleton: React.FC<PredictMarketSkeletonProps> = ({
   return (
     <Box
       testID={testID}
-      twClassName={`bg-section rounded-xl ${isCarousel ? 'p-3 h-full' : 'p-4 my-2'}`}
+      twClassName={`bg-section rounded-xl ${isCarousel ? 'p-4 h-full' : 'p-4 my-2'}`}
     >
       {/* Header: Circle Avatar + Title Bar */}
       <Box

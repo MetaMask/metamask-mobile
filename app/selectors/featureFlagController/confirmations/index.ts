@@ -2,12 +2,28 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
+import { TransactionType } from '@metamask/transaction-controller';
+import {
+  getRelayFixedSpreadFromConfig,
+  RelayFixedSpreadConfig,
+} from '../../../components/Views/confirmations/utils/relayFixedSpread';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
 export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
-export const PAY_FIAT_ENABLED_DEFAULT = false;
+export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [];
+export const PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS = 10;
+export const PAY_HARDWARE_ENABLED_DEFAULT = false;
+export const PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT = false;
+export const PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT: Record<
+  string,
+  boolean
+> = {};
+export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT:
+  | Record<string, string>
+  | undefined = undefined;
+export const PAY_DEPOSIT_LIMITS_DEFAULT: Record<string, number> = {};
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -46,6 +62,12 @@ export interface MetaMaskPayFlags {
   stxDisabled: boolean;
 }
 
+export interface MetaMaskPayExtendedFlags {
+  enableDepositWalletWithdraw: boolean;
+  enableMoneyAccountTransactions: Record<string, boolean>;
+  defaultPaySelectedSection?: Record<string, string>;
+}
+
 export interface MetaMaskPayTokensFlags {
   preferredTokens: PreferredTokensConfig;
   blockedTokens: BlockedTokensConfig;
@@ -62,28 +84,26 @@ export interface PayPostQuoteFlags {
   overrides?: Record<string, PayPostQuoteConfig>;
 }
 
-export interface GasFeeTokenFlags {
-  gasFeeTokens: {
-    [chainId: Hex]: {
-      name: string;
-      tokens: {
-        name: string;
-        address: Hex;
-      }[];
-    };
-  };
+export interface MetaMaskPayFiatFlags {
+  enabledTransactionTypes: TransactionType[];
+  maxDelayMinutesForPaymentMethods: number;
 }
 
-export interface MetaMaskPayFiatFlags {
+export interface MetaMaskPayHardwareFlags {
   enabled: boolean;
 }
 
 export const selectMetaMaskPayFlags = createSelector(
   selectRemoteFeatureFlags,
-  (featureFlags): MetaMaskPayFlags => {
+  (featureFlags): MetaMaskPayFlags & MetaMaskPayExtendedFlags => {
     const metaMaskPayFlags = featureFlags?.confirmations_pay as
       | Record<string, Json>
       | undefined;
+
+    const metaMaskPayExtendedFlags =
+      featureFlags?.confirmations_pay_extended as
+        | Record<string, Json>
+        | undefined;
 
     const attemptsMax =
       (metaMaskPayFlags?.attemptsMax as number) ?? ATTEMPTS_MAX_DEFAULT;
@@ -103,6 +123,22 @@ export const selectMetaMaskPayFlags = createSelector(
     const stxDisabled =
       (metaMaskPayFlags?.stxDisabled as boolean) ?? STX_DISABLED_DEFAULT;
 
+    const enableDepositWalletWithdraw =
+      (metaMaskPayExtendedFlags?.enableDepositWalletWithdraw as boolean) ??
+      PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT;
+
+    const enableMoneyAccountTransactions =
+      (metaMaskPayExtendedFlags?.enableMoneyAccountTransactions as Record<
+        string,
+        boolean
+      >) ?? PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
+
+    const defaultPaySelectedSection =
+      (metaMaskPayExtendedFlags?.defaultPaySelectedSection as Record<
+        string,
+        string
+      >) ?? PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
+
     return {
       attemptsMax,
       bufferInitial,
@@ -110,9 +146,25 @@ export const selectMetaMaskPayFlags = createSelector(
       bufferSubsequent,
       slippage,
       stxDisabled,
+      enableDepositWalletWithdraw,
+      enableMoneyAccountTransactions,
+      defaultPaySelectedSection,
     };
   },
 );
+
+export function selectDepositLimits(state: RootState): Record<string, number> {
+  const featureFlags = selectRemoteFeatureFlags(state);
+
+  const metaMaskPayExtendedFlags = featureFlags?.confirmations_pay_extended as
+    | Record<string, Json>
+    | undefined;
+
+  return (
+    (metaMaskPayExtendedFlags?.depositLimit as Record<string, number>) ??
+    PAY_DEPOSIT_LIMITS_DEFAULT
+  );
+}
 
 export const selectMetaMaskPayTokensFlags = createSelector(
   selectRemoteFeatureFlags,
@@ -219,25 +271,6 @@ export const selectNonZeroUnusedApprovalsAllowList = createSelector(
     remoteFeatureFlags?.nonZeroUnusedApprovals ?? [],
 );
 
-export const selectGasFeeTokenFlags = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): GasFeeTokenFlags => {
-    const gasFeeTokenFlags =
-      remoteFeatureFlags?.confirmations_gas_fee_tokens as
-        | Record<string, Json>
-        | undefined;
-
-    const gasFeeTokens =
-      (gasFeeTokenFlags?.gasFeeTokens as
-        | GasFeeTokenFlags['gasFeeTokens']
-        | undefined) ?? {};
-
-    return {
-      gasFeeTokens,
-    };
-  },
-);
-
 export const selectMetaMaskPayFiatFlags = createSelector(
   selectRemoteFeatureFlags,
   (featureFlags): MetaMaskPayFiatFlags => {
@@ -246,7 +279,34 @@ export const selectMetaMaskPayFiatFlags = createSelector(
       | undefined;
 
     return {
-      enabled: (raw?.enabled as boolean) ?? PAY_FIAT_ENABLED_DEFAULT,
+      enabledTransactionTypes:
+        (raw?.enabledTransactionTypes as TransactionType[]) ??
+        PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods:
+        (raw?.maxDelayMinutesForPaymentMethods as number) ??
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
     };
   },
+);
+
+export const selectMetaMaskPayHardwareFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): MetaMaskPayHardwareFlags => {
+    const raw = featureFlags?.confirmations_pay_hardware as
+      | Record<string, Json>
+      | undefined;
+
+    return {
+      enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
+    };
+  },
+);
+
+export const selectRelayFixedSpread = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): RelayFixedSpreadConfig =>
+    getRelayFixedSpreadFromConfig(
+      featureFlags?.confirmations_relay_fixed_spread,
+      'confirmations_relay_fixed_spread',
+    ),
 );

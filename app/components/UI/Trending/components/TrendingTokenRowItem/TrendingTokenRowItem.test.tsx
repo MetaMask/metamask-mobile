@@ -1727,4 +1727,164 @@ describe('TrendingTokenRowItem', () => {
       expect(mockOnPress).not.toHaveBeenCalled();
     });
   });
+
+  describe('security badge', () => {
+    it('renders verified icon badge for verified tokens', () => {
+      const token = createMockToken({
+        securityData: {
+          resultType: 'Verified',
+          features: [],
+        } as unknown as TrendingAsset['securityData'],
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByTestId('security-badge-icon')).toBeOnTheScreen();
+    });
+
+    it('renders warning badge with label for warning tokens', () => {
+      const token = createMockToken({
+        securityData: {
+          resultType: 'Warning',
+          features: [],
+        } as unknown as TrendingAsset['securityData'],
+      });
+
+      const { getByText } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByText('Risky')).toBeOnTheScreen();
+    });
+
+    it('renders malicious badge with label for malicious tokens', () => {
+      const token = createMockToken({
+        securityData: {
+          resultType: 'Malicious',
+          features: [],
+        } as unknown as TrendingAsset['securityData'],
+      });
+
+      const { getByText } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByText('Malicious')).toBeOnTheScreen();
+    });
+
+    it('does not render badge for benign tokens', () => {
+      const token = createMockToken({
+        securityData: {
+          resultType: 'Benign',
+          features: [],
+        } as unknown as TrendingAsset['securityData'],
+      });
+
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(queryByTestId('security-badge-icon')).toBeNull();
+      expect(queryByText('Risky')).toBeNull();
+      expect(queryByText('Malicious')).toBeNull();
+    });
+
+    it('does not render badge when securityData is undefined', () => {
+      const token = createMockToken({
+        securityData: undefined,
+      });
+
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(queryByTestId('security-badge-icon')).toBeNull();
+      expect(queryByText('Risky')).toBeNull();
+      expect(queryByText('Malicious')).toBeNull();
+    });
+  });
+
+  describe('Quick Trade button (onQuickTrade)', () => {
+    it('does not render the quick trade button when onQuickTrade is not provided', () => {
+      const token = createMockToken();
+
+      const { queryByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(queryByTestId('quick-trade-button')).toBeNull();
+    });
+
+    it('renders the quick trade button when onQuickTrade is provided', () => {
+      const token = createMockToken();
+      const onQuickTrade = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        { state: mockState },
+        false,
+      );
+
+      expect(getByTestId('quick-trade-button')).toBeOnTheScreen();
+    });
+
+    it('calls onQuickTrade with the token when the button is pressed', () => {
+      const token = createMockToken();
+      const onQuickTrade = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        { state: mockState },
+        false,
+      );
+
+      fireEvent.press(getByTestId('quick-trade-button'));
+
+      expect(onQuickTrade).toHaveBeenCalledTimes(1);
+      expect(onQuickTrade).toHaveBeenCalledWith(token);
+    });
+
+    it('does not trigger row navigation when the quick trade button is pressed', async () => {
+      const token = createMockToken();
+      const onQuickTrade = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TrendingTokenRowItem token={token} onQuickTrade={onQuickTrade} />,
+        { state: mockState },
+        false,
+      );
+
+      fireEvent.press(getByTestId('quick-trade-button'));
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('memoization', () => {
+    it('is wrapped in React.memo to avoid re-renders in hot lists', () => {
+      // React.memo components expose the `react.memo` symbol on `$$typeof`.
+      // This guards against accidentally dropping the memo wrapper, which
+      // would re-render every row on each parent (price feed) update.
+      expect(
+        (TrendingTokenRowItem as unknown as { $$typeof?: symbol }).$$typeof,
+      ).toBe(Symbol.for('react.memo'));
+    });
+  });
 });

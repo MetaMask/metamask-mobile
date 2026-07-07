@@ -6,14 +6,14 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import OldButton, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
@@ -100,19 +100,21 @@ const ProtectYourWallet = ({
 
   return (
     <View style={[styles.setting, styles.firstSetting]}>
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('app_settings.protect_title')}
       </Text>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.protect_desc')}
         {!oauthFlow && !srpBackedup ? (
           <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Primary}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.PrimaryDefault}
             onPress={() => Linking.openURL(LEARN_MORE_URL)}
           >
             {' '}
@@ -164,7 +166,7 @@ const ProtectYourWallet = ({
         ) : (
           <Button
             isFullWidth
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             onPress={onRevealPressed}
             style={styles.accessory}

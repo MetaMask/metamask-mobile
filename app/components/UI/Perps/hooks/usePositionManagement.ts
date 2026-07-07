@@ -25,9 +25,9 @@ export interface UsePositionManagementReturn {
   showReversePositionSheet: boolean;
 
   // Bottom sheet refs
-  modifyActionSheetRef: React.RefObject<BottomSheetRef>;
-  adjustMarginActionSheetRef: React.RefObject<BottomSheetRef>;
-  reversePositionSheetRef: React.RefObject<BottomSheetRef>;
+  modifyActionSheetRef: React.RefObject<BottomSheetRef | null>;
+  adjustMarginActionSheetRef: React.RefObject<BottomSheetRef | null>;
+  reversePositionSheetRef: React.RefObject<BottomSheetRef | null>;
 
   // Action handlers
   openModifySheet: () => void;

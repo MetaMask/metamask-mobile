@@ -8,13 +8,14 @@ import { initialState as originThrottling } from '../../core/redux/slices/origin
 import { initialState as initialBridgeState } from '../../core/redux/slices/bridge';
 import { initialState as initialQrKeyringScannerState } from '../../core/redux/slices/qrKeyringScanner';
 import { initialState as initialCardState } from '../../core/redux/slices/card';
+import { initialState as initialMoneyBalanceState } from '../../core/redux/slices/moneyBalance';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
 import { initialOnboardingState } from '../../reducers/onboarding';
 import { initialState as initialPerformanceState } from '../../core/redux/slices/performance';
 import { initialState as initialSampleCounterState } from '../../features/SampleFeature/reducers/sample-counter';
-import { isTest } from './utils';
+import { isTestEnvironment } from './utils';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
 import { initialState as initialNetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
@@ -70,14 +71,19 @@ const initialRootState: RootState = {
   bridge: initialBridgeState,
   banners: {
     dismissedBanners: [],
+    lastDismissedBrazeBanner: null,
   },
   sampleCounter: initialSampleCounterState,
   card: initialCardState,
+  moneyBalance: initialMoneyBalanceState,
   rewards: initialRewardsState,
   networkConnectionBanner: initialNetworkConnectionBannerState,
+  attribution: {
+    attribution: null,
+  },
 };
 
-if (isTest) {
+if (isTestEnvironment) {
   initialRootState.performance = initialPerformanceState;
 }
 

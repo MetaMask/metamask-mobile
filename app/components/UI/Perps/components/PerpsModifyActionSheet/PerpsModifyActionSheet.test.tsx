@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsModifyActionSheet from './PerpsModifyActionSheet';
 import { type Position } from '@metamask/perps-controller';
+import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock dependencies
@@ -109,6 +110,7 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
 
 // Mock Box component
 jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
   Box: function MockBox({ children }: { children: React.ReactNode }) {
     const ReactModule = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
@@ -266,6 +268,23 @@ describe('PerpsModifyActionSheet', () => {
     );
 
     expect(screen.getByTestId('test-modify-sheet')).toBeOnTheScreen();
+  });
+
+  it('uses stable default testIDs when none are provided', () => {
+    render(
+      <PerpsModifyActionSheet
+        onClose={mockOnClose}
+        onActionSelect={mockOnActionSelect}
+        position={mockPosition}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsModifyActionSheetSelectorsIDs.SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsModifyActionSheetSelectorsIDs.FLIP_POSITION),
+    ).toBeOnTheScreen();
   });
 
   it('renders action items with correct testIDs', () => {

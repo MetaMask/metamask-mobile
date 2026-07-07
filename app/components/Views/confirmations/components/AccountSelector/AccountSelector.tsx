@@ -1,5 +1,11 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Modal,
+  StyleProp,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
@@ -14,6 +20,10 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
+  BottomSheet,
+  BottomSheetRef,
+  HeaderStandard,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -30,23 +40,36 @@ import {
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
 
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
   MODAL: 'account-selector-modal',
+  /** Used when `BottomSheet` is mocked in unit tests (production sheet has no wrapper testID). */
+  BOTTOM_SHEET: 'account-selector-bottom-sheet',
 };
 
 export interface AccountSelectorProps {
   selectedAddress?: string;
   onAccountSelected: (address: string) => void;
+  /** Label shown on the left side of the row. Defaults to the "To" i18n string. */
+  label?: string;
+  /** Title in the account selection bottom sheet (header). */
+  selectorTitle?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 const AccountSelector: React.FC<AccountSelectorProps> = ({
   selectedAddress,
   onAccountSelected,
+  label = strings('confirm.label.to'),
+  selectorTitle = strings('bridge.select_recipient'),
+  style,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-
-  const { styles, theme } = useStyles(stylesheet, {});
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const surfaceClass = useElevatedSurface();
+  const { styles } = useStyles(stylesheet, {});
 
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
@@ -59,6 +82,20 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     [internalAccountsById],
   );
 
+  const openModal = useCallback(() => setIsModalVisible(true), []);
+
+  const closeAccountSheet = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    setIsModalVisible(false);
+  }, []);
+
+  const handleModalRequestClose = useCallback(() => {
+    closeAccountSheet();
+  }, [closeAccountSheet]);
+
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       const internalAccountId = accountGroup.accounts.find((accountId) =>
@@ -67,10 +104,15 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       if (internalAccountId) {
         const internalAccount = internalAccountsById[internalAccountId];
         onAccountSelected(internalAccount.address);
-        setIsModalVisible(false);
+        closeAccountSheet();
       }
     },
-    [getIsAccountSupported, internalAccountsById, onAccountSelected],
+    [
+      closeAccountSheet,
+      getIsAccountSupported,
+      internalAccountsById,
+      onAccountSelected,
+    ],
   );
 
   const filteredAccountSections = useMemo(() => {
@@ -111,18 +153,33 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   const accountName = selectedAccountGroup?.metadata?.name;
 
-  const openModal = useCallback(() => setIsModalVisible(true), []);
-  const closeModal = useCallback(() => setIsModalVisible(false), []);
+  const displayLabel = useMemo(() => {
+    if (
+      !filteredAccountSections ||
+      filteredAccountSections.length <= 1 ||
+      !selectedAccountGroup
+    ) {
+      return label;
+    }
+
+    const walletName = filteredAccountSections
+      .find((section) =>
+        section.data.some((group) => group.id === selectedAccountGroup.id),
+      )
+      ?.title?.replace(/ accounts$/iu, '');
+
+    return walletName ? `${label} ${walletName}` : label;
+  }, [filteredAccountSections, selectedAccountGroup, label]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <TouchableOpacity
         onPress={openModal}
         style={styles.row}
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
       >
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('confirm.label.to')}
+          {displayLabel}
         </Text>
         <View style={styles.valueContainer}>
           {selectedAddress && accountName ? (
@@ -159,37 +216,57 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       </TouchableOpacity>
       <Modal
         visible={isModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeModal}
+        animationType="none"
+        transparent
+        presentationStyle="overFullScreen"
+        onRequestClose={handleModalRequestClose}
         testID={ACCOUNT_SELECTOR_TEST_IDS.MODAL}
       >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('bridge.select_recipient')}
-            </Text>
-            <TouchableOpacity onPress={closeModal}>
-              <Icon
-                name={IconName.Close}
-                size={IconSize.Md}
-                color={theme.colors.icon.default}
+        <View style={styles.modalRoot}>
+          <BottomSheet
+            testID={ACCOUNT_SELECTOR_TEST_IDS.BOTTOM_SHEET}
+            ref={bottomSheetRef}
+            isFullscreen
+            keyboardAvoidingViewEnabled={false}
+            onClose={handleSheetClosed}
+            twClassName={surfaceClass}
+          >
+            <HeaderStandard
+              title={selectorTitle}
+              onClose={() => closeAccountSheet()}
+            />
+            <View style={styles.modalSheetBody}>
+              <MultichainAccountSelectorList
+                selectedAccountGroups={
+                  selectedAccountGroup ? [selectedAccountGroup] : []
+                }
+                showFooter={false}
+                onSelectAccount={handleSelectAccount}
+                accountSections={filteredAccountSections}
+                hideAccountCellMenu
               />
-            </TouchableOpacity>
-          </View>
-          <MultichainAccountSelectorList
-            selectedAccountGroups={
-              selectedAccountGroup ? [selectedAccountGroup] : []
-            }
-            showFooter={false}
-            onSelectAccount={handleSelectAccount}
-            accountSections={filteredAccountSections}
-            hideAccountCellMenu
-          />
-        </SafeAreaView>
+            </View>
+          </BottomSheet>
+        </View>
       </Modal>
     </View>
   );
 };
+
+export function AccountSelectorSkeleton() {
+  const { styles } = useStyles(stylesheet, {});
+
+  return (
+    <View style={styles.container} testID="account-selector-skeleton">
+      <View style={styles.row}>
+        <Skeleton height={18} width={60} />
+        <View style={styles.valueContainer}>
+          <Skeleton height={32} width={32} twClassName="rounded-full" />
+          <Skeleton height={18} width={120} />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default AccountSelector;

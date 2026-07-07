@@ -23,6 +23,12 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = jest.requireMock('react-redux').useSelector;
 
+const buildReduxState = (options?: { seedphraseBackedUp?: boolean }) => ({
+  user: { seedphraseBackedUp: options?.seedphraseBackedUp ?? true },
+});
+
+type MockReduxState = ReturnType<typeof buildReduxState>;
+
 const mockHdKeyringsWithSnapAccounts = jest.fn();
 jest.mock('../../../../../hooks/useHdKeyringsWithSnapAccounts', () => ({
   useHdKeyringsWithSnapAccounts: () => mockHdKeyringsWithSnapAccounts(),
@@ -61,9 +67,8 @@ describe('ExportCredentials', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockUseSelector.mockImplementation(
-      (
-        callback: (state: { user: { seedphraseBackedUp: boolean } }) => boolean,
-      ) => callback({ user: { seedphraseBackedUp: true } }),
+      (selector: (state: MockReduxState) => unknown) =>
+        selector(buildReduxState()),
     );
   });
 
@@ -130,9 +135,8 @@ describe('ExportCredentials', () => {
 
   it('shows backup warning when seedphrase is not backed up', () => {
     mockUseSelector.mockImplementation(
-      (
-        callback: (state: { user: { seedphraseBackedUp: boolean } }) => boolean,
-      ) => callback({ user: { seedphraseBackedUp: false } }),
+      (selector: (state: MockReduxState) => unknown) =>
+        selector(buildReduxState({ seedphraseBackedUp: false })),
     );
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       {
@@ -151,7 +155,7 @@ describe('ExportCredentials', () => {
     ).toBeTruthy();
   });
 
-  it('navigates to SRP reveal quiz when export mnemonic is pressed', () => {
+  it('navigates to full-screen reveal SRP when export mnemonic is pressed', () => {
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       {
         accounts: ['0x123'],
@@ -169,10 +173,38 @@ describe('ExportCredentials', () => {
     );
     fireEvent.press(mnemonicButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-      keyringId: mockKeyringId,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      {
+        shouldUpdateNav: true,
+        keyringId: mockKeyringId,
+      },
+    );
+  });
+
+  it('does not navigate when export mnemonic is pressed but entropySource is missing', () => {
+    const accountWithoutEntropy = {
+      ...createMockInternalAccount('0x123', 'Test Account'),
+      options: {},
+    };
+    mockHdKeyringsWithSnapAccounts.mockReturnValue([
+      {
+        accounts: [accountWithoutEntropy.address],
+        metadata: { id: mockKeyringId },
+      },
+    ]);
+    mockIsHDOrFirstPartySnapAccount.mockReturnValue(true);
+    mockIsPrivateKeyAccount.mockReturnValue(false);
+
+    const { getByText } = render(
+      <ExportCredentials account={accountWithoutEntropy} />,
+    );
+
+    fireEvent.press(
+      getByText(`${strings('accounts.secret_recovery_phrase')} 1`),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to reveal private credential when export private key is pressed', () => {

@@ -31,6 +31,7 @@
   },
   "AnalyticsController": {
     "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+    "consentDecisionMade": false,
     "optedIn": false
   },
   "GatorPermissionsController": {
@@ -48,9 +49,6 @@
     "allTokens": {},
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
-  },
-  "TokenListController": {
-    "tokensChainsCache": {}
   },
   "CurrencyRateController": {
     "currentCurrency": "usd",
@@ -75,7 +73,8 @@
     },
     "networkConfigurationsByChainId": {
       "0x1": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
         "name": "Ethereum",
@@ -122,7 +121,8 @@
         ]
       },
       "0x38": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://bscscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x38",
         "defaultRpcEndpointIndex": 0,
         "name": "BNB Chain",
@@ -137,7 +137,8 @@
         ]
       },
       "0x89": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://polygonscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x89",
         "defaultRpcEndpointIndex": 0,
         "name": "Polygon",
@@ -152,7 +153,8 @@
         ]
       },
       "0xa": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://optimistic.etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xa",
         "defaultRpcEndpointIndex": 0,
         "name": "OP",
@@ -167,7 +169,8 @@
         ]
       },
       "0xa4b1": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://arbiscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xa4b1",
         "defaultRpcEndpointIndex": 0,
         "name": "Arbitrum",
@@ -182,7 +185,8 @@
         ]
       },
       "0xaa36a7": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://sepolia.etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xaa36a7",
         "defaultRpcEndpointIndex": 0,
         "name": "Sepolia",
@@ -197,7 +201,8 @@
         ]
       },
       "0xe705": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://sepolia.lineascan.build"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xe705",
         "defaultRpcEndpointIndex": 0,
         "name": "Linea Sepolia",
@@ -212,7 +217,8 @@
         ]
       },
       "0xe708": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://lineascan.build"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xe708",
         "defaultRpcEndpointIndex": 0,
         "name": "Linea",
@@ -227,7 +233,8 @@
         ]
       },
       "0x2105": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://basescan.org"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x2105",
         "defaultRpcEndpointIndex": 0,
         "name": "Base",
@@ -238,6 +245,22 @@
             "networkClientId": "base-mainnet",
             "type": "infura",
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x8f": {
+        "blockExplorerUrls": ["https://monadscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
+        "chainId": "0x8f",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Monad",
+        "nativeCurrency": "MON",
+        "rpcEndpoints": [
+          {
+            "failoverUrls": [],
+            "networkClientId": "monad-mainnet",
+            "type": "infura",
+            "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
       }
@@ -256,6 +279,7 @@
         "0x38": true,
         "0x531": true,
         "0x89": true,
+        "0x8f": true,
         "0xa": true,
         "0xa4b1": true,
         "0xe708": true
@@ -264,6 +288,10 @@
         "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
+      },
+      "stellar": {
+        "stellar:pubnet": true,
+        "stellar:testnet": false
       },
       "tron": {
         "tron:2494104990": false,
@@ -392,6 +420,11 @@
     "lastUpdated": null,
     "signature": null
   },
+  "SocialController": {
+    "followingAddresses": [],
+    "followingProfileIds": [],
+    "leaderboardEntries": []
+  },
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
@@ -416,7 +449,32 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsInfo": {},
+    "assetsInfo": {
+      "eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      },
+      "eip155:5042/erc20:0x3600000000000000000000000000000000000000": {
+        "decimals": 6,
+        "name": "USDC",
+        "symbol": "USDC",
+        "type": "erc20"
+      },
+      "eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
+        "decimals": 6,
+        "name": "MetaMask USD",
+        "symbol": "mUSD",
+        "type": "erc20"
+      }
+    },
     "assetsPrice": {},
     "customAssets": {},
     "selectedCurrency": "usd"
@@ -482,6 +540,7 @@
   },
   "SeedlessOnboardingController": {
     "isSeedlessOnboardingUserAuthenticated": false,
+    "migrationVersion": 0,
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
@@ -496,7 +555,8 @@
     "unapprovedTypedMessagesCount": 0
   },
   "AuthenticationController": {
-    "isSignedIn": false
+    "isSignedIn": false,
+    "needsProfilePairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -520,6 +580,7 @@
   },
   "ProfileMetricsController": {
     "initialEnqueueCompleted": false,
+    "proofBackfillEnqueued": false,
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -585,6 +646,18 @@
         "name": "Solana Devnet",
         "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
       },
+      "stellar:pubnet": {
+        "chainId": "stellar:pubnet",
+        "isEvm": false,
+        "name": "Stellar",
+        "nativeCurrency": "stellar:pubnet/slip44:148"
+      },
+      "stellar:testnet": {
+        "chainId": "stellar:testnet",
+        "isEvm": false,
+        "name": "Stellar Testnet",
+        "nativeCurrency": "stellar:testnet/slip44:148"
+      },
       "tron:2494104990": {
         "chainId": "tron:2494104990",
         "isEvm": false,
@@ -615,28 +688,50 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
+    "batchSellTrades": null,
+    "batchSellTradesLoadingStatus": null,
+    "inputPrimaryDenomination": "token_amount",
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
-    "quoteRequest": {
-      "srcTokenAddress": "0x0000000000000000000000000000000000000000"
-    },
+    "quoteRequest": [
+      {
+        "srcTokenAddress": "0x0000000000000000000000000000000000000000"
+      }
+    ],
     "quotes": [],
     "quotesInitialLoadTime": null,
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
-    "tokenWarnings": []
+    "inputPrimaryDenomination": "token_amount",
+    "tokenSecurityTypeDestination": null,
+    "tokenWarnings": [],
+    "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
+    "quoteUpdateStatusStore": {},
     "txHistory": {}
   },
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "cardHomeData": null,
+    "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
-    "providerData": {}
+    "providerData": {},
+    "moneyAccountCardLinkInProgress": false,
+    "lastUnauthenticatedReason": null
+  },
+  "ConfigRegistryController": {
+    "configs": { "networks": {} },
+    "etag": null,
+    "lastFetched": null,
+    "version": null
+  },
+  "ClientController": {
+    "isUiOpen": false
   },
   "ComplianceController": {},
   "ConnectivityController": {
@@ -695,7 +790,8 @@
         }
       ],
       "isEligible": false
-    }
+    },
+    "tron_staking": null
   },
   "DeFiPositionsController": {
     "allDeFiPositions": {},
@@ -715,11 +811,24 @@
     "ondoCampaignLeaderboardPositions": {},
     "ondoCampaignPortfolio": {},
     "ondoCampaignActivity": {},
+    "ondoCampaignDeposits": {},
     "ondoCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboard": {},
+    "perpsTradingCampaignLeaderboardPositions": {},
+    "perpsTradingCampaignVolume": {},
+    "predictThePitchLeaderboard": {},
+    "predictThePitchLeaderboardPositions": {},
+    "predictThePitchPositions": {},
+    "predictThePitchPrizePool": {},
+    "clientVersionRequirements": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
+    "subscriptionBenefits": {},
+    "vipDashboard": {},
+    "vipPerpsFees": {},
+    "vipRefereeDashboard": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -739,6 +848,13 @@
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
+  "QrSyncController": {
+    "phase": "idle",
+    "connectionStatus": "disconnected",
+    "otp": null,
+    "error": null,
+    "importPlan": null
+  },
   "AiDigestController": {
     "marketInsights": {},
     "marketOverview": null
@@ -748,7 +864,7 @@
     "countries": {
       "data": [],
       "selected": null,
-      "isLoading": false,
+      "isLoading": true,
       "error": null
     },
     "providerAutoSelected": false,
@@ -793,11 +909,20 @@
         }
       }
     },
-    "requests": {},
+    "requests": {
+      "getCountries:[]": {
+        "data": null,
+        "error": null,
+        "lastFetchedAt": 123,
+        "status": "loading",
+        "timestamp": 123
+      }
+    },
     "orders": [],
     "providerAutoSelected": false
   },
   "MoneyAccountController": {
     "moneyAccounts": {}
-  }
+  },
+  "MoneyAccountUpgradeController": {}
 }

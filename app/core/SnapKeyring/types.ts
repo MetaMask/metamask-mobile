@@ -1,6 +1,10 @@
 import { Messenger } from '@metamask/messenger';
 import { MaybeUpdateState, TestOrigin } from '@metamask/phishing-controller';
-import type { KeyringControllerGetAccountsAction } from '@metamask/keyring-controller';
+import type {
+  KeyringControllerGetAccountsAction,
+  KeyringControllerPersistAllKeyringsAction,
+  KeyringControllerRemoveAccountAction,
+} from '@metamask/keyring-controller';
 import { GetSubjectMetadata } from '@metamask/permission-controller';
 import {
   AccountsControllerGetAccountByAddressAction,
@@ -31,6 +35,8 @@ export type SnapKeyringBuilderAllowActions =
   | MaybeUpdateState
   | TestOrigin
   | KeyringControllerGetAccountsAction
+  | KeyringControllerPersistAllKeyringsAction
+  | KeyringControllerRemoveAccountAction
   | GetSubjectMetadata
   | AccountsControllerSetSelectedAccountAction
   | AccountsControllerGetAccountByAddressAction
@@ -44,3 +50,17 @@ export type SnapKeyringBuilderMessenger = Messenger<
   SnapKeyringBuilderAllowActions,
   never
 >;
+
+export enum WalletClientType {
+  ///: BEGIN:ONLY_INCLUDE_IF(solana)
+  Solana = 'solana',
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  Bitcoin = 'bitcoin',
+  ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  Tron = 'tron',
+  ///: END:ONLY_INCLUDE_IF
+}

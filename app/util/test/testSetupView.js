@@ -18,6 +18,39 @@ const getRandomValuesCompat = (arr) =>
     ? nodeCrypto.webcrypto.getRandomValues(arr)
     : (nodeCrypto.randomFillSync(arr), arr);
 
+// 0. Mock native-bridge modules that cannot load in Jest
+// --------------------------------------------------------
+
+jest.mock('react-native-mmkv', () => {
+  const createInMemoryMMKV = () => {
+    const store = new Map();
+    return {
+      getString: jest.fn((key) => store.get(key)),
+      set: jest.fn((key, value) => store.set(key, value)),
+      getBoolean: jest.fn((key) => store.get(key)),
+      getNumber: jest.fn((key) => store.get(key)),
+      delete: jest.fn((key) => store.delete(key)),
+      remove: jest.fn((key) => store.delete(key)),
+      contains: jest.fn((key) => store.has(key)),
+      clearAll: jest.fn(() => store.clear()),
+      getAllKeys: jest.fn(() => [...store.keys()]),
+      recrypt: jest.fn(),
+      trim: jest.fn(),
+    };
+  };
+
+  class MMKV {
+    constructor() {
+      const api = createInMemoryMMKV();
+      Object.assign(this, api);
+    }
+  }
+
+  return {
+    MMKV,
+  };
+});
+
 // 1. Essential React Native Infrastructure Mocks
 // ------------------------------------------------
 
@@ -50,11 +83,23 @@ jest.mock('react-native', () => {
   };
 
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
+
   return originalModule;
 });
 
 // --------------------------------------------------------------------------------
 // External Library Mocks & Test Environment Configuration
+// Shim: BackHandler.removeEventListener was removed in RN 0.75+.
+// Libraries like @metamask/design-system-react-native still call it.
+// Must be patched post-require (the jest.mock factory mutation doesn't persist).
+const ReactNativeView = require('react-native');
+if (!ReactNativeView.BackHandler.removeEventListener) {
+  ReactNativeView.BackHandler.removeEventListener = jest.fn();
+}
+if (ReactNativeView.Platform.Version == null) {
+  ReactNativeView.Platform.Version = '17.0';
+}
+
 // --------------------------------------------------------------------------------
 // We group non-React Native mocks here to ensure consistent behavior across tests.
 // These mocks replace native modules and external libraries that either:
@@ -71,6 +116,128 @@ jest.mock('redux-devtools-expo-dev-plugin', () => {});
 jest.mock('expo/fetch', () => ({
   fetch,
 }));
+
+// @metamask/perps-controller no longer exports MarketCategory / MARKET_CATEGORIES on
+// this branch, but Perps UI (pulled in via TransactionElement → Balance) still reads
+// them at module load. Stub the enum so component-view tests can import Activity views.
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual('@metamask/perps-controller');
+
+  return {
+    ...actual,
+    MarketCategory: {
+      CryptoCurrency: 'crypto',
+      Stock: 'stock',
+      PreIpo: 'pre-ipo',
+      Index: 'index',
+      Etf: 'etf',
+      Forex: 'forex',
+      Commodity: 'commodity',
+    },
+    MARKET_CATEGORIES: [
+      'crypto',
+      'stock',
+      'pre-ipo',
+      'forex',
+      'commodity',
+      'index',
+      'etf',
+    ],
+  };
+});
+
+/**
+ * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
+ * react-native-worklets, and requiring the real package eagerly initializes its
+ * native part (absent under Jest), throwing "Native part of Worklets doesn't
+ * seem to be initialized" the moment Reanimated is imported (transitively, e.g.
+ * via @metamask/design-system-react-native). The mock also installs
+ * `globalThis._getAnimationTimestamp` and a timestamp-correct
+ * `requestAnimationFrame` that animation tests rely on.
+ * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
+ */
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/lib/module/mock'),
+);
+
+// ActionSheetIOS is unavailable in Jest; use the custom sheet so CV tests can confirm options.
+jest.mock('@metamask/react-native-actionsheet', () => {
+  const React = jest.requireActual('react');
+  const { forwardRef, useImperativeHandle, useState } = React;
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+
+  return forwardRef(({ title, options, onPress, testID }, ref) => {
+    const [visible, setVisible] = useState(false);
+
+    useImperativeHandle(ref, () => ({
+      show: () => setVisible(true),
+      hide: () => setVisible(false),
+    }));
+
+    if (!visible) {
+      return null;
+    }
+
+    return (
+      <View testID={testID || 'action-sheet'}>
+        <Text>{title}</Text>
+        {options.map((option, index) => (
+          <TouchableOpacity
+            key={String(option)}
+            testID={`action-sheet-option-${index}`}
+            onPress={() => onPress(index)}
+          >
+            <Text>{option}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  });
+});
+
+jest.mock(
+  'react-native-keyboard-controller',
+  () => ({
+    KeyboardProvider: ({ children }) => children,
+    KeyboardAwareScrollView: require('react-native').ScrollView,
+    KeyboardGestureArea: require('react-native').View,
+    KeyboardStickyView: require('react-native').View,
+    KeyboardToolbar: require('react-native').View,
+    useKeyboardAnimation: () => ({
+      height: { value: 0 },
+      progress: { value: 0 },
+    }),
+    useReanimatedKeyboardAnimation: () => ({
+      height: { value: 0 },
+      progress: { value: 0 },
+    }),
+    useKeyboardHandler: () => undefined,
+    useGenericKeyboardHandler: () => undefined,
+    useKeyboardState: (selector) => {
+      const defaultState = {
+        isVisible: false,
+        height: 0,
+        duration: 0,
+        timestamp: 0,
+      };
+      return selector ? selector(defaultState) : defaultState;
+    },
+    KeyboardEvents: {
+      addListener: jest.fn(() => ({ remove: jest.fn() })),
+    },
+    KeyboardController: {
+      setInputMode: jest.fn(),
+      setDefaultMode: jest.fn(),
+    },
+    AndroidSoftInputModes: {
+      SOFT_INPUT_ADJUST_NOTHING: 0,
+      SOFT_INPUT_ADJUST_PAN: 1,
+      SOFT_INPUT_ADJUST_RESIZE: 2,
+      SOFT_INPUT_ADJUST_UNSPECIFIED: 3,
+    },
+  }),
+  { virtual: true },
+);
 
 // Reanimated setup is usually required for navigation/animations
 try {
@@ -106,7 +273,16 @@ jest.mock(
 );
 
 // Mock NativeEventEmitter to prevent crashes in Node environment
-jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
+jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
+  const NativeEventEmitter = jest.fn().mockImplementation(() => ({
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    removeListeners: jest.fn(),
+    removeAllListeners: jest.fn(),
+    listenerCount: jest.fn(() => 0),
+    emit: jest.fn(),
+  }));
+  return { __esModule: true, default: NativeEventEmitter };
+});
 
 // Mock react-native-quick-crypto
 jest.mock('react-native-quick-crypto', () => {
@@ -285,6 +461,7 @@ jest.mock('@segment/analytics-react-native', () => {
       IdentifyEvent: 'identify',
     },
     Plugin,
+    EventPlugin: Plugin,
     CountFlushPolicy,
     TimerFlushPolicy,
   };
@@ -607,3 +784,20 @@ jest.mock('../../components/Base/RemoteImage', () => {
   const { View } = require('react-native');
   return (props) => <View {...props} testID="mock-remote-image" />;
 });
+
+// Mock Braze SDK (ESM-only package; must be transformed via transformIgnorePatterns)
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    changeUser: jest.fn(),
+    getInitialPushPayload: jest.fn((callback) => {
+      // Call callback with null payload (no initial push)
+      if (typeof callback === 'function') {
+        callback(null);
+      }
+    }),
+    addListener: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+  },
+}));

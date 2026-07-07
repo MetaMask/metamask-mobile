@@ -4,47 +4,48 @@ import {
   AddContactViewSelectorsText,
 } from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds';
 import Gestures from '../../../framework/Gestures';
+import { EncapsulatedElementType, PlatformDetector } from '../../../framework';
 
 class AddContactView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.CONTAINER);
   }
 
-  get addButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
+  get addButton(): EncapsulatedElementType {
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
-  get editButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
+  get editButton(): EncapsulatedElementType {
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
   }
 
-  get editContact(): DetoxElement {
+  get editContact(): EncapsulatedElementType {
     return Matchers.getElementByText(AddContactViewSelectorsText.EDIT_CONTACT);
   }
 
-  get deleteButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
+  get deleteButton(): EncapsulatedElementType {
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }
 
-  get nameInput(): DetoxElement {
+  get nameInput(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.NAME_INPUT);
   }
 
-  get memoLabel(): DetoxElement {
+  get memoLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(AddContactViewSelectorsText.MEMO);
   }
 
-  get memoInput(): DetoxElement {
+  get memoInput(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.MEMO_INPUT);
   }
 
-  get addressInput(): DetoxElement {
+  get addressInput(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.ADDRESS_INPUT);
   }
 

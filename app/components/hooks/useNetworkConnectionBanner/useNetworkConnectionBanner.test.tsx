@@ -199,7 +199,7 @@ describe('useNetworkConnectionBanner', () => {
     // @ts-expect-error - Mocking Engine for testing
     Engine.context = mockEngine.context;
 
-    // Mock the useMetrics hook to return stable functions
+    // Mock the useAnalytics hook to return stable functions
     stableTrackEvent = jest.fn();
     mockAddProperties = jest.fn().mockReturnThis();
     mockBuild = jest.fn(() => ({ event: 'test-event', properties: {} }));
@@ -460,6 +460,36 @@ describe('useNetworkConnectionBanner', () => {
       });
     });
 
+    it('does not show the banner when only one Infura-backed network is failing while others are available', () => {
+      jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
+        visible: false,
+      });
+
+      // 0x1 (Mainnet, Infura) is failing; 0x89 (custom) is fine. Single
+      // registrable domain, no custom in the failed set, not all enabled
+      // networks are failing -> suppress.
+      const singleInfuraDownMetadata = {
+        [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Unavailable },
+        [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Available },
+      };
+
+      // @ts-expect-error - Mocking Engine for testing
+      Engine.context = {
+        NetworkController: {
+          ...mockNetworkController,
+          state: { networksMetadata: singleInfuraDownMetadata },
+        },
+      };
+
+      renderHookWithProvider();
+
+      act(() => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      expect(store.getActions()).toHaveLength(0);
+    });
+
     it('should not show banner if already visible for the same network', () => {
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
@@ -509,8 +539,9 @@ describe('useNetworkConnectionBanner', () => {
       });
     });
 
-    it('should update banner when problematic network changes', () => {
-      // Start with banner visible for 0x89
+    it('hides the banner when the previously failing custom network recovers and only one Infura network is now failing', () => {
+      // Start with banner visible for 0x89 (custom RPC) — the previous code
+      // path that fired the custom-override rule.
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: true,
         chainId: '0x89',
@@ -520,7 +551,9 @@ describe('useNetworkConnectionBanner', () => {
         isInfuraEndpoint: false,
       });
 
-      // Mock that 0x89 is now available but 0x1 is unavailable
+      // 0x89 recovers, only 0x1 (Infura) is now failing. This is a single-
+      // provider blip (one registrable domain, not all enabled networks down,
+      // no custom) so the banner should be suppressed.
       const updatedNetworkMetadata = {
         [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Unavailable },
         [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Available },
@@ -545,13 +578,7 @@ describe('useNetworkConnectionBanner', () => {
       const actions = store.getActions();
       expect(actions).toHaveLength(1);
       expect(actions[0]).toStrictEqual({
-        type: 'SHOW_NETWORK_CONNECTION_BANNER',
-        chainId: '0x1',
-        status: 'degraded',
-        networkName: 'Ethereum Mainnet',
-        rpcUrl: 'https://mainnet.infura.io/v3/test-infura-project-id',
-        isInfuraEndpoint: true,
-        infuraNetworkClientId: undefined,
+        type: 'HIDE_NETWORK_CONNECTION_BANNER',
       });
     });
 

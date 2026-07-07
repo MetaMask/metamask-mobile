@@ -1,5 +1,5 @@
 import React from 'react';
-import { userEvent, fireEvent } from '@testing-library/react-native';
+import { act, userEvent, fireEvent } from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import RWATokensFullView from './RWATokensFullView';
@@ -66,14 +66,22 @@ const createMockToken = (
 
 const arrangeMocks = () => {
   const mockRefetch = jest.fn();
+  const mockLoadMore = jest.fn();
 
   const setRwaTokensMock = (options: {
     data?: TrendingAsset[];
     isLoading?: boolean;
+    isLoadingMore?: boolean;
+    hasNextPage?: boolean;
+    totalCount?: number;
   }) => {
     mockUseRwaTokens.mockReturnValue({
       data: options.data ?? [],
       isLoading: options.isLoading ?? false,
+      isLoadingMore: options.isLoadingMore ?? false,
+      hasNextPage: options.hasNextPage ?? false,
+      totalCount: options.totalCount ?? options.data?.length ?? 0,
+      loadMore: mockLoadMore,
       refetch: mockRefetch,
     });
   };
@@ -82,6 +90,7 @@ const arrangeMocks = () => {
 
   return {
     mockRefetch,
+    mockLoadMore,
     mockGoBack,
     mockNavigate,
     setRwaTokensMock,
@@ -172,7 +181,7 @@ describe('RWATokensFullView', () => {
     expect(getByText('USDY Token')).toBeOnTheScreen();
   });
 
-  it('calls refetch when pull-to-refresh is triggered', () => {
+  it('calls refetch when pull-to-refresh is triggered', async () => {
     const stockTokens = [
       createMockToken({ name: 'OUSG', assetId: 'eip155:1/erc20:0xstock1' }),
     ];
@@ -185,7 +194,9 @@ describe('RWATokensFullView', () => {
     expect(getByTestId(TEST_IDS.tokensList)).toBeOnTheScreen();
     const { RefreshControl } = jest.requireActual('react-native');
     const refreshControl = UNSAFE_getByType(RefreshControl);
-    fireEvent(refreshControl, 'refresh');
+    await act(async () => {
+      fireEvent(refreshControl, 'refresh');
+    });
 
     expect(mocks.mockRefetch).toHaveBeenCalledTimes(1);
   });
@@ -202,6 +213,8 @@ describe('RWATokensFullView', () => {
   });
 
   it('opens price change bottom sheet when button is pressed', async () => {
+    const mocks = arrangeMocks();
+    mocks.setRwaTokensMock({ data: [createMockToken()] });
     const { getByTestId } = renderRWAFullView();
 
     const priceChangeButton = getByTestId('price-change-button');

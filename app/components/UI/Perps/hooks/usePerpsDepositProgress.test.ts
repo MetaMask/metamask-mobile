@@ -36,7 +36,8 @@ describe('usePerpsDepositProgress', () => {
     // Default mock for usePerpsLiveAccount
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '1000.00',
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
         returnOnEquity: '0.15',
@@ -208,7 +209,8 @@ describe('usePerpsDepositProgress', () => {
       // Act - Update balance to simulate deposit completion
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '1500.00', // Increased from 1000.00
+          spendableBalance: '1500.00', // Increased from 1000.00
+          withdrawableBalance: '1500.00', // Increased from 1000.00
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
@@ -221,6 +223,44 @@ describe('usePerpsDepositProgress', () => {
 
       // Assert
       expect(result.current.isDepositInProgress).toBe(false);
+    });
+
+    it('does not clear deposit in progress when only totalBalance increases from unrealized pnl', () => {
+      const { result, rerender } = renderHook(() => usePerpsDepositProgress());
+
+      act(() => {
+        const transactionHandler = mockSubscribe.mock.calls.find(
+          (call) =>
+            call[0] === 'TransactionController:transactionStatusUpdated',
+        )?.[1];
+        if (transactionHandler) {
+          transactionHandler({
+            transactionMeta: {
+              id: 'test-tx-id',
+              type: TransactionType.perpsDeposit,
+              status: TransactionStatus.approved,
+            } as TransactionMeta,
+          });
+        }
+      });
+
+      expect(result.current.isDepositInProgress).toBe(true);
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '1000.00',
+          withdrawableBalance: '1000.00',
+          marginUsed: '9000.00',
+          unrealizedPnl: '600.00',
+          returnOnEquity: '0.15',
+          totalBalance: '10600.00',
+        },
+        isInitialLoading: false,
+      });
+
+      rerender({});
+
+      expect(result.current.isDepositInProgress).toBe(true);
     });
 
     it('does not clear deposit in progress when balance decreases', () => {
@@ -249,7 +289,8 @@ describe('usePerpsDepositProgress', () => {
       // Act - Update balance to simulate decrease
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '500.00', // Decreased from 1000.00
+          spendableBalance: '500.00', // Decreased from 1000.00
+          withdrawableBalance: '500.00', // Decreased from 1000.00
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
@@ -290,7 +331,8 @@ describe('usePerpsDepositProgress', () => {
       // Act - Update balance to same value
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '1000.00', // Same as initial
+          spendableBalance: '1000.00', // Same as initial
+          withdrawableBalance: '1000.00', // Same as initial
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
@@ -319,11 +361,12 @@ describe('usePerpsDepositProgress', () => {
       expect(result.current.isDepositInProgress).toBe(false);
     });
 
-    it('handles undefined availableBalance gracefully', () => {
+    it('handles undefined spendableBalance gracefully', () => {
       // Arrange
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
@@ -407,7 +450,8 @@ describe('usePerpsDepositProgress', () => {
       // Act - Small increase in decimal balance
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '1000.01', // Small increase
+          spendableBalance: '1000.01', // Small increase
+          withdrawableBalance: '1000.01', // Small increase
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',

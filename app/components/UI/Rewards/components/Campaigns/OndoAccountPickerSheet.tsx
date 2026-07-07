@@ -17,7 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import { Hex } from '@metamask/utils';
-import { BigNumber } from 'bignumber.js';
 
 import Badge, {
   BadgeVariant,
@@ -32,10 +31,11 @@ import {
   type AccountPickerConfig,
 } from './OndoPortfolio';
 import { strings } from '../../../../../../locales/i18n';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface OndoAccountPickerSheetProps {
   pendingPicker: AccountPickerConfig;
-  sheetRef: React.RefObject<BottomSheetRef>;
+  sheetRef: React.RefObject<BottomSheetRef | null>;
   onClose: () => void;
   onGroupSelect: (group: AccountGroupObject) => void;
 }
@@ -48,18 +48,14 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
 }) => {
   const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
   const { height: screenHeight } = useWindowDimensions();
+  const surfaceClass = useElevatedSurface();
   const listStyle = useMemo(
     () => ({ maxHeight: screenHeight * 0.4 }),
     [screenHeight],
   );
 
   return (
-    <BottomSheet
-      shouldNavigateBack={false}
-      onClose={onClose}
-      goBack={onClose}
-      ref={sheetRef}
-    >
+    <BottomSheet onClose={onClose} ref={sheetRef} twClassName={surfaceClass}>
       <BottomSheetHeader
         onClose={() => sheetRef.current?.onCloseBottomSheet(onClose)}
       >
@@ -93,12 +89,7 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
             />
           </BadgeWrapper>
           <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-            {` ${pendingPicker.row.tokenSymbol} ${pendingPicker.entries
-              .reduce(
-                (sum, e) => sum.plus(new BigNumber(e.balance)),
-                new BigNumber(0),
-              )
-              .toFixed(2)}`}
+            {` ${pendingPicker.row.tokenSymbol}`}
           </Text>
         </Box>
       </BottomSheetHeader>

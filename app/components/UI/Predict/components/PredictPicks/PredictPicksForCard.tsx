@@ -2,7 +2,6 @@ import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import type { PredictPosition } from '../../types';
 import PredictPicksForCardItem from './PredictPicksForCardItem';
 import {
@@ -33,14 +32,13 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
 }) => {
   const { data: fetchedPositions = [] } = usePredictPositions({
     marketId,
-    refetchInterval: positionsProp ? undefined : 10000,
     enabled: !positionsProp,
+    livePriceUpdates: !positionsProp,
   });
 
   const basePositions = positionsProp ?? fetchedPositions;
-  const { livePositions } = usePredictLivePositions(basePositions);
 
-  if (livePositions.length === 0) {
+  if (basePositions.length === 0) {
     return null;
   }
 
@@ -52,7 +50,7 @@ const PredictPicksForCard: React.FC<PredictPicksForCardProps> = ({
           twClassName="h-px bg-border-muted my-2"
         />
       )}
-      {livePositions.map((position) => (
+      {basePositions.map((position) => (
         <PredictPicksForCardItem
           key={position.id}
           position={position}

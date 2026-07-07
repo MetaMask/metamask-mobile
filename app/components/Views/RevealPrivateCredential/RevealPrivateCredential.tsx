@@ -12,10 +12,13 @@ import {
   useRoute,
   StackActions,
 } from '@react-navigation/native';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
   BannerBase,
   Box,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -55,14 +58,15 @@ import {
   RevealPrivateCredentialRouteProp,
   RevealSrpStage,
 } from './types';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-
 const RevealPrivateCredential = ({
   cancel,
   showCancelButton,
 }: IRevealPrivateCredentialProps) => {
   const navigation = useNavigation();
   const route = useRoute<RevealPrivateCredentialRouteProp>();
+  const tabBarHeight = useContext(BottomTabBarHeightContext);
+  const { bottom: safeAreaBottom } = useSafeAreaInsets();
+  const bottomSpacing = tabBarHeight ?? safeAreaBottom;
   const hasNavigation = !cancel;
   const shouldUpdateNav = route?.params?.shouldUpdateNav;
   const keyringId = route?.params?.keyringId;
@@ -387,10 +391,11 @@ const RevealPrivateCredential = ({
 
   return (
     <Box
-      twClassName="flex-1 pb-4 h-full bg-default"
+      twClassName="flex-1 h-full bg-default"
+      style={{ paddingBottom: bottomSpacing }}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('reveal_credential.seed_phrase_title')}
         onBack={headerNavigationBack}
         backButtonProps={{

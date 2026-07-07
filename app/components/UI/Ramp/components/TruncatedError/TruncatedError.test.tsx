@@ -49,23 +49,22 @@ describe('TruncatedError', () => {
   });
 
   describe('Basic rendering', () => {
-    it('renders correctly and matches snapshot', () => {
-      const { toJSON } = render(
+    it('renders the error text', () => {
+      const { getByText } = render(
         <TruncatedError error="This is a test error message" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('This is a test error message')).toBeOnTheScreen();
     });
 
     it('renders with custom maxLines prop', () => {
-      const { toJSON } = render(
+      const { getByText } = render(
         <TruncatedError error="This is a test error message" maxLines={3} />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('This is a test error message')).toBeOnTheScreen();
     });
 
     it('renders an empty error string', () => {
-      const { toJSON } = render(<TruncatedError error="" />);
-      expect(toJSON()).toMatchSnapshot();
+      render(<TruncatedError error="" />);
     });
   });
 
@@ -78,14 +77,11 @@ describe('TruncatedError', () => {
 
     it('displays the error text after measurement confirms it fits', () => {
       const shortError = 'Short error message';
-      const { getByText, toJSON } = render(
-        <TruncatedError error={shortError} />,
-      );
+      const { getByText } = render(<TruncatedError error={shortError} />);
 
       triggerFitsMeasurement(getByText, shortError);
 
       expect(getByText(shortError)).toBeOnTheScreen();
-      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -94,14 +90,11 @@ describe('TruncatedError', () => {
       'This is a very long error message that should be truncated when displayed because it exceeds the maximum number of lines allowed.';
 
     it('shows fallback text when error is truncated', () => {
-      const { getByText, toJSON } = render(
-        <TruncatedError error={longError} />,
-      );
+      const { getByText } = render(<TruncatedError error={longError} />);
 
       triggerTruncation(getByText, longError, longError);
 
       expect(getByText("We've encountered an error")).toBeOnTheScreen();
-      expect(toJSON()).toMatchSnapshot();
     });
 
     it('does not oscillate when a short error is truncated and fallback is longer', () => {
@@ -133,7 +126,7 @@ describe('TruncatedError', () => {
       });
 
       expect(getByText("We've encountered an error")).toBeOnTheScreen();
-      expect(queryByText(shortError)).toBeNull();
+      expect(queryByText(shortError)).not.toBeOnTheScreen();
     });
 
     it('still navigates with the full error message when truncated', () => {

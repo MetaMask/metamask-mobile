@@ -1,4 +1,4 @@
-import { FlaskBuildTests } from '../../tags';
+import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -8,13 +8,14 @@ import { Assertions, Matchers } from '../../framework';
 
 jest.setTimeout(150_000);
 
-describe(FlaskBuildTests('Image Snap Tests'), () => {
+describe(SmokeSnaps('Image Snap Tests'), () => {
   it('can connect to the Image Snap', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -31,6 +32,7 @@ describe(FlaskBuildTests('Image Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('showSVGImage');
@@ -48,6 +50,7 @@ describe(FlaskBuildTests('Image Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('showPNGImage');

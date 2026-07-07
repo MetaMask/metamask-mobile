@@ -6,7 +6,7 @@ import {
 import {
   MOCK_CREDIT_DEBIT_CARD,
   MOCK_USDC_TOKEN,
-} from '../../components/UI/Ramp/Deposit/testUtils/constants';
+} from '../../components/UI/Ramp/testUtils/constants';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
@@ -57,9 +57,8 @@ import fiatOrderReducer, {
   removeFiatSellTxHash,
   getOrdersProviders,
   getDetectedGeolocation,
-  getRampRoutingDecision,
-  setRampRoutingDecision,
-  UnifiedRampRoutingType,
+  setHasAgreedTransakNativePolicy,
+  selectHasAgreedTransakNativePolicy,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -415,6 +414,29 @@ describe('fiatOrderReducer', () => {
     );
     expect(stateWithStartedTrue.getStartedDeposit).toEqual(true);
     expect(stateWithStartedFalse.getStartedDeposit).toEqual(false);
+  });
+
+  it('sets hasAgreedTransakNativePolicy to true', () => {
+    const next = fiatOrderReducer(
+      initialState,
+      setHasAgreedTransakNativePolicy(true),
+    );
+
+    expect(next.hasAgreedTransakNativePolicy).toEqual(true);
+  });
+
+  it('sets hasAgreedTransakNativePolicy to false', () => {
+    const agreedState = {
+      ...initialState,
+      hasAgreedTransakNativePolicy: true,
+    };
+
+    const next = fiatOrderReducer(
+      agreedState,
+      setHasAgreedTransakNativePolicy(false),
+    );
+
+    expect(next.hasAgreedTransakNativePolicy).toEqual(false);
   });
 
   it('should set the selected region', () => {
@@ -844,35 +866,6 @@ describe('fiatOrderReducer', () => {
 
     expect(stateWithoutChanges).toEqual(stateWithOrder1);
   });
-
-  it('sets the ramp routing decision', () => {
-    const stateWithRoutingDecision = fiatOrderReducer(
-      initialState,
-      setRampRoutingDecision(UnifiedRampRoutingType.AGGREGATOR),
-    );
-    expect(stateWithRoutingDecision.rampRoutingDecision).toBe(
-      UnifiedRampRoutingType.AGGREGATOR,
-    );
-
-    const stateWithDifferentDecision = fiatOrderReducer(
-      stateWithRoutingDecision,
-      setRampRoutingDecision(UnifiedRampRoutingType.DEPOSIT),
-    );
-    expect(stateWithDifferentDecision.rampRoutingDecision).toBe(
-      UnifiedRampRoutingType.DEPOSIT,
-    );
-  });
-
-  it('sets the ramp routing decision to null', () => {
-    const stateWithRoutingDecision = fiatOrderReducer(
-      {
-        ...initialState,
-        rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR,
-      },
-      setRampRoutingDecision(null),
-    );
-    expect(stateWithRoutingDecision.rampRoutingDecision).toBeNull();
-  });
 });
 
 describe('selectors', () => {
@@ -1087,6 +1080,34 @@ describe('selectors', () => {
       });
 
       expect(fiatOrdersGetStartedDeposit(state)).toEqual(true);
+    });
+  });
+
+  describe('selectHasAgreedTransakNativePolicy', () => {
+    it('returns true for state with hasAgreedTransakNativePolicy true', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          hasAgreedTransakNativePolicy: true,
+        },
+      });
+
+      expect(selectHasAgreedTransakNativePolicy(state)).toEqual(true);
+    });
+
+    it('returns false for state with hasAgreedTransakNativePolicy false', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: {
+          hasAgreedTransakNativePolicy: false,
+        },
+      });
+
+      expect(selectHasAgreedTransakNativePolicy(state)).toEqual(false);
+    });
+
+    it('returns false for initial root state default fiatOrders', () => {
+      expect(selectHasAgreedTransakNativePolicy(initialRootState)).toEqual(
+        false,
+      );
     });
   });
 
@@ -2593,59 +2614,6 @@ describe('selectors', () => {
         },
       });
       expect(getDetectedGeolocation(state)).toBeUndefined();
-    });
-  });
-
-  describe('getRampRoutingDecision', () => {
-    it('returns the ramp routing decision', () => {
-      const state = merge({}, initialRootState, {
-        fiatOrders: {
-          rampRoutingDecision: UnifiedRampRoutingType.AGGREGATOR,
-        },
-      });
-      expect(getRampRoutingDecision(state)).toBe(
-        UnifiedRampRoutingType.AGGREGATOR,
-      );
-    });
-
-    it('returns null when ramp routing decision is not set', () => {
-      const state = merge({}, initialRootState, {
-        fiatOrders: {
-          rampRoutingDecision: null,
-        },
-      });
-      expect(getRampRoutingDecision(state)).toBeNull();
-    });
-
-    it('returns the DEPOSIT routing decision', () => {
-      const state = merge({}, initialRootState, {
-        fiatOrders: {
-          rampRoutingDecision: UnifiedRampRoutingType.DEPOSIT,
-        },
-      });
-      expect(getRampRoutingDecision(state)).toBe(
-        UnifiedRampRoutingType.DEPOSIT,
-      );
-    });
-
-    it('returns the UNSUPPORTED routing decision', () => {
-      const state = merge({}, initialRootState, {
-        fiatOrders: {
-          rampRoutingDecision: UnifiedRampRoutingType.UNSUPPORTED,
-        },
-      });
-      expect(getRampRoutingDecision(state)).toBe(
-        UnifiedRampRoutingType.UNSUPPORTED,
-      );
-    });
-
-    it('returns the ERROR routing decision', () => {
-      const state = merge({}, initialRootState, {
-        fiatOrders: {
-          rampRoutingDecision: UnifiedRampRoutingType.ERROR,
-        },
-      });
-      expect(getRampRoutingDecision(state)).toBe(UnifiedRampRoutingType.ERROR);
     });
   });
 });

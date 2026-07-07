@@ -32,6 +32,8 @@ export interface HardwareWalletRefs {
   abortControllerRef: React.MutableRefObject<AbortController | null>;
   /** Synchronously-updated mirror of targetWalletType for use in callbacks. */
   targetWalletTypeRef: React.MutableRefObject<HardwareWalletType | null>;
+  /** Synchronously-updated mirror of the pending operation wallet type for signing flows. */
+  pendingOperationWalletTypeRef: React.MutableRefObject<HardwareWalletType | null>;
 }
 
 /** State setter functions exposed by the state manager. */
@@ -43,6 +45,9 @@ export interface HardwareWalletStateSetters {
   setTargetWalletType: React.Dispatch<
     React.SetStateAction<HardwareWalletType | null>
   >;
+  setPendingOperationWalletType: (
+    walletType: HardwareWalletType | null,
+  ) => void;
 }
 
 /** Return value of the {@link useHardwareWalletStateManager} hook. */
@@ -82,6 +87,9 @@ export const useHardwareWalletStateManager =
     const isConnectingRef = useRef<boolean>(false);
     const abortControllerRef = useRef<AbortController | null>(null);
     const targetWalletTypeRef = useRef<HardwareWalletType | null>(null);
+    const pendingOperationWalletTypeRef = useRef<HardwareWalletType | null>(
+      null,
+    );
 
     const selectedAccount = useSelector(selectSelectedInternalAccount);
 
@@ -105,6 +113,7 @@ export const useHardwareWalletStateManager =
         isConnectingRef,
         abortControllerRef,
         targetWalletTypeRef,
+        pendingOperationWalletTypeRef,
       }),
       [],
     );
@@ -121,13 +130,21 @@ export const useHardwareWalletStateManager =
       [],
     );
 
+    const setPendingOperationWalletType = useCallback(
+      (nextWalletType: HardwareWalletType | null) => {
+        pendingOperationWalletTypeRef.current = nextWalletType;
+      },
+      [],
+    );
+
     const setters = useMemo<HardwareWalletStateSetters>(
       () => ({
         setConnectionState,
         setDeviceId,
         setTargetWalletType: setTargetWalletTypeSync,
+        setPendingOperationWalletType,
       }),
-      [setTargetWalletTypeSync],
+      [setPendingOperationWalletType, setTargetWalletTypeSync],
     );
 
     const resetState = useCallback(() => {
@@ -135,6 +152,7 @@ export const useHardwareWalletStateManager =
       setDeviceId(null);
       setTargetWalletType(null);
       targetWalletTypeRef.current = null;
+      pendingOperationWalletTypeRef.current = null;
       isConnectingRef.current = false;
       adapterRef.current = null;
 

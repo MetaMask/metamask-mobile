@@ -94,7 +94,7 @@ describe('ExperimentalSettings', () => {
   });
 
   it('should render correctly', () => {
-    const wrapper = render(
+    const { getByText } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <ExperimentalSettings
@@ -106,10 +106,12 @@ describe('ExperimentalSettings', () => {
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(
+      getByText(strings('app_settings.experimental_title')),
+    ).toBeOnTheScreen();
   });
 
-  it('renders inline HeaderCompactStandard with title and back button', () => {
+  it('renders inline HeaderStandard with title and back button', () => {
     const { getByTestId, getByText } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>

@@ -15,32 +15,41 @@ on:
       metamask_environment:
         description: 'The environment to build for'
         required: false
-        default: 'qa'
+        default: 'e2e'
         type: string
-
-permissions:
-  contents: read
-  id-token: write
+      source-fingerprint:
+        description: >-
+          Canonical @expo/fingerprint hash for this commit, computed once in
+          the `native-build-fingerprint` job. Used for cache keys and cross-run
+          artifact lookups. When empty (e.g. forked PR where the hash job is
+          skipped), the build compiles fresh with no cache reuse.
+        required: false
+        default: ''
+        type: string
+      runner_provider:
+        description: Runner provider forwarded from the caller
+        required: false
+        type: string
+        default: current
 
 jobs:
   build-ios-apps:
     name: Build iOS E2E Apps
-    runs-on: ghcr.io/cirruslabs/macos-runner:tahoe-xl
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || inputs.runner_provider == 'bitrise' && (vars.BITRISE_BUILD_MACHINE_TYPE != '' && fromJSON(format('["bitrise_pool_name:bitrise-metamask-ios-build","{0}"]', vars.BITRISE_BUILD_MACHINE_TYPE)) || 'bitrise_pool_name:bitrise-metamask-ios-build') || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl", "low-priority"]')) }}
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
-      app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
-      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+      app-uploaded: ${{ steps.upload-app-namespace.outcome == 'success' || steps.upload-app.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap-namespace.outcome == 'success' || steps.upload-sourcemap.outcome == 'success' }}
     env:
-      # Bump these to bust the respective caches and force a full rebuild
-      XCODE_CACHE_VERSION: 1
       IOS_APP_CACHE_VERSION: 2
+      XCODE_CACHE_VERSION: 1
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
       GITHUB_CI: 'true' # This ensures it's available during pod install
       PLATFORM: ios
       METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
       METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-      IS_TEST: true
+      HAS_TEST_OVERRIDES: true
       E2E: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: true
       CI: 'true'
@@ -52,6 +61,7 @@ jobs:
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       YARN_ENABLE_GLOBAL_CACHE: 'true'
       MM_POOLED_STAKING_ENABLED: 'true'
+      E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-ios-build-metadata
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -60,11 +70,6 @@ jobs:
       SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
       MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
       MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-      MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-      MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
       GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
@@ -72,11 +77,242 @@ jobs:
 
     steps:
       # Get the source code from the repository
+      - name: Checkout repo (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        with:
+          # BITRISE-SHADOW: preserve prewarmed node_modules / Pods (INFRA-3679)
+          clean: ${{ inputs.runner_provider != 'bitrise' }}
+
+      # Bitrise Build Hub VMs use Vagrant (user=vagrant, HOME=/Users/vagrant).
+      # GitHub Actions tooling expects /Users/runner — symlink for compatibility (INFRA-3591 POC).
+      - name: Fix Vagrant environment paths (Bitrise runners)
+        if: ${{ inputs.runner_provider == 'bitrise' }}
+        run: |
+          if [ -L /Users/runner ]; then
+            current_target="$(readlink /Users/runner)"
+            if [ "$current_target" = "/Users/vagrant" ]; then
+              echo "Symlink already correct: /Users/runner -> /Users/vagrant"
+            else
+              echo "Replacing incorrect symlink /Users/runner -> $current_target"
+              sudo rm /Users/runner
+              sudo ln -s /Users/vagrant /Users/runner
+              echo "Recreated symlink: /Users/runner -> /Users/vagrant"
+            fi
+          elif [ -e /Users/runner ]; then
+            echo "Error: /Users/runner exists but is not a symlink"
+            ls -ld /Users/runner
+            exit 1
+          else
+            sudo ln -s /Users/vagrant /Users/runner
+            echo "Created symlink /Users/runner -> /Users/vagrant"
+          fi
+          mkdir -p "$HOME/hostedtoolcache" "$HOME/tmp"
+          echo "RUNNER_TOOL_CACHE=$HOME/hostedtoolcache" >> "$GITHUB_ENV"
+          echo "RUNNER_TEMP=$HOME/tmp" >> "$GITHUB_ENV"
+        shell: bash
+
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          cache: |
+            cocoapods
+            xcode
+          path: |
+            ~/.cache/yarn
+            .metamask
+            .yarn/cache
+
+      - name: Check force-builds override
+        id: force-builds
+        uses: ./.github/actions/check-force-builds
+        with:
+          github-token: ${{ github.token }}
+
+      - name: Report source fingerprint
+        run: |
+          if [[ -z "$SOURCE_FINGERPRINT" ]]; then
+            echo "::warning::No source-fingerprint provided (likely a forked PR); artifact reuse disabled."
+          else
+            echo "Source fingerprint: $SOURCE_FINGERPRINT"
+          fi
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+
+      - name: Find reusable build from prior run
+        id: find-reusable-build
+        # Match Android: skip cross-run GitHub artifact reuse on Namespace until backend parity is proven.
+        # BITRISE-SHADOW: skip GitHub artifact reuse; Bitrise uses actions/cache app fingerprint cache (INFRA-3591).
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source-fingerprint }}
+          artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          metadata-artifact-name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          github-token: ${{ github.token }}
+
+      - name: Download reusable iOS build metadata from prior run
+        id: download-reusable-metadata
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-reusable-metadata/ios
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Validate reusable iOS build metadata
+        id: validate-reusable-metadata
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        shell: bash
+        env:
+          EXPECTED_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          EXPECTED_BUILD_TYPE: ${{ inputs.build_type }}
+          EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          EXPECTED_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build.outputs.source-sha }}
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          METADATA_FILE: .e2e-reusable-metadata/ios/ios.json
+        run: |
+          set -euo pipefail
+          echo "valid=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ steps.download-reusable-metadata.outcome }}" != "success" ]]; then
+            echo "::warning::Reusable iOS metadata download failed; falling back to fresh native build."
+            exit 0
+          fi
+          if [[ ! -f "$METADATA_FILE" ]]; then
+            echo "::warning::Reusable iOS metadata file missing at $METADATA_FILE; falling back to fresh native build."
+            exit 0
+          fi
+          if jq -e \
+            --arg fingerprint "$EXPECTED_FINGERPRINT" \
+            --arg buildType "$EXPECTED_BUILD_TYPE" \
+            --arg metamaskEnvironment "$EXPECTED_METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$EXPECTED_RUN_ID" \
+            --arg headSha "$EXPECTED_HEAD_SHA" \
+            --argjson artifactNames "$EXPECTED_ARTIFACTS" \
+            '.schemaVersion == 1
+              and .fingerprint == $fingerprint
+              and .platform == "ios"
+              and .buildType == $buildType
+              and .metamaskEnvironment == $metamaskEnvironment
+              and .workflowRunId == $workflowRunId
+              and .headSha == $headSha
+              and .artifactNames == $artifactNames' "$METADATA_FILE" >/dev/null; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Reusable iOS metadata is valid."
+          else
+            echo "::warning::Reusable iOS metadata did not match current build request; falling back to fresh native build."
+            cat "$METADATA_FILE"
+          fi
+
+      - name: Download reusable iOS build from prior run
+        id: download-reusable-app
+        if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Log reused iOS build source
+        if: ${{ steps.download-reusable-app.outcome == 'success' }}
+        run: |
+          echo "Reusing iOS build from run ${{ steps.find-reusable-build.outputs.run-id }}"
+          echo "Source SHA: ${{ steps.find-reusable-build.outputs.source-sha }}"
+          echo "Source branch: ${{ steps.find-reusable-build.outputs.source-branch }}"
+        shell: bash
+
+      - name: Compute native-build gate
+        id: gate
+        run: |
+          if [[ "${{ inputs.runner_provider }}" == "bitrise" && "${{ vars.BITRISE_FORCE_NATIVE_BUILD }}" == "true" ]]; then
+            echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+            echo "BITRISE_FORCE_NATIVE_BUILD=true — skipping GitHub artifact reuse to exercise Bitrise RN Build Cache."
+          elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+             && "${{ steps.validate-reusable-metadata.outputs.valid }}" == "true" \
+             && "${{ steps.download-reusable-app.outcome }}" == "success" ]]; then
+            echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+            echo "Reuse path active (cross-run artifact download succeeded); heavy native setup will be skipped."
+          else
+            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" && "${{ steps.validate-reusable-metadata.outputs.valid }}" != "true" ]]; then
+              echo "::warning::Reusable run was found but metadata validation failed; falling back to fresh native build."
+            elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
+              echo "::warning::Reusable run was found but artifact download failed (outcome=${{ steps.download-reusable-app.outcome }}); falling back to fresh native build."
+            fi
+            echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+            echo "No reuse path; full native build + setup will run."
+          fi
+        shell: bash
+
+      - name: Write iOS E2E reuse summary
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
+          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          APP_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-app.outcome }}
+          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          value() {
+            if [[ -n "${1:-}" ]]; then
+              printf '%s' "$1"
+            else
+              printf 'n/a'
+            fi
+          }
+
+          yes_no() {
+            case "${1:-}" in
+              true) printf 'yes' ;;
+              *) printf 'no' ;;
+            esac
+          }
+
+          github_candidate="$(yes_no "$REUSABLE_FOUND")"
+          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
+            github_candidate="yes ([https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID))"
+          fi
+
+          decision="Fresh native build"
+          if [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+            decision="GitHub artifact reuse"
+          fi
+
+          {
+            echo "### iOS E2E build reuse"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Decision | $decision |"
+            echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
+            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
+            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
+            echo "| GitHub artifact candidate | $github_candidate |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # -------------------------------------------------------------------------
+      # Heavy native setup — only runs on a full native-build path.
+      # -------------------------------------------------------------------------
+
+      # Bitrise skips cirruslabs DerivedData caches below; RN Build Cache replaces them (INFRA-3591).
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -86,9 +322,8 @@ jobs:
           key: ${{ runner.os }}-xcode-${{ github.ref_name }}-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
       - name: Restore Xcode derived data from main cache
-        if: ${{ steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: xcode-restore-cache-main
-        # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
@@ -96,15 +331,27 @@ jobs:
             ios/build
           key: ${{ runner.os }}-xcode-main-${{ env.XCODE_CACHE_VERSION }}-${{ hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
 
-      # Install Node.js, Xcode tools, and other iOS development dependencies
+      # Namespace's built-in cocoapods preset handles the CocoaPods cache paths upstream.
+      # Validated to work without a separate stale-state clear step (A/B tested 2026-05-11).
+      - name: Configure Namespace iOS cache
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' && inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
+        with:
+          cache: cocoapods
+
+      # Install Node.js, Xcode tools, and other iOS development dependencies.
       - name: Installing iOS Environment Setup
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ios
           setup-simulator: false
+          install-foundry: false
+          runner_provider: ${{ inputs.runner_provider }}
 
       - name: Print iOS tool versions
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           echo "🔧 Node.js Version:"
           node -v || echo "Node not found"
@@ -120,20 +367,20 @@ jobs:
 
       # Clean iOS plist files to prevent extended attribute issues
       - name: Clean iOS plist files
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
       - name: Restore .metamask folder
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: restore-metamask
         uses: actions/cache@v4
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
-      - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
-        run: yarn install:foundryup
       # Run project setup with retry for better resilience
       - name: Setup project dependencies with retry
+        if: ${{ steps.gate.outputs.needs-native-build == 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -143,46 +390,139 @@ jobs:
             echo "🚀 Setting up project..."
             yarn setup:github-ci --build-ios --no-build-android
 
-      # Generate fingerprint AFTER setup but BEFORE any build modifications
+      - name: Setup Node.js (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.16.0'
+
+      - name: Enable corepack (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        run: |
+          corepack enable
+          corepack prepare yarn@3.8.7 --activate
+        shell: bash
+
+      - name: Restore yarn cache (reuse-hit path)
+        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+          key: e2e-yarn-ios-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+
+      - name: Install JS dependencies (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          YARN_ENABLE_GLOBAL_CACHE: 'true'
+
+      - name: Restore .metamask folder (reuse-hit path)
+        if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build != 'true' }}
+        id: restore-metamask-lean
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Run lightweight project setup (reuse-hit path)
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "📦 Setting up project (lightweight, skips Xcode build)..."
+            yarn setup:github-ci --no-build-ios --no-build-android
+
+      - name: Activate Bitrise Build Cache for React Native
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        env:
+          BITRISE_BUILD_CACHE_AUTH_TOKEN: ${{ secrets.BITRISE_BUILD_CACHE_AUTH_TOKEN }}
+          BITRISE_BUILD_CACHE_WORKSPACE_ID: ${{ vars.BITRISE_BUILD_CACHE_WORKSPACE_ID }}
+        run: |
+          #!/usr/bin/env bash
+          set -euxo pipefail
+          curl --retry 5 -sSfL 'https://raw.githubusercontent.com/bitrise-io/bitrise-build-cache-cli/main/install/installer.sh' | sh -s -- -b /tmp/bin -d
+          /tmp/bin/bitrise-build-cache activate react-native
+          echo "/tmp/bin" >> "$GITHUB_PATH"
+        shell: bash
+
       - name: Generate current fingerprint
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: generate-fingerprint
         run: |
-          FINGERPRINT=$(yarn fingerprint:generate)
+          if [[ -n "${{ inputs.source-fingerprint }}" ]]; then
+            FINGERPRINT="${{ inputs.source-fingerprint }}"
+          else
+            FINGERPRINT=$(yarn fingerprint:generate)
+          fi
           echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
           echo "Current fingerprint: ${FINGERPRINT}"
 
       - name: Restore iOS app matching fingerprint from branch cache
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
         id: cache-restore
-        # This action automatically updates the cache at the end of the workflow
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache@v4
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: bitrise-ios-app-${{ inputs.build_type }}-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Restore iOS app matching fingerprint from main cache
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: cache-restore-main
-        # This will only restore the cache, not update it
-        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: bitrise-ios-app-${{ inputs.build_type }}-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
-      # Build the iOS E2E app for simulator
-      - name: Build iOS E2E App
-        if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
+      - name: Build iOS E2E App (Bitrise RN cache)
+        if: ${{ inputs.runner_provider == 'bitrise' && steps.gate.outputs.needs-native-build == 'true' && steps.cache-restore.outputs.cache-hit != 'true' && steps.cache-restore-main.outputs.cache-hit != 'true' }}
         run: |
-          echo "🏗 Building iOS E2E App..."
-          export NODE_OPTIONS="--max-old-space-size=8192"
-          yarn build:ios:main:e2e
+          echo "Building iOS E2E App on Bitrise runner..."
+          bitrise-build-cache react-native run yarn build:ios:${{ inputs.build_type }}:e2e
         shell: bash
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: main
-          METAMASK_BUILD_TYPE: main
-          IS_TEST: true
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          HAS_TEST_OVERRIDES: true
+          IS_SIM_BUILD: 'true'
+          IGNORE_BOXLOGS_DEVELOPMENT: true
+          GITHUB_CI: 'true'
+          CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+          SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+          SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+          SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+          MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+
+      # Build the iOS E2E app for simulator
+      - name: Build iOS E2E App
+        if: ${{ inputs.runner_provider != 'bitrise' && steps.gate.outputs.needs-native-build == 'true' }}
+        run: |
+          echo "🏗 Building iOS E2E App..."
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          yarn build:ios:${{ inputs.build_type }}:e2e
+        shell: bash
+        env:
+          PLATFORM: ios
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          HAS_TEST_OVERRIDES: true
           IS_SIM_BUILD: 'true' # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
@@ -198,16 +538,11 @@ jobs:
           MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
           MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
 
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' || (inputs.runner_provider == 'bitrise' && (steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true')) }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app
@@ -215,14 +550,15 @@ jobs:
           echo "📦 Final app size: $(du -sh "ios/build/Build/Products/Release-iphonesimulator/MetaMask.app" | cut -f1)"
         env:
           PLATFORM: ios
-          METAMASK_ENVIRONMENT: qa
-          METAMASK_BUILD_TYPE: main
-          IS_TEST: true
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
+          METRO_MAX_WORKERS: '6'
           BRIDGE_USE_DEV_APIS: 'true'
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
@@ -236,11 +572,6 @@ jobs:
           SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
           MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
           MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
-          MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
-          MAIN_ANDROID_APPLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_APPLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_CLIENT_ID_UAT }}
-          MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
@@ -272,9 +603,67 @@ jobs:
           chmod +x "$APP_PATH/$BUNDLE_EXEC"
         shell: bash
 
+      - name: Write iOS E2E build metadata
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECKOUT_SHA: ${{ github.sha }}
+          GITHUB_REF_VALUE: ${{ github.ref }}
+          GITHUB_REF_NAME_VALUE: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME_VALUE: ${{ github.event_name }}
+          GITHUB_RUN_ID_VALUE: ${{ github.run_id }}
+          ARTIFACT_NAMES: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+        run: |
+          set -euo pipefail
+          mkdir -p .e2e-build-metadata
+          jq -n \
+            --arg fingerprint "$SOURCE_FINGERPRINT" \
+            --arg platform "ios" \
+            --arg buildType "$BUILD_TYPE" \
+            --arg metamaskEnvironment "$METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$GITHUB_RUN_ID_VALUE" \
+            --arg headSha "$HEAD_SHA" \
+            --arg checkoutSha "$CHECKOUT_SHA" \
+            --arg githubRef "$GITHUB_REF_VALUE" \
+            --arg githubRefName "$GITHUB_REF_NAME_VALUE" \
+            --arg githubEventName "$GITHUB_EVENT_NAME_VALUE" \
+            --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson artifactNames "$ARTIFACT_NAMES" \
+            '{
+              schemaVersion: 1,
+              fingerprint: $fingerprint,
+              platform: $platform,
+              buildType: $buildType,
+              metamaskEnvironment: $metamaskEnvironment,
+              workflowRunId: $workflowRunId,
+              headSha: $headSha,
+              checkoutSha: $checkoutSha,
+              githubRef: $githubRef,
+              githubRefName: $githubRefName,
+              githubEventName: $githubEventName,
+              artifactNames: $artifactNames,
+              createdAt: $createdAt
+            }' > .e2e-build-metadata/ios.json
+          cat .e2e-build-metadata/ios.json
+
       # Upload the iOS .app file that works in simulators
-      - name: Upload iOS APP Artifact (Simulator)
+      - name: Upload iOS APP Artifact (Simulator) (Namespace)
+        id: upload-app-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload iOS APP Artifact (Simulator) (current)
         id: upload-app
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -283,11 +672,46 @@ jobs:
           if-no-files-found: error
         continue-on-error: true
 
-      # Upload source map file for crash debugging and error tracking if exists
-      # Only runs when repack step runs (cache hit), as that's when sourcemap is generated
-      - name: Upload iOS Source Map
+      - name: Upload iOS build metadata (Namespace)
+        id: upload-metadata-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-build-metadata/ios.json
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload iOS build metadata (current)
+        id: upload-metadata
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-build-metadata/ios.json
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      # Upload source map file for crash debugging and error tracking.
+      # Both paths produce it: `yarn build:ios:${{ inputs.build_type }}:e2e` via
+      # `scripts/ios/bundle-js-and-sentry-upload.sh` and `yarn build:repack:ios`
+      # via `scripts/repack.js` both write to `sourcemaps/ios/index.js.map`.
+      - name: Upload iOS Source Map (Namespace)
+        id: upload-sourcemap-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
+          path: sourcemaps/ios/index.js.map
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload iOS Source Map (current)
         id: upload-sourcemap
-        if: ${{ steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
@@ -305,8 +729,9 @@ jobs:
           echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
           echo ""
           echo "Upload Status Summary:"
-          echo "- APP (Simulator): ${{ steps.upload-app.outcome }}"
-          echo "- Source Map: ${{ steps.upload-sourcemap.outcome }}"
+          echo "- APP (Simulator): namespace=${{ steps.upload-app-namespace.outcome }} current=${{ steps.upload-app.outcome }}"
+          echo "- Build metadata: namespace=${{ steps.upload-metadata-namespace.outcome }} current=${{ steps.upload-metadata.outcome }}"
+          echo "- Source Map: namespace=${{ steps.upload-sourcemap-namespace.outcome }} current=${{ steps.upload-sourcemap.outcome }}"
 
         env:
           GITHUB_REPOSITORY: '${{ github.repository }}'

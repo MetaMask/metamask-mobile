@@ -6,15 +6,20 @@ import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
-/**
- * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
- */
-export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
-
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeatureDto = {
+  enabled: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionFeaturesDto = {
+  vip: VipFeatureDto;
+};
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionDto = {
@@ -24,6 +29,182 @@ export type SubscriptionDto = {
     address: string;
     chainId: number;
   }[];
+  features: SubscriptionFeaturesDto;
+};
+
+export type VipStringKey = keyof VipLocalizedTextDto;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipProgramDto = {
+  id: string;
+  name: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPeriodDto = {
+  start: string;
+  end: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTierRefDto = {
+  id: string;
+  name: string;
+  tier: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipProgressDto = {
+  percent: number;
+  remainingPointsToNextTier: number;
+  status: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesDto = {
+  swapsBps: number;
+  perpsBps: number;
+  revenueShareBps: number;
+  nextTierSwapsBps: number;
+  nextTierPerpsBps: number;
+  nextTierRevenueShareBps: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipVolumeDto = {
+  swapsUsd: number;
+  perpsUsd: number;
+  points: number;
+  pointsFromReferrals: number;
+  referrals: number;
+  referralsCap: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityAllocation = {
+  earned: number;
+  threshold: number;
+  percent: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTierDto = {
+  id: string;
+  name: string;
+  tier: number;
+  pointsRequirement: number;
+  swapsBps: number;
+  perpsBps: number;
+  revenueShareBps: number;
+  referralCarryoverBps: number;
+  status: string;
+};
+
+// Exact spec from the rewards API (see consensys-vertical-apps/va-mmcx-rewards
+// PR #546). The backend guarantees every key is populated, so the UI can rely
+// on these strings without a local i18n fallback.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipLocalizedTextDto = {
+  periodTitle: string;
+  memberIdTitle: string;
+  swapsFeeTitle: string;
+  perpsFeeTitle: string;
+  revenueShareTitle: string;
+  referralPointsTitle: string;
+  statsTitle: string;
+  pointsTitle: string;
+  swapsVolumeTitle: string;
+  pointsFromReferralsTitle: string;
+  perpsVolumeTitle: string;
+  vipReferralsTitle: string;
+  totalPointsTitle: string;
+  equityLockedTitle: string;
+  equityLockedDescription: string;
+  equityUnlockedTitle: string;
+  equityUnlockedDescription: string;
+  topTierDescription: string;
+  // The `nextTier…Delta` strings below carry the next tier's absolute value
+  // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
+  // Naming is kept for wire-contract compatibility with the rewards API.
+  nextTierSwapsFeeDelta: string;
+  nextTierPerpsFeeDelta: string;
+  nextTierRevenueShareDelta: string;
+  nextTierReferralPointsDelta: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipDashboardDto = {
+  program: VipProgramDto;
+  period: VipPeriodDto;
+  // ISO-8601 instant the subscription's tier snapshot was last computed
+  // (vip_subscription_tier.computed_at), or null if no snapshot exists yet.
+  computedAt: string | null;
+  currentTier: VipTierRefDto;
+  nextTier: VipTierRefDto;
+  progress: VipProgressDto;
+  fees: VipFeesDto;
+  volume: VipVolumeDto;
+  pointsAllocation: VipEquityAllocation;
+  tiers: VipTierDto[];
+  localizedText: VipLocalizedTextDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipDashboardState = VipDashboardDto & {
+  lastFetched: number;
+};
+
+// Minimal stats for the "VIP Pilot" referee page (GET /vip/referee/me).
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipRefereeMeDto = {
+  referredByCode: string | null;
+  points: number;
+  swapsVolume: number;
+  perpsVolume: number;
+  // ISO-8601 instant the referee stats were last computed, or null if
+  // unavailable. v1 backend placeholder — currently the current time.
+  computedAt: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipRefereeMeState = VipRefereeMeDto & {
+  lastFetched: number;
+};
+
+// Backend wire format for GET /vip/fees — mirrors va-mmcx-rewards
+// src/main/vip/dto/vip-fees.dto.ts (PR #546). Fee bips are returned as
+// strings; the controller parses them as needed.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type HyperliquidVipFeesDto = {
+  builderCode: string;
+  builderFeeBips: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SwapsVipFeesDto = {
+  feeBips: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesGroupDto = {
+  hyperliquid: HyperliquidVipFeesDto;
+  swaps: SwapsVipFeesDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipFeesResponseDto = {
+  vipTier: number;
+  fees: VipFeesGroupDto | null;
+  updatedAt: string | null;
+};
+
+// Per-subscription cache for VIP perps builder fee.
+// We store the raw bips string from the backend rather than a derived
+// discount so the cache stays valid if the perps base fee constant changes.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPerpsFeesState = {
+  hyperliquidBuilderFeeBips: string;
+  lastFetched: number;
 };
 
 export interface MobileLoginDto {
@@ -93,6 +274,8 @@ export interface ApplyBonusCodeDto {
  */
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
+  PERPS_TRADING = 'PERPS_TRADING',
+  PREDICT_THE_PITCH = 'PREDICT_THE_PITCH',
   SEASON_1 = 'SEASON_1',
 }
 
@@ -150,34 +333,58 @@ export interface CampaignDto {
    * The details of the campaign
    * @example { howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
    */
-  details: CampaignDetails | null;
+  details: CampaignDetailsDto | null;
 
   /**
    * Whether this campaign is featured (shown prominently in the UI)
    * @example true
    */
   featured: boolean;
+
+  /**
+   * Whether to display the upcoming start date on the campaign tile
+   * @example true
+   */
+  showUpcomingDate: boolean;
 }
 
 /**
- * Serializable version of OndoCampaignStep for state storage.
+ * Serializable version of CampaignStep for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignStepState = {
+export type CampaignStepState = {
   title: string;
   description: Json | null;
   iconName: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignTourActionsState = {
+  next?: boolean;
+  skip?: boolean;
+};
+
 /**
- * Serializable version of OndoCampaignHowItWorks for state storage.
+ * Serializable version of CampaignTourStepDto for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignHowItWorksState = {
+export type CampaignTourStepDtoState = {
   title: string;
   description: string;
-  steps: OndoCampaignStepState[];
+  image: ThemeImageState | null;
+  actions: CampaignTourActionsState | null;
+};
+
+/**
+ * Serializable version of CampaignHowItWorks for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignHowItWorksState = {
+  title: string;
+  description: string;
+  steps: CampaignStepState[];
   notes?: Json | null;
+  tour?: CampaignTourStepDtoState[];
 };
 
 /**
@@ -190,13 +397,32 @@ export type ThemeImageState = {
 };
 
 /**
- * Serializable version of CampaignDetails for state storage.
+ * Serializable base campaign details for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
-  howItWorks: OndoCampaignHowItWorksState;
-  depositCutoffDate?: string;
+  howItWorks: CampaignHowItWorksState;
 };
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTierState = {
+  name: string;
+  minNetDeposit: number;
+};
+
+export type OndoHoldingDetailsState = CampaignDetailsState & {
+  tiers?: OndoCampaignTierState[];
+};
+
+export type PerpsTradingCampaignDetailsState = CampaignDetailsState;
+
+export type PredictThePitchCampaignDetailsState = CampaignDetailsState;
+
+export type CampaignDetailsDtoState =
+  | CampaignDetailsState
+  | OndoHoldingDetailsState
+  | PerpsTradingCampaignDetailsState
+  | PredictThePitchCampaignDetailsState;
 
 /**
  * Serializable version of CampaignDto for state storage.
@@ -213,8 +439,9 @@ export type CampaignDtoState = {
   excludedRegions: string[];
   statusLabel: string;
   image: ThemeImageState | null;
-  details: CampaignDetailsState | null;
+  details: CampaignDetailsDtoState | null;
   featured: boolean;
+  showUpcomingDate: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -258,6 +485,18 @@ export interface CampaignLeaderboardEntry {
    * @example 0.15
    */
   rateOfReturn: number;
+
+  /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
 }
 
 /**
@@ -348,6 +587,23 @@ export interface CampaignLeaderboardPositionDto {
   netDeposit: number;
 
   /**
+   * Non-consecutive qualifying days at projected tier
+   * @example 8
+   */
+  qualifiedDays: number;
+
+  /**
+   * Whether hold requirement is met
+   * @example false
+   */
+  qualified: boolean;
+
+  /**
+   * Neighboring entries around the user's rank (up to 1 before/after)
+   */
+  neighbors: CampaignLeaderboardEntry[];
+
+  /**
    * When the leaderboard was last computed (ISO timestamp)
    * @example '2024-03-20T12:00:00.000Z'
    */
@@ -380,14 +636,16 @@ export interface OndoGmPortfolioPositionDto {
   units: string;
 
   /**
-   * @example '9040.000000'
-   */
-  costBasis: string;
-
-  /**
+   * Weighted-average book price per whole token (USD)
    * @example '200.000000'
    */
-  avgCostPerUnit: string;
+  bookPrice: string;
+
+  /**
+   * Derived book value: units * bookPrice (USD)
+   * @example '9040.000000'
+   */
+  bookValue: string;
 
   /**
    * @example '215.500000'
@@ -420,9 +678,10 @@ export interface OndoGmPortfolioSummaryDto {
   totalCurrentValue: string;
 
   /**
+   * Sum of all position book values (USD)
    * @example '9040.000000'
    */
-  totalCostBasis: string;
+  totalBookValue: string;
 
   /**
    * @example '9040.000000'
@@ -433,6 +692,12 @@ export interface OndoGmPortfolioSummaryDto {
    * @example '9040.000000'
    */
   netDeposit: string;
+
+  /**
+   * Cumulative market value already cashed out from the portfolio
+   * @example '600.000000'
+   */
+  totalCashedOut: string;
 
   /**
    * @example '700.600000'
@@ -467,8 +732,8 @@ export type OndoGmPortfolioPositionState = {
   tokenName: string;
   tokenAsset: string;
   units: string;
-  costBasis: string;
-  avgCostPerUnit: string;
+  bookPrice: string;
+  bookValue: string;
   currentPrice: string;
   currentValue: string;
   unrealizedPnl: string;
@@ -481,12 +746,48 @@ export type OndoGmPortfolioPositionState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoGmPortfolioSummaryState = {
   totalCurrentValue: string;
-  totalCostBasis: string;
+  totalBookValue: string;
   totalUsdDeposited: string;
   netDeposit: string;
+  totalCashedOut: string;
   portfolioPnl: string;
   portfolioPnlPercent: string;
 };
+
+/**
+ * Campaign-wide total deposits (public endpoint).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsDto = {
+  totalUsdDeposited: string;
+};
+
+export type CampaignParticipantOutcomeStatus = 'pending' | 'finalized';
+
+export interface BaseCampaignParticipantOutcomeDto {
+  subscriptionId: string;
+  outcomeStatus: CampaignParticipantOutcomeStatus;
+  winnerVerificationCode?: string | null;
+}
+
+/** @deprecated Use CampaignParticipantOutcomeStatus */
+export type OndoGmCampaignParticipantOutcomeStatus =
+  CampaignParticipantOutcomeStatus;
+
+export interface OndoGmCampaignParticipantOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
+  tierRank?: number;
+  tier?: string;
+}
+
+/** @deprecated Use CampaignParticipantOutcomeStatus */
+export type PerpsTradingCampaignParticipantOutcomeStatus =
+  CampaignParticipantOutcomeStatus;
+
+export interface PerpsTradingCampaignParticipantOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
+  rank?: number | null;
+}
 
 /**
  * Cached portfolio payload (explicit shape for Json / StateConstraint compatibility).
@@ -601,6 +902,126 @@ export type OndoGmActivityState = {
 };
 
 /**
+ * Cached campaign deposits (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmCampaignDepositsState = {
+  totalUsdDeposited: string;
+  lastFetched: number;
+};
+
+// ─── Perps Trading Campaign ────────────────────────────────────────────────
+
+/**
+ * A single entry in the Perps Trading Campaign leaderboard (no tiers).
+ */
+export interface PerpsTradingCampaignLeaderboardEntry {
+  rank: number;
+  referralCode: string;
+  /** Signed USD PnL for the campaign window */
+  pnl: number;
+  /** Cumulative volume traded during the competition window (USD) */
+  volume: number;
+}
+
+/**
+ * Response DTO for GET /perps-trading/:campaignId/leaderboard (public, no auth).
+ */
+export interface PerpsTradingCampaignLeaderboardDto {
+  campaignId: string;
+  /** ISO timestamp — display as "last updated" (refreshes ~every 15 min) */
+  computedAt: string;
+  entries: PerpsTradingCampaignLeaderboardEntry[];
+  /** Number of eligible participants in this campaign */
+  totalParticipants: number;
+  /** Minimum cumulative volume (USD) required to appear on the leaderboard */
+  minVolumeForEligibility: number;
+}
+
+/**
+ * Response DTO for GET /perps-trading/:campaignId/leaderboard/me (authenticated).
+ */
+export interface PerpsTradingCampaignLeaderboardPositionDto {
+  /** Null when the participant has not yet met the volume threshold. */
+  rank: number | null;
+  /** Number of eligible participants in this campaign */
+  totalParticipants: number;
+  /** Signed USD PnL */
+  pnl: number;
+  /** Cumulative volume traded during the competition window (USD) */
+  volume: number;
+  computedAt: string;
+  neighbors: PerpsTradingCampaignLeaderboardEntry[];
+  /** Whether this participant has met the minimum volume threshold */
+  eligible: boolean;
+  /** Minimum cumulative volume (USD) required to become eligible */
+  minVolumeForEligibility: number;
+}
+
+/**
+ * Response DTO for GET /perps-trading/:campaignId/stats/volume (public).
+ */
+export interface PerpsTradingCampaignVolumeDto {
+  /** Current aggregate notional volume across all participants (USD string) */
+  totalUsdVolume: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignLeaderboardState = {
+  campaignId: string;
+  computedAt: string;
+  entries: {
+    rank: number;
+    referralCode: string;
+    pnl: number;
+    volume: number;
+  }[];
+  totalParticipants: number;
+  minVolumeForEligibility: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignLeaderboardPositionFoundState = {
+  rank: number | null;
+  totalParticipants: number;
+  pnl: number;
+  volume: number;
+  eligible: boolean;
+  minVolumeForEligibility: number;
+  neighbors: {
+    rank: number;
+    referralCode: string;
+    pnl: number;
+    volume: number;
+  }[];
+  computedAt: string;
+  lastFetched: number;
+};
+
+/** Sentinel stored when the API returns null (user not on leaderboard), so the TTL is respected. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignLeaderboardPositionNotFoundState = {
+  notFound: true;
+  lastFetched: number;
+};
+
+export type PerpsTradingCampaignLeaderboardPositionState =
+  | PerpsTradingCampaignLeaderboardPositionFoundState
+  | PerpsTradingCampaignLeaderboardPositionNotFoundState;
+
+/**
+ * Cached campaign volume (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignVolumeState = {
+  totalUsdVolume: string;
+  lastFetched: number;
+};
+
+// ─── End Perps Trading Campaign ────────────────────────────────────────────
+
+/**
  * State for cached leaderboard data in the controller
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -613,6 +1034,8 @@ export type CampaignLeaderboardState = {
         rank: number;
         referralCode: string;
         rateOfReturn: number;
+        qualifiedDays: number;
+        qualified: boolean;
       }[];
       totalParticipants: number;
     };
@@ -632,6 +1055,15 @@ export type CampaignLeaderboardPositionFoundState = {
   currentUsdValue: number;
   totalUsdDeposited: number;
   netDeposit: number;
+  qualifiedDays: number;
+  qualified: boolean;
+  neighbors: {
+    rank: number;
+    referralCode: string;
+    rateOfReturn: number;
+    qualifiedDays: number;
+    qualified: boolean;
+  }[];
   computedAt: string;
   lastFetched: number;
 };
@@ -654,25 +1086,225 @@ export type CampaignParticipantStatusState = {
   lastFetched: number;
 };
 
-export interface OndoCampaignStep {
+export interface CampaignStep {
   title: string;
   description: Json | null;
   iconName: string;
 }
 
-export interface OndoCampaignHowItWorks {
+export interface CampaignTourActions {
+  next?: boolean;
+  skip?: boolean;
+}
+
+export interface CampaignTourStepDto {
   title: string;
   description: string;
-  steps: OndoCampaignStep[];
+  image: ThemeImage | null;
+  actions: CampaignTourActions | null;
+}
+
+export interface CampaignHowItWorks {
+  title: string;
+  description: string;
+  steps: CampaignStep[];
   notes?: Json | null;
+  tour?: CampaignTourStepDto[];
 }
 
-export interface OndoHoldingDetails {
-  howItWorks: OndoCampaignHowItWorks;
-  depositCutoffDate?: string;
+export interface OndoCampaignTier {
+  name: string;
+  minNetDeposit: number;
 }
 
-export type CampaignDetails = OndoHoldingDetails;
+export interface CampaignDetails {
+  howItWorks: CampaignHowItWorks;
+}
+
+export interface OndoHoldingDetails extends CampaignDetails {
+  tiers?: OndoCampaignTier[];
+}
+
+export type PerpsTradingCampaignDetails = CampaignDetails;
+
+// ─── Predict The Pitch Campaign ───────────────────────────────────────────
+
+export type PredictThePitchCampaignDetails = CampaignDetails;
+
+export type CampaignDetailsDto =
+  | CampaignDetails
+  | OndoHoldingDetails
+  | PerpsTradingCampaignDetails
+  | PredictThePitchCampaignDetails;
+
+export interface PredictThePitchLeaderboardEntryDto {
+  rank: number;
+  referralCode: string;
+  roi: number;
+}
+
+export interface PredictThePitchLeaderboardDto {
+  campaignId: string;
+  computedAt: string;
+  entries: PredictThePitchLeaderboardEntryDto[];
+  totalParticipants: number;
+}
+
+export interface PredictThePitchLeaderboardPositionDto {
+  rank: number | null;
+  totalParticipants: number;
+  roi: number;
+  pnl: number;
+  volume: number;
+  eligible: boolean;
+  neighbors: PredictThePitchLeaderboardEntryDto[];
+  computedAt: string;
+  marketsTraded: number | null;
+  minimumMarketsTraded: number;
+}
+
+export type PredictThePitchPositionStatus = 'open' | 'sold' | 'resolved';
+
+export interface PredictThePitchPositionDto {
+  outcomeAssetId: string;
+  outcomeAsset: string | null;
+  conditionId: string;
+  conditionSlug: string | null;
+  conditionName: string;
+  eventId: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  capitalDeployed: number;
+  pnl: number;
+  roi: number;
+  status: PredictThePitchPositionStatus;
+  fillShares: number;
+  fillSharesBought: number;
+  fillSharesSold: number;
+  fillPrice: number;
+  fillDate: string;
+}
+
+export interface PredictThePitchPositionsDto {
+  openPositions: PredictThePitchPositionDto[];
+  resolvedPositions: PredictThePitchPositionDto[];
+  computedAt: string | null;
+  numberOfPositionsToShow?: number | null;
+}
+
+export interface PredictThePitchCampaignParticipantOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
+  rank?: number | null;
+}
+
+export interface PredictThePitchPrizeBreakdownEntryDto {
+  rank: number;
+  amountUsd: number;
+}
+
+export interface PredictThePitchPrizePoolDto {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  breakdown: PredictThePitchPrizeBreakdownEntryDto[];
+  computedAt: string | null;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardEntryState = {
+  rank: number;
+  referralCode: string;
+  roi: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardState = {
+  campaignId: string;
+  computedAt: string;
+  entries: PredictThePitchLeaderboardEntryState[];
+  totalParticipants: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardPositionFoundState = {
+  rank: number | null;
+  totalParticipants: number;
+  roi: number;
+  pnl: number;
+  volume: number;
+  eligible: boolean;
+  neighbors: PredictThePitchLeaderboardEntryState[];
+  computedAt: string;
+  marketsTraded: number | null;
+  minimumMarketsTraded: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardPositionNotFoundState = {
+  notFound: true;
+  lastFetched: number;
+};
+
+export type PredictThePitchLeaderboardPositionState =
+  | PredictThePitchLeaderboardPositionFoundState
+  | PredictThePitchLeaderboardPositionNotFoundState;
+
+/**
+ * Single cached position (mirrors {@link PredictThePitchPositionDto}; explicit plain-object shape for cache / Json).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPositionState = {
+  outcomeAssetId: string;
+  outcomeAsset: string | null;
+  conditionId: string;
+  conditionSlug: string | null;
+  conditionName: string;
+  eventId: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  capitalDeployed: number;
+  pnl: number;
+  roi: number;
+  status: 'open' | 'sold' | 'resolved';
+  fillShares: number;
+  fillSharesBought: number;
+  fillSharesSold: number;
+  fillPrice: number;
+  fillDate: string;
+};
+
+/**
+ * Cached positions payload (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPositionsState = {
+  openPositions: PredictThePitchPositionState[];
+  resolvedPositions: PredictThePitchPositionState[];
+  computedAt: string | null;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPrizeBreakdownEntryState = {
+  rank: number;
+  amountUsd: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPrizePoolState = {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  breakdown: PredictThePitchPrizeBreakdownEntryState[];
+  computedAt: string | null;
+  lastFetched: number;
+};
+
+// ─── End Predict The Pitch Campaign ───────────────────────────────────────
 
 /**
  * Campaign status derived from dates
@@ -1131,7 +1763,6 @@ export interface SeasonDto {
   tiers: SeasonTierDto[];
   activityTypes: SeasonActivityTypeDto[];
   waysToEarn: SeasonWayToEarnDto[];
-  shouldInstallNewVersion?: string | undefined;
 }
 
 export interface SeasonStatusBalanceDto {
@@ -1145,11 +1776,14 @@ export interface SeasonStatusDto {
   currentTierId: string;
 }
 
-export interface SubscriptionSeasonReferralDetailsDto {
+export interface SubscriptionReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
+  /** True when this subscription signed up with a VIP's referral code. */
+  isVipReferee?: boolean;
+  /** The VIP referrer's primary referral code, when isVipReferee is true. */
+  vipReferrer?: { referralCode: string };
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -1221,12 +1855,37 @@ export interface ClaimRewardDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SubscriptionSeasonReferralDetailState = {
+export type SubscriptionReferralDetailState = {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
+  /** True when this subscription signed up with a VIP's referral code. */
+  isVipReferee: boolean;
+  /** The VIP referrer's primary referral code, when isVipReferee is true. */
+  referredByVipCode?: string | null;
   lastFetched?: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitDto = {
+  id: number;
+  longTitle: string;
+  shortDescription: string;
+  longDescription: string;
+  thumbnail: string;
+  validFrom: string;
+  validTo: string;
+  url: string;
+  actionDate: string | null;
+  chain: string;
+  type: { id: number; name: string };
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SubscriptionBenefitsState = {
+  benefits: SubscriptionBenefitDto[];
+  limit: number;
+  lastFetched: number;
 };
 
 // Serializable versions for state storage (Date objects converted to timestamps)
@@ -1270,7 +1929,6 @@ export type SeasonDtoState = {
   activityTypes: SeasonActivityTypeDto[];
   waysToEarn: SeasonWayToEarnDto[];
   lastFetched?: number;
-  shouldInstallNewVersion?: string | undefined;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -1660,7 +2318,19 @@ export type RewardsControllerState = {
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
-    [compositeId: string]: SubscriptionSeasonReferralDetailState;
+    [subscriptionId: string]: SubscriptionReferralDetailState;
+  };
+  subscriptionBenefits: {
+    [subscriptionId: string]: SubscriptionBenefitsState;
+  };
+  vipDashboard: {
+    [subscriptionId: string]: VipDashboardState;
+  };
+  vipRefereeDashboard: {
+    [subscriptionId: string]: VipRefereeMeState;
+  };
+  vipPerpsFees: {
+    [subscriptionId: string]: VipPerpsFeesState;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
@@ -1695,6 +2365,38 @@ export type RewardsControllerState = {
   ondoCampaignActivity: {
     [compositeId: string]: OndoGmActivityState;
   };
+  /** Ondo campaign deposits keyed by campaignId (public endpoint). */
+  ondoCampaignDeposits: { [campaignId: string]: OndoGmCampaignDepositsState };
+  /** Perps Trading Campaign leaderboard keyed by campaignId (public endpoint). */
+  perpsTradingCampaignLeaderboard: {
+    [campaignId: string]: PerpsTradingCampaignLeaderboardState;
+  };
+  /** Perps Trading Campaign leaderboard position keyed by compositeId (subscriptionId:campaignId). */
+  perpsTradingCampaignLeaderboardPositions: {
+    [compositeId: string]: PerpsTradingCampaignLeaderboardPositionState;
+  };
+  /** Perps Trading Campaign volume keyed by campaignId (public endpoint). */
+  perpsTradingCampaignVolume: {
+    [campaignId: string]: PerpsTradingCampaignVolumeState;
+  };
+  /** Predict The Pitch leaderboard keyed by campaignId (public endpoint). */
+  predictThePitchLeaderboard: {
+    [campaignId: string]: PredictThePitchLeaderboardState;
+  };
+  /** Predict The Pitch leaderboard position keyed by compositeId (subscriptionId:campaignId). */
+  predictThePitchLeaderboardPositions: {
+    [compositeId: string]: PredictThePitchLeaderboardPositionState;
+  };
+  /** Predict The Pitch positions keyed by compositeId (subscriptionId:campaignId). */
+  predictThePitchPositions: {
+    [compositeId: string]: PredictThePitchPositionsState;
+  };
+  /** Predict The Pitch prize pool keyed by campaignId (public endpoint). */
+  predictThePitchPrizePool: {
+    [campaignId: string]: PredictThePitchPrizePoolState;
+  };
+  /** Cached client version requirements for the public version guard endpoint. */
+  clientVersionRequirements: ClientVersionRequirementState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1823,32 +2525,6 @@ export interface Patch {
 }
 
 /**
- * Request for getting Perps discount
- */
-export interface GetPerpsDiscountDto {
-  /**
-   * Account address in CAIP-10 format
-   * @example 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'
-   */
-  account: CaipAccountId;
-}
-
-/**
- * Parsed response for Perps discount data
- */
-export interface PerpsDiscountData {
-  /**
-   * Whether the account has opted in (0 = not opted in, 1 = opted in)
-   */
-  hasOptedIn: boolean;
-  /**
-   * The discount percentage in basis points
-   * @example 550
-   */
-  discountBips: number;
-}
-
-/**
  * Geo rewards metadata containing location and support info
  */
 export interface GeoRewardsMetadata {
@@ -1869,6 +2545,13 @@ export interface ClientVersionRequirementDto {
   minimumMobileVersion?: string;
   minimumExtensionVersion?: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ClientVersionRequirementState = {
+  minimumMobileVersion?: string;
+  minimumExtensionVersion?: string;
+  lastFetched: number;
+};
 
 /**
  * The action which can be used to retrieve the state of the RewardsController.
@@ -2013,14 +2696,6 @@ export interface SeasonMetadataDto {
    * Ways to earn for the season
    */
   waysToEarn: SeasonWayToEarnDto[];
-
-  /**
-   * Optional version requirements for mobile and extension
-   */
-  shouldInstallNewVersion?: {
-    mobile: string | undefined;
-    extension: string | undefined;
-  };
 }
 
 /**

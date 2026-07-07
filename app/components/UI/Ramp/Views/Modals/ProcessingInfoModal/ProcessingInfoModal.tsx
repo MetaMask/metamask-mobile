@@ -1,18 +1,17 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
-  Text,
-  TextVariant,
-  TextColor,
-  Button,
-  ButtonVariant,
-  ButtonBaseSize,
+  BottomSheet,
   Box,
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -24,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { PROCESSING_INFO_MODAL_TEST_IDS } from './ProcessingInfoModal.testIds';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ProcessingInfoModalParams {
   providerName: string;
@@ -48,6 +48,7 @@ function ProcessingInfoModal() {
   const navigation = useNavigation();
   const { providerName, providerSupportUrl, statusDescription } =
     useParams<ProcessingInfoModalParams>();
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -77,8 +78,8 @@ function ProcessingInfoModal() {
       await InAppBrowser.open(providerSupportUrl);
     } else {
       // Navigate without closing the sheet first. If we called handleClose() here,
-      // shouldNavigateBack would fire goBack() after the close animation and pop the
-      // Webview screen off the stack instead of the modal.
+      // goBack would run after the close animation and pop the Webview screen off the
+      // stack instead of the modal.
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -99,11 +100,10 @@ function ProcessingInfoModal() {
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack
-      isInteractable={false}
-      testID={PROCESSING_INFO_MODAL_TEST_IDS.MODAL}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{
           testID: PROCESSING_INFO_MODAL_TEST_IDS.CLOSE_BUTTON,

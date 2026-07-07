@@ -3,9 +3,10 @@ import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { fireEvent, act, render } from '@testing-library/react-native';
 import React from 'react';
-import { useTheme } from '@react-navigation/native';
+import { useNavigation, useTheme } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { selectDefaultEndpointByChainId } from '../../../../../../selectors/networkController';
 import { addTransactionBatch } from '../../../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../../../util/transactions';
@@ -27,6 +28,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
   useTheme: jest.fn(),
 }));
 
@@ -37,6 +39,13 @@ jest.mock('../../../../../../component-library/hooks', () => ({
 jest.mock('../../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../../selectors/accountsController'),
   selectSelectedInternalAccountAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual(
+    '../../../../../../selectors/multichainAccounts/accounts',
+  ),
+  selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/networkController', () => ({
@@ -71,6 +80,7 @@ const MOCK_POLYGON_USDCE = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
 const MOCK_PROXY_ADDRESS = '0x13032833b30f3388208cda38971fdc839936b042' as Hex;
 const MOCK_NETWORK_CLIENT_ID = 'arbitrum-mainnet';
 const mockNavigateToConfirmation = jest.fn();
+const mockGoBack = jest.fn();
 const mockSelectMoneyAccountDepositEnabledFlag = jest.mocked(
   selectMoneyAccountDepositEnabledFlag,
 );
@@ -80,10 +90,14 @@ const mockSelectMoneyAccountWithdrawEnabledFlag = jest.mocked(
 
 describe('ConfirmationsDeveloperOptions', () => {
   const mockUseSelector = jest.mocked(useSelector);
+  const mockUseNavigation = jest.mocked(useNavigation);
   const mockUseTheme = jest.mocked(useTheme);
   const mockUseStyles = jest.mocked(useStyles);
   const mockSelectSelectedInternalAccountAddress = jest.mocked(
     selectSelectedInternalAccountAddress,
+  );
+  const mockSelectSelectedInternalAccountByScope = jest.mocked(
+    selectSelectedInternalAccountByScope,
   );
   const mockSelectDefaultEndpointByChainId = jest.mocked(
     selectDefaultEndpointByChainId,
@@ -98,6 +112,9 @@ describe('ConfirmationsDeveloperOptions', () => {
     mockUseTheme.mockReturnValue({
       colors: {},
     } as never);
+    mockUseNavigation.mockReturnValue({
+      goBack: mockGoBack,
+    } as never);
 
     mockUseStyles.mockReturnValue({
       styles: {
@@ -108,6 +125,9 @@ describe('ConfirmationsDeveloperOptions', () => {
     } as never);
 
     mockSelectSelectedInternalAccountAddress.mockReturnValue(MOCK_ACCOUNT);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue((() => ({
+      address: MOCK_ACCOUNT,
+    })) as never);
     mockSelectDefaultEndpointByChainId.mockReturnValue({
       networkClientId: MOCK_NETWORK_CLIENT_ID,
     } as never);
@@ -165,6 +185,7 @@ describe('ConfirmationsDeveloperOptions', () => {
     expect(mockAddTransactionBatch).toHaveBeenCalledWith({
       from: MOCK_ACCOUNT,
       origin: ORIGIN_METAMASK,
+      isInternal: true,
       networkClientId: MOCK_NETWORK_CLIENT_ID,
       disableHook: true,
       disableSequential: true,
@@ -238,12 +259,13 @@ describe('ConfirmationsDeveloperOptions', () => {
           {
             params: {
               to: MOCK_PROXY_ADDRESS,
+              data: '0x',
               value: '0x1',
             },
           },
           {
             params: {
-              to: MOCK_PROXY_ADDRESS,
+              to: MOCK_POLYGON_USDCE,
               data: MOCK_TRANSFER_DATA,
             },
             type: TransactionType.moneyAccountDeposit,
@@ -311,12 +333,13 @@ describe('ConfirmationsDeveloperOptions', () => {
           {
             params: {
               to: MOCK_PROXY_ADDRESS,
+              data: '0x',
               value: '0x1',
             },
           },
           {
             params: {
-              to: MOCK_PROXY_ADDRESS,
+              to: MOCK_POLYGON_USDCE,
               data: MOCK_TRANSFER_DATA,
             },
             type: TransactionType.moneyAccountWithdraw,

@@ -8,7 +8,6 @@ import {
   getCampaignPillLabel,
   getCampaignStatusInfo,
   isCampaignTypeSupported,
-  isOptinAllowed,
 } from './CampaignTile.utils';
 import {
   type CampaignDto,
@@ -24,6 +23,8 @@ jest.mock('@metamask/design-system-react-native', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
   strings: jest.fn((key: string, params?: Record<string, string>) =>
     params ? `${key}:${JSON.stringify(params)}` : key,
   ),
@@ -45,6 +46,7 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     excludedRegions: [],
     details: null,
     featured: true,
+    showUpcomingDate: false,
     ...overrides,
   };
 }
@@ -283,96 +285,6 @@ describe('CampaignTile.utils', () => {
         dateLabel: expect.stringContaining('rewards.campaign.ended_date'),
         dateLabelIcon: 'Confirmation',
       });
-    });
-  });
-
-  describe('isOptinAllowed', () => {
-    const minimalOndoDetails = {
-      howItWorks: { title: 'How', description: 'Desc', steps: [] },
-    };
-
-    /** Time within default buildCampaignDto start/end so status is `active`. */
-    const activeCampaignNow = new Date('2025-08-15T12:00:00.000Z');
-
-    beforeEach(() => {
-      jest.useFakeTimers();
-      jest.setSystemTime(activeCampaignNow);
-    });
-
-    it('returns true for non-ONDO_HOLDING campaigns even after a cutoff-like field', () => {
-      jest.setSystemTime(new Date('2025-10-15T12:00:00.000Z'));
-
-      const campaign = buildCampaignDto({
-        type: CampaignType.SEASON_1,
-        details: {
-          ...minimalOndoDetails,
-          depositCutoffDate: '2025-08-01T00:00:00.000Z',
-        },
-      });
-
-      expect(isOptinAllowed(campaign)).toBe(true);
-    });
-
-    it('returns true for ONDO_HOLDING when depositCutoffDate is absent', () => {
-      const campaign = buildCampaignDto({
-        type: CampaignType.ONDO_HOLDING,
-        details: minimalOndoDetails,
-      });
-
-      expect(isOptinAllowed(campaign)).toBe(true);
-    });
-
-    it('returns true when now is on or before depositCutoffDate', () => {
-      jest.setSystemTime(new Date('2025-08-01T12:00:00.000Z'));
-
-      const campaign = buildCampaignDto({
-        type: CampaignType.ONDO_HOLDING,
-        details: {
-          ...minimalOndoDetails,
-          depositCutoffDate: '2025-08-01T23:59:59.999Z',
-        },
-      });
-
-      expect(isOptinAllowed(campaign)).toBe(true);
-    });
-
-    it('returns false when now is after depositCutoffDate', () => {
-      jest.setSystemTime(new Date('2025-08-02T12:00:00.000Z'));
-
-      const campaign = buildCampaignDto({
-        type: CampaignType.ONDO_HOLDING,
-        details: {
-          ...minimalOndoDetails,
-          depositCutoffDate: '2025-08-01T23:59:59.999Z',
-        },
-      });
-
-      expect(isOptinAllowed(campaign)).toBe(false);
-    });
-
-    it('returns false when campaign status is upcoming', () => {
-      jest.setSystemTime(new Date('2025-05-01T12:00:00.000Z'));
-
-      const campaign = buildCampaignDto({
-        type: CampaignType.ONDO_HOLDING,
-        details: {
-          ...minimalOndoDetails,
-          depositCutoffDate: '2025-12-01T00:00:00.000Z',
-        },
-      });
-
-      expect(isOptinAllowed(campaign)).toBe(false);
-    });
-
-    it('returns false when campaign status is complete', () => {
-      jest.setSystemTime(new Date('2026-01-15T12:00:00.000Z'));
-
-      const campaign = buildCampaignDto({
-        type: CampaignType.SEASON_1,
-        details: minimalOndoDetails,
-      });
-
-      expect(isOptinAllowed(campaign)).toBe(false);
     });
   });
 

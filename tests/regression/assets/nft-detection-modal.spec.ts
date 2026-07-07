@@ -8,7 +8,6 @@ import NftDetectionModal from '../../page-objects/wallet/NftDetectionModal';
 import { RegressionAssets } from '../../tags';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 import { NftDetectionModalSelectorsText } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds.ts';
 
@@ -28,9 +27,7 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
+          await setupRemoteFeatureFlagsMock(mockServer, {});
         },
       },
       async () => {
@@ -62,9 +59,7 @@ describe.skip(RegressionAssets('NFT Detection Modal'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
+          await setupRemoteFeatureFlagsMock(mockServer, {});
         },
       },
       async () => {

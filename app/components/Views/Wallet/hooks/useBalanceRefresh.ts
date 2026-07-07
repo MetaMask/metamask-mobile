@@ -7,8 +7,6 @@ import {
   selectNativeNetworkCurrencies,
 } from '../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { selectHomepageSectionsV1Enabled } from '../../../../selectors/featureFlagController/homepage';
-import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
 import { selectUseNftDetection } from '../../../../selectors/preferencesController';
 
 const REFRESH_TIMEOUT_MS = 5000;
@@ -29,33 +27,20 @@ export const useBalanceRefresh = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
-  const isHomepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
-
   const isNftDetectionEnabled = useSelector(selectUseNftDetection);
-
-  const evmEnabledChainIds = useSelector(selectEVMEnabledNetworks);
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  // Sections enabled: refresh popular EVM chains. Sections disabled: refresh enabled eip155 only.
-  const evmChainIdsForRefresh = useMemo(
-    () =>
-      isHomepageSectionsV1Enabled ? evmChainIds : (evmEnabledChainIds ?? []),
-    [isHomepageSectionsV1Enabled, evmChainIds, evmEnabledChainIds],
-  );
-
   const evmNetworkConfigurationsFiltered = useMemo(() => {
-    const allowed = new Set<string>(evmChainIdsForRefresh);
+    const allowed = new Set<string>(evmChainIds);
     return Object.fromEntries(
       Object.entries(evmNetworkConfigurations).filter(([chainId]) =>
         allowed.has(chainId),
       ),
     );
-  }, [evmNetworkConfigurations, evmChainIdsForRefresh]);
+  }, [evmNetworkConfigurations, evmChainIds]);
 
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
@@ -80,14 +65,14 @@ export const useBalanceRefresh = () => {
           AccountTrackerController.refresh(networkClientIds),
           CurrencyRateController.updateExchangeRate(nativeCurrencies),
           TokenDetectionController.detectTokens({
-            chainIds: evmChainIdsForRefresh,
+            chainIds: evmChainIds,
           }),
           TokenBalancesController.updateBalances({
-            chainIds: evmChainIdsForRefresh,
+            chainIds: evmChainIds,
           }),
-          ...(isHomepageSectionsV1Enabled && isNftDetectionEnabled
+          ...(isNftDetectionEnabled
             ? [
-                NftDetectionController.detectNfts(evmChainIdsForRefresh, {
+                NftDetectionController.detectNfts(evmChainIds, {
                   firstPageOnly: true,
                 }),
               ]
@@ -110,9 +95,8 @@ export const useBalanceRefresh = () => {
     }
   }, [
     evmNetworkConfigurationsFiltered,
-    evmChainIdsForRefresh,
+    evmChainIds,
     nativeCurrencies,
-    isHomepageSectionsV1Enabled,
     isNftDetectionEnabled,
   ]);
 

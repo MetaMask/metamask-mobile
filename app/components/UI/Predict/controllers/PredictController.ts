@@ -37,6 +37,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
+import { formatUnits, Interface } from 'ethers/lib/utils';
 import performance from 'react-native-performance';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -50,15 +51,20 @@ import {
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { PredictTradeStatus } from '../constants/eventNames';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+} from '../constants/eventNames';
 
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
-  MATIC_CONTRACTS,
+  COLLATERAL_TOKEN_DECIMALS,
+  MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
 
@@ -67,10 +73,16 @@ import {
   ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
+  CryptoPriceHistoryPoint,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
+  GetActivityParams,
   GetBalanceParams,
+  GetCryptoPriceHistoryParams,
+  GetCryptoTargetPriceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
@@ -83,24 +95,39 @@ import {
   PredictBalance,
   PredictClaim,
   PredictClaimStatus,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
   PredictMarket,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
+  PredictTradeAnalyticsProperties,
   PredictWithdraw,
   PredictWithdrawStatus,
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
   PriceUpdateCallback,
+  OrderbookCallback,
   Result,
+  SearchMarketsParams,
   Side,
   UnrealizedPnL,
 } from '../types';
 import { PredictFeatureFlags } from '../types/flags';
 
+import { mapClaimFailureReason } from '../utils/analytics';
+import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
+import { validateMarketBettable } from '../utils/marketState';
 import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
+import {
+  findLiveMarket,
+  findNearestMarket,
+  SERIES_MAX_EVENTS,
+} from '../utils/series';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
 import type { PredictControllerMethodActions } from './PredictController-method-action-types';
@@ -141,6 +168,8 @@ export type PredictControllerState = {
       transactionId?: string;
       state: ActiveOrderState;
       error?: string;
+      paymentTokenAddress?: string;
+      paymentTokenSymbol?: string;
     };
   };
 
@@ -283,6 +312,25 @@ export type PredictControllerEvents =
   | ControllerStateChangeEvent<'PredictController', PredictControllerState>
   | PredictControllerTransactionStatusChangedEvent;
 
+interface TransactionReceiptLog {
+  address?: string;
+  data?: string;
+  topics?: string | string[];
+}
+
+interface ClaimAmountFromSimulationOptions {
+  treatMissingRelevantTokenChangesAsZero?: boolean;
+}
+
+const PAYOUT_REDEMPTION_INTERFACE = new Interface([
+  'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
+]);
+
+const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
+  MATIC_CONTRACTS_V2.collateral.toLowerCase(),
+  USDC_E_ADDRESS.toLowerCase(),
+]);
+
 /**
  * The action which can be used to retrieve the state of the PredictController.
  */
@@ -341,6 +389,7 @@ export interface PredictControllerOptions {
 }
 
 const MESSENGER_EXPOSED_METHODS = [
+  'beforePublish',
   'beforeSign',
   'claimWithConfirmation',
   'clearActiveOrder',
@@ -354,31 +403,62 @@ const MESSENGER_EXPOSED_METHODS = [
   'getActivity',
   'getBalance',
   'getConnectionStatus',
+  'getCryptoTargetPrice',
   'getMarket',
   'getMarketSeries',
   'getMarkets',
   'getPositions',
+  'getCryptoPriceHistory',
   'getPriceHistory',
   'getPrices',
   'getUnrealizedPnL',
   'initPayWithAnyToken',
+  'listFilterOptions',
+  'listMarkets',
   'onPlaceOrderSuccess',
   'placeOrder',
   'prepareWithdraw',
+  'publish',
   'previewOrder',
   'refreshEligibility',
+  'searchMarkets',
   'selectPaymentToken',
   'setSelectedPaymentToken',
+  'subscribeToCryptoPrices',
   'subscribeToGameUpdates',
   'subscribeToMarketPrices',
+  'subscribeToOrderbook',
   'trackActivityViewed',
+  'trackBannerAction',
+  'trackBetslipDismissed',
+  'trackCategoryClicked',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
   'trackPositionViewed',
+  'trackPortfolioPositionsButtonTapped',
+  'trackPortfolioTransactionInitiated',
+  'trackPositionsScreenViewed',
+  'trackPositionsTabViewed',
   'trackPredictOrderEvent',
+  'trackSearchInteracted',
   'trackShareAction',
 ] as const;
+
+const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
+
+/**
+ * Window applied when fetching series markets for highlight resolution.
+ * The future bound must be wide enough to contain the currently-live market
+ * for any supported recurrence (5m / 15m / 1h / 4h / daily). The past bound
+ * exists only so `findNearestMarket` can pin a recently-expired market when
+ * no future market is in range — `findLiveMarket` itself ignores past data.
+ * Limit reuses the canonical `SERIES_MAX_EVENTS` so the provider's default
+ * `endDate ASC` ordering can't truncate the live slot for fast recurrences
+ * (a 5m series produces ~12 past events inside the past buffer alone).
+ */
+const HIGHLIGHT_SERIES_PAST_WINDOW_MS = 60 * 60 * 1000;
+const HIGHLIGHT_SERIES_FUTURE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
@@ -400,8 +480,30 @@ export class PredictController extends BaseController<
       preview: OrderPreview;
       signerAddress: string;
       analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+      activeAbTests?: PlaceOrderParams['activeAbTests'];
     };
   } = {};
+
+  /**
+   * In-memory claim analytics context keyed by lowercased signer address.
+   * Captured when a claim is initiated and consumed when the claim transaction
+   * reaches a terminal status, so `succeeded`/`failed` events keep entry-point
+   * attribution. Keyed by address (not transactionId) because the claim has no
+   * transaction id at initiation time.
+   */
+  private pendingClaimAnalytics: {
+    [address: string]: PredictTradeAnalyticsProperties;
+  } = {};
+
+  /**
+   * Tracks which claim transactions have already emitted a terminal
+   * `PREDICT_TRADE_TRANSACTION` event, keyed by transaction id. Keyed per
+   * transaction (not per address) so a delayed/duplicate `transactionStatusUpdated`
+   * for an earlier claim cannot emit a spurious terminal event for, or suppress
+   * the real terminal event of, a newer in-flight claim on the same address.
+   * Each claim creates a unique transaction id, so no per-attempt reset is needed.
+   */
+  private claimTerminalEmitted = new Set<string>();
 
   private readonly traceable: TraceableController = {
     update: (updater) => this.update(updater),
@@ -495,7 +597,8 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const selectedAddress = address ?? this.getEvmAccountAddress();
+    const selectedAddress = address ?? this.requireEvmAccountAddress();
+
     return {
       address: selectedAddress,
       signTypedMessage: (
@@ -519,14 +622,24 @@ export class PredictController extends BaseController<
     return resolvePredictFeatureFlags(remoteFeatureFlagState);
   }
 
-  private getEvmAccountAddress(): string {
+  private getEvmAccountAddress(): string | undefined {
     const accounts = this.messenger.call(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
     const evmAccount = accounts.find(
       (account) => account && isEvmAccountType(account.type),
     );
-    return evmAccount?.address ?? '0x0';
+    return evmAccount?.address;
+  }
+
+  private requireEvmAccountAddress(): string {
+    const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      throw new Error('EVM account address is required');
+    }
+
+    return address;
   }
 
   private async invalidateQueryCache(chainId: number) {
@@ -554,7 +667,7 @@ export class PredictController extends BaseController<
     }
   }
 
-  async getMarkets(params: GetMarketsParams): Promise<PredictMarket[]> {
+  async getMarkets(params: GetMarketsParams): Promise<GetMarketsResult> {
     return withTrace(
       this.traceable,
       {
@@ -571,54 +684,222 @@ export class PredictController extends BaseController<
         errorContext: {
           providerId: POLYMARKET_PROVIDER_ID,
           category: params.category,
-          sortBy: params.sortBy,
-          sortDirection: params.sortDirection,
-          status: params.status,
-          hasSearchQuery: !!params.q,
+          hasAfterCursor: Boolean(params.afterCursor),
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
+        traceData: (result) => ({
+          marketCount: result.markets.length,
+          hasNextCursor: Boolean(result.nextCursor),
+        }),
       },
       async () => {
         const featureFlags = this.resolveFeatureFlags();
-        const allMarkets = await this.provider.getMarkets(params);
+        const { markets: allMarkets, nextCursor } =
+          await this.provider.getMarkets(params);
 
         let markets = allMarkets.filter(
           (market): market is PredictMarket => market !== undefined,
         );
 
-        const isFirstPage = !params.offset || params.offset === 0;
+        const isFirstPage = !params.afterCursor;
         const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
         const shouldFetchHighlights =
-          highlights.length > 0 && isFirstPage && params.category && !params.q;
+          highlights.length > 0 && isFirstPage && params.category;
 
         if (shouldFetchHighlights) {
-          const highlightedMarketIds =
-            highlights.find((h) => h.category === params.category)?.markets ??
-            [];
+          const entry = highlights.find((h) => h.category === params.category);
+          const highlightedMarketIds = entry?.markets ?? [];
+          const highlightedSeriesIds = entry?.series ?? [];
 
-          if (highlightedMarketIds.length > 0) {
-            const fetchedHighlightedMarkets =
-              (await this.provider.getMarketsByIds?.(highlightedMarketIds)) ??
-              [];
+          if (
+            highlightedMarketIds.length > 0 ||
+            highlightedSeriesIds.length > 0
+          ) {
+            const [fromMarketIds, fromSeriesIds] = await Promise.all([
+              highlightedMarketIds.length > 0 && this.provider.getMarketsByIds
+                ? this.provider.getMarketsByIds(highlightedMarketIds)
+                : Promise.resolve<PredictMarket[]>([]),
+              this.resolveSeriesHighlights(highlightedSeriesIds),
+            ]);
 
-            const highlightedMarkets = fetchedHighlightedMarkets.filter(
-              (market) => market.status === 'open',
-            );
+            const fetchedHighlightedMarkets = [
+              ...fromMarketIds,
+              ...fromSeriesIds,
+            ];
 
-            const highlightedIdSet = new Set(
-              highlightedMarkets.map((m) => m.id),
-            );
+            const highlightedMarkets = fetchedHighlightedMarkets
+              .filter((market) => market.status === 'open')
+              .map((market) => ({
+                ...market,
+                isHighlighted: true,
+              }));
+
+            const highlightedIdSet = new Set<string>();
+            const uniqueHighlighted = highlightedMarkets.filter((market) => {
+              if (highlightedIdSet.has(market.id)) {
+                return false;
+              }
+              highlightedIdSet.add(market.id);
+              return true;
+            });
             markets = markets.filter(
               (market) => !highlightedIdSet.has(market.id),
             );
 
-            markets = [...highlightedMarkets, ...markets];
+            markets = [...uniqueHighlighted, ...markets];
           }
         }
 
-        return markets;
+        return { markets, nextCursor };
       },
+    );
+  }
+
+  private async resolveSeriesHighlights(
+    seriesIds: string[],
+  ): Promise<PredictMarket[]> {
+    if (seriesIds.length === 0 || !this.provider.getMarketSeries) {
+      return [];
+    }
+
+    const nowMs = Date.now();
+    const endDateMin = new Date(
+      nowMs - HIGHLIGHT_SERIES_PAST_WINDOW_MS,
+    ).toISOString();
+    const endDateMax = new Date(
+      nowMs + HIGHLIGHT_SERIES_FUTURE_WINDOW_MS,
+    ).toISOString();
+
+    const resolved = await Promise.all(
+      seriesIds.map(async (seriesId) => {
+        try {
+          const seriesMarkets =
+            (await this.provider.getMarketSeries?.({
+              seriesId,
+              endDateMin,
+              endDateMax,
+              limit: SERIES_MAX_EVENTS,
+            })) ?? [];
+          return (
+            findLiveMarket(seriesMarkets) ?? findNearestMarket(seriesMarkets)
+          );
+        } catch (error) {
+          DevLogger.log(
+            'PredictController: failed to resolve series highlight',
+            {
+              seriesId,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+          );
+          return undefined;
+        }
+      }),
+    );
+
+    return resolved.filter(
+      (market): market is PredictMarket => market !== undefined,
+    );
+  }
+
+  async listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'listMarkets',
+        trace: {
+          name: TraceName.PredictListMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          hasAfterCursor: Boolean(params.afterCursor),
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (result) => ({
+          marketCount: result.markets.length,
+          hasNextCursor: Boolean(result.nextCursor),
+        }),
+      },
+      async () => {
+        const { markets, nextCursor } = await this.provider.listMarkets(params);
+
+        return {
+          markets: markets.filter(
+            (market): market is PredictMarket => market !== undefined,
+          ),
+          nextCursor,
+        };
+      },
+    );
+  }
+
+  async listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'listFilterOptions',
+        trace: {
+          name: TraceName.PredictListFilterOptions,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          source: params.source,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (result) => ({
+          optionCount: result.length,
+        }),
+      },
+      async () => this.provider.listFilterOptions(params),
+    );
+  }
+
+  async searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }> {
+    const query = params.q.trim();
+
+    if (!query) {
+      return { markets: [], totalResults: 0 };
+    }
+
+    return withTrace(
+      this.traceable,
+      {
+        method: 'searchMarkets',
+        trace: {
+          name: TraceName.PredictGetMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          hasSearchQuery: Boolean(query),
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (result) => ({ marketCount: result.markets.length }),
+      },
+      async () =>
+        this.provider.searchMarkets({
+          ...params,
+          q: query,
+        }),
     );
   }
 
@@ -692,6 +973,58 @@ export class PredictController extends BaseController<
     return this.provider.getMarketSeries(params);
   }
 
+  async getCryptoTargetPrice(
+    params: GetCryptoTargetPriceParams & { eventId: string },
+  ): Promise<number | null> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoTargetPrice',
+        trace: {
+          name: TraceName.PredictGetCryptoTargetPrice,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          eventId: params.eventId,
+          symbol: params.symbol,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        updateErrorState: false,
+      },
+      async () => {
+        let price: number | null = null;
+        try {
+          price = (await this.provider.getCryptoTargetPrice?.(params)) ?? null;
+        } catch {
+          // Provider threw — fall through to groupItemThreshold fallback.
+        }
+
+        if (typeof price === 'number' && price > 0) {
+          return price;
+        }
+
+        Logger.log(
+          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to market metadata`,
+        );
+
+        try {
+          const market = await this.provider.getMarketDetails({
+            marketId: params.eventId,
+          });
+          return resolveCryptoTargetPrice(market, undefined) ?? null;
+        } catch {
+          return null;
+        }
+      },
+    );
+  }
+
   async getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]> {
@@ -719,6 +1052,40 @@ export class PredictController extends BaseController<
       },
       async () => {
         const history = await this.provider.getPriceHistory(params);
+        return history ?? [];
+      },
+    );
+  }
+
+  async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'getCryptoPriceHistory',
+        trace: {
+          name: TraceName.PredictGetCryptoPriceHistory,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+            symbol: params.symbol,
+            variant: params.variant,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          symbol: params.symbol,
+          eventStartTime: params.eventStartTime,
+          variant: params.variant,
+          endDate: params.endDate,
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
+        traceData: (history) => ({ pointCount: history.length }),
+      },
+      async () => {
+        const history = await this.provider.getCryptoPriceHistory?.(params);
         return history ?? [];
       },
     );
@@ -811,7 +1178,9 @@ export class PredictController extends BaseController<
     );
   }
 
-  async getActivity(params: { address?: string }): Promise<PredictActivity[]> {
+  async getActivity(
+    params: GetActivityParams = {},
+  ): Promise<PredictActivity[]> {
     return withTrace(
       this.traceable,
       {
@@ -829,8 +1198,21 @@ export class PredictController extends BaseController<
         traceData: (activity) => ({ activityCount: activity.length }),
       },
       async () => {
-        const selectedAddress = params.address ?? this.getSigner().address;
-        return this.provider.getActivity({ address: selectedAddress });
+        const { address, limit, offset } = params;
+        const selectedAddress = address ?? this.getSigner().address;
+        const activityParams: GetActivityParams & { address: string } = {
+          address: selectedAddress,
+        };
+
+        if (limit !== undefined) {
+          activityParams.limit = limit;
+        }
+
+        if (offset !== undefined) {
+          activityParams.offset = offset;
+        }
+
+        return this.provider.getActivity(activityParams);
       },
     );
   }
@@ -891,6 +1273,32 @@ export class PredictController extends BaseController<
     this.analytics.trackActivityViewed(args);
   }
 
+  public trackPortfolioPositionsButtonTapped(
+    args: Parameters<
+      PredictAnalytics['trackPortfolioPositionsButtonTapped']
+    >[0],
+  ): void {
+    this.analytics.trackPortfolioPositionsButtonTapped(args);
+  }
+
+  public trackPortfolioTransactionInitiated(
+    args: Parameters<PredictAnalytics['trackPortfolioTransactionInitiated']>[0],
+  ): void {
+    this.analytics.trackPortfolioTransactionInitiated(args);
+  }
+
+  public trackPositionsScreenViewed(
+    args: Parameters<PredictAnalytics['trackPositionsScreenViewed']>[0],
+  ): void {
+    this.analytics.trackPositionsScreenViewed(args);
+  }
+
+  public trackPositionsTabViewed(
+    args: Parameters<PredictAnalytics['trackPositionsTabViewed']>[0],
+  ): void {
+    this.analytics.trackPositionsTabViewed(args);
+  }
+
   public trackGeoBlockTriggered(
     args: Parameters<PredictAnalytics['trackGeoBlockTriggered']>[0],
   ): void {
@@ -903,10 +1311,44 @@ export class PredictController extends BaseController<
     this.analytics.trackFeedViewed(args);
   }
 
+  public trackBannerAction(
+    args: Parameters<PredictAnalytics['trackBannerAction']>[0],
+  ): void {
+    this.analytics.trackBannerAction(args);
+  }
+
+  public trackCategoryClicked(
+    args: Parameters<PredictAnalytics['trackCategoryClicked']>[0],
+  ): void {
+    this.analytics.trackCategoryClicked(args);
+  }
+
   public trackShareAction(
     args: Parameters<PredictAnalytics['trackShareAction']>[0],
   ): void {
     this.analytics.trackShareAction(args);
+  }
+
+  /**
+   * Track Predict Search Interacted analytics event
+   *
+   * @public
+   */
+  public trackSearchInteracted(
+    args: Parameters<PredictAnalytics['trackSearchInteracted']>[0],
+  ): void {
+    this.analytics.trackSearchInteracted(args);
+  }
+
+  /**
+   * Track Predict Betslip Dismissed analytics event
+   *
+   * @public
+   */
+  public trackBetslipDismissed(
+    args: Parameters<PredictAnalytics['trackBetslipDismissed']>[0],
+  ): void {
+    this.analytics.trackBetslipDismissed(args);
   }
 
   async previewOrder(params: PreviewOrderParams): Promise<OrderPreview> {
@@ -933,14 +1375,66 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
-    const activeOrderAddress = params.address ?? this.getEvmAccountAddress();
+    const activeOrderAddress =
+      params.address ?? this.requireEvmAccountAddress();
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
     const isBuyWithAnyToken =
       predictWithAnyTokenEnabled && params.preview.side === Side.BUY;
-
     const isExistingPendingOrder =
       !!params.transactionId &&
       !!this.pendingOrderPreviews[params.transactionId];
+
+    try {
+      await validateMarketBettable({
+        provider: this.provider,
+        preview: params.preview,
+      });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+        if (isBuyWithAnyToken && state.activeBuyOrders[activeOrderAddress]) {
+          state.activeBuyOrders[activeOrderAddress].state =
+            ActiveOrderState.PREVIEW;
+          state.activeBuyOrders[activeOrderAddress].error = errorMessage;
+        }
+      });
+
+      if (isBuyWithAnyToken && isExistingPendingOrder) {
+        this.provider.clearOptimisticPosition(
+          activeOrderAddress,
+          params.preview.outcomeTokenId,
+        );
+      }
+
+      const isBackgroundOrder =
+        params.transactionId !== undefined &&
+        params.transactionId !==
+          this.state.activeBuyOrders[activeOrderAddress]?.transactionId;
+
+      if (isBuyWithAnyToken && isExistingPendingOrder && isBackgroundOrder) {
+        this.messenger.publish('PredictController:transactionStatusChanged', {
+          type: 'order',
+          status: 'failed',
+          senderAddress: activeOrderAddress,
+          marketId: params.analyticsProperties?.marketId,
+        });
+      }
+
+      if (
+        params.transactionId &&
+        this.pendingOrderPreviews[params.transactionId]
+      ) {
+        delete this.pendingOrderPreviews[params.transactionId];
+      }
+
+      throw new Error(errorMessage);
+    }
 
     if (
       predictWithAnyTokenEnabled &&
@@ -954,6 +1448,7 @@ export class PredictController extends BaseController<
           preview: params.preview,
           signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
+          activeAbTests: params.activeAbTests,
         };
       }
       this.update((state) => {
@@ -962,6 +1457,10 @@ export class PredictController extends BaseController<
             ActiveOrderState.DEPOSITING;
           state.activeBuyOrders[activeOrderAddress].transactionId =
             transactionId;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
+            state.selectedPaymentToken?.address;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol =
+            state.selectedPaymentToken?.symbol;
         }
       });
 
@@ -978,15 +1477,21 @@ export class PredictController extends BaseController<
       }
 
       this.trackPredictOrderEvent({
-        status: PredictTradeStatus.SUBMITTED,
+        status: PredictTradeStatus.SWAP_INITIATED,
         amountUsd: params.preview?.maxAmountSpent,
         analyticsProperties: params.analyticsProperties,
         sharePrice: params.preview?.sharePrice,
         orderType: params.preview.orderType,
         paymentTokenAddress:
           params.preview.side === Side.BUY
-            ? this.state.selectedPaymentToken?.address
+            ? this.state.activeBuyOrders[activeOrderAddress]
+                ?.paymentTokenAddress
             : undefined,
+        paymentTokenSymbol:
+          params.preview.side === Side.BUY
+            ? this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenSymbol
+            : undefined,
+        activeAbTests: params.activeAbTests,
       });
 
       this.messenger.publish('PredictController:transactionStatusChanged', {
@@ -1007,9 +1512,25 @@ export class PredictController extends BaseController<
         if (state.activeBuyOrders[activeOrderAddress]) {
           state.activeBuyOrders[activeOrderAddress].state =
             ActiveOrderState.PLACING_ORDER;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenAddress =
+            state.activeBuyOrders[activeOrderAddress].paymentTokenAddress ??
+            state.selectedPaymentToken?.address;
+          state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol =
+            state.activeBuyOrders[activeOrderAddress].paymentTokenSymbol ??
+            state.selectedPaymentToken?.symbol;
         }
       });
     }
+
+    const paymentTokenAddress = isBuyWithAnyToken
+      ? (this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenAddress ??
+        this.state.selectedPaymentToken?.address)
+      : undefined;
+
+    const paymentTokenSymbol = isBuyWithAnyToken
+      ? (this.state.activeBuyOrders[activeOrderAddress]?.paymentTokenSymbol ??
+        this.state.selectedPaymentToken?.symbol)
+      : undefined;
 
     const startTime = performance.now();
     const { analyticsProperties, preview } = params;
@@ -1054,6 +1575,9 @@ export class PredictController extends BaseController<
         analyticsProperties,
         sharePrice,
         orderType: preview.orderType,
+        paymentTokenAddress,
+        paymentTokenSymbol,
+        activeAbTests: params.activeAbTests,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1133,6 +1657,9 @@ export class PredictController extends BaseController<
         completionDuration,
         sharePrice: realSharePrice,
         orderType: preview.orderType,
+        paymentTokenAddress,
+        paymentTokenSymbol,
+        activeAbTests: params.activeAbTests,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1153,6 +1680,9 @@ export class PredictController extends BaseController<
         completionDuration,
         failureReason: errorMessage,
         orderType: preview.orderType,
+        paymentTokenAddress,
+        paymentTokenSymbol,
+        activeAbTests: params.activeAbTests,
       });
 
       // Update error state for Sentry integration
@@ -1249,9 +1779,8 @@ export class PredictController extends BaseController<
     }
   }
 
-  async claimWithConfirmation(
-    _params: ClaimParams = {},
-  ): Promise<PredictClaim> {
+  async claimWithConfirmation(params: ClaimParams = {}): Promise<PredictClaim> {
+    const analyticsContext = params.analyticsProperties;
     // Start Sentry trace for claim operation
     const traceId = `claim-${Date.now()}`;
     let traceData:
@@ -1294,6 +1823,16 @@ export class PredictController extends BaseController<
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
       }
+
+      // Stash claim analytics context so the terminal-status handler can fire
+      // `succeeded`/`failed` with entry-point attribution. Captured here (before
+      // `confirmClaim` clears `claimablePositions`) so single-market context is
+      // available at terminal time.
+      this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+        this.buildClaimAnalyticsProperties(
+          analyticsContext,
+          claimablePositions,
+        );
 
       // Set pending claim placeholder before preparing the transaction
       this.update((state) => {
@@ -1339,11 +1878,13 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
+        skipInitialGasEstimate: true,
         // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
+        gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
         transactions,
       });
 
@@ -1379,6 +1920,21 @@ export class PredictController extends BaseController<
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
         traceData = { success: false, reason: 'user_cancelled' };
+
+        // This branch returns without throwing and before any on-chain
+        // transaction exists, so neither the hook catch nor the terminal-status
+        // handler fires. Track the user rejection here so it stays measurable.
+        const claimAnalytics =
+          this.pendingClaimAnalytics[signer.address.toLowerCase()] ??
+          this.buildClaimAnalyticsProperties(analyticsContext);
+        // Signing was denied before any transaction was created, so there is no
+        // terminal `transactionStatusUpdated` to dedupe against (no guard entry).
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          analyticsProperties: claimAnalytics,
+          failureReason: PredictEventValues.CLAIM_FAILURE_REASON.USER_REJECTED,
+        });
+        delete this.pendingClaimAnalytics[signer.address.toLowerCase()];
 
         // ignore error, as the user cancelled the tx
         return {
@@ -1417,6 +1973,10 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
       });
 
+      // The hook's catch handler tracks the `failed` event for re-thrown
+      // (pre-tx) errors, so just clear the stash here to avoid a double-fire.
+      delete this.pendingClaimAnalytics[signer.address.toLowerCase()];
+
       // Re-throw the error so the hook can handle it and show the toast
       throw error;
     } finally {
@@ -1426,6 +1986,132 @@ export class PredictController extends BaseController<
         data: traceData,
       });
     }
+  }
+
+  /**
+   * Builds the analytics properties for a claim `PREDICT_TRADE_TRANSACTION`
+   * event. Always sets `transaction_type: mm_predict_claim`. When a single
+   * market is being claimed, `market_id`/`market_title` are populated; for
+   * multi-market claims they are omitted in favor of `claimable_positions_count`.
+   */
+  private buildClaimAnalyticsProperties(
+    analyticsContext?: PredictTradeAnalyticsProperties,
+    claimablePositions?: PredictPosition[],
+  ): PredictTradeAnalyticsProperties {
+    const properties: PredictTradeAnalyticsProperties = {
+      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+      ...analyticsContext,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
+    };
+
+    if (claimablePositions && claimablePositions.length > 0) {
+      properties.claimablePositionsCount = claimablePositions.length;
+
+      const distinctMarketIds = new Set(
+        claimablePositions.map((position) => position.marketId),
+      );
+      if (distinctMarketIds.size === 1) {
+        const [singlePosition] = claimablePositions;
+        properties.marketId = properties.marketId ?? singlePosition.marketId;
+        properties.marketTitle = properties.marketTitle ?? singlePosition.title;
+      }
+    }
+
+    return properties;
+  }
+
+  /**
+   * Fires the terminal claim `PREDICT_TRADE_TRANSACTION` event
+   * (`succeeded`/`failed`) using the stashed analytics context and the claim
+   * amount captured before claimable positions are cleared.
+   *
+   * Idempotent per transaction: if a terminal event was already emitted for this
+   * transaction id (e.g. by the footer resolution-lag guard, or a repeated
+   * terminal `transactionStatusUpdated`), this is a no-op. The stash is left
+   * untouched on skip so a stale update cannot clear a newer claim's attribution.
+   */
+  private trackClaimTransactionOutcome({
+    status,
+    amount,
+    address,
+    transactionMeta,
+  }: {
+    status: PredictTransactionEventStatus;
+    amount?: number;
+    address: string;
+    transactionMeta: TransactionMeta;
+  }): void {
+    const transactionId = transactionMeta.id;
+
+    if (this.claimTerminalEmitted.has(transactionId)) {
+      return;
+    }
+
+    const normalizedAddress = address.toLowerCase();
+    const analyticsProperties =
+      this.pendingClaimAnalytics[normalizedAddress] ??
+      this.buildClaimAnalyticsProperties();
+
+    if (status === 'confirmed') {
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SUCCEEDED,
+        amountUsd: amount,
+        analyticsProperties,
+      });
+    } else {
+      const failureReason =
+        status === 'rejected'
+          ? PredictEventValues.CLAIM_FAILURE_REASON.USER_REJECTED
+          : mapClaimFailureReason(transactionMeta.error?.message);
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        amountUsd: amount,
+        analyticsProperties,
+        failureReason,
+      });
+    }
+
+    this.claimTerminalEmitted.add(transactionId);
+    delete this.pendingClaimAnalytics[normalizedAddress];
+  }
+
+  /**
+   * Emits a terminal `failed`/`pending_resolution` claim event for the
+   * resolution-lag (no-positions-won) guard surfaced on the claim confirmation
+   * footer (Sentry 5JA7). Participates in the same per-transaction idempotency
+   * guard as {@link trackClaimTransactionOutcome} (keyed by `transactionId`), so
+   * the eventual `rejected` status update for the same transaction does not emit
+   * a duplicate (mislabeled `user_rejected`) terminal event.
+   */
+  public trackClaimResolutionLagFailure({
+    transactionId,
+    address,
+  }: {
+    transactionId?: string;
+    address?: string;
+  }): void {
+    if (transactionId && this.claimTerminalEmitted.has(transactionId)) {
+      return;
+    }
+
+    const normalizedAddress = (
+      address ?? this.getSigner().address
+    ).toLowerCase();
+
+    const analyticsProperties =
+      this.pendingClaimAnalytics[normalizedAddress] ??
+      this.buildClaimAnalyticsProperties();
+
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.FAILED,
+      analyticsProperties,
+      failureReason: PredictEventValues.CLAIM_FAILURE_REASON.PENDING_RESOLUTION,
+    });
+
+    if (transactionId) {
+      this.claimTerminalEmitted.add(transactionId);
+    }
+    delete this.pendingClaimAnalytics[normalizedAddress];
   }
 
   public confirmClaim({ address }: { address?: string }): void {
@@ -1548,14 +2234,56 @@ export class PredictController extends BaseController<
   }
 
   /**
+   * Subscribes to real-time orderbook (depth) updates for a single outcome
+   * token via WebSocket. The first emission is seeded from a REST snapshot by
+   * the provider so consumers render immediately.
+   *
+   * @param tokenId - The outcome token ID to subscribe to orderbook updates for
+   * @param callback - Function invoked with each OrderbookSnapshot (bids desc, asks asc)
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToOrderbook(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToOrderbook) {
+      return () => undefined;
+    }
+    return provider.subscribeToOrderbook(tokenId, callback);
+  }
+
+  /**
+   * Subscribes to real-time crypto price updates via RTDS WebSocket.
+   *
+   * @param symbols - Array of crypto symbols to subscribe to (e.g., ['btcusdt'])
+   * @param callback - Function invoked when a crypto price update is received
+   * @returns Unsubscribe function to clean up the subscription
+   */
+  public subscribeToCryptoPrices(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
+  ): () => void {
+    const provider = this.provider;
+    if (!provider?.subscribeToCryptoPrices) {
+      return () => undefined;
+    }
+    return provider.subscribeToCryptoPrices(symbols, callback);
+  }
+
+  /**
    * Gets the current WebSocket connection status for live data feeds.
    *
-   * @returns Connection status for sports and market data WebSocket channels
+   * @returns Connection status for sports, market, and RTDS data WebSocket channels
    */
   public getConnectionStatus(): ConnectionStatus {
     const provider = this.provider;
     if (!provider?.getConnectionStatus) {
-      return { sportsConnected: false, marketConnected: false };
+      return {
+        sportsConnected: false,
+        marketConnected: false,
+        rtdsConnected: false,
+      };
     }
     return provider.getConnectionStatus();
   }
@@ -1568,6 +2296,11 @@ export class PredictController extends BaseController<
 
   public clearOrderError(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       if (state.activeBuyOrders[address]) {
         delete state.activeBuyOrders[address].error;
@@ -1577,6 +2310,11 @@ export class PredictController extends BaseController<
 
   public onPlaceOrderSuccess(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       state.activeBuyOrders[address] = {
         state: ActiveOrderState.PREVIEW,
@@ -1587,6 +2325,11 @@ export class PredictController extends BaseController<
 
   public clearActiveOrderTransactionId(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       if (state.activeBuyOrders[address]?.transactionId) {
         state.activeBuyOrders[address].transactionId = undefined;
@@ -1609,6 +2352,10 @@ export class PredictController extends BaseController<
     );
 
     const address = this.getEvmAccountAddress();
+    if (!address) {
+      return;
+    }
+
     const activeOrder = this.state.activeBuyOrders[address];
     if (!activeOrder) {
       return;
@@ -1643,6 +2390,11 @@ export class PredictController extends BaseController<
 
   public clearActiveOrder(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       delete state.activeBuyOrders[address];
     });
@@ -1719,6 +2471,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -1789,7 +2542,7 @@ export class PredictController extends BaseController<
    */
   public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
-    const address = this.getEvmAccountAddress();
+    const address = this.requireEvmAccountAddress();
 
     if (!this.state.activeBuyOrders[address]) {
       this.update((state) => {
@@ -1864,6 +2617,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -1908,6 +2662,11 @@ export class PredictController extends BaseController<
   public clearPendingDeposit(): void {
     const selectedAddress = this.getSigner().address;
     this.clearPendingDepositForAddress({ address: selectedAddress });
+  }
+
+  public clearPendingClaim(): void {
+    const selectedAddress = this.getSigner().address;
+    this.clearPendingClaimForAddress({ address: selectedAddress });
   }
 
   private clearPendingDepositForAddress({
@@ -1975,10 +2734,24 @@ export class PredictController extends BaseController<
       return;
     }
 
+    const fallbackAddress = this.getEvmAccountAddress()?.toLowerCase();
     const address =
       (transactionMeta.txParams.from as string | undefined)?.toLowerCase() ??
-      this.getEvmAccountAddress().toLowerCase();
+      fallbackAddress;
     const transactionId = transactionMeta.id;
+
+    if (!address) {
+      Logger.error(
+        new Error('EVM account address is required'),
+        this.getErrorContext('handleTransactionStatusUpdate', {
+          operation: 'resolve_sender_address',
+          type,
+          status,
+          transactionId,
+        }),
+      );
+      return;
+    }
     const amount = this.getTransactionAmount({
       type,
       status,
@@ -2008,6 +2781,53 @@ export class PredictController extends BaseController<
       ...(transactionId ? { transactionId } : {}),
       ...(amount !== undefined ? { amount } : {}),
     });
+
+    // Track terminal claim outcome on PREDICT_TRADE_TRANSACTION. `amount` is
+    // captured above before `handleTransactionSideEffects` -> `confirmClaim`
+    // clears claimable positions, so `amount_usd` reflects the claimed value.
+    if (
+      type === 'claim' &&
+      (status === 'confirmed' || status === 'failed' || status === 'rejected')
+    ) {
+      this.trackClaimTransactionOutcome({
+        status,
+        amount,
+        address,
+        transactionMeta,
+      });
+    }
+  }
+
+  private async syncDepositWalletBalanceAllowanceIfNeeded({
+    transactionMeta,
+    address,
+  }: {
+    transactionMeta: TransactionMeta;
+    address: string;
+  }): Promise<void> {
+    try {
+      await this.provider.syncDepositWalletBalanceAllowanceForDepositTransaction(
+        {
+          transactionMeta,
+          signerAddress: address,
+        },
+      );
+    } catch (error) {
+      DevLogger.log(
+        'PredictController: Deposit wallet balance-allowance sync failed',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          transactionId: transactionMeta.id,
+        },
+      );
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('syncDepositWalletBalanceAllowanceIfNeeded', {
+          operation: 'deposit_wallet_balance_allowance_sync',
+          transactionId: transactionMeta.id,
+        }),
+      );
+    }
   }
 
   private handleTransactionSideEffects(
@@ -2023,6 +2843,20 @@ export class PredictController extends BaseController<
       this.clearPendingDepositForAddress({ address });
     }
 
+    let depositWalletSyncPromise: Promise<void> | undefined;
+    if (
+      (type === 'deposit' || type === 'depositAndOrder') &&
+      status === 'confirmed'
+    ) {
+      this.provider.invalidateAccountState(address);
+      depositWalletSyncPromise = this.syncDepositWalletBalanceAllowanceIfNeeded(
+        {
+          transactionMeta,
+          address,
+        },
+      );
+    }
+
     if (type === 'depositAndOrder' && status === 'confirmed') {
       const transactionId = transactionMeta.id;
       const pendingOrder = transactionId
@@ -2033,25 +2867,43 @@ export class PredictController extends BaseController<
         return;
       }
 
+      // Track swap/deposit success — the token swap confirmed, order placement begins
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.SWAP_SUCCESS,
+        analyticsProperties: pendingOrder.analyticsProperties,
+        paymentTokenAddress:
+          this.state.activeBuyOrders[address]?.paymentTokenAddress,
+        paymentTokenSymbol:
+          this.state.activeBuyOrders[address]?.paymentTokenSymbol,
+        orderType: pendingOrder.preview?.orderType,
+        activeAbTests: pendingOrder.activeAbTests,
+      });
+
       const {
         preview,
         signerAddress,
         analyticsProperties: pendingAnalytics,
+        activeAbTests: pendingActiveAbTests,
       } = pendingOrder;
 
-      this.placeOrder({
-        analyticsProperties: pendingAnalytics,
-        preview,
-        address: signerAddress,
-        transactionId,
-      }).catch((error) => {
-        Logger.error(
-          ensureError(error),
-          this.getErrorContext('handleTransactionSideEffects', {
-            operation: 'placeOrder',
+      (depositWalletSyncPromise ?? Promise.resolve())
+        .then(() =>
+          this.placeOrder({
+            analyticsProperties: pendingAnalytics,
+            activeAbTests: pendingActiveAbTests,
+            preview,
+            address: signerAddress,
+            transactionId,
           }),
-        );
-      });
+        )
+        .catch((error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('handleTransactionSideEffects', {
+              operation: 'placeOrder',
+            }),
+          );
+        });
     }
 
     if (type === 'depositAndOrder' && status === 'failed') {
@@ -2068,6 +2920,10 @@ export class PredictController extends BaseController<
         transactionId !== undefined &&
         transactionId !== this.state.activeBuyOrders[address]?.transactionId;
 
+      const failedActiveOrder = this.state.activeBuyOrders[address];
+      const failedPaymentTokenAddress = failedActiveOrder?.paymentTokenAddress;
+      const failedPaymentTokenSymbol = failedActiveOrder?.paymentTokenSymbol;
+
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
       }
@@ -2076,9 +2932,19 @@ export class PredictController extends BaseController<
         this.provider.clearOptimisticPosition(address, outcomeTokenId);
       }
 
-      if (this.state.activeBuyOrders[address]) {
+      if (failedActiveOrder) {
         const errorMessage =
           transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+
+        // PWAT active order: swap/deposit step failed before order placement
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.SWAP_FAILED,
+          analyticsProperties: pendingOrder?.analyticsProperties,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
+          failureReason: errorMessage,
+          activeAbTests: pendingOrder?.activeAbTests,
+        });
 
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
@@ -2096,6 +2962,19 @@ export class PredictController extends BaseController<
             }),
           );
         });
+      } else {
+        // Background deposit with no active PWAT order — track as a generic failure
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.FAILED,
+          analyticsProperties: pendingOrder?.analyticsProperties,
+          failureReason:
+            transactionMeta.error?.message ??
+            PREDICT_ERROR_CODES.DEPOSIT_FAILED,
+          paymentTokenAddress: failedPaymentTokenAddress,
+          paymentTokenSymbol: failedPaymentTokenSymbol,
+          orderType: pendingOrder?.preview?.orderType,
+          activeAbTests: pendingOrder?.activeAbTests,
+        });
       }
 
       if (isBackgroundOrder) {
@@ -2110,11 +2989,27 @@ export class PredictController extends BaseController<
 
     if (type === 'depositAndOrder' && status === 'rejected') {
       const transactionId = transactionMeta.id;
+      const rejectedPendingOrder = transactionId
+        ? this.pendingOrderPreviews[transactionId]
+        : null;
+
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
       }
 
       if (this.state.activeBuyOrders[address]) {
+        // Track swap_failed — user rejected the deposit/swap approval
+        this.trackPredictOrderEvent({
+          status: PredictTradeStatus.SWAP_FAILED,
+          analyticsProperties: rejectedPendingOrder?.analyticsProperties,
+          paymentTokenAddress:
+            this.state.activeBuyOrders[address]?.paymentTokenAddress,
+          paymentTokenSymbol:
+            this.state.activeBuyOrders[address]?.paymentTokenSymbol,
+          failureReason: 'user_rejected',
+          activeAbTests: rejectedPendingOrder?.activeAbTests,
+        });
+
         this.update((state) => {
           if (state.activeBuyOrders[address]) {
             state.activeBuyOrders[address].state = ActiveOrderState.PREVIEW;
@@ -2189,6 +3084,134 @@ export class PredictController extends BaseController<
     );
   }
 
+  private getClaimAmountFromReceipt(
+    logs: TransactionReceiptLog[] | undefined,
+  ): number | undefined {
+    if (!logs?.length) {
+      return undefined;
+    }
+
+    let payoutRaw = 0n;
+    let hasPayoutRedemption = false;
+
+    for (const log of logs) {
+      if (
+        log.address?.toLowerCase() !==
+        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
+      ) {
+        continue;
+      }
+
+      const topics = this.normalizeLogTopics(log.topics);
+      if (!topics || !log.data) {
+        continue;
+      }
+
+      try {
+        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+          topics,
+          data: log.data,
+        });
+        const payout = parsedLog.args.payout?.toString();
+
+        if (payout === undefined) {
+          continue;
+        }
+
+        payoutRaw += BigInt(payout);
+        hasPayoutRedemption = true;
+      } catch (_error) {
+        continue;
+      }
+    }
+
+    if (!hasPayoutRedemption) {
+      return undefined;
+    }
+
+    return parseFloat(
+      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+    );
+  }
+
+  private getClaimAmountFromSimulation(
+    transactionMeta: TransactionMeta,
+    {
+      treatMissingRelevantTokenChangesAsZero = false,
+    }: ClaimAmountFromSimulationOptions = {},
+  ): number | undefined {
+    const tokenBalanceChanges =
+      transactionMeta.simulationData?.tokenBalanceChanges;
+
+    if (!tokenBalanceChanges) {
+      return undefined;
+    }
+
+    let hasRelevantTokenChange = false;
+
+    const claimAmount = tokenBalanceChanges.reduce((sum, change) => {
+      const address = change.address?.toLowerCase();
+
+      if (
+        change.isDecrease ||
+        change.standard !== 'erc20' ||
+        !address ||
+        !PREDICT_CLAIM_COLLATERAL_ADDRESSES.has(address) ||
+        typeof change.difference !== 'string'
+      ) {
+        return sum;
+      }
+
+      try {
+        const difference = parseFloat(
+          formatUnits(change.difference, COLLATERAL_TOKEN_DECIMALS),
+        );
+        hasRelevantTokenChange = true;
+        return sum + difference;
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to parse claim simulation difference',
+          {
+            difference: change.difference,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        );
+        return sum;
+      }
+    }, 0);
+
+    if (hasRelevantTokenChange) {
+      return claimAmount;
+    }
+
+    return treatMissingRelevantTokenChangesAsZero ? 0 : undefined;
+  }
+
+  private getActualClaimAmount(
+    transactionMeta: TransactionMeta,
+    options?: ClaimAmountFromSimulationOptions,
+  ): number | undefined {
+    const receiptAmount = this.getClaimAmountFromReceipt(
+      transactionMeta.txReceipt?.logs as TransactionReceiptLog[] | undefined,
+    );
+
+    if (receiptAmount !== undefined) {
+      return receiptAmount;
+    }
+
+    return this.getClaimAmountFromSimulation(transactionMeta, options);
+  }
+
+  private normalizeLogTopics(
+    topics: string | string[] | undefined,
+  ): string[] | undefined {
+    if (!topics) {
+      return undefined;
+    }
+
+    return Array.isArray(topics) ? topics : undefined;
+  }
+
   private getTransactionAmount({
     type,
     status,
@@ -2218,7 +3241,15 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'claim') {
-      return this.getClaimAmountByAddress(address);
+      const actualClaimAmount = this.getActualClaimAmount(transactionMeta, {
+        treatMissingRelevantTokenChangesAsZero: status === 'confirmed',
+      });
+
+      if (status === 'confirmed') {
+        return actualClaimAmount ?? 0;
+      }
+
+      return actualClaimAmount ?? this.getClaimAmountByAddress(address);
     }
 
     if (type === 'withdraw' && status === 'confirmed') {
@@ -2295,8 +3326,7 @@ export class PredictController extends BaseController<
   }
 
   public async getBalance(params: GetBalanceParams): Promise<number> {
-    const selectedAddress = this.getSigner().address;
-    const address = params.address ?? selectedAddress;
+    const address = params.address ?? this.requireEvmAccountAddress();
     let wasCached = false;
 
     return withTrace(
@@ -2353,6 +3383,16 @@ export class PredictController extends BaseController<
           signer,
         });
 
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+
+      const isDepositWallet = accountState.walletType === 'deposit-wallet';
+
+      const gasFeeToken = isDepositWallet
+        ? undefined
+        : (MATIC_CONTRACTS_V2.collateral as Hex);
+
       this.update((state) => {
         state.withdrawTransaction = {
           chainId: hexToNumber(chainId),
@@ -2367,6 +3407,7 @@ export class PredictController extends BaseController<
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId: this.messenger.call(
           'NetworkController:findNetworkClientIdByChainId',
           chainId,
@@ -2374,9 +3415,8 @@ export class PredictController extends BaseController<
         disableHook: true,
         disableSequential: true,
         requireApproval: true,
-        // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS.collateral as Hex,
         transactions: [transaction],
+        gasFeeToken,
       });
 
       this.update((state) => {
@@ -2430,7 +3470,71 @@ export class PredictController extends BaseController<
     }
   }
 
-  public async beforeSign(request: {
+  public async beforePublish(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<boolean> {
+    return this.provider.beforePublishDepositWalletDeposit({
+      transactionMeta: request.transactionMeta,
+      getSigner: (address?: string) => this.getSigner(address),
+    });
+  }
+
+  private getPendingClaimContext(transactionMeta: TransactionMeta):
+    | {
+        senderAddress: string;
+        matchedAddress: string;
+        pendingValue: string;
+        positions: PredictPosition[];
+        signer: Signer;
+      }
+    | undefined {
+    const isClaim = transactionMeta.nestedTransactions?.some(
+      (tx) => tx.type === TransactionType.predictClaim,
+    );
+
+    if (!isClaim) {
+      return undefined;
+    }
+
+    const senderAddress = transactionMeta.txParams.from as string | undefined;
+    if (!senderAddress) {
+      return undefined;
+    }
+
+    const normalizedAddress = senderAddress.toLowerCase();
+    const matchedAddress = Object.keys(this.state.pendingClaims).find(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+
+    if (!matchedAddress) {
+      return undefined;
+    }
+
+    const pendingValue = this.state.pendingClaims[matchedAddress];
+
+    if (
+      pendingValue !== 'pending' &&
+      transactionMeta.batchId &&
+      pendingValue !== transactionMeta.batchId
+    ) {
+      throw new Error('Pending claim batch does not match transaction batch');
+    }
+
+    const claimablePositions = this.state.claimablePositions[matchedAddress];
+    if (!claimablePositions || claimablePositions.length === 0) {
+      throw new Error('No claimable positions found for pending claim');
+    }
+
+    return {
+      senderAddress,
+      matchedAddress,
+      pendingValue,
+      positions: [...claimablePositions],
+      signer: this.getSigner(senderAddress),
+    };
+  }
+
+  private async beforeSignWithdrawIfNeeded(request: {
     transactionMeta: TransactionMeta;
   }): Promise<
     | {
@@ -2438,7 +3542,18 @@ export class PredictController extends BaseController<
       }
     | undefined
   > {
-    if (!this.state.withdrawTransaction) {
+    const activeWithdrawTransaction = this.state.withdrawTransaction;
+
+    if (!activeWithdrawTransaction) {
+      return;
+    }
+
+    if (
+      activeWithdrawTransaction.transactionId &&
+      request.transactionMeta.id !== activeWithdrawTransaction.transactionId
+    ) {
+      // MetaMask Pay creates a follow-up transaction after the original withdraw
+      // is signed. Only the active withdraw transaction should be signed here.
       return;
     }
 
@@ -2459,12 +3574,21 @@ export class PredictController extends BaseController<
 
     const signer = this.getSigner(request.transactionMeta.txParams.from);
 
-    const chainId = this.state.withdrawTransaction.chainId;
+    const chainId = activeWithdrawTransaction.chainId;
 
     const networkClientId = this.messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
+    const withdrawDataPrefix = withdrawTransaction.data?.slice(0, 10);
+
+    if (
+      withdrawDataPrefix?.toLowerCase() !== ERC20_TRANSFER_FUNCTION_SELECTOR
+    ) {
+      // signWithdraw expects the original ERC20 transfer calldata. Pay-created
+      // batches may already contain signed Safe calldata and should pass through.
+      return;
+    }
 
     // Invalidate query cache (to avoid nonce issues)
     await this.invalidateQueryCache(chainId);
@@ -2478,7 +3602,7 @@ export class PredictController extends BaseController<
       ...withdrawTransaction,
       from: request.transactionMeta.txParams.from,
       data: callData,
-      to: this.state.withdrawTransaction?.predictAddress as Hex,
+      to: activeWithdrawTransaction.predictAddress as Hex,
     };
 
     // Attempt to estimate gas for the updated transaction
@@ -2518,8 +3642,8 @@ export class PredictController extends BaseController<
     return {
       updateTransaction: (transaction: TransactionMeta) => {
         transaction.txParams.data = callData;
-        transaction.txParams.to = this.state.withdrawTransaction
-          ?.predictAddress as Hex;
+        transaction.txParams.to =
+          activeWithdrawTransaction.predictAddress as Hex;
         transaction.assetsFiatValues = {
           ...transaction.assetsFiatValues,
           receiving: String(amount),
@@ -2533,6 +3657,51 @@ export class PredictController extends BaseController<
     };
   }
 
+  public async beforeSign(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<
+    | {
+        updateTransaction?: (transaction: TransactionMeta) => void;
+      }
+    | undefined
+  > {
+    const withdrawResult = await this.beforeSignWithdrawIfNeeded(request);
+    if (withdrawResult) {
+      return withdrawResult;
+    }
+
+    const claimContext = this.getPendingClaimContext(request.transactionMeta);
+    if (!claimContext) {
+      return undefined;
+    }
+
+    return this.provider.beforeSignClaim?.({
+      transactionMeta: request.transactionMeta,
+      signer: claimContext.signer,
+      positions: claimContext.positions,
+    });
+  }
+
+  public async publish(request: {
+    transactionMeta: TransactionMeta;
+  }): Promise<{ transactionHash?: string }> {
+    const claimContext = this.getPendingClaimContext(request.transactionMeta);
+
+    if (!claimContext) {
+      return { transactionHash: undefined };
+    }
+
+    if (!this.provider.publishClaim) {
+      return { transactionHash: undefined };
+    }
+
+    return this.provider.publishClaim({
+      transactionMeta: request.transactionMeta,
+      signer: claimContext.signer,
+      positions: claimContext.positions,
+    });
+  }
+
   public clearWithdrawTransaction(): void {
     this.update((state) => {
       state.withdrawTransaction = null;
@@ -2541,6 +3710,7 @@ export class PredictController extends BaseController<
 }
 
 export type {
+  PredictControllerBeforePublishAction,
   PredictControllerBeforeSignAction,
   PredictControllerClaimWithConfirmationAction,
   PredictControllerClearActiveOrderAction,
@@ -2565,16 +3735,19 @@ export type {
   PredictControllerPlaceOrderAction,
   PredictControllerPrepareWithdrawAction,
   PredictControllerPreviewOrderAction,
+  PredictControllerPublishAction,
   PredictControllerRefreshEligibilityAction,
   PredictControllerSelectPaymentTokenAction,
   PredictControllerSetSelectedPaymentTokenAction,
   PredictControllerSubscribeToGameUpdatesAction,
   PredictControllerSubscribeToMarketPricesAction,
   PredictControllerTrackActivityViewedAction,
+  PredictControllerTrackBannerActionAction,
   PredictControllerTrackFeedViewedAction,
   PredictControllerTrackGeoBlockTriggeredAction,
   PredictControllerTrackMarketDetailsOpenedAction,
   PredictControllerTrackPositionViewedAction,
   PredictControllerTrackPredictOrderEventAction,
+  PredictControllerTrackSearchInteractedAction,
   PredictControllerTrackShareActionAction,
 } from './PredictController-method-action-types';

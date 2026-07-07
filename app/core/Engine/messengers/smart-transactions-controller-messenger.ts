@@ -6,7 +6,6 @@ import {
 import { RootMessenger } from '../types';
 import { SmartTransactionsControllerMessenger } from '@metamask/smart-transactions-controller';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
-import { AuthenticationController } from '@metamask/profile-sync-controller';
 
 /**
  * Get the messenger for the smart transactions controller. This is scoped to the
@@ -16,19 +15,18 @@ import { AuthenticationController } from '@metamask/profile-sync-controller';
  * @returns The SmartTransactionsControllerMessenger.
  */
 export function getSmartTransactionsControllerMessenger(
-  rootMessenger: RootMessenger,
-): SmartTransactionsControllerMessenger {
-  const messenger = new Messenger<
-    'SmartTransactionsController',
+  rootMessenger: RootMessenger<
     MessengerActions<SmartTransactionsControllerMessenger>,
-    MessengerEvents<SmartTransactionsControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<SmartTransactionsControllerMessenger>
+  >,
+): SmartTransactionsControllerMessenger {
+  const messenger: SmartTransactionsControllerMessenger = new Messenger({
     namespace: 'SmartTransactionsController',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
     actions: [
+      'AuthenticationController:getBearerToken',
       'NetworkController:getNetworkClientById',
       'NetworkController:getState',
       'RemoteFeatureFlagController:getState',
@@ -46,8 +44,13 @@ export function getSmartTransactionsControllerMessenger(
 }
 
 type SmartTransactionsControllerInitMessengerActions =
-  | AnalyticsControllerActions
-  | AuthenticationController.AuthenticationControllerGetBearerTokenAction;
+  AnalyticsControllerActions;
+
+export type SmartTransactionsControllerInitMessenger = Messenger<
+  'SmartTransactionsControllerInit',
+  SmartTransactionsControllerInitMessengerActions,
+  never
+>;
 
 /**
  * Get the SmartTransactionsControllerInitMessenger for the SmartTransactionsController.
@@ -56,33 +59,19 @@ type SmartTransactionsControllerInitMessengerActions =
  * @param rootMessenger - The root messenger.
  * @returns The SmartTransactionsControllerInitMessenger.
  */
-export type SmartTransactionsControllerInitMessenger = ReturnType<
-  typeof getSmartTransactionsControllerInitMessenger
->;
-
 export function getSmartTransactionsControllerInitMessenger(
-  rootMessenger: RootMessenger,
-): Messenger<
-  'SmartTransactionsControllerInit',
-  SmartTransactionsControllerInitMessengerActions,
-  never,
-  RootMessenger
-> {
-  const messenger = new Messenger<
-    'SmartTransactionsControllerInit',
-    SmartTransactionsControllerInitMessengerActions,
-    never,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<SmartTransactionsControllerInitMessenger>,
+    MessengerEvents<SmartTransactionsControllerInitMessenger>
+  >,
+): SmartTransactionsControllerInitMessenger {
+  const messenger: SmartTransactionsControllerInitMessenger = new Messenger({
     namespace: 'SmartTransactionsControllerInit',
     parent: rootMessenger,
   });
 
   rootMessenger.delegate({
-    actions: [
-      'AnalyticsController:trackEvent',
-      'AuthenticationController:getBearerToken',
-    ],
+    actions: ['AnalyticsController:trackEvent'],
     events: [],
     messenger,
   });

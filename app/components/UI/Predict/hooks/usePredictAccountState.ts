@@ -15,7 +15,7 @@ interface UsePredictAccountStateOptions {
 }
 
 /**
- * Fetches the Predict account state (address, deployment status, allowances).
+ * Fetches the Predict account state (address and deployment status).
  */
 export function usePredictAccountState(
   options: UsePredictAccountStateOptions = {},

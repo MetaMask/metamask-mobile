@@ -52,19 +52,24 @@ export const useTokenAsset = () => {
       ({ address }) => address.toLowerCase() === tokenAddress,
     ) as TokenI;
 
+    if (isMusdClaim) {
+      // Handle both "not in wallet" and "in wallet without logo" in one place.
+      // mUSD can be added to the wallet before the token list service hydrates its
+      // image URL, so we always fall back to the known logo for this tx type.
+      return {
+        asset: {
+          ...asset,
+          symbol: asset?.symbol ?? MUSD_TOKEN.symbol,
+          name: asset?.name ?? MUSD_TOKEN.name,
+          decimals: asset?.decimals ?? MUSD_TOKEN.decimals,
+          address: MUSD_TOKEN_ADDRESS,
+          image: asset?.image ?? MUSD_TOKEN.image,
+        } as Partial<TokenI>,
+        displayName: asset?.ticker ?? asset?.symbol ?? MUSD_TOKEN.symbol,
+      };
+    }
+
     if (!asset) {
-      // For musdClaim, fall back to known mUSD constants when token isn't in user's wallet
-      if (isMusdClaim) {
-        return {
-          asset: {
-            symbol: MUSD_TOKEN.symbol,
-            name: MUSD_TOKEN.name,
-            decimals: MUSD_TOKEN.decimals,
-            address: MUSD_TOKEN_ADDRESS,
-          } as Partial<TokenI>,
-          displayName: MUSD_TOKEN.symbol,
-        };
-      }
       return { asset: {}, displayName: strings('token.unknown') };
     }
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { initialState as initialSecurityState } from '../../../reducers/security';
 import App from '.';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
@@ -26,7 +27,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { AccountDetailsIds } from '../../Views/MultichainAccounts/AccountDetails.testIds';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { TraceName, TraceOperation } from '../../../util/trace';
+import { TraceName } from '../../../util/trace';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import Logger from '../../../util/Logger';
 
@@ -37,6 +38,7 @@ const initialState: DeepPartial<RootState> = {
   settings: {
     basicFunctionalityEnabled: true,
   },
+  security: initialSecurityState,
   engine: {
     backgroundState,
   },
@@ -66,7 +68,17 @@ jest.mock('../../UI/Predict/hooks/usePredictToastRegistrations', () => ({
   usePredictToastRegistrations: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock(
+  '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations',
+  () => ({
+    useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
+  }),
+);
+
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
+jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
+  <MockView testID="mock-ramps-service-disruption-modal" />
+));
 
 jest.mock('../../Views/Onboarding', () => () => (
   <MockView testID="mock-onboarding" />
@@ -123,6 +135,15 @@ jest.mock('../../Views/QRTabSwitcher', () => () => (
 jest.mock('../../UI/OptinMetrics', () => () => (
   <MockView testID="mock-optin" />
 ));
+jest.mock('../../Views/OnboardingInterestQuestionnaire', () => () => (
+  <MockView testID="mock-onboarding-interest-questionnaire" />
+));
+jest.mock(
+  '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire',
+  () => () => (
+    <MockView testID="mock-onboarding-crypto-experience-questionnaire" />
+  ),
+);
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));
@@ -152,12 +173,6 @@ jest.mock('../../Views/LedgerSelectAccount', () => () => (
 ));
 jest.mock('../../Views/ConnectHardware/SelectHardware', () => () => (
   <MockView testID="mock-select-hw" />
-));
-jest.mock('../../Views/DetectedTokens', () => () => (
-  <MockView testID="mock-detected-tokens" />
-));
-jest.mock('../../Views/DetectedTokensConfirmation', () => () => (
-  <MockView testID="mock-detected-confirm" />
 ));
 jest.mock('../../Views/WalletActions', () => () => (
   <MockView testID="mock-wallet-actions" />
@@ -352,6 +367,16 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getInternalAccountByAddress: () => mockAccount,
+  getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.requireActual(
+      '../../../util/analytics/AnalyticsEventBuilder',
+    ).AnalyticsEventBuilder.createEventBuilder,
+  })),
 }));
 
 jest.mock('../../../components/hooks/useAsyncResult', () => ({
@@ -453,21 +478,6 @@ describe('App', () => {
     };
 
     beforeAll(() => {
-      jest.mock('react-native-safe-area-context', () => {
-        const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-        const frame = { width: 0, height: 0, x: 0, y: 0 };
-        return {
-          SafeAreaProvider: jest
-            .fn()
-            .mockImplementation(({ children }) => children),
-          SafeAreaConsumer: jest
-            .fn()
-            .mockImplementation(({ children }) => children(inset)),
-          useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-          useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-        };
-      });
-
       // Mock the storage item to simulate existing user and bypass onboarding
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {
@@ -526,9 +536,9 @@ describe('App', () => {
       await waitFor(() => {
         expect(
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
-    });
+    }, 30000);
 
     it('renders the multichain account edit name screen when navigated to', async () => {
       const routeState = {
@@ -549,12 +559,14 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Account Group')).toBeTruthy();
-        expect(getByText('Account name')).toBeTruthy();
+        expect(getByText('Account Group')).toBeOnTheScreen();
+        expect(getByText('Account name')).toBeOnTheScreen();
       });
-    });
+    }, 30000);
 
     it('renders the multichain account share address screen when navigated to', async () => {
+      jest.useRealTimers();
+
       const routeState = {
         index: 0,
         routes: [
@@ -573,9 +585,11 @@ describe('App', () => {
       const { getByText } = renderAppWithRouteState(routeState);
 
       await waitFor(() => {
-        expect(getByText('Share address')).toBeTruthy();
+        expect(getByText('Share address')).toBeOnTheScreen();
       });
-    });
+
+      jest.useFakeTimers();
+    }, 30000);
   });
 
   describe('route registration', () => {
@@ -938,10 +952,6 @@ describe('App', () => {
       expect(Routes.SHEET.SUCCESS_ERROR_SHEET).toBeDefined();
     });
 
-    it('has add account route defined', () => {
-      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
-    });
-
     it('has experience enhancer route defined', () => {
       expect(Routes.SHEET.EXPERIENCE_ENHANCER).toBeDefined();
     });
@@ -1008,10 +1018,6 @@ describe('App', () => {
 
     it('has nft auto detection modal route defined', () => {
       expect(Routes.MODAL.NFT_AUTO_DETECTION_MODAL).toBeDefined();
-    });
-
-    it('has whats new route defined', () => {
-      expect(Routes.MODAL.WHATS_NEW).toBeDefined();
     });
 
     it('has multi rpc migration modal route defined', () => {
@@ -1181,10 +1187,6 @@ describe('App', () => {
       expect(Routes.SHEET.ADDRESS_SELECTOR).toBeDefined();
     });
 
-    it('has add account route defined', () => {
-      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
-    });
-
     it('has account actions route defined', () => {
       expect(Routes.SHEET.ACCOUNT_ACTIONS).toBeDefined();
     });
@@ -1324,10 +1326,6 @@ describe('App', () => {
     it('has tooltip modal route defined', () => {
       expect(Routes.SHEET.TOOLTIP_MODAL).toBeDefined();
     });
-
-    it('has whats new route defined', () => {
-      expect(Routes.MODAL.WHATS_NEW).toBeDefined();
-    });
   });
 
   describe('Multichain introduction screens', () => {
@@ -1427,17 +1425,6 @@ describe('App', () => {
 
       return render(<App />, { wrapper: Providers });
     };
-
-    it('calls trace with NavInit on first render', () => {
-      renderApp();
-
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.NavInit,
-          op: TraceOperation.NavInit,
-        }),
-      );
-    });
 
     it('calls endTrace with UIStartup after mount', async () => {
       renderApp();
@@ -1739,7 +1726,79 @@ describe('App', () => {
       const { getByTestId } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(getByTestId('mock-onboarding')).toBeTruthy();
+        expect(getByTestId('mock-onboarding')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders OnboardingInterestQuestionnaire when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-onboarding-interest-questionnaire'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('renders OnboardingCryptoExperienceQuestionnaire when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-onboarding-crypto-experience-questionnaire'),
+        ).toBeOnTheScreen();
       });
     });
 
@@ -2190,14 +2249,6 @@ describe('App', () => {
       });
     });
 
-    it('renders WhatsNew modal', async () => {
-      const { toJSON } = renderAppWithModal(Routes.MODAL.WHATS_NEW);
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
-      });
-    });
-
     it('renders TooltipModal sheet', async () => {
       const { toJSON } = renderAppWithModal(Routes.SHEET.TOOLTIP_MODAL);
 
@@ -2206,11 +2257,23 @@ describe('App', () => {
       });
     });
 
+    it('renders RampsServiceDisruptionModal sheet', async () => {
+      const { getByTestId } = renderAppWithModal(
+        Routes.SHEET.RAMPS_SERVICE_DISRUPTION_MODAL,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-ramps-service-disruption-modal'),
+        ).toBeOnTheScreen();
+      });
+    });
+
     it('renders WalletActions modal', async () => {
       const { getByTestId } = renderAppWithModal(Routes.MODAL.WALLET_ACTIONS);
 
       await waitFor(() => {
-        expect(getByTestId('mock-wallet-actions')).toBeTruthy();
+        expect(getByTestId('mock-wallet-actions')).toBeOnTheScreen();
       });
     });
 
@@ -2245,14 +2308,6 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId('mock-trade-actions')).toBeTruthy();
-      });
-    });
-
-    it('renders DetectedTokens flow', async () => {
-      const { getByTestId } = renderAppWithModal('DetectedTokens');
-
-      await waitFor(() => {
-        expect(getByTestId('mock-detected-tokens')).toBeTruthy();
       });
     });
   });

@@ -1,7 +1,13 @@
 # Gradle settings for GitHub Actions E2E builds (LG runner, 48GB RAM)
 
-# JVM: 8GB heap to leave room for Metro workers + Kotlin daemon
-org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=512m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+# JVM: 8GB heap to leave room for Metro workers + Kotlin daemon.
+# MaxMetaspaceSize bumped from 512m -> 2g: with RN 0.81's composite build pulling
+# in ReactAndroid + ~60 subprojects, AGP 8.11, and Kotlin 2.1.20 compiler, the
+# daemon was running out of Metaspace before reaching late Kotlin compile tasks
+# (e.g. :metamask_react-native-acm:compileReleaseKotlin), surfacing only as a
+# generic "Compilation error" in Gradle's wrapper exception. The 48GB runner has
+# plenty of headroom.
+org.gradle.jvmargs=-Xmx8g -XX:MaxMetaspaceSize=2g -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+OptimizeStringConcat -XX:+ExitOnOutOfMemoryError -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
 
 org.gradle.parallel=true
 org.gradle.configureondemand=true
@@ -14,8 +20,11 @@ org.gradle.vfs.watch=false
 kotlin.incremental=true
 kotlin.incremental.android=true
 kotlin.caching.enabled=true
-# Kotlin daemon: 2GB cap to prevent memory contention
-kotlin.daemon.jvmargs=-Xmx2g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
+# Kotlin daemon: 2GB heap, 1GB Metaspace. Default Metaspace (256m) is insufficient
+# for compiling Kotlin in 60+ subprojects (RN ReactAndroid + Expo modules + MM
+# native bridges); manifested as "Compilation error. See log for more details"
+# without any visible compiler stderr.
+kotlin.daemon.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
 
 # File system optimizations
 org.gradle.vfs.verbose=false
@@ -26,6 +35,9 @@ org.gradle.welcome=NEVER
 # https://developer.android.com/topic/libraries/support-library/androidx-rn
 android.useAndroidX=true
 android.enableJetifier=true
+# byte-buddy 1.17+ ships class files newer than Jetifier's ASM can read (Java 24 / major 68).
+# It is not a support-library artifact and does not need jetification. See b/184622491.
+android.jetifier.ignorelist=.*byte-buddy.*
 
 # Enable AAPT2 PNG crunching
 android.enablePngCrunchInReleaseBuilds=true
@@ -37,15 +49,14 @@ android.enablePngCrunchInReleaseBuilds=true
 # ./gradlew <task> -PreactNativeArchitectures=x86_64
 reactNativeArchitectures=x86_64
 
-# Use this property to enable support to the new architecture.
-# This will allow you to use TurboModules and the Fabric render in
-# your application. You should enable this flag either if you want
-# to write custom TurboModules/Fabric components OR use libraries that
-# are providing them.
+# New Architecture is the default in RN 0.83. This property must remain defined
+# because libraries such as react-native-reanimated fail the build if
+# `newArchEnabled` is not explicitly set to "true".
 newArchEnabled=true
 
-# Use this property to enable or disable the Hermes JS engine.
-# If set to false, you will be using JSC instead.
+# Hermes is the default JS engine. This property must remain defined because
+# third-party React Native modules (e.g. react-native-worklets) read
+# `project(':app').hermesEnabled` directly and fail if it's absent.
 hermesEnabled=true
 
 # TODO: explain following config options

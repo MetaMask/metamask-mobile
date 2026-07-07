@@ -1,5 +1,10 @@
-import type { CaipChainId } from '@metamask/utils';
-import { CardStatus, CardType } from '../../../../components/UI/Card/types';
+import type { CaipChainId, Json } from '@metamask/utils';
+import {
+  CardStatus,
+  CardType,
+  CardWalletExternalPriorityResponse,
+  DelegationSettingsResponse,
+} from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
 
@@ -31,6 +36,20 @@ export class CardProviderError extends Error {
     this.name = 'CardProviderError';
     this.code = code;
     this.statusCode = statusCode;
+  }
+}
+
+export function isCardAuthTokenError(error: unknown): boolean {
+  const statusCode = (error as { statusCode?: unknown }).statusCode;
+  return error instanceof Error && (statusCode === 401 || statusCode === 403);
+}
+
+export class CardLinkageInProgressError extends Error {
+  constructor(
+    message = 'A Money Account to Card linkage is already in progress',
+  ) {
+    super(message);
+    this.name = 'CardLinkageInProgressError';
   }
 }
 
@@ -101,6 +120,9 @@ export interface CardProviderCapabilities {
   supportsFreeze: boolean;
   supportsPushProvisioning: boolean;
   onboarding: CardOnboardingCapability;
+  supportsPinView: boolean;
+  supportsCashback: boolean;
+  supportsCredit: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -115,13 +137,17 @@ export interface CardFundingAsset {
   symbol: string;
   name: string;
   address: string;
+  walletAddress: string;
   decimals: number;
   chainId: CaipChainId;
-  balance: string;
-  allowance: string;
+  spendableBalance: string;
+  spendingCap: string;
+  originalSpendingCap?: string;
   priority: number;
   status: FundingAssetStatus;
   stagingTokenAddress?: string;
+  externalId?: number;
+  delegationContract?: string;
 }
 
 // -- Card Details --
@@ -136,7 +162,7 @@ export interface CardDetails {
 }
 
 export interface CardSecureViewParams {
-  customCss?: string;
+  customCss?: Record<string, string>;
 }
 
 export interface CardSecureView {
@@ -160,6 +186,8 @@ export interface CardAccountStatus {
   provisioningEligible: boolean;
   holderName: string | null;
   shippingAddress: CardShippingAddress | null;
+  countryOfResidence: string | null;
+  usState: string | null;
 }
 
 // -- Alerts & Actions --
@@ -173,7 +201,7 @@ export type CardAlertType =
 export interface CardAlertAction {
   type: 'navigate';
   route: string;
-  params?: Record<string, unknown>;
+  params?: Record<string, Json>;
 }
 
 export interface CardAlert {
@@ -184,58 +212,114 @@ export interface CardAlert {
 
 export type CardAction =
   | { type: 'add_funds'; enabled: boolean }
-  | { type: 'change_asset' }
   | { type: 'enable_card' };
 
 // -- Card Home Data --
 
 export interface CardHomeData {
-  primaryAsset: CardFundingAsset | null;
-  assets: CardFundingAsset[];
+  primaryFundingAsset: CardFundingAsset | null;
+  fundingAssets: CardFundingAsset[];
+  availableFundingAssets: CardFundingAsset[];
   card: CardDetails | null;
   account: CardAccountStatus | null;
   alerts: CardAlert[];
   actions: CardAction[];
+  delegationSettings: DelegationSettingsResponse | null;
+  externalWalletPriority?: CardWalletExternalPriorityResponse[];
 }
 
 export function emptyCardHomeData(): CardHomeData {
   return {
-    primaryAsset: null,
-    assets: [],
+    primaryFundingAsset: null,
+    fundingAssets: [],
+    availableFundingAssets: [],
     card: null,
     account: null,
     alerts: [],
     actions: [],
+    delegationSettings: null,
   };
 }
 
 // -- Funding --
-
-export interface WalletOperations {
-  signMessage(address: string, message: string): Promise<string>;
-  submitTransaction(
-    params: { to: string; data: string; from: string },
-    chainId: CaipChainId,
-  ): Promise<string>;
-}
 
 export interface FundingApprovalParams {
   address: string;
   amount: string;
   currency: string;
   network: string;
-  faucet?: boolean;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
 }
 
-export interface CardFundingOption {
-  symbol: string;
-  asset: CardFundingAsset | null;
+/** Response from initiating a delegation session (GET `/v1/delegation/token`). */
+export interface DelegationChallengeResponse {
+  delegationToken: string;
+  nonce: string;
+  expiresAt: string;
 }
 
-export interface CardFundingConfig {
-  maxLimit: string;
-  fundingOptions: CardFundingOption[];
-  supportedChains: CaipChainId[];
+// -- Cashback --
+
+export interface CashbackWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface CashbackWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
+  network: string;
+}
+
+export interface CashbackWithdrawParams {
+  amount: string;
+}
+
+export interface CashbackWithdrawResponse {
+  txHash: string;
+}
+
+// -- Credit --
+
+export interface CreditWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export type CreditWithdrawEstimationResponse =
+  CashbackWithdrawEstimationResponse;
+
+export type CreditWithdrawParams = CashbackWithdrawParams;
+
+export type CreditWithdrawResponse = CashbackWithdrawResponse;
+
+// -- Push Provisioning --
+
+export interface GoogleWalletProvisioningResponse {
+  opaquePaymentCard: string;
+}
+
+export interface ApplePayProvisioningParams {
+  leafCertificate: string;
+  intermediateCertificate: string;
+  nonce: string;
+  nonceSignature: string;
+}
+
+export interface ApplePayProvisioningResponse {
+  encryptedPassData: string;
+  activationData: string;
+  ephemeralPublicKey: string;
 }
 
 // -- Onboarding --
@@ -279,7 +363,6 @@ export interface ICardProvider {
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
   logout(tokens: CardAuthTokens): Promise<void>;
-
   getCardHomeData(
     address: string,
     tokens: CardAuthTokens,
@@ -288,7 +371,11 @@ export interface ICardProvider {
   getCardDetails(tokens: CardAuthTokens): Promise<CardDetails>;
   freezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
   unfreezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
-  getCardSecureView?(
+  getCardDetailsView?(
+    tokens: CardAuthTokens,
+    params: CardSecureViewParams,
+  ): Promise<CardSecureView>;
+  getCardPinView?(
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
   ): Promise<CardSecureView>;
@@ -298,13 +385,46 @@ export interface ICardProvider {
     allAssets: CardFundingAsset[],
     tokens: CardAuthTokens,
   ): Promise<void>;
-  getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
-
+  fetchDelegationChallenge?(
+    params: { network: string; address: string; faucet?: boolean },
+    tokens: CardAuthTokens,
+  ): Promise<DelegationChallengeResponse>;
+  generateCardDelegationSignatureMessage?(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string;
   approveFunding?(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
-    wallet: WalletOperations,
   ): Promise<void>;
+
+  getCashbackWallet?(tokens: CardAuthTokens): Promise<CashbackWalletResponse>;
+  getCashbackWithdrawEstimation?(
+    tokens: CardAuthTokens,
+  ): Promise<CashbackWithdrawEstimationResponse>;
+  withdrawCashback?(
+    params: CashbackWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CashbackWithdrawResponse>;
+
+  getCreditWallet?(tokens: CardAuthTokens): Promise<CreditWalletResponse>;
+  getCreditWithdrawEstimation?(
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawEstimationResponse>;
+  withdrawCredit?(
+    params: CreditWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawResponse>;
+
+  createGoogleWalletProvisioningRequest?(
+    tokens: CardAuthTokens,
+  ): Promise<GoogleWalletProvisioningResponse>;
+  createApplePayProvisioningRequest?(
+    params: ApplePayProvisioningParams,
+    tokens: CardAuthTokens,
+  ): Promise<ApplePayProvisioningResponse>;
 
   getRegistrationSettings?(country: string): Promise<RegistrationSettings>;
   getRegistrationStatus?(

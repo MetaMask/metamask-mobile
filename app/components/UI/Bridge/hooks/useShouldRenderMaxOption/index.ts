@@ -2,8 +2,9 @@ import { useSelector } from 'react-redux';
 import { selectGasIncludedQuoteParams } from '../../../../../selectors/bridge';
 import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
-import { isNativeAddress } from '@metamask/bridge-controller';
+import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { BigNumber } from 'bignumber.js';
+import { isArcTokenUSDC } from '../../../../../enablement/assets/arc';
 
 export const useShouldRenderMaxOption = (
   token?: BridgeToken,
@@ -22,9 +23,13 @@ export const useShouldRenderMaxOption = (
     return false;
   }
 
-  // Always show for non-native tokens
-  if (!isNativeAsset) {
+  // Always show for non-native tokens. Arc ERC20 USDC considered as native.
+  if (!isNativeAsset && !isArcTokenUSDC(token)) {
     return true;
+  }
+
+  if (isSolanaChainId(token.chainId)) {
+    return false;
   }
 
   return gasIncluded || gasIncluded7702;

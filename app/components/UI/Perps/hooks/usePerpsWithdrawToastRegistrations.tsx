@@ -2,8 +2,8 @@ import {
   Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -18,6 +18,7 @@ import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBri
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
+import { isPerpsPredictMoneyWithdraw } from '../../Money/utils/moneyTransactionGuards';
 import { store } from '../../../../store';
 
 function getWithdrawConfirmedDescription(transactionId: string): string {
@@ -89,6 +90,10 @@ export const usePerpsWithdrawToastRegistrations = (): ToastRegistration[] => {
       }
 
       if (status === TransactionStatus.confirmed) {
+        if (isPerpsPredictMoneyWithdraw(transactionMeta)) {
+          return;
+        }
+
         const description = getWithdrawConfirmedDescription(id);
 
         showToast({

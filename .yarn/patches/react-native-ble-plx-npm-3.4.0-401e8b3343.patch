@@ -1,0 +1,49 @@
+diff --git a/android/src/main/java/com/bleplx/utils/SafePromise.java b/android/src/main/java/com/bleplx/utils/SafePromise.java
+index 0203473c88dacf979340c324829871af83cf6d02..35c475e3c33cc882b1322ce6a9d811e6522269d2 100644
+--- a/android/src/main/java/com/bleplx/utils/SafePromise.java
++++ b/android/src/main/java/com/bleplx/utils/SafePromise.java
+@@ -7,6 +7,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
+ import javax.annotation.Nullable;
+ 
+ public class SafePromise {
++  /**
++   * Fallback non-null reject code used when callers (e.g. BlePlxModule) pass
++   * {@code null} as the code argument. React Native's PromiseImpl.reject is
++   * annotated @NonNull on its code parameter; passing null triggers a
++   * NullPointerException ("Parameter specified as non-null is null") on the
++   * native modules thread, which crashes the host app. Substituting a stable
++   * non-null string preserves the existing error-message payload (already
++   * carried in the second argument) while keeping the reject path safe.
++   */
++  private static final String DEFAULT_REJECT_CODE = "BleError";
++
++ private static String safeCode(String code) {
++    return code != null ? code : DEFAULT_REJECT_CODE;
++ }
++
+   private Promise promise;
+   private AtomicBoolean isFinished = new AtomicBoolean();
+ 
+@@ -22,19 +37,19 @@ public class SafePromise {
+ 
+   public void reject(String code, String message) {
+     if (isFinished.compareAndSet(false, true)) {
+-      promise.reject(code, message);
++      promise.reject(safeCode(code), message);
+     }
+   }
+ 
+   public void reject(String code, Throwable e) {
+     if (isFinished.compareAndSet(false, true)) {
+-      promise.reject(code, e);
++      promise.reject(safeCode(code), e);
+     }
+   }
+ 
+   public void reject(String code, String message, Throwable e) {
+     if (isFinished.compareAndSet(false, true)) {
+-      promise.reject(code, message, e);
++       promise.reject(safeCode(code), message, e);
+     }
+   }
+ 

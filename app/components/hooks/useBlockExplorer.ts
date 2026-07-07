@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { RPC } from '../../constants/network';
 import {
   findBlockExplorerForRpc,
+  findBlockExplorerUrlForChain,
   getBlockExplorerName as getBlockExplorerNameFromUrl,
   getHexEvmChainId,
 } from '../../util/networks';
@@ -95,6 +96,13 @@ const useBlockExplorer = (chainId?: string) => {
         if (baseUrl) {
           return `${baseUrl}/address/${address}`;
         }
+        const explorerFromNetworkConfig = findBlockExplorerUrlForChain(
+          currentChainId,
+          networkConfigurations,
+        );
+        if (explorerFromNetworkConfig) {
+          return `${explorerFromNetworkConfig}/address/${address}`;
+        }
       }
 
       // For RPC networks, try to find custom block explorer
@@ -167,6 +175,13 @@ const useBlockExplorer = (chainId?: string) => {
         if (baseUrl) {
           return baseUrl;
         }
+        const explorerFromNetworkConfig = findBlockExplorerUrlForChain(
+          currentChainId,
+          networkConfigurations,
+        );
+        if (explorerFromNetworkConfig) {
+          return explorerFromNetworkConfig;
+        }
       }
 
       // For RPC networks, try to find custom block explorer
@@ -230,6 +245,13 @@ const useBlockExplorer = (chainId?: string) => {
         const baseUrl = getEvmBlockExplorerUrl(hexChainId);
         if (baseUrl) {
           return getBlockExplorerNameFromUrl(baseUrl);
+        }
+        const explorerFromNetworkConfig = findBlockExplorerUrlForChain(
+          currentChainId,
+          networkConfigurations,
+        );
+        if (explorerFromNetworkConfig) {
+          return getBlockExplorerNameFromUrl(explorerFromNetworkConfig);
         }
       }
 

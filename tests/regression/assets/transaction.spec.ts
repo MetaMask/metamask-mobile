@@ -13,10 +13,7 @@ import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import {
-  confirmationFeatureFlags,
-  remoteFeatureFlagHomepageSectionsV1Enabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
@@ -57,7 +54,6 @@ describe(RegressionAssets('Transaction'), () => {
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
             ...Object.assign({}, ...confirmationFeatureFlags),
           });
         },

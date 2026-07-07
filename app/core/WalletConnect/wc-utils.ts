@@ -1,5 +1,11 @@
 import { rpcErrors } from '@metamask/rpc-errors';
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -14,11 +20,13 @@ import {
   selectNetworkConfigurations,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../selectors/networkController';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { getPermittedAccounts, getPermittedCaipChainIds } from '../Permissions';
 import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
+import { EVM_APPROVED_METHODS, EVM_METHODS_TO_REDIRECT } from './wc-config';
+import type { NamespaceConfig } from './multichain/types';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -211,89 +219,40 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-export const getApprovedSessionMethods = (): string[] => {
-  const allEIP155Methods = [
-    // Standard JSON-RPC methods
-    'eth_sendTransaction',
-    'eth_sign',
-    'eth_signTransaction',
-    'eth_signTypedData',
-    'eth_signTypedData_v3',
-    'eth_signTypedData_v4',
-    'personal_sign',
-    'eth_sendRawTransaction',
-    'eth_accounts',
-    'eth_getBalance',
-    'eth_call',
-    'eth_estimateGas',
-    'eth_blockNumber',
-    'eth_getCode',
-    'eth_getTransactionCount',
-    'eth_getTransactionReceipt',
-    'eth_getTransactionByHash',
-    'eth_getBlockByHash',
-    'eth_getBlockByNumber',
-    'net_version',
-    'eth_chainId',
-    'eth_requestAccounts',
-
-    // MetaMask specific methods
-    'wallet_addEthereumChain',
-    'wallet_switchEthereumChain',
-    'wallet_getPermissions',
-    'wallet_requestPermissions',
-    'wallet_watchAsset',
-    'wallet_scanQRCode',
-
-    // EIP-5792 methods
-    'wallet_sendCalls',
-    'wallet_getCallsStatus',
-    'wallet_getCapabilities',
-  ];
-
-  // TODO: extract from the permissions controller when implemented
-  return allEIP155Methods;
-};
-
 export const getScopedPermissions = async ({
   channelId,
 }: {
   channelId: string;
 }) => {
+  const permittedChains = await getPermittedCaipChainIds(channelId);
+  const evmChains = permittedChains.filter((chain) =>
+    chain.startsWith(`${KnownCaipNamespace.Eip155}:`),
+  );
+
+  if (evmChains.length === 0) {
+    DevLogger.log(`WC::getScopedPermissions no permitted EVM chains found`);
+    return {};
+  }
+
+  const namespaces: Record<string, NamespaceConfig> = {};
+  // EIP155 namespace
   const approvedAccounts = getPermittedAccounts(channelId);
-  const chains = await getPermittedChains(channelId);
+  if (!Array.isArray(approvedAccounts)) {
+    throw rpcErrors.internal({
+      message: `WalletConnect permissions are in an unexpected format: approved accounts must be an array.`,
+    });
+  }
 
-  DevLogger.log(
-    `WC::getScopedPermissions for ${channelId}, found accounts:`,
-    approvedAccounts,
-  );
-
-  DevLogger.log(
-    `WC::getScopedPermissions for ${channelId}, found chains:`,
-    chains,
-  );
-
-  // Create properly formatted account strings for each chain and account
-  const accountsPerChains = chains.flatMap((chain) =>
-    Array.isArray(approvedAccounts)
-      ? approvedAccounts.map((account) => `${chain}:${account}`)
-      : [],
-  );
-
-  const scopedPermissions = {
-    chains,
-    methods: getApprovedSessionMethods(),
+  namespaces[KnownCaipNamespace.Eip155] = {
+    chains: evmChains,
+    methods: EVM_APPROVED_METHODS,
     events: ['chainChanged', 'accountsChanged'],
-    accounts: accountsPerChains,
+    accounts: evmChains.flatMap((chain) =>
+      approvedAccounts.map((account) => `${chain}:${account}` as CaipAccountId),
+    ),
   };
 
-  DevLogger.log(
-    `WC::getScopedPermissions final permissions`,
-    scopedPermissions,
-  );
-  return {
-    [KnownCaipNamespace.Eip155]: scopedPermissions,
-  };
+  return namespaces;
 };
 
 export const isSwitchingChainRequest = (
@@ -387,7 +346,7 @@ export const hasPermissionsToSwitchChainRequest = async (
     });
   }
 
-  const permittedChains = await getPermittedChains(channelId);
+  const permittedChains = await getPermittedCaipChainIds(channelId);
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
   DevLogger.log(`WC::checkWCPermissions permittedChains: ${permittedChains}`);
 
@@ -416,4 +375,48 @@ export const hasPermissionsToSwitchChainRequest = async (
 export const getUnverifiedRequestOrigin = (
   request: WalletKitTypes.SessionRequest,
   defaultOrigin: string,
-) => request.verifyContext?.verified?.origin ?? defaultOrigin;
+) => {
+  // Only trust verifyContext.verified.origin when it's a parseable URL. The
+  // WalletConnect Verify API may return an empty string or a non-URL value
+  // (e.g. a topic/identifier) when the dapp is unverified, which would
+  // otherwise be rendered verbatim in the "Request from" field.
+  const verifiedOrigin = request.verifyContext?.verified?.origin;
+  if (isValidUrl(verifiedOrigin)) {
+    return verifiedOrigin as string;
+  }
+  return defaultOrigin;
+};
+
+/**
+ * Determine whether a WalletConnect request method should trigger a deeplink redirect for EIP155 chains.
+ */
+export const isEIP155RedirectMethodForChain = ({
+  scope,
+  method,
+}: {
+  scope: CaipChainId;
+  method: string;
+}): boolean => {
+  if (scope.startsWith(`${KnownCaipNamespace.Eip155}:`)) {
+    return EVM_METHODS_TO_REDIRECT.includes(method);
+  }
+  return false;
+};
+
+/**
+ * Whether this CAIP namespace belongs to EIP-155 chains or not.
+ *
+ * Should be removed when we'll create a specific adapter for Eip155 chains.
+ */
+export const isEIP155NameSpace = (namespace: string): boolean =>
+  namespace === KnownCaipNamespace.Eip155;
+
+/**
+ * Whether this CAIP chain id belongs to an EIP-155 chain or not.
+ *
+ * Should be removed when we'll create a specific adapter for Eip155 chains.
+ */
+export const isEIP155Scope = (scope: CaipChainId): boolean => {
+  const { namespace } = parseCaipChainId(scope);
+  return isEIP155NameSpace(namespace);
+};

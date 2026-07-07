@@ -1,5 +1,5 @@
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { EVENT_PROVIDERS } from '../../constants/events';
 
 export const getTooltipMetricProperties = (
@@ -16,7 +16,7 @@ export const createTooltipOpenedEvent = (
   location: string,
   tooltipName: string,
 ) => {
-  const createEventBuilder = MetricsEventBuilder.createEventBuilder;
+  const createEventBuilder = AnalyticsEventBuilder.createEventBuilder;
 
   return createEventBuilder(MetaMetricsEvents.TOOLTIP_OPENED)
     .addProperties(getTooltipMetricProperties(location, tooltipName))

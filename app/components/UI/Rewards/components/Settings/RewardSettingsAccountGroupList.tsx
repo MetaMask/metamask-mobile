@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, memo, useState } from 'react';
+import React, { useCallback, useMemo, memo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -25,6 +25,7 @@ import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
 import ReferredByCodeSection from './ReferredByCodeSection';
+import OptOutSection from './OptOutSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
@@ -32,6 +33,8 @@ import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { useTheme } from '../../../../../util/theme';
 
 const INITIAL_ACCOUNTS_TO_SHOW = 2;
+const REFERRAL_INPUT_SCROLL_VIEW_POSITION = 0.2;
+const REFERRAL_INPUT_SCROLL_DELAY_MS = 100;
 
 // Separate component for progress section to prevent header remounting on progress updates
 interface AccountProgressSectionProps {
@@ -87,7 +90,10 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
     }
 
     return (
-      <Box testID="rewards-settings-bulk-link-progress" twClassName="gap-2">
+      <Box
+        testID="rewards-settings-bulk-link-progress"
+        twClassName="p-4 rounded-xl bg-background-muted gap-2 my-4"
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Between}
@@ -97,38 +103,37 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
             <>
               <Text
                 testID="rewards-settings-account-status"
-                variant={TextVariant.BodySm}
-                twClassName="text-alternative"
+                variant={TextVariant.HeadingSm}
               >
                 {strings('rewards.settings.linking_progress', {
                   current: bulkLinkLinkedAccounts,
                   total: bulkLinkTotalAccounts,
                 })}
               </Text>
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {progressPercent}%
-              </Text>
+              <Text variant={TextVariant.HeadingSm}>{progressPercent}%</Text>
             </>
           ) : (
-            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-              {strings('rewards.settings.accounts_linked_count', {
-                linked: linkedAccounts,
-                total: totalAccounts,
-              })}
-            </Text>
+            <>
+              <Text variant={TextVariant.HeadingSm}>
+                {strings('rewards.settings.accounts_added')}
+              </Text>
+              <Text variant={TextVariant.HeadingSm}>
+                {linkedAccounts}/{totalAccounts}
+              </Text>
+            </>
           )}
         </Box>
         {/* Progress bar */}
         <Box
           testID="rewards-settings-progress-bar"
-          twClassName="w-full h-2 rounded-full overflow-hidden"
+          twClassName="w-full h-3 rounded-full overflow-hidden"
           style={{ backgroundColor: colors.background.alternative }}
         >
           <Box
             twClassName="h-full rounded-full"
             style={{
               width: `${progressPercent}%`,
-              backgroundColor: colors.primary.default,
+              backgroundColor: colors.success.default,
             }}
           />
         </Box>
@@ -136,9 +141,10 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
         {showAddAllButton && (
           <Button
             testID="rewards-settings-add-all-button"
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariant.Secondary}
             onPress={startBulkLink}
             style={tw.style('mt-2')}
+            twClassName="w-full"
           >
             {strings('rewards.settings.add_all_accounts')}
           </Button>
@@ -148,8 +154,19 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
   },
 );
 
-const RewardSettingsAccountGroupList: React.FC = () => {
+interface RewardSettingsAccountGroupListProps {
+  onRequestOptOut?: () => void;
+}
+
+const RewardSettingsAccountGroupList: React.FC<
+  RewardSettingsAccountGroupListProps
+> = ({ onRequestOptOut }) => {
   const tw = useTailwind();
+
+  const flashListRef =
+    useRef<FlashListRef<RewardSettingsAccountGroupListFlatListItem> | null>(
+      null,
+    );
 
   // State to track which wallets are expanded
   const [expandedWallets, setExpandedWallets] = useState<Set<string>>(
@@ -218,6 +235,76 @@ const RewardSettingsAccountGroupList: React.FC = () => {
     });
   }, []);
 
+  // Flatten data for FlatList with collapse/expand support
+  const flattenedData =
+    useMemo((): RewardSettingsAccountGroupListFlatListItem[] => {
+      const items: RewardSettingsAccountGroupListFlatListItem[] = [];
+
+      byWallet.forEach((walletItem) => {
+        const walletId =
+          walletItem.wallet?.id?.replace('keyring:', '') || 'unknown';
+        const isExpanded = expandedWallets.has(walletId);
+        const totalGroups = walletItem.groups.length;
+        const hasMoreThanInitial = totalGroups > INITIAL_ACCOUNTS_TO_SHOW;
+
+        // Add wallet header
+        items.push({
+          type: 'wallet',
+          walletItem,
+        });
+
+        // Add account groups (limited if not expanded)
+        const groupsToShow = isExpanded
+          ? walletItem.groups
+          : walletItem.groups.slice(0, INITIAL_ACCOUNTS_TO_SHOW);
+
+        groupsToShow.forEach((accountGroup) => {
+          items.push({
+            type: 'accountGroup',
+            accountGroup,
+            allAddresses: allAddresses?.[accountGroup.id] || [],
+          });
+        });
+
+        // Add "Show more/less" button if there are more than initial accounts
+        if (hasMoreThanInitial) {
+          items.push({
+            type: 'showMore',
+            walletId,
+            remainingCount: totalGroups - INITIAL_ACCOUNTS_TO_SHOW,
+            isExpanded,
+          });
+        }
+      });
+
+      items.push({ type: 'referredByCode' });
+      if (onRequestOptOut) {
+        items.push({ type: 'optOut' });
+      }
+      items.push({ type: 'environmentToggle' });
+
+      return items;
+    }, [byWallet, allAddresses, expandedWallets, onRequestOptOut]);
+
+  const referralSectionIndex = useMemo(
+    () => flattenedData.findIndex((item) => item.type === 'referredByCode'),
+    [flattenedData],
+  );
+
+  const handleReferralInputFocus = useCallback(() => {
+    if (referralSectionIndex < 0) {
+      return;
+    }
+
+    setTimeout(() => {
+      flashListRef.current?.scrollToIndex({
+        index: referralSectionIndex,
+        viewPosition: REFERRAL_INPUT_SCROLL_VIEW_POSITION,
+        animated: true,
+      });
+    }, REFERRAL_INPUT_SCROLL_DELAY_MS);
+  }, [referralSectionIndex]);
+
   const renderFlatListItem: ListRenderItem<RewardSettingsAccountGroupListFlatListItem> =
     useCallback(
       ({ item }) => {
@@ -229,7 +316,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
                   item.walletItem?.wallet?.id?.replace('keyring:', '') ||
                   'unknown'
                 }`}
-                twClassName="flex-row items-center justify-between py-2 px-4"
+                twClassName="flex-row items-center justify-between px-4"
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Between}
@@ -289,11 +376,27 @@ const RewardSettingsAccountGroupList: React.FC = () => {
               </ButtonBase>
             );
           }
+          case 'referredByCode':
+            return (
+              <ReferredByCodeSection onInputFocus={handleReferralInputFocus} />
+            );
+          case 'optOut':
+            return onRequestOptOut ? (
+              <OptOutSection onErasePress={onRequestOptOut} />
+            ) : null;
+          case 'environmentToggle':
+            return <RewardsEnvironmentToggle />;
           default:
             return null;
         }
       },
-      [avatarAccountType, toggleWalletExpanded, tw],
+      [
+        avatarAccountType,
+        handleReferralInputFocus,
+        onRequestOptOut,
+        toggleWalletExpanded,
+        tw,
+      ],
     );
 
   const getItemType = useCallback(
@@ -317,6 +420,18 @@ const RewardSettingsAccountGroupList: React.FC = () => {
         return `showMore-${item.walletId}`;
       }
 
+      if (item.type === 'referredByCode') {
+        return 'referredByCode';
+      }
+
+      if (item.type === 'optOut') {
+        return 'optOut';
+      }
+
+      if (item.type === 'environmentToggle') {
+        return 'environmentToggle';
+      }
+
       return `item-${index}`;
     },
     [],
@@ -324,7 +439,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   const ListHeaderComponent = useCallback(
     () => (
-      <Box testID="rewards-settings-header" twClassName="gap-4 px-4 py-2">
+      <Box testID="rewards-settings-header" twClassName="gap-4 px-4">
         <Box twClassName="gap-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.settings.subtitle')}
@@ -345,60 +460,16 @@ const RewardSettingsAccountGroupList: React.FC = () => {
     [linkedAccounts, totalAccounts, isLoadingOptInSummary],
   );
 
-  const ListFooterComponent = useCallback(
+  const SettingsFooterSections = useCallback(
     () => (
       <Box twClassName="gap-4">
         <ReferredByCodeSection />
+        {onRequestOptOut && <OptOutSection onErasePress={onRequestOptOut} />}
         <RewardsEnvironmentToggle />
       </Box>
     ),
-    [],
+    [onRequestOptOut],
   );
-
-  // Flatten data for FlatList with collapse/expand support
-  const flattenedData =
-    useMemo((): RewardSettingsAccountGroupListFlatListItem[] => {
-      const items: RewardSettingsAccountGroupListFlatListItem[] = [];
-
-      byWallet.forEach((walletItem) => {
-        const walletId =
-          walletItem.wallet?.id?.replace('keyring:', '') || 'unknown';
-        const isExpanded = expandedWallets.has(walletId);
-        const totalGroups = walletItem.groups.length;
-        const hasMoreThanInitial = totalGroups > INITIAL_ACCOUNTS_TO_SHOW;
-
-        // Add wallet header
-        items.push({
-          type: 'wallet',
-          walletItem,
-        });
-
-        // Add account groups (limited if not expanded)
-        const groupsToShow = isExpanded
-          ? walletItem.groups
-          : walletItem.groups.slice(0, INITIAL_ACCOUNTS_TO_SHOW);
-
-        groupsToShow.forEach((accountGroup) => {
-          items.push({
-            type: 'accountGroup',
-            accountGroup,
-            allAddresses: allAddresses?.[accountGroup.id] || [],
-          });
-        });
-
-        // Add "Show more/less" button if there are more than initial accounts
-        if (hasMoreThanInitial) {
-          items.push({
-            type: 'showMore',
-            walletId,
-            remainingCount: totalGroups - INITIAL_ACCOUNTS_TO_SHOW,
-            isExpanded,
-          });
-        }
-      });
-
-      return items;
-    }, [byWallet, allAddresses, expandedWallets]);
 
   if (isLoadingOptInSummary) {
     return (
@@ -422,7 +493,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
           ))}
         </Box>
 
-        <ListFooterComponent />
+        <SettingsFooterSections />
       </Box>
     );
   }
@@ -450,7 +521,7 @@ const RewardSettingsAccountGroupList: React.FC = () => {
           />
         </Box>
 
-        <ListFooterComponent />
+        <SettingsFooterSections />
       </Box>
     );
   }
@@ -458,13 +529,13 @@ const RewardSettingsAccountGroupList: React.FC = () => {
   // Account list using FlashList for better performance
   return (
     <FlashList
+      ref={flashListRef}
       testID="rewards-settings-flash-list"
       data={flattenedData}
       renderItem={renderFlatListItem}
       keyExtractor={keyExtractor}
       getItemType={getItemType}
       ListHeaderComponent={ListHeaderComponent}
-      ListFooterComponent={ListFooterComponent}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       keyboardShouldPersistTaps="handled"

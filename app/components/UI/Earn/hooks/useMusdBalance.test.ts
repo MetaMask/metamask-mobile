@@ -16,6 +16,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { toChecksumAddress } from '../../../../util/address';
+import { selectMusdBalanceChainIds } from '../selectors/featureFlags';
 
 jest.mock('react-redux');
 jest.mock('../../../../selectors/multichainAccounts/accounts');
@@ -85,6 +86,10 @@ describe('useMusdBalance', () => {
 
       if (selector === selectNetworkConfigurations) {
         return networkConfigurationsByChainId;
+      }
+
+      if (selector === selectMusdBalanceChainIds) {
+        return [CHAIN_IDS.MAINNET, CHAIN_IDS.LINEA_MAINNET, CHAIN_IDS.MONAD];
       }
 
       if (typeof selector === 'function') {

@@ -1,15 +1,17 @@
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import Logger from '../../../../util/Logger';
 import {
   TransactionPayController,
   TransactionPayControllerMessenger,
-  TransactionPayStrategy,
 } from '@metamask/transaction-pay-controller';
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
+import { getAmountData } from './amount-data-callback';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
+import { getPaymentOverrideData } from './paymentoverride-callback';
+import { createPolymarketCallbacks } from './polymarket-callbacks';
+import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 
-export const TransactionPayControllerInit: ControllerInitFunction<
+export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
   TransactionPayControllerMessenger,
   TransactionPayControllerInitMessenger
@@ -18,10 +20,14 @@ export const TransactionPayControllerInit: ControllerInitFunction<
 
   try {
     const transactionPayController = new TransactionPayController({
+      getAmountData,
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      getStrategy,
+      fiatOptions: getTransactionPayFiatTestOptions(),
+      getPaymentOverrideData: (paymentOverrideRequest) =>
+        getPaymentOverrideData(paymentOverrideRequest, initMessenger),
       messenger: controllerMessenger,
+      polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,
     });
 
@@ -34,7 +40,3 @@ export const TransactionPayControllerInit: ControllerInitFunction<
     throw error;
   }
 };
-
-function getStrategy(_transaction: TransactionMeta): TransactionPayStrategy {
-  return TransactionPayStrategy.Relay;
-}

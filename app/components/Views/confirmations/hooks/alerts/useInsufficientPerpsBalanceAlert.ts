@@ -12,6 +12,10 @@ import {
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
 import { hasTransactionType } from '../../utils/transaction';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../pay/useTransactionPayData';
 import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPerpsBalanceAlert({
@@ -22,25 +26,71 @@ export function useInsufficientPerpsBalanceAlert({
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { amountPrecise } = useTokenAmount();
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
+  const totals = useTransactionPayTotals();
+  const quotes = useTransactionPayQuotes();
+  const hasQuotes = Boolean(quotes?.length);
 
-  const availableBalance = useSelector(
+  // `withdrawableBalance` is the Unified-aware value populated by
+  // `addSpotBalanceToAccountState` and matches what `withdraw3` draws from.
+  const withdrawableBalance = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PerpsController?.accountState
-        ?.availableBalance,
+        ?.withdrawableBalance,
   );
 
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
   ]);
 
-  const isInsufficient = useMemo(
-    () =>
-      isPerpsWithdraw &&
-      availableBalance !== undefined &&
-      availableBalance !== null &&
-      new BigNumber(availableBalance).isLessThan(amountHuman),
-    [amountHuman, isPerpsWithdraw, availableBalance],
-  );
+  const isPendingInput = pendingAmount !== undefined;
+
+  const isInsufficient = useMemo(() => {
+    if (!isPerpsWithdraw) return false;
+
+    if (
+      withdrawableBalance !== undefined &&
+      withdrawableBalance !== null &&
+      new BigNumber(withdrawableBalance).isLessThan(amountHuman)
+    ) {
+      return true;
+    }
+
+    // Skip during input — totals may be stale.
+    if (
+      !isPendingInput &&
+      hasQuotes &&
+      totals?.fees &&
+      new BigNumber(amountHuman).isGreaterThan(0)
+    ) {
+      const totalFees = new BigNumber(totals.fees.provider?.usd ?? 0)
+        .plus(totals.fees.sourceNetwork?.estimate?.usd ?? 0)
+        .plus(totals.fees.targetNetwork?.usd ?? 0)
+        .plus(totals.fees.metaMask?.usd ?? 0);
+
+      if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
+        return true;
+      }
+
+      if (
+        withdrawableBalance !== undefined &&
+        withdrawableBalance !== null &&
+        new BigNumber(amountHuman)
+          .plus(totalFees)
+          .isGreaterThan(withdrawableBalance)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }, [
+    amountHuman,
+    hasQuotes,
+    isPendingInput,
+    isPerpsWithdraw,
+    withdrawableBalance,
+    totals,
+  ]);
 
   return useMemo(() => {
     if (!isInsufficient) {
@@ -51,7 +101,10 @@ export function useInsufficientPerpsBalanceAlert({
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },

@@ -17,10 +17,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageSectionsV1Enabled: () => false,
-}));
-
 jest.mock('../../../selectors/networkController', () => ({
   selectIsAllNetworks: () => false,
   selectIsPopularNetwork: () => true,
@@ -162,10 +158,6 @@ describe('DeFiPositionsControlBar', () => {
   beforeEach(() => {
     store = mockStore(createMockState());
     jest.clearAllMocks();
-    const homepageModule = jest.requireMock(
-      '../../../selectors/featureFlagController/homepage',
-    );
-    homepageModule.selectHomepageSectionsV1Enabled = () => false;
   });
 
   it('should render correctly with default state', () => {
@@ -279,7 +271,7 @@ describe('DeFiPositionsControlBar', () => {
     );
   });
 
-  it('should be disabled when on testnet and homepage sections V1 is disabled', () => {
+  it('is not disabled on testnet', () => {
     const networksModule = jest.requireMock('../../../util/networks');
     networksModule.isTestNet.mockReturnValue(true);
 
@@ -310,58 +302,16 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton.props.disabled).toBe(true);
+    expect(getByTestId('defi-positions-network-filter')).not.toBeDisabled();
   });
 
-  it('is not disabled when on testnet if homepage sections V1 is enabled', () => {
-    const homepageModule = jest.requireMock(
-      '../../../selectors/featureFlagController/homepage',
-    );
-    homepageModule.selectHomepageSectionsV1Enabled = () => true;
-
-    const networksModule = jest.requireMock('../../../util/networks');
-    networksModule.isTestNet.mockReturnValue(true);
-
-    const mockState = createMockState({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            provider: {
-              chainId: CHAIN_IDS.GOERLI,
-              type: 'goerli',
-            },
-          },
-          MultichainNetworkController: {
-            isEvmSelected: true,
-          },
-          PreferencesController: {
-            selectedAddress: '0x123',
-          },
-        },
-      },
-    });
-
-    store = mockStore(mockState);
-
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <DeFiPositionsControlBar />
-      </Provider>,
-    );
-
-    const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton.props.disabled).toBe(false);
-  });
-
-  it('should be disabled when not on popular network and homepage sections V1 is disabled', () => {
+  it('is not disabled when not on popular network', () => {
     const networkControllerModule = jest.requireMock(
       '../../../selectors/networkController',
     );
     networkControllerModule.selectIsPopularNetwork = () => false;
 
-    const mockState = createMockState();
-    store = mockStore(mockState);
+    store = mockStore(createMockState());
 
     const { getByTestId } = render(
       <Provider store={store}>
@@ -369,32 +319,7 @@ describe('DeFiPositionsControlBar', () => {
       </Provider>,
     );
 
-    const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton.props.disabled).toBe(true);
-  });
-
-  it('is not disabled when not on popular network if homepage sections V1 is enabled', () => {
-    const homepageModule = jest.requireMock(
-      '../../../selectors/featureFlagController/homepage',
-    );
-    homepageModule.selectHomepageSectionsV1Enabled = () => true;
-
-    const networkControllerModule = jest.requireMock(
-      '../../../selectors/networkController',
-    );
-    networkControllerModule.selectIsPopularNetwork = () => false;
-
-    const mockState = createMockState();
-    store = mockStore(mockState);
-
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <DeFiPositionsControlBar />
-      </Provider>,
-    );
-
-    const filterButton = getByTestId('defi-positions-network-filter');
-    expect(filterButton.props.disabled).toBe(false);
+    expect(getByTestId('defi-positions-network-filter')).not.toBeDisabled();
   });
 
   it('should render sort button with filter icon', () => {

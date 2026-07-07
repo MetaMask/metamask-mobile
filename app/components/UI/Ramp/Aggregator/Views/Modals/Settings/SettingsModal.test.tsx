@@ -10,24 +10,10 @@ import {
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../../sdk';
-import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
-
-const mockButtonClickData: RampsButtonClickData = {
-  ramp_routing: undefined,
-  is_authenticated: false,
-  preferred_provider: undefined,
-  order_count: 0,
-};
-
-jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
-  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
-}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockDangerouslyGetParent = jest.fn();
-const mockGoToDeposit = jest.fn();
-const mockTrackEvent = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -41,12 +27,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
-
-jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
-}));
 
 const mockUseRampSDKValues: DeepPartial<RampSDK> = {
   selectedRegion: { id: 'us' },
@@ -83,11 +63,6 @@ describe('SettingsModal', () => {
     });
   });
 
-  it('renders snapshot correctly', () => {
-    const { toJSON } = render();
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('displays settings title in header', () => {
     const { getByText } = render();
 
@@ -98,13 +73,6 @@ describe('SettingsModal', () => {
     const { getByText } = render();
 
     expect(getByText('View order history')).toBeTruthy();
-  });
-
-  it('displays more ways to buy menu item', () => {
-    const { getByText } = render();
-
-    expect(getByText('More ways to buy')).toBeTruthy();
-    expect(getByText('Switch to the new version')).toBeTruthy();
   });
 
   it('navigates to transactions view when view order history is pressed', () => {
@@ -121,32 +89,6 @@ describe('SettingsModal', () => {
     });
   });
 
-  it('navigates to deposit when more ways to buy is pressed', () => {
-    const { getByText } = render();
-    const moreWaysToBuyButton = getByText('More ways to buy');
-
-    fireEvent.press(moreWaysToBuyButton);
-
-    expect(mockDangerouslyGetParent).toHaveBeenCalled();
-    expect(mockGoToDeposit).toHaveBeenCalled();
-  });
-
-  it('navigates back through parent navigation when deposit is pressed', () => {
-    const mockParentGoBack = jest.fn();
-    mockDangerouslyGetParent.mockReturnValue({
-      getParent: jest.fn().mockReturnValue({
-        goBack: mockParentGoBack,
-      }),
-    });
-
-    const { getByText } = render();
-    const moreWaysToBuyButton = getByText('More ways to buy');
-
-    fireEvent.press(moreWaysToBuyButton);
-
-    expect(mockParentGoBack).toHaveBeenCalled();
-  });
-
   describe('bottom sheet behavior', () => {
     it('renders bottom sheet with settings content', () => {
       const { getByText } = render();
@@ -161,12 +103,6 @@ describe('SettingsModal', () => {
 
       expect(getByText('View order history')).toBeTruthy();
     });
-
-    it('renders add icon for more ways to buy', () => {
-      const { getByText } = render();
-
-      expect(getByText('More ways to buy')).toBeTruthy();
-    });
   });
 
   describe('callback functions', () => {
@@ -175,23 +111,6 @@ describe('SettingsModal', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDangerouslyGetParent).not.toHaveBeenCalled();
-    });
-
-    it('tracks event when deposit is pressed', () => {
-      const { getByText } = render();
-      const moreWaysToBuyButton = getByText('More ways to buy');
-
-      fireEvent.press(moreWaysToBuyButton);
-
-      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
-        location: 'Buy Settings Modal',
-        ramp_type: 'DEPOSIT',
-        region: 'us',
-        ramp_routing: undefined,
-        is_authenticated: false,
-        preferred_provider: undefined,
-        order_count: 0,
-      });
     });
   });
 });

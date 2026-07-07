@@ -3,11 +3,11 @@ import { waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetOndoPortfolioPosition } from './useGetOndoPortfolioPosition';
 import Engine from '../../../../core/Engine';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
-  selectRewardsSubscriptionId,
   selectCampaignParticipantOptedIn,
-} from '../../../../selectors/rewards';
-import { selectOndoCampaignPortfolioById } from '../../../../reducers/rewards/selectors';
+  selectOndoCampaignPortfolioById,
+} from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignPortfolioPosition } from '../../../../reducers/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { OndoGmPortfolioDto } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -27,10 +27,10 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-  selectCampaignParticipantOptedIn: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectCampaignParticipantOptedIn: jest.fn(),
   selectOndoCampaignPortfolioById: jest.fn(),
 }));
 
@@ -65,9 +65,10 @@ const MOCK_PORTFOLIO: OndoGmPortfolioDto = {
   positions: [],
   summary: {
     totalCurrentValue: '0',
-    totalCostBasis: '0',
+    totalBookValue: '0',
     totalUsdDeposited: '0',
     netDeposit: '0',
+    totalCashedOut: '0',
     portfolioPnl: '0',
     portfolioPnlPercent: '0',
   },

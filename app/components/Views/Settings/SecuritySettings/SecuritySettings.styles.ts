@@ -7,14 +7,17 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
-    content: {
+    scrollView: {
       flex: 1,
-      paddingHorizontal: 16,
-      paddingTop: 8,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingHorizontal: 0,
+      paddingTop: 16,
       paddingBottom: 48,
     },
     heading: {
-      marginBottom: 24,
+      marginBottom: 16,
     },
     desc: {
       marginTop: 8,
@@ -39,13 +42,13 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
       alignItems: 'center',
     },
     setting: {
-      marginTop: 32,
+      marginTop: 24,
     },
     firstSetting: {
       marginTop: 0,
     },
     halfSetting: {
-      marginTop: 16,
+      marginTop: 24,
     },
     modalView: {
       alignItems: 'center',
@@ -70,6 +73,7 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
     },
     inner: {
       paddingBottom: 112,
+      paddingHorizontal: 16,
     },
     picker: {
       borderColor: colors.border.default,
@@ -85,9 +89,13 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
     switch: {
       alignSelf: 'flex-start',
     },
-    cellBorder: { borderWidth: 0 },
     subHeading: {
-      marginTop: 32,
+      marginTop: 40,
+      marginHorizontal: -16,
+      paddingHorizontal: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      paddingTop: 36,
     },
   });
 

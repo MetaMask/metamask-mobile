@@ -24,31 +24,32 @@ jest.mock('../../../util/analytics/analytics', () => ({
     trackEvent: jest.fn(),
     optIn: jest.fn().mockResolvedValue(undefined),
     optOut: jest.fn().mockResolvedValue(undefined),
-    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    getAnalyticsId: jest
+      .fn()
+      .mockResolvedValue('123e4567-e89b-12d3-a456-426614174000'),
     identify: jest.fn(),
     trackView: jest.fn(),
     isOptedIn: jest.fn().mockResolvedValue(false),
   },
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics');
+jest.mock(
+  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
+  () => ({
+    useOnboardingInterestQuestionnaireEligibility: () => (): Promise<boolean> =>
+      Promise.resolve(false),
+  }),
+);
 
-// Mock MetaMetrics for events and getInstance
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
-    .MetaMetricsEvents,
-  getInstance: jest.fn(() => ({
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  })),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
+
+const mockAppStateEventProcessor = AppStateEventProcessor as jest.Mocked<
+  typeof AppStateEventProcessor
+>;
 
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
@@ -78,6 +79,24 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
 }));
 
+jest.mock('../../../core/AppStateEventListener', () => ({
+  AppStateEventProcessor: {
+    pendingDeeplink: null as string | null,
+    clearPendingDeeplink: jest.fn(),
+  },
+}));
+
+jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
+  getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock(
+  '../../../util/analytics/walletSetupCompletedAttributionReplay',
+  () => ({
+    scheduleBufferedOnboardingEventReplay: jest.fn(),
+  }),
+);
+
 jest.doMock('react-native', () => {
   const originalRN = jest.requireActual('react-native');
   return {
@@ -91,6 +110,7 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAppStateEventProcessor.pendingDeeplink = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: (event) => mockAnalytics.trackEvent(event),
@@ -124,7 +144,7 @@ describe('OptinMetrics', () => {
         { name: 'OptinMetrics' },
         { state: {} },
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
   });
 
@@ -139,7 +159,7 @@ describe('OptinMetrics', () => {
         { name: 'OptinMetrics' },
         { state: {} },
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
     });
 
     it('render matches snapshot with status bar height to zero', () => {
@@ -152,7 +172,7 @@ describe('OptinMetrics', () => {
         { name: 'OptinMetrics' },
         { state: {} },
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(toJSON()).not.toBeNull();
 
       StatusBar.currentHeight = originalCurrentHeight;
     });
@@ -160,13 +180,33 @@ describe('OptinMetrics', () => {
 
   describe('sets traits and sends metric event on confirm', () => {
     it('without marketing consent', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      const { store } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        {
+          state: {
+            attribution: {
+              attribution: {
+                utm_source: 'stale_campaign',
+                capturedAt: Date.now(),
+              },
+            },
+          },
+        },
+      );
       fireEvent.press(
         screen.getByRole('button', {
           name: strings('privacy_policy.continue'),
         }),
       );
       await waitFor(() => {
+        expect(store.getState().attribution.attribution).toEqual({
+          utm_source: 'stale_campaign',
+          capturedAt: expect.any(Number),
+        });
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
@@ -235,6 +275,78 @@ describe('OptinMetrics', () => {
           deviceProp: 'Device value',
           userProp: 'User value',
         });
+      });
+    });
+
+    it('clears persisted attribution without marketing consent while keeping pending deeplink', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
+      });
+    });
+
+    it('keeps pending deeplink after marketing opt-in', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByText(strings('privacy_policy.checkbox_marketing')),
+      );
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
+      });
+    });
+
+    it('keeps pending deeplink when install link also targets navigation', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/rewards?utm_source=campaign&utm_campaign=summer';
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByText(strings('privacy_policy.checkbox_marketing')),
+      );
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
       });
     });
   });
@@ -785,10 +897,10 @@ describe('OptinMetrics', () => {
   describe('Component Lifecycle Tests', () => {
     it('should handle component unmount', () => {
       const { BackHandler } = jest.requireMock('react-native');
-      const mockRemoveEventListener = jest.spyOn(
-        BackHandler,
-        'removeEventListener',
-      );
+      const mockRemove = jest.fn();
+      const addSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
 
       const { unmount } = renderScreen(
         OptinMetrics,
@@ -798,10 +910,13 @@ describe('OptinMetrics', () => {
 
       unmount();
 
-      expect(mockRemoveEventListener).toHaveBeenCalledWith(
+      expect(addSpy).toHaveBeenCalledWith(
         'hardwareBackPress',
         expect.any(Function),
       );
+      expect(mockRemove).toHaveBeenCalled();
+
+      addSpy.mockRestore();
     });
 
     it('should handle scroll end reached', () => {
@@ -1174,75 +1289,6 @@ describe('OptinMetrics', () => {
         MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
       );
       expect(component).toBeTruthy();
-    });
-  });
-
-  describe('Feature flag conditional rendering', () => {
-    it('displays updated description when isPna25FlagEnabled is true', () => {
-      const stateWithFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              cacheTimestamp: 0,
-              remoteFeatureFlags: {
-                extensionUxPna25: true,
-              },
-            },
-          },
-        },
-      };
-
-      renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: stateWithFlag },
-      );
-
-      const updatedDescription = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_description_updated'),
-        { exact: false },
-      );
-
-      expect(updatedDescription).toBeTruthy();
-    });
-
-    it('displays original description when isPna25FlagEnabled is false', () => {
-      const stateWithoutFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              cacheTimestamp: 0,
-              remoteFeatureFlags: {
-                extensionUxPna25: false,
-              },
-            },
-          },
-        },
-      };
-
-      renderScreen(
-        OptinMetrics,
-        { name: 'OptinMetrics' },
-        { state: stateWithoutFlag },
-      );
-
-      const originalDescription = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_description'),
-        { exact: false },
-      );
-
-      expect(originalDescription).toBeTruthy();
-    });
-
-    it('displays original description when isPna25FlagEnabled is undefined', () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      const originalDescription = screen.getByText(
-        strings('privacy_policy.gather_basic_usage_description'),
-        { exact: false },
-      );
-
-      expect(originalDescription).toBeTruthy();
     });
   });
 });

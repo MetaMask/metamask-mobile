@@ -2,46 +2,70 @@ import { KeyringController } from '@metamask/keyring-controller';
 import {
   AccountState,
   ConnectionStatus,
+  CryptoPriceHistoryPoint,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetBalanceParams,
+  GetCryptoPriceHistoryParams,
+  GetCryptoTargetPriceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
   GetPriceHistoryParams,
   GetPriceParams,
   GetPriceResponse,
   GetSeriesParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
   PredictActivity,
   PredictFees,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
   PredictMarket,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictPosition,
   PredictPriceHistoryPoint,
   PreviewOrderParams,
   PriceUpdateCallback,
+  SearchMarketsParams,
   UnrealizedPnL,
 } from '../types';
 import { Hex } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { PredictFeatureFlags } from '../types/flags';
 
 // Re-export shared types so existing provider-layer imports continue to work
 export type {
   AccountState,
   ConnectionStatus,
+  CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetBalanceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
   PredictFees,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PreviewOrderParams,
   PriceUpdateCallback,
+  SearchMarketsParams,
 };
 export type { PredictFeatureFlags };
 
@@ -57,6 +81,7 @@ export interface PrepareDepositParams {
 
 export interface GetAccountStateParams {
   ownerAddress: string;
+  forceRefresh?: boolean;
 }
 
 export interface PrepareWithdrawParams {
@@ -95,6 +120,26 @@ export interface ClaimOrderParams {
   signer: Signer;
 }
 
+export interface BeforeSignClaimParams {
+  transactionMeta: TransactionMeta;
+  signer: Signer;
+  positions: PredictPosition[];
+}
+
+export interface BeforeSignClaimResult {
+  updateTransaction?: (transaction: TransactionMeta) => void;
+}
+
+export interface PublishClaimParams {
+  transactionMeta: TransactionMeta;
+  signer: Signer;
+  positions: PredictPosition[];
+}
+
+export interface PublishClaimResult {
+  transactionHash?: string;
+}
+
 export interface ClaimOrderResponse {
   chainId: number;
   transactions: {
@@ -122,19 +167,36 @@ export interface PredictProvider {
   readonly name: string;
   readonly chainId: number;
 
-  getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
+  getMarkets(params: GetMarketsParams): Promise<GetMarketsResult>;
+  listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse>;
+  listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]>;
+  searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }>;
   getCarouselMarkets?(): Promise<PredictMarket[]>;
   getMarketsByIds?(marketIds: string[]): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
+  getCryptoPriceHistory?(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]>;
+  getCryptoTargetPrice?(
+    params: GetCryptoTargetPriceParams,
+  ): Promise<number | null>;
   getPrices(params: GetPriceParams): Promise<GetPriceResponse>;
 
   getPositions(
     params: GetPositionsParams & { address: string },
   ): Promise<PredictPosition[]>;
-  getActivity(params: { address: string }): Promise<PredictActivity[]>;
+  getActivity(
+    params: GetActivityParams & { address: string },
+  ): Promise<PredictActivity[]>;
   getUnrealizedPnL(params: { address: string }): Promise<UnrealizedPnL>;
 
   previewOrder(
@@ -147,6 +209,10 @@ export interface PredictProvider {
   ): Promise<OrderResult>;
 
   prepareClaim(params: ClaimOrderParams): Promise<ClaimOrderResponse>;
+  beforeSignClaim?(
+    params: BeforeSignClaimParams,
+  ): Promise<BeforeSignClaimResult | undefined>;
+  publishClaim?(params: PublishClaimParams): Promise<PublishClaimResult>;
   confirmClaim?(params: { positions: PredictPosition[]; signer: Signer }): void;
 
   isEligible(): Promise<GeoBlockResponse>;
@@ -168,6 +234,16 @@ export interface PredictProvider {
   subscribeToMarketPrices?(
     tokenIds: string[],
     callback: PriceUpdateCallback,
+  ): () => void;
+
+  subscribeToOrderbook?(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void;
+
+  subscribeToCryptoPrices?(
+    symbols: string[],
+    callback: CryptoPriceUpdateCallback,
   ): () => void;
 
   getMarketSeries?(params: GetSeriesParams): Promise<PredictMarket[]>;

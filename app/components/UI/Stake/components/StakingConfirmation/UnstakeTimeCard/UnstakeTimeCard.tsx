@@ -1,19 +1,17 @@
 import React from 'react';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow from '../../../../../../component-library/components-temp/KeyValueRow';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './UnstakeTimeCard.styles';
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
-import { useMetrics } from '../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
 
 const UnstakingTimeCard = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { trackEvent } = useMetrics();
+  const { trackEvent } = useAnalytics();
 
   return (
     <Card style={styles.card} disabled>
@@ -23,7 +21,6 @@ const UnstakingTimeCard = () => {
           tooltip: {
             title: strings('tooltip_modal.unstaking_time.title'),
             content: strings('tooltip_modal.unstaking_time.tooltip'),
-            size: TooltipSizes.Sm,
             onPress: () =>
               trackEvent(
                 createTooltipOpenedEvent(

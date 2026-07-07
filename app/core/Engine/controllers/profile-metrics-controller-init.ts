@@ -3,7 +3,7 @@ import {
   ProfileMetricsControllerMessenger,
 } from '@metamask/profile-metrics-controller';
 import { analyticsControllerSelectors } from '@metamask/analytics-controller';
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-metrics-controller-messenger';
 
 /**
@@ -13,33 +13,26 @@ import { ProfileMetricsControllerInitMessenger } from '../messengers/profile-met
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state to use for the
  * controller.
- * @param request.getController - A function to get other initialized controllers.
+ * @param request.getMessengerClient - A function to get other initialized controllers.
  * @returns The initialized controller.
  */
-export const profileMetricsControllerInit: ControllerInitFunction<
+export const profileMetricsControllerInit: MessengerClientInitFunction<
   ProfileMetricsController,
   ProfileMetricsControllerMessenger,
   ProfileMetricsControllerInitMessenger
 > = ({
   controllerMessenger,
   persistedState,
-  getController,
   analyticsId,
   getState,
   initMessenger,
 }) => {
-  const remoteFeatureFlagController = getController(
-    'RemoteFeatureFlagController',
-  );
   const assertUserOptedIn = () => {
     const analyticsState = initMessenger.call('AnalyticsController:getState');
     const isEnabled =
       analyticsControllerSelectors.selectEnabled(analyticsState);
     return (
-      remoteFeatureFlagController.state.remoteFeatureFlags.extensionUxPna25 ===
-        true &&
-      isEnabled === true &&
-      getState().legalNotices.isPna25Acknowledged === true
+      isEnabled === true && getState().legalNotices.isPna25Acknowledged === true
     );
   };
 

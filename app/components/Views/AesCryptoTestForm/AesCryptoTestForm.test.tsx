@@ -33,12 +33,6 @@ describe('AesCryptoTestForm', () => {
     mockGoBack.mockClear();
   });
 
-  it('renders correctly', () => {
-    const wrapper = render(<AesCryptoTestForm />);
-
-    expect(wrapper).toMatchSnapshot();
-  });
-
   it('wraps content in SafeAreaView from react-native-safe-area-context', () => {
     const { getByTestId } = render(<AesCryptoTestForm />);
     const safeArea = getByTestId(aesCryptoFormSafeArea);
@@ -47,7 +41,7 @@ describe('AesCryptoTestForm', () => {
     expect(safeArea.props.edges).toMatchObject({ bottom: 'additive' });
   });
 
-  it('renders HeaderCompactStandard with title and back button', () => {
+  it('renders HeaderStandard with title and back button', () => {
     const { getByTestId, getByText } = render(<AesCryptoTestForm />);
 
     expect(getByTestId(aesCryptoFormHeader)).toBeOnTheScreen();

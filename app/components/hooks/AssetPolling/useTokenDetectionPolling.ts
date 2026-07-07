@@ -4,12 +4,16 @@ import Engine from '../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
 import { usePollingNetworks } from './use-polling-networks';
 
 const useTokenDetectionPolling = ({
   chainIds,
   address,
 }: { chainIds?: Hex[]; address?: Hex } = {}) => {
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const useTokenDetection = useSelector(selectUseTokenDetection);
 
@@ -37,11 +41,13 @@ const useTokenDetectionPolling = ({
 
   const { TokenDetectionController } = Engine.context;
 
-  const input = useTokenDetection
+  const resolvedInput = useTokenDetection
     ? (overridePollingInput ?? pollingInput).filter(
         (i) => i.chainIds && i.address,
       )
     : [];
+
+  const input = isAssetsUnifyStateEnabled ? [] : resolvedInput;
 
   usePolling({
     startPolling: TokenDetectionController.startPolling.bind(

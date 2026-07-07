@@ -1,13 +1,8 @@
-import { ethers } from 'ethers';
 import {
   CardFeatureFlag,
   SupportedToken,
 } from '../../../../selectors/featureFlagController/card';
-import {
-  BALANCE_SCANNER_ABI,
-  cardNetworkInfos,
-  SUPPORTED_ASSET_NETWORKS,
-} from '../constants';
+import { SUPPORTED_ASSET_NETWORKS } from '../constants';
 import Logger from '../../../../util/Logger';
 import {
   EmailVerificationSendRequest,
@@ -29,53 +24,26 @@ import {
   LinkUserToConsentResponse,
   UserResponse,
   StartUserVerificationRequest,
-  CardAuthorizeResponse,
-  CardDetailsResponse,
   CardError,
   CardErrorType,
-  CardExchangeTokenRawResponse,
-  CardExchangeTokenResponse,
-  CardExternalWalletDetail,
-  CardExternalWalletDetailsResponse,
   CardLocation,
-  CardLoginInitiateResponse,
-  CardLoginResponse,
-  CardToken,
-  CardWalletExternalPriorityResponse,
-  CardWalletExternalResponse,
   CardNetwork,
   DelegationSettingsResponse,
-  DelegationSettingsNetwork,
   GetOnboardingConsentResponse,
-  CardDetailsTokenRequest,
-  CardDetailsTokenResponse,
-  CardPinTokenRequest,
-  CardPinTokenResponse,
   CreateOrderRequest,
   CreateOrderResponse,
   GetOrderStatusResponse,
-  CashbackWalletResponse,
-  CashbackWithdrawRequest,
-  CashbackWithdrawResponse,
-  CashbackWithdrawEstimationResponse,
-  DelegationPostApprovalParams,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
-import {
-  getCardBaanxToken,
-  removeCardBaanxToken,
-} from '../util/cardTokenVault';
+import { getCardBaanxToken } from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isZeroValue } from '../../../../util/number';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
-// The CardSDK class provides methods to interact with the Card feature
-// and check if an address is a card holder, get supported tokens, and more.
-// This implements a mimic of the Ramps SDK, but for the Card feature.
-// Ideally it should be separated into its own package in the future.
+// The CardSDK class provides HTTP helpers for Card onboarding and related flows
+// used by hooks under the CardSDKProvider. Authenticated card operations (freeze,
+// cashback, provisioning, etc.) are handled by CardController / BaanxProvider.
 export class CardSDK {
   private cardFeatureFlag: CardFeatureFlag;
   private enableLogs: boolean;
@@ -112,53 +80,6 @@ export class CardSDK {
       (token): token is SupportedToken =>
         token && typeof token.address === 'string' && token.enabled !== false,
     );
-  }
-
-  private foxConnectAddresses(network: CardNetwork) {
-    const caipChainId = cardNetworkInfos[network].caipChainId;
-    return this.cardFeatureFlag.chains?.[caipChainId]?.foxConnectAddresses;
-  }
-
-  private getEthersProvider(network: CardNetwork) {
-    const rpcUrl = cardNetworkInfos[network].rpcUrl;
-
-    if (!rpcUrl) {
-      throw new Error('RPC URL is not defined for the current network');
-    }
-
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-
-    return provider;
-  }
-
-  private getBalanceScannerInstance(network: CardNetwork) {
-    const caipChainId = cardNetworkInfos[network].caipChainId;
-    const balanceScannerAddress =
-      this.cardFeatureFlag.chains?.[caipChainId]?.balanceScannerAddress;
-
-    if (!balanceScannerAddress) {
-      throw new Error(
-        'Balance scanner address is not defined for the current chain',
-      );
-    }
-
-    const ethersProvider = this.getEthersProvider(network);
-
-    return new ethers.Contract(
-      balanceScannerAddress,
-      BALANCE_SCANNER_ABI,
-      ethersProvider,
-    );
-  }
-
-  private get accountsApiUrl() {
-    const accountsApi = this.cardFeatureFlag.constants?.accountsApiUrl;
-
-    if (!accountsApi) {
-      throw new Error('Accounts API URL is not defined for the current chain');
-    }
-
-    return accountsApi;
   }
 
   private logDebugInfo(fnName: string, data: unknown) {
@@ -204,18 +125,6 @@ export class CardSDK {
     return 'card_api_request';
   }
 
-  /**
-   * Creates a CardError and logs it to Sentry with consistent context.
-   * This ensures all errors are properly tracked with searchable tags.
-   *
-   * @param type - The CardErrorType for categorization
-   * @param message - User-friendly error message
-   * @param operation - The SDK operation/method name
-   * @param endpoint - The API endpoint that was called
-   * @param httpStatus - Optional HTTP status code
-   * @param extras - Optional additional context data (must not contain PII)
-   * @returns The created CardError
-   */
   private logAndCreateError(
     type: CardErrorType,
     message: string,
@@ -245,10 +154,6 @@ export class CardSDK {
     return error;
   }
 
-  /**
-   * Safely parses a Response body as JSON.
-   * Returns null if parsing fails.
-   */
   private async parseResponseBody(
     response: Response,
   ): Promise<Record<string, unknown> | null> {
@@ -259,20 +164,6 @@ export class CardSDK {
     }
   }
 
-  /**
-   * Standard API response handler that processes errors consistently.
-   * Use this for endpoints with standard error handling patterns.
-   *
-   * For endpoints with special error handling (like login with OTP),
-   * handle errors manually using logAndCreateError.
-   *
-   * @param response - The fetch Response object
-   * @param operation - The SDK operation/method name
-   * @param endpoint - The API endpoint (for logging)
-   * @param defaultErrorMessage - Default error message if none provided by API
-   * @returns The parsed JSON response
-   * @throws CardError with appropriate type based on HTTP status
-   */
   private async handleApiResponse<T>(
     response: Response,
     operation: string,
@@ -306,16 +197,6 @@ export class CardSDK {
     );
   }
 
-  /**
-   * Wraps an async operation with standard error handling.
-   * Catches non-CardError exceptions and logs them to Sentry.
-   *
-   * @param operation - The SDK operation/method name
-   * @param endpoint - The API endpoint (for logging)
-   * @param defaultErrorMessage - Default error message for unknown errors
-   * @param fn - The async function to execute
-   * @returns The result of the function
-   */
   private async withErrorHandling<T>(
     operation: string,
     endpoint: string,
@@ -340,220 +221,8 @@ export class CardSDK {
     }
   }
 
-  /**
-   * Checks if the given accounts are cardholders by querying the accounts API.
-   * Supports batching for performance optimization - processes up to 3 batches of 50 accounts each.
-   *
-   * @param accounts - Array of account IDs to check
-   * @returns Promise resolving to object containing array of cardholder accounts
-   */
-  isCardHolder = async (
-    accounts: `${string}:${string}:${string}`[],
-  ): Promise<`${string}:${string}:${string}`[]> => {
-    // Early return for invalid input
-    if (!accounts?.length) {
-      return [];
-    }
-
-    const BATCH_SIZE = 50;
-    const MAX_BATCHES = 3;
-
-    // Single batch optimization - no need for complex batching logic
-    if (accounts.length <= BATCH_SIZE) {
-      return await this.performCardholderRequest(accounts);
-    }
-
-    // Multi-batch processing for large account sets
-    return await this.processBatchedCardholderRequests(
-      accounts,
-      BATCH_SIZE,
-      MAX_BATCHES,
-    );
-  };
-
-  /**
-   * Performs a single API request to check if accounts are cardholders
-   */
-  private async performCardholderRequest(
-    accountIds: string[],
-  ): Promise<`${string}:${string}:${string}`[]> {
-    try {
-      const url = this.buildCardholderApiUrl(accountIds);
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      this.logDebugInfo('performCardholderRequest', data);
-      return data.is || [];
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'card', operation: 'isCardHolder' },
-        context: {
-          name: 'card_api_request',
-          data: { endpoint: 'metadata', accountCount: accountIds.length },
-        },
-      });
-      return [];
-    }
-  }
-
-  /**
-   * Builds the API URL for cardholder checking requests
-   */
-  private buildCardholderApiUrl(accountIds: string[]): URL {
-    const url = new URL('v1/metadata', this.accountsApiUrl);
-    url.searchParams.set('accountIds', accountIds.join(',').toLowerCase());
-    url.searchParams.set('label', 'card_user');
-    return url;
-  }
-
-  /**
-   * Processes multiple batches of accounts to check cardholder status
-   */
-  private async processBatchedCardholderRequests(
-    accounts: `${string}:${string}:${string}`[],
-    batchSize: number,
-    maxBatches: number,
-  ): Promise<`${string}:${string}:${string}`[]> {
-    const batches = this.createAccountBatches(accounts, batchSize, maxBatches);
-    const batchPromises = batches.map((batch) =>
-      this.performCardholderRequest(batch),
-    );
-
-    const results = await Promise.all(batchPromises);
-    const allCardholderAccounts = results.flatMap(
-      (result) => result as `${string}:${string}:${string}`[],
-    );
-    this.logDebugInfo(
-      'processBatchedCardholderRequests',
-      allCardholderAccounts,
-    );
-
-    return allCardholderAccounts;
-  }
-
-  /**
-   * Creates batches of accounts for API processing
-   */
-  private createAccountBatches(
-    accounts: `${string}:${string}:${string}`[],
-    batchSize: number,
-    maxBatches: number,
-  ): `${string}:${string}:${string}`[][] {
-    const batches: `${string}:${string}:${string}`[][] = [];
-    let remainingAccounts = accounts;
-
-    while (remainingAccounts.length > 0 && batches.length < maxBatches) {
-      const batch = remainingAccounts.slice(0, batchSize);
-      remainingAccounts = remainingAccounts.slice(batchSize);
-      batches.push(batch);
-    }
-
-    return batches;
-  }
-
-  // Only runs on linea network
-  getSupportedTokensAllowances = async (
-    address: string,
-  ): Promise<
-    {
-      address: `0x${string}`;
-      usAllowance: ethers.BigNumber;
-      globalAllowance: ethers.BigNumber;
-    }[]
-  > => {
-    const supportedTokensAddresses = this.getSupportedTokensByChainId()
-      .map((token) => token.address)
-      // Ensure all addresses are valid Ethereum addresses
-      .filter(
-        (addr): addr is string => addr != null && ethers.utils.isAddress(addr),
-      );
-
-    if (supportedTokensAddresses.length === 0) {
-      return [];
-    }
-
-    const contracts = this.foxConnectAddresses('linea');
-
-    if (!contracts?.global || !contracts?.us) {
-      throw new Error(
-        'FoxConnect contracts are not defined for the current network',
-      );
-    }
-
-    const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
-      contracts;
-
-    const spenders: string[][] = supportedTokensAddresses.map(() => [
-      foxConnectGlobalAddress,
-      foxConnectUsAddress,
-    ]);
-
-    const balanceScannerInstance = this.getBalanceScannerInstance('linea');
-    const spendersAllowancesForTokens: [boolean, string][][] =
-      await balanceScannerInstance.spendersAllowancesForTokens(
-        address,
-        supportedTokensAddresses,
-        spenders,
-      );
-    this.logDebugInfo(
-      'getSupportedTokensAllowances',
-      spendersAllowancesForTokens,
-    );
-
-    return supportedTokensAddresses.map((tokenAddress, index) => {
-      const [globalAllowanceTuple, usAllowanceTuple] =
-        spendersAllowancesForTokens[index];
-      const globalAllowance = ethers.BigNumber.from(globalAllowanceTuple[1]);
-      const usAllowance = ethers.BigNumber.from(usAllowanceTuple[1]);
-
-      return {
-        address: tokenAddress as `0x${string}`,
-        usAllowance,
-        globalAllowance,
-      };
-    });
-  };
-
-  getPriorityToken = async (
-    address: string,
-    nonZeroBalanceTokens: string[],
-  ): Promise<CardToken | null> => {
-    // Handle simple cases first
-    if (nonZeroBalanceTokens.length === 0) {
-      this.logDebugInfo('getPriorityToken (Simple Case 1)', {
-        address,
-        nonZeroBalanceTokens,
-      });
-      return this.getFirstSupportedTokenOrNull();
-    }
-
-    if (nonZeroBalanceTokens.length === 1) {
-      this.logDebugInfo('getPriorityToken (Simple Case 2)', {
-        address,
-        nonZeroBalanceTokens,
-      });
-      return this.findSupportedTokenByAddress(nonZeroBalanceTokens[0]);
-    }
-
-    // Handle complex case with multiple tokens
-    this.logDebugInfo('getPriorityToken (Complex Case)', {
-      address,
-      nonZeroBalanceTokens,
-    });
-    return this.findPriorityTokenFromApprovalLogs(
-      address,
-      nonZeroBalanceTokens,
-    );
-  };
-
   private getBaanxApiBaseUrl() {
-    // always using url from env var if set
     if (process.env.BAANX_API_URL) return process.env.BAANX_API_URL;
-    // otherwise using default per-env url
     return getDefaultBaanxApiBaseUrlForMetaMaskEnv(
       process.env.METAMASK_ENVIRONMENT,
     );
@@ -589,7 +258,6 @@ export class CardSDK {
       'x-client-key': apiKey,
     };
 
-    // Add bearer token for authenticated requests
     try {
       if (authenticated) {
         const tokenResult = await getCardBaanxToken();
@@ -598,7 +266,6 @@ export class CardSDK {
         }
       }
     } catch (error) {
-      // Continue without bearer token if retrieval fails
       Logger.error(error as Error, {
         tags: { feature: 'card', operation: 'makeRequest' },
         context: {
@@ -612,7 +279,6 @@ export class CardSDK {
       fetchOptions.query ? `?${fetchOptions.query}` : ''
     }`;
 
-    // Create AbortController for timeout handling
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
@@ -634,7 +300,6 @@ export class CardSDK {
     } catch (error) {
       clearTimeout(timeoutId);
 
-      // Check if the error is due to timeout
       if (error instanceof Error && error.name === 'AbortError') {
         throw new CardError(
           CardErrorType.TIMEOUT_ERROR,
@@ -643,7 +308,6 @@ export class CardSDK {
         );
       }
 
-      // Network or other fetch errors
       if (error instanceof Error) {
         throw new CardError(
           CardErrorType.NETWORK_ERROR,
@@ -660,313 +324,6 @@ export class CardSDK {
     }
   }
 
-  initiateCardProviderAuthentication = async (queryParams: {
-    state: string;
-    codeChallenge: string;
-    location: CardLocation;
-  }): Promise<CardLoginInitiateResponse> => {
-    if (!this.cardBaanxApiKey) {
-      throw new CardError(
-        CardErrorType.API_KEY_MISSING,
-        'Card API key is not configured',
-      );
-    }
-
-    const { state, codeChallenge } = queryParams;
-    const queryParamsString = new URLSearchParams();
-    queryParamsString.set('client_id', this.cardBaanxApiKey);
-    // Redirect URI is required but not used by this flow
-    queryParamsString.set('redirect_uri', 'https://example.com');
-    queryParamsString.set('state', state);
-    queryParamsString.set('code_challenge', codeChallenge);
-    queryParamsString.set('code_challenge_method', 'S256');
-    queryParamsString.set('mode', 'api');
-    queryParamsString.set('client_secret', this.cardBaanxApiKey);
-    queryParamsString.set('response_type', 'code');
-
-    const response = await this.makeRequest(
-      '/v1/auth/oauth/authorize/initiate',
-      {
-        fetchOptions: {
-          method: 'GET',
-          query: queryParamsString.toString(),
-        },
-        authenticated: false,
-        location: queryParams.location,
-      },
-    );
-
-    return this.handleApiResponse<CardLoginInitiateResponse>(
-      response,
-      'initiateAuth',
-      'oauth/authorize/initiate',
-      'Failed to initiate authentication',
-    );
-  };
-
-  login = async (body: {
-    email: string;
-    password: string;
-    location: CardLocation;
-    otpCode?: string;
-  }): Promise<CardLoginResponse> => {
-    const { email, password, otpCode, location } = body;
-
-    const response = await this.makeRequest('/v1/auth/login', {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify({
-          email,
-          password,
-          ...(otpCode ? { otpCode } : {}),
-        }),
-      },
-      authenticated: false,
-      location,
-    });
-
-    if (!response.ok) {
-      let responseBody = null;
-      try {
-        responseBody = await response.json();
-      } catch {
-        // If we can't parse response, continue without it
-      }
-
-      if (responseBody?.message?.includes('Your account has been disabled')) {
-        throw new CardError(
-          CardErrorType.ACCOUNT_DISABLED,
-          responseBody?.message,
-        );
-      }
-
-      if (response.status === 400 && !!otpCode) {
-        throw new CardError(CardErrorType.INVALID_OTP_CODE, 'Invalid OTP code');
-      }
-
-      // Handle specific HTTP status codes
-      if (
-        response.status === 401 ||
-        response.status === 403 ||
-        response.status === 404
-      ) {
-        const error = new CardError(
-          CardErrorType.INVALID_CREDENTIALS,
-          'Invalid login details',
-        );
-        Logger.error(error, {
-          tags: {
-            feature: 'card',
-            operation: 'login',
-            errorType: 'invalid_credentials',
-          },
-          context: {
-            name: 'card_auth',
-            data: { endpoint: 'auth/login', httpStatus: response.status },
-          },
-        });
-        throw error;
-      }
-
-      if (response.status >= 500) {
-        const error = new CardError(
-          CardErrorType.SERVER_ERROR,
-          'Server error. Please try again later.',
-        );
-        Logger.error(error, {
-          tags: {
-            feature: 'card',
-            operation: 'login',
-            errorType: 'server_error',
-          },
-          context: {
-            name: 'card_auth',
-            data: { endpoint: 'auth/login', httpStatus: response.status },
-          },
-        });
-        throw error;
-      }
-
-      const error = new CardError(
-        CardErrorType.UNKNOWN_ERROR,
-        'Login failed. Please try again.',
-      );
-      Logger.error(error, {
-        tags: {
-          feature: 'card',
-          operation: 'login',
-          errorType: 'unknown_error',
-        },
-        context: {
-          name: 'card_auth',
-          data: { endpoint: 'auth/login', httpStatus: response.status },
-        },
-      });
-      throw error;
-    }
-
-    const data = await response.json();
-    return data as CardLoginResponse;
-  };
-
-  /**
-   * Logs out the user from the Card provider.
-   *
-   * This method always clears the local token, regardless of whether the server
-   * logout succeeds. This ensures users can always log out even if the server
-   * is unreachable or the token is already invalidated server-side.
-   *
-   * @throws {CardError} If the server logout fails (after local cleanup is done)
-   */
-  logout = async (): Promise<void> => {
-    let serverError: Error | null = null;
-
-    try {
-      const response = await this.makeRequest('/v1/auth/logout', {
-        fetchOptions: { method: 'POST' },
-        authenticated: true,
-      });
-
-      if (!response.ok) {
-        serverError = this.logAndCreateError(
-          CardErrorType.SERVER_ERROR,
-          'Failed to logout from server.',
-          'logout',
-          'auth/logout',
-          response.status,
-        );
-      }
-    } catch (error) {
-      Logger.error(error as Error, {
-        message:
-          '[CardSDK] Server logout failed, proceeding with local cleanup',
-      });
-      serverError = error as Error;
-    }
-
-    await removeCardBaanxToken();
-
-    if (serverError) {
-      throw serverError;
-    }
-  };
-
-  sendOtpLogin = async (body: {
-    userId: string;
-    location: CardLocation;
-  }): Promise<void> => {
-    const { userId } = body;
-    const response = await this.makeRequest('/v1/auth/login/otp', {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify({ userId }),
-      },
-      authenticated: false,
-      location: body.location,
-    });
-
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to send OTP login. Please try again.',
-        'sendOtpLogin',
-        'auth/login/otp',
-        response.status,
-      );
-    }
-  };
-
-  authorize = async (body: {
-    initiateAccessToken: string;
-    loginAccessToken: string;
-    location: CardLocation;
-  }): Promise<CardAuthorizeResponse> => {
-    const { initiateAccessToken, loginAccessToken, location } = body;
-    const response = await this.makeRequest('/v1/auth/oauth/authorize', {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify({
-          token: initiateAccessToken,
-        }),
-        headers: {
-          Authorization: `Bearer ${loginAccessToken}`,
-        },
-      },
-      authenticated: false,
-      location,
-    });
-
-    return this.handleApiResponse<CardAuthorizeResponse>(
-      response,
-      'authorize',
-      'oauth/authorize',
-      'Authorization failed',
-    );
-  };
-
-  exchangeToken = async (body: {
-    code?: string;
-    codeVerifier?: string;
-    grantType: 'authorization_code' | 'refresh_token';
-    location: CardLocation;
-  }): Promise<CardExchangeTokenResponse> => {
-    let requestBody = null;
-
-    if (body.grantType === 'authorization_code') {
-      requestBody = {
-        code: body.code,
-        code_verifier: body.codeVerifier,
-        grant_type: body.grantType,
-        // This is a required field for the authorization code grant type
-        // but it is not used by the Card API
-        redirect_uri: 'https://example.com',
-      };
-    } else {
-      requestBody = {
-        grant_type: body.grantType,
-        refresh_token: body.code,
-      };
-    }
-
-    const response = await this.makeRequest('/v1/auth/oauth/token', {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify(requestBody),
-        headers: {
-          'x-secret-key': this.cardBaanxApiKey || '',
-        },
-      },
-      authenticated: false,
-      location: body.location,
-    });
-
-    if (!response.ok) {
-      const errorType =
-        response.status === 401 || response.status === 403
-          ? CardErrorType.INVALID_CREDENTIALS
-          : CardErrorType.SERVER_ERROR;
-
-      throw this.logAndCreateError(
-        errorType,
-        'Token exchange failed. Please try again.',
-        'exchangeToken',
-        'oauth/token',
-        response.status,
-        { grantType: body.grantType },
-      );
-    }
-
-    const data = (await response.json()) as CardExchangeTokenRawResponse;
-
-    return {
-      accessToken: data.access_token,
-      tokenType: data.token_type,
-      expiresIn: data.expires_in,
-      refreshToken: data.refresh_token,
-      refreshTokenExpiresIn: data.refresh_token_expires_in,
-    } as CardExchangeTokenResponse;
-  };
-
   getUserDetails = async (): Promise<UserResponse> => {
     const response = await this.makeRequest('/v1/user', {
       fetchOptions: { method: 'GET' },
@@ -979,624 +336,6 @@ export class CardSDK {
       'user',
       'Failed to get user details',
     );
-  };
-
-  getCardDetails = async (): Promise<CardDetailsResponse> => {
-    const response = await this.makeRequest('/v1/card/status', {
-      fetchOptions: { method: 'GET' },
-      authenticated: true,
-    });
-
-    if (!response.ok) {
-      // Special case: 404 means user has no card (not an error to log)
-      if (response.status === 404) {
-        throw new CardError(
-          CardErrorType.NO_CARD,
-          'User has no card. Request a card first.',
-        );
-      }
-
-      const errorType =
-        response.status === 401 || response.status === 403
-          ? CardErrorType.INVALID_CREDENTIALS
-          : CardErrorType.SERVER_ERROR;
-
-      throw this.logAndCreateError(
-        errorType,
-        'Failed to get card details. Please try again.',
-        'getCardDetails',
-        'card/status',
-        response.status,
-      );
-    }
-
-    return (await response.json()) as CardDetailsResponse;
-  };
-
-  /**
-   * Freeze the user's card to temporarily disable all transactions.
-   * The card can be unfrozen at any time.
-   *
-   * @returns Promise resolving to success status
-   */
-  freezeCard = async (): Promise<{ success: boolean }> =>
-    this.withErrorHandling(
-      'freezeCard',
-      'card/freeze',
-      'Failed to freeze card. Please try again.',
-      async () => {
-        const response = await this.makeRequest('/v1/card/freeze', {
-          fetchOptions: { method: 'POST' },
-          authenticated: true,
-        });
-
-        return this.handleApiResponse<{ success: boolean }>(
-          response,
-          'freezeCard',
-          'card/freeze',
-          'Failed to freeze card',
-        );
-      },
-    );
-
-  /**
-   * Unfreeze the user's card to resume normal transaction processing.
-   *
-   * @returns Promise resolving to success status
-   */
-  unfreezeCard = async (): Promise<{ success: boolean }> =>
-    this.withErrorHandling(
-      'unfreezeCard',
-      'card/unfreeze',
-      'Failed to unfreeze card. Please try again.',
-      async () => {
-        const response = await this.makeRequest('/v1/card/unfreeze', {
-          fetchOptions: { method: 'POST' },
-          authenticated: true,
-        });
-
-        return this.handleApiResponse<{ success: boolean }>(
-          response,
-          'unfreezeCard',
-          'card/unfreeze',
-          'Failed to unfreeze card',
-        );
-      },
-    );
-
-  /**
-   * Generate a secure token for displaying sensitive card details through an image-based display.
-   * The token is time-limited (~10 minutes) and single-use.
-   *
-   * @param request - Optional customization for the card details image appearance
-   * @returns Promise containing the token and imageUrl for displaying card details
-   */
-  generateCardDetailsToken = async (
-    request?: CardDetailsTokenRequest,
-  ): Promise<CardDetailsTokenResponse> => {
-    const response = await this.makeRequest('/v1/card/details/token', {
-      fetchOptions: {
-        method: 'POST',
-        ...(request && { body: JSON.stringify(request) }),
-      },
-      authenticated: true,
-    });
-
-    if (!response.ok) {
-      const errorType =
-        response.status === 401 || response.status === 403
-          ? CardErrorType.INVALID_CREDENTIALS
-          : response.status === 404
-            ? CardErrorType.NO_CARD
-            : CardErrorType.SERVER_ERROR;
-
-      throw this.logAndCreateError(
-        errorType,
-        'Failed to generate card details token. Please try again.',
-        'generateCardDetailsToken',
-        'card/details/token',
-        response.status,
-      );
-    }
-
-    return (await response.json()) as CardDetailsTokenResponse;
-  };
-
-  /**
-   * Generate a secure token for viewing the card PIN through an image-based display.
-   * The token is time-limited (~10 minutes) and single-use.
-   * The PIN is never transmitted as plain text, ensuring PCI compliance.
-   *
-   * @param request - Optional customization for the PIN image appearance
-   * @returns Promise containing the token and imageUrl for displaying the card PIN
-   */
-  generateCardPinToken = async (
-    request?: CardPinTokenRequest,
-  ): Promise<CardPinTokenResponse> => {
-    const response = await this.makeRequest('/v1/card/pin/token', {
-      fetchOptions: {
-        method: 'POST',
-        ...(request && { body: JSON.stringify(request) }),
-      },
-      authenticated: true,
-    });
-
-    if (!response.ok) {
-      const errorType =
-        response.status === 401 || response.status === 403
-          ? CardErrorType.INVALID_CREDENTIALS
-          : response.status === 404
-            ? CardErrorType.NO_CARD
-            : CardErrorType.SERVER_ERROR;
-
-      throw this.logAndCreateError(
-        errorType,
-        'Failed to generate card PIN token. Please try again.',
-        'generateCardPinToken',
-        'card/pin/token',
-        response.status,
-      );
-    }
-
-    return (await response.json()) as CardPinTokenResponse;
-  };
-
-  getCardExternalWalletDetails = async (
-    delegationSettings: DelegationSettingsNetwork[],
-  ): Promise<CardExternalWalletDetailsResponse> => {
-    const promises = [
-      this.makeRequest('/v1/wallet/external', {
-        fetchOptions: { method: 'GET' },
-        authenticated: true,
-      }),
-      this.makeRequest('/v1/wallet/external/priority', {
-        fetchOptions: { method: 'GET' },
-        authenticated: true,
-      }),
-    ];
-
-    const responses = await Promise.all(promises);
-
-    if (!responses[0].ok || !responses[1].ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to get card external wallet details. Please try again.',
-        'getCardExternalWalletDetails',
-        'wallet/external',
-        undefined,
-        {
-          externalWalletStatus: responses[0].status,
-          priorityWalletStatus: responses[1].status,
-        },
-      );
-    }
-
-    const externalWalletDetails =
-      (await responses[0].json()) as CardWalletExternalResponse[];
-    const priorityWalletDetails =
-      (await responses[1].json()) as CardWalletExternalPriorityResponse[];
-
-    if (
-      externalWalletDetails.length === 0 ||
-      priorityWalletDetails.length === 0
-    ) {
-      return [];
-    }
-
-    const combinedDetails = externalWalletDetails
-      .map((wallet: CardWalletExternalResponse) => {
-        const networkLower = wallet.network?.toLowerCase();
-        const allowanceValue = parseFloat(wallet.allowance);
-        if (
-          !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork) ||
-          isNaN(allowanceValue) ||
-          isZeroValue(allowanceValue)
-        ) {
-          return null;
-        }
-
-        const priorityWallet = priorityWalletDetails.find(
-          (p: CardWalletExternalPriorityResponse) =>
-            p?.address?.toLowerCase() === wallet?.address?.toLowerCase() &&
-            p?.currency === wallet?.currency &&
-            p?.network?.toLowerCase() === wallet?.network?.toLowerCase(),
-        );
-
-        // Debug logging to identify matching issues (no PII - wallet.address is public blockchain data)
-        if (!priorityWallet) {
-          this.logDebugInfo('getCardExternalWalletDetails::noPriorityWallet', {
-            currency: wallet.currency,
-            network: wallet.network,
-            priorityWalletCount: priorityWalletDetails.length,
-          });
-        }
-
-        const tokenDetails =
-          this.mapCardExternalWalletDetailsToDelegationSettings(
-            wallet,
-            delegationSettings,
-          );
-
-        if (!tokenDetails) {
-          return null;
-        }
-
-        const caipChainId = (() => {
-          if (networkLower === 'solana') {
-            return cardNetworkInfos.solana.caipChainId;
-          }
-
-          if (!tokenDetails?.decimalChainId) {
-            this.logDebugInfo('getCardExternalWalletDetails::missingChainId', {
-              network: wallet.network,
-              fallback: 'using network info',
-            });
-            return cardNetworkInfos[wallet.network].caipChainId;
-          }
-
-          return formatChainIdToCaip(tokenDetails.decimalChainId);
-        })();
-
-        return {
-          id: priorityWallet?.id ?? 0,
-          walletAddress: wallet.address,
-          currency: wallet.currency,
-          balance: wallet.balance,
-          allowance: wallet.allowance,
-          priority: priorityWallet?.priority ?? 0,
-          caipChainId,
-          tokenDetails: {
-            address: tokenDetails?.address ?? '',
-            decimals: tokenDetails?.decimals ?? 0,
-            symbol: tokenDetails?.symbol ?? '',
-            name: tokenDetails?.name ?? '',
-          },
-          network: wallet.network,
-          totalAllowance: null, // Will be populated later for priority token only
-          delegationContractAddress:
-            tokenDetails?.delegationContractAddress ?? '',
-          stagingTokenAddress: tokenDetails?.stagingTokenAddress ?? '',
-        } as CardExternalWalletDetail;
-      })
-      .filter((detail): detail is CardExternalWalletDetail => detail !== null);
-
-    // Sort - lower number = higher priority
-    return combinedDetails.sort((a, b) => a.priority - b.priority);
-  };
-
-  mapCardExternalWalletDetailsToDelegationSettings = (
-    cardWalletExternal: CardWalletExternalResponse,
-    delegationSettings: DelegationSettingsNetwork[],
-  ) => {
-    const { network, currency } = cardWalletExternal;
-    const caipChainId = cardNetworkInfos[network]?.caipChainId;
-
-    // Get supported tokens for this network (used for fallback token details)
-    const supportedTokens = caipChainId
-      ? this.getSupportedTokensByChainId(caipChainId)
-      : [];
-
-    const delegationSettingNetwork = delegationSettings.find(
-      (delegationSetting) =>
-        delegationSetting.network?.toLowerCase() === network?.toLowerCase(),
-    );
-
-    // Fallback: Network not in delegation settings
-    // Use supported tokens for display, but disable delegation (empty contract)
-    if (!delegationSettingNetwork) {
-      if (!caipChainId) {
-        return null;
-      }
-
-      const matchingToken = supportedTokens.find(
-        (token) => token.symbol?.toLowerCase() === currency?.toLowerCase(),
-      );
-
-      if (!matchingToken) {
-        return null;
-      }
-
-      const tokenDetails = this.mapSupportedTokenToCardToken(matchingToken);
-
-      return {
-        symbol: tokenDetails.symbol,
-        address: tokenDetails.address,
-        decimals: tokenDetails.decimals ?? 18,
-        decimalChainId: parseInt(caipChainId.split(':')[1], 10),
-        name: tokenDetails.name,
-        delegationContractAddress: '', // Empty - delegation disabled for this network
-        stagingTokenAddress: null,
-      };
-    }
-
-    const delegationSettingToken =
-      delegationSettingNetwork.tokens[currency?.toLowerCase() ?? ''];
-
-    // Fallback: Token not in delegation settings for this network
-    // Use supported tokens for display, but disable delegation (empty contract)
-    if (!delegationSettingToken) {
-      const matchingToken = supportedTokens.find(
-        (token) => token.symbol?.toLowerCase() === currency?.toLowerCase(),
-      );
-
-      if (!matchingToken) {
-        return null;
-      }
-
-      const tokenDetails = this.mapSupportedTokenToCardToken(matchingToken);
-
-      return {
-        symbol: tokenDetails.symbol,
-        address: tokenDetails.address,
-        decimals: tokenDetails.decimals ?? 18,
-        decimalChainId: delegationSettingNetwork.chainId,
-        name: tokenDetails.name,
-        delegationContractAddress: '',
-        stagingTokenAddress: null,
-      };
-    }
-
-    const tokenDetails = this.mapSupportedTokenToCardToken(
-      supportedTokens.find(
-        (token) =>
-          token.symbol?.toLowerCase() ===
-          delegationSettingToken.symbol?.toLowerCase(),
-      ) ?? supportedTokens[0],
-    );
-
-    if (delegationSettingNetwork.environment === 'staging') {
-      return {
-        symbol: tokenDetails.symbol,
-        address: tokenDetails.address,
-        decimals: delegationSettingToken.decimals,
-        decimalChainId: delegationSettingNetwork.chainId,
-        name: tokenDetails.name,
-        delegationContractAddress: delegationSettingNetwork.delegationContract,
-        // This is used for getting the allowance and delegation on the Staging environment
-        stagingTokenAddress: delegationSettingToken.address,
-      };
-    }
-
-    return {
-      symbol: tokenDetails.symbol,
-      address: delegationSettingToken.address,
-      decimals: delegationSettingToken.decimals,
-      decimalChainId: delegationSettingNetwork.chainId,
-      name: tokenDetails.name,
-      delegationContractAddress: delegationSettingNetwork.delegationContract,
-    };
-  };
-
-  /**
-   * Get the most recent user-initiated allowance amount from approval events for a specific token.
-   * This returns the last approval value set by the user, which represents their intended spending limit.
-   * Note: ERC20 spending does not create approval events, so all approval events are user-initiated.
-   *
-   * @param walletAddress - The user's wallet address
-   * @param tokenAddress - The ERC20 token contract address
-   * @param delegationContractAddress - The delegation/spender contract address
-   * @param currentAllowance - The current remaining allowance (from API) - unused but kept for API compatibility
-   * @returns The most recent user-initiated approval value as a string (in wei), or null if no logs found
-   */
-  getLatestAllowanceFromLogs = async (
-    walletAddress: string,
-    tokenAddress: string,
-    delegationContractAddress: string,
-    cardNetwork: CardNetwork,
-  ): Promise<string | null> => {
-    try {
-      const approvalInterface = new ethers.utils.Interface([
-        'event Approval(address indexed owner, address indexed spender, uint256 value)',
-      ]);
-
-      const approvalTopic = approvalInterface.getEventTopic('Approval');
-      const ownerTopic = ethers.utils.hexZeroPad(
-        walletAddress.toLowerCase(),
-        32,
-      );
-      const spenderTopic = ethers.utils.hexZeroPad(
-        delegationContractAddress.toLowerCase(),
-        32,
-      );
-
-      const spendersDeployedBlock = 2715910; // Block where the delegation contracts were deployed
-      const ethersProvider = this.getEthersProvider(cardNetwork);
-
-      // Get all approval logs for this specific wallet + token + spender combination
-      const logs = await ethersProvider.getLogs({
-        address: tokenAddress,
-        fromBlock: spendersDeployedBlock,
-        toBlock: 'latest',
-        topics: [approvalTopic, ownerTopic, spenderTopic],
-      });
-
-      if (logs.length === 0) {
-        return null;
-      }
-
-      // Sort chronologically (newest first)
-      logs.sort((a, b) =>
-        b.blockNumber === a.blockNumber
-          ? b.logIndex - a.logIndex
-          : b.blockNumber - a.blockNumber,
-      );
-
-      // Get the most recent approval event
-      // This represents the last limit the user set, regardless of how much has been spent
-      const latestLog = logs[0];
-      const parsedLog = approvalInterface.parseLog(latestLog);
-      const value = parsedLog.args.value as ethers.BigNumber;
-
-      return value.toString();
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: {
-          feature: 'card',
-          operation: 'getLatestAllowanceFromLogs',
-          errorType: 'blockchain_error',
-        },
-        context: {
-          name: 'card_blockchain',
-          data: { network: cardNetwork, action: 'fetchApprovalLogs' },
-        },
-      });
-      return null;
-    }
-  };
-
-  updateWalletPriority = async (
-    wallets: { id: number; priority: number }[],
-  ): Promise<void> => {
-    this.logDebugInfo('updateWalletPriority', { wallets });
-
-    const requestBody = { wallets };
-
-    const response = await this.makeRequest('/v1/wallet/external/priority', {
-      fetchOptions: {
-        method: 'PUT',
-        body: JSON.stringify(requestBody),
-      },
-      authenticated: true,
-    });
-
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to update wallet priority. Please try again.',
-        'updateWalletPriority',
-        'wallet/external/priority',
-        response.status,
-        { walletCount: wallets.length },
-      );
-    }
-
-    this.logDebugInfo(
-      'updateWalletPriority',
-      'Successfully updated wallet priority',
-    );
-  };
-
-  /**
-   * Generate a delegation token for spending limit increase
-   * This is Step 1 of the delegation process
-   */
-  generateDelegationToken = async (
-    network: CardNetwork,
-    address: string,
-    faucet?: boolean,
-  ): Promise<{
-    token: string;
-    expiresAt: string;
-    nonce: string;
-  }> => {
-    const response = await this.makeRequest(
-      `/v1/delegation/token?network=${network}&address=${address}${faucet ? '&faucet=true' : ''}`,
-      {
-        fetchOptions: { method: 'GET' },
-        authenticated: true,
-        timeoutMs: 30000,
-      },
-    );
-
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to generate delegation token. Please try again.',
-        'generateDelegationToken',
-        'delegation/token',
-        response.status,
-        { network },
-      );
-    }
-
-    const tokenData = await response.json();
-    this.logDebugInfo('generateDelegationToken', tokenData);
-
-    return {
-      token: tokenData.token,
-      expiresAt: tokenData.expiresAt,
-      nonce: tokenData.nonce,
-    };
-  };
-
-  /**
-   * Complete wallet delegation for spending limit increase.
-   * This is Step 3 of the delegation process (after user completes the blockchain transaction).
-   * Routes to the EVM or Solana endpoint based on params.network.
-   */
-  completeDelegation = async (
-    params: DelegationPostApprovalParams,
-  ): Promise<{ success: boolean }> => {
-    const isSolana = params.network === 'solana';
-
-    if (isSolana) {
-      // Validate Solana address format (Base58, 32-44 characters)
-      const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-      if (!solanaAddressRegex.test(params.address)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid Solana address format',
-        );
-      }
-
-      // Validate Solana transaction signature format (Base58, 87-88 characters)
-      const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
-      if (!solanaTxHashRegex.test(params.txHash)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid Solana transaction signature format',
-        );
-      }
-    } else {
-      // Validate EVM address format
-      const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-      if (!addressRegex.test(params.address)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid Ethereum address format',
-        );
-      }
-
-      // Validate EVM signature format
-      const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
-      if (!sigHashRegex.test(params.sigHash)) {
-        throw new CardError(
-          CardErrorType.VALIDATION_ERROR,
-          'Invalid signature format',
-        );
-      }
-
-      if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
-        throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
-      }
-    }
-
-    const endpointSuffix = isSolana ? 'solana' : 'evm';
-    const endpoint = `delegation/${endpointSuffix}/post-approval`;
-
-    const response = await this.makeRequest(`/v1/${endpoint}`, {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify(params),
-      },
-      authenticated: true,
-    });
-
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to complete delegation. Please try again.',
-        'completeDelegation',
-        endpoint,
-        response.status,
-        { network: params.network, currency: params.currency },
-      );
-    }
-
-    const result = await response.json();
-    this.logDebugInfo('completeDelegation', result);
-
-    return result;
   };
 
   /**
@@ -1639,23 +378,12 @@ export class CardSDK {
           responseData,
         });
 
-        // Validate the response data
         this.validateDelegationSettings(responseData);
 
         return responseData;
       },
     );
 
-  encodeApproveTransaction = (spender: string, value: string): string => {
-    const approvalInterface = new ethers.utils.Interface([
-      'function approve(address spender, uint256 value)',
-    ]);
-    return approvalInterface.encodeFunctionData('approve', [spender, value]);
-  };
-
-  /**
-   * Validate delegation settings response
-   */
   private validateDelegationSettings = (
     responseData: DelegationSettingsResponse,
   ): void => {
@@ -1671,7 +399,6 @@ export class CardSDK {
         continue;
       }
 
-      // Validate required fields
       if (!network.chainId || !network.delegationContract) {
         throw new CardError(
           CardErrorType.VALIDATION_ERROR,
@@ -1679,7 +406,6 @@ export class CardSDK {
         );
       }
 
-      // Validate token addresses
       if (!network.tokens) {
         throw new CardError(
           CardErrorType.VALIDATION_ERROR,
@@ -1687,7 +413,6 @@ export class CardSDK {
         );
       }
 
-      // Validate all tokens present in the configuration
       for (const [tokenSymbol, token] of Object.entries(network.tokens)) {
         if (
           !token?.address ||
@@ -1773,7 +498,9 @@ export class CardSDK {
   phoneVerificationSend = async (
     request: PhoneVerificationSendRequest,
   ): Promise<PhoneVerificationSendResponse> => {
-    this.logDebugInfo('phoneVerificationSend request', request);
+    this.logDebugInfo('phoneVerificationSend', {
+      phoneNumber: request.phoneNumber,
+    });
 
     return this.withErrorHandling(
       'phoneVerificationSend',
@@ -1804,7 +531,9 @@ export class CardSDK {
   phoneVerificationVerify = async (
     request: PhoneVerificationVerifyRequest,
   ): Promise<RegisterUserResponse> => {
-    this.logDebugInfo('phoneVerificationVerify request', request);
+    this.logDebugInfo('phoneVerificationVerify', {
+      phoneNumber: request.phoneNumber,
+    });
 
     return this.withErrorHandling(
       'phoneVerificationVerify',
@@ -1926,39 +655,6 @@ export class CardSDK {
     );
   };
 
-  registerMailingAddress = async (
-    request: RegisterPhysicalAddressRequest,
-  ): Promise<RegisterAddressResponse> => {
-    this.logDebugInfo('registerMailingAddress', {
-      onboardingId: request.onboardingId,
-    });
-
-    return this.withErrorHandling(
-      'registerMailingAddress',
-      'auth/register/mailing-address',
-      'Failed to register address',
-      async () => {
-        const response = await this.makeRequest(
-          '/v1/auth/register/mailing-address',
-          {
-            fetchOptions: {
-              method: 'POST',
-              body: JSON.stringify(request),
-            },
-            authenticated: false,
-          },
-        );
-
-        return this.handleApiResponse<RegisterAddressResponse>(
-          response,
-          'registerMailingAddress',
-          'auth/register/mailing-address',
-          'Address registration failed',
-        );
-      },
-    );
-  };
-
   getRegistrationSettings = async (): Promise<RegistrationSettingsResponse> =>
     this.withErrorHandling(
       'getRegistrationSettings',
@@ -2028,7 +724,6 @@ export class CardSDK {
           },
         );
 
-        // Special case: 404 means consent not found (not an error)
         if (response.status === 404) {
           return null;
         }
@@ -2134,10 +829,6 @@ export class CardSDK {
   /**
    * Creates a new order for a product (e.g., premium account upgrade, metal card)
    * POST /v1/order
-   *
-   * @param request - The order creation request
-   * @param location - User's card location (us or international)
-   * @returns Promise resolving to order response with orderId and payment configuration
    */
   createOrder = async (): Promise<CreateOrderResponse> => {
     const request: CreateOrderRequest = {
@@ -2175,12 +866,6 @@ export class CardSDK {
   /**
    * Fetches the status of an order by ID
    * GET /v1/order/:orderId
-   *
-   * Can be used for polling async completion of an order after interactive payment
-   *
-   * @param orderId - The unique order identifier
-   * @param location - User's card location (us or international)
-   * @returns Promise resolving to order status response
    */
   getOrderStatus = async (orderId: string): Promise<GetOrderStatusResponse> => {
     this.logDebugInfo('getOrderStatus', { orderId });
@@ -2197,7 +882,6 @@ export class CardSDK {
           authenticated: true,
         });
 
-        // Handle 404 - order not found
         if (response.status === 404) {
           throw new CardError(
             CardErrorType.NOT_FOUND,
@@ -2216,362 +900,5 @@ export class CardSDK {
         return data;
       },
     );
-  };
-
-  getCashbackWallet = async (): Promise<CashbackWalletResponse> =>
-    this.withErrorHandling(
-      'getCashbackWallet',
-      'wallet/reward',
-      'Failed to get cashback wallet. Please try again.',
-      async () => {
-        const response = await this.makeRequest('/v1/wallet/reward', {
-          fetchOptions: { method: 'GET' },
-          authenticated: true,
-        });
-        return this.handleApiResponse<CashbackWalletResponse>(
-          response,
-          'getCashbackWallet',
-          'wallet/reward',
-          'Failed to get cashback wallet',
-        );
-      },
-    );
-
-  getCashbackWithdrawEstimation =
-    async (): Promise<CashbackWithdrawEstimationResponse> =>
-      this.withErrorHandling(
-        'getCashbackWithdrawEstimation',
-        'wallet/reward/withdraw-estimation',
-        'Failed to estimate withdrawal fees. Please try again.',
-        async () => {
-          const response = await this.makeRequest(
-            '/v1/wallet/reward/withdraw-estimation',
-            {
-              fetchOptions: { method: 'GET' },
-              authenticated: true,
-            },
-          );
-          return this.handleApiResponse<CashbackWithdrawEstimationResponse>(
-            response,
-            'getCashbackWithdrawEstimation',
-            'wallet/reward/withdraw-estimation',
-            'Failed to estimate withdrawal fees',
-          );
-        },
-      );
-
-  withdrawCashback = async (
-    request: CashbackWithdrawRequest,
-  ): Promise<CashbackWithdrawResponse> =>
-    this.withErrorHandling(
-      'withdrawCashback',
-      'wallet/reward/withdraw',
-      'Failed to withdraw cashback. Please try again.',
-      async () => {
-        const response = await this.makeRequest('/v1/wallet/reward/withdraw', {
-          fetchOptions: {
-            method: 'POST',
-            body: JSON.stringify(request),
-          },
-          authenticated: true,
-        });
-        return this.handleApiResponse<CashbackWithdrawResponse>(
-          response,
-          'withdrawCashback',
-          'wallet/reward/withdraw',
-          'Failed to withdraw cashback',
-        );
-      },
-    );
-
-  getTransactionReceipt = async (
-    txHash: string,
-    network: CardNetwork = 'linea',
-  ): Promise<ethers.providers.TransactionReceipt | null> => {
-    const provider = this.getEthersProvider(network);
-    return provider.getTransactionReceipt(txHash);
-  };
-
-  private getFirstSupportedTokenOrNull(): CardToken | null {
-    const lineaSupportedTokens = this.getSupportedTokensByChainId();
-
-    return lineaSupportedTokens.length > 0
-      ? this.mapSupportedTokenToCardToken(lineaSupportedTokens[0])
-      : null;
-  }
-
-  private findSupportedTokenByAddress(tokenAddress: string): CardToken | null {
-    const match = this.getSupportedTokensByChainId().find(
-      (supportedToken) =>
-        supportedToken.address?.toLowerCase() === tokenAddress.toLowerCase(),
-    );
-
-    return match ? this.mapSupportedTokenToCardToken(match) : null;
-  }
-
-  private async findPriorityTokenFromApprovalLogs(
-    address: string,
-    nonZeroBalanceTokens: string[],
-  ): Promise<CardToken | null> {
-    const approvalLogs = await this.getApprovalLogs(
-      address,
-      nonZeroBalanceTokens,
-    );
-
-    if (approvalLogs.length === 0) {
-      return this.getFirstSupportedTokenOrNull();
-    }
-
-    const lastNonZeroApprovalToken =
-      this.findLastNonZeroApprovalToken(approvalLogs);
-    return lastNonZeroApprovalToken
-      ? this.findSupportedTokenByAddress(lastNonZeroApprovalToken)
-      : null;
-  }
-
-  private async getApprovalLogs(
-    address: string,
-    nonZeroBalanceTokensAddresses: string[],
-  ): Promise<(ethers.providers.Log & { tokenAddress: string })[]> {
-    const approvalInterface = new ethers.utils.Interface([
-      'event Approval(address indexed owner,address indexed spender,uint256 value)',
-    ]);
-    const contracts = this.foxConnectAddresses('linea');
-
-    if (!contracts?.global || !contracts?.us) {
-      throw new Error(
-        'FoxConnect contracts are not defined for the current network',
-      );
-    }
-
-    const { global: foxConnectGlobalAddress, us: foxConnectUsAddress } =
-      contracts;
-
-    const approvalTopic = approvalInterface.getEventTopic('Approval');
-    const ownerTopic = ethers.utils.hexZeroPad(address.toLowerCase(), 32);
-    const spenders = [foxConnectGlobalAddress, foxConnectUsAddress];
-    const spenderTopics = spenders.map((s) =>
-      ethers.utils.hexZeroPad(s.toLowerCase(), 32),
-    );
-    const spendersDeployedBlock = 2715910; // Block where the spenders were deployed
-    const ethersProvider = this.getEthersProvider('linea');
-
-    const logsPerToken = await Promise.all(
-      nonZeroBalanceTokensAddresses.map((tokenAddress) =>
-        ethersProvider
-          .getLogs({
-            address: tokenAddress,
-            fromBlock: spendersDeployedBlock,
-            toBlock: 'latest',
-            topics: [approvalTopic, ownerTopic, spenderTopics],
-          })
-          .then((logs) =>
-            logs.map((log) => ({
-              ...log,
-              tokenAddress,
-            })),
-          ),
-      ),
-    );
-
-    const allLogs = logsPerToken.flat();
-
-    // Sort chronologically
-    allLogs.sort((a, b) =>
-      a.blockNumber === b.blockNumber
-        ? a.logIndex - b.logIndex
-        : a.blockNumber - b.blockNumber,
-    );
-
-    return allLogs;
-  }
-
-  private findLastNonZeroApprovalToken(
-    logs: (ethers.providers.Log & { tokenAddress: string })[],
-  ): string | null {
-    const approvalInterface = new ethers.utils.Interface([
-      'event Approval(address indexed owner,address indexed spender,uint256 value)',
-    ]);
-
-    // Find the last non-zero approval by iterating backwards
-    for (let i = logs.length - 1; i >= 0; i--) {
-      const { args } = approvalInterface.parseLog(logs[i]);
-      const value = args.value as ethers.BigNumber;
-
-      if (!value.isZero()) {
-        return logs[i].tokenAddress;
-      }
-    }
-
-    return null;
-  }
-
-  private mapSupportedTokenToCardToken(token: SupportedToken): CardToken {
-    return {
-      address: token.address || null,
-      decimals: token.decimals || null,
-      symbol: token.symbol || null,
-      name: token.name || null,
-    };
-  }
-
-  /**
-   * Create Google Wallet provisioning request
-   *
-   * This method sends card ID to the card provider API
-   * to generate an encrypted opaque payment card for Google Wallet provisioning.
-   *
-   * Google Wallet provisioning flow:
-   * 1. Card provider returns opaquePaymentCard (OPC)
-   *
-   * @returns Promise resolving to the opaque payment card string
-   * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
-   */
-  createGoogleWalletProvisioningRequest = async (): Promise<{
-    opaquePaymentCard: string;
-  }> => {
-    const endpoint = 'card/wallet/provision/google';
-
-    const response = await this.makeRequest(`/v1/${endpoint}`, {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify({}),
-      },
-      authenticated: true,
-    });
-
-    if (!response.ok) {
-      const errorType =
-        response.status === 401 || response.status === 403
-          ? CardErrorType.INVALID_CREDENTIALS
-          : response.status === 404
-            ? CardErrorType.NO_CARD
-            : CardErrorType.SERVER_ERROR;
-
-      throw this.logAndCreateError(
-        errorType,
-        'Failed to create Google Wallet provisioning request. Please try again.',
-        'createGoogleWalletProvisioningRequest',
-        endpoint,
-        response.status,
-      );
-    }
-
-    const responseData = (await response.json()) as {
-      success: boolean;
-      data?: {
-        opaquePaymentCard?: string;
-      };
-    };
-
-    if (!responseData.success || !responseData.data?.opaquePaymentCard) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Google Wallet provisioning response missing opaquePaymentCard',
-        'createGoogleWalletProvisioningRequest',
-        endpoint,
-      );
-    }
-
-    return {
-      opaquePaymentCard: responseData.data.opaquePaymentCard,
-    };
-  };
-
-  /**
-   * Create Apple Pay provisioning request
-   *
-   * This method sends cryptographic data from PassKit to the card provider API
-   * to generate an encrypted payload for Apple Pay in-app provisioning.
-   *
-   * Apple Pay in-app provisioning flow:
-   * 1. App presents PKAddPaymentPassViewController
-   * 2. PassKit SDK returns nonce, nonceSignature, and certificates
-   * 3. This method sends those to the card provider API
-   * 4. Card provider returns encrypted payload
-   * 5. App returns encrypted payload to PassKit to complete provisioning
-   *
-   * @param params - The Apple Pay provisioning request parameters (all values hex-encoded)
-   * @returns Promise resolving to the encrypted Apple Pay payload
-   * @see https://dev.api.baanx.com/v1/card/wallet/provision/apple
-   */
-  createApplePayProvisioningRequest = async (params: {
-    /** The leaf certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[0]) */
-    leafCertificate: string;
-    /** The intermediate certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[1]) */
-    intermediateCertificate: string;
-    /** The nonce from PassKit (hex-encoded) */
-    nonce: string;
-    /** The nonce signature from PassKit (hex-encoded) */
-    nonceSignature: string;
-  }): Promise<{
-    encryptedPassData: string;
-    activationData: string;
-    ephemeralPublicKey: string;
-  }> => {
-    const endpoint = 'card/wallet/provision/apple';
-
-    const response = await this.makeRequest(`/v1/${endpoint}`, {
-      fetchOptions: {
-        method: 'POST',
-        body: JSON.stringify({
-          leafCertificate: params.leafCertificate,
-          intermediateCertificate: params.intermediateCertificate,
-          nonce: params.nonce,
-          nonceSignature: params.nonceSignature,
-        }),
-      },
-      authenticated: true,
-    });
-
-    if (!response.ok) {
-      const errorType =
-        response.status === 401 || response.status === 403
-          ? CardErrorType.INVALID_CREDENTIALS
-          : response.status === 404
-            ? CardErrorType.NO_CARD
-            : CardErrorType.SERVER_ERROR;
-
-      throw this.logAndCreateError(
-        errorType,
-        'Failed to create Apple Pay provisioning request. Please try again.',
-        'createApplePayProvisioningRequest',
-        endpoint,
-        response.status,
-      );
-    }
-
-    const responseData = (await response.json()) as {
-      success?: boolean;
-      data?: {
-        encryptedPassData?: string;
-        activationData?: string;
-        ephemeralPublicKey?: string;
-      };
-      encryptedPassData?: string;
-      activationData?: string;
-      ephemeralPublicKey?: string;
-    };
-
-    const data = responseData.data || responseData;
-
-    if (
-      !data.encryptedPassData ||
-      !data.activationData ||
-      !data.ephemeralPublicKey
-    ) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Apple Pay provisioning response missing required fields',
-        'createApplePayProvisioningRequest',
-        endpoint,
-      );
-    }
-
-    return {
-      encryptedPassData: data.encryptedPassData,
-      activationData: data.activationData,
-      ephemeralPublicKey: data.ephemeralPublicKey,
-    };
   };
 }

@@ -189,7 +189,7 @@ describe('PredictPickItem', () => {
       );
 
       const button = screen.getByTestId('predict-picks-cash-out-button-pos-1');
-      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
   });
 

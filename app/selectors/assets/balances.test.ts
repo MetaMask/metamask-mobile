@@ -108,7 +108,13 @@ import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
+  selectTokenBalancesStateForBalances,
 } from './balances';
+import type { TokenBalancesControllerState } from '@metamask/assets-controllers';
+import {
+  ARC_USDC_TOKEN_ADDRESS,
+  NETWORKS_CHAIN_ID,
+} from '../../constants/network';
 
 // Enhanced state factory with realistic data
 const makeState = (overrides: Record<string, unknown> = {}) => ({
@@ -695,5 +701,74 @@ describe('assets balance and balance change selectors (mobile)', () => {
         userCurrency: 'usd',
       });
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Arc USDC ERC-20 filtering in selectTokenBalancesStateForBalances
+// ---------------------------------------------------------------------------
+
+describe('selectTokenBalancesStateForBalances - Arc USDC ERC-20 filtering', () => {
+  const ACCOUNT = '0xaccount';
+  const OTHER_TOKEN = '0xother000000000000000000000000000000000000';
+
+  it('strips Arc USDC ERC-20 balance from Arc chain', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        [NETWORKS_CHAIN_ID.ARC]: {
+          [ARC_USDC_TOKEN_ADDRESS]: '0x3b9aca00', // 1 USDC (6 decimals)
+          [OTHER_TOKEN]: '0xde0b6b3a7640000',
+        },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC],
+    ).not.toHaveProperty(ARC_USDC_TOKEN_ADDRESS);
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC][OTHER_TOKEN],
+    ).toBe('0xde0b6b3a7640000');
+  });
+
+  it('does not affect balances on other chains', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        '0x1': {
+          [ARC_USDC_TOKEN_ADDRESS]: '0x1', // same address on Ethereum — must be kept
+          [OTHER_TOKEN]: '0x2',
+        },
+        [NETWORKS_CHAIN_ID.ARC]: {
+          [ARC_USDC_TOKEN_ADDRESS]: '0x3b9aca00', // must be stripped
+        },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    // Ethereum entry with same address is preserved
+    expect(result.tokenBalances[ACCOUNT]['0x1']).toHaveProperty(
+      ARC_USDC_TOKEN_ADDRESS,
+    );
+    // Arc entry is stripped
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC],
+    ).not.toHaveProperty(ARC_USDC_TOKEN_ADDRESS);
+  });
+
+  it('passes through unchanged when no Arc chain is present', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        '0x1': { [OTHER_TOKEN]: '0xabc' },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    expect(result.tokenBalances).toStrictEqual(tokenBalances);
   });
 });
