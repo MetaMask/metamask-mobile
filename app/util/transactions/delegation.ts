@@ -32,9 +32,29 @@ import Engine from '../../core/Engine';
 import { exactExecutionBatch } from '../../core/Delegation/caveatBuilder/exactExecutionBatchBuilder';
 import { exactExecution } from '../../core/Delegation/caveatBuilder/exactExecutionBuilder';
 import { prefixError } from './error-prefix';
-import { TRANSFER_FUNCTION_SIGNATURE } from './index';
 
 const log = createProjectLogger('transaction-delegation');
+
+/**
+ * Must match placeholder used by Intents API.
+ */
+export const SUBSIDIZED_ORDER_ID_PLACEHOLDER =
+  '0x07cece46d0aec658b12c9d194b3ac3cc74aadf102176005c76f96422b57328b2' as Hex;
+
+/** The number of bytes in a function selector. */
+const SELECTOR_BYTES = 4;
+
+/** A byte range within calldata: [start, end) in bytes, not hex characters. */
+interface ByteRange {
+  start: number;
+  end: number;
+}
+
+/** A run of calldata bytes to enforce, plus its byte start index. */
+interface EnforcedSegment {
+  startIndex: number;
+  value: Hex;
+}
 
 export type SignMessenger = Messenger<
   string,
@@ -70,10 +90,14 @@ export async function getDelegationTransaction<
     isSubsidized,
   );
 
-  const executions = buildExecutions(transaction);
+  const executions = isSubsidized
+    ? buildSubsidizedExecutions(transaction)
+    : buildExecutions(transaction);
 
   const modes: ExecutionMode[] = [
-    executions[0].length > 1 ? BATCH_DEFAULT_MODE : SINGLE_DEFAULT_MODE,
+    isSubsidized || executions[0].length <= 1
+      ? SINGLE_DEFAULT_MODE
+      : BATCH_DEFAULT_MODE,
   ];
 
   log('Built delegations', { delegations, modes, executions });
@@ -233,6 +257,28 @@ function buildExecutions(
   ];
 }
 
+function buildSubsidizedExecutions(
+  transactionMeta: TransactionMeta,
+): ExecutionStruct[][] {
+  const { txParams } = transactionMeta;
+  const target = txParams.to as Hex | undefined;
+  const callData = txParams.data as Hex | undefined;
+
+  if (!target || !callData) {
+    throw new Error('Subsidized execution: missing batch target or calldata');
+  }
+
+  return [
+    [
+      {
+        target,
+        value: BigInt(txParams.value ?? '0x0'),
+        callData,
+      },
+    ],
+  ];
+}
+
 function buildUnsignedDelegation(
   environment: DeleGatorEnvironment,
   transactionMeta: TransactionMeta,
@@ -271,44 +317,172 @@ function buildSubsidizedCaveatsInternal(
   transaction: TransactionMeta,
 ): Caveat[] {
   const caveatBuilder = createCaveatBuilder(environment);
-  const nestedTransactions = transaction.nestedTransactions ?? [];
 
-  // Subsidized execute only supports single-step deposit routes
-  if (nestedTransactions.length !== 1) {
-    throw new Error('expected single-step deposit route');
+  const { txParams } = transaction;
+  const target = txParams.to as Hex | undefined;
+  const calldata = txParams.data as Hex | undefined;
+
+  if (!target || !calldata) {
+    throw new Error('missing batch target or calldata');
   }
 
-  const transferTx = nestedTransactions[0];
-  const token = transferTx.to as Hex | undefined;
-  const calldata = transferTx.data as Hex | undefined;
-
-  if (!token || !calldata) {
-    throw new Error('missing token address or calldata');
-  }
-
-  // Only ERC20 transfer calldata can be split into selector + recipient/amount caveats
-  if (calldata.slice(0, 10).toLowerCase() !== TRANSFER_FUNCTION_SIGNATURE) {
-    throw new Error('expected ERC20 transfer calldata');
-  }
-
-  // 0x + selector (8) + recipient (64) + amount (64) = 138
-  if (calldata.length < 138) {
-    throw new Error('transfer calldata too short');
-  }
-
-  // Extract selector (0x + bytes 2-10) and recipient+amount (bytes 10-138)
-  // Split to prevent Relay post-deposit parser from misreading caveat terms as transfer
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  const transferSelector = `0x${calldata.slice(2, 10)}` as Hex;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  const recipientAndAmount = `0x${calldata.slice(10, 138)}` as Hex;
-
+  caveatBuilder.addCaveat(allowedTargets, [target]);
   caveatBuilder.addCaveat(limitedCalls, 1);
-  caveatBuilder.addCaveat(allowedTargets, [token]);
-  caveatBuilder.addCaveat(allowedCalldata, 0, transferSelector);
-  caveatBuilder.addCaveat(allowedCalldata, 4, recipientAndAmount);
+
+  for (const { startIndex, value } of getEnforcedSegments(
+    calldata,
+    transaction.nestedTransactions ?? [],
+  )) {
+    caveatBuilder.addCaveat(allowedCalldata, startIndex, value);
+  }
 
   return caveatBuilder.build();
+}
+
+/**
+ * Enforces every calldata byte except the order-ID placeholder window(s).
+ *
+ * @param calldata - The 0x-prefixed batch calldata (txParams.data).
+ * @param nestedTransactions - The batch's nested calls, used to locate split points.
+ * @returns The segments to enforce, ordered by byte start index.
+ */
+function getEnforcedSegments(
+  calldata: Hex,
+  nestedTransactions: { data?: string }[],
+): EnforcedSegment[] {
+  const freeRanges = findByteRanges(calldata, [
+    SUBSIDIZED_ORDER_ID_PLACEHOLDER,
+  ]);
+
+  const splitPoints = getSplitPoints(calldata, nestedTransactions);
+
+  return getSegmentsBetweenFreeRanges(calldata, freeRanges, splitPoints);
+}
+
+/**
+ * Byte offset after the selector of each order-ID-bearing nested call.
+ *
+ * @param calldata - The 0x-prefixed batch calldata.
+ * @param nestedTransactions - The nested calls to locate.
+ * @returns The post-selector byte offsets, sorted ascending, deduplicated.
+ */
+function getSplitPoints(
+  calldata: Hex,
+  nestedTransactions: { data?: string }[],
+): number[] {
+  const placeholderBody =
+    SUBSIDIZED_ORDER_ID_PLACEHOLDER.slice(2).toLowerCase();
+
+  const nestedData = nestedTransactions
+    .map((tx) => tx.data)
+    // length >= 10 ensures at least a 0x-prefixed 4-byte selector.
+    .filter((data): data is string => data !== undefined && data.length >= 10)
+    .map((data) => data.toLowerCase() as Hex)
+    // Only order-ID-bearing calls need an isolated boundary.
+    .filter((data) => data.includes(placeholderBody));
+
+  const ranges = findByteRanges(calldata, nestedData);
+
+  const points = ranges.map((range) => range.start + SELECTOR_BYTES);
+
+  return [...new Set(points)].sort((a, b) => a - b);
+}
+
+/**
+ * Every whole-byte-aligned occurrence of each needle in calldata.
+ *
+ * @param calldata - The 0x-prefixed calldata to search.
+ * @param needles - The 0x-prefixed values to locate.
+ * @returns The byte ranges [start, end) of every occurrence, unsorted.
+ */
+function findByteRanges(calldata: Hex, needles: Hex[]): ByteRange[] {
+  const haystack = calldata.slice(2).toLowerCase();
+
+  return needles.flatMap((needle) => {
+    const body = needle.slice(2).toLowerCase();
+    const byteLength = body.length / 2;
+    const ranges: ByteRange[] = [];
+
+    let charIndex = haystack.indexOf(body);
+    while (charIndex !== -1) {
+      // Only whole-byte boundaries are meaningful (each byte is two hex chars).
+      if (charIndex % 2 === 0) {
+        const start = charIndex / 2;
+        ranges.push({ start, end: start + byteLength });
+      }
+      charIndex = haystack.indexOf(body, charIndex + 1);
+    }
+
+    return ranges;
+  });
+}
+
+/**
+ * Enforces the bytes outside the free ranges, ending a segment at each split point.
+ *
+ * @param calldata - The 0x-prefixed calldata.
+ * @param freeRanges - Ranges to leave free (order-ID placeholder windows).
+ * @param splitPoints - Byte offsets at which to end a segment (post-selector).
+ * @returns The enforced segments ordered by byte start index.
+ */
+function getSegmentsBetweenFreeRanges(
+  calldata: Hex,
+  freeRanges: ByteRange[],
+  splitPoints: number[],
+): EnforcedSegment[] {
+  const totalBytes = (calldata.length - 2) / 2;
+  const sliceValue = (start: number, end: number): Hex =>
+    `0x${calldata.slice(2 + start * 2, 2 + end * 2)}` as Hex;
+
+  const sortedFree = [...freeRanges].sort((a, b) => a.start - b.start);
+  const sortedSplitPoints = [...splitPoints].sort((a, b) => a - b);
+
+  const segments: EnforcedSegment[] = [];
+
+  // Walk the ranges between free windows, ending a segment at each split point.
+  let cursor = 0;
+  for (const free of [...sortedFree, { start: totalBytes, end: totalBytes }]) {
+    addSegments(cursor, free.start, sortedSplitPoints, segments, sliceValue);
+    cursor = Math.max(cursor, free.end);
+  }
+
+  return segments;
+}
+
+/**
+ * Enforces [start, end), ending a segment at each split point inside it; the preceding
+ * selector folds into that segment.
+ *
+ * @param start - The first byte of the range (inclusive).
+ * @param end - The end of the range (exclusive).
+ * @param sortedSplitPoints - Split points sorted ascending, spanning the whole calldata.
+ * @param segments - The accumulator to push enforced segments onto.
+ * @param sliceValue - Extracts the 0x-prefixed value for a byte range.
+ */
+function addSegments(
+  start: number,
+  end: number,
+  sortedSplitPoints: number[],
+  segments: EnforcedSegment[],
+  sliceValue: (from: number, to: number) => Hex,
+): void {
+  const pushSegment = (from: number, to: number) => {
+    if (to > from) {
+      segments.push({ startIndex: from, value: sliceValue(from, to) });
+    }
+  };
+
+  const pointsInRange = sortedSplitPoints.filter(
+    (point) => point > start && point < end,
+  );
+
+  let cursor = start;
+  for (const point of pointsInRange) {
+    pushSegment(cursor, point);
+    cursor = point;
+  }
+
+  pushSegment(cursor, end);
 }
 
 function buildCaveats(
