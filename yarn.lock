@@ -9728,12 +9728,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/preinstalled-example-snap@npm:^0.7.2":
-  version: 0.7.2
-  resolution: "@metamask/preinstalled-example-snap@npm:0.7.2"
-  dependencies:
-    "@metamask/snaps-sdk": "npm:^10.1.0"
-  checksum: 10/9605e6f2d120e85ee0ec6b43ff7d407ff07b57a4b790312ff6b176e2eb306a4c997acca034e2612155f327e12bdccdf258291e16b406d98658b45092cb4b63a3
+"@metamask/preinstalled-example-snap@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@metamask/preinstalled-example-snap@npm:0.8.0"
+  checksum: 10/68771f3b3d635ddb18e590b411c94a88b7e08a5a4932eceb0880fcfa5becb73c02ad5ee13d021429f118e957615a44c0ecb798b204e4788eacb9e2deb23bb63f
   languageName: node
   linkType: hard
 
@@ -35595,7 +35593,7 @@ __metadata:
     "@metamask/phishing-controller": "npm:^17.2.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
-    "@metamask/preinstalled-example-snap": "npm:^0.7.2"
+    "@metamask/preinstalled-example-snap": "npm:^0.8.0"
     "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.2.0"
     "@metamask/providers": "npm:^18.3.1"
