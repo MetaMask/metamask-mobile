@@ -48,10 +48,11 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   children,
 }) => {
   const controller = useQuickBuyController(target, onClose, analyticsContext);
-  const { isPriceImpactError, handleConfirm } = controller;
+  const { isPriceImpactError, isPresetAddFundsMode, handleConfirm } =
+    controller;
 
   const handleBuy = useCallback(async () => {
-    if (isPriceImpactError) {
+    if (!isPresetAddFundsMode && isPriceImpactError) {
       // We guard here to ensure no high-impact trade ever silently proceeds.
       if (features.highPriceImpactModal) {
         setActiveScreen('priceImpactConfirm');
@@ -61,6 +62,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     await handleConfirm();
   }, [
     features.highPriceImpactModal,
+    isPresetAddFundsMode,
     isPriceImpactError,
     handleConfirm,
     setActiveScreen,
@@ -70,7 +72,9 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   // high-impact quote, since there is no other safeguard in place.
   const isConfirmDisabled =
     controller.isConfirmDisabled ||
-    (isPriceImpactError && !features.highPriceImpactModal);
+    (!isPresetAddFundsMode &&
+      isPriceImpactError &&
+      !features.highPriceImpactModal);
 
   const value: QuickBuyContextValue = {
     ...controller,
