@@ -1,11 +1,7 @@
-import React, { useMemo, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-
-import { useTheme } from '../../../../util/theme';
+import React, { useMemo, useCallback, useEffect } from 'react';
+import {
+  BottomSheet,
+} from '@metamask/design-system-react-native';
 
 import {
   HardwareWalletType,
@@ -28,13 +24,6 @@ import DevLogger from '../../../SDKConnect/utils/DevLogger';
 
 export const HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID =
   'hardware-wallet-bottom-sheet';
-
-const createStyles = (colors: { background: { default: string } }) =>
-  StyleSheet.create({
-    bottomSheet: {
-      backgroundColor: colors.background.default,
-    },
-  });
 
 export interface HardwareWalletBottomSheetProps {
   connectionState: HardwareWalletConnectionState;
@@ -92,10 +81,6 @@ export const HardwareWalletBottomSheet: React.FC<
   onCTAClicked,
   onRetryQrScan,
 }) => {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [openQrScannerOnMount, setOpenQrScannerOnMount] = React.useState(false);
 
   const { devices, selectedDevice, isScanning } = deviceSelection;
@@ -268,19 +253,12 @@ export const HardwareWalletBottomSheet: React.FC<
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-deprecated
   return (
-    <GestureHandlerRootView style={StyleSheet.absoluteFill}>
-      <BottomSheet
-        ref={bottomSheetRef}
-        testID={HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID}
-        isFullscreen={false}
-        onClose={handleClose}
-        shouldNavigateBack={false}
-        style={styles.bottomSheet}
-      >
-        {renderContent()}
-      </BottomSheet>
-    </GestureHandlerRootView>
+    <BottomSheet
+      testID={HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID}
+      onClose={handleClose}
+    >
+      {renderContent()}
+    </BottomSheet>
   );
 };
