@@ -5,7 +5,10 @@ import { usePredictTrading } from '../../../../UI/Predict/hooks/usePredictTradin
 import { useConfirmNavigation } from '../useConfirmNavigation';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PayWithOption } from '../../components/confirm/confirm-component';
+import {
+  ConfirmationLoader,
+  PayWithOption,
+} from '../../components/confirm/confirm-component';
 
 const mockDepositWithConfirmation = jest
   .fn()
@@ -73,6 +76,7 @@ describe('useMoneyPredictDeposit', () => {
     });
 
     expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
       stack: Routes.PREDICT.ROOT,
       payWithOption: PayWithOption.MoneyAccount,
     });
