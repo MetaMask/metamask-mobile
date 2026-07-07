@@ -124,6 +124,9 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
       subscribe: jest.fn(() => jest.fn()),
       getSnapshot: jest.fn(() => null),
     },
+    focusedPrice: {
+      subscribeToSymbol: jest.fn(() => jest.fn()),
+    },
   })),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
