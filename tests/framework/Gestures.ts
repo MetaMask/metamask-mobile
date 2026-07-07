@@ -140,6 +140,11 @@ export default class Gestures {
         timeout: options.timeout,
         description: options.elemDescription,
         delay: options.delay,
+        checkForDisplayed: options.checkForDisplayed,
+        checkForEnabled: options.checkForEnabled,
+        waitForInteractive: options.waitForInteractive,
+        enabledStableReads: options.enabledStableReads,
+        postEnabledSettleMs: options.postEnabledSettleMs,
       });
     }
 

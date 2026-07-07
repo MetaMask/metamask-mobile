@@ -521,13 +521,7 @@ export default class PlaywrightGestures {
     logger.debug(`Tapping keyboard return key: ${keyName}`);
 
     if (PlatformDetector.isAndroid()) {
-      try {
-        await drv.execute('mobile: performEditorAction', [
-          { action: keyName.toLowerCase() },
-        ]);
-      } catch {
-        await drv.hideKeyboard();
-      }
+      await this.submitAndroidUrlBar(keyName);
       return;
     }
 
@@ -561,5 +555,50 @@ export default class PlaywrightGestures {
     }
 
     throw new Error(`Could not find iOS keyboard key "${keyName}"`);
+  }
+
+  /**
+   * Submit the Android URL bar (web-search keyboard). Tries editor actions and
+   * Enter — hideKeyboard alone does not fire onSubmitEditing and skips navigation.
+   */
+  @boxedStep
+  static async submitAndroidUrlBar(preferredKey = 'Go'): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const normalized = preferredKey.toLowerCase();
+    const actions: (() => Promise<unknown>)[] = [
+      () =>
+        drv.execute('mobile: performEditorAction', {
+          action: normalized,
+        }),
+      () =>
+        drv.execute('mobile: performEditorAction', {
+          action: 'search',
+        }),
+      () => drv.pressKeyCode(66),
+    ];
+
+    if (normalized !== 'go') {
+      actions.unshift(() =>
+        drv.execute('mobile: performEditorAction', { action: 'go' }),
+      );
+    }
+
+    let lastError: unknown;
+    for (const action of actions) {
+      try {
+        await action();
+        return;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    throw new Error(
+      `Could not submit Android URL bar: ${
+        lastError instanceof Error ? lastError.message : String(lastError)
+      }`,
+    );
   }
 }

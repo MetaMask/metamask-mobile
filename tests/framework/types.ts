@@ -120,6 +120,13 @@ export interface GestureOptions {
 export interface TapOptions extends GestureOptions {
   delay?: number; // Delay before the tap action
   waitForElementToDisappear?: boolean; // If true, waits for the element to disappear after tapping
+  /** Appium only — skip isDisplayed check (e.g. opacity:0 elements still in a11y tree) */
+  checkForDisplayed?: boolean;
+  /** Appium only */
+  checkForEnabled?: boolean;
+  waitForInteractive?: boolean;
+  enabledStableReads?: number;
+  postEnabledSettleMs?: number;
 }
 
 export interface TypeTextOptions extends GestureOptions {

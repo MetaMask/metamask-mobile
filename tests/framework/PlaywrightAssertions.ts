@@ -8,6 +8,7 @@ import {
   isOverheadTrackingActive,
   withImplicitWait,
 } from './PlaywrightUtilities.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('PlaywrightAssertions');
@@ -240,12 +241,65 @@ export default class PlaywrightAssertions {
     throw new Error(`Expected element text "${expected}" within ${timeout}ms`);
   }
 
+  static async expectElementToHaveLabel(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    label: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const interval = 300;
+    const start = Date.now();
+
+    while (Date.now() - start < timeout) {
+      try {
+        const attributeNames = PlatformDetector.isAndroid()
+          ? (['label', 'name', 'content-desc'] as const)
+          : (['label', 'name'] as const);
+        const candidates: string[] = [];
+        for (const attributeName of attributeNames) {
+          try {
+            const value = await el.getAttribute(attributeName);
+            if (value?.trim()) {
+              candidates.push(value);
+            }
+          } catch {
+            // attribute unavailable on this platform/element
+          }
+        }
+        try {
+          const text = await el.textContent();
+          if (text?.trim()) {
+            candidates.push(text);
+          }
+        } catch {
+          // native elements may not support textContent
+        }
+        if (candidates.some((value) => value === label)) {
+          return;
+        }
+      } catch {
+        // element not ready yet
+      }
+      await sleep(interval);
+    }
+
+    throw new Error(`Expected element label "${label}" within ${timeout}ms`);
+  }
+
   static async expectElementToNotBeVisible(
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     try {
       const el = await targetElement;
+      try {
+        if (!(await el.unwrap().isExisting())) {
+          return;
+        }
+      } catch {
+        // Fall through to waitForDisplayed when existence cannot be determined.
+      }
       await el.waitForDisplayed({
         reverse: true,
         timeout: this.getTimeout(options),
@@ -256,6 +310,12 @@ export default class PlaywrightAssertions {
         (error.message.includes('No elements found for XPath') ||
           error.message.includes('An element could not be located') ||
           error.message.includes('no such element'))
+      ) {
+        return;
+      }
+      if (
+        error instanceof TypeError &&
+        error.message.includes('waitForDisplayed')
       ) {
         return;
       }

@@ -1032,10 +1032,51 @@ class WalletView {
   }
 
   async tapOnNewTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'New Tokens Section',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'New Tokens Section',
+        });
+      },
+      appium: async () => {
+        await this.scrollAndTapTokensSection();
+      },
     });
+  }
+
+  /**
+   * Scrolls to the Tokens section header and taps it. Overshoot swipe keeps the
+   * header away from the bottom tab bar so the tap opens Tokens Full View.
+   */
+  async scrollAndTapTokensSection(
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
+    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
+      overshootSwipe: {
+        direction:
+          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
+        percentage: 0.15,
+      },
+      timeout: 60_000,
+    });
+
+    try {
+      await this.scrollAndTapSection(
+        this.tokensSection,
+        'Tokens section',
+        direction,
+        getScrollOptions(direction),
+      );
+    } catch {
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+      await this.scrollAndTapSection(
+        this.tokensSection,
+        'Tokens section',
+        fallbackDirection,
+        getScrollOptions(fallbackDirection),
+      );
+    }
   }
 
   async tapOnTokensSection(): Promise<void> {
@@ -1047,12 +1088,7 @@ class WalletView {
         });
       },
       appium: async () => {
-        const elem = await asPlaywrightElement(this.tokensSection);
-        await PlaywrightGestures.waitForElementStable(elem);
-
-        // Re-fetch to avoid stale reference after stability wait
-        const freshElem = await asPlaywrightElement(this.tokensSection);
-        await freshElem.unwrap().click();
+        await this.scrollAndTapTokensSection();
       },
     });
   }

@@ -2,12 +2,17 @@ import enContent from '../../../locales/languages/en.json';
 
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
+import {
+  getDappUrl,
+  getTestDappLocalUrl,
+} from '../../framework/fixtures/FixtureUtils';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities } from '../../framework';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -570,26 +575,46 @@ class TestDApp {
   }
 
   async tapOpenNetworkPicker(): Promise<void> {
-    await this.tapButton(this.openNetworkPicker, {
-      elemDescription: 'Open Network Picker Button',
+    await encapsulatedAction({
+      detox: async () => {
+        await this.tapButton(this.openNetworkPicker, {
+          elemDescription: 'Open Network Picker Button',
+        });
+      },
+      appium: async () => {
+        await PlaywrightContextHelpers.tapDappElementById(
+          TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
+          getDappUrl(0),
+        );
+        await PlaywrightContextHelpers.switchToNativeContext();
+      },
     });
   }
 
   async tapNetworkByName(networkName: string): Promise<void> {
-    // Try to find the network without scrolling first
-    try {
-      const networkItem = await this.getNetworkItemByName(networkName);
-      await Assertions.expectElementToBeVisible(
-        networkItem as unknown as WebElement,
-        { timeout: 2000, description: 'network item by label' },
-      );
-      await Gestures.waitAndTap(networkItem as unknown as WebElement, {
-        elemDescription: `tap ${networkName} network`,
-      });
-      return;
-    } catch {
-      throw new Error(`Could not find network "${networkName}"`);
-    }
+    await encapsulatedAction({
+      detox: async () => {
+        try {
+          const networkItem = await this.getNetworkItemByName(networkName);
+          await Assertions.expectElementToBeVisible(
+            networkItem as unknown as WebElement,
+            { timeout: 2000, description: 'network item by label' },
+          );
+          await Gestures.waitAndTap(networkItem as unknown as WebElement, {
+            elemDescription: `tap ${networkName} network`,
+          });
+        } catch {
+          throw new Error(`Could not find network "${networkName}"`);
+        }
+      },
+      appium: async () => {
+        await PlaywrightContextHelpers.tapDappNetworkByName(
+          networkName,
+          getDappUrl(0),
+        );
+        await PlaywrightContextHelpers.switchToNativeContext();
+      },
+    });
   }
 }
 

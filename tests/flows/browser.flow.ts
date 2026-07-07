@@ -1,7 +1,5 @@
 import Assertions from '../framework/Assertions';
-import Gestures from '../framework/Gestures';
 import Matchers from '../framework/Matchers';
-import Utilities from '../framework/Utilities';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestDApp from '../page-objects/Browser/TestDApp';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
@@ -92,37 +90,14 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
  * await Browser.navigateToTestDApp();
  * await waitForTestDappToLoad(); // optional: wait for dapp content before WebView assertions
  */
-/**
- * If the "Opened tabs" grid view is shown (e.g. after tapping the browser tab icon),
- * selects the first/most recent tab so we land on the single-tab browser view.
- */
-const ensureSingleBrowserTabView = async (): Promise<void> => {
-  const openedTabsHeader = Matchers.getElementByID(
-    BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
-  );
-  const isInTabListView = await Utilities.isElementVisible(
-    openedTabsHeader,
-    2000,
-  );
-  if (isInTabListView) {
-    const firstTab = Matchers.getElementByID(
-      BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
-      0,
-    );
-    await Gestures.waitAndTap(firstTab, {
-      elemDescription: 'First browser tab (select to open single-tab view)',
-    });
-  }
-};
-
 export const navigateToBrowserView = async (): Promise<void> => {
   await TabBarComponent.tapExploreButton();
   await TrendingView.tapBrowserButton();
 
   // If we landed on the "Opened tabs" grid (tab list), select the first tab to get to single-tab view
-  await ensureSingleBrowserTabView();
+  await BrowserView.ensureSingleBrowserTabView();
 
-  await Assertions.expectElementToBeVisible(BrowserView.urlInputBoxID, {
+  await Assertions.expectElementToBeVisible(BrowserView.addressBar, {
     description: 'Browser URL bar should be visible after navigation',
   });
 };

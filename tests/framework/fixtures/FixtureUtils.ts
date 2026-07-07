@@ -528,7 +528,7 @@ function getServerPort(resourceType: ResourceType): number {
 export function getDappUrl(index: number): string {
   const isAndroid = FrameworkDetector.isDetox()
     ? device.getPlatform() === 'android'
-    : true; // Appium single emulator assumption
+    : PlatformDetector.isAndroid();
   const port = isAndroid
     ? FALLBACK_DAPP_SERVER_PORT + index
     : getDappPort(index);
@@ -611,7 +611,7 @@ export function getTestDappLocalUrl() {
 export function getAnvilPortForTest(): number {
   const isAndroid = FrameworkDetector.isDetox()
     ? device.getPlatform() === 'android'
-    : true;
+    : PlatformDetector.isAndroid();
   return isAndroid ? DEFAULT_ANVIL_PORT : getServerPort(ResourceType.ANVIL);
 }
 

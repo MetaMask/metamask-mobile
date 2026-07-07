@@ -102,7 +102,21 @@ async function listAdbDevices(): Promise<AdbDevice[]> {
 async function getEmulatorAvdName(serial: string): Promise<string | undefined> {
   try {
     const { stdout } = await execAsync(`adb -s ${serial} emu avd name`);
-    return stdout.trim().split('\n')[0]?.trim();
+    const name = stdout.trim().split('\n')[0]?.trim();
+    if (name) {
+      return name;
+    }
+  } catch {
+    // fall through to getprop fallback
+  }
+  // Fallback: on some macOS setups `adb emu avd name` returns empty because the
+  // emulator console socket is not accessible via ADB. The boot property
+  // `ro.boot.qemu.avd_name` contains the same value and is always readable.
+  try {
+    const { stdout } = await execAsync(
+      `adb -s ${serial} shell getprop ro.boot.qemu.avd_name`,
+    );
+    return stdout.trim() || undefined;
   } catch {
     return undefined;
   }

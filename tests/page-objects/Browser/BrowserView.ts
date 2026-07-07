@@ -11,9 +11,28 @@ import {
   getTestDappLocalUrl,
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import {
+  EncapsulatedElementType,
+  encapsulated,
+  asPlaywrightElement,
+} from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { getDriver } from '../../framework/PlaywrightUtilities';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+
+const PORTFOLIO_HOST_PATTERN = /portfolio\.metamask\.io/i;
+const DAPP_NAVIGATION_MAX_ATTEMPTS = 3;
+const TAB_THUMBNAIL_POLL_MS = 500;
+const TAB_THUMBNAIL_WAIT_MS = 10_000;
+const DAPP_NAVIGATION_VERIFY_MS = 15_000;
+/** Persisted browser tab id in tests/framework/fixtures/json/default-fixture.json */
+const FIXTURE_DEFAULT_BROWSER_TAB_ID = 1692550481062;
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -46,7 +65,16 @@ class Browser {
   }
 
   get browserScreenID(): EncapsulatedElementType {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
+    // XCUITest / UiAutomator2 often report browser-screen container as not displayed
+    // while the URL bar and WebView are visible. url-input is a reliable proxy.
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          BrowserViewSelectorsIDs.URL_INPUT,
+        ),
+    });
   }
 
   get androidBrowserWebViewID(): EncapsulatedElementType {
@@ -141,9 +169,92 @@ class Browser {
     );
   }
 
+  private async tapAndroidAddressBarCenter(): Promise<void> {
+    const urlBar = await asPlaywrightElement(this.addressBar);
+    const location = await urlBar.unwrap().getLocation();
+    const size = await urlBar.unwrap().getSize();
+    const x = Math.floor(location.x + size.width * 0.5);
+    const y = Math.floor(location.y + size.height * 0.5);
+    const driver = getDriver();
+
+    await driver.performActions([
+      {
+        type: 'pointer',
+        id: 'finger1',
+        parameters: { pointerType: 'touch' },
+        actions: [
+          { type: 'pointerMove', duration: 0, x, y },
+          { type: 'pointerDown', button: 0 },
+          { type: 'pause', duration: 50 },
+          { type: 'pointerUp', button: 0 },
+        ],
+      },
+    ]);
+    await driver.releaseActions();
+  }
+
+  private async setAndroidUrlBarValue(url: string): Promise<void> {
+    const driver = getDriver();
+    const selector = `android=new UiSelector().resourceId("${BrowserURLBarSelectorsIDs.URL_INPUT}")`;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      await this.tapAndroidAddressBarCenter();
+      await TestHelpers.delay(500);
+
+      const urlInputElem = await driver.$(selector);
+      try {
+        await urlInputElem.waitForExist({ timeout: 5000 });
+      } catch {
+        continue;
+      }
+
+      const elementId = urlInputElem.elementId;
+      if (!elementId) {
+        continue;
+      }
+
+      await driver.execute('mobile: replaceElementValue', {
+        elementId,
+        value: url,
+      });
+      await PlaywrightGestures.submitAndroidUrlBar();
+      return;
+    }
+
+    throw new Error('Could not set Android URL bar value');
+  }
+
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlInputBoxID, {
-      elemDescription: 'URL input box',
+    await encapsulatedAction({
+      detox: async () => {
+        // Detox iOS checks toExist(), not toBeVisible(), so it can tap the
+        // TextInput even while opacity:0 (see Utilities.checkElementReadyState).
+        await Gestures.waitAndTap(this.urlInputBoxID, {
+          elemDescription: 'URL input box',
+        });
+      },
+      appium: async () => {
+        if (PlatformDetector.isIOS()) {
+          const urlBar = await asPlaywrightElement(this.addressBar);
+          const location = await urlBar.unwrap().getLocation();
+          const size = await urlBar.unwrap().getSize();
+          await getDriver().execute('mobile: tap', {
+            x: Math.floor(location.x + size.width * 0.5),
+            y: Math.floor(location.y + size.height / 2),
+          });
+          await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
+            elemDescription: 'Cancel button (URL bar focused)',
+            timeout: 10000,
+          });
+          return;
+        }
+
+        await this.tapAndroidAddressBarCenter();
+        await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
+          elemDescription: 'Cancel button (URL bar focused)',
+          timeout: 10000,
+        });
+      },
     });
   }
 
@@ -178,7 +289,14 @@ class Browser {
     // dismiss a modal (e.g. transaction confirmation) the URL bar focus can
     // be restored under RN 0.81 / React 19, leaving the close button missing.
     // Defensively dismiss the URL editor if the Cancel button is visible.
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
+    }
     await this.dismissUrlEditorIfOpen();
+    await Assertions.expectElementToBeVisible(this.closeBrowserButton, {
+      description: 'Close browser button should be visible',
+      timeout: 15_000,
+    });
     await Gestures.waitAndTap(this.closeBrowserButton, {
       elemDescription: 'Close browser button',
     });
@@ -196,6 +314,164 @@ class Browser {
         elemDescription: 'Cancel URL input (dismiss URL editor)',
       });
     }
+  }
+
+  /**
+   * If the "Opened tabs" grid is shown, open the fixture tab or any existing tab.
+   * Avoids tapping Back (returns to the active tab, often Portfolio) or "+" too early
+   * (opens a new Portfolio homepage tab).
+   */
+  async ensureSingleBrowserTabView(): Promise<void> {
+    if (await Utilities.isElementVisible(this.addressBar, 2000)) {
+      return;
+    }
+
+    const openedTabsHeader = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
+    );
+    const isInTabListView = await Utilities.isElementVisible(
+      openedTabsHeader,
+      2000,
+    );
+    if (!isInTabListView) {
+      return;
+    }
+
+    const fixtureTab = Matchers.getElementByID(
+      `browser-tab-${FIXTURE_DEFAULT_BROWSER_TAB_ID}`,
+    );
+    if (await Utilities.isElementVisible(fixtureTab, 3000)) {
+      await Gestures.waitAndTap(fixtureTab, {
+        elemDescription: 'Fixture browser tab from persisted state',
+      });
+      await Assertions.expectElementToBeVisible(this.addressBar, {
+        description: 'Browser URL bar after opening fixture tab',
+        timeout: 10_000,
+      });
+      return;
+    }
+
+    const deadline = Date.now() + TAB_THUMBNAIL_WAIT_MS;
+    while (Date.now() < deadline) {
+      const firstTab = Matchers.getElementByID(
+        BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
+        0,
+      );
+      if (await Utilities.isElementVisible(firstTab, 500)) {
+        await Gestures.waitAndTap(firstTab, {
+          elemDescription: 'First browser tab (select to open single-tab view)',
+        });
+        await Assertions.expectElementToBeVisible(this.addressBar, {
+          description: 'Browser URL bar after opening first tab',
+          timeout: 10_000,
+        });
+        return;
+      }
+      await TestHelpers.delay(TAB_THUMBNAIL_POLL_MS);
+    }
+
+    throw new Error(
+      'Browser tab list is open but no tab thumbnail was found to select',
+    );
+  }
+
+  private async getUrlBarDisplayText(): Promise<string> {
+    if (FrameworkDetector.isAppium()) {
+      const urlInput = await asPlaywrightElement(this.urlInputBoxID);
+      if (await urlInput.isVisible()) {
+        const inputText = await urlInput.textContent();
+        if (inputText.trim().length > 0) {
+          return inputText;
+        }
+      }
+
+      const urlBar = await asPlaywrightElement(this.addressBar);
+      return (await urlBar.textContent()) ?? '';
+    }
+
+    const urlBar = (await this.addressBar) as Detox.IndexableNativeElement;
+    return urlBar.getAttributes().then((attrs) => {
+      if (typeof attrs === 'string') return attrs;
+      if ('text' in attrs && typeof attrs.text === 'string') return attrs.text;
+      if ('label' in attrs && typeof attrs.label === 'string')
+        return attrs.label;
+      return '';
+    });
+  }
+
+  private urlBarTextMatchesDapp(urlBarText: string, dappUrl: string): boolean {
+    const normalized = urlBarText.toLowerCase();
+    if (PORTFOLIO_HOST_PATTERN.test(normalized)) {
+      return false;
+    }
+
+    let port = '';
+    try {
+      port = new URL(dappUrl).port;
+    } catch {
+      port = '';
+    }
+
+    return (
+      normalized.includes('localhost') ||
+      normalized.includes('127.0.0.1') ||
+      normalized.includes('10.0.2.2') ||
+      (port.length > 0 && normalized.includes(port))
+    );
+  }
+
+  private async waitForUrlBarToShowDapp(
+    dappUrl: string,
+    timeoutMs = DAPP_NAVIGATION_VERIFY_MS,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const urlBarText = await this.getUrlBarDisplayText();
+      if (this.urlBarTextMatchesDapp(urlBarText, dappUrl)) {
+        return true;
+      }
+      await TestHelpers.delay(500);
+    }
+
+    return false;
+  }
+
+  /** Confirms the dapp WebView tab is loaded (more reliable than native URL bar text). */
+  private async waitForDappWebViewContext(
+    dappUrl: string,
+    timeoutMs = DAPP_NAVIGATION_VERIFY_MS,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const remainingMs = deadline - Date.now();
+      if (remainingMs <= 0) {
+        return false;
+      }
+
+      try {
+        await Promise.race([
+          PlaywrightContextHelpers.switchToWebViewContext(dappUrl),
+          new Promise<never>((_, reject) => {
+            setTimeout(
+              () => reject(new Error('WebView context switch timed out')),
+              Math.min(remainingMs, 5_000),
+            );
+          }),
+        ]);
+        await PlaywrightContextHelpers.switchToNativeContext();
+        return true;
+      } catch {
+        await TestHelpers.delay(500);
+      }
+    }
+
+    return false;
+  }
+
+  private async waitForDappNavigation(dappUrl: string): Promise<boolean> {
+    return this.waitForUrlBarToShowDapp(dappUrl);
   }
 
   // Legacy methods for backward compatibility with existing tests
@@ -326,30 +602,50 @@ class Browser {
     url: string,
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
-    await Gestures.typeText(this.urlInputBoxID, url, {
-      hideKeyboard: true,
-      elemDescription: 'URL input box',
-    });
-    // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
-    // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
-    // on Android. The result is that the URL editor "Cancel" button stays
-    // mounted while the navigation completes, and the right-side action
-    // buttons in the top bar (close, network/account avatar) remain hidden.
-    // Defensively tap Cancel to drop the URL bar back into its non-editing
-    // state so subsequent gestures can target those buttons.
-    //
-    // Callers can opt-out via `skipUrlEditorDismissal: true` when the
-    // dismissal would race with concurrent app work that breaks Detox sync —
-    // notably `browser-phishing.spec.ts`, where phishing detection triggers
-    // AsyncStorage v2 writes that interact badly with Detox's
-    // `AsyncStorageIdlingResource` if dismissal taps land on top of them.
-    if (!options.skipUrlEditorDismissal) {
-      if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
-        await Gestures.waitAndTap(this.cancelUrlInputButton, {
-          elemDescription: 'Cancel URL input (dismiss URL editor)',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.typeText(this.urlInputBoxID, url, {
+          hideKeyboard: true,
+          elemDescription: 'URL input box',
         });
-      }
-    }
+        if (!options.skipUrlEditorDismissal) {
+          if (
+            await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)
+          ) {
+            await Gestures.waitAndTap(this.cancelUrlInputButton, {
+              elemDescription: 'Cancel URL input (dismiss URL editor)',
+            });
+          }
+        }
+      },
+      appium: async () => {
+        const urlInput = await asPlaywrightElement(this.urlInputBoxID);
+        if (PlatformDetector.isAndroid()) {
+          await this.setAndroidUrlBarValue(url);
+        } else {
+          await Assertions.expectElementToBeVisible(this.urlInputBoxID, {
+            elemDescription: 'URL input box (focused)',
+            timeout: 5000,
+          });
+          await urlInput.clear();
+          await urlInput.fill(url);
+          await PlaywrightGestures.tapKeyboardReturnKey('Go');
+        }
+        // Allow WebView navigation to start before dismissing the URL editor.
+        if (PlatformDetector.isAndroid()) {
+          await TestHelpers.delay(2000);
+        }
+        if (!options.skipUrlEditorDismissal) {
+          if (
+            await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)
+          ) {
+            await Gestures.waitAndTap(this.cancelUrlInputButton, {
+              elemDescription: 'Cancel URL input (dismiss URL editor)',
+            });
+          }
+        }
+      },
+    });
   }
 
   /**
@@ -362,8 +658,39 @@ class Browser {
   }
 
   async navigateToTestDApp(): Promise<void> {
-    await this.tapUrlInputBox();
-    await this.navigateToURL(getTestDappLocalUrl());
+    const dappUrl = getDappUrl(0);
+
+    if (await this.waitForDappNavigation(dappUrl)) {
+      await this.dismissUrlEditorIfOpen();
+      if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+        await PlaywrightContextHelpers.scrollWebViewToTop(dappUrl);
+      }
+      return;
+    }
+
+    for (let attempt = 1; attempt <= DAPP_NAVIGATION_MAX_ATTEMPTS; attempt++) {
+      if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+        await this.setAndroidUrlBarValue(dappUrl);
+      } else {
+        await this.dismissUrlEditorIfOpen();
+        await this.tapUrlInputBox();
+        await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
+      }
+
+      if (await this.waitForDappNavigation(dappUrl)) {
+        await this.dismissUrlEditorIfOpen();
+        if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+          await PlaywrightContextHelpers.scrollWebViewToTop(dappUrl);
+        }
+        return;
+      }
+
+      if (attempt === DAPP_NAVIGATION_MAX_ATTEMPTS) {
+        throw new Error(
+          `Failed to navigate to test dapp at ${dappUrl} after ${DAPP_NAVIGATION_MAX_ATTEMPTS} attempts (URL bar still shows Portfolio or another page)`,
+        );
+      }
+    }
   }
 
   async navigateToSecondTestDApp(): Promise<void> {

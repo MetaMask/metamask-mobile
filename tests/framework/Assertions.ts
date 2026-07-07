@@ -206,6 +206,14 @@ export default class Assertions {
     label: string,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightAssertions.expectElementToHaveLabel(
+        asPlaywrightElement(elem),
+        label,
+        options,
+      );
+    }
+
     const {
       timeout = BASE_DEFAULTS.timeout,
       description = `element has label "${label}"`,
