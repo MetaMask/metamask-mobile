@@ -16,17 +16,20 @@ interface AddDeviceScannerRecoveryProps {
   onTryAgain: () => void;
 }
 
+const getInvalidQrRecoveryCopy = (): {
+  title: string;
+  description: string;
+} => ({
+  title: strings('app_settings.add_device.scanner.invalid_qr_title'),
+  description: strings(
+    'app_settings.add_device.scanner.invalid_qr_description',
+  ),
+});
+
 const getRecoveryCopy = (
   state: AddDeviceScannerUiState,
 ): { title: string; description: string } => {
   switch (state) {
-    case AddDeviceScannerUiState.InvalidQr:
-      return {
-        title: strings('app_settings.add_device.scanner.invalid_qr_title'),
-        description: strings(
-          'app_settings.add_device.scanner.invalid_qr_description',
-        ),
-      };
     case AddDeviceScannerUiState.ExpiredQr:
       return {
         title: strings('app_settings.add_device.scanner.expired_qr_title'),
@@ -43,13 +46,9 @@ const getRecoveryCopy = (
           'app_settings.add_device.scanner.connection_failed_description',
         ),
       };
+    case AddDeviceScannerUiState.InvalidQr:
     default:
-      return {
-        title: strings('app_settings.add_device.scanner.invalid_qr_title'),
-        description: strings(
-          'app_settings.add_device.scanner.invalid_qr_description',
-        ),
-      };
+      return getInvalidQrRecoveryCopy();
   }
 };
 

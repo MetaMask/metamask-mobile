@@ -358,69 +358,42 @@ describe('AddDeviceToWallet', () => {
       );
     });
 
-    it('does not auto-import while the scanner is open', async () => {
-      mockUseNavigationState.mockImplementation(
-        (selector: (state: { routes: { name: string }[] }) => unknown) =>
-          selector({
-            routes: [{ name: Routes.QR_TAB_SWITCHER }],
-          }),
-      );
-
-      renderComponent(
-        {
-          phase: QrSyncPhases.REVIEWING_IMPORT,
-          importPlan: [
-            {
-              index: 0,
-              value: 'word1 word2 word3',
-              type: 'MNEMONIC',
-              accountName: null,
-              hiddenIndexes: [],
-              isPrimary: true,
-            },
-          ],
-        },
-        true,
-      );
-
-      await waitFor(() => {
-        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
-      });
-    });
-
-    it('does not navigate to import while the scanner is open', async () => {
-      mockUseNavigationState.mockImplementation(
-        (selector: (state: { routes: { name: string }[] }) => unknown) =>
-          selector({
-            routes: [{ name: Routes.QR_TAB_SWITCHER }],
-          }),
-      );
-
-      renderComponent(
-        {
-          phase: QrSyncPhases.REVIEWING_IMPORT,
-          importPlan: [
-            {
-              index: 0,
-              value: 'word1 word2 word3',
-              type: 'MNEMONIC',
-              accountName: null,
-              hiddenIndexes: [],
-              isPrimary: true,
-            },
-          ],
-        },
-        false,
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-          expect.anything(),
+    it.each([true, false])(
+      'does not navigate or auto-import while the scanner is open (completedOnboarding=%s)',
+      async (completedOnboarding) => {
+        mockUseNavigationState.mockImplementation(
+          (selector: (state: { routes: { name: string }[] }) => unknown) =>
+            selector({
+              routes: [{ name: Routes.QR_TAB_SWITCHER }],
+            }),
         );
-        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
-      });
-    });
+
+        renderComponent(
+          {
+            phase: QrSyncPhases.REVIEWING_IMPORT,
+            importPlan: [
+              {
+                index: 0,
+                value: 'word1 word2 word3',
+                type: 'MNEMONIC',
+                accountName: null,
+                hiddenIndexes: [],
+                isPrimary: true,
+              },
+            ],
+          },
+          completedOnboarding,
+        );
+
+        await waitFor(() => {
+          expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
+          expect(mockNavigate).not.toHaveBeenCalledWith(
+            Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+            expect.anything(),
+          );
+        });
+      },
+    );
 
     it('does not navigate to import after sync has completed', async () => {
       renderComponent({

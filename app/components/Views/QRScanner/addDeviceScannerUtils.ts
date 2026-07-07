@@ -1,7 +1,7 @@
 import SDKConnectV2 from '../../../core/SDKConnectV2';
 import {
-  decodeAddDeviceQrPayloadFromMwpDeeplink,
   extractAddDeviceQrSessionExpiresAt,
+  tryDecodeAddDeviceQrPayloadFromMwpDeeplink,
   tryParseAddDeviceQrMwpDeeplink,
 } from '../../../core/ExtensionAccountSync/parseAddDeviceQrMwpDeeplink';
 
@@ -33,14 +33,12 @@ export function classifyAddDeviceScanContent(
     return 'valid';
   }
 
-  try {
-    const payload = decodeAddDeviceQrPayloadFromMwpDeeplink(content);
+  const payload = tryDecodeAddDeviceQrPayloadFromMwpDeeplink(content);
+  if (payload) {
     const expiresAt = extractAddDeviceQrSessionExpiresAt(payload);
     if (typeof expiresAt === 'number' && expiresAt <= Date.now()) {
       return 'expired';
     }
-  } catch {
-    // Fall through to invalid.
   }
 
   return 'invalid';

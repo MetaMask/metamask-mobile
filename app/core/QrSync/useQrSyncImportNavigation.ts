@@ -10,6 +10,7 @@ import {
 import type { AppNavigationProp } from '../NavigationService/types';
 import { completeExistingUserQrSyncImport } from './completeExistingUserQrSyncImport';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
+import Logger from '../../util/Logger';
 
 interface UseQrSyncImportNavigationOptions {
   enabled: boolean;
@@ -50,9 +51,15 @@ export const useQrSyncImportNavigation = ({
       }
 
       hasHandledImportNavigationRef.current = true;
-      completeExistingUserQrSyncImport(navigation, qrSyncMnemonic).catch(() => {
-        hasHandledImportNavigationRef.current = false;
-      });
+      completeExistingUserQrSyncImport(navigation, qrSyncMnemonic).catch(
+        (error: unknown) => {
+          hasHandledImportNavigationRef.current = false;
+          Logger.error(
+            error as Error,
+            'useQrSyncImportNavigation: existing-user import failed',
+          );
+        },
+      );
       return;
     }
 

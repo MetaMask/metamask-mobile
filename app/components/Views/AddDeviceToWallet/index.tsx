@@ -29,6 +29,7 @@ import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from '../../../core/QrSync/sho
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import Logger from '../../../util/Logger';
 import {
   selectQrSyncError,
   selectQrSyncIsBusy,
@@ -128,7 +129,12 @@ const AddDeviceToWallet = () => {
     (data: ScanSuccess, content?: string) => {
       const scannedQrPayload = content ?? data.content ?? '';
 
-      submitQrPayload(scannedQrPayload).catch(() => undefined);
+      submitQrPayload(scannedQrPayload).catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          'AddDeviceToWallet: failed to submit scanned QR payload',
+        );
+      });
     },
     [submitQrPayload],
   );
@@ -151,15 +157,16 @@ const AddDeviceToWallet = () => {
       return;
     }
 
-    try {
-      await submitQrPayload(manualQrPayload);
-    } catch {
-      // Error state is handled by the controller.
-    }
+    await submitQrPayload(manualQrPayload);
   }, [manualQrPayload, submitQrPayload]);
 
   const triggerManualQrSubmit = useCallback(() => {
-    handleManualQrSubmit().catch(() => undefined);
+    handleManualQrSubmit().catch((error: unknown) => {
+      Logger.error(
+        error as Error,
+        'AddDeviceToWallet: failed to submit manual QR payload',
+      );
+    });
   }, [handleManualQrSubmit]);
 
   if (presentation === 'device-linked' && !isScannerOpen) {

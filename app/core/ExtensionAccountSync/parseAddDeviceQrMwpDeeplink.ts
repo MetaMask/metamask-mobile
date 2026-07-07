@@ -146,6 +146,16 @@ export const decodeAddDeviceQrPayloadFromMwpDeeplink = (
   return JSON.parse(jsonString);
 };
 
+export const tryDecodeAddDeviceQrPayloadFromMwpDeeplink = (
+  url: string,
+): unknown | null => {
+  try {
+    return decodeAddDeviceQrPayloadFromMwpDeeplink(url);
+  } catch {
+    return null;
+  }
+};
+
 export const tryParseAddDeviceQrMwpDeeplink = (
   url: unknown,
 ): SessionRequest | null => {
@@ -153,10 +163,10 @@ export const tryParseAddDeviceQrMwpDeeplink = (
     return null;
   }
 
-  try {
-    const decoded = decodeAddDeviceQrPayloadFromMwpDeeplink(url);
-    return extractAddDeviceQrSessionRequest(decoded);
-  } catch {
+  const decoded = tryDecodeAddDeviceQrPayloadFromMwpDeeplink(url);
+  if (!decoded) {
     return null;
   }
+
+  return extractAddDeviceQrSessionRequest(decoded);
 };
