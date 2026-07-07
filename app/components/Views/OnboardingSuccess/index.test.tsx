@@ -29,7 +29,6 @@ import { clearAttribution } from '../../../core/redux/slices/attribution';
 
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
-    isEnabled: jest.fn().mockReturnValue(true),
     trackEvent: jest.fn(),
   },
 }));

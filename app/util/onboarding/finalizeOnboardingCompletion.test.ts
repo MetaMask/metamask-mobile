@@ -3,20 +3,14 @@ import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
 } from '../../constants/onboarding';
-import { MetaMetricsEvents } from '../../core/Analytics';
 import { clearAttribution } from '../../core/redux/slices/attribution';
-import {
-  saveOnboardingEvent as saveEvent,
-  setWalletHomeOnboardingStepsEligible,
-} from '../../actions/onboarding';
-import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
+import { setWalletHomeOnboardingStepsEligible } from '../../actions/onboarding';
 import { analytics } from '../analytics/analytics';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import Logger from '../Logger';
 
 jest.mock('../analytics/analytics', () => ({
   analytics: {
-    isEnabled: jest.fn(),
     trackEvent: jest.fn(),
   },
 }));
@@ -46,9 +40,7 @@ describe('finalizeOnboardingCompletion', () => {
     jest.clearAllMocks();
   });
 
-  it('tracks ONBOARDING_COMPLETED directly via analytics.trackEvent when analytics is enabled', () => {
-    mockAnalytics.isEnabled.mockReturnValue(true);
-
+  it('tracks ONBOARDING_COMPLETED via analytics.trackEvent for eligible flows', () => {
     finalizeOnboardingCompletion({
       successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
       accountType: AccountType.Metamask,
@@ -76,27 +68,6 @@ describe('finalizeOnboardingCompletion', () => {
     );
     expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
-  });
-
-  it('buffers event via dispatch when analytics is not enabled', () => {
-    mockAnalytics.isEnabled.mockReturnValue(false);
-
-    finalizeOnboardingCompletion({
-      successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-      accountType: AccountType.Imported,
-      isBasicFunctionalityEnabled: true,
-      walletSetupAttributionProps: {},
-      dispatch: mockDispatch,
-    });
-
-    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith(
-      saveEvent([
-        expect.objectContaining({
-          name: 'Onboarding Completed',
-        }),
-      ]),
-    );
   });
 
   it('only clears attribution when successFlow is ineligible', () => {
@@ -133,7 +104,6 @@ describe('finalizeOnboardingCompletion', () => {
   });
 
   it('logs discoverAccounts failures with the provided context', async () => {
-    mockAnalytics.isEnabled.mockReturnValue(true);
     const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
       // no-op
     });

@@ -1,8 +1,5 @@
 import type { Dispatch, AnyAction } from 'redux';
-import {
-  saveOnboardingEvent as saveEvent,
-  setWalletHomeOnboardingStepsEligible,
-} from '../../actions/onboarding';
+import { setWalletHomeOnboardingStepsEligible } from '../../actions/onboarding';
 import type { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
 import { clearAttribution } from '../../core/redux/slices/attribution';
 import { MetaMetricsEvents } from '../../core/Analytics';
@@ -63,11 +60,7 @@ export function finalizeOnboardingCompletion({
       })
       .build();
 
-    if (analytics.isEnabled()) {
-      analytics.trackEvent(onboardingCompletedEvent);
-    } else {
-      dispatch(saveEvent([onboardingCompletedEvent]));
-    }
+    analytics.trackEvent(onboardingCompletedEvent);
 
     dispatch(
       setWalletHomeOnboardingStepsEligible(true, {
