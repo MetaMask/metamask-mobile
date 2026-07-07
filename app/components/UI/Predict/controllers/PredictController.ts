@@ -1288,6 +1288,51 @@ export class PredictController extends BaseController<
     });
   }
 
+  /**
+   * Logs an error that occurred after a transaction batch was already
+   * submitted. At that point the flow is genuinely in flight, so callers
+   * swallow the error (keeping any pending-state locks for the
+   * terminal-status handler) instead of surfacing a false failure.
+   */
+  private logPostSubmissionBookkeepingError(
+    method: string,
+    error: Error,
+  ): void {
+    Logger.error(
+      error,
+      this.getErrorContext(method, {
+        providerId: POLYMARKET_PROVIDER_ID,
+        operation: 'post_submission_bookkeeping',
+      }),
+    );
+  }
+
+  /**
+   * Tracks the terminal flow metric for an error thrown before the
+   * transaction batch was submitted, classifying user cancellations.
+   *
+   * @returns whether the error was a user cancellation
+   */
+  private trackFlowSubmissionFailureMetric({
+    transactionType,
+    error,
+  }: {
+    transactionType: PredictTransactionMetricType;
+    error: unknown;
+  }): boolean {
+    const isUserCancelled = this.isUserCancelledTransactionError(error);
+
+    this.trackPredictFlowMetric({
+      transactionType,
+      status: isUserCancelled
+        ? PredictTradeStatus.CANCELLED
+        : PredictTradeStatus.FAILED,
+      failureReason: ensureError(error).message,
+    });
+
+    return isUserCancelled;
+  }
+
   private isUserCancelledTransactionError(error: unknown): boolean {
     // Prefer the language-independent EIP-1193 code (4001) emitted by
     // `providerErrors.userRejectedRequest()` over message matching, which can
@@ -1993,18 +2038,11 @@ export class PredictController extends BaseController<
       const e = ensureError(error);
 
       if (submittedClaim) {
-        // The batch was submitted, so the claim is genuinely in flight: keep
-        // the pending-claim lock and analytics stash for the terminal-status
-        // handler, and return the pending claim so the caller does not record
-        // a false failure for a local bookkeeping error.
+        // Keep the pending-claim lock and analytics stash for the
+        // terminal-status handler, and return the pending claim so the caller
+        // does not record a false failure for a local bookkeeping error.
         traceData = { success: true, error: e.message };
-        Logger.error(
-          e,
-          this.getErrorContext('claimWithConfirmation', {
-            providerId: POLYMARKET_PROVIDER_ID,
-            operation: 'post_submission_bookkeeping',
-          }),
-        );
+        this.logPostSubmissionBookkeepingError('claimWithConfirmation', e);
         return submittedClaim;
       }
 
@@ -2685,31 +2723,19 @@ export class PredictController extends BaseController<
       const e = ensureError(error);
 
       if (submittedBatchId !== undefined) {
-        // The batch was submitted, so the deposit is genuinely in flight: keep
-        // the pending-deposit entry (the terminal-status handler clears it by
-        // address) and return the batchId so the caller does not surface a
-        // false deposit failure for a local bookkeeping error.
-        Logger.error(
-          e,
-          this.getErrorContext('depositWithConfirmation', {
-            providerId: POLYMARKET_PROVIDER_ID,
-            operation: 'post_submission_bookkeeping',
-          }),
-        );
+        // Keep the pending-deposit entry (the terminal-status handler clears
+        // it by address) and return the batchId so the caller does not
+        // surface a false deposit failure for a local bookkeeping error.
+        this.logPostSubmissionBookkeepingError('depositWithConfirmation', e);
         return {
           success: true,
           response: { batchId: submittedBatchId },
         };
       }
 
-      const isUserCancelled = this.isUserCancelledTransactionError(error);
-
-      this.trackPredictFlowMetric({
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
         transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
-        status: isUserCancelled
-          ? PredictTradeStatus.CANCELLED
-          : PredictTradeStatus.FAILED,
-        failureReason: e.message,
+        error,
       });
 
       if (isUserCancelled) {
@@ -2856,29 +2882,18 @@ export class PredictController extends BaseController<
       const e = ensureError(error);
 
       if (submittedBatchId !== undefined) {
-        // The batch was submitted, so the deposit-and-order flow is genuinely
-        // in flight: report success so a local bookkeeping error does not get
-        // treated as a deposit failure.
-        Logger.error(
-          e,
-          this.getErrorContext('initPayWithAnyToken', {
-            providerId: POLYMARKET_PROVIDER_ID,
-            operation: 'post_submission_bookkeeping',
-          }),
-        );
+        // Report success so a local bookkeeping error does not get treated as
+        // a failure of the in-flight deposit-and-order batch.
+        this.logPostSubmissionBookkeepingError('initPayWithAnyToken', e);
         return {
           success: true,
           response: { batchId: submittedBatchId },
         };
       }
 
-      const isUserCancelled = this.isUserCancelledTransactionError(error);
-      this.trackPredictFlowMetric({
+      this.trackFlowSubmissionFailureMetric({
         transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
-        status: isUserCancelled
-          ? PredictTradeStatus.CANCELLED
-          : PredictTradeStatus.FAILED,
-        failureReason: e.message,
+        error,
       });
 
       Logger.error(
@@ -3553,31 +3568,20 @@ export class PredictController extends BaseController<
       const e = ensureError(error);
 
       if (submittedBatchId !== undefined) {
-        // The batch was submitted, so the withdraw is genuinely in flight:
-        // keep `withdrawTransaction` (the terminal-status handler clears it)
+        // Keep `withdrawTransaction` (the terminal-status handler clears it)
         // and report success so a local bookkeeping error does not surface a
-        // false withdraw failure.
-        Logger.error(
-          e,
-          this.getErrorContext('prepareWithdraw', {
-            providerId: POLYMARKET_PROVIDER_ID,
-            operation: 'post_submission_bookkeeping',
-          }),
-        );
+        // false failure for the in-flight withdraw.
+        this.logPostSubmissionBookkeepingError('prepareWithdraw', e);
         return {
           success: true,
           response: submittedBatchId,
         };
       }
 
-      const isUserCancelled = this.isUserCancelledTransactionError(error);
-      this.trackPredictFlowMetric({
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
         transactionType:
           PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
-        status: isUserCancelled
-          ? PredictTradeStatus.CANCELLED
-          : PredictTradeStatus.FAILED,
-        failureReason: e.message,
+        error,
       });
 
       if (isUserCancelled) {
