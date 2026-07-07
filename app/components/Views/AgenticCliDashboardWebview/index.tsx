@@ -110,13 +110,6 @@ const AgenticCliDashboardWebview: React.FC = () => {
     );
   }, [close, navigation]);
 
-  useEffect(
-    () => () => {
-      rejectOnce(DASHBOARD_CLOSED_MESSAGE);
-    },
-    [rejectOnce],
-  );
-
   const handleMessage = useCallback(
     (messageEvent: WebViewMessageEvent) => {
       const event = AgenticCliDashboardWebviewService.parseEvent(
