@@ -459,6 +459,7 @@ builds:
       RAMP_DEV_BUILD: 'true'
       HAS_TEST_OVERRIDES: 'false'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
+      MM_PURE_BLACK_PREVIEW: 'true'
       IS_SIM_BUILD: 'true'
       IS_DEVICE_BUILD: 'true'
       CONFIGURATION: 'Debug'
