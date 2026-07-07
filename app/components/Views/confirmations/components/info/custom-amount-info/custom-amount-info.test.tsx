@@ -49,6 +49,7 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/ui/useMMPayNavigation');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -155,11 +156,7 @@ const mockGoToBuy = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(() => ({
-    setOptions: jest.fn(),
-    addListener: jest.fn(() => jest.fn()),
-    goBack: jest.fn(),
-  })),
+  useNavigation: jest.fn(),
   useRoute: jest.fn(() => ({ params: {} })),
 }));
 
