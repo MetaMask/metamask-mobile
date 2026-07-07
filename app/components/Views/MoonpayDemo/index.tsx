@@ -23,6 +23,7 @@
 
 import React, { useState } from 'react';
 import {
+  KeyboardAvoidingView,
   Linking,
   Platform,
   Pressable,
@@ -197,82 +198,164 @@ interface ThemeColors {
   primary: { default: string };
 }
 
+const PRESET_EMAILS = [
+  'jiexi.luan@consensys.net',
+  'sebastien.vaneyck@consensys.net',
+];
+
 const TermsPanel: React.FC<{
   email: string;
   onEmailChange: (v: string) => void;
   onAccept: () => void;
   colors: ThemeColors;
-}> = ({ email, onEmailChange, onAccept, colors }) => (
-  <View style={styles.panel}>
-    <Text variant={TextVariant.HeadingSm}>Step 1 — Accept terms</Text>
+}> = ({ email, onEmailChange, onAccept, colors }) => {
+  const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
 
-    <View
-      style={[
-        styles.termsBlock,
-        {
-          backgroundColor: colors.background.alternative,
-          borderColor: colors.border.muted,
-        },
-      ]}
-    >
-      <Text variant={TextVariant.BodySm} style={styles.bold}>
-        MoonPay Services and Legal Framework
-      </Text>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        All regulated services, including digital asset purchase and sale
-        transactions, fiat currency payments, and related services, are provided
-        exclusively by our partner, MoonPay. By using our platform for such
-        services, you are engaging directly with MoonPay which will conduct such
-        services under its applicable licenses and regulatory approvals.
-      </Text>
-      <Text variant={TextVariant.BodySm} style={styles.bold}>
-        Applicable Terms & Policies
-      </Text>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        By accessing these services, you agree to be bound by MoonPay&apos;s{' '}
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.PrimaryDefault}
-          onPress={() => Linking.openURL(TERMS_URL)}
-        >
-          Terms of Use
-        </Text>{' '}
-        and{' '}
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.PrimaryDefault}
-          onPress={() => Linking.openURL(PRIVACY_URL)}
-        >
-          Privacy Policy
+  return (
+    <View style={styles.panel}>
+      <Text variant={TextVariant.HeadingSm}>Step 1 — Accept terms</Text>
+
+      <View
+        style={[
+          styles.termsBlock,
+          {
+            backgroundColor: colors.background.alternative,
+            borderColor: colors.border.muted,
+          },
+        ]}
+      >
+        <Text variant={TextVariant.BodySm} style={styles.bold}>
+          MoonPay Services and Legal Framework
         </Text>
-        .
-      </Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          All regulated services, including digital asset purchase and sale
+          transactions, fiat currency payments, and related services, are
+          provided exclusively by our partner, MoonPay. By using our platform
+          for such services, you are engaging directly with MoonPay which will
+          conduct such services under its applicable licenses and regulatory
+          approvals.
+        </Text>
+        <Text variant={TextVariant.BodySm} style={styles.bold}>
+          Applicable Terms & Policies
+        </Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          By accessing these services, you agree to be bound by MoonPay&apos;s{' '}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.PrimaryDefault}
+            onPress={() => Linking.openURL(TERMS_URL)}
+          >
+            Terms of Use
+          </Text>{' '}
+          and{' '}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.PrimaryDefault}
+            onPress={() => Linking.openURL(PRIVACY_URL)}
+          >
+            Privacy Policy
+          </Text>
+          .
+        </Text>
+      </View>
+
+      <View style={styles.profileSelector}>
+        <Text variant={TextVariant.BodySm}>Quick-fill email</Text>
+        <Pressable
+          onPress={() => setEmailDropdownOpen((v) => !v)}
+          style={[
+            styles.profileTrigger,
+            {
+              borderColor: colors.border.muted,
+              backgroundColor: colors.background.alternative,
+            },
+          ]}
+        >
+          <Text variant={TextVariant.BodySm}>
+            {email && PRESET_EMAILS.includes(email)
+              ? email
+              : 'Select an email…'}
+          </Text>
+          <Text variant={TextVariant.BodySm}>
+            {emailDropdownOpen ? '\u25B2' : '\u25BC'}
+          </Text>
+        </Pressable>
+        {emailDropdownOpen && (
+          <View
+            style={[
+              styles.profileDropdown,
+              {
+                borderColor: colors.border.muted,
+                backgroundColor: colors.background.default,
+              },
+            ]}
+          >
+            {PRESET_EMAILS.map((addr) => {
+              const isSelected = addr === email;
+              return (
+                <Pressable
+                  key={addr}
+                  onPress={() => {
+                    onEmailChange(addr);
+                    setEmailDropdownOpen(false);
+                  }}
+                  style={[
+                    styles.profileOption,
+                    isSelected && {
+                      backgroundColor: colors.primary.default + '18',
+                    },
+                  ]}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={
+                      isSelected
+                        ? TextColor.PrimaryDefault
+                        : TextColor.TextDefault
+                    }
+                  >
+                    {addr}
+                  </Text>
+                  {isSelected && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.PrimaryDefault}
+                    >
+                      {'\u2713'}
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
+      <Text variant={TextVariant.BodySm}>Email (required for OTP)</Text>
+      <TextInput
+        value={email}
+        onChangeText={onEmailChange}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        style={[
+          styles.input,
+          {
+            borderColor: colors.border.muted,
+            backgroundColor: colors.background.alternative,
+          },
+        ]}
+      />
+
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        onPress={onAccept}
+      >
+        Accept terms and start
+      </Button>
     </View>
-
-    <Text variant={TextVariant.BodySm}>Email (required for OTP)</Text>
-    <TextInput
-      value={email}
-      onChangeText={onEmailChange}
-      autoCapitalize="none"
-      keyboardType="email-address"
-      style={[
-        styles.input,
-        {
-          borderColor: colors.border.muted,
-          backgroundColor: colors.background.alternative,
-        },
-      ]}
-    />
-
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={onAccept}
-    >
-      Accept terms and start
-    </Button>
-  </View>
-);
+  );
+};
 
 const PROFILE_LABELS: Record<DemoProfile, string> = {
   US: '🇺🇸  United States — Jane Doe',
@@ -616,10 +699,14 @@ const MoonpayDemo: React.FC = () => {
   } = useMoonpayReset();
 
   return (
-    <View
+    <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background.default }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.resetRow}>
           <Button
             variant={ButtonVariant.Secondary}
@@ -733,16 +820,6 @@ const MoonpayDemo: React.FC = () => {
         </View>
       )}
 
-      {phase === 'challenge' && challengeUrl && (
-        <View style={styles.frameArea}>
-          <MoonpayFrame
-            url={challengeUrl}
-            onMessage={handleChallengeMessage}
-            onError={handleChallengeFrameError}
-          />
-        </View>
-      )}
-
       {resetFrameUrl && (
         <MoonpayFrame
           url={resetFrameUrl}
@@ -751,7 +828,7 @@ const MoonpayDemo: React.FC = () => {
           invisible
         />
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
