@@ -9640,15 +9640,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@15.1.0-preview-685219bbf":
-  version: 15.1.0-preview-685219bbf
-  resolution: "@metamask-previews/ramps-controller@npm:15.1.0-preview-685219bbf"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@15.1.0-preview-bbd2df29f":
+  version: 15.1.0-preview-bbd2df29f
+  resolution: "@metamask-previews/ramps-controller@npm:15.1.0-preview-bbd2df29f"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.2.0"
-  checksum: 10/4ca574eba554517f720b20d3539e71020632ffa09c9176713852687355dd24fc2613184c07a236e48af1af23065bdc0a50c54c53661f1b8b6e48c0843304a0df
+  checksum: 10/b1600dc26963da31e9ae1aef4f46ce479f21ec1a0684e7a7508394ae405cc74f1522ce62e8acb4bc3250452e5407a07704a5bdb4d20c0127d733955bbc80c254
   languageName: node
   linkType: hard
 
