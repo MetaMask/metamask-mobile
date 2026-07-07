@@ -246,6 +246,13 @@ export default class PlaywrightAssertions {
   ): Promise<void> {
     try {
       const el = await targetElement;
+      try {
+        if (!(await el.unwrap().isExisting())) {
+          return;
+        }
+      } catch {
+        // Fall through to waitForDisplayed when existence cannot be determined.
+      }
       await el.waitForDisplayed({
         reverse: true,
         timeout: this.getTimeout(options),
@@ -256,6 +263,12 @@ export default class PlaywrightAssertions {
         (error.message.includes('No elements found for XPath') ||
           error.message.includes('An element could not be located') ||
           error.message.includes('no such element'))
+      ) {
+        return;
+      }
+      if (
+        error instanceof TypeError &&
+        error.message.includes('waitForDisplayed')
       ) {
         return;
       }
