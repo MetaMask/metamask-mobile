@@ -1,8 +1,16 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Dimensions,
   LayoutChangeEvent,
+  NativeSyntheticEvent,
   StyleProp,
+  TextLayoutEventData,
   TouchableOpacity,
   View,
   ViewStyle,
@@ -33,6 +41,7 @@ import {
 
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../hooks';
+import { shouldTopAlignToastContent } from '../../components/Toast/Toast';
 import { ToastSelectorsIDs } from '../../components/Toast/ToastModal.testIds';
 import {
   TOAST_SPRING_CONFIG,
@@ -157,6 +166,10 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const { top: topInset } = useSafeAreaInsets();
   const safeData: BaseNotificationData = data ?? {};
   const { description = null, title = null } = safeData;
+  const [descriptionLineCount, setDescriptionLineCount] = useState<
+    number | null
+  >(null);
+  const [titleLineCount, setTitleLineCount] = useState<number | null>(null);
 
   const notificationHeight = useSharedValue(screenHeight);
   const translateYProgress = useSharedValue(-screenHeight);
@@ -164,13 +177,63 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const dismissDurationMs = dismissDuration ?? visibilityDuration;
 
   const topOffset = 0;
+  const hasCloseIconButton = autoDismiss;
+  const resolvedDescription = !description
+    ? getDescription(status, safeData)
+    : description;
+  const hasDescription = resolvedDescription.length > 0;
+  const shouldTopAlign = shouldTopAlignToastContent({
+    titleLineCount,
+    hasDescription,
+    descriptionLineCount,
+    hasActionButton: false,
+    hasTrailingTextButton: false,
+  });
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
   const baseStyle: StyleProp<ViewStyle> = useMemo(
-    () => [styles.base, animatedStyle],
-    [styles.base, animatedStyle],
+    () => [
+      styles.base,
+      shouldTopAlign && styles.baseTopAligned,
+      hasCloseIconButton && styles.baseWithCloseIconButton,
+      animatedStyle,
+    ],
+    [
+      styles.base,
+      styles.baseTopAligned,
+      styles.baseWithCloseIconButton,
+      animatedStyle,
+      hasCloseIconButton,
+      shouldTopAlign,
+    ],
   );
+
+  useEffect(() => {
+    setDescriptionLineCount(null);
+    setTitleLineCount(null);
+    hasEnteredRef.current = false;
+  }, [status, title, description, isVisible]);
+
+  const handleTitleTextLayout = (
+    event: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setTitleLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
+
+  const handleDescriptionTextLayout = (
+    event: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setDescriptionLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
 
   const runExitAnimation = useCallback(
     (onComplete?: () => void) => {
@@ -262,38 +325,53 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       testID="base-notification-container"
     >
       <TouchableOpacity
-        style={styles.content}
+        style={[
+          styles.pressableContent,
+          shouldTopAlign && styles.pressableContentTopAligned,
+        ]}
         onPress={onPress}
         activeOpacity={0.8}
+        disabled={!onPress}
       >
-        <View style={styles.flashIcon}>{getIcon(status)}</View>
-        <View style={styles.flashLabel}>
+        <View>{getIcon(status)}</View>
+        <View
+          style={[
+            styles.flashLabel,
+            shouldTopAlign && styles.flashLabelTopAligned,
+          ]}
+          testID={ToastSelectorsIDs.CONTAINER}
+        >
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
+            fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             style={styles.flashTitle}
             testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
+            onTextLayout={handleTitleTextLayout}
           >
             {!title ? getTitle(status, safeData) : title}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextDefault}
-            style={styles.flashText}
-          >
-            {!description ? getDescription(status, safeData) : description}
-          </Text>
+          {hasDescription ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              style={styles.flashText}
+              onTextLayout={handleDescriptionTextLayout}
+            >
+              {resolvedDescription}
+            </Text>
+          ) : null}
         </View>
-        {autoDismiss && (
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            onPress={handleManualDismiss}
-            testID="base-notification-close"
-          />
-        )}
       </TouchableOpacity>
+      {autoDismiss && (
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSize.Md}
+          onPress={handleManualDismiss}
+          style={shouldTopAlign ? styles.closeButton : undefined}
+          testID="base-notification-close"
+        />
+      )}
     </Animated.View>
   );
 };
