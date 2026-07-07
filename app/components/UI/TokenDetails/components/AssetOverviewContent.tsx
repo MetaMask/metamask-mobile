@@ -62,10 +62,7 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import {
-  isCaipAssetType,
-  type Hex,
-} from '@metamask/utils';
+import { isCaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -204,9 +201,6 @@ export interface AssetOverviewContentProps {
 
   // Exit action tracking
   onExitAction?: () => void;
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  onTrustlineChanged?: () => void;
-  ///: END:ONLY_INCLUDE_IF
   /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
   isPricePositive?: boolean | null;
 }
@@ -252,9 +246,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   onPriceDirectionChange,
   useAmbientColor,
   onExitAction,
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  onTrustlineChanged,
-  ///: END:ONLY_INCLUDE_IF
   isPricePositive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -274,7 +265,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const isAssetInactive = isAssetRequireActivate({
     assetId: token.address,
     assetMetadata: token.accountAssetInfo,
-  })
+  });
   const baseReserve = computeBaseReserve({
     assetId: token.address,
     assetMetadata: token.accountAssetInfo,
@@ -621,11 +612,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {
             ///: BEGIN:ONLY_INCLUDE_IF(stellar)
             isAssetInactive ? (
-              <AssetActivateCard
-                token={token}
-                chainName="Stellar"
-                onTrustlineChanged={onTrustlineChanged}
-              />
+              <AssetActivateCard token={token} chainName="Stellar" />
             ) : null
             ///: END:ONLY_INCLUDE_IF
           }
@@ -668,9 +655,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             isLoading={isButtonsLoading}
             resetNavigationLockRef={resetNavigationLockRef}
             onActionTapped={trackActionTapped}
-            ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-            onTrustlineChanged={onTrustlineChanged}
-            ///: END:ONLY_INCLUDE_IF
           />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>

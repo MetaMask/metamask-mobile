@@ -17,11 +17,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
-import {
-  Hex,
-  isCaipAssetType,
-  parseCaipAssetType,
-} from '@metamask/utils';
+import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
@@ -47,9 +43,6 @@ export interface MoreTokenActionsMenuParams {
   onBuy: () => void;
   onReceive?: () => void;
   onActionTapped?: (action: TokenDetailsAction) => void;
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  onTrustlineChanged?: () => void;
-  ///: END:ONLY_INCLUDE_IF
 }
 
 type MoreTokenActionsMenuRouteProp = RouteProp<
@@ -82,9 +75,6 @@ const MoreTokenActionsMenu = () => {
     onBuy,
     onReceive,
     onActionTapped,
-    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    onTrustlineChanged,
-    ///: END:ONLY_INCLUDE_IF
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -115,7 +105,6 @@ const MoreTokenActionsMenu = () => {
     dismissErrorMessage,
   } = useAssetActivation({
     token: liveAsset,
-    onTrustlineChanged,
   });
   ///: END:ONLY_INCLUDE_IF
 

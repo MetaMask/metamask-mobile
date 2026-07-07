@@ -31,25 +31,19 @@ export const AssetActivateCardTestIds = {
 export interface AssetActivateCardProps {
   token: TokenI;
   chainName: string;
-  onTrustlineChanged?: () => void;
 }
 
 export const AssetActivateCard = ({
   token,
   chainName,
-  onTrustlineChanged,
 }: AssetActivateCardProps) => {
   const { activateAsset, isActivating, errorMessage, dismissErrorMessage } =
     useAssetActivation({
       token,
-      onTrustlineChanged,
     });
 
   return (
-    <Box
-      testID={AssetActivateCardTestIds.CONTAINER}
-      twClassName="px-4 mt-3"
-    >
+    <Box testID={AssetActivateCardTestIds.CONTAINER} twClassName="px-4 mt-3">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}

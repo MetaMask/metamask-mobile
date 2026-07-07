@@ -26,13 +26,7 @@ import { selectMultichainBalances } from '../../../../selectors/multichain/multi
 /**
  * Manages asset activation and deactivation for supported trustline assets.
  */
-export function useAssetActivation({
-  asset,
-  onTrustlineChanged,
-}: {
-  asset: TokenI | undefined;
-  onTrustlineChanged?: () => void;
-}) {
+export function useAssetActivation({ asset }: { asset: TokenI | undefined }) {
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -52,10 +46,10 @@ export function useAssetActivation({
   const account = chainId ? selectAccountByScope(chainId) : undefined;
 
   const balances = useSelector((state: RootState) =>
-    selectMultichainBalances(state)
+    selectMultichainBalances(state),
   );
-  const assetMetadata =  balances?.[account?.id ?? '']?.[assetId as CaipAssetId]
-    ?.accountAssetInfo
+  const assetMetadata =
+    balances?.[account?.id ?? '']?.[assetId as CaipAssetId]?.accountAssetInfo;
 
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
@@ -98,13 +92,6 @@ export function useAssetActivation({
         assetId,
         scope: chainId,
       });
-      await refreshStellarAccountAssets({
-        account,
-        chainId,
-        assetId,
-        trustlineAction: 'remove',
-      });
-      onTrustlineChanged?.();
       return true;
     } catch (error: unknown) {
       const errorCode = (error as { code?: number })?.code;
@@ -113,10 +100,13 @@ export function useAssetActivation({
       if (!isUserRejection) {
         setErrorMessage(
           hasNonZeroBalance
-            ? strings('asset_activation.deactivate_error_non_zero_balance_stellar', {
-                balance: asset.balance,
-                symbol: asset.symbol,
-              })
+            ? strings(
+                'asset_activation.deactivate_error_non_zero_balance_stellar',
+                {
+                  balance: asset.balance,
+                  symbol: asset.symbol,
+                },
+              )
             : strings('asset_activation.deactivate_error'),
         );
       }
@@ -124,22 +114,10 @@ export function useAssetActivation({
     } finally {
       setIsDeactivating(false);
     }
-  }, [
-    account,
-    assetId,
-    canDeactivate,
-    chainId,
-    onTrustlineChanged,
-    asset,
-  ]);
+  }, [account, assetId, canDeactivate, chainId, asset]);
 
   const activateAsset = useCallback(async () => {
-    if (
-      !account ||
-      !chainId ||
-      !assetId ||
-      !isCaipAssetType(assetId)
-    ) {
+    if (!account || !chainId || !assetId || !isCaipAssetType(assetId)) {
       return;
     }
 
@@ -155,14 +133,6 @@ export function useAssetActivation({
       if (result.status === false) {
         return;
       }
-
-      await refreshStellarAccountAssets({
-        account: account as InternalAccount,
-        chainId,
-        assetId,
-        trustlineAction: 'add',
-      });
-      onTrustlineChanged?.();
     } catch (error: unknown) {
       const errorCode = (error as { code?: number })?.code;
       const isUserRejection =
@@ -173,7 +143,7 @@ export function useAssetActivation({
     } finally {
       setIsActivating(false);
     }
-  }, [account, assetId, chainId, onTrustlineChanged]);
+  }, [account, assetId, chainId]);
 
   return {
     account,

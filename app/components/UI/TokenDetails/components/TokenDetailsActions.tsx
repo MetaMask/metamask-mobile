@@ -49,9 +49,6 @@ export interface TokenDetailsActionsProps {
   /** Optional ref to receive a callback that resets the navigation lock. Used when Long/Short show a modal instead of navigating (e.g. geo block). */
   resetNavigationLockRef?: React.MutableRefObject<(() => void) | null>;
   onActionTapped?: (action: TokenDetailsAction) => void;
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  onTrustlineChanged?: () => void;
-  ///: END:ONLY_INCLUDE_IF
 }
 
 /**
@@ -89,9 +86,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   isLoading = false,
   resetNavigationLockRef,
   onActionTapped,
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  onTrustlineChanged,
-  ///: END:ONLY_INCLUDE_IF
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -175,9 +169,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           onBuy,
           onReceive,
           onActionTapped,
-          ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-          onTrustlineChanged,
-          ///: END:ONLY_INCLUDE_IF
         },
       });
     });
@@ -193,9 +184,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     onBuy,
     onReceive,
     onActionTapped,
-    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-    onTrustlineChanged,
-    ///: END:ONLY_INCLUDE_IF
   ]);
 
   // Determine which buttons to display based on perps market and balance
