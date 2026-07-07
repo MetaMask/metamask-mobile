@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Animated, View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
@@ -13,6 +13,7 @@ import {
   useTransactionPayIsMaxAmount,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useConfirmationContext } from '../../../context/confirmation-context';
+import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -50,6 +51,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   });
 
   const showLoader = isLoading || (isMaxAmount && isQuotesLoading);
+  const cursorOpacity = useBlinkingCursor(!disabled && !showLoader);
 
   if (showLoader) {
     return <CustomAmountSkeleton />;
@@ -67,6 +69,12 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
       >
         {formattedAmount}
       </Text>
+      {!disabled && (
+        <Animated.View
+          testID="custom-amount-cursor"
+          style={[styles.cursor, { opacity: cursorOpacity }]}
+        />
+      )}
     </View>
   );
 });
