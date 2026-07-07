@@ -11,12 +11,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { usePerpsWithdrawToastRegistrations } from '../../../components/UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../Icons/Icon';
-import Toast, { ToastVariants } from './Toast';
+import Toast from './Toast';
+import { ToastVariants, type ToastOptions, type ToastRef } from './Toast.types';
 import { useAppThemeFromContext } from '../../../util/theme';
 import type { Theme } from '../../../util/theme/models';
 import Button, { ButtonVariants } from '../Buttons/Button';
 import { ToastContext, ToastContextWrapper } from './Toast.context';
-import type { ToastOptions, ToastRef } from './Toast.types';
 import {
   presentStoryToast,
   StoryContainer,

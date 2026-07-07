@@ -130,12 +130,14 @@ const selectTransactionControllerState = (state: RootState) =>
 
 const selectTransactionsStrict = createSelector(
   selectTransactionControllerState,
-  (transactionControllerState) => transactionControllerState.transactions,
+  (transactionControllerState) =>
+    transactionControllerState?.transactions ?? [],
 );
 
 const selectTransactionBatchesStrict = createSelector(
   selectTransactionControllerState,
-  (transactionControllerState) => transactionControllerState.transactionBatches,
+  (transactionControllerState) =>
+    transactionControllerState?.transactionBatches ?? [],
 );
 
 export const selectRequiredTransactionIds = createSelector(
@@ -338,7 +340,7 @@ export const selectSwapsTransactions = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) =>
     //@ts-expect-error - This is populated at the app level, the TransactionController is not aware of this property
-    transactionControllerState.swapsTransactions ?? {},
+    transactionControllerState?.swapsTransactions ?? {},
 );
 
 export const selectTransactionMetadataById = createDeepEqualSelector(
