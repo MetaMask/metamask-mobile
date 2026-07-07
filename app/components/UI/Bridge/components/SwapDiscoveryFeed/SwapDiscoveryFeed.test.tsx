@@ -10,6 +10,8 @@ const mockNavigate = jest.fn();
 const mockUseTokensFeed = jest.fn();
 const mockUseStocksFeed = jest.fn();
 const mockExploreSectionList = jest.fn();
+const mockCardList = jest.fn();
+const mockPillScrollList = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -61,12 +63,18 @@ jest.mock('../../../../Views/TrendingView/components/SectionHeader', () => {
 
 jest.mock('../../../../Views/TrendingView/components/PillScrollList', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: { isLoading: boolean; listTestId?: string }) => {
+    mockPillScrollList(props);
+    return null;
+  },
 }));
 
 jest.mock('../../../../Views/TrendingView/components/CardList', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: { isLoading: boolean; listTestId?: string }) => {
+    mockCardList(props);
+    return null;
+  },
 }));
 
 jest.mock(
@@ -105,9 +113,9 @@ const stockToken = feedToken('eip155:1/erc20:0xstock', 'STK');
 
 const seedFeeds = () => {
   mockUseTokensFeed
-    .mockReturnValueOnce({ data: [hotToken], loading: false })
-    .mockReturnValueOnce({ data: [trendingToken], loading: false });
-  mockUseStocksFeed.mockReturnValue({ data: [stockToken], loading: false });
+    .mockReturnValueOnce({ data: [hotToken], isLoading: false })
+    .mockReturnValueOnce({ data: [trendingToken], isLoading: false });
+  mockUseStocksFeed.mockReturnValue({ data: [stockToken], isLoading: false });
 };
 
 const renderFeed = (
@@ -121,6 +129,8 @@ describe('SwapDiscoveryFeed', () => {
     jest.clearAllMocks();
     mockUseTokensFeed.mockReset();
     mockUseStocksFeed.mockReset();
+    mockCardList.mockReset();
+    mockPillScrollList.mockReset();
     seedFeeds();
   });
 
@@ -139,14 +149,37 @@ describe('SwapDiscoveryFeed', () => {
 
     mockUseTokensFeed.mockReset();
     mockUseTokensFeed
-      .mockReturnValueOnce({ data: [], loading: false })
-      .mockReturnValueOnce({ data: [], loading: false });
-    mockUseStocksFeed.mockReturnValue({ data: [], loading: false });
+      .mockReturnValueOnce({ data: [], isLoading: false })
+      .mockReturnValueOnce({ data: [], isLoading: false });
+    mockUseStocksFeed.mockReturnValue({ data: [], isLoading: false });
 
     const { queryByTestId } = renderFeed({ mode: 'discovery_feed' });
 
     expect(queryByTestId(SwapDiscoveryFeedTestIds.ROOT)).toBeNull();
     expect(mockExploreSectionList).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a trending section with loading skeleton when feed data is empty and isLoading is true', () => {
+    mockUseTokensFeed.mockReset();
+    mockUseTokensFeed
+      .mockReturnValueOnce({ data: [], isLoading: false })
+      .mockReturnValueOnce({ data: [], isLoading: true });
+    mockUseStocksFeed.mockReturnValue({ data: [], isLoading: false });
+
+    renderFeed({ mode: 'discovery_feed' });
+
+    expect(mockExploreSectionList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sections: [expect.objectContaining({ key: 'trending' })],
+      }),
+    );
+    expect(mockCardList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isLoading: true,
+        data: [],
+        listTestId: SwapDiscoveryFeedTestIds.TRENDING_LIST,
+      }),
+    );
   });
 
   it('navigates hot tokens view-all to trending full view with one-hour filter', () => {
