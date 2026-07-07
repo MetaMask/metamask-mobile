@@ -99,6 +99,7 @@ export default class PlaywrightGestures {
    */
   private static async isElementInteractive(
     elem: PlaywrightElement,
+    memo?: { hasClickableAncestor?: boolean },
   ): Promise<boolean> {
     if (!(await elem.isEnabled())) {
       return false;
@@ -113,7 +114,31 @@ export default class PlaywrightGestures {
         elem.getAttribute('clickable'),
         elem.getAttribute('enabled'),
       ]);
-      return clickableAttr !== 'false' && enabledAttr !== 'false';
+      if (enabledAttr === 'false') {
+        return false;
+      }
+      if (clickableAttr !== 'false') {
+        return true;
+      }
+      // RN often attaches testIDs to non-clickable Text/View children whose
+      // touchable ancestor receives the tap (Appium clicks by coordinates), and
+      // whether the child is merged into the touchable's accessibility node is
+      // nondeterministic. A genuinely disabled control has no clickable ancestor.
+      if (memo?.hasClickableAncestor) {
+        return true;
+      }
+      // findElements returns [] for the ancestor axis on UiAutomator2 even when
+      // the ancestor exists, so probe with a scoped findElement and check error.
+      const ancestor = await elem
+        .unwrap()
+        .$('./ancestor::*[@clickable="true"]');
+      const hasClickableAncestor = ancestor.error === undefined;
+      if (hasClickableAncestor && memo) {
+        // The probe costs seconds (full page-source xpath); a positive verdict
+        // is structural and stable for the duration of one interactive wait.
+        memo.hasClickableAncestor = true;
+      }
+      return hasClickableAncestor;
     } catch {
       return true;
     }
@@ -131,9 +156,10 @@ export default class PlaywrightGestures {
     const requiredStableReads = options?.requiredStableReads ?? 6;
     const start = Date.now();
     let consecutiveInteractive = 0;
+    const memo: { hasClickableAncestor?: boolean } = {};
 
     while (Date.now() - start < timeout - interval) {
-      if (await this.isElementInteractive(elem)) {
+      if (await this.isElementInteractive(elem, memo)) {
         consecutiveInteractive += 1;
         if (consecutiveInteractive >= requiredStableReads) {
           return;

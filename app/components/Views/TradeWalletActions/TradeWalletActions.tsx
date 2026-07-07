@@ -35,7 +35,10 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  usePureBlack,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
 import {
   getElevatedSurfaceColor,
   useElevatedSurface,
@@ -116,6 +119,7 @@ function TradeWalletActions() {
 
   const tw = useTailwind();
   const surfaceClass = useElevatedSurface();
+  const isPureBlack = usePureBlack();
   const theme = useTheme();
   const { colors } = theme;
 
@@ -390,13 +394,24 @@ function TradeWalletActions() {
   const sheetContent = (
     <Animated.View style={sheetAnimatedStyle}>
       <View style={tw.style('px-4')}>
-        <View style={tw.style(`${surfaceClass} p-4 rounded-t-2xl px-0`)}>
+        <View
+          testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+          style={tw.style(
+            `${surfaceClass} p-4 rounded-t-2xl px-0`,
+            isPureBlack && 'border-t border-l border-r border-muted',
+          )}
+        >
           {actionList}
         </View>
         <View
           style={tw.style('flex-row mt-[-1px]', { height: bottomMaskHeight })}
         >
-          <View style={tw.style(`${surfaceClass} flex-1 rounded-bl-2xl`)} />
+          <View
+            style={tw.style(
+              `${surfaceClass} flex-1 rounded-bl-2xl`,
+              isPureBlack && 'border-l border-b border-muted',
+            )}
+          />
           <BottomShape
             width={buttonLayout.width * 4}
             height={bottomMaskHeight}
@@ -405,7 +420,32 @@ function TradeWalletActions() {
             baseBezierLength={55}
             fill={elevatedSurfaceColor}
           />
-          <View style={tw.style(`${surfaceClass} flex-1 rounded-br-2xl`)} />
+          <View
+            style={tw.style(
+              `${surfaceClass} flex-1 rounded-br-2xl`,
+              isPureBlack && 'border-r border-b border-muted',
+            )}
+          />
+          {isPureBlack ? (
+            <View
+              pointerEvents="none"
+              style={tw.style('absolute bottom-0 inset-x-0 items-center')}
+              testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
+            >
+              <BottomShape
+                width={buttonLayout.width * 4}
+                height={bottomMaskHeight}
+                peakHeight={16}
+                peakBezierLength={25}
+                baseBezierLength={55}
+                strokeOnly
+                pathProps={{
+                  stroke: colors.border.muted,
+                  strokeWidth: 1,
+                }}
+              />
+            </View>
+          ) : null}
         </View>
       </View>
     </Animated.View>

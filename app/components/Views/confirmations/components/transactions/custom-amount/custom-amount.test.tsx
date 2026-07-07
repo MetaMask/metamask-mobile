@@ -106,4 +106,36 @@ describe('CustomAmount', () => {
 
     expect(getByText('123.45')).toBeOnTheScreen();
   });
+
+  it('renders blinking cursor when showCursor is true', () => {
+    const { getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" showCursor />,
+    );
+
+    expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+  });
+
+  it('does not render cursor when showCursor is false', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" showCursor={false} />,
+    );
+
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
+  });
+
+  it('does not render cursor when disabled', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" disabled showCursor />,
+    );
+
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
+  });
+
+  it('does not render cursor when loading', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" isLoading showCursor />,
+    );
+
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
+  });
 });
