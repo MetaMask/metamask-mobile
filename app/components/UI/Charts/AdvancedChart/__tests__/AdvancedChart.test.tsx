@@ -69,7 +69,7 @@ describe('AdvancedChart', () => {
 
     const webView = getByTestId('mock-webview');
 
-    expect(webView.props.source.html).toContain('"priceDecimals":4');
+    expect(webView.props.source.html).toMatch(/priceDecimals:\s*4/);
   });
 
   it('keeps loading overlay while isLoading until parent clears it', () => {
