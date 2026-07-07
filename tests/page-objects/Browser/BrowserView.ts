@@ -23,6 +23,9 @@ import {
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { createPlaywrightLogger } from '../../framework/playwrightLogger';
+
+const logger = createPlaywrightLogger('BrowserView');
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -169,12 +172,18 @@ class Browser {
     const hostAndPath = url.replace(/^https?:\/\//, '');
     const deeplink = `dapp://${hostAndPath}`;
 
+    logger.info(`navigateToUrlViaDeeplink: opening ${deeplink}`);
     await executeMobileDeepLink(deeplink);
     const isAndroidCi =
       FrameworkDetector.isAppium() &&
       PlatformDetector.isAndroid() &&
       process.env.CI === 'true';
-    await sleep(isAndroidCi ? 8_000 : 3_000);
+    const settleMs = isAndroidCi ? 8_000 : 3_000;
+    logger.info(
+      `navigateToUrlViaDeeplink: settle ${settleMs}ms after deeplink`,
+    );
+    await sleep(settleMs);
+    logger.info('navigateToUrlViaDeeplink: complete');
   }
 
   private async typeUrlAppium(url: string): Promise<void> {
@@ -361,6 +370,7 @@ class Browser {
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
+      logger.info(`navigateToURL(Appium): ${url}`);
       await this.typeUrlAppium(url);
       return;
     }

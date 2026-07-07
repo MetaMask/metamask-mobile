@@ -18,8 +18,10 @@ import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccounts
 import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet.js';
 import { CustomNetworks } from '../../resources/networks.e2e.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
+import { createE2EStepLogger } from '../../framework/e2eStepLogger.js';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
+const step = createE2EStepLogger('network-manager2');
 
 appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
   appiumTest(
@@ -49,51 +51,83 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
           },
         },
         async () => {
-          await loginToAppPlaywright({ scenarioType: 'e2e' });
-
-          await NetworkManager.openNetworkManagerFromHomepage();
-          await NetworkManager.waitForNetworkManagerToLoad();
-          await NetworkManager.checkPopularNetworksContainerIsVisible();
-          await NetworkManager.checkTabIsSelected('Popular');
-
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.ETHEREUM,
+          await step('login', () =>
+            loginToAppPlaywright({ scenarioType: 'e2e' }),
           );
 
-          await NetworkManager.navigateBackFromTokensFullView();
-
-          await navigateToBrowserView();
-          await Browser.navigateToTestDApp();
-          await waitForTestDappToLoad();
-          await TestDApp.tapOpenNetworkPicker();
-          await TestDApp.tapNetworkByName(POLYGON);
-
-          const expectedText = `Use your enabled networks, Requesting for ${POLYGON} Mainnet`;
-          await Assertions.expectElementToHaveLabel(
-            ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
-            expectedText,
-            {
-              description: `edit networks permissions button should show "${expectedText}"`,
-            },
+          await step('open network manager from homepage', () =>
+            NetworkManager.openNetworkManagerFromHomepage(),
           );
-          await Assertions.expectElementToBeVisible(
-            ConnectBottomSheet.connectButton,
+          await step('wait for network manager to load', () =>
+            NetworkManager.waitForNetworkManagerToLoad(),
           );
-
-          await ConnectBottomSheet.tapConnectButton();
-
-          await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
-            description: 'Browser screen should be visible after connecting',
+          await step('verify popular networks tab', async () => {
+            await NetworkManager.checkPopularNetworksContainerIsVisible();
+            await NetworkManager.checkTabIsSelected('Popular');
           });
 
-          await Browser.tapCloseBrowserButton();
-          await TabBarComponent.tapWallet();
+          await step('select Ethereum network', async () => {
+            await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+            await NetworkManager.checkBaseControlBarText(
+              NetworkToCaipChainId.ETHEREUM,
+            );
+          });
 
-          await NetworkManager.navigateToTokensFullView();
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.ETHEREUM,
+          await step('navigate back from tokens full view', () =>
+            NetworkManager.navigateBackFromTokensFullView(),
           );
+
+          await step('navigate to browser view', () => navigateToBrowserView());
+          await step('open test dapp via deeplink', () =>
+            Browser.navigateToTestDApp(),
+          );
+          await step('wait for test dapp to load', () =>
+            waitForTestDappToLoad(),
+          );
+          await step('open network picker in test dapp', () =>
+            TestDApp.tapOpenNetworkPicker(),
+          );
+          await step(`select ${POLYGON} in test dapp`, () =>
+            TestDApp.tapNetworkByName(POLYGON),
+          );
+
+          const expectedText = `Use your enabled networks, Requesting for ${POLYGON} Mainnet`;
+          await step('verify edit networks permissions label', () =>
+            Assertions.expectElementToHaveLabel(
+              ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+              expectedText,
+              {
+                description: `edit networks permissions button should show "${expectedText}"`,
+              },
+            ),
+          );
+          await step('verify connect button visible', () =>
+            Assertions.expectElementToBeVisible(
+              ConnectBottomSheet.connectButton,
+            ),
+          );
+
+          await step('approve network addition', () =>
+            ConnectBottomSheet.tapConnectButton(),
+          );
+
+          await step('verify browser screen after connect', () =>
+            Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+              description: 'Browser screen should be visible after connecting',
+            }),
+          );
+
+          await step('close browser and return to wallet', async () => {
+            await Browser.tapCloseBrowserButton();
+            await TabBarComponent.tapWallet();
+          });
+
+          await step('verify Ethereum still active network', async () => {
+            await NetworkManager.navigateToTokensFullView();
+            await NetworkManager.checkBaseControlBarText(
+              NetworkToCaipChainId.ETHEREUM,
+            );
+          });
         },
       );
     },

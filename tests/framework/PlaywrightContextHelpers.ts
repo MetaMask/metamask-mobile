@@ -26,12 +26,12 @@ export default class PlaywrightContextHelpers {
   private static readonly POLL_INTERVAL_MS = 1_000;
 
   static async switchToNativeContext(): Promise<void> {
-    logger.debug('Switching to native app context');
+    logger.info('switchToNativeContext');
     await getDriver().switchContext(NATIVE_APP);
   }
 
   static async switchToWebViewContext(dappUrl: string): Promise<void> {
-    logger.debug(`Switching to webview context for URL: ${dappUrl}`);
+    logger.info(`switchToWebViewContext: ${dappUrl}`);
     // Strategy B: Try WebdriverIO's built-in URL matching first.
     // Falls back to manual polling on any failure (LavaMoat scuttling,
     // stale URL metadata on BrowserStack, platform quirks, etc.).
@@ -49,9 +49,8 @@ export default class PlaywrightContextHelpers {
       logger.debug(`Switched to webview context for URL: ${dappUrl}`);
       return;
     } catch (err) {
-      logger.debug(
-        'WebdriverIO switchContext failed, falling back to manual polling:',
-        this.getErrorMessage(err).slice(0, 300),
+      logger.info(
+        `switchToWebViewContext: WebdriverIO url match failed, polling contexts — ${this.getErrorMessage(err).slice(0, 300)}`,
       );
     }
 
@@ -63,10 +62,20 @@ export default class PlaywrightContextHelpers {
   ): Promise<void> {
     const deadline = Date.now() + this.WEBVIEW_TIMEOUT_MS;
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    let pollCount = 0;
 
     while (Date.now() < deadline) {
+      pollCount += 1;
       const webviews = await this.getDetailedWebviews();
       const selected = await this.selectBestWebview(webviews, dappUrl);
+
+      if (pollCount === 1 || pollCount % 5 === 0) {
+        logger.info(
+          `switchToWebViewWithRetry poll ${pollCount}: contexts=${JSON.stringify(
+            webviews.map((ctx) => ({ id: ctx.id, url: ctx.url })),
+          )}`,
+        );
+      }
 
       if (selected?.id) {
         const switched = await withTimeout(
@@ -84,6 +93,13 @@ export default class PlaywrightContextHelpers {
 
       await sleep(this.POLL_INTERVAL_MS);
     }
+
+    const webviews = await this.getDetailedWebviews();
+    logger.error(
+      `switchToWebViewWithRetry: timeout after ${this.WEBVIEW_TIMEOUT_MS}ms for ${dappUrl}; contexts=${JSON.stringify(
+        webviews.map((ctx) => ({ id: ctx.id, url: ctx.url })),
+      )}`,
+    );
 
     throw new Error(
       `No suitable webview context found within ${this.WEBVIEW_TIMEOUT_MS}ms for URL: ${dappUrl}`,
