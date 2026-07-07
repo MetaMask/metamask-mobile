@@ -396,6 +396,9 @@ const PerpsHomeView = ({
     // PerpsHomeSectionList does not render an orphan divider.
     if (isTopMoversVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
+    // Recently Added self-hides when there are no markets listed in the last
+    // 30 days; no loading skeleton, so gate purely on data length.
+    if (recentlyAddedMarkets.length > 0) sections.push('recently_added');
     // Explore category lists render a skeleton while markets load, then self-hide
     // when their own market array is empty.
     if (isLoading.markets || perpsMarkets.length > 0)
@@ -419,6 +422,7 @@ const PerpsHomeView = ({
     isProductsEnabled,
     productCategories,
     isTopMoversVisible,
+    recentlyAddedMarkets,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,
@@ -746,6 +750,20 @@ const PerpsHomeView = ({
         ),
       },
       {
+        key: 'recently-added',
+        // Mirrors PerpsRecentlyAddedSection's own render gate (markets.length
+        // === 0 -> null) so PerpsHomeSectionList does not render an orphan
+        // divider for an empty rail.
+        visible: recentlyAddedMarkets.length > 0,
+        onLayout: handleSectionLayout('recently_added'),
+        content: (
+          <PerpsRecentlyAddedSection
+            markets={recentlyAddedMarkets}
+            onMarketPress={handleRecentlyAddedMarketPress}
+          />
+        ),
+      },
+      {
         key: 'crypto',
         visible: isLoading.markets || perpsMarkets.length > 0,
         onLayout: handleSectionLayout(
@@ -856,6 +874,8 @@ const PerpsHomeView = ({
       isProductsEnabled,
       productCategories.length,
       isTopMoversVisible,
+      recentlyAddedMarkets,
+      handleRecentlyAddedMarketPress,
       perpsMarkets,
       commoditiesMarkets,
       stocksMarkets,
@@ -1070,12 +1090,6 @@ const PerpsHomeView = ({
         </Box>
 
         <PerpsHomeSectionList sections={homeSections} />
-
-        {/* Recently Added Markets Rail */}
-        <PerpsRecentlyAddedSection
-          markets={recentlyAddedMarkets}
-          onMarketPress={handleRecentlyAddedMarketPress}
-        />
 
         <View style={styles.sectionContent}>
           <PerpsNavigationCard items={navigationItems} />

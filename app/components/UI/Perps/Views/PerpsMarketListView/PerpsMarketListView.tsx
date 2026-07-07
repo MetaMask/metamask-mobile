@@ -367,6 +367,9 @@ const PerpsMarketListView = ({
             description={strings('perps.no_tokens_found_description', {
               searchQuery,
             })}
+            ctaLabel={strings('perps.clear_search')}
+            onCtaPress={() => setSearchQuery('')}
+            ctaTestID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
           />
         );
       }

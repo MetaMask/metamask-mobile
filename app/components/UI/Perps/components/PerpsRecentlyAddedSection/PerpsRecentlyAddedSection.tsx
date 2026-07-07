@@ -1,9 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import {
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { SectionHeader } from '@metamask/design-system-react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import Text, {
   TextVariant,
@@ -86,6 +83,10 @@ const PerpsRecentlyAddedTile: React.FC<{
  * Horizontal scroll rail displaying markets listed in the last 30 days,
  * ordered newest first. Returns null when the list is empty so the section
  * produces no layout gap.
+ *
+ * Rendered as an entry in PerpsHomeView's `homeSections`, which already
+ * renders a SectionDivider before each visible section — this component
+ * must not render its own.
  */
 const PerpsRecentlyAddedSection: React.FC<PerpsRecentlyAddedSectionProps> = ({
   markets,
@@ -99,7 +100,6 @@ const PerpsRecentlyAddedSection: React.FC<PerpsRecentlyAddedSectionProps> = ({
 
   return (
     <View testID={PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_SECTION}>
-      <SectionDivider />
       <SectionHeader
         title={strings('perps.home.recently_added')}
         testID={PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER}
