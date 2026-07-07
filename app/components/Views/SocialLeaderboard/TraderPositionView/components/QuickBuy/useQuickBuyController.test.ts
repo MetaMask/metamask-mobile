@@ -756,6 +756,34 @@ describe('useQuickBuyController', () => {
       expect(onClose).toHaveBeenCalled();
     });
 
+    it('does not close the sheet when pay-with asset id cannot be resolved', async () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+      const onClose = jest.fn();
+      (toAssetId as jest.Mock).mockReturnValueOnce(undefined);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), onClose),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(250, 250);
+      });
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
     it('exposes usdToCurrentCurrencyRate from native currency rates', () => {
       (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
         ETH: { conversionRate: 1000, usdConversionRate: 1200 },

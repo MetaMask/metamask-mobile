@@ -215,6 +215,8 @@ export interface UseQuickBuyControllerResult {
   isHardwareSolanaBlocked: boolean;
   priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
   isPriceImpactError: boolean;
+  /** True when a buy pill amount exceeds balance and the CTA routes to Ramp. */
+  isPresetAddFundsMode: boolean;
   // button state (priority-encoded; the Buy button surfaces at most one)
   buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
@@ -1308,9 +1310,10 @@ export function useQuickBuyController(
         sourceToken.address,
         formatChainIdToCaip(sourceToken.chainId),
       );
-      if (assetId) {
-        await goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
+      if (!assetId) {
+        return;
       }
+      await goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
       handleClose();
       return;
     }
@@ -1729,6 +1732,7 @@ export function useQuickBuyController(
     isHardwareSolanaBlocked,
     priceImpactViewData,
     isPriceImpactError,
+    isPresetAddFundsMode,
     buttonError,
     hasValidAmount,
     isConfirmDisabled,

@@ -235,6 +235,7 @@ const buildHookResult = (
     description: 'bridge.price_impact_info_description',
   },
   isPriceImpactError: false,
+  isPresetAddFundsMode: false,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: true,
