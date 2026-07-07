@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSharedValue } from 'react-native-reanimated';
+import { colors } from '../../../../styles/common';
 import SimpleNotification from './index';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
@@ -44,7 +45,7 @@ describe('SimpleNotification', () => {
 
     expect(elevatedView.props.style).toEqual(
       expect.objectContaining({
-        backgroundColor: 'transparent',
+        backgroundColor: colors.transparent,
       }),
     );
     expect(getByText('Token added')).toBeTruthy();

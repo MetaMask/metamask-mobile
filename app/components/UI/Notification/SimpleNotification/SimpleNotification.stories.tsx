@@ -1,9 +1,16 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
 import SimpleNotification from './index';
 import { BaseNotificationStatus } from '../../../../component-library/components-temp/BaseNotification/BaseNotification.types';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    minHeight: 300,
+  },
+});
 
 interface SimpleNotificationStoryArgs {
   status: BaseNotificationStatus;
@@ -21,7 +28,7 @@ const SimpleNotificationStory = ({
   const notificationAnimated = useSharedValue(0);
 
   return (
-    <View style={{ flex: 1, minHeight: 300 }}>
+    <View style={styles.container}>
       <SimpleNotification
         isInBrowserView={isInBrowserView}
         notificationAnimated={notificationAnimated}

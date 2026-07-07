@@ -5,13 +5,14 @@ import Animated from 'react-native-reanimated';
 import BaseNotification from '../../../../component-library/components-temp/BaseNotification';
 import Device from '../../../../util/device';
 import ElevatedView from 'react-native-elevated-view';
+import { colors } from '../../../../styles/common';
 
 const styles = StyleSheet.create({
   modalTypeViewBrowser: {
     bottom: Device.isIphoneX() ? 70 : 60,
   },
   elevatedView: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.transparent,
   },
   notificationContainer: {
     position: 'absolute',
@@ -19,7 +20,7 @@ const styles = StyleSheet.create({
     paddingBottom: Device.isIphoneX() ? 20 : 10,
     left: 0,
     right: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: colors.transparent,
   },
 });
 

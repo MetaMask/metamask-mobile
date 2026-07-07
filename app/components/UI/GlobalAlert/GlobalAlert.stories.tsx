@@ -1,12 +1,19 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { storybookStore } from '../../../../.storybook/storybook-store';
 import GlobalAlert from './index';
 
 const mockStore = configureMockStore();
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+});
 
 const createAlertStore = (data: { msg: string; width?: number }) =>
   mockStore({
@@ -27,7 +34,7 @@ const ClipboardAlertStory = ({
   width?: number;
 }) => (
   <Provider store={createAlertStore({ msg, width })}>
-    <View style={{ flex: 1, justifyContent: 'center' }}>
+    <View style={styles.container}>
       <GlobalAlert />
     </View>
   </Provider>
