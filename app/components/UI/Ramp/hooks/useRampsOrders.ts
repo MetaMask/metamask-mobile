@@ -39,6 +39,22 @@ export interface UseRampsOrdersResult {
   ) => Promise<RampsOrder>;
 }
 
+const withFallbackWalletAddress = (
+  order: RampsOrder,
+  fallbackWalletAddress?: string,
+): RampsOrder => {
+  const walletAddress = fallbackWalletAddress?.trim();
+
+  if (order.walletAddress || !walletAddress) {
+    return order;
+  }
+
+  return {
+    ...order,
+    walletAddress,
+  };
+};
+
 export function useRampsOrders(): UseRampsOrdersResult {
   const orders = useSelector(selectRampsOrdersForSelectedAccountGroup);
   const allOrders = useSelector(selectRampsOrders);
@@ -55,8 +71,14 @@ export function useRampsOrders(): UseRampsOrdersResult {
   );
 
   const addOrder = useCallback(
-    (order: RampsOrder) => Engine.context.RampsController.addOrder(order),
-    [],
+    (order: RampsOrder) => {
+      const orderCode = extractOrderCode(order.providerOrderId);
+      const existingOrder = orders.find((o) => o.providerOrderId === orderCode);
+      Engine.context.RampsController.addOrder(
+        withFallbackWalletAddress(order, existingOrder?.walletAddress),
+      );
+    },
+    [orders],
   );
 
   const addPrecreatedOrder = useCallback(
@@ -72,16 +94,26 @@ export function useRampsOrders(): UseRampsOrdersResult {
   );
 
   const refreshOrder = useCallback(
-    (providerCode: string, orderCode: string, wallet: string) =>
-      Engine.context.RampsController.getOrder(providerCode, orderCode, wallet),
+    async (providerCode: string, orderCode: string, wallet: string) =>
+      withFallbackWalletAddress(
+        await Engine.context.RampsController.getOrder(
+          providerCode,
+          orderCode,
+          wallet,
+        ),
+        wallet,
+      ),
     [],
   );
 
   const getOrderFromCallback = useCallback(
-    (providerCode: string, callbackUrl: string, wallet: string) =>
-      Engine.context.RampsController.getOrderFromCallback(
-        providerCode,
-        callbackUrl,
+    async (providerCode: string, callbackUrl: string, wallet: string) =>
+      withFallbackWalletAddress(
+        await Engine.context.RampsController.getOrderFromCallback(
+          providerCode,
+          callbackUrl,
+          wallet,
+        ),
         wallet,
       ),
     [],
