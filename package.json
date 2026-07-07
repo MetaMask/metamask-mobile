@@ -220,7 +220,8 @@
     "@metamask/accounts-controller": "^39.0.3",
     "expo-web-browser@npm:~55.0.16": "55.0.16",
     "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
-    "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch"
+    "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
+    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.28.0-preview-9726947"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
