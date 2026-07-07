@@ -38,6 +38,7 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/t
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { useDepositPrefillAmount } from './useDepositPrefillAmount';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -107,6 +108,19 @@ export function useTransactionCustomAmount({
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
+
+  const depositPrefill = useDepositPrefillAmount();
+
+  const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
+  useEffect(() => {
+    if (depositPrefill.hasPrefilled) {
+      setAmountFiat(depositPrefill.prefillAmount ?? '0');
+    } else if (prevHasPrefilled.current) {
+      setAmountFiat('0');
+    }
+    prevHasPrefilled.current = depositPrefill.hasPrefilled;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [depositPrefill.hasPrefilled]);
 
   // Gating mirrors useFiatBuyLimitAlert so the keypad cap and the limit alert agree.
   const { enabledTransactionTypes } = useMMPayFiatConfig();
@@ -312,6 +326,9 @@ export function useTransactionCustomAmount({
     amountHuman,
     amountHumanDebounced,
     hasInput,
+    isDepositPrefillEnabled: depositPrefill.enabled,
+    isDepositPrefilled: depositPrefill.hasPrefilled,
+    isDepositPrefillLoading: depositPrefill.isLoading,
     isInputChanged,
     isPrefillPending,
     updatePendingAmount,

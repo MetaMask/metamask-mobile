@@ -4964,6 +4964,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           depositLimit: {
             moneyAccountDeposit: 100000,
           },
+          prefilledAmount: {
+            default: {
+              enabled: false,
+            },
+            overrides: {
+              moneyAccountDeposit: {
+                enabled: true,
+              },
+            },
+          },
           enableDepositWalletWithdraw: true,
           enableMoneyAccountTransactions: {
             predictDeposit: true,

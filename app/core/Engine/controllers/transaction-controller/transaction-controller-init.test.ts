@@ -251,6 +251,7 @@ describe('Transaction Controller Init', () => {
       stxDisabled: false,
       enableDepositWalletWithdraw: false,
       enableMoneyAccountTransactions: {},
+      prefilledAmount: { default: { enabled: false }, overrides: {} },
     });
 
     payHookClassMock.mockReturnValue({
@@ -408,6 +409,7 @@ describe('Transaction Controller Init', () => {
         stxDisabled: true,
         enableDepositWalletWithdraw: false,
         enableMoneyAccountTransactions: {},
+        prefilledAmount: { default: { enabled: false }, overrides: {} },
       });
 
       const hooks = testConstructorOption('hooks');
@@ -427,6 +429,7 @@ describe('Transaction Controller Init', () => {
         stxDisabled: false,
         enableDepositWalletWithdraw: false,
         enableMoneyAccountTransactions: {},
+        prefilledAmount: { default: { enabled: false }, overrides: {} },
       });
 
       const hooks = testConstructorOption('hooks');
