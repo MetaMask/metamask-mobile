@@ -5,6 +5,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import PaymentMethodRow from '../payment-method-row';
 import { PayWithSectionConfig } from '../../modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 
@@ -14,6 +15,7 @@ export interface PayWithSectionProps {
 
 const PayWithSection = ({ config }: PayWithSectionProps) => {
   const testID = config.testID ?? `pay-with-section-${config.id}`;
+  const surfaceClass = useElevatedSurface();
 
   return (
     <Box twClassName="py-2" testID={testID}>
@@ -27,7 +29,7 @@ const PayWithSection = ({ config }: PayWithSectionProps) => {
           {config.title.toUpperCase()}
         </Text>
       ) : null}
-      <Box twClassName="bg-default" testID={`${testID}-rows`}>
+      <Box twClassName={surfaceClass} testID={`${testID}-rows`}>
         {config.rows.map((row) => (
           <PaymentMethodRow key={row.id} {...row} />
         ))}

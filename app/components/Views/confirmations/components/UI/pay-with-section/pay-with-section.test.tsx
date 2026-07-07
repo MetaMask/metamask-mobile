@@ -8,6 +8,12 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockUseElevatedSurface = jest.fn(() => 'bg-default');
+
+jest.mock('../../../../../../util/theme/themeUtils', () => ({
+  useElevatedSurface: () => mockUseElevatedSurface(),
+}));
+
 const buildConfig = (
   overrides: Partial<PayWithSectionConfig> = {},
 ): PayWithSectionConfig => ({
@@ -25,6 +31,16 @@ const buildConfig = (
 });
 
 describe('PayWithSection', () => {
+  beforeEach(() => {
+    mockUseElevatedSurface.mockReturnValue('bg-default');
+  });
+
+  it('uses elevated surface class for the rows container', () => {
+    render(<PayWithSection config={buildConfig()} />);
+
+    expect(mockUseElevatedSurface).toHaveBeenCalled();
+  });
+
   it('renders section title in uppercase', () => {
     const { getByTestId } = render(<PayWithSection config={buildConfig()} />);
 

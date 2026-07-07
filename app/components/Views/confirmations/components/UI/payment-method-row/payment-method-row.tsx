@@ -15,6 +15,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import {
   PayWithRowConfig,
   PayWithRowTagRenderer,
@@ -74,6 +75,7 @@ const PaymentMethodRow = ({
   testID,
 }: PaymentMethodRowProps) => {
   const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
   const resolvedTestID = testID ?? `payment-method-row-${id}`;
   const iconSlotTestID = `${resolvedTestID}-icon-slot`;
   const tag = renderFirstTag(tagRenderers);
@@ -132,7 +134,7 @@ const PaymentMethodRow = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName={`px-4 py-3 ${
-          isSelected ? 'bg-section' : 'bg-default'
+          isSelected ? 'bg-section' : surfaceClass
         } ${disabled ? 'opacity-50' : ''}`}
         testID={resolvedTestID}
       >
@@ -150,7 +152,7 @@ const PaymentMethodRow = ({
       style={({ pressed }) =>
         tw.style(
           'flex-row items-center px-4 py-3',
-          isSelected ? 'bg-section' : 'bg-default',
+          isSelected ? 'bg-section' : surfaceClass,
           pressed && !disabled ? 'bg-pressed' : '',
           disabled ? 'opacity-50' : '',
         )
