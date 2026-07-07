@@ -127,11 +127,11 @@ describe('NotificationSettingsSection', () => {
     expect(screen.getByText(marketingDisclaimer)).toBeOnTheScreen();
   });
 
-  it('renders a wallet activity deselect all button when any account is enabled', () => {
+  it('renders a Wallet activity deselect all button when any account is enabled', () => {
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, swaps',
     });
 
     const button = screen.getByTestId(
@@ -144,13 +144,13 @@ describe('NotificationSettingsSection', () => {
     expect(mockToggleAllAccounts).toHaveBeenCalledTimes(1);
   });
 
-  it('renders a wallet activity select all button when every account is disabled', () => {
+  it('renders a Wallet activity select all button when every account is disabled', () => {
     mockHasEnabledAccount = false;
 
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, swaps',
     });
 
     expect(screen.getByText('Select all')).toBeOnTheScreen();
@@ -233,8 +233,8 @@ describe('NotificationSettingsSection', () => {
     );
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, swaps',
     });
 
     const pushToggle = screen.getByTestId(
@@ -274,8 +274,8 @@ describe('NotificationSettingsSection', () => {
       .mockResolvedValueOnce(undefined);
     renderSection({
       type: 'walletActivity',
-      title: 'Wallet Activity',
-      description: 'Buy, sells, transfers, swaps and rewards',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, swaps',
     });
 
     fireEvent(

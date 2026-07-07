@@ -363,7 +363,7 @@ describe('TopTradersView', () => {
         type: 'socialAI',
         title: 'Trading Signals',
         description:
-          'Updates from traders and assets you follow, plus currated market news',
+          'Updates from traders and assets you follow, plus curated market news',
       },
     });
   });
