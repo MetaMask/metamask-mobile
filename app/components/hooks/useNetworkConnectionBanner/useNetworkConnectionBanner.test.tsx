@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 import useNetworkConnectionBanner from './useNetworkConnectionBanner';
-import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
@@ -18,7 +18,7 @@ import {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 
 jest.mock('@react-navigation/native');
-jest.mock('../../../core/Engine');
+jest.mock('../../../hooks/useMessenger');
 jest.mock('../useAnalytics/useAnalytics');
 jest.mock('../../../selectors/networkConnectionBanner');
 jest.mock('../../../core/Engine/controllers/network-controller/utils', () => ({
@@ -39,7 +39,7 @@ const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
 
-const switchToDefaultInfuraRpcEndpointMock = jest.fn(async () => undefined);
+const mockMessengerCall = jest.fn(async () => undefined);
 
 const selectorMock = jest.mocked(selectNetworkConnectionBannerState);
 
@@ -67,12 +67,7 @@ describe('useNetworkConnectionBanner', () => {
       createEventBuilder: mockCreateEventBuilder,
     });
 
-    // @ts-expect-error - mocking Engine context
-    Engine.context = {
-      NetworkConnectionBannerController: {
-        switchToDefaultInfuraRpcEndpoint: switchToDefaultInfuraRpcEndpointMock,
-      },
-    };
+    (useMessenger as jest.Mock).mockReturnValue({ call: mockMessengerCall });
   });
 
   const renderHookWithProviders = () => {
@@ -190,7 +185,7 @@ describe('useNetworkConnectionBanner', () => {
         await result.current.switchToInfura();
       });
 
-      expect(switchToDefaultInfuraRpcEndpointMock).not.toHaveBeenCalled();
+      expect(mockMessengerCall).not.toHaveBeenCalled();
     });
 
     it('is a no-op when no Infura endpoint is available', async () => {
@@ -209,7 +204,7 @@ describe('useNetworkConnectionBanner', () => {
         await result.current.switchToInfura();
       });
 
-      expect(switchToDefaultInfuraRpcEndpointMock).not.toHaveBeenCalled();
+      expect(mockMessengerCall).not.toHaveBeenCalled();
     });
 
     it('delegates to the controller, fires analytics, and shows a success toast', async () => {
@@ -228,7 +223,10 @@ describe('useNetworkConnectionBanner', () => {
         await result.current.switchToInfura();
       });
 
-      expect(switchToDefaultInfuraRpcEndpointMock).toHaveBeenCalledWith('0x89');
+      expect(mockMessengerCall).toHaveBeenCalledWith(
+        'NetworkConnectionBannerController:switchToDefaultInfuraRpcEndpoint',
+        '0x89',
+      );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
       );
@@ -241,9 +239,7 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     it('does not show the toast when the controller rejects', async () => {
-      switchToDefaultInfuraRpcEndpointMock.mockRejectedValueOnce(
-        new Error('boom'),
-      );
+      mockMessengerCall.mockRejectedValueOnce(new Error('boom'));
       selectorMock.mockReturnValue({
         visible: true,
         chainId: '0x89',

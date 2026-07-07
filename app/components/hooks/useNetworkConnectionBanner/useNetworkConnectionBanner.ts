@@ -3,7 +3,8 @@ import { useSelector } from 'react-redux';
 import { hexToNumber } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
-import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
+import type { RouteMessengerInstance } from '../../Views/Wallet/messenger';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -44,6 +45,7 @@ const useNetworkConnectionBanner = (): {
   switchToInfura: () => Promise<void>;
 } => {
   const navigation = useNavigation();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const networkConnectionBannerState = useSelector(
@@ -126,7 +128,8 @@ const useNetworkConnectionBanner = (): {
     );
 
     try {
-      await Engine.context.NetworkConnectionBannerController.switchToDefaultInfuraRpcEndpoint(
+      await messenger.call(
+        'NetworkConnectionBannerController:switchToDefaultInfuraRpcEndpoint',
         chainId,
       );
 
@@ -149,7 +152,13 @@ const useNetworkConnectionBanner = (): {
         error,
       );
     }
-  }, [networkConnectionBannerState, trackEvent, createEventBuilder, toastRef]);
+  }, [
+    networkConnectionBannerState,
+    messenger,
+    trackEvent,
+    createEventBuilder,
+    toastRef,
+  ]);
 
   return {
     networkConnectionBannerState,
