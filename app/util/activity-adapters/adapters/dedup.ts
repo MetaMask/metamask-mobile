@@ -10,15 +10,14 @@ function getItemHash(item: ActivityListItem): string | undefined {
 }
 
 /**
- * Merges local-EVM, API-confirmed-EVM, non-EVM, and domain (perps/predict)
- * ActivityListItem arrays into a single list sorted newest-first, deduplicated
- * by hash.
+ * Merges local-EVM, API-confirmed-EVM, non-EVM, and domain
+ * (perps/predict/ramp) ActivityListItem arrays into a single list sorted
+ * newest-first, deduplicated by hash.
  *
- * Precedence: domain (perps/predict) > confirmed EVM > local EVM > non-EVM.
- * Domain items win because a perps/predict deposit/withdrawal is also a real
- * EVM transaction — the API/local copy of the same hash maps to a generic kind
- * (e.g. `contractInteraction`), while the domain copy carries the specific kind
- * (`perpsAddFunds`, `predictionsAddFunds`, …) the row needs.
+ * Precedence: domain (perps/predict/ramp) > confirmed EVM > local EVM >
+ * non-EVM. Domain items win because a perps/predict/ramp deposit/withdrawal is
+ * also a real EVM transaction — the API/local copy of the same hash maps to a
+ * generic kind, while the domain copy carries the specific kind the row needs.
  *
  * IMPORTANT — this hash-based cross-source dedup only holds for items whose
  * `hash` is the real on-chain tx hash: perps/predict deposits & withdrawals
@@ -46,13 +45,14 @@ export function mergeActivityItems(
   nonEvmItems: ActivityListItem[],
   perpsItems: ActivityListItem[] = [],
   predictItems: ActivityListItem[] = [],
+  rampItems: ActivityListItem[] = [],
 ): ActivityListItem[] {
   const seenHashes = new Set<string>();
   const result: ActivityListItem[] = [];
 
   // Domain items carry the most specific activity kinds — seed them first so
   // the EVM copies of the same on-chain deposit/withdrawal dedupe away.
-  for (const item of [...perpsItems, ...predictItems]) {
+  for (const item of [...perpsItems, ...predictItems, ...rampItems]) {
     const hash = getItemHash(item);
     if (hash) {
       if (seenHashes.has(hash)) continue;

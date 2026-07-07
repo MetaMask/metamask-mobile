@@ -37,6 +37,7 @@ import {
   isSameAsset,
   selectDefaultSourceToken,
 } from '../../../utils/tokenSelection';
+import { useDestTokenExchangeRate } from './hooks/useDestTokenExchangeRate';
 import { usePayWithTokens } from './hooks/usePayWithTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
 import { useQuickBuyController } from './hooks/useQuickBuyController';
@@ -115,6 +116,10 @@ jest.mock('./hooks/useReceiveTokens', () => ({
 
 jest.mock('./hooks/usePositionTokenBalance', () => ({
   usePositionTokenBalance: jest.fn().mockReturnValue(undefined),
+}));
+
+jest.mock('./hooks/useDestTokenExchangeRate', () => ({
+  useDestTokenExchangeRate: jest.fn().mockReturnValue(undefined),
 }));
 
 jest.mock('./hooks/useQuickBuyQuotes', () => ({
@@ -408,6 +413,7 @@ const setupDefaultMocks = () => {
 
   (useReceiveTokens as jest.Mock).mockReturnValue([]);
   (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+  (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
   (usePayWithTokens as jest.Mock).mockReturnValue({
     options: [createSourceToken()],
     isLoading: false,
@@ -1536,6 +1542,97 @@ describe('useQuickBuyController', () => {
 
       expect(result.current.formattedExchangeRate).toMatch(/^1 SOL = /);
       expect(result.current.formattedExchangeRate).not.toMatch(/^1 GIGA = /);
+    });
+
+    it('shows the pre-quote rate from the balance-independent lookup when the user holds no balance of the buy token', () => {
+      const solToken = createSourceToken({
+        symbol: 'SOL',
+        currencyExchangeRate: 150,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [solToken],
+        isLoading: false,
+      });
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: '0xDEST',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'GIGA',
+          name: 'Gigachad',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      // User holds no balance of GIGA, so the position-token rate is undefined…
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+      // …but the display-only lookup still resolves a price for it.
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(0.006375);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget({ tokenSymbol: 'GIGA' }), jest.fn()),
+      );
+
+      expect(result.current.formattedExchangeRate).toMatch(/^1 SOL = /);
+    });
+
+    it('shows the pre-quote rate from the host-supplied token price when the user holds no balance and no market data exists', () => {
+      const solToken = createSourceToken({
+        symbol: 'SOL',
+        currencyExchangeRate: 150,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [solToken],
+        isLoading: false,
+      });
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: '0xDEST',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'GIGA',
+          name: 'Gigachad',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      // No balance and no cached market-data rate…
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
+
+      // …but the host passes the chart price for the buy token.
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({ tokenSymbol: 'GIGA' }),
+          jest.fn(),
+          {
+            tokenPriceFiat: 0.95625,
+          },
+        ),
+      );
+
+      expect(result.current.formattedExchangeRate).toMatch(/^1 SOL = /);
+    });
+
+    it('does not render a pre-quote rate when neither the lookup nor the held balance resolves a price', () => {
+      const solToken = createSourceToken({
+        symbol: 'SOL',
+        currencyExchangeRate: 150,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [solToken],
+        isLoading: false,
+      });
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget({ tokenSymbol: 'GIGA' }), jest.fn()),
+      );
+
+      expect(result.current.formattedExchangeRate).toBeUndefined();
     });
   });
 
@@ -2730,6 +2827,83 @@ describe('useQuickBuyController', () => {
 
       expect(mockTrackQuoteSelected).toHaveBeenCalledWith(1, 2);
       expect(result.current.selectedQuoteRequestId).toBe('quote-b');
+    });
+
+    it('drops a manual selection when the next refresh returns a new quote batch', () => {
+      let sortedQuotes = [
+        quoteWithRequestId('quote-a'),
+        quoteWithRequestId('quote-b'),
+      ];
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      }));
+
+      const props = { target: createTarget(), onClose: jest.fn() };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      // Lock onto a genuinely different provider (index 1).
+      act(() => {
+        result.current.handleSelectQuote('quote-b');
+      });
+      expect(result.current.selectedQuoteRequestId).toBe('quote-b');
+
+      // Auto-refresh is never paused, so the next batch (new requestIds) drops
+      // the selection and the active quote falls back to the recommended.
+      sortedQuotes = [
+        quoteWithRequestId('quote-c'),
+        quoteWithRequestId('quote-d'),
+      ];
+      rerender(props);
+      expect(result.current.selectedQuoteRequestId).toBeUndefined();
+    });
+
+    it('never asks the quotes hook to pause auto-refresh', () => {
+      const sortedQuotes = [quoteWithRequestId('quote-a')];
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.setSelectedQuoteRequestId('quote-a');
+      });
+
+      // Selecting a quote must not pass a `pauseAutoRefresh` flag — refresh
+      // always runs (streams terminate on their own via the server `complete`).
+      const lastCall = (useQuickBuyQuotes as jest.Mock).mock.calls.at(-1)?.[0];
+      expect(lastCall).not.toHaveProperty('pauseAutoRefresh');
     });
   });
 

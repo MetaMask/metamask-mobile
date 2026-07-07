@@ -102,6 +102,9 @@
       "message": "{{amount}}未満を追加するか、別のトークンを使用してください。",
       "title": "資金不足"
     },
+    "insufficient_pay_method_balance": {
+      "message": "追加する額を減らすか、別の支払方法を使用してください。"
+    },
     "insufficient_pay_token_native": {
       "message": "手数料の支払いに十分な{{ticker}}がありません。続行するには、別のネットワークのトークンを使用するか、{{ticker}}をさらに追加してください。",
       "title": "資金不足"
@@ -111,7 +114,7 @@
       "title": "クォート後に必要な資金が不足しています"
     },
     "no_pay_token_quotes": {
-      "message": "This payment route isn't available right now. Try changing the amount or payment method and we'll find the best option.",
+      "message": "この決済ルートは現在ご利用いただけません。金額または支払方法を変更してみてください。最善のオプションをお探しいたします。",
       "title": "クォートがありません"
     },
     "account_no_funds": {
@@ -119,7 +122,10 @@
       "title": "資金不足"
     },
     "fiat_buy_amount_limit": {
-      "title": "Amount out of range"
+      "title": "金額が範囲外です"
+    },
+    "deposit_limit": {
+      "title": "最高入金額: {{amount}}"
     },
     "headless_buy_error": {
       "title": "法定通貨の購入に失敗しました",
@@ -443,7 +449,7 @@
     "forgot_password": "パスワードを忘れた場合",
     "cant_proceed": "「Delete」と入力するまで先に進めません。これにより、現在のウォレットが消去されます。",
     "invalid_password": "パスワードが正しくありません。もう一度お試しください。",
-    "type_delete": "Type ‘{{erase}}’ to confirm",
+    "type_delete": "確認のため「{{erase}}」と入力してください",
     "erase_my": "はい、ウォレットをリセットします",
     "cancel": "キャンセル",
     "are_you_sure": "よろしいですか？",
@@ -610,6 +616,8 @@
     "invalid_qr_code_title": "無効なQRコード",
     "invalid_qr_code_message": "QRコードが有効な秘密のリカバリーフレーズを表していません",
     "enter_your_secret_recovery_phrase": "シークレットリカバリーフレーズを入力",
+    "or": "または",
+    "import_wallet_from_extension": "MetaMask拡張機能からインポート",
     "metamask_password": "MetaMaskのパスワード",
     "metamask_password_description": "このデバイスでのみMetaMaskのロックが解除されます。",
     "seed_phrase_required": "シークレットリカバリーフレーズは必須です",
@@ -1038,9 +1046,11 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Weekly Top Traders",
+      "title": "週間トップトレーダー",
       "chain_filter": {
-        "all": "すべて"
+        "all": "すべて",
+        "tokens": "トークン",
+        "perps": "パーペチュアル"
       }
     },
     "notification_preferences": {
@@ -1072,8 +1082,8 @@
       "followers_count": "{{count}}人のフォロワー",
       "followers_count_plural": "{{count}}人のフォロワー",
       "win_rate": "勝率",
-      "pnl_30d": "30D Return",
-      "hold_time": "ホールドタイム",
+      "pnl_7d": "7日間の損益額",
+      "hold_time": "平均保持時間",
       "hold_time_minutes": "{{count}}分",
       "hold_time_hours": "{{count}}時間",
       "hold_time_days": "{{count}}日",
@@ -1084,24 +1094,31 @@
       "twitter_link": "X (Twitter) で表示",
       "sort": {
         "value": "価値",
+        "top_trades": "Top Trades",
         "pnl_percent": "損益額 %",
         "recent": "最近"
       }
     },
     "trader_position": {
       "market_cap": "時価総額",
+      "price": "価格",
       "position": "ポジション",
-      "trades": "取引",
       "buy": "購入",
-      "bought": "{{name}}さんが購入しました",
-      "sold": "{{name}}さんが売却しました",
-      "no_trades": "No trades yet",
+      "trade": "取引",
+      "unsupported_market": "サポートされていない市場",
+      "bought": "購入しました",
+      "sold": "売却しました",
+      "no_trades": "まだ取引はありません",
       "closed_position": "ポジションをクローズ",
       "fallback_title": "ポジションが利用できません",
       "fallback_subtitle": "現在、このポジションを読み込むことができません。",
       "fallback_back_to_profile": "プロフィールに戻る",
       "fallback_back_to_leaderboard": "リーダーボードに戻る",
-      "sell": "売却"
+      "sell": "売却",
+      "long": "ロング",
+      "short": "ショート",
+      "opened": "オープンしました",
+      "closed_action": "クローズ済み"
     },
     "quick_buy": {
       "title": "{{symbol}}を購入",
@@ -1116,6 +1133,8 @@
       "price_impact": "プライスインパクト",
       "est_points": "推定ポイント数",
       "no_quotes": "このトークンの見積もりはご利用いただけません",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "読み込み中...",
       "unavailable": "スワップはご利用いただけません",
       "unsupported_chain": "このチェーンはまだクイック購入に対応していません",
@@ -1127,23 +1146,22 @@
       "toggle_amount_display": "トークンとドルでの金額を切り替える",
       "includes_mm_fee": "{{fee}}%のMM手数料込み",
       "pay_with_no_tokens": "支払いに利用できるトークンがありません",
-      "receive_with_no_tokens": "No tokens available to receive",
+      "receive_with_no_tokens": "受け取れるトークンがありません",
       "pay_with_filter_all": "すべて",
       "buy_label": "購入",
       "sell_label": "売却",
       "receive": "受取",
-      "toast_pending_buy": "Buying {{amount}} of {{symbol}} with {{counter}}",
-      "toast_pending_sell": "Selling {{amount}} of {{symbol}} for {{counter}}",
-      "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
-      "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
-      "toast_failed_buy": "Couldn't buy {{symbol}}",
-      "toast_failed_sell": "Couldn't sell {{symbol}}"
+      "toast_pending_buy": "{{amount}} {{symbol}}を{{counter}}で購入",
+      "toast_pending_sell": "{{amount}} {{symbol}}を{{counter}}で売却",
+      "toast_complete_buy": "{{amount}} {{symbol}}を{{counter}}で購入しました",
+      "toast_complete_sell": "{{amount}} {{symbol}}を{{counter}}で売却しました",
+      "toast_failed_buy": "{{symbol}}を購入できませんでした",
+      "toast_failed_sell": "{{symbol}}を売却できませんでした"
     }
   },
   "perps": {
     "basic_functionality_disabled_title": "パーペチュアルは利用できません",
     "title": "パーペチュアル",
-    "transfer_to_perps": "Transfer to Perps",
     "perps_trading": "パーペチュアル取引",
     "perp_account_balance": "パーペチュアルアカウント残高",
     "manage_balance": "残高の管理",
@@ -1178,8 +1196,8 @@
     "trade_perps": "パーペチュアルを取引",
     "trade_perps_description": "資産の先物価格を取引するにはパーペチュアルをご利用ください。取引を始めるには、パーペチュアルアカウントに入金してください。",
     "available": "使用可能",
-    "select_perps_account": "Select perps account",
-    "search_account": "Search an account",
+    "select_perps_account": "パーペチュアルアカウントの選択",
+    "search_account": "アカウントの検索",
     "deposit_in_progress": "デポジット処理中",
     "withdraw_in_progress": "出金が進行中です",
     "multiple_transactions_in_progress": "トランザクションが進行中です",
@@ -1452,7 +1470,7 @@
         "drops": "下落",
         "rises": "上昇",
         "set_leverage": "{{leverage}}倍に設定",
-        "price_unavailable": "Price information unavailable"
+        "price_unavailable": "価格情報はご利用いただけません"
       },
       "type": {
         "title": "注文タイプ",
@@ -1849,7 +1867,7 @@
       "position": "ポジション",
       "orders": "注文",
       "go_to_activity": "アクティビティに移動",
-      "related_markets": "Related markets",
+      "related_markets": "関連市場",
       "recent_trades": "最近のアクティビティ",
       "no_trades": "最近のアクティビティはありません",
       "trading_24_7": "この資産は24時間365日取引できます",
@@ -1862,8 +1880,8 @@
         "crypto": "仮想通貨",
         "forex": "FX",
         "stock": "株式",
-        "pre-ipo": "PRE-IPO",
-        "index": "INDEX",
+        "pre-ipo": "プレIPO",
+        "index": "インデックス",
         "etf": "ETF"
       }
     },
@@ -2043,12 +2061,12 @@
       "stocks_and_commodities": "株式や商品先物を探す",
       "tabs": {
         "crypto": "仮想通貨",
-        "pre_ipo": "Pre-IPO",
+        "pre_ipo": "プレIPO",
         "forex": "FX",
         "new": "新登場",
         "stock": "株式",
-        "index": "Indices",
-        "etf": "ETFs",
+        "index": "インデックス",
+        "etf": "ETF",
         "commodity": "商品"
       },
       "filter_by": "絞り込み条件：",
@@ -2057,10 +2075,10 @@
       "markets": "市場",
       "explore_markets": "市場を探索",
       "see_all_perps": "すべてのパーペチュアルを表示",
-      "products": "Products",
-      "top_movers": "Top movers",
-      "gainers": "Gainers",
-      "losers": "Losers"
+      "products": "商品",
+      "top_movers": "注目銘柄",
+      "gainers": "上昇銘柄",
+      "losers": "下落銘柄"
     },
     "learn_more": {
       "title": "パーペチュアルの詳細",
@@ -2145,14 +2163,14 @@
     "no_favorites_found": "ウォッチリストに市場がありません",
     "no_favorites_description": "市場の星アイコンをタップして、ウォッチリストに追加します",
     "watchlist": {
-      "empty_title": "Start with the most-traded markets",
-      "empty_subtitle": "Tap + to add a market to your watchlist.",
-      "show_more": "Show {{count}} more",
+      "empty_title": "取引量の多い市場から始めましょう",
+      "empty_subtitle": "+ をタップしてウォッチリストに市場を追加します。",
+      "show_more": "他{{count}}件を表示",
       "show_less": "表示を戻す",
-      "add_error": "Failed to add market to watchlist",
-      "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
+      "add_error": "ウォッチリストへの市場の追加に失敗しました",
+      "limit_reached": "ウォッチリストの上限に達しました（最大{{limit}}市場）",
       "filter_badge_label": "ウォッチリスト",
-      "suggested": "Suggested"
+      "suggested": "おすすめ"
     },
     "no_tokens_found": "トークンが見つかりませんでした",
     "no_tokens_found_description": "「{{searchQuery}}」という名前のトークンが見つかりませんでした。別の検索をお試しください。",
@@ -2288,7 +2306,7 @@
       "referral_code_text": "私の紹介コードを使って追加の報酬を獲得しましょう。"
     },
     "market_details": {
-      "category_search": "Browse related markets"
+      "category_search": "関連マーケットの閲覧"
     }
   },
   "market_insights": {
@@ -2324,22 +2342,19 @@
   },
   "predict": {
     "title": "MetaMask 予測",
-    "transfer_to_predictions": "Transfer to Predictions",
-    "select_predict_account": "Select predict account",
-    "search_account": "Search an account",
+    "select_predict_account": "予測アカウントの選択",
+    "search_account": "アカウントの検索",
     "home": {
       "live_now_title": "現在進行中",
-      "categories_placeholder": "Categories",
-      "trending_placeholder": "人気上昇中"
+      "categories_placeholder": "カテゴリー"
     },
     "homepage_discovery": {
       "btc_title": "BTCの価格: {{price}}",
       "btc_price_to_beat": "超えるべき価格: {{price}}",
       "btc_live": "ライブ",
-      "nba_2026_champion_title": "NBA 2026チャンピオン",
       "fifa_world_cup_2026_title": "FIFAワールドカップ2026",
       "events_in_total": "合計{{count}}件のイベント",
-      "events_in_total_overflow": "{{count}}+ markets in total",
+      "events_in_total_overflow": "合計{{count}}件以上の市場",
       "props_pill": "プロップベット",
       "championship_unavailable": "まだ表示するチャンピオンシップマーケットがありません。",
       "mens_world_cup_title": "男子ワールドカップ",
@@ -2349,20 +2364,24 @@
     },
     "world_cup": {
       "title": "ワールドカップ",
-      "predictions_title": "World Cup predictions",
+      "predictions_title": "ワールドカップ予測",
       "banner_title": "ワールドカップ2026",
       "banner_description": "あらゆる試合、あらゆる瞬間を取引できます。",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "すべて",
         "props": "プロップベット",
-        "live": "ライブ"
+        "live": "ライブ",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "グループステージ",
         "round_of_32": "ラウンド32",
         "round_of_16": "ラウンド16",
-        "quarterfinals": "Quarter-finals",
-        "semifinals": "Semi-finals",
+        "quarterfinals": "準々決勝",
+        "semifinals": "準決勝",
         "third_place": "3位",
         "final": "決勝",
         "group_a": "グループA",
@@ -2429,14 +2448,14 @@
       "resolved_markets": "決着済みのマーケット"
     },
     "positions_empty": {
-      "description": "Your predictions will appear here, showing your stake and market movements",
+      "description": "ここにお客様の予測、保有額、およびマーケットの動きが表示されます",
       "browse_markets": "マーケットを閲覧"
     },
     "tabs": {
       "about": "情報",
-      "active_positions": "Active positions",
+      "active_positions": "アクティブなポジション",
       "positions": "ポジション",
-      "history": "History",
+      "history": "履歴",
       "outcomes": "結果"
     },
     "outcome_groups": {
@@ -2473,8 +2492,8 @@
       "assists": "アシスト",
       "rebounds": "リバウンド",
       "basketball_total_points": "合計",
-      "basketball_odd_even": "Odd/Even Score",
-      "basketball_team_to_score_first": "Team to Score First",
+      "basketball_odd_even": "奇数・偶数の得点",
+      "basketball_team_to_score_first": "先制点を取るチーム",
       "goalscorers": "ゴールスコアラー",
       "exact_score": "正確なスコア",
       "halftime_result": "ハーフタイムの結果",
@@ -2487,9 +2506,10 @@
       "soccer_anytime_goalscorer": "ゴールスコアラー",
       "soccer_exact_score": "正確なスコア",
       "soccer_halftime_result": "ハーフタイムの結果",
+      "soccer_first_to_score": "First Team to Score",
       "total_corners": "コーナー",
       "tennis_set_totals": "合計セット数",
-      "tennis_set_handicap": "Set Handicap",
+      "tennis_set_handicap": "ハンディキャップの設定",
       "tennis_match_totals": "合計ゲーム数",
       "tennis_first_set_totals": "第1セットの合計ゲーム数",
       "tennis_first_set_winner": "第1セットの勝者",
@@ -2536,12 +2556,12 @@
     },
     "feed": {
       "live": "ライブ",
-      "popular_today": "Popular today",
+      "popular_today": "本日人気",
       "tabs": {
         "basketball": "バスケットボール",
         "tennis": "テニス",
         "soccer": "サッカー",
-        "baseball": "Baseball",
+        "baseball": "野球",
         "football": "フットボール"
       },
       "filters": {
@@ -2610,11 +2630,11 @@
       "buy_title": "予測済み",
       "sell_title": "キャッシュアウト済み",
       "claim_title": "報酬を請求しました",
-      "claim_pending": "Claim pending",
-      "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, opens market details",
-      "prediction_lost_title": "Prediction lost",
-      "prediction_resolved_title": "Prediction resolved",
-      "prediction_won_title": "Prediction won",
+      "claim_pending": "請求保留中",
+      "claim_pending_accessibility_label": "{{predictionStatus}}、{{marketTitle}}、市場の詳細を表示",
+      "prediction_lost_title": "予測が外れました",
+      "prediction_resolved_title": "予測が確定しました",
+      "prediction_won_title": "予測が当たりました",
       "buy_detail": "{{outcome}}に{{amountUsd}}購入しました (1シェアあたり{{priceCents}})",
       "sell_detail": "1シェアあたり{{priceCents}}で売却しました",
       "claim_detail": "報酬を請求しました",
@@ -2738,7 +2758,7 @@
     "error": {
       "title": "予想に接続できません",
       "description": "予想市場が一時的にオフライン状態です。接続が安定していることを確認して、もう一度お試しください。",
-      "chart_connection_error": "There is an issue connecting. Please try again later.",
+      "chart_connection_error": "接続に問題があります。後でもう一度お試しください。",
       "retry": "再試行"
     },
     "error_messages": {
@@ -3013,7 +3033,64 @@
     "disclaimer": "開示事項: MetaMaskはソースURLからメディアファイルを取得します。このURLは、NFTがミントされたマーケットプレイスによって変更されることがあります。"
   },
   "activity_view": {
-    "title": "アクティビティ"
+    "title": "アクティビティ",
+    "search_placeholder": "トークン、トランザクションの種類の検索…",
+    "filter_all_networks": "すべてのネットワーク",
+    "filter_all_types": "全種類",
+    "filter_types_selected": "種類：{{label}}",
+    "filter_network_selected": "ネットワーク：{{label}}",
+    "type_filter": {
+      "title": "種類",
+      "all": "全種類",
+      "transactions": "トランザクション",
+      "buy_sell": "購入/売却",
+      "perps": "パーペチュアル",
+      "predictions": "予測",
+      "metamask_card": "カード",
+      "money": "マネー"
+    },
+    "empty_state": {
+      "default_funded": {
+        "description": "まだ表示される内容はありません。今すぐ最初のトークンをスワップしましょう。",
+        "action": "トークンをスワップ"
+      },
+      "default_unfunded": {
+        "description": "まだ表示される内容はありません。ウォレットに資金を追加して、さっそく始めましょう。",
+        "action": "資金を追加"
+      },
+      "predictions": {
+        "description": "初めての予測が最高の結果になるかもしれません。",
+        "action": "予測する"
+      },
+      "perps": {
+        "description": "初めてのパーペチュアル取引が最高のものになるかもしれません。",
+        "action": "マーケットを閲覧"
+      },
+      "transactions_funded": {
+        "description": "今すぐ最初のトークンをスワップしましょう。",
+        "action": "トークンをスワップ"
+      },
+      "transactions_unfunded": {
+        "description": "始めるには、ウォレットに資金を追加してください。",
+        "action": "資金を追加"
+      },
+      "buy_sell": {
+        "description": "始めるには、ウォレットに資金を追加してください。",
+        "action": "資金を追加"
+      },
+      "money_funded": {
+        "description": "資金をお持ちなら、MetaMaskマネーで活用しましょう。",
+        "action": "送金"
+      },
+      "money_unfunded": {
+        "description": "MetaMaskマネーに資金を移動して、そのすべての機能を利用しましょう。",
+        "action": "送金"
+      },
+      "metamask_card": {
+        "description": "MetaMaskカードを管理して、どこでも仮想通貨を使いましょう。",
+        "action": "MetaMaskカードを開く"
+      }
+    }
   },
   "transactions_view": {
     "title": "トランザクション"
@@ -3123,10 +3200,10 @@
     "continue": "続行"
   },
   "onboarding_crypto_experience_questionnaire": {
-    "title": "What's your experience with crypto?",
+    "title": "仮想通貨のご経験をお聞かせください",
     "option_new": "新登場",
-    "option_beginner": "Beginner",
-    "option_intermediate": "Intermediate",
+    "option_beginner": "初心者",
+    "option_intermediate": "中級者",
     "option_advanced": "高度な設定",
     "continue": "続行"
   },
@@ -3466,6 +3543,8 @@
       "wallet_activity_desc": "購入、売却、送金、スワップ、リワード",
       "perps_title": "取引アクティビティ",
       "perps_desc": "パーペチュアルポジションの変更、清算、入金レート、証拠金の最新情報",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "取引シグナル",
       "social_ai_desc": "フォローしているトレーダーと資産の最新情報、キュレートされたマーケットニュース",
       "marketing_title": "最新情報とRewards",
@@ -3899,6 +3978,34 @@
     "feature_flag_override": {
       "title": "機能フラグのオーバーライド",
       "description": "アプリの機能のフラグをローカルでオーバーライドします。"
+    },
+    "add_device": {
+      "title": "デバイスを追加",
+      "enter_your_password": "パスワードを入力",
+      "enter_your_password_desc": "アカウントのセキュリティ確保のため、QRコードを表示するにはパスワードを入力してください。",
+      "continue": "続行",
+      "add_wallets": "ウォレットを追加",
+      "add_wallets_desc": "このデバイスで使用するウォレットを選択してください。後から追加や削除ができます。",
+      "select_all": "すべて選択",
+      "scan_qr_code": "QRコードをスキャン",
+      "scan_qr_code_desc": "追加したいデバイス上でMetaMaskアプリを使ってこのコードをスキャンします。",
+      "enter_verification_code": "確認コードを入力",
+      "enter_verification_code_desc": "セキュリティ確保のため、デバイスのMetaMaskアプリ内に表示されているコードを入力してください。",
+      "add_device_to_wallet": "このウォレットをデバイスに追加する",
+      "points": {
+        "one": "他のデバイスでMetaMaskを開きます",
+        "two": "「",
+        "two_bold_one": "設定",
+        "two_bold_two": "デバイスを追加",
+        "two_icon": "に移動します >",
+        "three": "このデバイスでQRコードをスキャンします",
+        "four": "拡張機能でセキュリティコードを入力します"
+      },
+      "scan_qr_code_button": "QRコードをスキャン",
+      "enter_code_on_extension": "拡張機能でコードを入力",
+      "enter_code_on_extension_desc": "セキュリティ確保のため、下のコードをMetaMask拡張機能に入力してください。",
+      "done": "完了",
+      "device_added": "デバイスが追加されました"
     }
   },
   "aes_crypto_test_form": {
@@ -4045,25 +4152,27 @@
     "sell_description": "仮想通貨を売って現金化します"
   },
   "price_alerts": {
-    "create_title": "Create {{ticker}} price alert",
-    "price_reaches": "Price reaches",
+    "create_title": "{{ticker}}価格アラートを作成",
+    "edit_title": "{{ticker}}価格アラートを編集",
+    "price_reaches": "達した上限価格：",
     "price_change": "価格変動",
-    "enter_target_price": "Enter target price",
+    "enter_target_price": "目標価格を入力してください",
     "approx_percent": "≈ {{percent}}%",
-    "approx_percent_above": "above current {{ticker}} price",
-    "approx_percent_below": "below current {{ticker}} price",
-    "recurring": "Recurring",
+    "approx_percent_above": "現在の{{ticker}}価格を上回る",
+    "approx_percent_below": "現在の{{ticker}}価格を下回る",
+    "recurring": "定期",
     "quick_percentage": "{{percentage}}%",
-    "price_change_under_development": "This experience is currently under development",
-    "set_price_alert": "Set price alert",
-    "save_success": "Price alert for {{ticker}} saved successfully.",
-    "delete_success": "Price alert deleted.",
-    "duplicate_threshold": "An alert at this price already exists.",
-    "manage_title": "Price alerts",
-    "add_alert": "Add alert",
-    "reaches_threshold": "Reaches {{threshold}}",
-    "once_label": "Once",
-    "no_alerts": "No price alerts set for this asset."
+    "price_change_under_development": "このエクスペリエンスは現在開発中です",
+    "set_price_alert": "価格アラートの設定",
+    "update_price_alert": "価格アラートの編集",
+    "save_success": "{{ticker}}の価格アラートが正常に保存されました。",
+    "delete_success": "価格アラートが削除されました。",
+    "duplicate_threshold": "この価格でのアラートはすでに存在します。",
+    "manage_title": "価格アラート",
+    "add_alert": "アラートを追加",
+    "reaches_threshold": "{{threshold}}に達します",
+    "once_label": "一度",
+    "no_alerts": "この資産には価格アラートが設定されていません。"
   },
   "asset_overview": {
     "market_closed": "市場が取引時間外です",
@@ -4154,6 +4263,8 @@
       "3y": "3年",
       "all": "すべて"
     },
+    "ma_picker_title": "移動平均",
+    "done": "完了",
     "no_chart_data": {
       "title": "チャートデータがありません",
       "description": "このトークンのデータを取得できませんでした",
@@ -4176,18 +4287,18 @@
     "risky": "リスクのある",
     "malicious_token_title": "悪質なトークン",
     "malicious_token_description": "{{symbol}}は悪意のあるトークンです。やり取りや取引は避けてください。",
-    "malicious_token_description_no_symbol": "This is a malicious token. Avoid interacting with it or trading it.",
+    "malicious_token_description_no_symbol": "これは悪意のあるトークンです。やり取りや取引は避けてください。",
     "malicious_token_banner_description": "{{symbol}}は悪意があるとフラグされています。やり取りした相手から資金を盗む可能性が高いです。",
-    "malicious_token_banner_description_no_symbol": "This token is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "malicious_token_banner_description_no_symbol": "このトークンは悪意があるとフラグされています。やり取りした相手から資金を盗む可能性があります。",
     "suspicious_token_description": "{{symbol}}は不審なトークンです。",
-    "suspicious_token_description_no_symbol": "This is a suspicious token.",
+    "suspicious_token_description_no_symbol": "これは不審なトークンです。",
     "verified_token_title": "確認済みのトークン",
     "verified_token_description": "{{symbol}}はアクティブに取引され、広く認識されています。検証はMetaMaskによる承認ではありません。",
     "risky_token_title": "不審なトークン",
     "risky_token_description": "{{symbol}}は不審であるとフラグされています。続ける前にリスクを確認してください。",
-    "risky_token_description_no_symbol": "This token is flagged as suspicious. Take a look at the risks before you continue.",
+    "risky_token_description_no_symbol": "このトークンは不審であるとフラグされています。続ける前にリスクを確認してください。",
     "malicious_token_sheet_description": "{{symbol}}で深刻なリスクシグナルが検出されました。このトークンは取引しないことをお勧めします。",
-    "malicious_token_sheet_description_no_symbol": "Serious risk signals detected on this token. We recommend not trading this token.",
+    "malicious_token_sheet_description_no_symbol": "このトークンで深刻なリスクシグナルが検出されました。このトークンは取引しないことをお勧めします。",
     "got_it": "了解",
     "proceed": "先に進む",
     "continue_anyway": "それでも続行",
@@ -4459,6 +4570,7 @@
     "confirmed": "確定済み",
     "pending": "保留中",
     "submitted": "送信済み",
+    "queued": "キューに登録されました",
     "failed": "失敗",
     "cancelled": "キャンセル済み",
     "signed": "保留中",
@@ -4652,6 +4764,37 @@
     "tx_review_predict_withdraw": "予測の出金",
     "tx_review_perps_withdraw": "パーペチュアルの引き出し",
     "tx_review_musd_conversion": "mUSDへの変換",
+    "activity_buy": "購入しました",
+    "activity_sell": "売却しました",
+    "activity_claim_musd_bonus": "mUSDのボーナスを請求しました",
+    "activity_wrap": "ラップド",
+    "activity_unwrap": "ラップ解除",
+    "activity_revoke_spending_cap": "支出上限が撤回されました",
+    "activity_nft_mint": "NFTミント",
+    "activity_smart_account_upgrade": "スマートアカウントのアップグレード",
+    "activity_prediction_cashed_out": "予測がキャッシュアウトされました",
+    "activity_prediction_placed": "予測が作成されました",
+    "activity_perps_balance": "パーペチュアル残高",
+    "activity_predictions_balance": "Predictions balance",
+    "activity_prediction_account_funded": "Account funded",
+    "activity_prediction_withdrawal": "Prediction withdrawal",
+    "activity_perps_account_funded": "Account funded",
+    "activity_perps_withdrawal": "Perps withdrawal",
+    "activity_perps_open_long": "ロングをオープンしました",
+    "activity_perps_close_long": "ロングをクローズしました",
+    "activity_perps_close_long_liquidated": "Closed long—liquidated",
+    "activity_perps_close_long_stop_loss": "Closed long—stop loss",
+    "activity_perps_open_short": "ショートをオープンしました",
+    "activity_perps_close_short": "ショートをクローズしました",
+    "activity_perps_close_short_liquidated": "Closed short—liquidated",
+    "activity_perps_close_short_stop_loss": "Closed short—stop loss",
+    "activity_perps_paid_funding_fees": "支払われた資金調達手数料",
+    "activity_perps_received_funding_fees": "受け取った資金調達手数料",
+    "activity_perps_close_short_take_profit": "Closed short—take profit",
+    "activity_perps_close_long_take_profit": "Closed long—take profit",
+    "activity_market_short": "成行ショート",
+    "activity_stop_market_close_short": "Stop market—close short",
+    "activity_market_close_short": "Market—close short",
     "claim": "請求",
     "sent_ether": "ETHを送金しました",
     "self_sent_ether": "ETHを自分に送金しました",
@@ -4815,7 +4958,8 @@
     "between_account": "自分のアカウント間の送金",
     "others": "その他",
     "memo": "メモ",
-    "network": "ネットワーク"
+    "network": "ネットワーク",
+    "custom": "カスタム"
   },
   "duplicate_address": {
     "title": "このアドレスは重複しています",
@@ -5460,8 +5604,8 @@
     "push_onboarding": {
       "new_user": {
         "title": "価格変動を見逃さない",
-        "body": "Get real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
-        "button_yes": "Enable notifications",
+        "body": "価格変動、取引の確認、ポートフォリオの動向、およびMetaMaskの利用状況に応じた報酬に関するリアルタイムの通知を受け取ることができます。",
+        "button_yes": "通知を有効にする",
         "button_not_now": "後で",
         "preview_card_1": {
           "time": "現在",
@@ -5486,7 +5630,7 @@
       },
       "existing_user": {
         "title": "個別アラートのご紹介",
-        "body": "Get notifications that match how you trade, based on how you use MetaMask.",
+        "body": "MetaMaskの利用状況に応じて、ユーザーの取引スタイルに合った通知を受け取ることができます。",
         "card_title": "得られる情報",
         "card_description": "取引状況に合わせた個別のアラートと最新情報をお届けします。",
         "button_confirm": "確定",
@@ -5514,6 +5658,7 @@
   },
   "transaction_update_toast": {
     "title": "トランザクションの更新に失敗しました",
+    "amount_update_title": "エラー",
     "already_confirmed": "このトランザクションはすでに確定済みで、変更できません。"
   },
   "payment_request": {
@@ -5593,11 +5738,11 @@
     "return_home": "ホームページに戻る"
   },
   "agentic_cli_approval": {
-    "title": "Review request",
+    "title": "レビューリクエスト",
     "error": {
       "title": "問題が発生しました",
-      "load_description": "We couldn't load this approval request. Check your connection and try again.",
-      "submit_description": "We couldn't complete this approval. Close this screen and start the CLI request again.",
+      "load_description": "この承認リクエストを読み込めませんでした。接続を確認してもう一度お試しください。",
+      "submit_description": "この承認を完了できませんでした。この画面を閉じて、CLIリクエストを再度開始してください。",
       "try_again": "もう一度お試しください"
     }
   },
@@ -5887,6 +6032,11 @@
     "unsupported_region_modal": {
       "title": "お客様の地域では利用できません",
       "description": "お住まいの地域では、現地の決済サービス業者または規制上の制限により、暗号資産の購入はご利用いただけません。",
+      "got_it": "了解"
+    },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
       "got_it": "了解"
     },
     "region": {
@@ -6252,7 +6402,7 @@
     }
   },
   "invalid_network": {
-    "title": "The chain ID for custom network \n {{network}} \n has to be re-entered.",
+    "title": "カスタムネットワーク\n{{network}}\n のチェーンIDの再入力が必要です。",
     "message": "悪質なプロバイダや欠陥のあるプロバイダから保護するため、すべてのカスタムネットワークにチェーンIDが必要になりました。",
     "hint": "よく利用されているネットワークのチェーンIDは、ほとんどが次の場所で確認できます:",
     "edit_network_button": "ネットワークを編集",
@@ -6905,6 +7055,8 @@
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY情報",
     "balance_unavailable": "残高が利用できません",
+    "balance_unavailable_value": "$—",
+    "balance_unavailable_banner_description": "現在、一時的に残高を表示できません。資金は安全に保管されています。しばらくしてからもう一度お試しください。",
     "balance_retry": "再試行",
     "balance_no_account": "マネーアカウントが見つかりません",
     "onboarding": {
@@ -6916,17 +7068,22 @@
       "step_2": {
         "no_card_account": {
           "title": "MetaMaskカードを取得",
-          "description": "Spend your balance and earn on purchases.",
+          "description": "残高を使えば、購入額に対し収益が得られます。",
           "cta_primary": "カードを取得",
           "cta_secondary": "スキップ"
         },
         "unlinked_card_account": {
           "title": "MetaMaskカードをリンク",
-          "description": "Spend your balance and earn on purchases.",
+          "description": "残高を使えば、購入額に対し収益が得られます。",
           "cta_primary": "カードをリンク",
           "cta_secondary": "スキップ"
         }
       }
+    },
+    "first_time_deposit": {
+      "title": "初回入金完了",
+      "content": "マネーアカウントに入金されました —\n すでに報酬の獲得が始まっています。",
+      "button_text": "完了"
     },
     "rive_onboarding": {
       "step1_title": "マネーアカウントが新登場",
@@ -6936,12 +7093,13 @@
       "step2_body": "取引所手数料なしでステーブルコインを移動できます。報酬の獲得はすぐに開始されます。",
       "step2_footer_text": "マネーアカウントはVedaインフラストラクチャを使用しています。",
       "step3_title": "どこでも使える",
-      "step3_body": "マネーアカウントをMetaMaskカードとリンクさせることで、購入額の最大{{percentage}}%が還元されます。",
+      "step3_body_card_eligible": "マネーアカウントをMetaMask Cardとリンクさせることで、購入額の最大{{percentage}}%が還元されます。",
+      "step3_body_card_ineligible": "まもなく開始！マネーアカウントをMetaMask Cardとリンクさせることで、購入額の最大{{percentage}}%が還元されます。",
       "step3_footer_text": "Steakhouse Financialのモニタリングが含まれています。",
       "step4_title": "取引も報酬の獲得も1か所で",
       "step4_body": "MetaMaskでの取引にマネー残高を利用しながら、引き続き利回りが得られます。",
       "step4_footer_text": "Powered by Monad。",
-      "continue": "続行"
+      "button_text": "続行"
     },
     "action": {
       "add": "追加",
@@ -6956,9 +7114,9 @@
     },
     "how_it_works": {
       "title": "報酬獲得の仕組み",
-      "description_prefix": "Add mUSD and earn up to",
+      "description_prefix": "mUSDを追加して獲得できる最大額",
       "description_suffix": " (変動制)。残高はドルの裏付けがあり、いつでも支払い、取引、送金に利用できます。",
-      "description_no_apy": "Add mUSD. Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_no_apy": "mUSDを追加します。残高はドルの裏付けがあり、いつでもショッピング、取引、送金に利用できます。"
     },
     "musd_row": {
       "add": "追加"
@@ -6982,31 +7140,32 @@
     },
     "metamask_card": {
       "title": "MetaMaskカード",
-      "upsell_title": "Get MetaMask Card",
+      "upsell_title": "MetaMaskカードを取得",
       "subtitle": "どこでもお金を使えます。",
       "virtual_card": "バーチャルカード",
       "metal_card": "メタルカード",
       "cashback": "{{percentage}}%のmUSDを還元",
       "get_now": "今すぐ入手",
       "link_title": "MetaMaskカードをリンク",
-      "link_subtitle": "Spend your balance and earn on purchases.",
-      "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
+      "link_subtitle": "残高を使えば、購入額に対し収益が得られます。",
+      "link_subtitle_no_apy": "残高を使えば、購入額に対し収益が得られます。",
       "link_bullet_cashback": "{{percentage}}%のmUSDを還元",
-      "link_bullet_apy": "Earn up to ~{{apy}}% APY",
+      "link_bullet_apy": "最大{{apy}}%APYを獲得",
       "link_card": "カードをリンク",
       "link_pending_title": "カードのリンク",
       "link_success_title": "カードの使用準備ができました",
       "link_error": "カードのリンク中に問題が発生しました",
-      "unlink_pending_title": "Unlinking your card",
-      "unlink_success_title": "Your card was unlinked",
-      "unlink_error": "Something went wrong unlinking your card",
+      "unlink_pending_title": "カードのリンクを解除",
+      "unlink_success_title": "カードのリンクが解除されました",
+      "unlink_error": "カードのリンク解除中に問題が発生しました",
       "link_card_sheet_title": "使えば貯まる",
       "link_card_sheet_description_prefix": "カードをリンクすると、マネー残高を使用でき、購入時にmUSDが還元されます。しかもキャッシュバックは最大",
       "link_card_sheet_description_suffix": " (変動制)。",
       "link_card_sheet_description_no_apy": "カードをリンクすると、マネー残高を使用でき、購入時にmUSDが還元されます。",
       "link_card_sheet_cta": "カードをリンク",
       "manage_card": "管理",
-      "avail_balance": "利用可能残高"
+      "avail_balance": "利用可能残高",
+      "verification_pending": "現在、ご本人様確認が行われています。通常は12時間以内に完了します。"
     },
     "what_you_get": {
       "title": "得られるもの",
@@ -7016,7 +7175,7 @@
       "benefit_liquidity": "ロックアップなしで完全な流動性が確保され、いつでも取引や引き出しが可能です",
       "benefit_spend_prefix": "1億5000万店舗を超える加盟店でMetaMaskカードを利用して、",
       "benefit_spend_cashback": "1～3%のmUSDを還元",
-      "benefit_transfer": "MetaMaskに登録した任意のウォレットに送金可能",
+      "benefit_transfer": "MetaMaskに登録した任意のウォレットに送金",
       "benefit_global": "世界中と資金をやり取りできます",
       "learn_more": "詳細"
     },
@@ -7026,10 +7185,11 @@
     "add_money_sheet": {
       "title": "資金を追加",
       "convert_crypto": "仮想通貨を変換",
-      "deposit_funds": "Debit card or bank account",
+      "deposit_funds": "デビットカードまたはApple Pay",
+      "bank_account": "銀行口座",
       "move_musd": "{{amount}} mUSD",
-      "add_musd": "Add mUSD",
-      "receive_external": "External address",
+      "add_musd": "mUSDを追加",
+      "receive_external": "外部アドレス",
       "coming_soon": "近日追加予定"
     },
     "more_sheet": {
@@ -7039,41 +7199,54 @@
       "contact_support": "サポートへのお問い合わせ"
     },
     "transfer_sheet": {
-      "title": "Send funds to",
-      "between_accounts": "Another account",
+      "title": "送金先",
+      "between_accounts": "別のアカウント",
       "perps_account": "パーペチュアルアカウント",
       "predictions_account": "予測市場アカウント",
-      "send_external": "External address",
-      "withdraw_to_bank": "Bank account"
+      "send_external": "外部アドレス",
+      "withdraw_to_bank": "銀行口座"
     },
     "toasts": {
       "in_progress_title": "トランザクション進行中",
       "in_progress_body": "これには少し時間がかかるかもしれません。",
       "deposit_in_progress_title_convert": "仮想通貨の換金",
       "deposit_in_progress_title_add_musd": "資金を追加中",
+      "deposit_in_progress_title_card": "入金中",
+      "deposit_in_progress_body_card": "カードのご注文には少し時間がかかるかもしれません。",
       "success_title": "トランザクション完了",
       "deposit_success_title_convert": "換金完了",
       "deposit_success_title_add_musd": "入金されました",
+      "deposit_success_title_card": "デポジット完了",
       "deposit_success_body": "{{amount}}がマネーアカウントに追加されました。",
       "deposit_success_body_no_amount": "マネーアカウントに追加されました。",
-      "withdraw_in_progress_title": "Transfer in progress",
-      "withdraw_success_title": "Transfer complete",
-      "withdraw_success_body": "{{amount}} added to {{destination}}.",
-      "withdraw_success_body_no_amount": "Added to {{destination}}.",
-      "withdraw_fallback_destination": "your account",
+      "withdraw_in_progress_title": "送金中",
+      "withdraw_success_title": "送金完了",
+      "withdraw_success_body": "{{amount}}が{{destination}}に追加されました。",
+      "withdraw_success_body_no_amount": "{{destination}}に追加されました。",
+      "withdraw_fallback_destination": "お客様のアカウント",
       "deposit_failed_title_convert": "換金に失敗しました",
       "deposit_failed_title_add_musd": "資金の追加に失敗しました",
+      "deposit_failed_title_card": "デポジット失敗",
       "deposit_failed_body_convert": "換金できません。もう一度お試しください。",
       "deposit_failed_body_add_musd": "資金を追加できません。もう一度お試しください。",
       "withdraw_failed_title": "送金に失敗しました",
-      "withdraw_failed_body": "送金できません。もう一度お試しください。"
+      "withdraw_failed_body": "送金できません。もう一度お試しください。",
+      "send_in_progress_title": "送金中",
+      "send_success_title": "送金されました",
+      "send_success_body": "{{amount}}は{{destination}}で利用可能です。",
+      "send_success_body_no_amount": "{{destination}}で利用可能です。",
+      "send_failed_title": "送金に失敗しました",
+      "send_failed_body": "送金できません。もう一度お試しください。",
+      "send_destination_perps": "パーペチュアル",
+      "send_destination_predict": "予測"
     },
     "apy_tooltip": {
       "title": "年換算利率 (APY)",
       "paragraph_1": "マネーアカウントで最大{{percentage}}%の収益を自動で獲得できます。",
-      "paragraph_2": "表示されている利率は、現在の市況に基づく予想年換算利率 (APY) です。APYは変動制で、さまざまな要因によって変わる可能性があります。利率は、ブロックチェーンプロトコル上で資金を運用する第三者DeFiプラットフォームによって生成されています。",
+      "paragraph_2": "表示されている利率は、現在の市況に基づく予想年換算利率 (APY) です。APYは変動制で、保証されるものではありません。資金は、Vedaが管理し、Steakhouse Financialがリスク監督を行うDeFiボールトに預け入れられ、確立された融資市場を通じて収益を生み出します。",
       "paragraph_3": "MetaMaskカードをリンクさせると、購入金額がこの残高から引き落とされます。",
-      "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
+      "paragraph_4": "マネーアカウントはMonadにより運用されています。",
+      "deposit_body": "表示されている利率は、現在の市況に基づく予想年換算利率 (APY) です。APYは変動制で、保証されるものではありません。"
     },
     "earnings_tooltip": {
       "title": "予想収益",
@@ -7082,7 +7255,7 @@
     "earn_crypto_info_sheet": {
       "title": "仮想通貨を収益化",
       "deposit_title": "1年後の予想残高",
-      "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed."
+      "body": "予測では、{{percentage}}%の年換算利率 (APY) が1年間変わらないと仮定されています。APYは変動制で、保証されるものではありません。"
     },
     "activity": {
       "title": "アクティビティ",
@@ -7091,7 +7264,7 @@
       "pending": "保留中",
       "filter_all": "すべて",
       "filter_deposits": "デポジット",
-      "filter_sends": "Sends"
+      "filter_sends": "送金"
     },
     "condensed_cards": {
       "how_it_works_title": "報酬獲得の仕組み",
@@ -7106,22 +7279,29 @@
       "received": "受け取りました",
       "sent": "送信済み",
       "card_transaction": "カードトランザクション",
+      "cashback": "mUSDの還元",
+      "card": "カード",
+      "purchase": "購入",
+      "musd_back": "mUSDの還元",
       "converted": "換金済み",
-      "depositing": "Depositing",
-      "converting": "Converting",
+      "depositing": "入金中",
+      "converting": "換算中",
       "sending": "送信中",
       "receiving": "受信中",
       "deposit_failed": "デポジット失敗",
       "conversion_failed": "換金に失敗しました",
-      "send_failed": "Send failed",
-      "received_from": "From: {{address}}",
+      "send_failed": "送金に失敗しました",
+      "received_from": "送金元：{{address}}",
       "failed": "失敗"
     },
-    "card_details": {
-      "title": "カードトランザクション",
-      "you_spent": "You spent",
+    "api_activity_details": {
+      "card_title": "カードトランザクション",
+      "cashback_title": "mUSDの還元",
+      "you_spent": "支払額",
+      "you_earned": "獲得額",
       "completed": "完了",
-      "paid_to": "Paid to",
+      "paid_to": "支払先",
+      "received_from": "送金元",
       "date": "日付"
     },
     "convert_stablecoins": {
@@ -7144,27 +7324,32 @@
       "description_1": "マネーアカウントにmUSDを追加すると、最大{{percentage}}%のAPY (変動制) を自動的に獲得できます。資金はDeFiヴォールトに入金され、Steakhouse Financialのリスクモニタリングと共に、Vedaによって管理されます。レートは、ブロックチェーンプロトコルの資金を表示するサードパーティDeFiプラットフォームにより生成されています。ステーキングや請求は不要で、ロックアップされません。",
       "description_2": "マネー残高は使用可能な残高です。MetaMaskカードをリンクすれば、世界中の1億5千万以上のマーチャントで使用できます。資金は使うまで収益を生み続けます。",
       "description_3": "マネーアカウントはMonadにより運用されています。",
-      "faq_title": "FAQs",
-      "faq_q1": "What is a MetaMask Money Account?",
-      "faq_a1": "MetaMask Money Account is a self-custodial account built into MetaMask that earns up to {{percentage}}% variable APY on deposited funds—with no lockups, no withdrawal penalties, and no account fees. When you deposit a supported stablecoin (USDC, USDT, or DAI) or aTokens into a Money Account, it converts to mUSD, MetaMask's dollar-backed stablecoin, with no conversion fees. You can also deposit any token into a Money Account, with a conversion fee. Your Money Account balance (mUSD) stays available to trade, send, and earn—or spend anytime via MetaMask Card, across 150+ million Mastercard merchants worldwide.",
-      "faq_q2": "Is MetaMask Money Account safe?",
-      "faq_a2": "MetaMask is a self-custodial wallet—only you control your private keys and funds. MetaMask cannot access, freeze, or move your balance. mUSD itself is backed 1:1 by US dollars and short-term US Treasury bills held in regulated custody by Bridge (a Stripe company). However, like all DeFi-based products, Money Account carries risks, including smart-contract failures, protocol exploits, liquidity shortages, third-party failures and legal or regulatory restrictions. The APY is variable and not guaranteed, and there is a risk of loss. The Money balance (mUSD) is not insured by the FDIC or any government agency.",
-      "faq_q3": "Who controls my MetaMask Money Account?",
-      "faq_a3": "You have full control over your Money Account. MetaMask is a self-custodial wallet, meaning only the account holder's private keys control the mUSD held in the Money Account. MetaMask cannot access, freeze, or move any Money Account balance. This is a core difference from traditional bank accounts and custodial crypto platforms, where a third party holds funds on behalf of the user.",
-      "faq_q4": "What are MetaMask Money Account fees?",
-      "faq_a4": "MetaMask Money Account is free to open. Stablecoin to mUSD conversions are at 1:1 parity with no conversion fees. The APY shown in the Money Account is the net rate you earn. All product fees—distributed among MetaMask, Veda, and Steakhouse—have already been deducted. For details on MetaMask Card transaction fees, ATM withdrawal fees, and fiat offramp costs, see the full fee breakdown inside MetaMask.",
-      "faq_q5": "How much can I earn with a MetaMask Money Account?",
-      "faq_a5": "MetaMask Money Account earns up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money Account.",
+      "faq_title": "FAQ",
+      "faq_q1": "MetaMaskマネーアカウントとは",
+      "faq_a1": "MetaMaskマネーアカウントは、MetaMaskに組み込まれたセルフカストディアカウントであり、入金に対して最大{{percentage}}%の変動APYを獲得できます。ロックアップ期間や出金ペナルティ、アカウント手数料は一切かかりません。対応するステーブルコイン ({{stablecoins}}) またはaTokenをマネーアカウントに入金すると、MetaMaskのドル裏付けステーブルコインであるmUSDに手数料なしで換算されます。また、換算手数料を支払えば、任意のトークンをマネーアカウントに入金することもできます。マネーアカウント残高 (mUSD) は、取引、送金、収益化に利用可能な状態を維持し、MetaMaskカード経由で、全世界1億5千万軒以上のMastercard加盟店でいつでもご利用いただけます。",
+      "faq_q2": "MetaMaskマネーアカウントは安全ですか？",
+      "faq_a2": "MetaMaskはセルフカストディウォレットであり、秘密鍵と資金を管理できるのはユーザー自身のみです。 MetaMaskがユーザーの残高にアクセスしたり、凍結したり、移動させたりすることはできません。mUSD自体は、米ドルと、Bridge（Stripe傘下の企業）が規制当局の監督下で管理する短期米国債によって1:1で裏付けられています。ただし、他のDeFiベースの商品と同様に、マネーアカウントには、スマートコントラクトの障害、プロトコルの悪用、流動性の不足、サードパーティの障害、および法的または規制上の制限などのリスクが伴います。APYは変動制であり、保証されるものではなく、損失のリスクがあります。マネー残高（mUSD）は、FDICをはじめとするいかなる政府機関によっても保証されるものではありせん。",
+      "faq_q3": "私のMetaMaskマネーアカウントは誰が管理しますか？",
+      "faq_a3": "マネーアカウントは、ユーザー自身で完全に管理できます。MetaMaskはセルフカストディウォレットです。つまり、マネーアカウントに保有されているmUSDを管理できるのは、アカウント所有者の秘密鍵のみです。MetaMaskは、マネーアカウントの残高にアクセスしたり、凍結したり、移動させたりすることはできません。これは、第三者がユーザーに代わって資金を保持する従来の銀行口座やカストディ型暗号資産プラットフォームとの根本的な違いです。",
+      "faq_q4": "MetaMaskマネーアカウントの手数料とは",
+      "faq_a4": "MetaMaskマネーアカウントは無料で開設できます。ステーブルコインからmUSDへの換算は1:1のパリティで行われ、換算手数料はかかりません。マネーアカウントに表示されるAPYは、実際に得られる純利回りです。MetaMask、Veda、Steakhouseに分配されるすべての商品手数料はすでに差し引かれています。MetaMaskカードの取引手数料、ATM引き出し手数料、および法定通貨への出金手数料の詳細については、MetaMask内の手数料内訳をご覧ください。",
+      "faq_q5": "MetaMaskマネーアカウントでどの程度稼げますか？",
+      "faq_a5": "MetaMaskマネーアカウントでは最大{{percentage}}%のAPYを獲得できます。この利率は変動制であり、市場の状況に応じて変動します。現在のレートはマネーアカウント内に常に表示されます。",
       "faq_q6": "利益はどこから生まれるのですか？",
-      "faq_a6": "When funds are deposited into a Money Account, these assets go into a third-party smart contract vault. The vault interacts with established DeFi protocols—for example, lending markets like Aave and Morpho—where they earn returns from real economic activity, primarily interest paid by borrowers. Any resulting returns, after applicable protocol costs and product fees, show up as APY. Earnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by the vault's positions in third-party DeFi protocols.",
-      "faq_q7": "Which tokens can I deposit into the Money Account?",
-      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money Account with no conversion fees:\n\n• Ethereum: USDC, USDT, DAI, aUSDC, aUSDT, aDAI\n• Arbitrum: USDC\n• Base: USDC\n• BNB Chain: USDC, USDT\n\nAll other EVM tokens can also be deposited into the Money Account, but standard exchange fees may apply. You can also fund your Money Account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There is an initial max deposit of $100,000 per token to ensure liquidity.",
-      "faq_q8": "Can I withdraw from the MetaMask Money Account anytime?",
-      "faq_a8": "Yes. Your mUSD is never locked. You can trade, send, spend, or withdraw your full balance at any time with no notice periods, no penalties, and no withdrawal fees from MetaMask. Withdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays.",
-      "faq_q9": "Do I need to complete KYC to use MetaMask Money Account?",
-      "faq_a9": "Opening a Money Account and holding mUSD does not require identity verification. However, certain MetaMask features—including MetaMask Card and Ramps—require KYC (Know Your Customer) verification as required by applicable regulations. These checks are carried out by the third-party providers that operate these regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
-      "faq_q10": "Which countries is MetaMask Money Account available in?",
-      "faq_a10": "MetaMask Money Account is available globally except in the following regions: the UK, and countries on the USA sanctions list."
+      "faq_a6": "マネーアカウントに入金が行われると、その資産はサードパーティのスマートコントラクトボールトに保管されます。このボールトは、AaveやMorphoといった融資市場などの確立されたDeFiプロトコルと連携し、実際の経済活動から収益（主に借り手が支払う利息）を獲得します。該当するプロトコル手数料と商品手数料を差し引いた後の収益はAPYとして表示されます。収益は、MetaMaskやmUSDの発行者が支払う利息ではなく、サードパーティのDeFiプロトコルにおけるボールトのポジションによって生成されるオンチェーン上の収益です。\n\n表示されている利率は、現在の市況に基づく予想年換算利率 (APY) です。APYは変動制で、保証されるものではありません。DeFiボールトはVedaが管理し、Steakhouse Financialがリスク監督を行っています。",
+      "faq_q7": "どのトークンをマネーアカウントに入金できますか？",
+      "faq_a7": "以下のステーブルコインおよびaTokenは、換算手数料なしでマネーアカウントに入金できます。\n\n{{tokenBullets}}\n\nその他のすべてのEVMトークンもマネーアカウントに入金できますが、通常の取引所手数料がかかる場合があります。また、デビットカード、クレジットカード、Apple Payを利用してマネーアカウントに入金することも可能です。\n\n注：流動性を確保するため、トークンごとの初回入金の上限額は10万ドルとなっています。",
+      "faq_q8": "MetaMaskマネーアカウントからいつでも引き出すことができますか？",
+      "faq_a8": "はい。 mUSDがロックされることはありません。 MetaMaskからの通知期間、違約金、出金手数料なしで、いつでも残高全額を取引、送金、ショッピング、出金にご利用いただけます。出金は即時処理され、対象となるブロックチェーンネットワークによる標準的な承認時間がかかります。流動性が低下している場合は、一時的に遅延が発生することがあります。",
+      "faq_q9": "MetaMaskマネーアカウントを使用するには本人確認が必要ですか？",
+      "faq_a9": "マネーアカウントの開設やmUSDの保有に本人確認は不要です。ただし、MetaMaskカードやRampsなど、一部のMetaMask機能については、適用される規制に基づき本人確認が必要となります。こうした確認は、MetaMaskではなく、これらの規制対象サービスを運営するサードパーティプロバイダーによって行われます。必要に応じて、サインアップ時にアプリ内で手続きの手順が表示されます。",
+      "faq_q10": "MetaMaskマネーアカウントはどの国で利用できますか？",
+      "faq_a10": "MetaMaskマネーアカウントは、英国および米国の制裁対象国を除く世界中でご利用いただけます。"
+    },
+    "geo_block": {
+      "title": "マネーアカウントは利用できません",
+      "description": "お住まいの地域では、現地の制限または制裁により、マネーアカウントをご利用いただけません。",
+      "button": "了解"
     }
   },
   "stake": {
@@ -7436,7 +7621,7 @@
       "available_balance": "{{balance}}が利用可能",
       "other_assets": "その他の資産",
       "other_assets_description": "お持ちのトークンからお選びください",
-      "other_assets_receive_description": "Select the token you want to receive",
+      "other_assets_receive_description": "受け取りたいトークンを選択してください",
       "money_account": "マネーアカウント"
     },
     "staking_footer": {
@@ -7491,8 +7676,7 @@
       "perps_withdraw": "出金",
       "predict_deposit": "予測資金を追加",
       "predict_withdraw": "出金",
-      "money_account_add_money": "資金を追加",
-      "money_account_transfer_money": "送金"
+      "money_account_add_money": "資金を追加"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -7524,10 +7708,10 @@
         "transaction_fee": "mUSD換算手数料にはネットワークコストが含まれるほか、プロバイダー手数料も含まれる場合があります。なお、mUSDへの換算時にMetaMaskの手数料は発生しません。"
       },
       "money_account_deposit": {
-        "transaction_fee": "Conversion fees include network costs and may include provider fees."
+        "transaction_fee": "換算手数料にはネットワーク費用が含まれ、プロバイダー手数料も含まれる場合があります。"
       },
       "money_account_withdraw": {
-        "transaction_fee": "Conversion fees include network costs and may include provider fees."
+        "transaction_fee": "換算手数料にはネットワーク費用が含まれ、プロバイダー手数料も含まれる場合があります。"
       },
       "title": {
         "transaction_fee": "手数料"
@@ -7658,6 +7842,7 @@
     "confirm_swap": "スワップ",
     "terms_and_conditions": "利用規約",
     "select_token": "トークンを選択",
+    "batch_sell_transaction_label": "一括売却",
     "batch_sell_select_title": "トークンを最大5つまでお選びください",
     "batch_sell_select_subtitle": "すべてのトークンが同一ネットワーク上にある必要があります。",
     "batch_sell_empty_state_title": "トークンがありません。でも問題ありません。",
@@ -7671,13 +7856,13 @@
     "batch_sell_review_title": "一括売却の確認",
     "batch_sell_select_stablecoin": "ステーブルコインを選択",
     "batch_sell_total_received": "受取額合計",
-    "batch_sell_minimum_received": "最低受取額",
+    "batch_sell_minimum_received": "最低受取額:",
     "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}}のスリッページ",
     "batch_sell_no_quote_available": "クォートが利用できません",
     "batch_sell_high_price_impact": "高プライスインパクト",
     "batch_sell_high_price_impact_description": "この取引には推定{{priceImpact}}のプライスインパクトがあります。これは取引が市場価格にどの程度影響を与えるかを示すもので、クォートにはすでにこれが反映されています。",
     "batch_sell_review": "確認",
-    "batch_sell_searching_best_quotes": "Searching for best quotes",
+    "batch_sell_searching_best_quotes": "最良のクォートを検索中",
     "batch_sell_you_sell": "売却",
     "batch_sell_token_count": "{{tokenCount}}トークン",
     "batch_sell_toggle_you_sell": "トークンの詳細を切り替える",
@@ -7734,7 +7919,7 @@
     "error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最善のオプションを探します。",
     "stock_token_error_banner_description": "この取引ルートは現在使用できません。金額、ネットワーク、またはトークンを変更してみてください。最適なオプションを検索します。",
     "insufficient_funds": "資金不足",
-    "insufficient_balance": "Insufficient balance",
+    "insufficient_balance": "残高不足",
     "insufficient_gas": "ガス不足",
     "select_amount": "アカウントを選択",
     "bridge_to": "ブリッジ先:",
@@ -7755,27 +7940,31 @@
     "hardware_wallet_not_supported": "まだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "hardware_wallet_not_supported_solana": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "hardware_wallet_progress": {
-      "confirm_title": "Confirm on your hardware wallet ({{current}}/{{total}})",
+      "confirm_title": "ハードウェアウォレットで確定 ({{current}}/{{total}})",
       "submitted_title": "トランザクションが送信されました",
-      "rejected_title": "You rejected this transaction on your device",
+      "rejected_title": "デバイス上でこのトランザクションを拒否しました",
       "failed_title": "トランザクション失敗",
-      "disconnected_title": "Device disconnected",
-      "approve_token": "Approve {{amount}} {{symbol}}",
-      "approving_token": "Approving {{amount}} {{symbol}}",
-      "approved_token": "Approved {{amount}} {{symbol}}",
-      "send_token": "Send {{amount}} {{symbol}}",
-      "sending_token": "Sending {{amount}} {{symbol}}",
-      "sent_token": "Sent {{amount}} {{symbol}}",
+      "disconnected_title": "デバイスの接続が解除されました",
+      "approve_token": "{{amount}} {{symbol}}を承認",
+      "approving_token": "{{amount}} {{symbol}}を承認中",
+      "approved_token": "{{amount}} {{symbol}}が承認されました",
+      "send_token": "{{amount}} {{symbol}}を送金",
+      "sending_token": "{{amount}} {{symbol}}を送金中",
+      "sent_token": "{{amount}} {{symbol}}が送金されました",
       "spender": "使用者",
-      "spender_address": "Spender {{address}}",
+      "spender_address": "支払人 {{address}}",
       "recipient": "受取人",
-      "recipient_address": "Recipient {{address}}",
+      "recipient_address": "受取人 {{address}}",
       "rejected": "拒否されました",
-      "reconnect": "Reconnect",
+      "reconnect": "再接続",
       "done": "完了",
-      "scan_next_qr_code": "Scan next QR code",
-      "scanner_step_text": "Step {{current}} of {{total}}: Scan the QR code shown on your wallet",
-      "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet"
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
+      "scan_next_qr_code": "次のQRコードをスキャン",
+      "scan_final_qr_code": "Scan final QR code",
+      "scanner_step_text": "手順{{current}} / {{total}}：ウォレットに表示されているQRコードをスキャンします",
+      "scanner_last_step_text": "最終手順：ウォレットに表示されているQRコードをスキャンします",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "プライスインパクト",
     "price_impact_info_description": "これは、取引によってトークンの市場価格がどのように変動するかを示しています。取引量、利用可能な流動性、プロバイダー手数料によって異なります。MetaMaskは価格への影響を制御することはできません。",
@@ -7813,14 +8002,14 @@
       "done": "完了"
     },
     "post_trade_modal": {
-      "swap_in_progress": "Swap in progress",
-      "swap_success": "Swap complete",
-      "swap_failed": "Swap failed",
-      "bridge_in_progress": "Bridge in progress",
-      "bridge_success": "Bridge complete",
-      "bridge_failed": "Bridge failed",
+      "swap_in_progress": "スワップ中",
+      "swap_success": "スワップ完了",
+      "swap_failed": "スワップ失敗",
+      "bridge_in_progress": "ブリッジ中",
+      "bridge_success": "ブリッジ完了",
+      "bridge_failed": "ブリッジ失敗",
       "trade_subtitle": "{{sourceAmount}} {{sourceSymbol}} → {{destAmount}} {{destSymbol}}",
-      "what_to_swap_next": "What to swap next",
+      "what_to_swap_next": "次のスワップ対象",
       "view_activity": "アクティビティを表示",
       "try_again": "もう一度お試しください"
     },
@@ -7868,6 +8057,7 @@
   "bridge_transaction_details": {
     "status": "ステータス",
     "date": "日付",
+    "network": "ネットワーク",
     "total_gas_fee": "ガス代合計",
     "estimated_completion": "予想完了日時",
     "bridge_step_action_bridge_complete": "{{destChainName}}で{{destSymbol}}を受け取りました",
@@ -7877,6 +8067,8 @@
     "view_on_block_explorer": "ブロックエクスプローラーで表示",
     "block_explorer_description": "このトランザクションは2つのネットワークに存在します。1つ目のリンクはソースを表示し、2つ目のリンクは確定後に送金先を表示します。",
     "transaction_details": "トランザクションの詳細",
+    "you_swapped": "スワップ額",
+    "you_received": "受取額",
     "bridge_to_chain": "{{chainName}}へのブリッジ",
     "recipient": "受取人"
   },
@@ -8033,6 +8225,8 @@
     "add_wallet_hardware_description": "BluetoothまたはQRコードを使用",
     "add_hardware_wallet": "ハードウェアウォレットを追加",
     "syncing": "同期中",
+    "link_metamask_extension": "MetaMask拡張機能からアカウントをインポート",
+    "link_metamask_extension_description": "MetaMask拡張機能からウォレットにアカウントをインポートします",
     "account_details": {
       "header_title": "アカウント情報",
       "account_name": "アカウント名",
@@ -8534,8 +8728,8 @@
         "card_tos_title": "利用規約",
         "order_metal_card": "メタルカード",
         "order_metal_card_description": "実物のメタルカードを今すぐ注文",
-        "cashback": "{{cashbackPercentage}}% mUSD Back",
-        "cashback_description": "Earn on all spending",
+        "cashback": "{{cashbackPercentage}}%のmUSDを還元",
+        "cashback_description": "すべての支出で収益獲得",
         "freeze_card": "カードを凍結する",
         "unfreeze_card": "カードの凍結を解除する",
         "freeze_card_description": "カードでのすべての支払いを一時停止する",
@@ -8601,6 +8795,11 @@
         "title": "Lineaの資金源を設定してください",
         "description": "還元されたmUSDを引き換えるには、Linea上に承認済みの資金源が少なくとも1つは登録されている必要があります。",
         "confirm_button_label": "資金源を設定する"
+      },
+      "money_account_required": {
+        "title": "マネーアカウントの設定",
+        "description": "mUSDを引き換える前に、リンク済みのマネー アカウントが必要です。",
+        "confirm_button_label": "マネーアカウントの設定"
       }
     },
     "change_asset": {
@@ -8636,6 +8835,7 @@
       "password_label": "パスワード",
       "login_button": "ログイン",
       "signup_button": "サインアップ",
+      "forgot_password_button": "パスワードを忘れた場合",
       "errors": {
         "invalid_credentials": "ログイン情報が無効です",
         "invalid_otp_code": "コードが正しくありません。もう一度お試しください",
@@ -8650,6 +8850,11 @@
         "server_error": "サーバーエラーが発生しました。後ほど再試行してください。",
         "configuration_error": "現在サービスをご利用いただけません。後ほど再試行してください。"
       }
+    },
+    "card_forgot_password": {
+      "load_error": "Something went wrong loading the page. Please try again.",
+      "try_again": "もう一度お試しください",
+      "reset_success": "Password reset successful"
     },
     "card_otp_authentication": {
       "title": "電話番号の確認",
@@ -8840,16 +9045,21 @@
       "tier_thresholds": "{{points}}ポイント",
       "bps_value": "{{bps}}bps",
       "referee_splash_continue": "続行",
-      "referee_referred_by": "Referred by {{code}}",
-      "referee_page_title": "VIP Pilot",
+      "referee_referred_by": "紹介元 {{code}}",
+      "referee_page_title": "VIPパイロット",
       "referee_stats_title": "統計",
-      "referee_period_last_30d": "Last 30d",
-      "referee_swaps_volume_label": "Swaps volume",
-      "referee_perps_volume_label": "Perps volume",
+      "referee_period_last_30d": "過去30日間",
+      "referee_swaps_volume_label": "スワップ取引量",
+      "referee_perps_volume_label": "パーペチュアル取引量",
       "referee_points_to_label": "{{code}}へのポイント",
-      "referee_error_title": "We couldn’t load your VIP referee details",
+      "referee_error_title": "VIP審判員の詳細を読み込めませんでした",
       "referee_error_description": "接続を確認して、もう一度お試しください。",
-      "last_updated": "最終更新時刻: {{time}}"
+      "referee_contact_support": "サポートへのお問い合わせ",
+      "referee_priority_support_disclaimer": "優先サポートにご連絡いただくと、ウォレットを接続できるようになります。",
+      "last_updated": "最終更新時刻: {{time}}",
+      "swaps_volume_info_label": "Swaps volume information",
+      "swaps_volume_info_title": "スワップ取引量",
+      "swaps_volume_info_description": "Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here."
     },
     "referral_title": "紹介",
     "referral_stats_earned_from_referrals": "紹介して報酬を獲得",
@@ -9154,7 +9364,7 @@
       "total_volume": "総取引量",
       "top_return": "最高リターン",
       "top_pnl": "最高損益",
-      "total_winners": "Total winners"
+      "total_winners": "勝者総数"
     },
     "campaign_prize_pool": {
       "title": "プライズプール",
@@ -9279,33 +9489,33 @@
       "stats_notional_volume_threshold": "${{amount}}が必要です",
       "stats_qualified_title": "対象となります",
       "stats_qualified_description": "取引を続けて損益を改善し、コンテンストが終了するまでリーダーボードの順位を上げていきましょう。",
-      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
+      "stats_qualify_for_rank_title": "リーダーボードへの進出資格を得る",
       "stats_qualify_for_rank_description": "名目取引量があと{{notionalRemaining}}で条件が満たされます。",
       "stats_error_title": "統計を読み込めません",
       "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
       "stats_retry": "再試行"
     },
     "predict_the_pitch_campaign": {
-      "title": "Predict The Pitch",
+      "title": "ピッチの予測",
       "stats_title": "統計",
       "label_rank": "ランキング",
       "label_your_rank": "ランク",
-      "label_roi": "ROI",
+      "label_roi": "ROI (手数料支払い後)",
       "label_total_volume": "総取引量",
-      "label_pnl": "損益",
-      "predict_now_cta": "Predict now",
-      "positions_title": "Your predictions",
+      "label_pnl": "損益 (手数料支払い後)",
+      "predict_now_cta": "今すぐ予測",
+      "positions_title": "あなたの予測",
       "positions_open_section": "未約定",
       "positions_closed_section": "クローズ済み",
       "position_sold_at": "{{time}}を売却しました",
-      "positions_open_badge": "{{count}} open",
-      "positions_closed_badge": "{{count}} closed",
-      "positions_error": "Failed to load predictions",
-      "positions_error_description": "Something went wrong while loading your predictions. Please try again.",
+      "positions_open_badge": "{{count}}件オープン",
+      "positions_closed_badge": "{{count}}件クローズ済み",
+      "positions_error": "予測の読み込みに失敗しました",
+      "positions_error_description": "予測の読み込み中に問題が発生しました。もう一度お試しください。",
       "positions_retry": "再試行",
       "positions_last_updated": "最終更新時刻: {{time}}",
       "positions_empty": "まだ予測はありません",
-      "positions_empty_description": "Your campaign predictions will appear here once you make them.",
+      "positions_empty_description": "キャンペーンの予測を行うと、ここに表示されます。",
       "leaderboard_title": "リーダーボード",
       "leaderboard_total_participants": "参加総数{{count}}人",
       "last_updated": "最終更新時刻: {{time}}",
@@ -9314,13 +9524,13 @@
       "leaderboard_not_yet_computed": "リーダーボードの計算が完了していません。少し時間を置いてから再確認してください。",
       "stats_error_title": "統計を読み込めません",
       "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
-      "label_markets_traded": "Markets traded",
+      "label_markets_traded": "取引が行われた市場",
       "stats_retry": "再試行",
       "performance_title": "成績",
       "stats_qualified_title": "対象となります",
-      "stats_qualified_description": "Keep trading to improve your ROI and climb the leaderboard before the competition ends.",
-      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
-      "stats_qualify_for_rank_description": "Trade at least $10 in at least 3 eligible markets before the competition ends."
+      "stats_qualified_description": "取引を続けてROIを改善し、コンテストが終了するまでにリーダーボードの順位を上げていきましょう。",
+      "stats_qualify_for_rank_title": "リーダーボードへの進出資格を得る",
+      "stats_qualify_for_rank_description": "コンテストが終了するまでに、対象となる3つ以上の市場で、合計10ドル以上の取引を行ってください。"
     },
     "campaigns_preview": {
       "title": "キャンペーン",
@@ -9329,8 +9539,8 @@
     },
     "earn_rewards": {
       "title": "報酬を獲得しましょう",
-      "musd_title": "ステーブルで最大3%のボーナス",
-      "musd_subtitle": "mUSDボーナスの計算",
+      "musd_title": "mUSDで最大{{percentage}}%のボーナス",
+      "musd_subtitle": "マネーアカウントが新登場",
       "card_title": "使用額の最大3%を還元",
       "card_subtitle": "今すぐMetaMaskカードを取得",
       "card_subtitle_cardholder": "MetaMaskカードの特典を利用"
@@ -9404,14 +9614,14 @@
       "predict_withdraw": "出金",
       "money_account_deposit": "マネーアカウントに入金",
       "money_account_withdraw": "マネーアカウントから送金",
-      "money_account_sent": "{{symbol}}を送りました",
-      "money_account_received": "受け取りました",
       "default": "トランザクションの詳細"
     },
     "label": {
       "bridge_fee": "ブリッジ手数料",
       "provider_fee": "プロバイダーの手数料",
       "network_fee": "ネットワーク手数料",
+      "transaction_fee": "トランザクション手数料",
+      "transaction_fees": "トランザクション手数料",
       "paid_with": "支払方法:",
       "receive_token": "トークンの受取",
       "retry_button": "再試行してください",
@@ -9421,9 +9631,16 @@
       "received_total": "受取額合計",
       "from": "送り元",
       "to": "送り先",
+      "order_id": "注文ID",
       "network": "ネットワーク",
-      "you_sent": "You sent",
-      "token_received": "トークンを受け取りました"
+      "you_sent": "送金額",
+      "you_received": "受取額",
+      "token_received": "トークンを受け取りました",
+      "money_account": "マネーアカウント",
+      "perps_account": "パーペチュアルアカウント1",
+      "predictions_account": "予測市場アカウント1",
+      "steps_completed": "手順（{{count}}件完了）",
+      "summary": "サマリー"
     },
     "view_on_block_explorer": "ブロックエクスプローラーで表示",
     "summary_title": {
@@ -9446,6 +9663,24 @@
     },
     "perps_deposit_solution": "Arbitrumの残高が{{fiat}}のUSDCになりました。もう一度入金をお試しください。"
   },
+  "activity_details": {
+    "status": "ステータス",
+    "date": "日付",
+    "account": "アカウント",
+    "from": "送り元",
+    "to": "送り先",
+    "network": "ネットワーク",
+    "transaction_id": "トランザクションID",
+    "network_fee": "ネットワーク手数料",
+    "bridge_fee": "ブリッジ手数料",
+    "transaction_fee": "トランザクション手数料",
+    "total_amount": "合計額",
+    "you_sent": "送金額",
+    "you_received": "受取額",
+    "view_on_block_explorer": "ブロックエクスプローラーで表示",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
+  },
   "sdk_connect_v2": {
     "show_loading": {
       "title": "DAppに接続中",
@@ -9464,18 +9699,18 @@
       "description": "アプリに戻って続行します。"
     },
     "show_cli_link_success": {
-      "title": "MetaMask Agent CLI link successful",
-      "description": "Return to the CLI to continue."
+      "title": "MetaMaskエージェントCLIリンク成功",
+      "description": "CLIに戻って続行します。"
     },
     "show_otp": {
-      "title": "Enter this code",
-      "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
-      "modal_title": "Link MetaMask Agent CLI",
-      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
-      "code_label": "ENTER THIS CODE IN THE CLI",
-      "expires_in": "Expires in {{time}}",
-      "expired": "Code expired",
-      "security_notice": "Securing the connection first. You'll authorize CLI access in the next step"
+      "title": "このコードを入力してください",
+      "description": "{{dappName}}に{{otp}}と入力して接続を完了します。このコードは{{seconds}}秒で期限切れとなります。",
+      "modal_title": "MetaMaskエージェントCLIをリンク",
+      "modal_description": "MetaMask MobileをMetaMaskエージェントCLIとペアリングします。",
+      "code_label": "CLIにこのコードを入力してください",
+      "expires_in": "{{time}}で期限切れとなります",
+      "expired": "コードが期限切れです",
+      "security_notice": "まず接続を確保します。次のステップでCLIへのアクセスを承認します"
     },
     "show_not_found": {
       "title": "接続が見つかりません",
@@ -9486,9 +9721,9 @@
       "description": "予期せぬエラーが発生しました。もう一度お試しください。"
     },
     "agentic_cli_dashboard_webview": {
-      "title": "Select project",
-      "load_error": "Unable to load approval page.",
-      "closed_error": "Dashboard approval closed."
+      "title": "プロジェクトの選択",
+      "load_error": "承認ページを読み込めません。",
+      "closed_error": "ダッシュボードの承認は終了しました。"
     },
     "show_method_error": {
       "title": "リクエストに失敗しました",
@@ -9508,8 +9743,8 @@
     "title": "閲覧",
     "crypto_movers": "人気の仮想通貨",
     "perps_movers": "人気のパーペチュアル",
-    "perps_movers_pill_gainers": "Gainers",
-    "perps_movers_pill_losers": "Losers",
+    "perps_movers_pill_gainers": "上昇銘柄",
+    "perps_movers_pill_losers": "下落銘柄",
     "trending_tokens": "人気上昇中",
     "crypto": "仮想通貨",
     "stocks": "株式",
@@ -9540,15 +9775,11 @@
     "low_to_high": "低い順",
     "apply": "適用",
     "search_placeholder": "トークン、マーケット、URLを検索",
+    "quick_trade": "クイック売買",
     "cancel": "キャンセル",
     "perps": "パーペチュアル",
     "rwa_perps_section": "パーペチュアル",
     "macro_stocks_commodity_perps": "パーペチュアル",
-    "macro_pill_stocks": "株式",
-    "macro_pill_commodities": "商品",
-    "rwa_pill_commodities": "商品",
-    "rwa_pill_stocks": "株式",
-    "rwa_pill_forex": "FX",
     "crypto_perps_section": "パーペチュアル",
     "predictions": "予測",
     "no_results": "結果が見つかりませんでした",
@@ -9725,21 +9956,12 @@
       "money": "マネー",
       "money_empty_description": "まだmUSDがありません。ホームページの「マネー」セクションでステーブルコインをmUSDに換金してください。",
       "money_empty_description_network_filter": "このネットワークにはmUSDがありません。ネットワークを切り替えてお持ちのmUSDをご確認ください。",
-      "money_empty_state": {
-        "get_started": "開始",
-        "earn": "獲得",
-        "earn_apy": "年換算利率 (APY) {{percentage}}%を獲得"
-      },
-      "money_filled_state": {
-        "add": "追加",
-        "apy": "年換算利率 (APY) {{percentage}}%"
-      },
       "tokens": "トークン",
       "perps": "パーペチュアル",
       "related_assets": "関連する資産",
       "perpetuals": "パーペチュアル",
       "predictions": "予測",
-      "top_traders": "Weekly Top Traders",
+      "top_traders": "週間トップトレーダー",
       "defi": "DeFi",
       "nfts": "NFT",
       "trending_tokens": "人気上昇中",

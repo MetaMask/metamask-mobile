@@ -156,10 +156,10 @@ import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafe
 import { buildTradeAllowancesTx } from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
 import {
-  deriveDepositWalletAddress,
   executeDepositWalletBatch,
   getDepositWalletRelayerTransactionId,
   requestDepositWalletCreate,
+  resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
@@ -1415,9 +1415,12 @@ export class PolymarketProvider implements PredictProvider {
   /**
    * Get current prices for multiple tokens from CLOB /prices endpoint
    *
-   * Fetches BUY (best ask) and SELL (best bid) prices for outcome tokens.
-   * BUY = what you'd pay to buy
-   * SELL = what you'd receive to sell
+   * IMPORTANT: Polymarket's /prices endpoint returns the side of the book, not
+   * the price for an action. The `BUY` field is the best bid (top of the buy
+   * side of the book) and the `SELL` field is the best ask (top of the sell
+   * side). We therefore map them to our action-oriented semantics, where
+   * `entry.buy` is the best ask (what you'd pay to buy) and `entry.sell` is the
+   * best bid (what you'd receive to sell).
    *
    * @param params - Query parameters with marketId, outcomeId, and outcomeTokenId
    * @returns Structured price response with results
@@ -1458,6 +1461,13 @@ export class PolymarketProvider implements PredictProvider {
       >;
       const data = (await response.json()) as PolymarketPricesResponse;
 
+      // Guard against malformed upstream payloads: a non-numeric string would
+      // otherwise produce NaN and propagate into UI/analytics calculations.
+      const toFinitePrice = (value: string | undefined): number => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      };
+
       const results: PriceResult[] = queries.map((query) => {
         const priceData = data[query.outcomeTokenId];
         return {
@@ -1465,8 +1475,9 @@ export class PolymarketProvider implements PredictProvider {
           outcomeId: query.outcomeId,
           outcomeTokenId: query.outcomeTokenId,
           entry: {
-            buy: priceData?.BUY ? Number(priceData.BUY) : 0,
-            sell: priceData?.SELL ? Number(priceData.SELL) : 0,
+            // Polymarket SELL = best ask = price to buy; BUY = best bid = price to sell.
+            buy: toFinitePrice(priceData?.SELL),
+            sell: toFinitePrice(priceData?.BUY),
           },
         };
       });
@@ -2716,9 +2727,9 @@ export class PolymarketProvider implements PredictProvider {
         }
       }
 
-      const depositWalletAddress = deriveDepositWalletAddress(
-        normalizedOwnerAddress,
-      );
+      const depositWalletAddress = await resolveDepositWalletAddress({
+        ownerAddress: normalizedOwnerAddress,
+      });
       const depositWalletIsDeployed = await isSmartContractAddress(
         depositWalletAddress,
         numberToHex(POLYGON_MAINNET_CHAIN_ID),
@@ -2817,12 +2828,15 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
-  private getDepositWalletDepositTransaction(transactionMeta: TransactionMeta):
+  private async getDepositWalletDepositTransaction(
+    transactionMeta: TransactionMeta,
+  ): Promise<
     | {
         ownerAddress: Hex;
         depositWalletAddress: Hex;
       }
-    | undefined {
+    | undefined
+  > {
     const ownerAddress = transactionMeta.txParams.from;
 
     if (!ownerAddress) {
@@ -2861,7 +2875,9 @@ export class PolymarketProvider implements PredictProvider {
       return undefined;
     }
 
-    const depositWalletAddress = deriveDepositWalletAddress(ownerAddress);
+    const depositWalletAddress = await resolveDepositWalletAddress({
+      ownerAddress,
+    });
 
     if (getAddress(recipient) !== getAddress(depositWalletAddress)) {
       return undefined;
@@ -2875,8 +2891,10 @@ export class PolymarketProvider implements PredictProvider {
 
   public isDepositWalletDepositTransaction(
     transactionMeta: TransactionMeta,
-  ): boolean {
-    return Boolean(this.getDepositWalletDepositTransaction(transactionMeta));
+  ): Promise<boolean> {
+    return this.getDepositWalletDepositTransaction(transactionMeta).then(
+      Boolean,
+    );
   }
 
   private async ensureDepositWalletReady({
@@ -3026,7 +3044,7 @@ export class PolymarketProvider implements PredictProvider {
     getSigner: (address?: string) => Signer;
   }): Promise<boolean> {
     const depositWalletDeposit =
-      this.getDepositWalletDepositTransaction(transactionMeta);
+      await this.getDepositWalletDepositTransaction(transactionMeta);
 
     if (!depositWalletDeposit) {
       return true;
@@ -3104,7 +3122,7 @@ export class PolymarketProvider implements PredictProvider {
     signerAddress: string;
   }): Promise<void> {
     const depositWalletDeposit =
-      this.getDepositWalletDepositTransaction(transactionMeta);
+      await this.getDepositWalletDepositTransaction(transactionMeta);
 
     if (!depositWalletDeposit) {
       return;

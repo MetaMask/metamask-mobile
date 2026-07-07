@@ -80,11 +80,50 @@ export type PositionSide = 'long' | 'short';
  */
 export interface PositionLines {
   side: PositionSide;
-  entryPrice: number;
+  entryPrice?: number;
   currentPrice?: number;
   takeProfitPrice?: number;
   stopLossPrice?: number;
   liquidationPrice?: number;
+}
+
+/**
+ * A point marker rendered on the chart at an exact `(time, price)` using the
+ * Drawing API circle icon. Used to surface trade entries/exits (e.g. Social
+ * Trading open/close circles). `intent` selects the color: `'enter'` → success
+ * (green), `'exit'` → error (red).
+ *
+ * `price` is optional. When omitted, the WebView snaps the marker's Y to the
+ * interpolated close of the rendered line at `time`. When provided it is used
+ * only as a fallback for trades whose candle is outside the currently-loaded
+ * data window (the WebView's `interpolateCloseAlongLineAtTimeMs` always takes
+ * precedence when it yields a finite value).
+ */
+export interface TradeMarker {
+  /** Unix timestamp in **milliseconds** (matches OHLCVBar.time). */
+  time: number;
+  /**
+   * Optional Y anchor. Omit to let the WebView snap to the line automatically.
+   * Only used as a fallback when the trade's candle is outside loaded data.
+   */
+  price?: number;
+  /** `'enter'` = buy/open (green); `'exit'` = sell/close (red). */
+  intent: 'enter' | 'exit';
+  /** Stable id used as the React key and to track the created shape entity. */
+  id: string;
+}
+
+/**
+ * Colors for the position overlay lines, supplied by the consumer from its own
+ * theme. Position lines are consumer-specific (currently Perps only), so the
+ * colors are passed in rather than read from the shared chart `CONFIG.theme`.
+ */
+export interface PositionLineColors {
+  currentPrice?: string;
+  entry: string;
+  takeProfit: string;
+  stopLoss: string;
+  liquidation: string;
 }
 
 /**
@@ -99,6 +138,8 @@ export interface CrosshairData {
   close: number;
   volume?: number;
 }
+
+export type ChartRangeSettlePayload = undefined;
 
 /**
  * Chart type constants matching TradingView SeriesType.
@@ -119,9 +160,10 @@ export type ChartType = (typeof ChartType)[keyof typeof ChartType];
 /**
  * Line / chart chrome for the TradingView WebView.
  *
- * When a `useCustom*` flag is **false**, TradingView built-ins apply where relevant
- * (`showSeriesLastValue`, `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses
- * custom drawings/DOM instead and disables the TV equivalent to avoid duplicates.
+ * Omitted props resolve via {@link DEFAULT_LINE_CHROME} (built-in-first). When a `useCustom*`
+ * flag is **false**, TradingView built-ins apply where relevant (`showSeriesLastValue`,
+ * `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses custom drawings/DOM
+ * instead and disables the TV equivalent to avoid duplicates.
  */
 export interface LineChromeOptions {
   /** When true, hide the time-axis row (line chart only). */
@@ -140,9 +182,9 @@ export interface LineChromeOptions {
 /** Default `lineChrome` when props omit fields; merged by `resolveLineChromeOptions`. */
 export const DEFAULT_LINE_CHROME = {
   hideTimeScale: false,
-  useCustomLineEndMarker: true,
-  useCustomDashedLastPriceLine: true,
-  useCustomPriceLabels: true,
+  useCustomLineEndMarker: false,
+  useCustomDashedLastPriceLine: false,
+  useCustomPriceLabels: false,
 } as const;
 
 export type ResolvedLineChromeOptions = {
@@ -169,17 +211,40 @@ export function resolveLineChromeOptions(
   };
 }
 
+/** Matches template + `SET_THEME_COLORS` resolution for `theme.currentPriceColor`. */
+export function resolveCurrentPriceColor(options: {
+  lastValuePillColor?: string;
+  currentPriceLineColorOverride?: string;
+  lineColorOverride?: string;
+  successColorOverride?: string;
+  themeSuccessDefault: string;
+}): string {
+  const effectiveSuccessColor =
+    options.successColorOverride ?? options.themeSuccessDefault;
+  const effectiveLineColor = options.lineColorOverride ?? effectiveSuccessColor;
+  return (
+    options.lastValuePillColor ??
+    options.currentPriceLineColorOverride ??
+    effectiveLineColor
+  );
+}
+
 export type RNToWebViewMessageType =
   | 'SET_OHLCV_DATA'
   | 'ADD_INDICATOR'
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
   | 'SET_LINE_CHROME'
+  | 'SET_SUB_PANE_LAYOUT'
   | 'SET_POSITION_LINES'
+  | 'SET_TRADE_MARKERS'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
   | 'SET_MA_VISIBILITY'
-  | 'SET_THEME_COLORS';
+  | 'SET_THEME_COLORS'
+  | 'FOCUS_TIME'
+  | 'PULSE_TRADE_MARKER'
+  | 'FETCH_OLDER_BARS_RESPONSE';
 
 export type WebViewToRNMessageType =
   | 'CHART_READY'
@@ -188,8 +253,10 @@ export type WebViewToRNMessageType =
   | 'INDICATOR_REMOVED'
   | 'LEGEND_RENDERED'
   | 'CROSSHAIR_MOVE'
+  | 'TRADE_MARKER_PRESSED'
   | 'ERROR'
-  | 'DEBUG';
+  | 'DEBUG'
+  | 'FETCH_OLDER_BARS_REQUEST';
 
 export interface OHLCVPaginationConfig {
   nextCursor: string | null;
@@ -203,6 +270,11 @@ export interface SetOHLCVDataPayload {
   /** When provided, the WebView fetches older pages directly instead of round-tripping via RN. */
   pagination?: OHLCVPaginationConfig;
   /**
+   * When enabled, the WebView sends FETCH_OLDER_BARS_REQUEST to RN for older history instead
+   * of fetching the Price API directly. Used by Perps whose candle data comes from PerpsController.
+   */
+  rnBackedPagination?: { enabled: boolean };
+  /**
    * Expected visible-range start as a Unix timestamp in **milliseconds**.
    * When set, the WebView calls `chart.setVisibleRange()` after `resetData()`
    * so only the requested period (1H, 1D, 1W, 1M, 1Y) is shown initially —
@@ -215,6 +287,40 @@ export interface SetOHLCVDataPayload {
    * the intended window instead of defaulting to `Date.now()`.
    */
   visibleToMs?: number;
+  /**
+   * SocialLeaderboard (Social Trading) scoping flag. When true, the WebView runs
+   * the SLB-only viewport behavior; omitted/false for other consumers. See
+   * {@link AdvancedChartProps.slbMode}.
+   */
+  slbMode?: boolean;
+}
+
+/**
+ * Payload sent from the WebView to RN when TradingView's getBars needs bars
+ * older than the current window. RN fetches from the appropriate data source
+ * (e.g. Perps candle channel) and responds with FETCH_OLDER_BARS_RESPONSE.
+ */
+export interface FetchOlderBarsRequest {
+  requestId: string;
+  seriesGeneration: number;
+  symbol: string;
+  resolution: string;
+  fromSec: number;
+  toSec: number;
+  countBack?: number;
+  oldestLoadedTimeMs: number;
+}
+
+/**
+ * RN response to a FETCH_OLDER_BARS_REQUEST. The WebView merges returned bars
+ * into window.ohlcvData and resolves the pending getBars callback.
+ */
+export interface FetchOlderBarsResponse {
+  requestId: string;
+  seriesGeneration: number;
+  bars: OHLCVBar[];
+  noData?: boolean;
+  error?: string;
 }
 
 export interface AddIndicatorPayload {
@@ -233,6 +339,13 @@ export interface SetChartTypePayload {
 
 export interface SetPositionLinesPayload {
   position: PositionLines | null;
+  /** Consumer-supplied colors for the overlay lines. Falls back to defaults if absent. */
+  positionLineColors?: PositionLineColors;
+}
+
+export interface SetTradeMarkersPayload {
+  /** Markers to render. Empty array (or null) clears all existing markers. */
+  markers: TradeMarker[] | null;
 }
 
 export interface RealtimeUpdatePayload {
@@ -247,6 +360,15 @@ export interface ToggleVolumePayload {
 
 export type SetLineChromePayload = ResolvedLineChromeOptions;
 
+/**
+ * When `heightRatio` is a number in (0, 1], RSI/MACD sub-panes use that fraction of total
+ * chart height each (via `setAllPanesHeight`). When `null` or omitted, TradingView default
+ * pane sizing applies.
+ */
+export interface SetSubPaneLayoutPayload {
+  heightRatio: number | null;
+}
+
 export interface SetMAVisibilityPayload {
   visible: string[];
 }
@@ -255,6 +377,44 @@ export interface SetThemeColorsPayload {
   lineColor: string;
   successColor: string;
   errorColor: string;
+  /** Last-value scale pill and native price line (ambient on token details). */
+  currentPriceColor?: string;
+  volumeSuccessColor: string;
+  volumeErrorColor: string;
+}
+
+/**
+ * Optional overrides for TV built-in scale / crosshair / last-value label colors.
+ * Omitted fields use design tokens baked into the WebView CONFIG at template time.
+ */
+export interface ChartLabelStyleOverrides {
+  /** Crosshair price/time pill background (default: `background.section`). */
+  crosshairBackgroundColor?: string;
+  /** Crosshair pill text for custom DOM labels only. TV built-ins share `axisTextColor`. */
+  crosshairTextColor?: string;
+  /** Last-value scale pill + native price line (default: `currentPriceLineColorOverride` → line color). */
+  lastValuePillColor?: string;
+  /** Price/time scale tick labels (`scalesProperties.textColor`; default: `text.muted`). */
+  axisTextColor?: string;
+  /** Custom study legend value text (default: `text.alternative`). */
+  legendTextColor?: string;
+}
+
+export interface FocusTimePayload {
+  /** Center the viewport on this point in time (Unix timestamp in **milliseconds**). */
+  timeMs: number;
+  /**
+   * Visible span (ms) to apply while centering. Omitted → keep the current zoom
+   * so the chart simply slides to the point at the same scale.
+   */
+  spanMs?: number;
+  /** Smoothly animate the scroll (default `true`); `false` jumps instantly. */
+  animate?: boolean;
+}
+
+export interface PulseTradeMarkerPayload {
+  /** `id` of the trade marker to pulse (matches {@link TradeMarker.id}). No-op if not found. */
+  id: string;
 }
 
 export type RNToWebViewMessage =
@@ -263,11 +423,16 @@ export type RNToWebViewMessage =
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
   | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
+  | { type: 'SET_SUB_PANE_LAYOUT'; payload: SetSubPaneLayoutPayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
+  | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
   | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
-  | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload };
+  | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload }
+  | { type: 'FOCUS_TIME'; payload: FocusTimePayload }
+  | { type: 'PULSE_TRADE_MARKER'; payload: PulseTradeMarkerPayload }
+  | { type: 'FETCH_OLDER_BARS_RESPONSE'; payload: FetchOlderBarsResponse };
 
 export interface IndicatorAddedPayload {
   name: IndicatorType;
@@ -288,6 +453,11 @@ export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
 }
 
+export interface TradeMarkerPressedPayload {
+  /** `id` of the tapped trade marker (matches {@link TradeMarker.id}). */
+  id: string;
+}
+
 export interface ErrorPayload {
   message: string;
   code?: string;
@@ -300,10 +470,12 @@ export type WebViewToRNMessage =
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
   | { type: 'LEGEND_RENDERED' }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
+  | { type: 'TRADE_MARKER_PRESSED'; payload: TradeMarkerPressedPayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
   | { type: 'ERROR'; payload: ErrorPayload }
-  | { type: 'DEBUG'; payload: { message: string } };
+  | { type: 'DEBUG'; payload: { message: string } }
+  | { type: 'FETCH_OLDER_BARS_REQUEST'; payload: FetchOlderBarsRequest };
 
 // ============================================
 // Message parsing / runtime narrowing
@@ -311,6 +483,20 @@ export type WebViewToRNMessage =
 
 function isIndicatorType(value: unknown): value is IndicatorType {
   return typeof value === 'string' && value.length > 0;
+}
+
+/**
+ * Reads a finite numeric field from a parsed postMessage payload.
+ * Returns the number, or `undefined` if the field is missing or not a finite number.
+ */
+function getOptionalNumber(
+  obj: Record<string, unknown>,
+  key: string,
+): number | undefined {
+  const value = obj[key];
+  return typeof value === 'number' && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 /**
@@ -368,6 +554,12 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         },
       };
 
+    case 'TRADE_MARKER_PRESSED':
+      if (typeof obj.id === 'string' && obj.id.length > 0) {
+        return { type, payload: { id: obj.id } };
+      }
+      return null;
+
     case 'CHART_INTERACTED':
       if (
         obj.interaction_type === 'zoom' ||
@@ -402,6 +594,42 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         };
       }
       return null;
+
+    case 'FETCH_OLDER_BARS_REQUEST': {
+      const requestId =
+        typeof obj.requestId === 'string' ? obj.requestId : null;
+      const seriesGeneration = getOptionalNumber(obj, 'seriesGeneration');
+      const symbol = typeof obj.symbol === 'string' ? obj.symbol : '';
+      const resolution =
+        typeof obj.resolution === 'string' ? obj.resolution : '';
+      const fromSec = getOptionalNumber(obj, 'fromSec');
+      const toSec = getOptionalNumber(obj, 'toSec');
+      const oldestLoadedTimeMs = getOptionalNumber(obj, 'oldestLoadedTimeMs');
+      if (
+        requestId === null ||
+        seriesGeneration === undefined ||
+        fromSec === undefined ||
+        toSec === undefined ||
+        oldestLoadedTimeMs === undefined
+      ) {
+        return null;
+      }
+      return {
+        type,
+        payload: {
+          requestId,
+          seriesGeneration,
+          symbol,
+          resolution,
+          fromSec,
+          toSec,
+          ...(getOptionalNumber(obj, 'countBack') !== undefined
+            ? { countBack: getOptionalNumber(obj, 'countBack') }
+            : {}),
+          oldestLoadedTimeMs,
+        },
+      };
+    }
 
     default:
       return null;
@@ -444,6 +672,20 @@ export interface AdvancedChartProps {
    * without round-tripping through RN.
    */
   ohlcvPagination?: OHLCVPaginationConfig;
+  /**
+   * When enabled, the WebView sends FETCH_OLDER_BARS_REQUEST to RN for older bars
+   * instead of fetching the Price API directly. Use for data sources (e.g. Perps)
+   * that are only accessible from RN, not from the WebView.
+   */
+  rnBackedPagination?: { enabled: boolean };
+  /**
+   * Handler for FETCH_OLDER_BARS_REQUEST messages from the WebView.
+   * RN should fetch older bars from the appropriate source and resolve with OHLCVBars.
+   * Only called when rnBackedPagination.enabled is true.
+   */
+  onFetchOlderBarsRequest?: (
+    req: FetchOlderBarsRequest,
+  ) => Promise<FetchOlderBarsResponse>;
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];
@@ -451,6 +693,14 @@ export interface AdvancedChartProps {
   selectedMAs?: string[];
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;
+  /**
+   * Trade markers (open/close circles) to overlay at exact `(time, price)`
+   * points — e.g. Social Trading entries/exits. Set to undefined or an empty
+   * array to clear. Synced declaratively via useEffect.
+   */
+  tradeMarkers?: TradeMarker[];
+  /** Colors for the position overlay lines, supplied by the consumer's theme. */
+  positionLineColors?: PositionLineColors;
 
   /** Initial chart type */
   chartType?: ChartType;
@@ -461,6 +711,15 @@ export interface AdvancedChartProps {
    * Ignored when `showVolume` is false.
    */
   volumeOverlay?: boolean;
+  /**
+   * Hide TradingView's pane separator. Intended for Perps' two-pane price/volume layout;
+   * leave unset for Token Details so indicator panes keep their native drawer chrome.
+   */
+  hidePaneSeparator?: boolean;
+  /**
+   * Override TradingView grid line color. Defaults to transparent to preserve Token Details.
+   */
+  gridLineColorOverride?: string;
   /** Enable left-side drawing toolbar */
   enableDrawingTools?: boolean;
   /**
@@ -476,6 +735,19 @@ export interface AdvancedChartProps {
    * `CHART_READY`, RN sends `SET_LINE_CHROME` with `resolveLineChromeOptions(lineChrome)`.
    */
   lineChrome?: LineChromeOptions;
+
+  /**
+   * Fraction of total chart height for each RSI/MACD sub-pane (0–1). Omit or pass `null` for
+   * TradingView default pane sizing. With two sub-panes active, bottom area ≈ 2× this value.
+   */
+  subPaneHeightRatio?: number | null;
+
+  /**
+   * When true, TV built-in price scale + last-value pill use MetaMask subscript notation for tiny
+   * prices (`custom_formatters.priceFormatterFactory`). Default false (TV decimals). Does not
+   * affect custom DOM pills when `lineChrome.useCustomPriceLabels` is true.
+   */
+  useSubscriptPriceFormat?: boolean;
 
   /** Callback when chart is ready */
   onChartReady?: () => void;
@@ -499,6 +771,12 @@ export interface AdvancedChartProps {
   onInitFailed?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
+  /**
+   * Fired when the user taps a trade marker (open/close circle) on the chart.
+   * Receives the marker's `id` (matches {@link TradeMarker.id}). Powers the
+   * reverse interaction: tapping a circle scrolls the trades list to that trade.
+   */
+  onTradeMarkerPress?: (id: string) => void;
   /**
    * User-driven chart interaction from the WebView: zoom (bar spacing), pan (visible range), or
    * crosshair tooltip (first OHLC payload per crosshair session). Suppressed during data reloads.
@@ -537,8 +815,21 @@ export interface AdvancedChartProps {
   successColorOverride?: string;
   /** Override the candlestick down/error color baked into the HTML template (A/B test). */
   errorColorOverride?: string;
-  /** Override the current-price horizontal line color. Does not affect candle or volume colors. */
+  /**
+   * Override last-value scale pill + native price line color independently of `lineColorOverride`.
+   * Omitted → follows `lineColorOverride` (or success green). Hot-swapped via `SET_THEME_COLORS`.
+   */
   currentPriceLineColorOverride?: string;
+  /** Override the volume up color. Does not affect candle colors. */
+  volumeSuccessColorOverride?: string;
+  /** Override the volume down color. Does not affect candle colors. */
+  volumeErrorColorOverride?: string;
+
+  /**
+   * Optional TV built-in label colors. Omitted fields use theme tokens from the active
+   * appearance (`background.section`, `text.default`, `text.muted`).
+   */
+  labelStyleOverrides?: ChartLabelStyleOverrides;
 
   /**
    * Opt-in custom DOM legend overlay. When provided with `enabled: true`,
@@ -547,6 +838,24 @@ export interface AdvancedChartProps {
    * When omitted or `enabled: false`, the native TV legend is used as-is.
    */
   legendOverlay?: LegendOverlayConfig;
+
+  /**
+   * When true, the chart surface stops capturing touches (`pointerEvents="none"`)
+   * so gestures fall through to whatever scrolls behind it. Used when the chart is
+   * pinned as a scroll-linked overlay (e.g. Trader Position): once pinned, drags on
+   * the chart must scroll the list underneath rather than pan the WebView.
+   */
+  scrollPassthrough?: boolean;
+
+  /**
+   * SocialLeaderboard (Social Trading) scoping flag. When true, the WebView runs
+   * the SLB-only viewport behavior (frame-the-trades centering, back-fill
+   * pagination, full-window focus guard); when false/omitted, the chart uses the
+   * default code paths. This is a temporary team name-scope so SLB behavior can't
+   * affect other consumers (Token Details, Perps) while the chart logic is shared
+   * in one file. Only `TraderAdvancedChart` sets it.
+   */
+  slbMode?: boolean;
 }
 
 export interface LegendPlotConfig {
@@ -582,4 +891,18 @@ export interface AdvancedChartRef {
   removeIndicator: (indicator: IndicatorType) => void;
   setChartType: (chartType: ChartType) => void;
   reset: () => void;
+  /**
+   * Slide the viewport so `timeMs` (Unix ms) is centered. By default keeps the
+   * current zoom and animates; pass `spanMs` to set the zoom and `animate: false`
+   * to jump. No-op until the chart is ready.
+   */
+  focusTime: (
+    timeMs: number,
+    options?: { spanMs?: number; animate?: boolean },
+  ) => void;
+  /**
+   * Briefly pulse the trade marker with this `id` (matches {@link TradeMarker.id})
+   * to draw attention to it. No-op if no such marker exists or the chart isn't ready.
+   */
+  pulseTradeMarker: (id: string) => void;
 }

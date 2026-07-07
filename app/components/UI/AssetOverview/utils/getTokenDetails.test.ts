@@ -1,5 +1,8 @@
 import { zeroAddress } from 'ethereumjs-util';
-import { getTokenDetails } from './getTokenDetails';
+import {
+  getTokenDetails,
+  resolveTokenContractAddress,
+} from './getTokenDetails';
 import { TokenI } from '../../Tokens/types';
 
 // In test file
@@ -309,5 +312,48 @@ describe('getTokenDetails', () => {
         tokenList: null,
       });
     });
+  });
+});
+
+describe('resolveTokenContractAddress', () => {
+  const mockAsset: TokenI = {
+    address: '0x1234567890123456789012345678901234567890',
+    symbol: 'TEST',
+    decimals: 18,
+    aggregators: ['uniswap'],
+    isETH: false,
+    chainId: '0x1',
+    image: 'https://example.com/image.png',
+    name: 'Test Token',
+    balance: '0',
+    logo: 'https://example.com/logo.png',
+  };
+
+  beforeEach(() => {
+    (parseCaipAssetType as jest.Mock).mockClear();
+  });
+
+  it('returns zero address for native ETH on EVM', () => {
+    expect(
+      resolveTokenContractAddress({
+        ...mockAsset,
+        isETH: true,
+      }),
+    ).toBe(zeroAddress());
+  });
+
+  it('returns null for non-EVM native slip44 tokens', () => {
+    (parseCaipAssetType as jest.Mock).mockReturnValue({
+      assetNamespace: 'slip44',
+      assetReference: '0x123',
+    });
+
+    expect(
+      resolveTokenContractAddress({
+        ...mockAsset,
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+        address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      }),
+    ).toBeNull();
   });
 });

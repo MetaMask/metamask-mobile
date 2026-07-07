@@ -105,6 +105,7 @@ scripts/                  # Build and automation scripts
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                               |
 | [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Detox smoke/regression — Page Objects, gestures                              |
+| [`docs/testing/appium-smoke-testing.md`](docs/testing/appium-smoke-testing.md)             | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
 | [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
 | [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
 

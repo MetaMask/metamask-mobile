@@ -75,6 +75,56 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for the Perps advanced chart feature flag.
+ * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled-v2`
+ */
+export const PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY =
+  'perpsAdvancedChartEnabledV2' as const;
+
+/**
+ * Selector for Perps advanced chart feature flag.
+ * Controls whether market detail and fullscreen charts use the shared AdvancedChart
+ * (TradingView) instead of the Lightweight Charts WebView.
+ *
+ * @returns boolean - true if advanced chart should be shown, false otherwise
+ */
+export const selectPerpsAdvancedChartEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config / Redux key for the Perps show full asset names feature flag.
+ * LaunchDarkly key (kebab-case): `perps-show-full-asset-names`
+ */
+export const PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY =
+  'perpsShowFullAssetNames' as const;
+
+/**
+ * Selector for showing full asset names in Perps market row lists.
+ * When enabled, vertical market lists display the full asset name (e.g. "Bitcoin")
+ * instead of the ticker symbol (e.g. "BTC").
+ *
+ * @returns boolean - true if full asset names should be shown, false otherwise.
+ */
+export const selectPerpsShowFullAssetNamesFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Related Markets rail feature flag.
  * Controls visibility of the discovery rail on Perps market details.
  *
@@ -359,6 +409,23 @@ export const selectPerpsWatchlistEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.perpsWatchlistV2Enabled as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Terminal Backend feature flag.
+ * Controls whether market-data calls route through the MetaMask Terminal API
+ * (with HyperLiquid fallback) or go directly to HyperLiquid.
+ *
+ * @returns boolean - true if Terminal API should be used, false otherwise
+ */
+export const selectPerpsTerminalBackendEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTerminalBackendEnabled as unknown as VersionGatedFeatureFlag;
+
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );

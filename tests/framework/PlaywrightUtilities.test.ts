@@ -1,9 +1,16 @@
-import PlaywrightUtilities from './PlaywrightUtilities';
+import PlaywrightUtilities, {
+  executeMobileDeepLink,
+} from './PlaywrightUtilities';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
+import { setDeviceInfo } from './DeviceInfoCache.ts';
 
 describe('PlaywrightUtilities.launchApp', () => {
   const executeMock = jest.fn();
   const terminateAppMock = jest.fn();
+  // babel's transform-inline-environment-variables bakes process.env reads in at
+  // compile time, so ANDROID_APK_PATH/IOS_APP_PATH cannot be set per-test — spy on
+  // the artifact detection instead to pick the release vs debug launch path.
+  let isReleaseArtifactSpy: jest.SpyInstance;
 
   const androidDevice: CurrentDeviceDetails = {
     platform: 'android',
@@ -24,6 +31,13 @@ describe('PlaywrightUtilities.launchApp', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     process.env.CI = 'true';
+    isReleaseArtifactSpy = jest
+      .spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('./Constants'),
+        'isReleaseE2eArtifactForPlatform',
+      )
+      .mockReturnValue(true);
     executeMock.mockResolvedValue(undefined);
     terminateAppMock.mockResolvedValue(undefined);
     globalThis.driver = {
@@ -35,6 +49,7 @@ describe('PlaywrightUtilities.launchApp', () => {
   afterEach(() => {
     delete globalThis.driver;
     delete process.env.CI;
+    isReleaseArtifactSpy.mockRestore();
     jest.useRealTimers();
     jest.clearAllMocks();
   });
@@ -125,7 +140,7 @@ describe('PlaywrightUtilities.launchApp', () => {
       },
     });
 
-    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(2500);
     await launchPromise;
 
     expect(terminateAppMock).toHaveBeenCalledWith('io.metamask');
@@ -152,6 +167,7 @@ describe('PlaywrightUtilities.launchApp', () => {
   it('launches local Android debug builds via Expo dev-client deep link', async () => {
     jest.useRealTimers();
     process.env.CI = 'false';
+    isReleaseArtifactSpy.mockReturnValue(false);
     const execSyncMock = jest.spyOn(
       // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-nodejs-modules
       require('child_process'),
@@ -209,4 +225,77 @@ describe('PlaywrightUtilities.launchApp', () => {
       jest.useFakeTimers();
     }
   }, 10_000);
+});
+
+describe('executeMobileDeepLink', () => {
+  const executeMock = jest.fn();
+
+  beforeEach(() => {
+    executeMock.mockResolvedValue(undefined);
+    setDeviceInfo('android', { width: 1080, height: 2340 });
+    globalThis.driver = {
+      execute: executeMock,
+      capabilities: {
+        'appium:appPackage': 'io.metamask',
+      },
+    } as unknown as WebdriverIO.Browser;
+  });
+
+  afterEach(() => {
+    delete globalThis.driver;
+    jest.clearAllMocks();
+  });
+
+  it('scopes Android deep links to the session app package', async () => {
+    await executeMobileDeepLink(
+      'dapp://metamask.github.io/snaps/test-snaps/3.4.2/',
+    );
+
+    expect(executeMock).toHaveBeenCalledWith('mobile: deepLink', {
+      url: 'dapp://metamask.github.io/snaps/test-snaps/3.4.2/',
+      package: 'io.metamask',
+    });
+  });
+
+  it('falls back to unprefixed appPackage in session capabilities', async () => {
+    globalThis.driver = {
+      execute: executeMock,
+      capabilities: {
+        platformName: 'Android',
+        appPackage: 'io.metamask',
+      },
+    } as unknown as WebdriverIO.Browser;
+
+    await executeMobileDeepLink('dapp://example.com');
+
+    expect(executeMock).toHaveBeenCalledWith('mobile: deepLink', {
+      url: 'dapp://example.com',
+      package: 'io.metamask',
+    });
+  });
+
+  it('uses an explicit package when provided', async () => {
+    globalThis.driver = {
+      execute: executeMock,
+      capabilities: {},
+    } as unknown as WebdriverIO.Browser;
+
+    await executeMobileDeepLink('dapp://example.com', {
+      package: 'io.metamask',
+    });
+
+    expect(executeMock).toHaveBeenCalledWith('mobile: deepLink', {
+      url: 'dapp://example.com',
+      package: 'io.metamask',
+    });
+  });
+
+  it('omits package on iOS deep links', async () => {
+    setDeviceInfo('ios', { width: 390, height: 844 });
+    await executeMobileDeepLink('dapp://example.com');
+
+    expect(executeMock).toHaveBeenCalledWith('mobile: deepLink', {
+      url: 'dapp://example.com',
+    });
+  });
 });

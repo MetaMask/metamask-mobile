@@ -13,7 +13,6 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import Engine from '../../../../core/Engine';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 import type { MoneyVaultApyRemoteConfig } from '../selectors/featureFlags.types';
-import { selectMusdFiatRate } from '../selectors/musdRate';
 
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -52,15 +51,6 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
-jest.mock('../selectors/musdRate', () => ({
-  selectMusdFiatRate: jest.fn(),
-}));
-
-const mockRefreshMusdFiatRate = jest.fn().mockResolvedValue(undefined);
-jest.mock('./useRefreshMusdFiatRate', () => ({
-  __esModule: true,
-  default: () => mockRefreshMusdFiatRate,
-}));
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseQuery = jest.mocked(useQuery);
@@ -69,10 +59,6 @@ const mockControllerMessengerCall = jest.mocked(
 );
 
 const MOCK_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
-
-// musdFiatRate = 1.0 — the correct peg for a dollar-backed stablecoin,
-// keeping all downstream fiat arithmetic easy to verify.
-const MOCK_MUSD_FIAT_RATE = 1;
 
 const DEFAULT_REMOTE_APY_CONFIG: MoneyVaultApyRemoteConfig = {
   vaultApyFallback: undefined,
@@ -88,25 +74,14 @@ function setupDefaultSelectors(
       updatedAt: number;
     } | null;
     remoteApyConfig?: MoneyVaultApyRemoteConfig;
-    musdFiatRate?: number;
   } = {},
 ) {
   const lastKnownBalance = options.lastKnownBalance ?? null;
   const remoteApyConfig = options.remoteApyConfig ?? DEFAULT_REMOTE_APY_CONFIG;
-  // Use hasOwnProperty to distinguish "not provided" from "explicitly undefined"
-  const musdFiatRate = Object.prototype.hasOwnProperty.call(
-    options,
-    'musdFiatRate',
-  )
-    ? options.musdFiatRate
-    : MOCK_MUSD_FIAT_RATE;
 
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPrimaryMoneyAccount) {
       return { address: MOCK_ADDRESS };
-    }
-    if (selector === selectMusdFiatRate) {
-      return musdFiatRate;
     }
     if (selector === selectCurrentCurrency) {
       return 'usd';
@@ -200,7 +175,6 @@ describe('getLiveVedaVaultExchangeRate', () => {
 describe('useMoneyAccountBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRefreshMusdFiatRate.mockResolvedValue(undefined);
     setupDefaultSelectors();
     setupDefaultQueries();
   });
@@ -264,18 +238,7 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.withdrawableMusd).toBeUndefined();
   });
 
-  it('returns undefined fiat values when musdFiatRate cannot be computed', () => {
-    setupDefaultSelectors({ musdFiatRate: undefined });
-
-    const { result } = renderHook(() => useMoneyAccountBalance());
-
-    expect(result.current.totalFiatFormatted).toBeUndefined();
-    expect(result.current.totalFiatRaw).toBeUndefined();
-  });
-
-  it('returns $0.00 when the balance is zero and the rate is missing', () => {
-    // No price data available → musdFiatRate cannot be computed.
-    setupDefaultSelectors({ musdFiatRate: undefined });
+  it('returns $0.00 in USD when the balance is zero', () => {
     setupDefaultQueries({
       data: { musdBalance: '0', vmusdValueInMusd: '0', totalBalance: '0' },
       isLoading: false,
@@ -290,20 +253,10 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.isBalanceUnavailable).toBe(false);
   });
 
-  it('returns formatted total fiat when all data is available', () => {
+  it('returns formatted total fiat in USD via the peg', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.totalFiatFormatted).toBe('$3.00');
-  });
-
-  it('treats a 0 mUSD fiat rate as available when formatting fiat balance', () => {
-    setupDefaultSelectors({ musdFiatRate: 0 });
-
-    const { result } = renderHook(() => useMoneyAccountBalance());
-
-    expect(result.current.totalFiatFormatted).toBe('$0.00');
-    expect(result.current.totalFiatRaw).toBe('0');
-    expect(result.current.isBalanceUnavailable).toBe(false);
   });
 
   it('disables moneyBalanceQuery when no account address', () => {
@@ -311,9 +264,6 @@ describe('useMoneyAccountBalance', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return undefined;
-      }
-      if (selector === selectMusdFiatRate) {
-        return MOCK_MUSD_FIAT_RATE;
       }
       if (selector === selectCurrentCurrency) {
         return 'usd';
@@ -356,6 +306,40 @@ describe('useMoneyAccountBalance', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.apyPercentFormatted).toBe('5%');
+  });
+
+  it('rounds apyPercent half up to one decimal place for high-precision APY', () => {
+    const apyDecimal = 0.0377356238130822;
+
+    setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+      data: { apy: apyDecimal },
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyDecimal).toBe(apyDecimal);
+    expect(result.current.apyPercent).toBe(3.8);
+    expect(result.current.apyPercentFormatted).toBe('3.8%');
+  });
+
+  it('rounds apyPercent down to one decimal place for a high-precision APY', () => {
+    const apyDecimal = 0.03341;
+
+    setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+      data: { apy: apyDecimal },
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyDecimal).toBe(apyDecimal);
+    expect(result.current.apyPercent).toBe(3.3);
+    expect(result.current.apyPercentFormatted).toBe('3.3%');
   });
 
   it('returns undefined for all APY fields when vault APY data is not available and no fallback configured', () => {
@@ -723,84 +707,6 @@ describe('useMoneyAccountBalance', () => {
       const { result } = renderHook(() => useMoneyAccountBalance());
 
       expect(result.current.lastKnownTotalFiatFormatted).toBeUndefined();
-    });
-  });
-
-  describe('mUSD fiat rate warming', () => {
-    it('calls refreshMusdFiatRate when balance is non-zero and rate is missing', () => {
-      setupDefaultSelectors({ musdFiatRate: undefined });
-      setupDefaultQueries({
-        data: {
-          musdBalance: '1000000',
-          vmusdValueInMusd: '2000000',
-          totalBalance: '3000000',
-        },
-        isLoading: false,
-        isError: false,
-        isFetching: false,
-      });
-
-      renderHook(() => useMoneyAccountBalance());
-
-      expect(mockRefreshMusdFiatRate).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call refreshMusdFiatRate when balance is zero and rate is missing', () => {
-      setupDefaultSelectors({ musdFiatRate: undefined });
-      setupDefaultQueries({
-        data: { musdBalance: '0', vmusdValueInMusd: '0', totalBalance: '0' },
-        isLoading: false,
-        isError: false,
-        isFetching: false,
-      });
-
-      renderHook(() => useMoneyAccountBalance());
-
-      expect(mockRefreshMusdFiatRate).not.toHaveBeenCalled();
-    });
-
-    it('does not call refreshMusdFiatRate when rate is available', () => {
-      setupDefaultSelectors({ musdFiatRate: 1 });
-
-      renderHook(() => useMoneyAccountBalance());
-
-      expect(mockRefreshMusdFiatRate).not.toHaveBeenCalled();
-    });
-
-    it('does not call refreshMusdFiatRate when rate is 0', () => {
-      setupDefaultSelectors({ musdFiatRate: 0 });
-
-      renderHook(() => useMoneyAccountBalance());
-
-      expect(mockRefreshMusdFiatRate).not.toHaveBeenCalled();
-    });
-
-    it('does not call refreshMusdFiatRate when balance is still loading', () => {
-      setupDefaultSelectors({ musdFiatRate: undefined });
-      setupDefaultQueries({
-        data: undefined,
-        isLoading: true,
-        isError: false,
-        isFetching: false,
-      });
-
-      renderHook(() => useMoneyAccountBalance());
-
-      expect(mockRefreshMusdFiatRate).not.toHaveBeenCalled();
-    });
-
-    it('does not call refreshMusdFiatRate when balance fetch errored', () => {
-      setupDefaultSelectors({ musdFiatRate: undefined });
-      setupDefaultQueries({
-        data: undefined,
-        isLoading: false,
-        isError: true,
-        isFetching: false,
-      });
-
-      renderHook(() => useMoneyAccountBalance());
-
-      expect(mockRefreshMusdFiatRate).not.toHaveBeenCalled();
     });
   });
 });

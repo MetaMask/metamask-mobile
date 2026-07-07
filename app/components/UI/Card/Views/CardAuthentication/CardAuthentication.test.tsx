@@ -60,6 +60,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/useCardAuth');
 
+let mockIsForgotPasswordEnabled = true;
+jest.mock('../../../../../selectors/featureFlagController/card', () => ({
+  ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
+  selectCardForgotPasswordFeatureEnabled: () => mockIsForgotPasswordEnabled,
+}));
+
 const mockUseCardAuth = useCardAuth as jest.MockedFunction<typeof useCardAuth>;
 
 const mockInitiateMutateAsync = jest.fn();
@@ -194,6 +200,7 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('CardAuthentication Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsForgotPasswordEnabled = true;
     mockRouteParams = {};
 
     mockInitiateMutateAsync.mockResolvedValue(undefined);
@@ -1014,6 +1021,18 @@ describe('CardAuthentication Component', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON),
       ).toBeOnTheScreen();
+    });
+
+    it('does not render the forgot password link when the feature flag is disabled', () => {
+      mockIsForgotPasswordEnabled = false;
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not render the forgot password link on the OTP step', () => {

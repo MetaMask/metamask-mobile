@@ -1,14 +1,23 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHowItWorksView from './MoneyHowItWorksView';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { SCREEN_NAMES } from '../../constants/moneyEvents';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  MONEY_URLS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
+import AppConstants from '../../../../../core/AppConstants';
 
 const mockTrackScreenViewed = jest.fn();
+const mockTrackButtonClicked = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -41,6 +50,7 @@ describe('MoneyHowItWorksView', () => {
     jest.clearAllMocks();
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackScreenViewed: mockTrackScreenViewed,
+      trackButtonClicked: mockTrackButtonClicked,
     });
     (useMoneyAccountBalance as jest.Mock).mockReturnValue({
       apyPercent: 4,
@@ -167,6 +177,49 @@ describe('MoneyHowItWorksView', () => {
     fireEvent.press(firstFaq);
 
     expect(firstFaq).toBeOnTheScreen();
+  });
+
+  it('renders the Risk and Disclosures section', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyHowItWorksView />,
+    );
+
+    expect(
+      getByTestId(MoneyHowItWorksViewTestIds.DISCLOSURES_TITLE),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.how_it_works_page.disclosures_body')),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the Card fees breakdown when the fees FAQ link is pressed', () => {
+    const openURLSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+
+    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_ITEM(4)));
+    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_LINK));
+
+    expect(openURLSpy).toHaveBeenCalledWith(AppConstants.CARD.CARD_FEES_URL);
+  });
+
+  it('tracks a button click when the fees FAQ link is pressed', () => {
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+
+    const { getByTestId } = renderWithProvider(<MoneyHowItWorksView />);
+
+    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_ITEM(4)));
+    fireEvent.press(getByTestId(MoneyHowItWorksViewTestIds.FAQ_LINK));
+
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.CARD_FEES,
+      component_name: COMPONENT_NAMES.FAQ_ITEM,
+      label_key: 'money.how_it_works_page.faq_a4_link',
+      redirect_target: MONEY_URLS.CARD_FEES,
+    });
   });
 
   describe('analytics', () => {

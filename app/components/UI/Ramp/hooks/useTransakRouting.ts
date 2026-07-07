@@ -1,6 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
@@ -145,7 +144,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     },
     [baseRoute, baseRouteParams],
   );
-  const navigation = useNavigation<StackNavigationProp<RampStackParamList>>();
+  const navigation = useNavigation<NavigationProp<RampStackParamList>>();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
   const processingOrderIdRef = useRef<string | null>(null);

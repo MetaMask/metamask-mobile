@@ -88,9 +88,10 @@ export abstract class BaseGoogleLoginHandler extends BaseLoginHandler {
       prompt: [Prompt.SelectAccount],
     });
 
-    const result = await authRequest.promptAsync({
-      authorizationEndpoint: this.OAUTH_SERVER_URL,
-    });
+    const result = await authRequest.promptAsync(
+      { authorizationEndpoint: this.OAUTH_SERVER_URL },
+      { preferUniversalLinks: true },
+    );
 
     if (result.type === 'success') {
       return {

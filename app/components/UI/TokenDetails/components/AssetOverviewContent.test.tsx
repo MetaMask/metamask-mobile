@@ -621,19 +621,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
     });
 
-    it('renders verified badge when securityData resultType is Verified', () => {
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewContent
-          {...defaultProps}
-          securityData={createMockSecurityData('Verified')}
-        />,
-        { state: createState(true) },
-      );
-
-      const badge = getByTestId('security-badge-verified');
-      expect(badge).toBeOnTheScreen();
-    });
-
     it('does not render badge when securityData resultType is Benign', () => {
       const { queryByTestId } = renderWithProvider(
         <AssetOverviewContent
@@ -643,7 +630,6 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(queryByTestId('security-badge-verified')).toBeNull();
       expect(queryByTestId('security-banner-warning')).toBeNull();
       expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
@@ -685,31 +671,6 @@ describe('AssetOverviewContent', () => {
 
       const banner = getByTestId('security-banner-malicious');
       expect(banner).toBeOnTheScreen();
-    });
-
-    it('navigates to security badge bottom sheet when verified badge is pressed', () => {
-      const { getByTestId } = renderWithProvider(
-        <AssetOverviewContent
-          {...defaultProps}
-          securityData={createMockSecurityData('Verified')}
-        />,
-        { state: createState(true) },
-      );
-
-      fireEvent.press(getByTestId('security-badge-verified'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-        params: expect.objectContaining({
-          title: expect.any(String),
-          description: expect.any(String),
-          source: 'badge',
-          severity: 'Verified',
-          tokenAddress: '0x123',
-          tokenSymbol: 'ETH',
-          chainId: '0x1',
-        }),
-      });
     });
 
     it('navigates to security badge bottom sheet when warning badge is pressed', () => {
@@ -800,24 +761,22 @@ describe('AssetOverviewContent', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('does not render badge when securityData is null', () => {
+    it('does not render security banners when securityData is null', () => {
       const { queryByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} securityData={null} />,
         { state: createState(true) },
       );
 
-      expect(queryByTestId('security-badge-verified')).toBeNull();
       expect(queryByTestId('security-banner-warning')).toBeNull();
       expect(queryByTestId('security-banner-malicious')).toBeNull();
     });
 
-    it('does not render badge when securityData is undefined', () => {
+    it('does not render security banners when securityData is undefined', () => {
       const { queryByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} securityData={undefined} />,
         { state: createState(true) },
       );
 
-      expect(queryByTestId('security-badge-verified')).toBeNull();
       expect(queryByTestId('security-banner-warning')).toBeNull();
       expect(queryByTestId('security-banner-malicious')).toBeNull();
     });

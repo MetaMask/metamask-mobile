@@ -1179,7 +1179,7 @@ class WalletView {
           this.walletScrollContainer,
           {
             direction,
-            scrollAmount: 200,
+            scrollAmount: 250,
             timeout: 60_000,
             elemDescription: 'Scroll to Predictions section',
           },

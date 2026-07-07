@@ -36,17 +36,23 @@ export const StepConnectorLine = memo(({ testID }: StepConnectorLineProps) => {
     }
   }, []);
 
+  const containerWidth = 32;
+
   return (
     <View
       style={styles.container}
       onLayout={handleLayout}
       testID={testID ?? HardwareWalletsSwapsSelectorsIDs.STEP_CONNECTOR}
     >
-      <Svg style={StyleSheet.absoluteFillObject} width={2} height={height}>
+      <Svg
+        style={StyleSheet.absoluteFill}
+        width={containerWidth}
+        height={height}
+      >
         <Line
-          x1="1"
+          x1={containerWidth / 2}
           y1="0"
-          x2="1"
+          x2={containerWidth / 2}
           y2={height}
           stroke={colors.border.muted}
           strokeWidth={2}

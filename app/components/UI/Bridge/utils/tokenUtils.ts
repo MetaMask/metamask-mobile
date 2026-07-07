@@ -7,6 +7,7 @@ import {
 } from '@metamask/utils';
 import {
   formatAddressToAssetId,
+  formatChainIdToCaip,
   formatChainIdToHex,
   getNativeAssetForChainId,
   isNonEvmChainId,
@@ -16,6 +17,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { getSwapDestToken } from './getSwapDestToken';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
+import { areAddressesEqual } from '../../../../util/address';
 
 export interface ApiTokenForBridgeToken {
   assetId: string;
@@ -202,4 +204,32 @@ export const tokenToIncludeAsset = (
       : (assetId.toLowerCase() as CaipAssetType),
     name: token.name ?? '',
   };
+};
+
+/**
+ * Returns true when two bridge tokens reference the same on-chain asset.
+ * Addresses are normalized (e.g. Polygon native 0x…1010 → 0x0) and compared
+ * case-insensitively for EVM; chain IDs are normalized to CAIP format, so
+ * same-address tokens on different chains are NOT considered identical.
+ */
+export const isSameBridgeToken = (
+  tokenA: BridgeToken | undefined,
+  tokenB: BridgeToken | undefined,
+): boolean => {
+  if (!tokenA || !tokenB) {
+    return false;
+  }
+
+  if (
+    !areAddressesEqual(
+      normalizeTokenAddress(tokenA.address, tokenA.chainId),
+      normalizeTokenAddress(tokenB.address, tokenB.chainId),
+    )
+  ) {
+    return false;
+  }
+
+  return (
+    formatChainIdToCaip(tokenA.chainId) === formatChainIdToCaip(tokenB.chainId)
+  );
 };

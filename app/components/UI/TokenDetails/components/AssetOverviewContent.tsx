@@ -71,28 +71,16 @@ import {
   type TokenDetailsRouteParams,
 } from '../constants/constants';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
-import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import {
   Box,
   BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconSize,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SecurityBanner } from './SecurityBanner';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
-import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
-import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
@@ -102,7 +90,6 @@ import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButt
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
-import StockBadge from '../../shared/StockBadge/StockBadge';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   endTrace,
@@ -259,7 +246,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen, isStockToken } = useRWAToken();
+  const { isTokenTradingOpen } = useRWAToken();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -384,64 +371,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isMusdConversionFlowEnabled &&
     isMusdGeoEligible;
 
-  const securityConfig = useMemo(
-    () => getResultTypeConfig(securityData?.resultType),
-    [securityData?.resultType],
-  );
-
-  const handleSecurityBadgePress = useCallback(() => {
-    if (
-      !securityData?.resultType ||
-      securityData.resultType === 'Benign' ||
-      !securityConfig.icon ||
-      !securityConfig.iconColor ||
-      !securityConfig.sheetTitle ||
-      !securityConfig.getSheetDescription
-    ) {
-      return;
-    }
-
-    // For Verified tokens, use badge icon (VerifiedFilled) instead of tag icon (SecurityTick)
-    const isVerified = securityData.resultType === 'Verified';
-    const displayIcon =
-      isVerified && securityConfig.badge
-        ? securityConfig.badge.icon
-        : securityConfig.icon;
-    const displayIconColor =
-      isVerified && securityConfig.badge
-        ? securityConfig.badge.iconColor
-        : securityConfig.iconColor;
-
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-      params: {
-        icon: displayIcon,
-        iconColor: displayIconColor,
-        title: securityConfig.sheetTitle,
-        description: securityConfig.getSheetDescription(
-          token.symbol || token.name,
-        ),
-        source: 'badge',
-        severity: securityData.resultType,
-        tokenAddress: token.address,
-        tokenSymbol: token.symbol || token.name,
-        chainId: token.chainId,
-        features: securityData.features,
-      },
-    });
-  }, [
-    securityData,
-    securityConfig,
-    token.symbol,
-    token.name,
-    token.address,
-    token.chainId,
-    navigation,
-  ]);
-
-  const networkBadgeSource = token.chainId
-    ? NetworkBadgeSource(token.chainId as Hex)
-    : undefined;
+  const { securityConfig, handleSecurityBadgePress } =
+    useTokenSecurityBadgePress(token, securityData);
 
   const marketInsightsCaip19Id = useMemo(() => {
     if (!isMarketInsightsEnabled) {
@@ -662,85 +593,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 onPress={handleSecurityBadgePress}
               />
             )}
-
-          {/* Token icon + name row */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 py-2 pl-4 pr-[16px]"
-          >
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                networkBadgeSource ? (
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={networkBadgeSource}
-                    size={AvatarSize.Xs}
-                  />
-                ) : undefined
-              }
-            >
-              <AssetLogo asset={token} />
-            </BadgeWrapper>
-
-            <Box twClassName="min-w-0 flex-1">
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="max-w-full min-w-0 gap-1.5 self-stretch"
-              >
-                <Box twClassName="min-w-0 shrink grow-0">
-                  <Text
-                    variant={TextVariant.HeadingMd}
-                    color={TextColor.TextDefault}
-                    numberOfLines={1}
-                  >
-                    {token.name || token.symbol}
-                  </Text>
-                </Box>
-                {securityData?.resultType === 'Verified' &&
-                  securityConfig.badge && (
-                    <Box twClassName="shrink-0 pb-[2px]">
-                      <TouchableOpacity
-                        onPress={handleSecurityBadgePress}
-                        testID="security-badge-verified"
-                      >
-                        <Icon
-                          name={securityConfig.badge.icon}
-                          size={IconSize.Md}
-                          color={securityConfig.badge.iconColor}
-                        />
-                      </TouchableOpacity>
-                    </Box>
-                  )}
-                {!token.name && isStockToken(token as BridgeToken) && (
-                  <Box twClassName="shrink-0">
-                    <StockBadge token={token as BridgeToken} />
-                  </Box>
-                )}
-              </Box>
-              {token.name ? (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    fontWeight={FontWeight.Medium}
-                    numberOfLines={1}
-                  >
-                    {token.ticker || token.symbol}
-                  </Text>
-                  {isStockToken(token as BridgeToken) && (
-                    <StockBadge token={token as BridgeToken} />
-                  )}
-                </Box>
-              ) : null}
-            </Box>
-          </Box>
 
           <Price
             asset={token}

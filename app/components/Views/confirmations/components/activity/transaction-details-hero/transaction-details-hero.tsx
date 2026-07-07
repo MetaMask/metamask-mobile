@@ -25,6 +25,7 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './transaction-details-hero.styles';
 import { getTokenTransferData } from '../../../utils/transaction-pay';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { usePayFiatFormatter } from '../../../hooks/pay/usePayFiatFormatter';
 import { PERPS_CURRENCY, ARBITRUM_USDC } from '../../../constants/perps';
 import { POLYGON_PUSD } from '../../../constants/predict';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
@@ -41,6 +42,7 @@ import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { TokenIcon } from '../../token-icon';
 import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
+import { isSingleRowMusdMoneyWithdraw } from '../../../../../UI/Money/utils/moneyTransactionGuards';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import {
   isMusdToken,
@@ -85,11 +87,15 @@ const TWO_ASSET_HERO_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-interface TokenDisplayData {
+interface TokenData {
   amount: string;
   symbol: string;
   address: string;
   chainId: Hex;
+}
+
+interface TokenDisplayData extends TokenData {
+  fiatAmount: string;
 }
 
 function TwoAssetHero({
@@ -163,7 +169,7 @@ function AssetLine({
         )}
         <Text variant={TextVariant.DisplayMD} color={amountColor}>
           {sign}
-          {data.amount} {data.symbol}
+          {data.fiatAmount}
         </Text>
       </Box>
     </>
@@ -173,6 +179,7 @@ function AssetLine({
 export function TransactionDetailsHero() {
   const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });
   const formatFiatUser = useFiatFormatter();
+  const formatFiatPay = usePayFiatFormatter();
   const { styles } = useStyles(styleSheet, {});
   const decodedAmount = useDecodedAmount();
   const { amount: claimAmount, isConverted: isClaimConverted } =
@@ -191,6 +198,8 @@ export function TransactionDetailsHero() {
   const showTwoAssetHero =
     isMoneyContext &&
     hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) &&
+    !isSingleRowMoneyDeposit(transactionMeta) &&
+    !isSingleRowMusdMoneyWithdraw(transactionMeta) &&
     sentData &&
     receivedData;
 
@@ -199,20 +208,30 @@ export function TransactionDetailsHero() {
       transactionMeta,
       sentData,
       receivedData,
+      formatFiatPay,
     );
     return <TwoAssetHero sentData={sent} receivedData={received} />;
   }
 
   const showTokenIcon =
-    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
+    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) &&
+    tokenMeta &&
+    (!hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountWithdraw,
+    ]) ||
+      isSingleRowMusdMoneyWithdraw(transactionMeta) ||
+      !isMoneyContext);
 
   if (showTokenIcon) {
-    const isFiatDeposit =
+    const showDepositPrefix =
       isMoneyContext &&
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountDeposit,
       ]) &&
-      Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
+      isSingleRowMoneyDeposit(transactionMeta);
+
+    const isMusdWithdrawSingleRow =
+      isMoneyContext && isSingleRowMusdMoneyWithdraw(transactionMeta);
 
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
       <Image
@@ -240,10 +259,14 @@ export function TransactionDetailsHero() {
         {icon}
         <Text
           variant={TextVariant.DisplayMD}
-          color={isFiatDeposit ? TextColor.Success : undefined}
+          color={showDepositPrefix ? TextColor.Success : undefined}
         >
-          {isFiatDeposit ? '+' : ''}
-          {tokenMeta.amount} {tokenMeta.symbol}
+          {showDepositPrefix ? '+' : isMusdWithdrawSingleRow ? '-' : ''}
+          {formatFiatPay(
+            new BigNumber(
+              transactionMeta.metamaskPay?.targetFiat ?? tokenMeta.amount,
+            ),
+          )}
         </Text>
       </Box>
     );
@@ -276,7 +299,7 @@ export function TransactionDetailsHero() {
  * For everything else, falls back to the standard tokenMeta (mUSD).
  */
 const RECEIVED_OVERRIDE: Partial<
-  Record<TransactionType, Omit<TokenDisplayData, 'amount'>>
+  Record<TransactionType, Omit<TokenData, 'amount'>>
 > = {
   [TransactionType.perpsDeposit]: {
     symbol: ARBITRUM_USDC.symbol,
@@ -296,7 +319,7 @@ const RECEIVED_OVERRIDE: Partial<
  * Override the sent data so the hero correctly shows the actual source asset.
  */
 const SENT_OVERRIDE: Partial<
-  Record<TransactionType, Omit<TokenDisplayData, 'amount'>>
+  Record<TransactionType, Omit<TokenData, 'amount'>>
 > = {
   [TransactionType.perpsWithdraw]: {
     symbol: ARBITRUM_USDC.symbol,
@@ -310,34 +333,65 @@ const SENT_OVERRIDE: Partial<
   },
 };
 
+function isSingleRowMoneyDeposit(transactionMeta: TransactionMeta): boolean {
+  if (
+    !hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+  ) {
+    return false;
+  }
+
+  const { fiat, tokenAddress } = transactionMeta.metamaskPay ?? {};
+  return Boolean(fiat?.orderId) || isMusdToken(tokenAddress);
+}
+
 function resolveTwoAssetData(
   transactionMeta: TransactionMeta,
-  sentData: TokenDisplayData,
-  receivedData: TokenDisplayData,
+  sentData: TokenData,
+  receivedData: TokenData,
+  formatFiat: (value: BigNumber) => string,
 ): { sent: TokenDisplayData; received: TokenDisplayData } {
+  const { totalFiat, targetFiat } = transactionMeta.metamaskPay ?? {};
+
   const isOutbound = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
 
   if (isOutbound) {
-    return { sent: receivedData, received: sentData };
+    return {
+      sent: {
+        ...receivedData,
+        fiatAmount: formatFiat(new BigNumber(totalFiat ?? receivedData.amount)),
+      },
+      received: {
+        ...sentData,
+        fiatAmount: formatFiat(new BigNumber(targetFiat ?? sentData.amount)),
+      },
+    };
   }
+
+  const fiatSent = formatFiat(new BigNumber(totalFiat ?? sentData.amount));
+  const fiatReceived = formatFiat(
+    new BigNumber(targetFiat ?? receivedData.amount),
+  );
 
   for (const [type, override] of Object.entries(SENT_OVERRIDE)) {
     if (hasTransactionType(transactionMeta, [type as TransactionType])) {
       return {
-        sent: { amount: sentData.amount, ...override },
-        received: receivedData,
+        sent: { amount: sentData.amount, ...override, fiatAmount: fiatSent },
+        received: { ...receivedData, fiatAmount: fiatReceived },
       };
     }
   }
 
-  return { sent: sentData, received: receivedData };
+  return {
+    sent: { ...sentData, fiatAmount: fiatSent },
+    received: { ...receivedData, fiatAmount: fiatReceived },
+  };
 }
 
 function toDisplay(
   tokenMeta: NonNullable<ReturnType<typeof useTokenMeta>>,
-): TokenDisplayData {
+): TokenData {
   return {
     amount: tokenMeta.amount,
     symbol: tokenMeta.symbol,
@@ -348,7 +402,7 @@ function toDisplay(
 
 function useReceivedTokenData(
   tokenMeta: ReturnType<typeof useTokenMeta>,
-): TokenDisplayData | null {
+): TokenData | null {
   const { transactionMeta } = useTransactionDetails();
   const isMoneyContext = useIsMoneyAccountContext();
 
@@ -363,7 +417,7 @@ function useReceivedTokenData(
   return tokenMeta ? toDisplay(tokenMeta) : null;
 }
 
-function useSourceSentData(): TokenDisplayData | null {
+function useSourceSentData(): TokenData | null {
   const { transactionMeta } = useTransactionDetails();
   const tokenMeta = useTokenMeta(transactionMeta);
   const { metamaskPay, requiredTransactionIds } = transactionMeta;
@@ -385,7 +439,7 @@ function useSourceSentData(): TokenDisplayData | null {
   const symbol = sourceToken?.symbol ?? MUSD_TOKEN.symbol;
   const decimals = sourceToken?.decimals ?? MUSD_DECIMALS;
 
-  const base: Omit<TokenDisplayData, 'amount'> = {
+  const base: Omit<TokenData, 'amount'> = {
     symbol,
     address: tokenAddress,
     chainId: sourceChainId as Hex,

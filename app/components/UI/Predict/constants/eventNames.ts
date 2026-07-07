@@ -175,6 +175,7 @@ export const PredictEventValues = {
   },
   BANNER_TYPE: {
     WORLD_CUP: 'world_cup',
+    PREDICT_THE_PITCH: 'predict_the_pitch',
   },
   SEARCH_INTERACTION: {
     OPENED: 'opened',

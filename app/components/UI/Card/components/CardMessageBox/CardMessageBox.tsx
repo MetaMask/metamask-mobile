@@ -16,6 +16,7 @@ interface CardMessageBoxProps {
   onConfirm?: () => void;
   onConfirmLoading?: boolean;
   onDismiss?: () => void;
+  values?: Record<string, string | number>;
 }
 
 interface MessageConfig {
@@ -35,6 +36,7 @@ const CardMessageBox = ({
   onConfirm,
   onConfirmLoading,
   onDismiss,
+  values,
 }: CardMessageBoxProps) => {
   const messageConfigs: Record<CardMessageBoxType, MessageConfig> = useMemo(
     () => ({
@@ -84,8 +86,38 @@ const CardMessageBox = ({
           'card.cashback_screen.money_account_required.confirm_button_label',
         ),
       },
+      [CardMessageBoxType.CreditFundingRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_screen.funding_required.title'),
+        description: strings('card.credit_screen.funding_required.description'),
+        confirmButtonLabel: strings(
+          'card.credit_screen.funding_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditMoneyAccountRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_screen.money_account_required.title'),
+        description: strings(
+          'card.credit_screen.money_account_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.credit_screen.money_account_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditAvailable]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.credit_banner.title', values),
+        description: strings('card.credit_banner.description'),
+        confirmButtonLabel: strings('card.credit_banner.confirm_button_label'),
+      },
+      [CardMessageBoxType.CreditAvailableNoMoneyAccount]: {
+        variant: CardMessageBoxVariant.Info,
+        title: strings('card.credit_banner.title', values),
+        description: strings('card.credit_banner.description_no_money_account'),
+        confirmButtonLabel: strings('card.credit_banner.confirm_button_label'),
+      },
     }),
-    [],
+    [values],
   );
 
   const config = messageConfigs[messageType];

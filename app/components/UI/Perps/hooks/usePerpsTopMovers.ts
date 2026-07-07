@@ -13,12 +13,21 @@ const TOP_MOVERS_THROTTLE_MS = 3000;
 
 export interface UsePerpsTopMoversOptions {
   direction: SortDirection;
+  /** When false, skips live price subscriptions and ranking work. Defaults to true. */
+  enabled?: boolean;
 }
 
 export interface UsePerpsTopMoversResult {
   data: PerpsMarketData[];
   isLoading: boolean;
 }
+
+/** Mirrors PerpsTopMoversSection render gating (skeleton while loading, hide when empty). */
+export const isPerpsTopMoversSectionVisible = ({
+  isLoading,
+  data,
+}: Pick<UsePerpsTopMoversResult, 'isLoading' | 'data'>): boolean =>
+  isLoading || data.length > 0;
 
 /**
  * Returns the top-moving perps markets (gainers or losers) sorted by
@@ -36,20 +45,24 @@ export interface UsePerpsTopMoversResult {
  */
 export const usePerpsTopMovers = ({
   direction,
+  enabled = true,
 }: UsePerpsTopMoversOptions): UsePerpsTopMoversResult => {
   const { markets, isLoading } = usePerpsMarkets();
 
   // Subscribe to live prices for every symbol so the ranking stays current.
   // All symbols share a single allMids WebSocket subscription; no extra
   // subscriptions are created here.
-  const symbols = useMemo(() => markets.map((m) => m.symbol), [markets]);
+  const symbols = useMemo(
+    () => (enabled ? markets.map((m) => m.symbol) : []),
+    [enabled, markets],
+  );
   const livePrices = usePerpsLivePrices({
     symbols,
     throttleMs: TOP_MOVERS_THROTTLE_MS,
   });
 
   const data = useMemo(() => {
-    if (markets.length === 0) {
+    if (!enabled || markets.length === 0) {
       return [];
     }
 
@@ -78,7 +91,7 @@ export const usePerpsTopMovers = ({
       sortBy: 'priceChange',
       direction,
     }).slice(0, TOP_MOVERS_LIMIT);
-  }, [markets, livePrices, direction]);
+  }, [enabled, markets, livePrices, direction]);
 
-  return { data, isLoading };
+  return { data, isLoading: enabled ? isLoading : false };
 };

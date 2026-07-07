@@ -3,7 +3,7 @@ import ActivityView from '.';
 import { BackHandler } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
@@ -12,6 +12,8 @@ import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter enum; route-isolation backlog
+import { ActivityTypeFilter } from '../ActivityScreen/types';
 
 let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
@@ -103,7 +105,7 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   return { TabsList };
 });
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -731,6 +733,38 @@ describe('ActivityView', () => {
 
       expect(getByTestId('tab-predict')).toBeOnTheScreen();
       expect(getRenderedTabs()).toContain('predict');
+    });
+
+    it('uses Predict as the initial tab when deep-linked via initialTypeFilter and clears the param', () => {
+      mockPredictEnabled = true;
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = true;
+      mockRoute.params = {
+        initialTypeFilter: ActivityTypeFilter.Predictions,
+        showBackButton: true,
+      };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      // Perps enabled -> Predict is tab index 3
+      expect(getLastInitialActiveIndex()).toBe(3);
+      expect(getByTestId('predict-visibility').props.children).toBe('visible');
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        initialTypeFilter: undefined,
+      });
+    });
+
+    it('does not force the Predict tab for a non-Predict initialTypeFilter', () => {
+      mockPredictEnabled = true;
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = true;
+      mockRoute.params = {
+        initialTypeFilter: ActivityTypeFilter.Transactions,
+      };
+
+      renderComponent(mockInitialState);
+
+      expect(getLastInitialActiveIndex()).toBe(0);
     });
   });
 

@@ -20,10 +20,6 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
 import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
 } from '../../../../../util/networks';
@@ -33,16 +29,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { TransactionDetailDivider } from '../../../../Views/confirmations/components/activity/transaction-detail-divider/transaction-detail-divider';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
-import {
-  TokenIcon,
-  TokenIconVariant,
-} from '../../../../Views/confirmations/components/token-icon';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
 import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
-import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
 import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import styleSheet from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details.styles';
 import Button, {
@@ -53,16 +44,23 @@ import Button, {
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import MoneyIcon from '../../../../../images/money.png';
 
+const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
+  card: 'money.api_activity_details.you_spent',
+  cashback: 'money.api_activity_details.you_earned',
+  refund: 'money.api_activity_details.you_were_refunded',
+};
+
 const iconStyles = StyleSheet.create({
   moneyIconWrapper: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 16,
+    height: 16,
+    borderRadius: 4,
     overflow: 'hidden' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   },
-  moneyIcon: { width: 32, height: 32 },
+  moneyIcon: { width: 21.33, height: 21.33 },
+  heroMoneyIcon: { width: 32, height: 32, borderRadius: 16 },
 });
 
 /**
@@ -102,8 +100,6 @@ function MoneyApiActivityDetailsContent({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const currencyRates = useSelector(selectCurrencyRates);
   const blockExplorerLinkEnabled = useSelector(
     selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   );
@@ -112,12 +108,8 @@ function MoneyApiActivityDetailsContent({
   const isCard = activity.kind === 'card';
 
   const display = useMemo(
-    () =>
-      accountsApiActivityDisplayInfo(activity, {
-        currentCurrency,
-        usdToCurrentCurrencyRate: getUsdToFiatConversionRate(currencyRates),
-      }),
-    [activity, currentCurrency, currencyRates],
+    () => accountsApiActivityDisplayInfo(activity),
+    [activity],
   );
 
   const formattedDate = useMemo(() => {
@@ -159,36 +151,27 @@ function MoneyApiActivityDetailsContent({
   return (
     <View style={styles.wrapper}>
       <HeaderStandard
-        title={strings(
-          isCard
-            ? 'money.api_activity_details.card_title'
-            : 'money.api_activity_details.cashback_title',
-        )}
+        title={display.label}
         onBack={handleBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
         includesTopInset
       />
       <ScrollView>
         <Box style={styles.container} gap={12}>
-          {/* Hero: "You spent" / "You earned" */}
+          {/* Hero: "You spent" / "You earned" / "You were refunded" */}
           <Box gap={4}>
             <Text color={TextColor.Alternative}>
-              {strings(
-                isCard
-                  ? 'money.api_activity_details.you_spent'
-                  : 'money.api_activity_details.you_earned',
-              )}
+              {strings(HERO_COPY_KEY[activity.kind])}
             </Text>
             <Box
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
               gap={12}
             >
-              <TokenIcon
-                chainId={activity.chainId}
-                address={activity.token.address}
-                symbol={activity.token.symbol}
-                variant={TokenIconVariant.Hero}
+              <Image
+                source={MoneyIcon}
+                style={iconStyles.heroMoneyIcon}
+                testID="money-account-hero-icon"
               />
               <Text
                 variant={TextVariant.DisplayMD}
@@ -238,11 +221,10 @@ function MoneyApiActivityDetailsContent({
             </TransactionDetailsRow>
           ) : null}
 
-          {/* Counterparty. Card spends are framed as leaving the money account
-              ("To: Money account"); musdback shows the actual sender. */}
+          {/* Card spends show the source account only; merchant is not surfaced yet. */}
           {isCard ? (
             <TransactionDetailsRow
-              label={strings('transaction_details.label.to')}
+              label={strings('transaction_details.label.from')}
             >
               <Box
                 flexDirection={FlexDirection.Row}

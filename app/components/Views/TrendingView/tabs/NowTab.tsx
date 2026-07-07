@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import {
+  Box,
+  FilterButton,
+  SegmentedControl,
+} from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -48,7 +53,6 @@ import ExploreSectionList, {
 } from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
 import PillScrollList from '../components/PillScrollList';
-import PillRow, { type PillOption } from '../components/PillRow';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
@@ -61,6 +65,11 @@ import {
   useWhatsHappening,
 } from '../../../UI/WhatsHappening/hooks';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import { useABTest } from '../../../../hooks';
+import {
+  WHATS_HAPPENING_EXPLORE_AB_KEY,
+  WHATS_HAPPENING_EXPLORE_VARIANTS,
+} from '../abTestConfig';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -81,17 +90,6 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     [perps.data],
   );
   const livePrices = usePerpsLivePrices({ symbols, throttleMs: 3000 });
-
-  const moverPills: PillOption[] = [
-    {
-      key: 'gainers',
-      name: strings('trending.perps_movers_pill_gainers'),
-    },
-    {
-      key: 'losers',
-      name: strings('trending.perps_movers_pill_losers'),
-    },
-  ];
 
   const handleMoverPillSelect = (key: string) => {
     if (key === 'gainers' || key === 'losers') {
@@ -160,12 +158,21 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         tabName="Now"
         sectionName="perps_movers"
       />
-      <PillRow
-        pills={moverPills}
-        activeKey={activeMoverDirection}
-        onSelect={handleMoverPillSelect}
-        testIdPrefix="perps-movers"
-      />
+      <Box twClassName="px-4 mb-3">
+        <SegmentedControl
+          value={activeMoverDirection}
+          onChange={handleMoverPillSelect}
+          isFullWidth
+          testID="perps-movers-pills"
+        >
+          <FilterButton value="gainers" testID="perps-movers-pill-gainers">
+            {strings('trending.perps_movers_pill_gainers')}
+          </FilterButton>
+          <FilterButton value="losers" testID="perps-movers-pill-losers">
+            {strings('trending.perps_movers_pill_losers')}
+          </FilterButton>
+        </SegmentedControl>
+      </Box>
       <PillScrollList<PerpsFeedItem>
         data={pillData}
         isLoading={perps.isLoading}
@@ -208,6 +215,10 @@ const NowTabContent: React.FC<TabProps> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
+  const { variant: whatsHappeningExploreVariant } = useABTest(
+    WHATS_HAPPENING_EXPLORE_AB_KEY,
+    WHATS_HAPPENING_EXPLORE_VARIANTS,
+  );
 
   const whatsHappening = useWhatsHappening(MAX_ITEMS_DISPLAYED);
   const refreshWhatsHappening = whatsHappening.refresh;
@@ -279,31 +290,50 @@ const NowTabContent: React.FC<TabProps> = ({
 
   const sections = useMemo((): ExploreSectionItem[] => {
     const items: ExploreSectionItem[] = [];
+    const whFirst = whatsHappeningExploreVariant.whatsHappeningBeforePredict;
 
-    if (showPredictions) {
-      items.push({
-        key: 'predict',
-        content: (
-          <PredictionsCarouselSection
-            feed={displayedPredictions}
-            tabName="Now"
-            sectionName="predictions_trending"
-            title={
-              worldCupPredictions.isEnabled
-                ? strings('predict.world_cup.predictions_title')
-                : strings('wallet.predict')
-            }
-            testIdPrefix="predict-market-row-item"
-            idPrefix="predictions"
-            onViewAll={() =>
-              worldCupPredictions.isEnabled
-                ? navigateToExploreWorldCupPredictions(navigation)
-                : navigateToExplorePredictionsList(navigation, 'trending')
-            }
-            isEnabled={isPredictEnabled}
-          />
-        ),
-      });
+    const whatsHappeningSection: ExploreSectionItem = {
+      key: 'wh',
+      content: (
+        <WhatsHappeningSection
+          source={WhatsHappeningSource.Explore}
+          feed={whatsHappening}
+          tabName="Now"
+          sectionName="whats_happening"
+        />
+      ),
+    };
+
+    const predictionsSection: ExploreSectionItem = {
+      key: 'predict',
+      content: (
+        <PredictionsCarouselSection
+          feed={displayedPredictions}
+          tabName="Now"
+          sectionName="predictions_trending"
+          title={
+            worldCupPredictions.isEnabled
+              ? strings('predict.world_cup.predictions_title')
+              : strings('wallet.predict')
+          }
+          testIdPrefix="predict-market-row-item"
+          idPrefix="predictions"
+          onViewAll={() =>
+            worldCupPredictions.isEnabled
+              ? navigateToExploreWorldCupPredictions(navigation)
+              : navigateToExplorePredictionsList(navigation, 'trending')
+          }
+          isEnabled={isPredictEnabled}
+        />
+      ),
+    };
+
+    if (whFirst) {
+      if (showWhatsHappening) items.push(whatsHappeningSection);
+      if (showPredictions) items.push(predictionsSection);
+    } else {
+      if (showPredictions) items.push(predictionsSection);
+      if (showWhatsHappening) items.push(whatsHappeningSection);
     }
 
     if (showCryptoMovers) {
@@ -364,19 +394,6 @@ const NowTabContent: React.FC<TabProps> = ({
       });
     }
 
-    if (showWhatsHappening) {
-      items.push({
-        key: 'wh',
-        content: (
-          <WhatsHappeningSection
-            source={WhatsHappeningSource.Explore}
-            hideHeader
-            feed={whatsHappening}
-          />
-        ),
-      });
-    }
-
     if (showStocks) {
       items.push({
         key: 'stocks',
@@ -406,6 +423,7 @@ const NowTabContent: React.FC<TabProps> = ({
 
     return items;
   }, [
+    whatsHappeningExploreVariant.whatsHappeningBeforePredict,
     showWhatsHappening,
     showPredictions,
     showCryptoMovers,

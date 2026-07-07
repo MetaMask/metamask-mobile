@@ -9,6 +9,7 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import type { TransactionWithImportTime } from './AssetDetailsActivityListItem.utils';
 import { resolveActivityListItemTitle } from '../ActivityListItemRow/ActivityListItemRow';
 
@@ -130,7 +131,43 @@ describe('AssetDetailsActivityListItem', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens transaction details when activity row is pressed', () => {
+  it('routes to the ActivityDetails screen when the redesign is enabled', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectSelectedInternalAccount) {
+        return { metadata: { importTime: 2000 } };
+      }
+      if (selector === selectIsTransactionsRedesignEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+    const navigation = createNavigation();
+    const transaction = createTransaction();
+
+    const { getByTestId } = render(
+      <AssetDetailsActivityListItem
+        transaction={transaction}
+        index={0}
+        assetSymbol="ETH"
+        chainId="0x1"
+        navigation={navigation}
+        onSpeedUpAction={jest.fn()}
+        onCancelAction={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(getByTestId('activity-list-item-row'));
+
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.objectContaining({
+        chainId: 'eip155:1',
+        txIdentifier: '0xabc',
+      }),
+    );
+  });
+
+  it('opens the legacy transaction details sheet when the redesign is disabled', () => {
     const navigation = createNavigation();
     const onSpeedUpAction = jest.fn();
     const onCancelAction = jest.fn();

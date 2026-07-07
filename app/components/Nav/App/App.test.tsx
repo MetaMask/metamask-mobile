@@ -76,6 +76,9 @@ jest.mock(
 );
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
+jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
+  <MockView testID="mock-ramps-service-disruption-modal" />
+));
 
 jest.mock('../../Views/Onboarding', () => () => (
   <MockView testID="mock-onboarding" />
@@ -367,6 +370,15 @@ jest.mock('../../../util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.requireActual(
+      '../../../util/analytics/AnalyticsEventBuilder',
+    ).AnalyticsEventBuilder.createEventBuilder,
+  })),
+}));
+
 jest.mock('../../../components/hooks/useAsyncResult', () => ({
   useAsyncResultOrThrow: jest.fn().mockResolvedValue({
     pending: false,
@@ -577,7 +589,7 @@ describe('App', () => {
       });
 
       jest.useFakeTimers();
-    });
+    }, 30000);
   });
 
   describe('route registration', () => {
@@ -2245,11 +2257,23 @@ describe('App', () => {
       });
     });
 
+    it('renders RampsServiceDisruptionModal sheet', async () => {
+      const { getByTestId } = renderAppWithModal(
+        Routes.SHEET.RAMPS_SERVICE_DISRUPTION_MODAL,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-ramps-service-disruption-modal'),
+        ).toBeOnTheScreen();
+      });
+    });
+
     it('renders WalletActions modal', async () => {
       const { getByTestId } = renderAppWithModal(Routes.MODAL.WALLET_ACTIONS);
 
       await waitFor(() => {
-        expect(getByTestId('mock-wallet-actions')).toBeTruthy();
+        expect(getByTestId('mock-wallet-actions')).toBeOnTheScreen();
       });
     });
 

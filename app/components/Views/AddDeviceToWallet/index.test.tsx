@@ -1,21 +1,38 @@
 import React from 'react';
-import { DeviceEventEmitter } from 'react-native';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { QrSyncPhases } from '../../../core/QrSync/constants';
+import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn(() => ({})),
   }),
+  useTheme: () => 'light',
+  Theme: { Light: 'light', Dark: 'dark' },
 }));
 
 jest.mock(
   '../../../images/add_wallet_to_device.png',
   () => 'add_wallet_to_device_image',
 );
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    QrSyncController: {
+      cancelSession: jest.fn(),
+      handleScannedQrPayload: jest.fn(),
+    },
+  },
+}));
+
+import Engine from '../../../core/Engine';
+
+const mockCancelSession = Engine.context.QrSyncController
+  .cancelSession as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -45,17 +62,25 @@ jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
-const renderComponent = () => renderWithProvider(<AddDeviceToWallet />);
+const renderComponent = (
+  qrSyncState: Partial<typeof defaultQrSyncControllerState> = {},
+) =>
+  renderWithProvider(<AddDeviceToWallet />, {
+    state: {
+      engine: {
+        backgroundState: {
+          QrSyncController: {
+            ...defaultQrSyncControllerState,
+            ...qrSyncState,
+          },
+        },
+      },
+    },
+  });
 
 describe('AddDeviceToWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
   });
 
   describe('initial render', () => {
@@ -109,8 +134,17 @@ describe('AddDeviceToWallet', () => {
       const { queryByText } = renderComponent();
 
       expect(
-        queryByText(strings('app_settings.add_device.device_added')),
+        queryByText(strings('app_settings.add_device.waiting_for_extension')),
       ).not.toBeOnTheScreen();
+    });
+
+    it('does not navigate to import on initial load', () => {
+      renderComponent();
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        expect.anything(),
+      );
     });
   });
 
@@ -118,8 +152,19 @@ describe('AddDeviceToWallet', () => {
     it('calls navigation.goBack when back button is pressed', () => {
       const { getByTestId } = renderComponent();
 
-      fireEvent.press(getByTestId('add-device-to-wallet-back-button'));
+      fireEvent.press(getByTestId('button-icon'));
 
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels the QR sync session when back is pressed during an active session', () => {
+      const { getByTestId } = renderComponent({
+        phase: QrSyncPhases.DISPLAYING_OTP,
+      });
+
+      fireEvent.press(getByTestId('button-icon'));
+
+      expect(mockCancelSession).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
@@ -146,99 +191,150 @@ describe('AddDeviceToWallet', () => {
         expect.objectContaining({
           initialScreen: 'Scanner',
           disableTabber: true,
+          origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
           onScanSuccess: expect.any(Function),
-          onScanError: expect.any(Function),
         }),
       );
     });
-
-    it('shows verification sheet after the mock scan delay', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
-      );
-
-      act(() => {
-        jest.advanceTimersByTime(2000);
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-      });
-    });
-
-    it('shows verification sheet 300ms after onScanSuccess fires', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
-      );
-
-      const { onScanSuccess } = mockCreateQRScannerNavDetails.mock
-        .calls[0][0] as {
-        onScanSuccess: (data: object, content?: string) => void;
-      };
-
-      act(() => {
-        onScanSuccess({});
-        jest.advanceTimersByTime(300);
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-      });
-    });
-
-    it('clears the mock scan timer when onScanError fires', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
-      );
-
-      const { onScanError } = mockCreateQRScannerNavDetails.mock
-        .calls[0][0] as {
-        onScanError: () => void;
-      };
-
-      act(() => {
-        onScanError();
-        jest.advanceTimersByTime(2000);
-      });
-
-      // navigate was called once to open the QR scanner but the delayed
-      // verification sheet navigate must NOT have fired after the error
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-    });
   });
 
-  describe('DeviceEventEmitter', () => {
-    it('switches to DeviceAdded screen when addDeviceVerificationDone event fires', async () => {
-      const { queryByText } = renderComponent();
-
-      await act(async () => {
-        DeviceEventEmitter.emit('addDeviceVerificationDone');
+  describe('QR sync presentation', () => {
+    it('shows the verification sheet when OTP is available', async () => {
+      renderComponent({
+        phase: QrSyncPhases.DISPLAYING_OTP,
+        otp: { otp: '123456', deadline: Date.now() + 30_000 },
       });
 
       await waitFor(() => {
-        expect(
-          queryByText(strings('app_settings.add_device.add_device_to_wallet')),
-        ).not.toBeOnTheScreen();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+          },
+        );
       });
     });
 
-    it('removes the event listener on unmount', () => {
-      const removeSpy = jest.fn();
-      jest.spyOn(DeviceEventEmitter, 'addListener').mockReturnValueOnce({
-        remove: removeSpy,
-      } as unknown as ReturnType<typeof DeviceEventEmitter.addListener>);
+    it('shows DeviceAdded while awaiting sync-ready', () => {
+      const { getByText, getByTestId } = renderComponent({
+        phase: QrSyncPhases.AWAITING_SYNC_READY,
+      });
 
-      const { unmount } = renderComponent();
+      expect(getByTestId('device-added-loader')).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.waiting_for_extension')),
+      ).toBeOnTheScreen();
+    });
+    it('does not render the manual QR input outside dev', () => {
+      const globalWithDev = global as unknown as { __DEV__: boolean };
+      const originalDev = globalWithDev.__DEV__;
+      globalWithDev.__DEV__ = false;
 
-      unmount();
+      try {
+        const { queryByText } = renderComponent();
 
-      expect(removeSpy).toHaveBeenCalledTimes(1);
+        expect(queryByText('Enter QR data manually')).not.toBeOnTheScreen();
+      } finally {
+        globalWithDev.__DEV__ = originalDev;
+      }
+    });
+
+    it('shows sync error message when the session fails in dev', () => {
+      const globalWithDev = global as unknown as { __DEV__: boolean };
+      const originalDev = globalWithDev.__DEV__;
+      globalWithDev.__DEV__ = true;
+
+      try {
+        const { getByText } = renderComponent({
+          phase: QrSyncPhases.FAILED,
+          error: {
+            code: 'SYNC_FAILED',
+            message: 'Sync failed',
+          },
+        });
+
+        expect(getByText('Sync failed')).toBeOnTheScreen();
+      } finally {
+        globalWithDev.__DEV__ = originalDev;
+      }
+    });
+  });
+
+  describe('QR sync import navigation', () => {
+    it('navigates to import when sync-ready provides import data', async () => {
+      renderComponent({
+        phase: QrSyncPhases.REVIEWING_IMPORT,
+        importPlan: [
+          {
+            index: 0,
+            value: 'word1 word2 word3',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: true,
+          },
+        ],
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          {
+            initialStep: 1,
+            qrSyncImport: true,
+          },
+        );
+      });
+    });
+
+    it('does not navigate to import after sync has completed', async () => {
+      renderComponent({
+        phase: QrSyncPhases.COMPLETED,
+        importPlan: [
+          {
+            index: 0,
+            value: 'word1 word2 word3',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: true,
+          },
+        ],
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.anything(),
+        );
+      });
+    });
+
+    it('does not navigate to import when sync failed with stale import data', async () => {
+      renderComponent({
+        phase: QrSyncPhases.FAILED,
+        importPlan: [
+          {
+            index: 0,
+            value: 'word1 word2 word3',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: true,
+          },
+        ],
+        error: {
+          code: 'SYNC_FAILED',
+          message: 'Sync failed',
+        },
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.anything(),
+        );
+      });
     });
   });
 });

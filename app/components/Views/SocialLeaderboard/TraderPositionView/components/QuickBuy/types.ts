@@ -40,6 +40,14 @@ export interface QuickBuyAnalyticsContext {
   marketCap?: number;
   source?: QuickBuySheetSource;
   traderTradeType?: 'buy' | 'sell';
+  /**
+   * Latest price of the buy token in the user's display currency, supplied by
+   * the host (e.g. the trader position chart feed). Used as the pre-quote
+   * exchange-rate source for tokens the user does not hold — for which the
+   * cached market-data lookup resolves nothing — so the rate pill renders
+   * immediately on open. Display-only; never fed into quote fetching.
+   */
+  tokenPriceFiat?: number;
 }
 
 export interface QuickBuySheetProps {

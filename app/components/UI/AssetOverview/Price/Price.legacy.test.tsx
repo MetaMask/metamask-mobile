@@ -79,6 +79,12 @@ describe('PriceLegacy', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render token name in price header', () => {
+    const { queryByText } = renderWithProvider(<PriceLegacy {...baseProps} />);
+
+    expect(queryByText('Ethereum')).toBeNull();
+  });
+
   it('shows loading skeletons when isLoading is true', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <PriceLegacy {...baseProps} isLoading />,

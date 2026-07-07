@@ -96,7 +96,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/TransactionElement/utils-gas.js',
   'app/components/UI/TransactionElement/utils.js',
   'app/components/UI/UrlAutocomplete/Result.tsx',
-  'app/components/Views/AssetDetails/index.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',

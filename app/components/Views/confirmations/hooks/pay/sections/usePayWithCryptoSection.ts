@@ -129,11 +129,14 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const isMoneyWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
-  const shouldShowNoFeeTokens = !isWithdraw;
-  // Per-row no-fee tags also show for Money withdrawals (the dedicated no-fee
-  // suggestion row stays gated on shouldShowNoFeeTokens — it suggests a token
-  // to pay with, which has no meaning when choosing a token to receive).
-  const showNoFeeRowTags = shouldShowNoFeeTokens || isMoneyWithdraw;
+  const isMoneyDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  // No-fee tokens only apply to Money Account flows (not perps/predict). The
+  // dedicated no-fee suggestion row is deposit-only; per-row tags also show on
+  // Money withdrawals, where the picker token is what you receive.
+  const shouldShowNoFeeTokens = isMoneyDeposit;
+  const showNoFeeRowTags = isMoneyDeposit || isMoneyWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
     clearPaymentOverride();
