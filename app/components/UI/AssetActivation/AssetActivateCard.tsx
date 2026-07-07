@@ -39,7 +39,7 @@ export const AssetActivateCard = ({
 }: AssetActivateCardProps) => {
   const { activateAsset, isActivating, errorMessage, dismissErrorMessage } =
     useAssetActivation({
-      token,
+      asset: token,
     });
 
   return (

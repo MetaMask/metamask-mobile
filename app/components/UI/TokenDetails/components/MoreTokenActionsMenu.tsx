@@ -104,7 +104,7 @@ const MoreTokenActionsMenu = () => {
     errorMessage,
     dismissErrorMessage,
   } = useAssetActivation({
-    token: liveAsset,
+    asset: liveAsset,
   });
   ///: END:ONLY_INCLUDE_IF
 
