@@ -175,11 +175,11 @@ const SwapDiscoveryFeedContent: React.FC = () => {
 
   const sections: ExploreSectionItem[] = [];
 
-  if (hotTokens.loading || hotTokens.data.length > 0) {
+  if (hotTokens.isLoading || hotTokens.data.length > 0) {
     sections.push(buildHotTokensSection({ navigation, feed: hotTokens }));
   }
 
-  if (trending.loading || trending.data.length > 0) {
+  if (trending.isLoading || trending.data.length > 0) {
     sections.push(
       buildTokenCardSection({
         key: 'trending',
@@ -199,7 +199,7 @@ const SwapDiscoveryFeedContent: React.FC = () => {
     );
   }
 
-  if (stocks.loading || stocks.data.length > 0) {
+  if (stocks.isLoading || stocks.data.length > 0) {
     sections.push(
       buildTokenCardSection({
         key: 'stocks',
