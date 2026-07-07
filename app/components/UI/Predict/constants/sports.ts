@@ -150,6 +150,26 @@ export const isMoneylineLikeMarketType = (type?: string): boolean =>
 export const isTeamToAdvanceMarketType = (type?: string): boolean =>
   type?.toLowerCase() === SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE;
 
+export const shouldShowRegTimeTag = ({
+  game,
+  sportsMarketType,
+  nonRegTimeSportsMarketTypes = [],
+}: {
+  game?: PredictMarketGame;
+  sportsMarketType?: string;
+  nonRegTimeSportsMarketTypes?: string[];
+}): boolean => {
+  if (game?.league !== WORLD_CUP_LEAGUE) {
+    return false;
+  }
+
+  if (!sportsMarketType) {
+    return true;
+  }
+
+  return !nonRegTimeSportsMarketTypes.includes(sportsMarketType.toLowerCase());
+};
+
 interface NegRiskSportsMarket {
   negRisk?: boolean;
   sportsMarketType?: string;

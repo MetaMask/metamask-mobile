@@ -1,7 +1,10 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import type { PredictMarketGame, PredictOutcomeGroup } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isMoneylineLikeMarketType } from '../../constants/sports';
+import {
+  isMoneylineLikeMarketType,
+  shouldShowRegTimeTag as shouldShowRegTimeTagForOutcome,
+} from '../../constants/sports';
 import PredictSportOutcomeCard from '../PredictSportOutcomeCard';
 import {
   buildButtons,
@@ -16,22 +19,6 @@ import {
   getSportsMarketTypeLabelForGame,
   getTranslatedSportsMarketTypeLabel,
 } from './utils';
-
-const shouldShowRegTimeTag = (
-  showRegTimeTag: boolean,
-  sportsMarketType: string | undefined,
-  nonRegTimeSportsMarketTypes: string[],
-): boolean => {
-  if (!showRegTimeTag) {
-    return false;
-  }
-
-  if (!sportsMarketType) {
-    return true;
-  }
-
-  return !nonRegTimeSportsMarketTypes.includes(sportsMarketType.toLowerCase());
-};
 
 const SimpleOutcomeCard = memo(
   ({
@@ -59,11 +46,14 @@ const SimpleOutcomeCard = memo(
       title={title}
       subtitle={buildSubtitle(outcome)}
       buttons={buildButtons(outcome, onBuyPress, game, sportsMarketType)}
-      showRegTimeTag={shouldShowRegTimeTag(
-        showRegTimeTag,
-        sportsMarketType,
-        nonRegTimeSportsMarketTypes,
-      )}
+      showRegTimeTag={
+        showRegTimeTag &&
+        shouldShowRegTimeTagForOutcome({
+          game,
+          sportsMarketType,
+          nonRegTimeSportsMarketTypes,
+        })
+      }
       onPressRegTimeInfo={onRegTimeInfoPress}
       testID={testID}
     />
@@ -142,11 +132,14 @@ const LineOutcomeCard = memo(
           game,
           sportsMarketType,
         )}
-        showRegTimeTag={shouldShowRegTimeTag(
-          showRegTimeTag,
-          sportsMarketType,
-          nonRegTimeSportsMarketTypes,
-        )}
+        showRegTimeTag={
+          showRegTimeTag &&
+          shouldShowRegTimeTagForOutcome({
+            game,
+            sportsMarketType,
+            nonRegTimeSportsMarketTypes,
+          })
+        }
         onPressRegTimeInfo={onRegTimeInfoPress}
         lines={lines}
         selectedLine={lines[selectedIdx]}
@@ -205,11 +198,14 @@ const MoneylineCard = memo(
         subtitle={subtitle}
         buttons={buttons}
         buttonLayout="inlineNoSeparator"
-        showRegTimeTag={shouldShowRegTimeTag(
-          showRegTimeTag,
-          sportsMarketType,
-          nonRegTimeSportsMarketTypes,
-        )}
+        showRegTimeTag={
+          showRegTimeTag &&
+          shouldShowRegTimeTagForOutcome({
+            game,
+            sportsMarketType,
+            nonRegTimeSportsMarketTypes,
+          })
+        }
         onPressRegTimeInfo={onRegTimeInfoPress}
         testID={testID}
       />

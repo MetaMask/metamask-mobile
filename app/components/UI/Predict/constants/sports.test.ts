@@ -11,6 +11,7 @@ import {
   isTeamToAdvanceMarketType,
   outcomeMatchesTeam,
   resolveNegRiskMoneylineShortTitles,
+  shouldShowRegTimeTag,
   sportTeamMatchesLabel,
 } from './sports';
 import type { PredictMarketGame } from '../types';
@@ -266,6 +267,30 @@ describe('sports moneyline helpers', () => {
     expect(isTeamToAdvanceMarketType('SOCCER_TEAM_TO_ADVANCE')).toBe(true);
     expect(isTeamToAdvanceMarketType('moneyline')).toBe(false);
     expect(isTeamToAdvanceMarketType()).toBe(false);
+  });
+
+  it('shows Reg time only for World Cup regular-time markets', () => {
+    expect(
+      shouldShowRegTimeTag({
+        game,
+        sportsMarketType: 'moneyline',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
+      }),
+    ).toBe(true);
+    expect(
+      shouldShowRegTimeTag({
+        game,
+        sportsMarketType: 'soccer_team_to_advance',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
+      }),
+    ).toBe(false);
+    expect(
+      shouldShowRegTimeTag({
+        game: { ...game, league: 'ucl' },
+        sportsMarketType: 'moneyline',
+        nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
+      }),
+    ).toBe(false);
   });
 
   it('matches sport teams by name, alias, or abbreviation', () => {

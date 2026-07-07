@@ -95,7 +95,8 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
           color={hasError ? TextColor.Error : TextColor.Default}
           variant={TextVariant.BodyMDMedium}
           style={tw.style(
-            `text-[${fontSize}px] tracking-tight leading-[${lineHeight}px] font-medium px-1`,
+            `text-[${fontSize}px] leading-[${lineHeight}px] font-medium px-1`,
+            { letterSpacing: -fontSize * 0.025 },
           )}
         >
           {amountValue}
