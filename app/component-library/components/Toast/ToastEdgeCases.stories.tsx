@@ -1,18 +1,26 @@
 import React, { useCallback, useContext, useMemo } from 'react';
 import { Alert, ScrollView, View } from 'react-native';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Text,
+  TextVariant,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { buildShareCopiedToastOptions } from '../../../components/UI/Predict/hooks/usePredictShare.utils';
 import { strings } from '../../../../locales/i18n';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { getNetworkImageSource } from '../../../util/networks';
-import Button, { ButtonVariants } from '../Buttons/Button';
-import type { ButtonProps } from '../Buttons/Button/Button.types';
 import { IconName } from '../Icons/Icon';
 import Toast from './Toast';
 import { ToastContext, ToastContextWrapper } from './Toast.context';
-import { ToastVariants, type ToastOptions } from './Toast.types';
+import {
+  ButtonIconVariant,
+  ToastVariants,
+  type ToastOptions,
+} from './Toast.types';
 import { TEST_NETWORK_IMAGE_SOURCE } from './Toast.constants';
 import {
   presentStoryToast,
@@ -42,24 +50,19 @@ const EDGE_CASE_TOAST_SECTIONS: {
           hasNoTimeout: false,
           customBottomOffset: 24,
           labelOptions: [
-            { label: strings('gas_fee_token_toast.message'), isBold: false },
-            { label: 'USDC', isBold: true },
-            { label: '.', isBold: false },
+            {
+              label: `${strings('gas_fee_token_toast.message')}USDC.`,
+              isBold: true,
+            },
           ],
           networkImageSource: tokenImageUri
             ? { uri: tokenImageUri }
             : TEST_NETWORK_IMAGE_SOURCE,
           closeButtonOptions: {
-            variant: ButtonVariants.Primary,
-            endIconName: IconName.Close,
+            variant: ButtonIconVariant.Icon,
+            iconName: IconName.Close,
             onPress: () => Alert.alert('Storybook', 'Close pressed'),
-            style: {
-              backgroundColor: 'transparent',
-              paddingHorizontal: 4,
-              paddingVertical: 10,
-              height: 20,
-            },
-          } satisfies ButtonProps,
+          },
         }),
       },
       {
@@ -69,22 +72,17 @@ const EDGE_CASE_TOAST_SECTIONS: {
           hasNoTimeout: false,
           customBottomOffset: 24,
           labelOptions: [
-            { label: strings('gas_fee_token_toast.message'), isBold: false },
-            { label: 'ETH', isBold: true },
-            { label: '.', isBold: false },
+            {
+              label: `${strings('gas_fee_token_toast.message')}ETH.`,
+              isBold: true,
+            },
           ],
           networkImageSource: getNetworkImageSource({ chainId: '0x1' }),
           closeButtonOptions: {
-            variant: ButtonVariants.Primary,
-            endIconName: IconName.Close,
+            variant: ButtonIconVariant.Icon,
+            iconName: IconName.Close,
             onPress: () => Alert.alert('Storybook', 'Close pressed'),
-            style: {
-              backgroundColor: 'transparent',
-              paddingHorizontal: 4,
-              paddingVertical: 10,
-              height: 20,
-            },
-          } satisfies ButtonProps,
+          },
         }),
       },
     ],
@@ -136,10 +134,12 @@ const EdgeCaseToastsStoryContent = () => {
             {section.triggers.map((trigger) => (
               <Button
                 key={`${section.title}-${trigger.label}`}
-                variant={ButtonVariants.Secondary}
-                label={trigger.label}
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Sm}
                 onPress={() => triggerEdgeCaseToast(trigger)}
-              />
+              >
+                {trigger.label}
+              </Button>
             ))}
           </View>
         ))}
