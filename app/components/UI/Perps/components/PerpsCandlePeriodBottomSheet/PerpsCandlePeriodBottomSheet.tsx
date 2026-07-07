@@ -40,6 +40,11 @@ interface PerpsCandlePeriodBottomSheetProps {
 
 const PERIOD_COLUMNS = 5;
 
+type CandlePeriodOption = Readonly<{
+  label: string;
+  value: CandlePeriod;
+}>;
+
 const PerpsCandlePeriodBottomSheet: React.FC<
   PerpsCandlePeriodBottomSheetProps
 > = ({
@@ -128,7 +133,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
     [onPeriodChange],
   );
 
-  const renderPeriodRow = (periods: { label: string; value: CandlePeriod }[]) =>
+  const renderPeriodRow = (periods: readonly CandlePeriodOption[]) =>
     Array.from({ length: PERIOD_COLUMNS }, (_, index) => {
       const period = periods[index];
 
