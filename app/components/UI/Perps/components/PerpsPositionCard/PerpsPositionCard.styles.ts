@@ -53,7 +53,6 @@ const styleSheet = (params: StyleSheetParams) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 16,
     },
     pnlSection: {
       flexDirection: 'row',
