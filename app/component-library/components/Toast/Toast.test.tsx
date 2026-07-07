@@ -4,8 +4,16 @@ import { StyleSheet } from 'react-native';
 import { render, screen, act } from '@testing-library/react-native';
 
 // Internal dependencies.
-import Toast from './Toast';
-import { ToastRef, ToastVariants, ToastOptions } from './Toast.types';
+import Toast, {
+  hasTrailingTextButton,
+  shouldTopAlignToastContent,
+} from './Toast';
+import {
+  ButtonIconVariant,
+  ToastRef,
+  ToastVariants,
+  ToastOptions,
+} from './Toast.types';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
@@ -191,7 +199,7 @@ describe('Toast', () => {
     expect(screen.getByText('Success')).toBeOnTheScreen();
   });
 
-  it('uses flex-start justifyContent on labels container by default', async () => {
+  it('uses center justifyContent on labels container by default', async () => {
     const toastOptions: ToastOptions = {
       variant: ToastVariants.Plain,
       labelOptions: [{ label: 'Aligned label' }],
@@ -208,6 +216,75 @@ describe('Toast', () => {
     const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
     const flat = StyleSheet.flatten(labelsContainer.props.style);
 
-    expect(flat.justifyContent).toBe('flex-start');
+    expect(flat.justifyContent).toBe('center');
+  });
+
+  describe('shouldTopAlignToastContent', () => {
+    it('keeps trailing text buttons vertically centered in the row', () => {
+      expect(
+        shouldTopAlignToastContent({
+          titleLineCount: 1,
+          hasDescription: true,
+          descriptionLineCount: 1,
+          hasActionButton: false,
+          hasTrailingTextButton: true,
+        }),
+      ).toBe(false);
+
+      expect(
+        shouldTopAlignToastContent({
+          titleLineCount: 2,
+          hasDescription: true,
+          descriptionLineCount: 1,
+          hasActionButton: false,
+          hasTrailingTextButton: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('still top-aligns multi-line title and description without trailing text buttons', () => {
+      expect(
+        shouldTopAlignToastContent({
+          titleLineCount: 2,
+          hasDescription: true,
+          descriptionLineCount: 1,
+          hasActionButton: false,
+          hasTrailingTextButton: false,
+        }),
+      ).toBe(true);
+    });
+
+    it('still top-aligns below-the-text action buttons with a single-line description', () => {
+      expect(
+        shouldTopAlignToastContent({
+          titleLineCount: 1,
+          hasDescription: true,
+          descriptionLineCount: 1,
+          hasActionButton: true,
+          hasTrailingTextButton: false,
+        }),
+      ).toBe(true);
+    });
+  });
+
+  describe('hasTrailingTextButton', () => {
+    it('returns true for label-based close buttons', () => {
+      expect(
+        hasTrailingTextButton({
+          label: 'Track',
+          onPress: jest.fn(),
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false for icon close buttons', () => {
+      expect(
+        hasTrailingTextButton({
+          variant: ButtonIconVariant.Icon,
+          iconName: 'Close',
+          onPress: jest.fn(),
+        }),
+      ).toBe(false);
+    });
   });
 });
