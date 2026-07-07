@@ -23,6 +23,7 @@ export interface PredictExtendedSportsMarketsFlag
   extends VersionGatedFeatureFlag {
   leagues: string[];
   enabledSportsMarketTypes: string[];
+  nonRegTimeSportsMarketTypes?: string[];
 }
 
 export interface PredictWorldCupStageConfig {
@@ -54,11 +55,13 @@ export interface PredictFeatureFlags {
   liveSportsLeagues: string[];
   extendedSportsMarketsLeagues: string[];
   enabledSportsMarketTypes: string[];
+  nonRegTimeSportsMarketTypes: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
   predictSportCardLivePricesEnabled: boolean;
@@ -66,4 +69,8 @@ export interface PredictFeatureFlags {
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
   queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=149&tag_id=100995&order=volume24hr"
+}
+
+export interface PredictWimbledonTabFlag extends VersionGatedFeatureFlag {
+  queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=100639&tag_slug=tennis&order=volume24hr"
 }

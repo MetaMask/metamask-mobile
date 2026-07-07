@@ -28,25 +28,35 @@ describe('formatActivityTokenAmount', () => {
 
   it('prefixes outgoing amounts with a minus sign', () => {
     const result = formatActivityTokenAmount({
-      amount: '1000000000000000000',
-      decimals: 18,
-      symbol: 'ETH',
+      amount: '1714557',
+      decimals: 6,
+      symbol: 'USDC',
       direction: 'out',
     } as TokenAmount);
 
-    expect(result?.startsWith('-')).toBe(true);
-    expect(result?.endsWith(' ETH')).toBe(true);
+    expect(result).toBe('-1.7146 USDC');
   });
 
   it('prefixes incoming amounts with a plus sign by default', () => {
     const result = formatActivityTokenAmount({
-      amount: '1000000',
-      decimals: 6,
-      symbol: 'USDC',
+      amount: '745596683158496',
+      decimals: 18,
+      symbol: 'ETH',
       direction: 'in',
     } as TokenAmount);
 
-    expect(result?.startsWith('+')).toBe(true);
+    expect(result).toBe('+0.0007456 ETH');
+  });
+
+  it('shows non-zero incoming amounts that round to zero as less than the minimum display quantity', () => {
+    const result = formatActivityTokenAmount({
+      amount: '1000000000000',
+      decimals: 18,
+      symbol: 'ETH',
+      direction: 'in',
+    } as TokenAmount);
+
+    expect(result).toBe('+<0.00001 ETH');
   });
 
   it('omits the plus sign when showPlus is false', () => {

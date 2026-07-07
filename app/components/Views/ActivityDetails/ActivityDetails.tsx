@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -12,10 +13,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
+import { selectTransactionMetadataById } from '../../../selectors/transactionController';
+import type { RootState } from '../../../reducers';
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the confirmations speed-up/cancel modal; route-isolation backlog
+import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
+/* eslint-disable import-x/no-restricted-paths -- transient row hand-off + shared pending-action logic from the activity list; route-isolation backlog */
+import { getPreloadedActivityItem } from '../ActivityList/preloadedActivityItemStore';
+import { useUnifiedTxActions } from '../ActivityList/useUnifiedTxActions';
+/* eslint-enable import-x/no-restricted-paths */
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
+import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
 
 /**
@@ -28,12 +38,57 @@ import { TemplateLoader } from './templates/TemplateLoader';
 const ActivityDetails = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
+  const { chainId, txIdentifier, preloadKey } =
+    useParams<ActivityDetailsParams>();
+  // Provider-backed rows (Perps / Predict) are handed off via a transient store
+  // keyed by `preloadKey` (params stay serializable). Capture the row once per
+  // key and hold it, so a later store eviction can't blank a still-mounted
+  // screen on re-render; re-read only when the key changes (the screen is reused
+  // across navigations).
+  const preloadedRef = useRef<{
+    key?: string;
+    item: ReturnType<typeof getPreloadedActivityItem>;
+  }>({ item: undefined });
+  if (preloadedRef.current.key !== preloadKey) {
+    preloadedRef.current = {
+      key: preloadKey,
+      item: getPreloadedActivityItem(preloadKey),
+    };
+  }
+  const preloadedItem = preloadedRef.current.item;
 
-  const item = useActivityDetailsItem(txIdentifier, chainId);
+  const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
   const title = item
     ? resolveActivityListItemTitle(item)
     : strings('activity_details.not_found');
+
+  // Pending speed-up / cancel: resolve the live local `TransactionMeta` for the
+  // resolved item so the banner reflects current status/gas. Only local EVM
+  // items carry a `TransactionMeta`; API / non-EVM items have none (no banner).
+  const localTxId =
+    item?.raw?.type === 'localTransaction'
+      ? item.raw.data.primaryTransaction?.id
+      : undefined;
+  const pendingTx = useSelector((state: RootState) =>
+    localTxId ? selectTransactionMetadataById(state, localTxId) : undefined,
+  );
+
+  const {
+    speedUpIsOpen,
+    cancelIsOpen,
+    confirmDisabled,
+    existingTx,
+    isLedgerAccount,
+    isQRHardwareAccount,
+    onSpeedUpAction,
+    onCancelAction,
+    onSpeedUpCancelCompleted,
+    speedUpTransaction,
+    cancelTransaction,
+    signQRTransaction,
+    signLedgerTransaction,
+    cancelUnsignedQRTransaction,
+  } = useUnifiedTxActions();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -61,6 +116,18 @@ const ActivityDetails = () => {
             style={tw.style('flex-1')}
             contentContainerStyle={tw.style('grow p-4')}
           >
+            {pendingTx ? (
+              <ActivityDetailsPendingBanner
+                tx={pendingTx}
+                isQRHardwareAccount={isQRHardwareAccount}
+                isLedgerAccount={isLedgerAccount}
+                onSpeedUpAction={onSpeedUpAction}
+                onCancelAction={onCancelAction}
+                signQRTransaction={signQRTransaction}
+                signLedgerTransaction={signLedgerTransaction}
+                cancelUnsignedQRTransaction={cancelUnsignedQRTransaction}
+              />
+            ) : null}
             <TemplateLoader item={item} />
           </ScrollView>
         ) : (
@@ -74,6 +141,23 @@ const ActivityDetails = () => {
             </Text>
           </Box>
         )}
+
+        {/*
+          The confirmation sheet is driven entirely by the hook's own state
+          (`existingTx` + open flags set together in `onSpeedUp/CancelAction`),
+          not by the banner's `pendingTx`. Gate on `existingTx` so the modal
+          only mounts once an action has been triggered.
+        */}
+        {existingTx ? (
+          <CancelSpeedupModal
+            isVisible={speedUpIsOpen || cancelIsOpen}
+            isCancel={cancelIsOpen}
+            tx={existingTx}
+            onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
+            onClose={onSpeedUpCancelCompleted}
+            confirmDisabled={confirmDisabled}
+          />
+        ) : null}
       </Box>
     </SafeAreaView>
   );

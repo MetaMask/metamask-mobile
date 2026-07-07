@@ -7,6 +7,8 @@ import {
   getLocalTransactionFees,
   getLocalTransactionStatus,
   getNetworkFeeAmount,
+  parseValueTransfers,
+  type ValueTransfer,
 } from './helpers';
 
 type LocalTransactionStatusInput = Parameters<
@@ -208,5 +210,57 @@ describe('getLocalTransactionFees', () => {
     } as unknown as Parameters<typeof getLocalTransactionFees>[0];
 
     expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toBeUndefined();
+  });
+});
+
+describe('parseValueTransfers', () => {
+  const subjectAddress = '0xSubject';
+  const other = '0xOther';
+  const transfers = [
+    { from: subjectAddress, to: other, symbol: 'USDC', transferType: 'erc20' },
+    { from: other, to: subjectAddress, symbol: 'DAI', transferType: 'erc20' },
+    { from: subjectAddress, to: other, symbol: 'NFTA', transferType: 'erc721' },
+    {
+      from: other,
+      to: subjectAddress,
+      symbol: 'NFTB',
+      transferType: 'erc1155',
+    },
+    { from: subjectAddress, to: other, symbol: 'ETH', transferType: 'normal' },
+    {
+      from: other,
+      to: subjectAddress,
+      symbol: 'ETH',
+      transferType: 'internal',
+    },
+  ] as unknown as ValueTransfer[];
+
+  it('resolves the subject sent/received fungible, native, and NFT legs', () => {
+    const result = parseValueTransfers(transfers, subjectAddress);
+
+    expect(result.sentTransfer?.symbol).toBe('USDC');
+    expect(result.receivedTransfer?.symbol).toBe('DAI');
+    expect(result.sentNftTransfer?.symbol).toBe('NFTA');
+    expect(result.receivedNftTransfer?.symbol).toBe('NFTB');
+    expect(result.sentNativeTransfer?.transferType).toBe('normal');
+    expect(result.receivedNativeTransfer?.transferType).toBe('internal');
+  });
+
+  it('matches the subject address case-insensitively', () => {
+    const result = parseValueTransfers(transfers, subjectAddress.toLowerCase());
+
+    expect(result.sentTransfer?.symbol).toBe('USDC');
+    expect(result.receivedNftTransfer?.symbol).toBe('NFTB');
+  });
+
+  it('returns all-undefined legs for missing value transfers', () => {
+    expect(parseValueTransfers(undefined, subjectAddress)).toStrictEqual({
+      sentTransfer: undefined,
+      receivedTransfer: undefined,
+      sentNativeTransfer: undefined,
+      receivedNativeTransfer: undefined,
+      sentNftTransfer: undefined,
+      receivedNftTransfer: undefined,
+    });
   });
 });

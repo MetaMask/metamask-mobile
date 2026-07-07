@@ -5062,7 +5062,7 @@ describe('Authentication', () => {
 
       expect(reauthSpy).toHaveBeenCalledWith('valid-password');
       expect(exportSeedPhraseSpy).toHaveBeenCalledWith(
-        'valid-password',
+        { password: 'valid-password' },
         keyringId,
       );
     });
@@ -5089,7 +5089,10 @@ describe('Authentication', () => {
       await Authentication.revealPrivateKey('valid-password', address);
 
       expect(reauthSpy).toHaveBeenCalledWith('valid-password');
-      expect(exportAccountSpy).toHaveBeenCalledWith('valid-password', address);
+      expect(exportAccountSpy).toHaveBeenCalledWith(
+        { password: 'valid-password' },
+        address,
+      );
     });
   });
 

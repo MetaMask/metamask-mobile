@@ -10,6 +10,7 @@ import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAna
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
 import type { OrderPreview } from '../types';
 import { Side, type PredictActivity, type PredictPosition } from '../../types';
@@ -17,10 +18,10 @@ import type { PredictFeatureFlags } from '../../types/flags';
 import { PolymarketProvider } from './PolymarketProvider';
 import { OrderType, SignatureType } from './types';
 import {
-  deriveDepositWalletAddress,
   executeDepositWalletBatch,
   getDepositWalletRelayerTransactionId,
   requestDepositWalletCreate,
+  resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
@@ -160,10 +161,10 @@ jest.mock('./protocol/transport', () => ({
 }));
 
 jest.mock('./depositWallet', () => ({
-  deriveDepositWalletAddress: jest.fn(),
   executeDepositWalletBatch: jest.fn(),
   getDepositWalletRelayerTransactionId: jest.fn(),
   requestDepositWalletCreate: jest.fn(),
+  resolveDepositWalletAddress: jest.fn(),
   syncDepositWalletCollateralBalanceAllowance: jest.fn(),
   toDepositWalletCalls: jest.fn(),
   waitForDepositWalletDeployed: jest.fn(),
@@ -198,7 +199,6 @@ jest.mock('./preflight/withdraw', () => ({
 const mockAnalyticsIdentify = jest.mocked(analytics.identify);
 const mockComputeProxyAddress = jest.mocked(computeProxyAddress);
 const mockCreateApiKey = jest.mocked(createApiKey);
-const mockDeriveDepositWalletAddress = jest.mocked(deriveDepositWalletAddress);
 const mockExecuteDepositWalletBatch = jest.mocked(executeDepositWalletBatch);
 const mockGetDepositWalletRelayerTransactionId = jest.mocked(
   getDepositWalletRelayerTransactionId,
@@ -234,6 +234,9 @@ const mockParsePolymarketActivity = jest.mocked(parsePolymarketActivity);
 const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
+const mockResolveDepositWalletAddress = jest.mocked(
+  resolveDepositWalletAddress,
+);
 const mockSubmitProtocolClobOrder = jest.mocked(submitProtocolClobOrder);
 const mockBuildClaimTransaction = jest.mocked(buildClaimTransaction);
 const mockPlanDepositWalletClaim = jest.mocked(planDepositWalletClaim);
@@ -353,6 +356,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   liveSportsLeagues: [],
   extendedSportsMarketsLeagues: [],
   enabledSportsMarketTypes: [],
+  nonRegTimeSportsMarketTypes: [],
   marketHighlightsFlag: {
     enabled: false,
     highlights: [],
@@ -365,6 +369,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictHomeRedesignEnabled: false,
   predictSportCardLivePricesEnabled: true,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
 };
 
 function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {
@@ -648,7 +653,7 @@ describe('PolymarketProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockComputeProxyAddress.mockReturnValue(legacySafeAddress);
-    mockDeriveDepositWalletAddress.mockReturnValue(depositWalletAddress);
+    mockResolveDepositWalletAddress.mockResolvedValue(depositWalletAddress);
     mockCreateApiKey.mockResolvedValue({
       apiKey: 'api-key',
       secret: 'secret',
@@ -761,6 +766,9 @@ describe('PolymarketProvider', () => {
       isDeployed: true,
       walletType: 'deposit-wallet',
     });
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
+    });
     expect(global.fetch).not.toHaveBeenCalled();
     expect(mockIsSmartContractAddress).toHaveBeenNthCalledWith(
       1,
@@ -787,6 +795,7 @@ describe('PolymarketProvider', () => {
     expect(global.fetch).toHaveBeenCalledWith(
       `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&limit=1`,
     );
+    expect(mockResolveDepositWalletAddress).not.toHaveBeenCalled();
   });
 
   it('routes deployed legacy Safe with empty raw activity to deposit wallet', async () => {
@@ -806,6 +815,9 @@ describe('PolymarketProvider', () => {
       address: depositWalletAddress,
       isDeployed: false,
       walletType: 'deposit-wallet',
+    });
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
     });
   });
 
@@ -1330,6 +1342,9 @@ describe('PolymarketProvider', () => {
     });
 
     expect(result).toBe(true);
+    expect(mockResolveDepositWalletAddress).toHaveBeenCalledWith({
+      ownerAddress: signer.address,
+    });
     expect(mockRequestDepositWalletCreate).toHaveBeenCalledWith({
       ownerAddress: signer.address,
     });
@@ -1407,7 +1422,7 @@ describe('PolymarketProvider', () => {
       getSigner: () => signer,
     });
 
-    await Promise.resolve();
+    await flushPromises();
 
     expect(mockRequestDepositWalletCreate).toHaveBeenCalled();
     expect(mockWaitForDepositWalletDeployed).not.toHaveBeenCalled();

@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Sürekli vadeli işlem sözleşmeleri kullanılamıyor",
     "title": "Perps",
-    "transfer_to_perps": "Perps'e Transfer",
     "perps_trading": "Sürekli vadeli işlem sözleşmeleri ile işlem",
     "perp_account_balance": "Sürekli vadeli işlem sözleşmesi hesap bakiyesi",
     "manage_balance": "Bakiyeyi yönet",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask Tahminler",
-    "transfer_to_predictions": "Tahminlere Transfer",
     "select_predict_account": "Tahmin hesabı seç",
     "search_account": "Bir hesabı ara",
     "home": {
       "live_now_title": "Şimdi canlı",
-      "categories_placeholder": "Kategoriler",
-      "trending_placeholder": "Trend"
+      "categories_placeholder": "Kategoriler"
     },
     "homepage_discovery": {
       "btc_title": "BTC Fiyatı: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "Çek",
       "predict_deposit": "Tahmin fonu ekle",
       "predict_withdraw": "Çek",
-      "money_account_add_money": "Bakiye ekleyin",
-      "money_account_transfer_money": "Fon transfer edin"
+      "money_account_add_money": "Bakiye ekleyin"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",

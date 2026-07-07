@@ -3,6 +3,7 @@ import React, {
   memo,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -60,6 +61,11 @@ import {
   hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   Button,
@@ -86,6 +92,8 @@ import { useTransactionAccountOverride } from '../../../hooks/transactions/useTr
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
+import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
+import { InfoRowSkeleton } from '../../UI/info-row/info-row';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
@@ -135,6 +143,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
     ]);
+    const isAddMusdIntent =
+      isMoneyAccountDeposit &&
+      getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
     useClearConfirmationOnBackSwipe();
 
@@ -156,7 +167,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { isMoneyNoFeeToken: isMoneyDepositNoFee } = useMoneyNoFeeTokens();
     const { styles } = useStyles(styleSheet, {});
-    const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
+    const [isKeyboardVisible, setIsKeyboardVisible] =
+      useState(!isAddMusdIntent);
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
@@ -177,7 +189,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { toastRef } = useContext(ToastContext);
 
-    const isResultReady = useIsResultReady({ isKeyboardVisible });
+    const isResultReady =
+      useIsResultReady({ isKeyboardVisible }) || isAddMusdIntent;
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
@@ -190,7 +203,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const showPaymentDetails =
       isQuotesLoading ||
       Boolean(quotes?.length) ||
-      (!hasSourceAmount && !hasNoQuotesAlert);
+      (!isAddMusdIntent && !hasSourceAmount && !hasNoQuotesAlert);
 
     const {
       amountFiat,
@@ -199,6 +212,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       amountHumanDebounced,
       hasInput,
       isInputChanged,
+      isPrefillPending,
       updatePendingAmount,
       updatePendingAmountPercentage,
       updateTokenAmount,
@@ -248,6 +262,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       updateTokenAmount,
     ]);
 
+    const wasPrefillPending = useRef(isPrefillPending);
+    useEffect(() => {
+      if (wasPrefillPending.current && !isPrefillPending) {
+        handleDone();
+      }
+      wasPrefillPending.current = isPrefillPending;
+    }, [isPrefillPending, handleDone]);
+
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
     }, []);
@@ -264,8 +286,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             amountFiat={amountFiat}
             currency={currency}
             hasAlert={Boolean(alertMessage)}
+            isLoading={isPrefillPending}
             onPress={handleAmountPress}
             disabled={!hasPaymentOption}
+            showCursor={isKeyboardVisible}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&
@@ -308,7 +332,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {showPaymentDetails && (
+              {showPaymentDetails ? (
                 <>
                   <BridgeFeeRow />
                   <BridgeTimeRow />
@@ -318,6 +342,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                     <TotalRow />
                   )}
                 </>
+              ) : (
+                isAddMusdIntent && (
+                  <>
+                    <InfoRowSkeleton />
+                    <InfoRowSkeleton />
+                    <InfoRowSkeleton />
+                  </>
+                )
               )}
               <PercentageRow />
             </Box>
@@ -353,7 +385,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
-              disableConfirm={disableConfirm || isAccountSelectionNeeded}
+              disableConfirm={
+                disableConfirm || isAccountSelectionNeeded || isPrefillPending
+              }
               onContinue={trackContinue}
             />
           )}
@@ -506,6 +540,7 @@ function useIsResultReady({
 
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
+  const { payWithOption } = useParams<ConfirmationParams>({});
 
   if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
     return strings('confirm.deposit_edit_amount_money_account_send');
@@ -522,6 +557,16 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
     return strings('earn.musd_conversion.confirm');
+  }
+
+  if (
+    payWithOption === PayWithOption.MoneyAccount &&
+    hasTransactionType(transaction, [
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])
+  ) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
   }
 
   return strings('confirm.deposit_edit_amount_done');

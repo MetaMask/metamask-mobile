@@ -60,12 +60,12 @@ export function useInsufficientPayTokenBalanceAlert({
   );
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
-  const { totalFiatRaw } = useMoneyAccountBalance();
+  const { withdrawableFiatRaw } = useMoneyAccountBalance();
   const { balanceUsd: accountBalanceUsd, balanceRaw: accountBalanceRaw } =
     usePayTokenAccountBalance();
 
   const balanceUsd = isMoneyPaymentOverride
-    ? (totalFiatRaw ?? '0')
+    ? (withdrawableFiatRaw ?? '0')
     : accountBalanceUsd;
   const balanceRaw = accountBalanceRaw;
 

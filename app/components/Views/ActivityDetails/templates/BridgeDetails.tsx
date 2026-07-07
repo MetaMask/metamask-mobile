@@ -67,7 +67,7 @@ export function BridgeDetails({
           />
           {canDoItAgain ? (
             <ActivityDetailsDoItAgainButton
-              label={strings('activity_details.do_it_again')}
+              label={strings('activity_details.bridge_again')}
               onPress={handleDoItAgain}
             />
           ) : null}

@@ -370,6 +370,15 @@ jest.mock('../../../util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.requireActual(
+      '../../../util/analytics/AnalyticsEventBuilder',
+    ).AnalyticsEventBuilder.createEventBuilder,
+  })),
+}));
+
 jest.mock('../../../components/hooks/useAsyncResult', () => ({
   useAsyncResultOrThrow: jest.fn().mockResolvedValue({
     pending: false,
@@ -580,7 +589,7 @@ describe('App', () => {
       });
 
       jest.useFakeTimers();
-    });
+    }, 30000);
   });
 
   describe('route registration', () => {

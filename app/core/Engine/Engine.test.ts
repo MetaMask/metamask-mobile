@@ -19,7 +19,6 @@ import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { isEmpty } from 'lodash';
 import { store } from '../../store';
 import Logger from '../../util/Logger';
@@ -337,31 +336,6 @@ describe('Engine', () => {
     );
   });
 
-  it('getSnapKeyring delegates to SnapAccountService.getLegacySnapKeyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-
-    jest
-      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
-      .mockResolvedValue(mockSnapKeyring as never);
-
-    const result = await engine.getSnapKeyring();
-
-    expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('getSnapKeyring propagates errors from SnapAccountService.getLegacySnapKeyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-
-    jest
-      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
-      .mockRejectedValue(new Error('keyring unavailable'));
-
-    await expect(engine.getSnapKeyring()).rejects.toThrow(
-      'keyring unavailable',
-    );
-  });
-
   describe('RemoteFeatureFlagController startup fetch', () => {
     afterEach(() => {
       // `jest.mock` return values survive `restoreAllMocks()`, so reset the
@@ -532,30 +506,6 @@ describe('Engine', () => {
       Engine.init(TEST_ANALYTICS_ID, {});
 
       expect(initSpy).toHaveBeenCalled();
-    });
-
-    it('logs an error when the startup init() rejects', async () => {
-      const initError = new Error('netinfo unavailable');
-      jest
-        .spyOn(ConnectivityController.prototype, 'init')
-        .mockRejectedValue(initError);
-      const errorSpy = jest.spyOn(Logger, 'error');
-
-      Engine.init(TEST_ANALYTICS_ID, {});
-
-      while (
-        !errorSpy.mock.calls.some(
-          ([, message]) =>
-            message === 'ConnectivityController: failed to initialize',
-        )
-      ) {
-        await new Promise<void>((resolve) => setTimeout(resolve, 50));
-      }
-
-      expect(errorSpy).toHaveBeenCalledWith(
-        initError,
-        'ConnectivityController: failed to initialize',
-      );
     });
   });
 

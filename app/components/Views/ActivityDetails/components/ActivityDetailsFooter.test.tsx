@@ -6,6 +6,7 @@ import {
   ActivityDetailsBlockExplorerButton,
   ActivityDetailsBridgeExplorerButtons,
   ActivityDetailsDoItAgainButton,
+  ActivityDetailsWebviewButton,
 } from './ActivityDetailsFooter';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { useActivityBlockExplorer } from '../hooks/useActivityBlockExplorer';
@@ -26,6 +27,28 @@ const { BLOCK_EXPLORER_BUTTON, DO_IT_AGAIN_BUTTON } =
 
 describe('ActivityDetailsFooter components', () => {
   beforeEach(() => jest.clearAllMocks());
+
+  describe('ActivityDetailsWebviewButton', () => {
+    it('opens the supplied URL in the webview', () => {
+      const { getByText } = renderWithProvider(
+        <ActivityDetailsWebviewButton
+          label="View on Polymarket"
+          title="Polymarket"
+          url="https://polymarket.com/event/test-market"
+        />,
+      );
+
+      fireEvent.press(getByText('View on Polymarket'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          title: 'Polymarket',
+          url: 'https://polymarket.com/event/test-market',
+        },
+      });
+    });
+  });
 
   describe('ActivityDetailsBlockExplorerButton', () => {
     it('opens the explorer webview on press', () => {

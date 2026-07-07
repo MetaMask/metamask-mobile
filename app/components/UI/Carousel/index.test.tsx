@@ -406,6 +406,38 @@ describe('Carousel Slide Dismissal', () => {
     expect(closeButton).toBeOnTheScreen();
   });
 
+  it('tracks Banner Dismissed with the slide name when a slide is closed', async () => {
+    const mockTrackEvent = mockAnalyticsTracking();
+    const dismissibleSlide = createMockSlide({
+      id: 'contentful-dismissible',
+      variableName: 'dismissible',
+    });
+    mockFetchCarouselSlides.mockResolvedValue({
+      prioritySlides: [],
+      regularSlides: [dismissibleSlide],
+    });
+
+    const { findByTestId } = render(<Carousel />);
+
+    const closeButton = await findByTestId(
+      'carousel-slide-contentful-dismissible-close-button',
+    );
+    fireEvent.press(closeButton);
+
+    await waitFor(() => {
+      const dismissEvents = mockTrackEvent.mock.calls
+        .map(([event]) => event)
+        .filter((event) => event.name === 'Banner Dismissed');
+
+      expect(dismissEvents).toEqual([
+        expect.objectContaining<Partial<AnalyticsTrackingEvent>>({
+          name: 'Banner Dismissed',
+          properties: { name: 'dismissible' },
+        }),
+      ]);
+    });
+  });
+
   it('shows close button for all slides in new implementation', async () => {
     const testSlide = createMockSlide({
       id: 'test-slide',

@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
+import type { PerpDirection } from '../../utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
 
@@ -26,6 +27,8 @@ export interface TraderPositionAnimatedHeaderProps {
   symbol: string;
   pricePercentChange: number | undefined;
   activeTimePeriodLabel: string;
+  perpDirection?: PerpDirection | null;
+  perpLeverage?: number | null;
   onBack: () => void;
   onTraderPress: () => void;
 }
@@ -59,6 +62,8 @@ const TraderPositionAnimatedHeader: React.FC<
   symbol,
   pricePercentChange,
   activeTimePeriodLabel,
+  perpDirection,
+  perpLeverage,
   onBack,
   onTraderPress,
 }) => {
@@ -133,6 +138,8 @@ const TraderPositionAnimatedHeader: React.FC<
             symbol={symbol}
             pricePercentChange={pricePercentChange}
             activeTimePeriodLabel={activeTimePeriodLabel}
+            perpDirection={perpDirection}
+            perpLeverage={perpLeverage}
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
