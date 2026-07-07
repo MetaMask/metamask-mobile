@@ -2712,6 +2712,10 @@
           "title": "Claimed",
           "description": "{{amount}} added to your balance"
         },
+        "redeemed": {
+          "title": "Position redeemed",
+          "description": "Your position has been redeemed"
+        },
         "error": {
           "title": "Something went wrong",
           "description": "Failed to proceed with claim",
@@ -7371,6 +7375,9 @@
       "title": "Activity",
       "view_all": "View all",
       "empty": "No activity yet",
+      "load_error": "Couldn't load your activity",
+      "load_error_more": "Couldn't load more activity",
+      "retry": "Retry",
       "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
@@ -8357,7 +8364,7 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
-    "link_metamask_extension" : "Import accounts from MetaMask extension",
+    "link_metamask_extension": "Import accounts from MetaMask extension",
     "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",
