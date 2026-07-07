@@ -36,9 +36,7 @@ describe('watchlist storage', () => {
 
       await readFromTokenWatchList();
 
-      expect(mockCall).toHaveBeenCalledWith(
-        GET_ASSETS_WATCHLIST_ACTION,
-      );
+      expect(mockCall).toHaveBeenCalledWith(GET_ASSETS_WATCHLIST_ACTION);
     });
 
     it('returns EMPTY_BLOB when the watchlist row is missing', async () => {
