@@ -265,7 +265,7 @@ function buildSubsidizedExecutions(
   const callData = txParams.data as Hex | undefined;
 
   if (!target || !callData) {
-    throw new Error('Subsidized execution: missing batch target or calldata');
+    throw new Error('Missing batch target or calldata');
   }
 
   return [
@@ -323,7 +323,7 @@ function buildSubsidizedCaveatsInternal(
   const calldata = txParams.data as Hex | undefined;
 
   if (!target || !calldata) {
-    throw new Error('missing batch target or calldata');
+    throw new Error('Missing batch target or calldata');
   }
 
   caveatBuilder.addCaveat(allowedTargets, [target]);

@@ -423,7 +423,7 @@ describe('Transaction Delegation Utils', () => {
         await expect(
           getDelegationTransaction(messengerMock, transaction, true),
         ).rejects.toThrow(
-          'Subsidized Caveats: missing batch target or calldata',
+          'Subsidized Caveats: Missing batch target or calldata',
         );
       });
     });
