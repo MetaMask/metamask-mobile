@@ -118,6 +118,7 @@ export enum IconName {
   Camera = 'Camera',
   Campaign = 'Campaign',
   Candlestick = 'Candlestick',
+  CandlestickFilled = 'CandlestickFilled',
   CardPos = 'CardPos',
   Card = 'Card',
   Cash = 'Cash',
