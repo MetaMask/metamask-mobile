@@ -760,6 +760,17 @@ export type RewardsControllerGetClientVersionRequirementsAction = {
 };
 
 /**
+ * Fetch the visible first predict on us content from the public API.
+ * Cached for 1 minute using controller state, matching the API Cache-Control header.
+ * This is a public (unauthenticated) endpoint that does not require
+ * the rewards feature to be enabled.
+ */
+export type RewardsControllerGetFirstPredictOnUsAction = {
+  type: `RewardsController:getFirstPredictOnUs`;
+  handler: RewardsController['getFirstPredictOnUs'];
+};
+
+/**
  * Invalidate referral details cache for a subscription
  *
  * @param subscriptionId - The subscription ID to invalidate cache for
@@ -928,6 +939,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerApplyReferralCodeAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction
+  | RewardsControllerGetFirstPredictOnUsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
