@@ -124,26 +124,35 @@ export const useWhatsHappening = (
     setIsLoading(true);
     setError(null);
 
+    let overviewError: string | null = null;
+    let baseItems: WhatsHappeningItem[] = [];
+
     try {
       const data =
         await Engine.context.AiDigestController.fetchMarketOverview();
-      const baseItems = data === null ? [] : mapTrendsToItems(data, limit);
+      baseItems = data === null ? [] : mapTrendsToItems(data, limit);
+    } catch (err) {
+      overviewError =
+        err instanceof Error ? err.message : 'Failed to fetch trending items';
+    }
 
-      // When a deep link supplied an id, prepend that (older) front-page item
-      // as the first "outdated" card, keeping the total capped at `limit`.
-      const outdatedItem = await fetchOutdatedItem(outdatedItemId);
+    // Always attempt to fetch the deep-linked outdated item — it has its own
+    // internal try/catch and never throws. This must run even when the overview
+    // request threw so that deep links are never left with an empty error state
+    // when the front-page item would load successfully.
+    const outdatedItem = await fetchOutdatedItem(outdatedItemId);
 
+    if (outdatedItem || baseItems.length > 0) {
       setItems(
         outdatedItem ? [outdatedItem, ...baseItems].slice(0, limit) : baseItems,
       );
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch trending items',
-      );
+    } else {
+      // Both fetches produced nothing; surface the overview error if present.
       setItems([]);
-    } finally {
-      setIsLoading(false);
+      setError(overviewError);
     }
+
+    setIsLoading(false);
   }, [isActive, limit, outdatedItemId]);
 
   const refresh = useCallback(async () => {

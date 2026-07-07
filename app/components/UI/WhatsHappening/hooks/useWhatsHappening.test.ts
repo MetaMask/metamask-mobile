@@ -323,6 +323,21 @@ describe('useWhatsHappening', () => {
       expect(result.current.items[0].isOutdated).toBeUndefined();
     });
 
+    it('shows the outdated item and clears error when overview throws but front-page fetch succeeds', async () => {
+      mockFetchMarketOverview.mockRejectedValue(new Error('Network error'));
+      mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
+
+      const { result } = renderHook(() =>
+        useWhatsHappening(5, { outdatedItemId: mockFrontPage.id }),
+      );
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.items).toHaveLength(1);
+      expect(result.current.items[0].isOutdated).toBe(true);
+      expect(result.current.items[0].id).toBe(`front-page-${mockFrontPage.id}`);
+      expect(result.current.error).toBeNull();
+    });
+
     it('does not fetch a front-page item when no deep-linked id is set', async () => {
       const { result } = renderHook(() => useWhatsHappening());
       await waitFor(() => expect(result.current.isLoading).toBe(false));
