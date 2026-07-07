@@ -7958,15 +7958,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:@metamask-previews/ai-controllers@0.7.0-preview-8980fa5":
-  version: 0.7.0-preview-8980fa5
-  resolution: "@metamask-previews/ai-controllers@npm:0.7.0-preview-8980fa5"
+"@metamask/ai-controllers@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@metamask/ai-controllers@npm:0.8.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/0b4405a6c5a8aed033f630c380594036b411a29e6f1393c1fbc625743fb813e25e0230a0a6fee937c711704964dda1c75331db15c955626049695ad9230e58e9
+  checksum: 10/a3afa17519d91d72b8c4cf4d85540d59c02b11a95e8dd55799448e49f89cd577a63c72016f9b88e8430173327f5d4f55743b897e3760940b07806f04815de5f2
   languageName: node
   linkType: hard
 
@@ -35488,7 +35488,7 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^7.5.0"
     "@metamask/accounts-controller": "npm:^39.0.2"
     "@metamask/address-book-controller": "npm:^7.1.2"
-    "@metamask/ai-controllers": "npm:^0.7.0"
+    "@metamask/ai-controllers": "npm:^0.8.0"
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"

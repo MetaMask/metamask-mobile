@@ -169,12 +169,6 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/ai-controllers": {
-      "type": "non-breaking",
-      "previewVersion": "0.7.0-preview-8980fa5"
-    }
-  },
   "resolutions": {
     "@metamask/perps-controller": "^9.0.0",
     "@metamask/network-controller": "34.0.0",
@@ -248,7 +242,7 @@
     "@metamask/account-tree-controller": "^7.5.0",
     "@metamask/accounts-controller": "^39.0.2",
     "@metamask/address-book-controller": "^7.1.2",
-    "@metamask/ai-controllers": "^0.7.0",
+    "@metamask/ai-controllers": "^0.8.0",
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
