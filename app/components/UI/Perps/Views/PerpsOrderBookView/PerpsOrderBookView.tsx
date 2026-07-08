@@ -70,12 +70,14 @@ import { usePerpsTopOfBook } from '../../hooks/stream/usePerpsTopOfBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
-import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  BUTTON_COLOR_VARIANTS,
+  PERPS_BUTTON_COLOR_AB_TEST_KEY,
+} from '../../abTestConfig';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -109,13 +111,14 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const insets = useSafeAreaInsets();
 
   // A/B Testing: Button color test (TAT-1937)
-  const {
-    variantName: buttonColorVariant,
-    isEnabled: isButtonColorTestEnabled,
-  } = usePerpsABTest({
-    test: BUTTON_COLOR_TEST,
-    featureFlagSelector: selectPerpsButtonColorTestVariant,
-  });
+  const { variantName: buttonColorVariant } = useABTest(
+    PERPS_BUTTON_COLOR_AB_TEST_KEY,
+    BUTTON_COLOR_VARIANTS,
+    {
+      experimentName: 'Long/Short Button Color Test',
+      variationNames: { control: 'Green/Red', monochrome: 'White/White' },
+    },
+  );
 
   // Geo-restriction eligibility check
   const isEligible = useSelector(selectPerpsEligibility);
@@ -495,9 +498,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
           [PERPS_EVENT_PROPERTY.SOURCE]:
             PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-          ...(isButtonColorTestEnabled && {
-            [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-          }),
         });
 
         navigateToOrder({
@@ -506,15 +506,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
         });
       }),
-    [
-      gate,
-      isEligible,
-      symbol,
-      navigateToOrder,
-      track,
-      isButtonColorTestEnabled,
-      buttonColorVariant,
-    ],
+    [gate, isEligible, symbol, navigateToOrder, track],
   );
 
   // Handle Short button press
@@ -540,9 +532,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.SHORT,
           [PERPS_EVENT_PROPERTY.SOURCE]:
             PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-          ...(isButtonColorTestEnabled && {
-            [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-          }),
         });
 
         navigateToOrder({
@@ -551,15 +540,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
         });
       }),
-    [
-      gate,
-      isEligible,
-      symbol,
-      navigateToOrder,
-      track,
-      isButtonColorTestEnabled,
-      buttonColorVariant,
-    ],
+    [gate, isEligible, symbol, navigateToOrder, track],
   );
 
   // Handle Close position button press

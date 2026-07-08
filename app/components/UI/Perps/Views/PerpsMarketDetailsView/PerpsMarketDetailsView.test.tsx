@@ -598,11 +598,11 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
-// Mock usePerpsABTest to return default variant
-jest.mock('../../utils/abTesting/usePerpsABTest', () => ({
-  usePerpsABTest: () => ({
+// Mock useABTest to return default variant
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
     variantName: 'semantic',
-    isEnabled: false,
+    isActive: false,
   }),
 }));
 

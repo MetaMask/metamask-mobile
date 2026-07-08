@@ -586,14 +586,14 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock usePerpsABTest hook (controllable per-test)
-const mockUsePerpsABTest = jest.fn(() => ({
+// Mock useABTest hook (controllable per-test)
+const mockUseABTest = jest.fn(() => ({
   variantName: 'control',
   variant: { long: 'green', short: 'red' },
-  isEnabled: false,
+  isActive: false,
 }));
-jest.mock('../../utils/abTesting/usePerpsABTest', () => ({
-  usePerpsABTest: () => mockUsePerpsABTest(),
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => mockUseABTest(),
 }));
 
 // Mock useTooltipModal hook
@@ -2338,10 +2338,10 @@ describe('PerpsOrderView', () => {
 
     it('disables monochrome button variant when TP/SL is invalid', async () => {
       // Arrange: monochrome A/B test variant + invalid TP
-      mockUsePerpsABTest.mockReturnValue({
+      mockUseABTest.mockReturnValue({
         variantName: 'monochrome',
         variant: { long: 'white', short: 'white' },
-        isEnabled: true,
+        isActive: true,
       });
       (usePerpsOrderContext as jest.Mock).mockReturnValue(
         orderContextWithTPSL({ direction: 'long', takeProfitPrice: '2000' }),

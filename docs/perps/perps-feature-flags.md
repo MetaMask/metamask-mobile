@@ -179,9 +179,11 @@ Follow existing test patterns covering:
 
 ### A/B Test Flags
 
-| Redux Property           | LaunchDarkly Key            | Variants                | Purpose                          |
-| ------------------------ | --------------------------- | ----------------------- | -------------------------------- |
-| `perpsAbtestButtonColor` | `perps-abtest-button-color` | `control`, `monochrome` | Button color A/B test (TAT-1937) |
+| Redux Property                  | LaunchDarkly Key                    | Variants                | Purpose                          |
+| ------------------------------- | ----------------------------------- | ----------------------- | -------------------------------- |
+| `perpsTAT1937AbtestButtonColor` | `perps-tat1937-abtest-button-color` | `control`, `monochrome` | Button color A/B test (TAT-1937) |
+
+`perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition (see [`docs/ab-testing.md#version-gating-a-test-optional`](../ab-testing.md#version-gating-a-test-optional)) — the version gate lives entirely in the LaunchDarkly flag config, not in app code.
 
 ### Configuration Flags
 

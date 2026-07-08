@@ -265,6 +265,37 @@ Create a JSON flag and use the threshold array format:
 
 Use the default targeting rule to serve this value.
 
+### Version-gating a test (optional)
+
+`useABTest` itself has no concept of a minimum app version — it only reads a variant name off the resolved flag value. If a test must not run below a given app version, gate it in LaunchDarkly rather than in app code, using the `versions` + `thresholdVersion: 2` composition documented in [MetaMask/contributor-docs: Remote Feature Flags](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md#4-composing-version-based-scope-with-threshold-scope). `RemoteFeatureFlagController` resolves both the version gate and the percentage rollout at fetch time, so the value the app ultimately sees in `remoteFeatureFlags` is just the plain variant string — no selector or hook changes required.
+
+```json
+{
+  "perpsTAT1937AbtestButtonColor": {
+    "versions": {
+      "8.3.0": [
+        {
+          "thresholdName": "control",
+          "thresholdVersion": 2,
+          "scope": { "type": "threshold", "value": 0.5 },
+          "value": "control"
+        },
+        {
+          "thresholdName": "monochrome",
+          "thresholdVersion": 2,
+          "scope": { "type": "threshold", "value": 1 },
+          "value": "monochrome"
+        }
+      ]
+    }
+  }
+}
+```
+
+- The `versions` key (`"8.3.0"` above) is the minimum app version the test applies to; users below it never match and the flag is excluded (falls back to `control` via `useABTest`'s default).
+- `thresholdVersion: 2` makes each entry resolve directly to its `value` (a plain string here), matching the shape `useABTest` expects — do **not** omit it, or the processed flag falls back to the legacy `{ name, value }` wrapper shape instead of a bare string.
+- This composition works for any number of version tiers (e.g. ramp the rollout percentage up in a later version) — see the contributor-docs link above for a multi-tier example.
+
 ### How assignment works
 
 You usually do not need to implement assignment logic yourself. The app resolves the LaunchDarkly value into `RemoteFeatureFlagController.remoteFeatureFlags`, and `useABTest` reads the resolved variant name from there.
