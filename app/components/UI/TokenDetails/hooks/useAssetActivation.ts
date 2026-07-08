@@ -9,19 +9,16 @@ import {
   isCaipAssetType,
 } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
-import type { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import type { TokenI } from '../../Tokens/types';
 import {
   isAssetRequireActivate,
   isTrustlineAsset,
 } from '../../../../util/multichain/trustline';
-import { refreshStellarAccountAssets } from '../../../../util/stellar/refresh-stellar-account-assets';
 import {
   requestStellarChangeTrustOptAdd,
   requestStellarChangeTrustOptDelete,
 } from '../../../../util/stellar/stellar-snap-client-requests';
-import { selectMultichainBalances } from '../../../../selectors/multichain/multichain';
 
 /**
  * Manages asset activation and deactivation for supported trustline assets.
@@ -45,11 +42,7 @@ export function useAssetActivation({ asset }: { asset: TokenI | undefined }) {
 
   const account = chainId ? selectAccountByScope(chainId) : undefined;
 
-  const balances = useSelector((state: RootState) =>
-    selectMultichainBalances(state),
-  );
-  const assetMetadata =
-    balances?.[account?.id ?? '']?.[assetId as CaipAssetId]?.accountAssetInfo;
+  const assetMetadata = asset?.accountAssetInfo;
 
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
@@ -79,7 +72,7 @@ export function useAssetActivation({ asset }: { asset: TokenI | undefined }) {
       return false;
     }
 
-    const balanceValue = Number.parseFloat(token.balance || '0');
+    const balanceValue = Number.parseFloat(asset.balance || '0');
     const hasNonZeroBalance = Number.isFinite(balanceValue)
       ? balanceValue > 0
       : false;

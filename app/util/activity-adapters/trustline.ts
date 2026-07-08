@@ -4,7 +4,6 @@ import {
   type Transaction,
 } from '@metamask/keyring-api';
 import { strings } from '../../../locales/i18n';
-import { getLabelKeys } from './label-keys';
 import type { Status } from './types';
 
 export const TRUSTLINE_APPROVE_LABEL = 'trustline-approve' as const;
@@ -48,6 +47,10 @@ function mapTransactionStatusToActivityStatus(
   }
 }
 
+function withOptionalSymbol(label: string, symbol?: string): string {
+  return symbol ? `${label} ${symbol}` : label;
+}
+
 /**
  * Returns a localized activity title for asset activation/deactivation flows.
  */
@@ -56,10 +59,37 @@ export function resolveAssetActivationActivityTitle(
   isActivate: boolean,
   status: Status = 'success',
 ): string {
-  const type = isActivate ? 'assetActivation' : 'assetDeactivation';
-  const labelKeys = getLabelKeys({ type, status });
+  if (isActivate) {
+    switch (status) {
+      case 'pending':
+        return withOptionalSymbol(
+          strings('transactions.activity_trustline_activating'),
+          tokenSymbol,
+        );
+      case 'failed':
+        return strings('transactions.activity_trustline_activation_failed');
+      default:
+        return withOptionalSymbol(
+          strings('transactions.activity_trustline_activated'),
+          tokenSymbol,
+        );
+    }
+  }
 
-  return strings(labelKeys.title.key, { symbol: tokenSymbol ?? '' });
+  switch (status) {
+    case 'pending':
+      return withOptionalSymbol(
+        strings('transactions.activity_trustline_deactivating'),
+        tokenSymbol,
+      );
+    case 'failed':
+      return strings('transactions.activity_trustline_deactivation_failed');
+    default:
+      return withOptionalSymbol(
+        strings('transactions.activity_trustline_deactivated'),
+        tokenSymbol,
+      );
+  }
 }
 
 export function resolveAssetActivationActivityTitleFromTransaction(

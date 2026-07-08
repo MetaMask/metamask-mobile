@@ -9,12 +9,10 @@ import {
   isTrustlineDisapproveTransaction,
   isTrustlineTransaction,
   resolveAssetActivationActivityTitle,
-  resolveTrustlineActivityTitle,
 } from './trustline';
 
 jest.mock('../../../locales/i18n', () => ({
-  strings: (key: string, params?: { symbol?: string }) =>
-    params?.symbol ? `${key}:${params.symbol}` : key,
+  strings: (key: string) => key,
 }));
 
 const baseTransaction: Transaction = {
@@ -74,19 +72,25 @@ describe('trustline activity helpers', () => {
 
   it('resolves activate title with token symbol', () => {
     expect(resolveAssetActivationActivityTitle('USDC', true)).toBe(
-      'activity_assetActivation_success_title:USDC',
+      'transactions.activity_trustline_activated USDC',
     );
   });
 
   it('resolves deactivate title without token symbol', () => {
     expect(resolveAssetActivationActivityTitle(undefined, false)).toBe(
-      'activity_assetDeactivation_success_title',
+      'transactions.activity_trustline_deactivated',
     );
   });
 
-  it('keeps resolveTrustlineActivityTitle as a compatibility alias', () => {
-    expect(resolveTrustlineActivityTitle('USDC', true)).toBe(
-      'activity_assetActivation_success_title:USDC',
+  it('resolves pending activate title with token symbol', () => {
+    expect(resolveAssetActivationActivityTitle('USDC', true, 'pending')).toBe(
+      'transactions.activity_trustline_activating USDC',
+    );
+  });
+
+  it('resolves failed deactivate title without token symbol', () => {
+    expect(resolveAssetActivationActivityTitle(undefined, false, 'failed')).toBe(
+      'transactions.activity_trustline_deactivation_failed',
     );
   });
 });
