@@ -13,7 +13,7 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { EncapsulatedElementType, FrameworkDetector } from '../../framework';
 import WalletView from './WalletView';
 import TokensFullView from './HomeSections';
 
@@ -256,7 +256,10 @@ class NetworkManager {
    * Check if the network manager is currently visible
    */
   async isNetworkManagerVisible(): Promise<boolean> {
-    return Utilities.isElementVisible(this.networkManagerBottomSheet, 1000);
+    const readinessTarget = FrameworkDetector.isAppium()
+      ? this.popularNetworksContainer
+      : this.networkManagerBottomSheet;
+    return Utilities.isElementVisible(readinessTarget, 1000);
   }
 
   /**
@@ -389,9 +392,27 @@ class NetworkManager {
    * Wait for network manager to be fully loaded
    */
   async waitForNetworkManagerToLoad() {
-    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-      elemDescription: 'Network Manager Bottom Sheet',
-      timeout: 10000,
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          this.networkManagerBottomSheet,
+          {
+            elemDescription: 'Network Manager Bottom Sheet',
+            timeout: 10_000,
+          },
+        );
+      },
+      appium: async () => {
+        // iOS: `network-manager-bottom-sheet` may exist while `displayed === false`
+        // even though the Popular tab content is on screen (same as wallet-screen).
+        await Assertions.expectElementToBeVisible(
+          this.popularNetworksContainer,
+          {
+            elemDescription: 'Popular Networks Container',
+            timeout: 15_000,
+          },
+        );
+      },
     });
     // Wait for bottom sheet animation to complete
     // eslint-disable-next-line no-restricted-syntax
