@@ -281,12 +281,10 @@ describe('OnboardingSuccessComponent', () => {
 
     expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
     expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+    expect(jest.mocked(selectQrSyncNeedsProvisioning)).toHaveBeenCalled();
   });
 
-  it('logs when provisionFromMetadata rejects and still invokes onDone', async () => {
-    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
-      // Do nothing
-    });
+  it('still invokes onDone when provisionFromMetadata rejects for QR sync users', async () => {
     jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
     mockProvisionFromMetadata.mockRejectedValueOnce(
       new Error('provisioning failed'),
@@ -303,13 +301,7 @@ describe('OnboardingSuccessComponent', () => {
     await waitFor(() => {
       expect(onDone).toHaveBeenCalled();
     });
-    await waitFor(() => {
-      expect(loggerSpy).toHaveBeenCalledWith(
-        expect.any(Error),
-        'OnboardingSuccess: provisionFromMetadata failed',
-      );
-    });
-    loggerSpy.mockRestore();
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
     mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
