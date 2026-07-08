@@ -35,10 +35,8 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictPreviewSheet } from '../../contexts';
 import { usePredictGame } from '../../hooks/usePredictGame';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import {
-  isDrawCapableLeague,
-  resolveSportCardButtons,
-} from '../../constants/sports';
+import { isDrawCapableLeague } from '../../constants/sports';
+import { resolveSportCardButtons } from '../../utils/sports';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';

@@ -1,11 +1,24 @@
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
+  isMoneylineLikeMarketType,
   isTeamToAdvanceMarketType,
   WORLD_CUP_LEAGUE,
 } from '../../constants/sports';
+import { getMatchingSportTeam } from '../../utils/sports';
 import { getEventLeague } from '../../utils/gameParser';
+import type { PredictMarketGame, PredictSportsLeague } from '../../types';
 import type { PolymarketApiEvent } from './types';
 import { fetchChildEventsFromGammaApi } from './utils';
+
+interface NegRiskSportsMarket {
+  negRisk?: boolean;
+  sportsMarketType?: string;
+  groupItemTitle?: string;
+}
+
+interface SportsTeamLogoMarket extends NegRiskSportsMarket {
+  sportsMarketType?: string;
+}
 
 interface SportsFeedMarket {
   id?: string | number;
@@ -24,6 +37,149 @@ interface ResolveWorldCupFeedEventsParams {
   extendedSportsMarketsLeagues: string[];
   fetchChildEvents?: FetchChildEvents;
 }
+
+const normalizeTeamLabel = (value?: string): string | undefined =>
+  value?.trim().toLowerCase();
+
+const isGenericTeamLabel = (label: string): boolean => {
+  const normalizedLabel = normalizeTeamLabel(label);
+  return (
+    normalizedLabel === 'team to advance' ||
+    normalizedLabel?.startsWith('draw') === true
+  );
+};
+
+export const hasNegRiskMoneylineGroupItem = <T extends NegRiskSportsMarket>(
+  market: T,
+): market is T & { groupItemTitle: string } =>
+  Boolean(
+    market.negRisk &&
+      isMoneylineLikeMarketType(market.sportsMarketType) &&
+      market.groupItemTitle,
+  );
+
+export const resolveNegRiskMoneylineShortTitles = (
+  market: NegRiskSportsMarket,
+  game: PredictMarketGame,
+): { yesShort?: string; noShort?: string } => {
+  if (!hasNegRiskMoneylineGroupItem(market)) {
+    return {};
+  }
+
+  if (market.groupItemTitle.toLowerCase().startsWith('draw')) {
+    return { yesShort: 'Draw' };
+  }
+
+  const yesTeam = getMatchingSportTeam(market.groupItemTitle, game);
+  if (!yesTeam) return {};
+
+  const isHome = yesTeam.id === game.homeTeam.id;
+  const noAbbr = isHome
+    ? game.awayTeam.abbreviation
+    : game.homeTeam.abbreviation;
+
+  return { yesShort: yesTeam.abbreviation, noShort: noAbbr };
+};
+
+export const getNegRiskMoneylineTeamLogo = (
+  market: NegRiskSportsMarket,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (!game || !hasNegRiskMoneylineGroupItem(market)) {
+    return undefined;
+  }
+
+  if (market.groupItemTitle.toLowerCase().startsWith('draw')) {
+    return undefined;
+  }
+
+  return getMatchingSportTeam(market.groupItemTitle, game)?.logo;
+};
+
+const hasSportsMarketTeamGroupItem = <T extends SportsTeamLogoMarket>(
+  market: T,
+): market is T & { groupItemTitle: string } =>
+  Boolean(
+    market.groupItemTitle &&
+      (hasNegRiskMoneylineGroupItem(market) ||
+        isTeamToAdvanceMarketType(market.sportsMarketType)),
+  );
+
+export const getSportsMarketTeamLogo = (
+  market: SportsTeamLogoMarket,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (!game || !hasSportsMarketTeamGroupItem(market)) {
+    return undefined;
+  }
+
+  if (isGenericTeamLabel(market.groupItemTitle)) {
+    return undefined;
+  }
+
+  return getMatchingSportTeam(market.groupItemTitle, game)?.logo;
+};
+
+export const getTeamToAdvanceTokenLogo = (
+  tokenTitle: string | undefined,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (
+    !game?.homeTeam ||
+    !game?.awayTeam ||
+    !tokenTitle ||
+    isGenericTeamLabel(tokenTitle)
+  ) {
+    return undefined;
+  }
+
+  return getMatchingSportTeam(tokenTitle, game)?.logo;
+};
+
+export const getTokenImage = ({
+  sportsMarketType,
+  tokenTitle,
+  game,
+}: {
+  sportsMarketType?: string;
+  tokenTitle?: string;
+  game?: PredictMarketGame;
+}): string | undefined => {
+  if (isTeamToAdvanceMarketType(sportsMarketType)) {
+    return getTeamToAdvanceTokenLogo(tokenTitle, game);
+  }
+
+  return undefined;
+};
+
+const getPrimaryMoneylineOutcomes = <T extends { sportsMarketType?: string }>(
+  outcomes: T[],
+): T[] => {
+  const moneylineOutcomes = outcomes.filter(
+    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+
+  return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
+};
+
+export const getPrimarySportsCardOutcomes = <
+  T extends { sportsMarketType?: string },
+>(
+  outcomes: T[],
+  league?: PredictSportsLeague,
+): T[] => {
+  if (league === WORLD_CUP_LEAGUE) {
+    const advanceOutcomes = outcomes.filter((outcome) =>
+      isTeamToAdvanceMarketType(outcome.sportsMarketType),
+    );
+
+    if (advanceOutcomes.length > 0) {
+      return advanceOutcomes;
+    }
+  }
+
+  return getPrimaryMoneylineOutcomes(outcomes);
+};
 
 export const shouldFetchWorldCupChildMarkets = <
   TEvent extends Parameters<typeof getEventLeague>[0] & SportsFeedEvent,

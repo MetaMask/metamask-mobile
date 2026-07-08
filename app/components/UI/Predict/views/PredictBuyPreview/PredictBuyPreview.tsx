@@ -76,7 +76,7 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { usePredictRegTimeBuyAccessory } from '../../hooks/usePredictRegTimeBuyAccessory';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
-import { getBuyOutcomeImage } from '../../constants/sports';
+import { getBuyOutcomeImage } from '../../utils/sports';
 import {
   getPredictBuyAllInCost,
   getPredictExchangeFee,

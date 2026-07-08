@@ -29,13 +29,15 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
-  getSportsMarketTeamLogo,
-  getTokenImage,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
-  resolveNegRiskMoneylineShortTitles,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
+import {
+  getSportsMarketTeamLogo,
+  getTokenImage,
+  resolveNegRiskMoneylineShortTitles,
+} from './sportsUtils';
 import type {
   GetMarketsParams,
   OrderPreview,

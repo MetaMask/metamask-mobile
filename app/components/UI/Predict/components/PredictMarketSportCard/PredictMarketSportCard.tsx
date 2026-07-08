@@ -19,10 +19,8 @@ import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import {
-  isDrawCapableLeague,
-  resolveSportCardButtons,
-} from '../../constants/sports';
+import { isDrawCapableLeague } from '../../constants/sports';
+import { resolveSportCardButtons } from '../../utils/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';

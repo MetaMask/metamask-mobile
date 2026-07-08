@@ -51,7 +51,7 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
-import { getBuyOutcomeImage } from '../constants/sports';
+import { getBuyOutcomeImage } from '../utils/sports';
 import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
 
 // Registration stack of sheet-mode providers — multiple providers can be

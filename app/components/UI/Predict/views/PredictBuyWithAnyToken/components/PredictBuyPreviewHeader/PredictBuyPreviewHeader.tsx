@@ -20,7 +20,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../../../types';
-import { getBuyOutcomeImage } from '../../../../constants/sports';
+import { getBuyOutcomeImage } from '../../../../utils/sports';
 import { formatCents } from '../../../../utils/format';
 import { getDisplayBuyPrice } from '../../../../utils/prices';
 import PredictRegTimeTag from '../../../../components/PredictRegTimeTag';
