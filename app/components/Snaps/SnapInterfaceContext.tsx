@@ -8,9 +8,12 @@ import {
 import React, {
   FunctionComponent,
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
+  useState,
 } from 'react';
 import { mergeValue } from './SnapUIRenderer/utils';
 import Engine from '../../core/Engine/Engine';
@@ -68,7 +71,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
   // UI. It's kept in a ref to avoid useless re-rendering of the entire tree of
   // components.
   const internalState = useRef<InterfaceState>(initialState ?? {});
-  const focusedInput = useRef<string | null>(null);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
   // Since the internal state is kept in a reference, it won't update when the
   // interface is updated. We have to manually update it.
@@ -78,35 +81,38 @@ export const SnapInterfaceContextProvider: FunctionComponent<
 
   const controllerMessenger = Engine.controllerMessenger;
 
-  const rawSnapRequestFunction = (
-    event: UserInputEventType,
-    name?: string,
-    value?: unknown,
-  ) => {
-    handleSnapRequest(controllerMessenger, {
-      snapId: snapId as SnapId,
-      origin: 'metamask',
-      handler: HandlerType.OnUserInput,
-      request: {
-        jsonrpc: '2.0',
-        method: ' ',
-        params: {
-          event: {
-            type: event,
-            ...(name === undefined ? {} : { name }),
-            ...(value === undefined ? {} : { value }),
+  const rawSnapRequestFunction = useCallback(
+    (event: UserInputEventType, name?: string, value?: unknown) => {
+      handleSnapRequest(controllerMessenger, {
+        snapId: snapId as SnapId,
+        origin: 'metamask',
+        handler: HandlerType.OnUserInput,
+        request: {
+          jsonrpc: '2.0',
+          method: ' ',
+          params: {
+            event: {
+              type: event,
+              ...(name === undefined ? {} : { name }),
+              ...(value === undefined ? {} : { value }),
+            },
+            id: interfaceId,
           },
-          id: interfaceId,
         },
-      },
-    });
-  };
+      });
+    },
+    [snapId, interfaceId, controllerMessenger],
+  );
 
-  const updateState = (state: InterfaceState) =>
-    Engine.context.SnapInterfaceController.updateInterfaceState(
-      interfaceId,
-      state,
-    );
+  const updateState = useCallback(
+    (state: InterfaceState) =>
+      Engine.context.SnapInterfaceController.updateInterfaceState(
+        interfaceId,
+        state,
+      ),
+    [interfaceId],
+  );
+
   /**
    * Handle the submission of an user input event to the Snap.
    *
@@ -115,18 +121,17 @@ export const SnapInterfaceContextProvider: FunctionComponent<
    * @param options.name - The name of the component emitting the event.
    * @param options.value - The value of the component emitting the event.
    */
-  const handleEvent: HandleEvent = ({
-    event,
-    name,
-    value = name ? internalState.current[name] : undefined,
-  }) => rawSnapRequestFunction(event, name, value);
+  const handleEvent: HandleEvent = useCallback(
+    ({ event, name, value = name ? internalState.current[name] : undefined }) =>
+      rawSnapRequestFunction(event, name, value),
+    [rawSnapRequestFunction],
+  );
 
-  const submitInputChange = (name: string, value: State | null) =>
-    handleEvent({
-      event: UserInputEventType.InputChangeEvent,
-      name,
-      value,
-    });
+  const submitInputChange = useCallback(
+    (name: string, value: State | null) =>
+      handleEvent({ event: UserInputEventType.InputChangeEvent, name, value }),
+    [handleEvent],
+  );
 
   /**
    * Handle the value change of an input.
@@ -136,13 +141,15 @@ export const SnapInterfaceContextProvider: FunctionComponent<
    * @param form - The name of the form containing the input.
    * Optional if the input is not contained in a form.
    */
-  const handleInputChange: HandleInputChange = (name, value, form) => {
-    const state = mergeValue(internalState.current, name, value, form);
-
-    internalState.current = state;
-    updateState(state);
-    submitInputChange(name, value);
-  };
+  const handleInputChange: HandleInputChange = useCallback(
+    (name, value, form) => {
+      const state = mergeValue(internalState.current, name, value, form);
+      internalState.current = state;
+      updateState(state);
+      submitInputChange(name, value);
+    },
+    [updateState, submitInputChange],
+  );
 
   /**
    * Get the value of an input from the interface state.
@@ -152,33 +159,42 @@ export const SnapInterfaceContextProvider: FunctionComponent<
    * Optional if the input is not contained in a form.
    * @returns The value of the input or undefined if the input has no value.
    */
-  const getValue: GetValue = (name, form) => {
-    const value = form
-      ? (initialState[form] as FormState)?.[name]
-      : (initialState as FormState)?.[name];
+  const getValue: GetValue = useCallback(
+    (name, form) => {
+      const value = form
+        ? (initialState[form] as FormState)?.[name]
+        : (initialState as FormState)?.[name];
 
-    if (value !== undefined && value !== null) {
-      return value;
-    }
+      return value !== undefined && value !== null ? value : undefined;
+    },
+    [initialState],
+  );
 
-    return undefined;
-  };
+  const setCurrentFocusedInput: SetCurrentInputFocus = useCallback((name) => {
+    setFocusedInput(name);
+  }, []);
 
-  const setCurrentFocusedInput: SetCurrentInputFocus = (name) => {
-    focusedInput.current = name;
-  };
+  const value = useMemo(
+    () => ({
+      handleEvent,
+      getValue,
+      handleInputChange,
+      setCurrentFocusedInput,
+      focusedInput,
+      snapId,
+    }),
+    [
+      handleEvent,
+      getValue,
+      handleInputChange,
+      setCurrentFocusedInput,
+      focusedInput,
+      snapId,
+    ],
+  );
 
   return (
-    <SnapInterfaceContext.Provider
-      value={{
-        handleEvent,
-        getValue,
-        handleInputChange,
-        setCurrentFocusedInput,
-        focusedInput: focusedInput.current,
-        snapId,
-      }}
-    >
+    <SnapInterfaceContext.Provider value={value}>
       {children}
     </SnapInterfaceContext.Provider>
   );
