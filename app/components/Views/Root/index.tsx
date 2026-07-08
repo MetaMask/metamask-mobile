@@ -32,7 +32,6 @@ import {
   createUIMessenger,
   UIMessenger,
 } from '../../../messengers/ui-messenger';
-import { Toaster } from '@metamask/design-system-react-native';
 
 const styles = StyleSheet.create({
   gestureRoot: {
@@ -121,7 +120,6 @@ const Root = ({ foxCode }: RootProps) => {
                                   mode={ReduceMotion.Never}
                                 />
                                 <App />
-                                <Toaster />
                               </HardwareWalletProvider>
                             </ToastContextWrapper>
                           </UIMessengerProvider>

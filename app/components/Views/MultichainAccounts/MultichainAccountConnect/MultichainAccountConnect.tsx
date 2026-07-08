@@ -722,7 +722,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       );
 
       toast({
-        description:
+        title:
           connectedAccountLength >= 1
             ? strings('toast.permissions_updated')
             : undefined,

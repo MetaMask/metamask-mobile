@@ -187,9 +187,8 @@ export const PrivateKeyList = () => {
               privateKeys[item.account.id],
             );
             toast({
-              description: strings(
-                'multichain_accounts.private_key_list.copied',
-              ),
+              title: strings('multichain_accounts.private_key_list.copied'),
+              severity: 'success',
               hasNoTimeout: false,
             });
           },
