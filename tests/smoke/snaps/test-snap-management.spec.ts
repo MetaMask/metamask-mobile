@@ -1,6 +1,9 @@
 import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView, ensureSingleBrowserTabView } from '../../flows/browser.flow';
+import {
+  navigateToBrowserView,
+  ensureSingleBrowserTabView,
+} from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
