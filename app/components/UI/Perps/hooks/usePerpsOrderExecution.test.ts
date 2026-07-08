@@ -12,8 +12,18 @@ import {
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
 } from '../utils/perpsCufTrace';
+import { endTrace, TraceName } from '../../../../util/trace';
 
 jest.mock('./usePerpsTrading');
+jest.mock('../../../../util/trace', () => {
+  const actual = jest.requireActual('../../../../util/trace');
+  return {
+    ...actual,
+    trace: jest.fn(),
+    endTrace: jest.fn(),
+  };
+});
+const mockEndTrace = endTrace as jest.Mock;
 const mockGetPositionsSnapshot = jest.fn();
 const mockGetOrdersSnapshot = jest.fn();
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -52,6 +62,7 @@ describe('usePerpsOrderExecution', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrack.mockClear();
+    mockEndTrace.mockClear();
     mockGetPositionsSnapshot.mockReturnValue(null); // No cached positions by default
     mockGetOrdersSnapshot.mockReturnValue(null); // No cached orders by default
     (usePerpsTrading as jest.Mock).mockReturnValue({
@@ -334,6 +345,32 @@ describe('usePerpsOrderExecution', () => {
         success: false,
         error: 'Insufficient margin',
       });
+    });
+
+    it('does not close a pending market CUF when a later limit order fails', async () => {
+      mockPlaceOrder.mockResolvedValue({
+        success: false,
+        error: 'Limit failed',
+      });
+
+      handlePerpsCufPositionsDelivered([mockPosition]);
+      mockEndTrace.mockClear();
+
+      const { result } = renderHook(() => usePerpsOrderExecution());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'limit',
+          price: '10000',
+        });
+      });
+
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsPlaceOrderToPositionRendered,
+        }),
+      );
     });
 
     it('tracks failed order with trade_with_token and mm_pay fields when trackingData is set', async () => {

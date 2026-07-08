@@ -112,6 +112,15 @@ export function usePerpsOrderExecution(
           name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
           data,
         });
+      const endStartedPlaceOrderCuf = (
+        data: Record<string, PerpsOrderTrackingValue>,
+      ) => {
+        if (isMarketOrder) {
+          endPlaceOrderCuf(data);
+        } else {
+          endLimitOrderCuf(data);
+        }
+      };
       const cufStartTags = {
         [PERPS_CUF_TAG.DIRECTION]: orderParams.isBuy
           ? PERPS_EVENT_VALUE.DIRECTION.LONG
@@ -286,14 +295,11 @@ export function usePerpsOrderExecution(
         } else {
           const errorMessage =
             result.error || strings('perps.order.error.unknown');
-          // Ends whichever place-order CUF was started (market or limit); the
-          // other is a no-op.
           const failedData = {
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ORDER_FAILED,
           };
-          endPlaceOrderCuf(failedData);
-          endLimitOrderCuf(failedData);
+          endStartedPlaceOrderCuf(failedData);
           setError(errorMessage);
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
 
@@ -332,13 +338,11 @@ export function usePerpsOrderExecution(
           onError?.(errorMessage);
         }
       } catch (err) {
-        // Ends whichever place-order CUF was started; the other is a no-op.
         const exceptionData = {
           [PERPS_CUF_TAG.SUCCESS]: false,
           [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
         };
-        endPlaceOrderCuf(exceptionData);
-        endLimitOrderCuf(exceptionData);
+        endStartedPlaceOrderCuf(exceptionData);
         const errorObject = ensureError(
           err,
           'usePerpsOrderExecution.placeOrder',
