@@ -26,7 +26,29 @@ import { getPerpsLifecycleContext } from './perpsLifecycleContext';
 const CUF_META = {
   SYMBOL: 'symbol',
   TOAST_AT: 'toastAt',
+  WATCH: 'watch',
+  ORDER_ID: 'orderId',
+  SNAPSHOT: 'snapshot',
 } as const;
+
+/** What a pending confirmation span is watching for in the stream. */
+const PERPS_CUF_WATCH = {
+  POSITION_CHANGED: 'position_changed',
+  ORDER_ABSENT: 'order_absent',
+  ANY_POSITIONS: 'any_positions',
+} as const;
+
+/** Minimal position shape the confirmation matchers need. */
+export interface PerpsCufPositionLike {
+  symbol: string;
+  size: string;
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+}
+
+function positionSnapshot(position: PerpsCufPositionLike): string {
+  return `${position.size}|${position.takeProfitPrice ?? ''}|${position.stopLossPrice ?? ''}`;
+}
 
 /** Open CUF spans: name -> metadata handed from starter to ender. */
 const pendingCufMeta = new Map<string, Record<string, TraceValue>>();
@@ -161,4 +183,102 @@ export function endPerpsPlaceOrderCufOnPositions(
         typeof toastAt === 'number' ? Date.now() - toastAt : -1,
     },
   });
+}
+
+/** Watch for the given position to change (or vanish) before ending `name`. */
+export function watchPerpsCufPositionChanged(
+  name: TraceName,
+  position: PerpsCufPositionLike,
+): void {
+  setPerpsCufMeta(name, {
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.POSITION_CHANGED,
+    [CUF_META.SYMBOL]: position.symbol,
+    [CUF_META.SNAPSHOT]: positionSnapshot(position),
+  });
+}
+
+/** Watch for the given order to disappear before ending `name`. */
+export function watchPerpsCufOrderAbsent(
+  name: TraceName,
+  orderId: string,
+): void {
+  setPerpsCufMeta(name, {
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_ABSENT,
+    [CUF_META.ORDER_ID]: orderId,
+  });
+}
+
+/** End `name` on the next positions delivery, whatever it contains. */
+export function watchPerpsCufAnyPositions(name: TraceName): void {
+  setPerpsCufMeta(name, {
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.ANY_POSITIONS,
+  });
+}
+
+const STREAM_END_DATA = {
+  [PERPS_CUF_TAG.SUCCESS]: true,
+  [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+} as const;
+
+/**
+ * Positions just rendered to stream subscribers: close every pending CUF span
+ * whose watched condition is now visible (new position, changed/absent
+ * position, or any fresh delivery after a reconnect).
+ */
+export function handlePerpsCufPositionsDelivered(
+  positions: readonly PerpsCufPositionLike[] | null,
+): void {
+  endPerpsPlaceOrderCufOnPositions(positions);
+  if (!positions) {
+    return;
+  }
+  for (const name of [
+    TraceName.PerpsClosePositionToConfirmation,
+    TraceName.PerpsUpdateTPSLToConfirmation,
+  ]) {
+    const meta = pendingCufMeta.get(name);
+    if (!meta || meta[CUF_META.WATCH] !== PERPS_CUF_WATCH.POSITION_CHANGED) {
+      continue;
+    }
+    const symbol = meta[CUF_META.SYMBOL];
+    if (typeof symbol !== 'string') {
+      continue;
+    }
+    const current = positions.find((p) => p.symbol === symbol);
+    if (!current || positionSnapshot(current) !== meta[CUF_META.SNAPSHOT]) {
+      endPerpsCufTrace({ name, data: { ...STREAM_END_DATA } });
+    }
+  }
+  const reconnectMeta = pendingCufMeta.get(
+    TraceName.PerpsWebSocketReconnectToFreshData,
+  );
+  if (reconnectMeta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ANY_POSITIONS) {
+    endPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+      data: { ...STREAM_END_DATA },
+    });
+  }
+}
+
+/** Orders just rendered to stream subscribers: close a pending cancel span. */
+export function handlePerpsCufOrdersDelivered(
+  orders: readonly { orderId: string }[] | null,
+): void {
+  if (!orders) {
+    return;
+  }
+  const meta = pendingCufMeta.get(TraceName.PerpsCancelOrderToConfirmation);
+  if (!meta || meta[CUF_META.WATCH] !== PERPS_CUF_WATCH.ORDER_ABSENT) {
+    return;
+  }
+  const orderId = meta[CUF_META.ORDER_ID];
+  if (typeof orderId !== 'string') {
+    return;
+  }
+  if (!orders.some((o) => o.orderId === orderId)) {
+    endPerpsCufTrace({
+      name: TraceName.PerpsCancelOrderToConfirmation,
+      data: { ...STREAM_END_DATA },
+    });
+  }
 }

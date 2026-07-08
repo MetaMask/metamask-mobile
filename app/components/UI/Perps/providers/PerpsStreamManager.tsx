@@ -42,7 +42,10 @@ import {
 } from '@metamask/perps-controller/constants/perpsConfig';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import { endPerpsPlaceOrderCufOnPositions } from '../utils/perpsCufTrace';
+import {
+  handlePerpsCufPositionsDelivered,
+  handlePerpsCufOrdersDelivered,
+} from '../utils/perpsCufTrace';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -482,6 +485,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private readonly symbols = new Set<string>();
   private prewarmUnsubscribe?: () => void;
   private actualPriceUnsubscribe?: () => void;
+  private firstDataTraceId?: string;
   private allMarketSymbols: string[] = [];
   // Unique ID per prewarm cycle to detect stale promises and prevent subscription leaks
   private prewarmCycleId: number = 0;
@@ -544,9 +548,35 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return;
     }
 
+    // Start trace for first price measurement (before subscription)
+    this.firstDataTraceId = uuidv4();
+    trace({
+      name: TraceName.PerpsWebSocketFirstPrice,
+      id: this.firstDataTraceId,
+      op: TraceOperation.PerpsOperation,
+    });
+    this.wsConnectionStartTime = performance.now();
+
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
+        // Track first price data from WebSocket (only once per connection)
+        if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+          const firstDataDuration =
+            performance.now() - this.wsConnectionStartTime;
+          DevLogger.log(
+            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
+            { duration: `${firstDataDuration.toFixed(0)}ms` },
+          );
+          endTrace({
+            name: TraceName.PerpsWebSocketFirstPrice,
+            id: this.firstDataTraceId,
+            data: { success: true, duration: firstDataDuration },
+          });
+          this.wsConnectionStartTime = null;
+          this.firstDataTraceId = undefined;
+        }
+
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
@@ -692,6 +722,16 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           },
         );
 
+        // Start trace for first price measurement (prewarm is the usual
+        // price subscription path; connect() covers the no-prewarm case)
+        this.firstDataTraceId = uuidv4();
+        trace({
+          name: TraceName.PerpsWebSocketFirstPrice,
+          id: this.firstDataTraceId,
+          op: TraceOperation.PerpsOperation,
+        });
+        this.wsConnectionStartTime = performance.now();
+
         // WARNING: Do NOT set includeMarketData: true here. It triggers
         // per-symbol activeAssetCtx subscriptions (N symbols × N DEXs = N²
         // WebSocket connections). assetCtxs (1 per DEX) is always established
@@ -700,6 +740,23 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           symbols: this.allMarketSymbols,
           includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
+            // Track first price data from WebSocket (only once per prewarm)
+            if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+              const firstDataDuration =
+                performance.now() - this.wsConnectionStartTime;
+              DevLogger.log(
+                `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
+                { duration: `${firstDataDuration.toFixed(0)}ms` },
+              );
+              endTrace({
+                name: TraceName.PerpsWebSocketFirstPrice,
+                id: this.firstDataTraceId,
+                data: { success: true, duration: firstDataDuration },
+              });
+              this.wsConnectionStartTime = null;
+              this.firstDataTraceId = undefined;
+            }
+
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
               const priceUpdate = this.toPriceUpdate(update);
@@ -824,6 +881,8 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
+        // Orders just rendered to subscribers — close a pending cancel CUF span.
+        handlePerpsCufOrdersDelivered(orders);
         this.triggerPersist();
       },
     });
@@ -964,9 +1023,9 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
-        // Positions just rendered to subscribers — close a pending
-        // place-order CUF span at its user-perceived boundary.
-        endPerpsPlaceOrderCufOnPositions(positions);
+        // Positions just rendered to subscribers — close any pending CUF span
+        // (place/close/TPSL/reconnect) at its user-perceived boundary.
+        handlePerpsCufPositionsDelivered(positions);
         this.triggerPersist();
       },
     });
@@ -1415,6 +1474,7 @@ class TopOfBookStreamChannel extends StreamChannel<
   private cachedTopOfBook:
     | { bestBid?: string; bestAsk?: string; spread?: string }
     | undefined = undefined;
+  private firstDataTraceId?: string;
 
   protected connect() {
     if (!this.currentSymbol || this.wsSubscription) {
@@ -1427,12 +1487,38 @@ class TopOfBookStreamChannel extends StreamChannel<
       symbol: this.currentSymbol,
     });
 
+    // Start trace for first top-of-book measurement (before subscription)
+    this.firstDataTraceId = uuidv4();
+    trace({
+      name: TraceName.PerpsWebSocketFirstOrderBook,
+      id: this.firstDataTraceId,
+      op: TraceOperation.PerpsOperation,
+    });
+    this.wsConnectionStartTime = performance.now();
+
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: [this.currentSymbol],
       includeOrderBook: true,
       callback: (updates: PriceUpdate[]) => {
         const update = updates.find((u) => u.symbol === this.currentSymbol);
         if (update) {
+          // Track first top-of-book data (only once per connection)
+          if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+            const firstDataDuration =
+              performance.now() - this.wsConnectionStartTime;
+            DevLogger.log(
+              `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First order book data received`,
+              { duration: `${firstDataDuration.toFixed(0)}ms` },
+            );
+            endTrace({
+              name: TraceName.PerpsWebSocketFirstOrderBook,
+              id: this.firstDataTraceId,
+              data: { success: true, duration: firstDataDuration },
+            });
+            this.wsConnectionStartTime = null;
+            this.firstDataTraceId = undefined;
+          }
+
           const topOfBook = {
             bestBid: update.bestBid,
             bestAsk: update.bestAsk,

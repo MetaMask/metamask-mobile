@@ -17,6 +17,16 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTraceAfter,
+  watchPerpsCufAnyPositions,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 import Logger from '../../../../util/Logger';
 import {
   PERPS_CONSTANTS,
@@ -1002,6 +1012,22 @@ class PerpsConnectionManagerClass {
 
     DevLogger.log(
       'PerpsConnectionManager: Reconnecting with new account/network context',
+    );
+
+    // Freshness CUF: reconnect start -> first fresh positions delivery.
+    startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+    watchPerpsCufAnyPositions(TraceName.PerpsWebSocketReconnectToFreshData);
+    endPerpsCufTraceAfter(
+      {
+        name: TraceName.PerpsWebSocketReconnectToFreshData,
+        data: {
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+        },
+      },
+      PERPS_CUF_STREAM_TIMEOUT_MS,
     );
 
     // Set connecting state immediately to prevent race conditions

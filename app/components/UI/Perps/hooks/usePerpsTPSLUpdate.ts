@@ -11,6 +11,18 @@ import {
 } from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { TraceName } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufTraceAfter,
+  watchPerpsCufPositionChanged,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -38,6 +50,24 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
     ): Promise<{ success: boolean }> => {
       setIsUpdating(true);
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
+
+      // Confirmation CUF: ends when the stream shows the position's TP/SL
+      // values changed (the optimistic patch renders through the same path).
+      startPerpsCufTrace({ name: TraceName.PerpsUpdateTPSLToConfirmation });
+      watchPerpsCufPositionChanged(
+        TraceName.PerpsUpdateTPSLToConfirmation,
+        position,
+      );
+      endPerpsCufTraceAfter(
+        {
+          name: TraceName.PerpsUpdateTPSLToConfirmation,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+          },
+        },
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
 
       try {
         const result = await updatePositionTPSL({
@@ -69,6 +99,13 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           return { success: true };
         }
         DevLogger.log('Failed to update position TP/SL:', result.error);
+        endPerpsCufTrace({
+          name: TraceName.PerpsUpdateTPSLToConfirmation,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+          },
+        });
 
         const errorMessage = result.error || strings('perps.errors.unknown');
 
@@ -83,6 +120,13 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
         return { success: false };
       } catch (error) {
+        endPerpsCufTrace({
+          name: TraceName.PerpsUpdateTPSLToConfirmation,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
         DevLogger.log('Error updating position TP/SL:', error);
 
         Logger.error(ensureError(error, 'usePerpsTPSLUpdate.handle'), {

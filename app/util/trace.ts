@@ -191,6 +191,18 @@ export enum TraceName {
   PerpsTradePageRender = 'Perps Trade Page Render',
   /** Order submit tap -> matching position rendered from the live stream. */
   PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
+  /** Close confirm tap -> position absent/reduced in the live stream. */
+  PerpsClosePositionToConfirmation = 'Perps Close Position To Confirmation',
+  /** Cancel tap -> order absent from the live stream. */
+  PerpsCancelOrderToConfirmation = 'Perps Cancel Order To Confirmation',
+  /** TP/SL submit -> updated values visible in the live stream. */
+  PerpsUpdateTPSLToConfirmation = 'Perps Update TPSL To Confirmation',
+  /** WebSocket price subscription -> first price delivered. */
+  PerpsWebSocketFirstPrice = 'Perps WebSocket First Price',
+  /** WebSocket top-of-book subscription -> first book delivered. */
+  PerpsWebSocketFirstOrderBook = 'Perps WebSocket First Order Book',
+  /** Reconnect start -> first fresh positions delivered. */
+  PerpsWebSocketReconnectToFreshData = 'Perps WebSocket Reconnect To Fresh Data',
   // Predict
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',

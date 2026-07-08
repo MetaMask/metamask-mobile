@@ -11,6 +11,11 @@ import {
   setPerpsPlaceOrderCufSymbol,
   setPerpsPlaceOrderCufToastShown,
   endPerpsPlaceOrderCufOnPositions,
+  watchPerpsCufPositionChanged,
+  watchPerpsCufOrderAbsent,
+  watchPerpsCufAnyPositions,
+  handlePerpsCufPositionsDelivered,
+  handlePerpsCufOrdersDelivered,
 } from './perpsCufTrace';
 import {
   PERPS_CUF_TAG,
@@ -39,6 +44,10 @@ describe('perpsCufTrace', () => {
     // Drain any span left pending by a previous test.
     endPerpsCufTrace({ name: TraceName.PerpsEntryToLiveMarketList });
     endPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
+    endPerpsCufTrace({ name: TraceName.PerpsClosePositionToConfirmation });
+    endPerpsCufTrace({ name: TraceName.PerpsUpdateTPSLToConfirmation });
+    endPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
+    endPerpsCufTrace({ name: TraceName.PerpsWebSocketReconnectToFreshData });
     jest.clearAllMocks();
   });
 
@@ -137,5 +146,81 @@ describe('perpsCufTrace', () => {
     endPerpsPlaceOrderCufOnPositions([{ symbol: 'BTC' }]);
 
     expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
+  const btc = { symbol: 'BTC', size: '0.01', takeProfitPrice: '70000' };
+
+  it('close span ends when the watched position disappears', () => {
+    startPerpsCufTrace({ name: TraceName.PerpsClosePositionToConfirmation });
+    watchPerpsCufPositionChanged(
+      TraceName.PerpsClosePositionToConfirmation,
+      btc,
+    );
+
+    handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '1' }]);
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsClosePositionToConfirmation,
+        data: expect.objectContaining({
+          [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+        }),
+      }),
+    );
+  });
+
+  it('close span ends on a size change but not on an identical snapshot', () => {
+    startPerpsCufTrace({ name: TraceName.PerpsClosePositionToConfirmation });
+    watchPerpsCufPositionChanged(
+      TraceName.PerpsClosePositionToConfirmation,
+      btc,
+    );
+
+    handlePerpsCufPositionsDelivered([btc]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+
+    handlePerpsCufPositionsDelivered([{ ...btc, size: '0.005' }]);
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('tpsl span ends when the TP value changes in the stream', () => {
+    startPerpsCufTrace({ name: TraceName.PerpsUpdateTPSLToConfirmation });
+    watchPerpsCufPositionChanged(TraceName.PerpsUpdateTPSLToConfirmation, btc);
+
+    handlePerpsCufPositionsDelivered([{ ...btc, takeProfitPrice: '71000' }]);
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsUpdateTPSLToConfirmation,
+      }),
+    );
+  });
+
+  it('cancel span ends only once the order id is absent', () => {
+    startPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
+    watchPerpsCufOrderAbsent(TraceName.PerpsCancelOrderToConfirmation, 'o-1');
+
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-1' }, { orderId: 'o-2' }]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }]);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsCancelOrderToConfirmation,
+      }),
+    );
+  });
+
+  it('reconnect span ends on any positions delivery', () => {
+    startPerpsCufTrace({ name: TraceName.PerpsWebSocketReconnectToFreshData });
+    watchPerpsCufAnyPositions(TraceName.PerpsWebSocketReconnectToFreshData);
+
+    handlePerpsCufPositionsDelivered([]);
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsWebSocketReconnectToFreshData,
+      }),
+    );
   });
 });

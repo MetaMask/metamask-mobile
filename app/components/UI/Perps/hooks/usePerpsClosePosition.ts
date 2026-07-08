@@ -9,6 +9,18 @@ import {
   type TrackingData,
 } from '@metamask/perps-controller';
 import { handlePerpsError } from '../utils/translatePerpsError';
+import { TraceName } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufTraceAfter,
+  watchPerpsCufPositionChanged,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -58,6 +70,29 @@ export const usePerpsClosePosition = (
         slippage,
       } = params;
       const isFullClose = size === undefined || size === '';
+
+      // Confirmation CUF (market close): ends when the stream shows the
+      // position reduced or absent. Limit closes rest until filled, so their
+      // confirmation is not a render-latency measurement.
+      if (orderType === 'market') {
+        startPerpsCufTrace({
+          name: TraceName.PerpsClosePositionToConfirmation,
+        });
+        watchPerpsCufPositionChanged(
+          TraceName.PerpsClosePositionToConfirmation,
+          position,
+        );
+        endPerpsCufTraceAfter(
+          {
+            name: TraceName.PerpsClosePositionToConfirmation,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+            },
+          },
+          PERPS_CUF_STREAM_TIMEOUT_MS,
+        );
+      }
 
       try {
         setIsClosing(true);
@@ -194,6 +229,13 @@ export const usePerpsClosePosition = (
 
         return result;
       } catch (err) {
+        endPerpsCufTrace({
+          name: TraceName.PerpsClosePositionToConfirmation,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
         const closeError =
           err instanceof Error
             ? err

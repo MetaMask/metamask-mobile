@@ -35,6 +35,18 @@ import {
   type WithdrawParams,
   type WithdrawResult,
 } from '@metamask/perps-controller';
+import { TraceName } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufTraceAfter,
+  watchPerpsCufOrderAbsent,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 
 /**
  * UI-facing params for fetching markets.
@@ -65,7 +77,45 @@ export function usePerpsTrading() {
   const cancelOrder = useCallback(
     async (params: CancelOrderParams): Promise<CancelOrderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.cancelOrder(params);
+      // Confirmation CUF: every cancel UI path funnels through here; the span
+      // ends when the stream no longer lists the order.
+      startPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
+      watchPerpsCufOrderAbsent(
+        TraceName.PerpsCancelOrderToConfirmation,
+        params.orderId,
+      );
+      endPerpsCufTraceAfter(
+        {
+          name: TraceName.PerpsCancelOrderToConfirmation,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+          },
+        },
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
+      try {
+        const result = await controller.cancelOrder(params);
+        if (!result?.success) {
+          endPerpsCufTrace({
+            name: TraceName.PerpsCancelOrderToConfirmation,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
+        }
+        return result;
+      } catch (error) {
+        endPerpsCufTrace({
+          name: TraceName.PerpsCancelOrderToConfirmation,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
+        throw error;
+      }
     },
     [],
   );

@@ -31,6 +31,7 @@ export const PERPS_CUF_END_REASON = {
   POSITION_NOT_FOUND: 'position_not_found',
   POSITION_FETCH_ERROR: 'position_fetch_error',
   ORDER_FAILED: 'order_failed',
+  REQUEST_FAILED: 'request_failed',
   EXCEPTION: 'exception',
   STREAM_TIMEOUT: 'stream_timeout',
 } as const;
