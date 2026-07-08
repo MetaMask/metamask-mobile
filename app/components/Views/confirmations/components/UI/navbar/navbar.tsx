@@ -23,6 +23,7 @@ export interface NavbarOptions {
   /** @deprecated No longer used. Theming is handled by the bg-default Tailwind token. */
   theme?: unknown;
   overrides?: NavbarOverrides;
+  mmPayRequestInProgressNavHandler?: React.RefObject<(() => void) | false>;
 }
 
 export function getNavbar({
@@ -30,8 +31,13 @@ export function getNavbar({
   onReject,
   addBackButton = true,
   overrides,
+  mmPayRequestInProgressNavHandler,
 }: NavbarOptions) {
   function handleBackPress() {
+    if (mmPayRequestInProgressNavHandler?.current) {
+      mmPayRequestInProgressNavHandler.current();
+      return;
+    }
     if (onReject) {
       onReject();
     }
