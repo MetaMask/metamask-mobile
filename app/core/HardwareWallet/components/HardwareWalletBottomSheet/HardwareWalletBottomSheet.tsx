@@ -6,6 +6,8 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 
 import { useTheme } from '../../../../util/theme';
+import { Theme } from '../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../util/theme/themeUtils';
 
 import {
   HardwareWalletType,
@@ -29,10 +31,10 @@ import DevLogger from '../../../SDKConnect/utils/DevLogger';
 export const HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID =
   'hardware-wallet-bottom-sheet';
 
-const createStyles = (colors: { background: { default: string } }) =>
+const createStyles = (theme: Theme) =>
   StyleSheet.create({
     bottomSheet: {
-      backgroundColor: colors.background.default,
+      backgroundColor: getElevatedSurfaceColor(theme),
     },
   });
 
@@ -92,8 +94,8 @@ export const HardwareWalletBottomSheet: React.FC<
   onCTAClicked,
   onRetryQrScan,
 }) => {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [openQrScannerOnMount, setOpenQrScannerOnMount] = React.useState(false);
