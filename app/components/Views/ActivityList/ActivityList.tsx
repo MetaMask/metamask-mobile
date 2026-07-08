@@ -349,6 +349,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           .map((item) => item.hash?.toLowerCase())
           .filter(Boolean) as string[],
       );
+      const confirmedItemByHash = new Map<string, ActivityListItem>();
+      for (const confirmed of allConfirmedForConfiguredChains) {
+        const hash = confirmed.hash?.toLowerCase();
+        if (hash && !confirmedItemByHash.has(hash)) {
+          confirmedItemByHash.set(hash, confirmed);
+        }
+      }
 
       const localDomainKindHashes = new Set(
         localActivityItems
@@ -370,6 +377,22 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           .filter(Boolean) as string[],
       );
 
+      const localWinsHashes = new Set(localDomainKindHashes);
+      for (const localItem of localActivityItems) {
+        if (localItem.raw?.type !== 'localTransaction') continue;
+        const hash = localItem.raw.data.primaryTransaction.hash?.toLowerCase();
+        if (!hash) continue;
+        const confirmed = confirmedItemByHash.get(hash);
+        if (!confirmed) continue;
+        const localOutCategorizesConfirmed =
+          confirmed.type !== localItem.type &&
+          localItem.type !== 'contractInteraction' &&
+          localItem.type !== 'swapIncomplete';
+        if (localOutCategorizesConfirmed) {
+          localWinsHashes.add(hash);
+        }
+      }
+
       // localActivityItems are already mapped from TransactionMeta via the adapter;
       // here we apply the same chain-filter and EVM-confirmed dedup that existed before.
       const filteredLocalItems = localActivityItems.filter((item) => {
@@ -388,10 +411,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         // Dedup against confirmed by hash — bridge txns are exempt from nonce dedup
         const hash = tx.hash?.toLowerCase();
-        // Domain-specific local kinds win over the generic confirmed copy.
-        const isLocalDomainKind = !!hash && localDomainKindHashes.has(hash);
-        if (hash && confirmedHashes.has(hash) && !isLocalDomainKind)
-          return false;
+        // Local copies that out-categorize their confirmed copy win over it.
+        const localWins = !!hash && localWinsHashes.has(hash);
+        if (hash && confirmedHashes.has(hash) && !localWins) return false;
 
         // Nonce dedup: skip local if a confirmed tx has the same nonce+from+chain
         // (bridge txns exempt, as they may have same nonce as their approval)
@@ -399,7 +421,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           tx,
           bridgeHistoryValues,
         );
-        if (!isBridgeTx && !isLocalDomainKind) {
+        if (!isBridgeTx && !localWins) {
           const nonce = tx.txParams?.nonce;
           const from = tx.txParams?.from?.toLowerCase();
           if (nonce !== undefined && nonce !== null && from) {
@@ -451,12 +473,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
       const nonEvmItems = mapNonEvmTransactions(filteredNonEvmForMalicious);
 
+      // Drop confirmed copies whose local copy won above, so the winning local
+      // copy isn't rendered alongside a duplicate confirmed row.
       const confirmedEvmItems =
-        localDomainKindHashes.size === 0
+        localWinsHashes.size === 0
           ? allConfirmedForConfiguredChains
           : allConfirmedForConfiguredChains.filter((item) => {
               const hash = item.hash?.toLowerCase();
-              return !(hash && localDomainKindHashes.has(hash));
+              return !(hash && localWinsHashes.has(hash));
             });
 
       return {
