@@ -50,6 +50,7 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/ui/useMMPayNavigation');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -333,6 +334,7 @@ describe('CustomAmountInfo', () => {
     });
 
     useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
