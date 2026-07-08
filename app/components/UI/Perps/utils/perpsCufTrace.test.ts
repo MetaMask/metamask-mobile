@@ -14,6 +14,7 @@ import {
   waitForPerpsPlaceOrderPositionRendered,
   watchPerpsCufPositionChanged,
   watchPerpsCufOrderAbsent,
+  watchPerpsCufOrderPresent,
   watchPerpsCufAnyPositions,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
@@ -48,6 +49,7 @@ describe('perpsCufTrace', () => {
     endPerpsCufTrace({ name: TraceName.PerpsClosePositionToConfirmation });
     endPerpsCufTrace({ name: TraceName.PerpsUpdateTPSLToConfirmation });
     endPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
+    endPerpsCufTrace({ name: TraceName.PerpsPlaceLimitOrderToOrderRendered });
     endPerpsCufTrace({ name: TraceName.PerpsWebSocketReconnectToFreshData });
     jest.clearAllMocks();
   });
@@ -337,6 +339,56 @@ describe('perpsCufTrace', () => {
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.PerpsCancelOrderToConfirmation,
+      }),
+    );
+  });
+
+  it('limit-order-render span ends once the order id appears in the stream', () => {
+    startPerpsCufTrace({
+      name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
+    });
+    watchPerpsCufOrderPresent(
+      TraceName.PerpsPlaceLimitOrderToOrderRendered,
+      'o-9',
+    );
+
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-1' }]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-1' }, { orderId: 'o-9' }]);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
+        data: expect.objectContaining({
+          [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+        }),
+      }),
+    );
+  });
+
+  it('cancel and limit-render order spans resolve independently on one delivery', () => {
+    startPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
+    watchPerpsCufOrderAbsent(TraceName.PerpsCancelOrderToConfirmation, 'o-1');
+    startPerpsCufTrace({
+      name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
+    });
+    watchPerpsCufOrderPresent(
+      TraceName.PerpsPlaceLimitOrderToOrderRendered,
+      'o-2',
+    );
+
+    // o-1 gone (cancel confirmed) and o-2 present (limit rendered) in the
+    // same delivery: both spans end.
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }]);
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsCancelOrderToConfirmation,
+      }),
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
       }),
     );
   });

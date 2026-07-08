@@ -191,6 +191,8 @@ export enum TraceName {
   PerpsTradePageRender = 'Perps Trade Page Render',
   /** Order submit tap -> matching position rendered from the live stream. */
   PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
+  /** Limit order submit tap -> resting order rendered in the live orders stream. */
+  PerpsPlaceLimitOrderToOrderRendered = 'Perps Place Limit Order To Order Rendered',
   /** Close confirm tap -> position absent/reduced in the live stream. */
   PerpsClosePositionToConfirmation = 'Perps Close Position To Confirmation',
   /** Cancel tap -> order absent from the live stream. */

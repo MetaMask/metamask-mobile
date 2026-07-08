@@ -8,12 +8,19 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
-import { handlePerpsCufPositionsDelivered } from '../utils/perpsCufTrace';
+import {
+  handlePerpsCufPositionsDelivered,
+  handlePerpsCufOrdersDelivered,
+} from '../utils/perpsCufTrace';
 
 jest.mock('./usePerpsTrading');
-const mockGetSnapshot = jest.fn();
+const mockGetPositionsSnapshot = jest.fn();
+const mockGetOrdersSnapshot = jest.fn();
 jest.mock('../providers/PerpsStreamManager', () => ({
-  usePerpsStream: () => ({ positions: { getSnapshot: mockGetSnapshot } }),
+  usePerpsStream: () => ({
+    positions: { getSnapshot: mockGetPositionsSnapshot },
+    orders: { getSnapshot: mockGetOrdersSnapshot },
+  }),
 }));
 const mockTrack = jest.fn();
 jest.mock('./usePerpsEventTracking', () => ({
@@ -45,7 +52,8 @@ describe('usePerpsOrderExecution', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrack.mockClear();
-    mockGetSnapshot.mockReturnValue(null); // No cached positions by default
+    mockGetPositionsSnapshot.mockReturnValue(null); // No cached positions by default
+    mockGetOrdersSnapshot.mockReturnValue(null); // No cached orders by default
     (usePerpsTrading as jest.Mock).mockReturnValue({
       placeOrder: mockPlaceOrder,
     });
@@ -91,17 +99,20 @@ describe('usePerpsOrderExecution', () => {
   const mockPlaceOrderSuccessWithRender = (
     result: Record<string, unknown> = {},
   ) => {
-    mockGetSnapshot.mockReturnValueOnce(null); // pre-order baseline: none
-    mockGetSnapshot.mockReturnValue([mockPosition]);
+    mockGetPositionsSnapshot.mockReturnValueOnce(null); // pre-order baseline: none
+    mockGetPositionsSnapshot.mockReturnValue([mockPosition]);
     mockPlaceOrder.mockImplementation(async () => {
       handlePerpsCufPositionsDelivered([mockPosition]);
       return { success: true, orderId: 'order123', ...result };
     });
   };
 
-  describe('limit orders (no position-render CUF)', () => {
-    it('confirms immediately without arming or waiting on the position stream', async () => {
+  describe('limit orders (order-render CUF, not position-render)', () => {
+    it('confirms immediately and never touches the position matcher', async () => {
       const onSuccess = jest.fn();
+      // Order already rendered by submit time: span ends synchronously, no
+      // fallback timer is scheduled.
+      mockGetOrdersSnapshot.mockReturnValue([{ orderId: 'lim1' }]);
       mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'lim1' });
 
       const { result } = renderHook(() =>
@@ -120,10 +131,41 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      // Resting limit orders confirm on API success; the market baseline
-      // snapshot is never read because the CUF is not armed.
+      // Resting limit orders confirm on API success; the position baseline
+      // snapshot is never read because the position-render CUF is not armed.
       expect(onSuccess).toHaveBeenCalledWith();
-      expect(mockGetSnapshot).not.toHaveBeenCalled();
+      expect(mockGetPositionsSnapshot).not.toHaveBeenCalled();
+    });
+
+    it('ends the order-render span when the resting order renders in the stream', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetOrdersSnapshot.mockReturnValue([]); // not rendered synchronously
+        mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'lim1' });
+
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'limit',
+            price: '10000',
+          });
+        });
+
+        // Stream renders the resting order -> span ends at the boundary
+        // (before the 30s fallback would fire).
+        act(() => {
+          handlePerpsCufOrdersDelivered([{ orderId: 'lim1' }]);
+        });
+
+        // Flush the scheduled fallback so no timer leaks past the test.
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 

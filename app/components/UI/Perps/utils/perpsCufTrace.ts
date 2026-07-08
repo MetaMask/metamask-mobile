@@ -38,6 +38,7 @@ let cufInstanceCounter = 0;
 const PERPS_CUF_WATCH = {
   POSITION_CHANGED: 'position_changed',
   ORDER_ABSENT: 'order_absent',
+  ORDER_PRESENT: 'order_present',
   ANY_POSITIONS: 'any_positions',
 } as const;
 
@@ -283,6 +284,17 @@ export function watchPerpsCufOrderAbsent(
   });
 }
 
+/** Watch for the given order to appear (render) in the stream before ending `name`. */
+export function watchPerpsCufOrderPresent(
+  name: TraceName,
+  orderId: string,
+): void {
+  setPerpsCufMeta(name, {
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_PRESENT,
+    [CUF_META.ORDER_ID]: orderId,
+  });
+}
+
 /** End `name` on the next positions delivery, whatever it contains. */
 export function watchPerpsCufAnyPositions(name: TraceName): void {
   setPerpsCufMeta(name, {
@@ -338,24 +350,41 @@ export function handlePerpsCufPositionsDelivered(
   }
 }
 
-/** Orders just rendered to stream subscribers: close a pending cancel span. */
+/**
+ * Orders just rendered to stream subscribers: close a pending cancel span once
+ * its order is absent, and a pending limit-order-render span once its order is
+ * present.
+ */
 export function handlePerpsCufOrdersDelivered(
   orders: readonly { orderId: string }[] | null,
 ): void {
   if (!orders) {
     return;
   }
-  const meta = pendingCufMeta.get(TraceName.PerpsCancelOrderToConfirmation);
-  if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.ORDER_ABSENT) {
-    return;
-  }
-  const orderId = meta[CUF_META.ORDER_ID];
-  if (typeof orderId !== 'string') {
-    return;
-  }
-  if (orders?.every((o) => o.orderId !== orderId)) {
+  const cancelMeta = pendingCufMeta.get(
+    TraceName.PerpsCancelOrderToConfirmation,
+  );
+  if (
+    cancelMeta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_ABSENT &&
+    typeof cancelMeta[CUF_META.ORDER_ID] === 'string' &&
+    orders.every((o) => o.orderId !== cancelMeta[CUF_META.ORDER_ID])
+  ) {
     endPerpsCufTrace({
       name: TraceName.PerpsCancelOrderToConfirmation,
+      data: { ...STREAM_END_DATA },
+    });
+  }
+
+  const placeMeta = pendingCufMeta.get(
+    TraceName.PerpsPlaceLimitOrderToOrderRendered,
+  );
+  if (
+    placeMeta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_PRESENT &&
+    typeof placeMeta[CUF_META.ORDER_ID] === 'string' &&
+    orders.some((o) => o.orderId === placeMeta[CUF_META.ORDER_ID])
+  ) {
+    endPerpsCufTrace({
+      name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
       data: { ...STREAM_END_DATA },
     });
   }
