@@ -99,7 +99,6 @@ export const AddressList = () => {
               await copyAddressToClipboard();
               toast({
                 title: strings('notifications.address_copied_to_clipboard'),
-                severity: 'success',
                 hasNoTimeout: false,
               });
             },
