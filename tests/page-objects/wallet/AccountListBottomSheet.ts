@@ -386,6 +386,9 @@ class AccountListBottomSheet {
           scrollParams: { direction: 'down' },
         });
         await PlaywrightGestures.waitAndTap(link);
+        await this.waitForAccountSyncToComplete(90_000, {
+          addAccountButtonIndex: index,
+        });
       },
     });
   }
@@ -441,14 +444,46 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        const escapedAccountName = accountName.replace(/'/g, "\\'");
-        const accountEl = PlatformDetector.isAndroid()
-          ? await PlaywrightMatchers.getElementByXPath(
-              exactMatch
-                ? `//*[@name='${escapedAccountName}' or @label='${escapedAccountName}' or @text='${escapedAccountName}' or @content-desc='${escapedAccountName}']/ancestor::*[@clickable='true'][1]`
-                : `//*[contains(@name,'${escapedAccountName}') or contains(@label,'${escapedAccountName}') or contains(@text,'${escapedAccountName}') or contains(@content-desc,'${escapedAccountName}')]/ancestor::*[@clickable='true'][1]`,
-            )
-          : await PlaywrightMatchers.getElementByText(accountName, exactMatch);
+        if (PlatformDetector.isAndroid()) {
+          await Utilities.executeWithRetry(
+            async () => {
+              const cells =
+                await this.getAccountElementsByAccountNameV2(accountName);
+              if (cells.length === 0) {
+                return false;
+              }
+
+              const cell = cells[cells.length - 1];
+              for (const direction of ['down', 'up'] as const) {
+                try {
+                  await PlaywrightGestures.scrollIntoView(cell, {
+                    scrollParams: { direction },
+                    maxScrolls: 10,
+                  });
+                  if (await cell.isVisible()) {
+                    await PlaywrightGestures.waitAndTap(cell);
+                    return true;
+                  }
+                } catch {
+                  // try the other scroll direction
+                }
+              }
+
+              return false;
+            },
+            {
+              description: `Tap account with name: ${accountName}`,
+              timeout: 20_000,
+              interval: 500,
+            },
+          );
+          return;
+        }
+
+        const accountEl = await PlaywrightMatchers.getElementByText(
+          accountName,
+          exactMatch,
+        );
         await PlaywrightGestures.scrollIntoView(accountEl);
         await PlaywrightGestures.waitAndTap(accountEl);
       },
