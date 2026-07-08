@@ -23,6 +23,13 @@ import type { BatchSellTokenSelectRouteParams } from '../../components/UI/Bridge
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import type { HardwareWalletsSwapsRouteParams } from '../../components/UI/HardwareWallet/Swaps/flowStrategy';
+import type { HwQrScannerRouteParams } from '../../components/UI/HardwareWallet/Swaps/HwQrScanner';
+import type { PriceImpactModalRouterParams } from '../../components/UI/Bridge/components/PriceImpactModal/types';
+import type { MissingPriceModalParams } from '../../components/UI/Bridge/components/MissingPriceModal';
+import type { TokenWarningModalParams } from '../../components/UI/Bridge/components/TokenWarningModal';
+import type { HighRateAlertModalParams } from '../../components/UI/Bridge/components/HighRateAlertModal';
+import type { PostTradeBottomSheetParams } from '../../components/UI/Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import type { BatchSellPriceImpactInfoModalParams } from '../../components/UI/Bridge/components/BatchSellPriceImpactInfoModal/BatchSellPriceImpactInfoModal.types';
 import type { BatchSellNetworkFeeInfoModalParams } from '../../components/UI/Bridge/components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
 import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
@@ -34,6 +41,7 @@ import type {
   BlockaidModalParams,
   BridgeTransactionDetailsParams,
 } from '../../components/UI/Bridge/Bridge.types';
+import type { SetPayTokenRequest } from '../../components/Views/confirmations/hooks/pay/useAutomaticTransactionPayToken';
 
 // Manual backup params
 import type {
@@ -695,7 +703,17 @@ export type RootStackParamList = {
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
   BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
   BatchSellReview: undefined;
+  QuoteSelectorView: undefined;
+  HwQrScanner: HwQrScannerRouteParams | undefined;
   BridgeModals: undefined;
+  MarketClosedModal: undefined;
+  NetworkListModal: undefined;
+  PriceImpactModal: PriceImpactModalRouterParams;
+  MissingPriceModal: MissingPriceModalParams;
+  TokenWarningModal: TokenWarningModalParams;
+  HighRateAlertModal: HighRateAlertModalParams;
+  PostTradeModal: PostTradeBottomSheetParams;
+  BatchSellPriceImpactInfoModal: BatchSellPriceImpactInfoModalParams;
   SwapDefaultSlippageModal: SwapSlippageModalParams | undefined;
   SwapCustomSlippageModal: SwapSlippageModalParams | undefined;
   BatchSellDefaultSlippageModal: BatchSellSlippageModalParams | undefined;
@@ -794,6 +812,9 @@ export type RootStackParamList = {
   ConfirmationRequestModal: undefined;
   ConfirmationSwitchAccountType: undefined;
   ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithBottomSheet:
+    | { preferredPaymentToken?: SetPayTokenRequest }
+    | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
 
