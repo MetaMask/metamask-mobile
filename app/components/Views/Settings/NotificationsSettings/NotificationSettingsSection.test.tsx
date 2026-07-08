@@ -131,7 +131,7 @@ describe('NotificationSettingsSection', () => {
     renderSection({
       type: 'walletActivity',
       title: 'Wallet activity',
-      description: 'Buy, sells, transfers, swaps',
+      description: 'Buy, sells, transfers, and swaps',
     });
 
     const button = screen.getByTestId(
@@ -150,7 +150,7 @@ describe('NotificationSettingsSection', () => {
     renderSection({
       type: 'walletActivity',
       title: 'Wallet activity',
-      description: 'Buy, sells, transfers, swaps',
+      description: 'Buy, sells, transfers, and swaps',
     });
 
     expect(screen.getByText('Select all')).toBeOnTheScreen();
@@ -275,7 +275,7 @@ describe('NotificationSettingsSection', () => {
     renderSection({
       type: 'walletActivity',
       title: 'Wallet activity',
-      description: 'Buy, sells, transfers, swaps',
+      description: 'Buy, sells, transfers, and swaps',
     });
 
     fireEvent(
