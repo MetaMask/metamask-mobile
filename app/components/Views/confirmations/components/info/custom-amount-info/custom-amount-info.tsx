@@ -76,6 +76,7 @@ import {
 import { useAlerts } from '../../../context/alert-system-context';
 import { AlertKeys } from '../../../constants/alerts';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
+import { useMMPayHardwareAccountAlert } from '../../../hooks/alerts/useMMPayHardwareAccountAlert';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
@@ -510,8 +511,12 @@ function ConfirmButton({
     useConfirmationContext();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useConfirmActions();
+  // Not part of the alerts context, so checked separately here. The account
+  // can switch to a hardware wallet at any point via PayAccountSelector.
+  const hardwareAccountAlerts = useMMPayHardwareAccountAlert();
   const disabled =
     hasBlockingAlerts ||
+    hardwareAccountAlerts.length > 0 ||
     isLoading ||
     Boolean(disableConfirm) ||
     isHeadlessBuyInProgress;

@@ -5,6 +5,8 @@ import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { hasTransactionType } from '../../utils/transaction';
 import {
   isHardwareAccount,
@@ -14,6 +16,8 @@ import { selectMetaMaskPayHardwareFlags } from '../../../../../selectors/feature
 
 export function useMMPayHardwareAccountAlert(): Alert[] {
   const transactionMeta = useTransactionMetadataRequest();
+  const accountOverride = useTransactionAccountOverride();
+  const fiatPayment = useTransactionPayFiatPayment();
   const { enabled: isHardwarePayEnabled } = useSelector(
     selectMetaMaskPayHardwareFlags,
   );
@@ -26,11 +30,25 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
     TransactionType.musdConversion,
   ]);
 
-  const isHardwareWallet = isHardwareAccount(from ?? '');
-  const isQRWallet = isQRHardwareAccount(from ?? '');
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+
+  // Money account deposits are executed by the money account itself, so
+  // txParams.from is never the paying account. The account paying is the
+  // override selected in PayAccountSelector.
+  const payingAccount = isMoneyAccountDeposit ? accountOverride : from;
+
+  const isHardwareWallet = isHardwareAccount(payingAccount ?? '');
+  const isQRWallet = isQRHardwareAccount(payingAccount ?? '');
+
+  // Fiat deposits are bought directly into the money account, so the
+  // hardware account never signs.
+  const isFiatMoneyAccountDeposit =
+    isMoneyAccountDeposit && Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return useMemo(() => {
-    if (!isHardwareWallet) {
+    if (!isHardwareWallet || isFiatMoneyAccountDeposit) {
       return [];
     }
 
@@ -47,5 +65,11 @@ export function useMMPayHardwareAccountAlert(): Alert[] {
         isBlocking: true,
       },
     ];
-  }, [isHardwareWallet, isHardwarePayEnabled, isMusdConversion, isQRWallet]);
+  }, [
+    isFiatMoneyAccountDeposit,
+    isHardwareWallet,
+    isHardwarePayEnabled,
+    isMusdConversion,
+    isQRWallet,
+  ]);
 }
