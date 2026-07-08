@@ -854,8 +854,28 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const MultichainAddressList = () => {
+  const route = useRoute();
+
+  return (
+    <NativeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    >
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={MultichainAccountAddressList}
+        initialParams={route?.params}
+      />
+    </NativeStack.Navigator>
+  );
+};
+
 const MultichainAccountGroupDetails = () => {
   const route = useRoute();
+  const { colors } = useTheme();
 
   return (
     <NativeStack.Navigator
@@ -884,6 +904,16 @@ const MultichainAccountGroupDetails = () => {
         options={{
           headerShown: false,
           animation: 'slide_from_right',
+        }}
+      />
+
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={MultichainAddressList}
+        options={{
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
+          contentStyle: { backgroundColor: colors.background.default },
         }}
       />
       <NativeStack.Screen
@@ -960,25 +990,6 @@ const MultichainAccountDetailsActions = () => {
       <NativeStack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
         component={RevealSRP}
-        initialParams={route?.params}
-      />
-    </NativeStack.Navigator>
-  );
-};
-
-const MultichainAddressList = () => {
-  const route = useRoute();
-
-  return (
-    <NativeStack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right',
-      }}
-    >
-      <NativeStack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-        component={MultichainAccountAddressList}
         initialParams={route?.params}
       />
     </NativeStack.Navigator>
