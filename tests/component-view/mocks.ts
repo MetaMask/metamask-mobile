@@ -111,6 +111,7 @@ jest.mock('../../app/core/Engine', () => {
           onboarding: { requiresEmail: true },
           supportsPinView: true,
           supportsCashback: true,
+          supportsCredit: true,
         }),
       },
       PhishingController: {
@@ -196,6 +197,17 @@ jest.mock('../../app/core/Engine', () => {
       },
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+      },
+      GeolocationController: {
+        state: {
+          location: 'US',
+        },
+        refreshGeolocation: jest.fn().mockResolvedValue('US'),
+      },
+      SeedlessOnboardingController: {
+        state: {
+          accessToken: undefined,
+        },
       },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
@@ -327,6 +339,7 @@ jest.mock('../../app/core/Engine', () => {
         resetState: jest.fn(),
         stopAllPolling: jest.fn(),
         setLocation: jest.fn(),
+        setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
       PredictController: {
@@ -364,6 +377,7 @@ jest.mock('../../app/core/Engine', () => {
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),
+        trackCategoryClicked: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),
@@ -541,8 +555,25 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
 // Native deterministic version for gating logic
 jest.mock('react-native-device-info', () => ({
   __esModule: true,
-  getVersion: () => '99.0.0',
+  getVersion: jest.fn(() => '99.0.0'),
+  getBuildNumber: jest.fn(() => '999'),
+  getBrand: jest.fn(() => 'Apple'),
+  getApplicationName: jest.fn(() => Promise.resolve('MetaMask')),
 }));
+
+jest.mock(
+  '../../app/util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      platform: 'ios',
+      currentBuildNumber: '999',
+      applicationVersion: '99.0.0',
+      operatingSystemVersion: '17.0',
+      deviceBrand: 'Apple',
+    })),
+  }),
+);
 
 // Mock Animated Easing to avoid importing heavy bezier implementation during tests
 // and to prevent late imports after Jest environment teardown.

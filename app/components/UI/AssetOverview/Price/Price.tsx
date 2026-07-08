@@ -1,13 +1,10 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import type {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import type { TokenI } from '../../Tokens/types';
-import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 import PriceAdvanced from './Price.advanced';
-import PriceLegacy from './Price.legacy';
 
 interface PriceSharedProps {
   priceDiff: number;
@@ -19,9 +16,8 @@ interface PriceSharedProps {
 }
 
 /**
- * Token overview price header + chart. Passes both legacy (`prices`, `timePeriod`) and
- * advanced (`asset`) data; the remote flag {@link selectTokenOverviewAdvancedChartEnabled}
- * chooses which implementation to render.
+ * Token overview price header + chart. Renders the advanced chart by default and
+ * falls back to {@link PriceLegacy} when OHLCV data is unavailable.
  */
 export type PriceProps = PriceSharedProps & {
   asset: TokenI;
@@ -34,9 +30,6 @@ export type PriceProps = PriceSharedProps & {
 };
 
 const Price = (props: PriceProps) => {
-  const isAdvancedChartEnabled = useSelector(
-    selectTokenOverviewAdvancedChartEnabled,
-  );
   const {
     asset,
     prices,
@@ -49,27 +42,13 @@ const Price = (props: PriceProps) => {
     ...rest
   } = props;
 
-  if (isAdvancedChartEnabled) {
-    return (
-      <PriceAdvanced
-        asset={asset}
-        prices={prices}
-        timePeriod={timePeriod}
-        chartNavigationButtons={chartNavigationButtons}
-        setTimePeriod={setTimePeriod}
-        isLoading={isLoading}
-        currentPrice={currentPrice}
-        currentCurrency={currentCurrency}
-        {...rest}
-      />
-    );
-  }
   return (
-    <PriceLegacy
+    <PriceAdvanced
+      asset={asset}
       prices={prices}
       timePeriod={timePeriod}
       chartNavigationButtons={chartNavigationButtons}
-      onTimePeriodChange={setTimePeriod}
+      setTimePeriod={setTimePeriod}
       isLoading={isLoading}
       currentPrice={currentPrice}
       currentCurrency={currentCurrency}

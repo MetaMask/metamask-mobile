@@ -32,7 +32,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../Deposit/utils/ProviderTokenVault';
+} from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
@@ -107,12 +107,13 @@ function SettingsModal() {
         })
         .build(),
     );
-    sheetRef.current?.onCloseBottomSheet();
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: {
-        redirectToOrders: true,
-      },
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: {
+          redirectToOrders: true,
+        },
+      });
     });
   }, [navigation, trackEvent, createEventBuilder]);
 

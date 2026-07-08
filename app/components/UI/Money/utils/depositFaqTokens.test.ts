@@ -1,10 +1,40 @@
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
+  ensureMonadMusdListed,
   formatNoFeeTokenBullets,
-  formatBaseStablecoins,
 } from './depositFaqTokens';
 
 describe('depositFaqTokens', () => {
+  describe('ensureMonadMusdListed', () => {
+    it('appends MUSD after existing Monad tokens', () => {
+      expect(
+        ensureMonadMusdListed({ [CHAIN_IDS.MONAD]: ['USDC'] })[CHAIN_IDS.MONAD],
+      ).toEqual(['USDC', 'MUSD']);
+    });
+
+    it('adds a Monad entry when the chain is absent', () => {
+      expect(ensureMonadMusdListed({ '0x1': ['USDC'] })).toEqual({
+        '0x1': ['USDC'],
+        [CHAIN_IDS.MONAD]: ['MUSD'],
+      });
+    });
+
+    it('does not duplicate MUSD when already present', () => {
+      expect(
+        ensureMonadMusdListed({ [CHAIN_IDS.MONAD]: ['USDC', 'MUSD'] })[
+          CHAIN_IDS.MONAD
+        ],
+      ).toEqual(['USDC', 'MUSD']);
+    });
+
+    it('does not mutate the input list', () => {
+      const input = { [CHAIN_IDS.MONAD]: ['USDC'] };
+      ensureMonadMusdListed(input);
+      expect(input[CHAIN_IDS.MONAD]).toEqual(['USDC']);
+    });
+  });
+
   describe('formatNoFeeTokenBullets', () => {
     it('formats each chain as a bullet line with a friendly network name', () => {
       expect(formatNoFeeTokenBullets(MONEY_NO_FEE_TOKENS_FALLBACK)).toBe(
@@ -32,30 +62,6 @@ describe('depositFaqTokens', () => {
           '0xe708': ['mUSD'],
         }),
       ).toBe('• Ethereum: USDC, mUSD\n• Linea: mUSD');
-    });
-  });
-
-  describe('formatBaseStablecoins', () => {
-    it('returns the unique base stablecoins excluding aTokens, with an "or" list', () => {
-      expect(formatBaseStablecoins(MONEY_NO_FEE_TOKENS_FALLBACK)).toBe(
-        'USDC, USDT, or DAI',
-      );
-    });
-
-    it('joins two stablecoins with "or"', () => {
-      expect(formatBaseStablecoins({ '0x1': ['USDC', 'DAI'] })).toBe(
-        'USDC or DAI',
-      );
-    });
-
-    it('returns a single stablecoin without a connector', () => {
-      expect(formatBaseStablecoins({ '0x1': ['USDC', 'aUSDC'] })).toBe('USDC');
-    });
-
-    it('excludes mUSD from the inline stablecoin list', () => {
-      expect(formatBaseStablecoins({ '0x1': ['USDC', 'mUSD', 'DAI'] })).toBe(
-        'USDC or DAI',
-      );
     });
   });
 });

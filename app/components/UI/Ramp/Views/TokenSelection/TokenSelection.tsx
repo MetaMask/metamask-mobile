@@ -27,16 +27,14 @@ import {
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 
-import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
-import { useRampTokens, RampsToken } from '../../hooks/useRampTokens';
-import { useDepositCryptoCurrencyNetworkName } from '../../Deposit/hooks/useDepositCryptoCurrencyNetworkName';
-import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import useSearchTokenResults from '../../hooks/useSearchTokenResults';
+import { RampsToken } from '../../hooks/useRampTokens';
+import { useDepositCryptoCurrencyNetworkName } from '../../hooks/useDepositCryptoCurrencyNetworkName';
 import { useRampsController } from '../../hooks/useRampsController';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { useRampNavigation } from '../../hooks/useRampNavigation';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
@@ -46,6 +44,8 @@ import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectMod
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
+import { useRampNavigation } from '../../hooks/useRampNavigation';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -66,6 +66,7 @@ function TokenSelection() {
   const navigation = useNavigation();
   const route = useRoute();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
+  const { goToBuy } = useRampNavigation();
 
   const { receiveMode, groupId } =
     (route.params as TokenSelectionRouteParams) ?? {};
@@ -80,7 +81,6 @@ function TokenSelection() {
     tokensError: controllerTokensError,
     setSelectedToken,
   } = useRampsController();
-  const legacyTokens = useRampTokens();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
@@ -91,18 +91,6 @@ function TokenSelection() {
   );
 
   const { topTokens, allTokens, isLoading, error } = useMemo(() => {
-    if (!isV2UnifiedEnabled) {
-      // V1: useRampTokens returns null tokens with isLoading:false while the
-      // routing decision settles after geo recovery. Treat null (no error) as
-      // loading to avoid a "No tokens match" flash before the fetch. A finished
-      // fetch yields an array, so [] => genuinely empty, never an endless spinner.
-      const legacyNotYetLoaded = !legacyTokens.topTokens && !legacyTokens.error;
-      return {
-        ...legacyTokens,
-        isLoading: legacyTokens.isLoading || legacyNotYetLoaded,
-      };
-    }
-
     const filterTokens = <T extends { chainId?: string }>(
       tokens: T[] | undefined,
     ): T[] | null => {
@@ -132,9 +120,7 @@ function TokenSelection() {
       error: controllerTokensError,
     };
   }, [
-    isV2UnifiedEnabled,
     controllerTokens,
-    legacyTokens,
     controllerTokensLoading,
     controllerTokensError,
     networksByCaipChainId,
@@ -158,11 +144,9 @@ function TokenSelection() {
     searchString,
   });
 
-  const { goToBuy } = useRampNavigation();
-
   const debouncedSearchString = useDebouncedValue(searchString, 500);
 
-  const rampType = isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY';
+  const rampType = 'UNIFIED_BUY_2';
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -213,7 +197,7 @@ function TokenSelection() {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_TOKEN_SELECTED)
             .addProperties({
-              ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
+              ramp_type: 'UNIFIED_BUY_2',
               region: detectedGeolocation || '',
               chain_id: selectedToken.chainId,
               currency_destination: selectedToken.assetId,
@@ -275,11 +259,11 @@ function TokenSelection() {
       getNetworkName,
       detectedGeolocation,
       isV2UnifiedEnabled,
+      goToBuy,
       receiveMode,
       groupId,
       getAddressesByGroupId,
       navigation,
-      goToBuy,
       setSelectedToken,
     ],
   );

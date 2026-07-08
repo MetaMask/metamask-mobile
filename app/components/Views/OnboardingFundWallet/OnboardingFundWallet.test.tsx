@@ -161,6 +161,7 @@ const setControllerState = (
   }> = {},
 ) =>
   mockUseRampsController.mockReturnValue({
+    userRegion: { regionCode: 'US' },
     paymentMethods: [MOCK_APPLE_PAY, MOCK_DEBIT_CREDIT_CARD],
     paymentMethodsLoading: false,
     paymentMethodsFetching: false,

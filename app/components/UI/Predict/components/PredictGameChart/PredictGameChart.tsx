@@ -13,6 +13,7 @@ import {
   getPrimaryMoneylineOutcomes,
   isDrawCapableLeague,
 } from '../../constants/sports';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
 import { useTheme } from '../../../../../util/theme';
 import PredictGameChartContent from './PredictGameChartContent';
 import {
@@ -107,10 +108,15 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
         { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
       ];
     }
-    return [
-      { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
-      { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
-    ];
+    const orderedTeams =
+      getLeagueTeamOrder(game.league) === 'home-away'
+        ? [game.homeTeam, game.awayTeam]
+        : [game.awayTeam, game.homeTeam];
+
+    return orderedTeams.map((team) => ({
+      label: team.abbreviation,
+      color: team.color,
+    }));
   }, [game, moneylineOutcomes.length, colors.icon.muted]);
 
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(() =>

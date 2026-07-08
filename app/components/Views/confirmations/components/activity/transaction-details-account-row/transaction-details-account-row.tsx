@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -24,6 +25,19 @@ import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAcco
 import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
+import MoneyIcon from '../../../../../../images/money.png';
+
+const iconStyles = StyleSheet.create({
+  moneyIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  moneyIcon: { width: 32, height: 32 },
+});
 
 const ACCOUNT_TYPES = [
   TransactionType.perpsWithdraw,
@@ -91,6 +105,18 @@ export function TransactionDetailsAccountRow() {
         : strings('transaction_details.label.predictions_account')
       : strings('transaction_details.label.money_account');
 
+    const icon = isOutflowToService ? (
+      <View style={iconStyles.moneyIconWrapper}>
+        <Image
+          source={MoneyIcon}
+          style={iconStyles.moneyIcon}
+          testID="money-account-icon"
+        />
+      </View>
+    ) : (
+      <AvatarAccount accountAddress={address} size={AvatarSize.Sm} />
+    );
+
     return (
       <TransactionDetailsRow label={strings('transaction_details.label.from')}>
         <Box
@@ -98,7 +124,7 @@ export function TransactionDetailsAccountRow() {
           alignItems={AlignItems.center}
           gap={6}
         >
-          <AvatarAccount accountAddress={address} size={AvatarSize.Sm} />
+          {icon}
           <Text>{label}</Text>
         </Box>
       </TransactionDetailsRow>
@@ -121,6 +147,29 @@ export function TransactionDetailsAccountRow() {
 
   const textColor = isWithdraw ? undefined : TextColor.Alternative;
 
+  const avatarElement = isWithdraw ? (
+    <View style={iconStyles.moneyIconWrapper}>
+      <Image
+        source={MoneyIcon}
+        style={iconStyles.moneyIcon}
+        testID="money-account-icon"
+      />
+    </View>
+  ) : (
+    <BadgeWrapper
+      badgePosition={BadgePosition.BottomRight}
+      badgeElement={
+        <Badge
+          variant={BadgeVariant.Network}
+          imageSource={networkImage}
+          name={networkName}
+        />
+      }
+    >
+      <AvatarAccount accountAddress={avatarAddress} size={AvatarSize.Sm} />
+    </BadgeWrapper>
+  );
+
   return (
     <TransactionDetailsRow label={label}>
       <Box
@@ -128,18 +177,7 @@ export function TransactionDetailsAccountRow() {
         alignItems={AlignItems.center}
         gap={6}
       >
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkImage}
-              name={networkName}
-            />
-          }
-        >
-          <AvatarAccount accountAddress={avatarAddress} size={AvatarSize.Sm} />
-        </BadgeWrapper>
+        {avatarElement}
         <Text color={textColor}>{displayText}</Text>
       </Box>
     </TransactionDetailsRow>

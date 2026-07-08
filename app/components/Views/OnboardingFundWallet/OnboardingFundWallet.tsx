@@ -73,6 +73,7 @@ const OnboardingFundWallet = () => {
   // Unified RampsController is the single source of truth for the payment list.
   // The legacy Deposit SDK is no longer used here.
   const {
+    userRegion,
     paymentMethods,
     paymentMethodsLoading,
     paymentMethodsFetching,
@@ -205,6 +206,7 @@ const OnboardingFundWallet = () => {
   // settled "no eligible methods" state, so we show the unavailable message
   // rather than spinning forever.
   const isSeedingSelection =
+    !userRegion?.regionCode ||
     providersLoading ||
     tokensLoading ||
     (!selectedToken && Boolean(defaultToken)) ||

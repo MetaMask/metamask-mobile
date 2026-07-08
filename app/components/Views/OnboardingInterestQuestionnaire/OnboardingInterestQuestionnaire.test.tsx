@@ -11,7 +11,8 @@ import {
 } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectAccountGroupBalanceForEmptyState } from '../../../selectors/assets/balances';
 
 const MockView = View;
 const MockPressable = Pressable;
@@ -22,25 +23,29 @@ jest.mock('./OtherBottomSheet', () => ({
   default: function MockOtherBottomSheet({
     onClose,
     onDone,
-    onRemove,
+    initialValue,
   }: {
     onClose: () => void;
     onDone: (value: string) => void;
-    onRemove: () => void;
+    initialValue?: string;
   }) {
     return (
       <MockView testID="mock-other-bottom-sheet">
+        <MockText testID="mock-other-initial-value">{initialValue}</MockText>
         <MockPressable
           testID="mock-other-done"
           onPress={() => onDone('Custom usage')}
         >
           <MockText>Done</MockText>
         </MockPressable>
+        <MockPressable
+          testID="mock-other-done-empty"
+          onPress={() => onDone('')}
+        >
+          <MockText>Done Empty</MockText>
+        </MockPressable>
         <MockPressable testID="mock-other-close" onPress={onClose}>
           <MockText>Close</MockText>
-        </MockPressable>
-        <MockPressable testID="mock-other-remove" onPress={onRemove}>
-          <MockText>Remove</MockText>
         </MockPressable>
       </MockView>
     );
@@ -79,7 +84,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn().mockReturnValue(undefined),
+  useSelector: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -97,6 +102,15 @@ describe('OnboardingInterestQuestionnaire', () => {
   beforeEach(() => {
     delete mockInterestQuestionnaireRouteParams.accountType;
     jest.clearAllMocks();
+    // Default: wallet has funds so pressing Next calls onComplete directly
+    (
+      jest.requireMock('react-redux').useSelector as jest.Mock
+    ).mockImplementation((selector: (state: unknown) => unknown) => {
+      if (selector === selectAccountGroupBalanceForEmptyState) {
+        return { totalBalanceInUserCurrency: 100 };
+      }
+      return undefined;
+    });
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -292,16 +306,6 @@ describe('OnboardingInterestQuestionnaire', () => {
   });
 
   describe('Other option', () => {
-    it('renders an edit icon for the Other row', () => {
-      renderComponent();
-
-      expect(
-        screen.getByTestId(
-          `${OnboardingInterestQuestionnaireTestIds.OPTION_ICON_PREFIX}other`,
-        ),
-      ).toBeOnTheScreen();
-    });
-
     it('does not render the bottom sheet by default', () => {
       renderComponent();
 
@@ -336,34 +340,10 @@ describe('OnboardingInterestQuestionnaire', () => {
         screen.getByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
       ).toHaveTextContent('Custom usage');
     });
-
-    it('removes other text and deselects option when Remove is pressed', () => {
-      renderComponent();
-
-      const otherOption = screen.getByTestId(
-        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
-      );
-
-      fireEvent.press(otherOption);
-      fireEvent.press(screen.getByTestId('mock-other-done'));
-
-      expect(otherOption.props.accessibilityState.checked).toBe(true);
-      expect(
-        screen.getByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
-      ).toHaveTextContent('Custom usage');
-
-      fireEvent.press(otherOption);
-      fireEvent.press(screen.getByTestId('mock-other-remove'));
-
-      expect(otherOption.props.accessibilityState.checked).toBe(false);
-      expect(
-        screen.queryByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
-      ).not.toBeOnTheScreen();
-    });
   });
 
   describe('Next button behaviour', () => {
-    it('fires Submitted and navigates to fund wallet with selections', async () => {
+    it('fires Submitted and calls onComplete with selections', async () => {
       renderComponent();
 
       fireEvent.press(
@@ -394,32 +374,107 @@ describe('OnboardingInterestQuestionnaire', () => {
           skipped: false,
         }),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.FUND_WALLET,
-        expect.objectContaining({
-          onComplete: mockOnComplete,
-          selectedInterests: ['swap_tokens'],
-        }),
-      );
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to fund wallet when no option is selected', async () => {
+    it('disables Continue button when no option is selected', () => {
       renderComponent();
 
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          ),
-        );
-      });
+      expect(
+        screen.getByTestId(
+          OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+        ),
+      ).toBeDisabled();
+    });
+  });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.FUND_WALLET,
-        expect.objectContaining({
-          onComplete: mockOnComplete,
-          selectedInterests: [],
-        }),
+  describe('Other option extended', () => {
+    it('hides the bottom sheet when the close button is pressed', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      expect(screen.getByTestId('mock-other-bottom-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('mock-other-close'));
+
+      expect(
+        screen.queryByTestId('mock-other-bottom-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('deselects the Other option when Done is called with an empty string', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done'));
+
+      const otherOption = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+      );
+      expect(otherOption.props.accessibilityState.checked).toBe(true);
+
+      fireEvent.press(otherOption);
+      fireEvent.press(screen.getByTestId('mock-other-done-empty'));
+
+      expect(otherOption.props.accessibilityState.checked).toBe(false);
+    });
+
+    it('hides the bottom sheet after Done is called with an empty string', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done-empty'));
+
+      expect(
+        screen.queryByTestId('mock-other-bottom-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not display the other text when Done is called with an empty string', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done-empty'));
+
+      expect(
+        screen.queryByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('passes the previously entered text as initialValue when Other is reopened', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+      fireEvent.press(screen.getByTestId('mock-other-done'));
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+        ),
+      );
+
+      expect(screen.getByTestId('mock-other-initial-value')).toHaveTextContent(
+        'Custom usage',
       );
     });
   });
@@ -453,6 +508,84 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       expect(mockOnComplete).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('analytics guard', () => {
+    it('fires the Viewed event only once even when options are selected', () => {
+      renderComponent();
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}trade_perpetuals`,
+        ),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
+        1,
+        MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED,
+      );
+    });
+  });
+
+  describe('Redux account_type', () => {
+    it('uses account_type from Redux store in the Viewed event when route has no accountType', () => {
+      const useSelectorMock = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      useSelectorMock.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectOnboardingAccountType) return 'hardware';
+          return undefined;
+        },
+      );
+
+      renderComponent();
+
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          question_type: 'interest',
+          account_type: 'hardware',
+        }),
+      );
+
+      useSelectorMock.mockReturnValue(undefined);
+    });
+
+    it('includes account_type from Redux in the Submitted event when route has no accountType', async () => {
+      const useSelectorMock = jest.requireMock('react-redux')
+        .useSelector as jest.Mock;
+      useSelectorMock.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectOnboardingAccountType) return 'hardware';
+          return undefined;
+        },
+      );
+
+      renderComponent();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
+          ),
+        );
+      });
+
+      const submittedBuilder = mockCreateEventBuilder.mock.results[1]?.value;
+      expect(submittedBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          account_type: 'hardware',
+        }),
+      );
+
+      useSelectorMock.mockReturnValue(undefined);
     });
   });
 });

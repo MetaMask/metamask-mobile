@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import styleSheet from '../../Deposit/Views/KycProcessing/KycProcessing.styles';
+import styleSheet from './KycProcessing.styles';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
+import DepositProgressBar from '../../components/DepositProgressBar';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,8 +19,8 @@ import {
   FontWeight,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import { KycStatus } from '../../Deposit/constants';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import { KycStatus } from '../../constants';
 import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';

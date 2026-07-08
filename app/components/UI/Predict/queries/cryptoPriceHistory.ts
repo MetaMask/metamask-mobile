@@ -56,4 +56,9 @@ export const predictCryptoPriceHistoryOptions = ({
       return toLivelinePoints(history ?? []);
     },
     staleTime: Infinity,
+    // The chart hook re-polls this query on an interval while a market is live,
+    // which already provides natural retries. Inheriting the global `retry: 2`
+    // default just triples the failed-request count (and Sentry noise) whenever
+    // the Chainlink candles endpoint is unreachable, so disable retries here.
+    retry: 0,
   });

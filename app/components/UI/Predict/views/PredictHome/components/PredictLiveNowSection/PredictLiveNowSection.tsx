@@ -4,13 +4,16 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { Box, BoxBorderColor } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxBorderColor,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
 import PredictMarket from '../../../../components/PredictMarket';
 import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
 import { PaginationDots } from '../../../../components/PaginationDots/PaginationDots';
@@ -139,15 +142,12 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
 
   return (
     <Box testID={testID} twClassName="my-2">
-      {/* "See all" navigates to the generic PredictFeedView (feedId 'live').
-          Passing `onPress` is what renders the chevron + touchable (see
-          SectionHeader). This is the reference pattern other home sections
-          (Trending / Popular Today / Categories) follow with their own feedId. */}
+      {/* "See all" navigates to the generic PredictFeedView (feedId 'live'). */}
       <SectionHeader
         testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.live_now_title')}
+        isInteractive
         onPress={handleSeeAll}
-        twClassName="px-0 mb-2"
       />
 
       <Box twClassName="-mx-4">

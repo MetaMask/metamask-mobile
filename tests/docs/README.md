@@ -14,7 +14,8 @@
 ## E2E Framework Structure
 
 - **Regression Testing Scenarios (`tests/regression/`)** - Regression Test files organized by feature
-- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature
+- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature (Detox)
+- **Appium smoke (`tests/smoke-appium/`)** - Playwright + Appium smoke parity with `tests/smoke/` — see [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
 - **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
 - **Selectors (`tests/selectors/`)**: Element selectors organized by feature
@@ -34,7 +35,8 @@
 **Key E2E Directories:**
 
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
-- `tests/smoke/` - Smoke Test files organized by feature
+- `tests/smoke/` - Detox smoke tests organized by feature
+- `tests/smoke-appium/` - Appium smoke tests (Playwright); same layout as `tests/smoke/`
 - `tests/regression/` - Regression Test files organized by feature
 - `tests/page-objects/` - Page Object classes following POM pattern
 - `tests/selectors/` - Element selectors (avoid direct use in tests)

@@ -86,10 +86,14 @@ export function PayWithModal() {
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
 
+  const isMoneyAccount = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const { renderNoFeeTag } = usePayWithNoFeeToken();
   const tagRenderers = useMemo(
-    () => (isWithdraw ? undefined : [renderNoFeeTag]),
-    [isWithdraw, renderNoFeeTag],
+    () => (isMoneyAccount ? [renderNoFeeTag] : undefined),
+    [isMoneyAccount, renderNoFeeTag],
   );
 
   const close = useCallback((onClosed?: () => void) => {

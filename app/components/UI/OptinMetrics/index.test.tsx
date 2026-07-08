@@ -33,6 +33,17 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
+jest.mock(
+  '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
+  () => ({
+    useOnboardingInterestQuestionnaireEligibility: () => ({
+      shouldShowQuestionnaire: false,
+      variantName: 'control',
+      isActive: false,
+    }),
+  }),
+);
+
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Import analytics to access mocks
@@ -80,6 +91,9 @@ jest.mock('../../../core/AppStateEventListener', () => ({
 
 jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
   getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
+  getWalletSetupCompletedAttributionAnalyticsProps: jest
+    .fn()
+    .mockReturnValue({}),
 }));
 
 jest.mock(
@@ -192,7 +206,10 @@ describe('OptinMetrics', () => {
         }),
       );
       await waitFor(() => {
-        expect(store.getState().attribution.attribution).toBeNull();
+        expect(store.getState().attribution.attribution).toEqual({
+          utm_source: 'stale_campaign',
+          capturedAt: expect.any(Number),
+        });
         expect(
           mockAppStateEventProcessor.clearPendingDeeplink,
         ).not.toHaveBeenCalled();

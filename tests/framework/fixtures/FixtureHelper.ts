@@ -17,6 +17,7 @@ import {
 } from './FixtureUtils';
 import Utilities, { sleep } from '../Utilities';
 import {
+  dismissAndroidSystemOverlaysPlaywright,
   dismissDevScreens,
   dismissDeveloperMenuPlaywright,
   dismissDevelopmentServerPickerPlaywright,
@@ -45,6 +46,8 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  resolveE2EFixtureBootstrapTimeoutMs,
+  shouldHandleMetroDevLauncherLocally,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -697,12 +700,16 @@ export async function withFixtures(
           await deviceCommands.clearAppData();
         }
 
-        const appStateRequest = fixtureServer.waitForNextStateRequest();
+        // Cold Metro bundles can take 60–160s locally; pre-warm runs in launchApp but
+        // device-side load + E2E bootstrap still need headroom after deep link.
+        const appStateRequest = fixtureServer.waitForNextStateRequest(
+          resolveE2EFixtureBootstrapTimeoutMs(),
+        );
         try {
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
           });
-          if (process.env.CI !== 'true') {
+          if (shouldHandleMetroDevLauncherLocally()) {
             didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
             await Promise.all([
               appStateRequest,
@@ -739,11 +746,14 @@ export async function withFixtures(
       }
     }
 
-    // Dismiss dev screens if running locally (not in CI)
+    // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
     if (process.env.CI !== 'true') {
       if (FrameworkDetector.isDetox()) {
         await dismissDevScreens();
-      } else if (FrameworkDetector.isAppium()) {
+      } else if (
+        FrameworkDetector.isAppium() &&
+        shouldHandleMetroDevLauncherLocally()
+      ) {
         if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
           await dismissDevelopmentServerPickerPlaywright();
         }

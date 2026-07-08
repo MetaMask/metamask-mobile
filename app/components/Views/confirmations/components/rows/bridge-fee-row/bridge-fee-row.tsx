@@ -21,6 +21,7 @@ import {
 } from '@metamask/transaction-pay-controller';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPaySourceAmounts,
   useTransactionPayTotals,
@@ -52,6 +53,8 @@ export function BridgeFeeRow() {
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
   const { isHeadlessBuyInProgress } = useConfirmationContext();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const isFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return (
     <TransactionFeeRow
@@ -61,6 +64,7 @@ export function BridgeFeeRow() {
       hasSourceAmounts={Boolean(sourceAmounts?.length)}
       hasAlert={hasAlert}
       isLoading={isLoading}
+      isFiatPayment={isFiatPayment}
       paidByMetaMask={paidByMetaMask}
       tooltipDisabled={isHeadlessBuyInProgress}
       isDisabled={isHeadlessBuyInProgress}
@@ -75,6 +79,7 @@ function TransactionFeeRow({
   quotes,
   totals,
   isLoading,
+  isFiatPayment,
   paidByMetaMask,
   tooltipDisabled,
   isDisabled,
@@ -85,6 +90,7 @@ function TransactionFeeRow({
   quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
+  isFiatPayment: boolean;
   paidByMetaMask: boolean;
   tooltipDisabled?: boolean;
   isDisabled?: boolean;
@@ -94,7 +100,11 @@ function TransactionFeeRow({
   const hasQuotes = Boolean(quotes?.length);
 
   const feeTotalUsd = useMemo(() => {
-    if (transactionMeta?.isGasFeeSponsored && !hasSourceAmounts) {
+    if (
+      transactionMeta?.isGasFeeSponsored &&
+      !hasSourceAmounts &&
+      !isFiatPayment
+    ) {
       return formatFiat(new BigNumber(0));
     }
 
@@ -116,6 +126,7 @@ function TransactionFeeRow({
     formatFiat,
     transactionMeta?.isGasFeeSponsored,
     hasSourceAmounts,
+    isFiatPayment,
   ]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
@@ -131,7 +142,7 @@ function TransactionFeeRow({
     <AlertRow
       testID="bridge-fee-row"
       alertField={RowAlertKey.PayWithFee}
-      label={strings('confirm.label.transaction_fee')}
+      label={strings('confirm.label.transaction_fees')}
       tooltip={
         !paidByMetaMask && hasQuotes && totals ? (
           <Tooltip transactionMeta={transactionMeta} totals={totals} />
@@ -167,7 +178,7 @@ function PaidByLabel() {
       testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
     >
       <Icon
-        name={IconName.Check}
+        name={IconName.CheckBold}
         color={IconColor.Success}
         size={IconSize.Sm}
       />

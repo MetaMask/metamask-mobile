@@ -41,7 +41,7 @@ jest.mock('../../../../core/AppConstants', () => ({
   PRICE_ALERTS_API: { URL: 'https://price-alerts.api.cx.metamask.io' },
 }));
 
-const ALERTS_URL = 'https://price-alerts.api.cx.metamask.io/alerts';
+const ALERTS_URL = 'https://price-alerts.api.cx.metamask.io/v1/alerts';
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -98,7 +98,7 @@ describe('authenticatedFetch', () => {
 });
 
 describe('fetchSupportedChains', () => {
-  it('calls /alerts/supported-chains', async () => {
+  it('calls supported-chains endpoint without authentication headers', async () => {
     await fetchSupportedChains();
     expect(mockGetBearerToken).not.toHaveBeenCalled();
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];

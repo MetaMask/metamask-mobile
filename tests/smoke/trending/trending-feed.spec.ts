@@ -129,7 +129,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             details: {
               tapItem: () => TrendingView.tapTokenRow(USDC_ASSET_ID),
               verifyVisible: () =>
-                TrendingView.verifyTokenDetailsTitleVisible('USD Coin'),
+                TrendingView.verifyTokenDetailsTitleVisible('USDC'),
               tapBack: () => TrendingView.tapBackFromTokenDetails(),
             },
           },
@@ -141,9 +141,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             details: {
               tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
               verifyVisible: () =>
-                TrendingView.verifyTokenDetailsTitleVisible(
-                  'Ondo US Dollar Yield',
-                ),
+                TrendingView.verifyTokenDetailsTitleVisible('USDY'),
               tapBack: () => TrendingView.tapBackFromTokenDetails(),
             },
           },

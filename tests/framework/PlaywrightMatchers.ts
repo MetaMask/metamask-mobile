@@ -66,9 +66,11 @@ export default class PlaywrightMatchers {
     options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
     if (elementId instanceof RegExp) {
-      const escaped = this.escapeRegexPattern(elementId);
-      this.logFind('id pattern', elementId.source);
       const isAndroid = await PlatformDetector.isAndroid();
+      const escaped = isAndroid
+        ? this.escapeRegexPatternForUiAutomator(elementId)
+        : this.escapeRegexPattern(elementId);
+      this.logFind('id pattern', elementId.source);
       const locator = isAndroid
         ? `android=new UiSelector().resourceIdMatches("${escaped}")`
         : `-ios predicate string:name MATCHES "${escaped}"`;
@@ -77,8 +79,10 @@ export default class PlaywrightMatchers {
       if (!drv) throw new Error('Driver is not available');
       if (options.index !== undefined) {
         const elements = await drv.$$(locator);
-        return wrapElement(
-          elements[options.index] as unknown as ChainablePromiseElement,
+        return this.wrapElementAtIndex(
+          elements as unknown as ChainablePromiseElement[],
+          options.index,
+          `resource id pattern ${elementId.source}`,
         );
       }
       const element = await drv.$(locator);
@@ -124,9 +128,11 @@ export default class PlaywrightMatchers {
     options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
     if (text instanceof RegExp) {
-      const escaped = this.escapeRegexPattern(text);
-      this.logFind('text pattern', text.source);
       const isAndroid = await PlatformDetector.isAndroid();
+      const escaped = isAndroid
+        ? this.escapeRegexPatternForUiAutomator(text)
+        : this.escapeRegexPattern(text);
+      this.logFind('text pattern', text.source);
       const locator = isAndroid
         ? `android=new UiSelector().textMatches("${escaped}")`
         : `-ios predicate string:label MATCHES "${escaped}" OR name MATCHES "${escaped}"`;
@@ -146,21 +152,47 @@ export default class PlaywrightMatchers {
 
     this.logFind('text', `${text}${exactMatch ? ' (exact)' : ''}`);
     const isAndroid = await PlatformDetector.isAndroid();
+    const escapedText = text.replace(/'/g, "\\'");
     let xpath: string;
     if (exactMatch) {
       xpath = isAndroid
-        ? `//*[@name='${text}' or @label='${text}' or @text='${text}' or @content-desc='${text}']`
-        : `//*[@name='${text}' or @label='${text}' or @text='${text}']`;
+        ? `//*[@name='${escapedText}' or @label='${escapedText}' or @text='${escapedText}' or @content-desc='${escapedText}']`
+        : `//*[@name='${escapedText}' or @label='${escapedText}' or @text='${escapedText}']`;
     } else {
       xpath = isAndroid
-        ? `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}') or contains(@content-desc,'${text}')]`
-        : `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`;
+        ? `//*[contains(@name,'${escapedText}') or contains(@label,'${escapedText}') or contains(@text,'${escapedText}') or contains(@content-desc,'${escapedText}')]`
+        : `//*[contains(@name,'${escapedText}') or contains(@label,'${escapedText}') or contains(@text,'${escapedText}')]`;
     }
     return await this.getElementByXPath(xpath, options);
   }
 
   private static escapeRegexPattern(pattern: RegExp): string {
     return pattern.source.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  }
+
+  /**
+   * UiAutomator `*Matches()` uses Java regex but does not support `\d` / `\D` shorthands.
+   */
+  private static escapeRegexPatternForUiAutomator(pattern: RegExp): string {
+    return this.escapeRegexPattern(pattern)
+      .replace(/\\d/g, '[0-9]')
+      .replace(/\\D/g, '[^0-9]');
+  }
+
+  private static wrapElementAtIndex(
+    elements: ChainablePromiseElement[],
+    index: number,
+    targetDescription: string,
+  ): PlaywrightElement {
+    const element = elements[index] as unknown as
+      | ChainablePromiseElement
+      | undefined;
+    if (!element) {
+      throw new Error(
+        `No element at index ${index} for ${targetDescription} (found ${elements.length} match(es)).`,
+      );
+    }
+    return wrapElement(element);
   }
 
   /**

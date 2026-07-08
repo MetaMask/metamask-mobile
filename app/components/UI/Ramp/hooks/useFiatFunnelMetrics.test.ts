@@ -6,7 +6,7 @@ import {
   useFiatFunnelMetrics,
   type FiatFunnelMetricsInput,
 } from './useFiatFunnelMetrics';
-import { RAMP_SURFACE } from '../Deposit/types/analytics';
+import { RAMP_SURFACE } from '../types/depositAnalytics';
 import type { Quote } from '../types';
 
 const REGION = 'us-ca';

@@ -115,11 +115,6 @@ describe('ActivityEmptyState', () => {
     expect(mockGoToBuy).toHaveBeenCalledTimes(1);
 
     cleanup();
-    render(<ActivityEmptyState typeFilter={ActivityTypeFilter.Money} />);
-    fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
-    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalledTimes(1));
-
-    cleanup();
     render(<ActivityEmptyState typeFilter={ActivityTypeFilter.MetamaskCard} />);
     fireEvent.press(screen.getByTestId(ActivityScreenSelectorsIDs.EMPTY_STATE));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);

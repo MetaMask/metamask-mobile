@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingQuickBuy from './TrendingQuickBuy';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { SocialLeaderboardEventProperties } from '../../../../Views/SocialLeaderboard/analytics';
+import { QuickBuyEventProperties } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
 
 const mockTrack = jest.fn();
 jest.mock(
@@ -125,9 +125,9 @@ describe('TrendingQuickBuy', () => {
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
       expect.objectContaining({
-        [SocialLeaderboardEventProperties.SOURCE]: 'explore_search',
-        [SocialLeaderboardEventProperties.CAIP19]: token.assetId,
-        [SocialLeaderboardEventProperties.MARKET_CAP]: token.marketCap,
+        [QuickBuyEventProperties.SOURCE]: 'explore_search',
+        [QuickBuyEventProperties.CAIP19]: token.assetId,
+        [QuickBuyEventProperties.MARKET_CAP]: token.marketCap,
       }),
     );
   });
@@ -174,7 +174,7 @@ describe('TrendingQuickBuy', () => {
       2,
       MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
       expect.objectContaining({
-        [SocialLeaderboardEventProperties.CAIP19]: tokenB.assetId,
+        [QuickBuyEventProperties.CAIP19]: tokenB.assetId,
       }),
     );
   });

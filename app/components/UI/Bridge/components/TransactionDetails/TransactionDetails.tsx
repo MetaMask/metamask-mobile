@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   HeaderStandard,
@@ -37,7 +37,6 @@ import { BridgeToken } from '../../types';
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  getNativeAssetForChainId,
   isNonEvmChainId,
   StatusTypes,
   AllowedBridgeChainIds,
@@ -59,6 +58,7 @@ import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/brid
 import { getNetworkImageSource } from '../../../../../util/networks';
 import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { useNativeCurrencySymbol } from '../../../../Views/confirmations/hooks/useNativeCurrencySymbol';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -213,6 +213,16 @@ export const BridgeTransactionDetails = (
       multiChainTx,
     });
 
+  const sourceChainId = useMemo(() => {
+    if (bridgeTxHistoryItem?.quote.srcChainId) {
+      const { srcChainId } = bridgeTxHistoryItem.quote;
+      return isNonEvmChainId(srcChainId)
+        ? formatChainIdToCaip(srcChainId)
+        : formatChainIdToHex(srcChainId);
+    }
+  }, [bridgeTxHistoryItem?.quote]);
+
+  const { nativeCurrencySymbol } = useNativeCurrencySymbol(sourceChainId);
   // Get source chain explorer data for swaps
   const swapSrcExplorerData = useMultichainBlockExplorerTxUrl({
     chainId: bridgeTxHistoryItem?.quote.srcChainId,
@@ -239,7 +249,7 @@ export const BridgeTransactionDetails = (
     />
   );
 
-  if (!bridgeTxHistoryItem) {
+  if (!bridgeTxHistoryItem || !sourceChainId) {
     return <ScreenView>{bridgeTransactionDetailsHeader}</ScreenView>;
   }
 
@@ -249,11 +259,6 @@ export const BridgeTransactionDetails = (
   const isBridge = !isSwap;
   const isIntentNotCompletedItem =
     quote.intent && !(bridgeStatus.status === StatusTypes.COMPLETE);
-
-  // Create token objects directly from the quote data
-  const sourceChainId = isNonEvmChainId(quote.srcChainId)
-    ? formatChainIdToCaip(quote.srcChainId)
-    : formatChainIdToHex(quote.srcChainId);
 
   const sourceToken: BridgeToken = {
     address: quote.srcAsset.address,
@@ -478,14 +483,12 @@ export const BridgeTransactionDetails = (
               {/* TODO get solana gas fee from multiChainTx */}
               {evmTotalGasFee && (
                 <Text variant={TextVariant.BodyMd}>
-                  {evmTotalGasFee}{' '}
-                  {getNativeAssetForChainId(quote.srcChainId).symbol}
+                  {evmTotalGasFee} {nativeCurrencySymbol}
                 </Text>
               )}
               {multiChainTotalGasFee && (
                 <Text variant={TextVariant.BodyMd}>
-                  {multiChainTotalGasFee}{' '}
-                  {getNativeAssetForChainId(quote.srcChainId).symbol}
+                  {multiChainTotalGasFee} {nativeCurrencySymbol}
                 </Text>
               )}
             </>

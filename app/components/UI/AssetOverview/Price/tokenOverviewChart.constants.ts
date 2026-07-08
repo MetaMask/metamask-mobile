@@ -16,3 +16,24 @@ export const CHART_DATA_THRESHOLD = 5;
  * below (e.g. Receive/More).
  */
 export const TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT = 34;
+
+/** Quick-pick candle intervals shown in IntervalBar when technical indicators are enabled. */
+export const TOKEN_OVERVIEW_CHART_INTERVALS = [
+  '1m',
+  '5m',
+  '15m',
+  '1h',
+  '1d',
+] as const;
+
+export type TokenOverviewChartInterval =
+  (typeof TOKEN_OVERVIEW_CHART_INTERVALS)[number];
+
+/** Default interval when none is persisted (matches 1D time-range WS default). */
+export const DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL: TokenOverviewChartInterval =
+  '15m';
+
+export const isTokenOverviewChartInterval = (
+  value: string | undefined | null,
+): value is TokenOverviewChartInterval =>
+  TOKEN_OVERVIEW_CHART_INTERVALS.includes(value as TokenOverviewChartInterval);

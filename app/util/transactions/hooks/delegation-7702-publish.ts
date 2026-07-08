@@ -34,10 +34,9 @@ import {
 } from '../../../core/Delegation/delegation';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import {
-  RelayStatus,
   RelaySubmitRequest,
   submitRelayTransaction,
-  waitForRelayResult,
+  waitForRelaySuccess,
 } from '../transaction-relay';
 import { NetworkClientId } from '@metamask/network-controller';
 import { isE2ETest } from '../util';
@@ -120,6 +119,8 @@ export class Delegation7702PublishHook {
       transactionMeta;
 
     const { from } = txParams;
+    const isGaslessBridge = Boolean(transactionMeta.isGasFeeIncluded);
+    const isSponsored = Boolean(transactionMeta.isGasFeeSponsored);
 
     const atomicBatchSupport = await this.#isAtomicBatchSupported({
       address: from as Hex,
@@ -137,15 +138,18 @@ export class Delegation7702PublishHook {
 
     if (!isChainSupported) {
       log('Skipping as EIP-7702 is not supported', { from, chainId });
+
+      if (isGaslessBridge || isSponsored) {
+        throw new Error(
+          'Chain must support EIP-7702 for sponsored or gas included transaction',
+        );
+      }
+
       return EMPTY_RESULT;
     }
 
     const { delegationAddress, upgradeContractAddress } =
       atomicBatchChainSupport;
-
-    const isGaslessBridge = transactionMeta.isGasFeeIncluded;
-
-    const isSponsored = Boolean(transactionMeta.isGasFeeSponsored);
 
     if (
       (!selectedGasFeeToken || !gasFeeTokens?.length) &&
@@ -173,8 +177,7 @@ export class Delegation7702PublishHook {
       parseInt(isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId, 16),
     );
     const delegationManagerAddress = delegationEnvironment.DelegationManager;
-    const includeTransfer =
-      !isGaslessBridge && !transactionMeta.isGasFeeSponsored;
+    const includeTransfer = !isGaslessBridge && !isSponsored;
 
     if (includeTransfer && (!gasFeeToken || gasFeeToken === undefined)) {
       throw new Error('Gas fee token not found');
@@ -243,15 +246,11 @@ export class Delegation7702PublishHook {
 
     const { uuid } = await submitRelayTransaction(relayRequest);
 
-    const { transactionHash, status } = await waitForRelayResult({
+    const { transactionHash } = await waitForRelaySuccess({
       chainId,
       uuid,
       interval: POLLING_INTERVAL_MS,
     });
-
-    if (status !== RelayStatus.Success) {
-      throw new Error(`Transaction relay error - ${status}`);
-    }
 
     // Mark 7702 relay transaction as intent complete so PendingTransactionTracker
     // skips dropped checks

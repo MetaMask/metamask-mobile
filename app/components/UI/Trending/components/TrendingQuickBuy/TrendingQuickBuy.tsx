@@ -6,10 +6,10 @@ import type { QuickBuyTarget } from '../../../../Views/SocialLeaderboard/TraderP
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  useSocialLeaderboardAnalytics,
-  SocialLeaderboardEventProperties,
+  QuickBuyEventProperties,
   type QuickBuySheetSource,
-} from '../../../../Views/SocialLeaderboard/analytics';
+} from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
+import { useSocialLeaderboardAnalytics } from '../../../../Views/SocialLeaderboard/analytics';
 
 export interface TrendingQuickBuyProps {
   token: TrendingAsset | null;
@@ -45,10 +45,10 @@ const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
   useEffect(() => {
     if (token && !prevTokenRef.current) {
       track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
-        [SocialLeaderboardEventProperties.SOURCE]: source,
-        [SocialLeaderboardEventProperties.CAIP19]: token.assetId,
+        [QuickBuyEventProperties.SOURCE]: source,
+        [QuickBuyEventProperties.CAIP19]: token.assetId,
         ...(typeof token.marketCap === 'number'
-          ? { [SocialLeaderboardEventProperties.MARKET_CAP]: token.marketCap }
+          ? { [QuickBuyEventProperties.MARKET_CAP]: token.marketCap }
           : {}),
       });
     }

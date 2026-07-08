@@ -2,11 +2,13 @@ import userReducer, { userInitialState } from './index';
 import {
   UserActionType,
   type SetTokenOverviewChartTypeAction,
+  type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
   type SetMoneyOnboardingSeenAction,
   type SetOnboardingStepperStepAction,
 } from '../../actions/user/types';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
+import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
 
 describe('user reducer', () => {
   describe('initial state', () => {
@@ -24,6 +26,12 @@ describe('user reducer', () => {
 
     it('has tokenIndicators as empty array', () => {
       expect(userInitialState.tokenIndicators).toEqual([]);
+    });
+
+    it('has default tokenOverviewChartInterval', () => {
+      expect(userInitialState.tokenOverviewChartInterval).toBe(
+        DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
+      );
     });
   });
 
@@ -176,6 +184,19 @@ describe('user reducer', () => {
       expect(newState.userLoggedIn).toBe(true);
       expect(newState.seedphraseBackedUp).toBe(true);
       expect(newState.tokenOverviewChartType).toBe(ChartType.Candles);
+    });
+  });
+
+  describe('SET_TOKEN_OVERVIEW_CHART_INTERVAL', () => {
+    it('updates tokenOverviewChartInterval', () => {
+      const action: SetTokenOverviewChartIntervalAction = {
+        type: UserActionType.SET_TOKEN_OVERVIEW_CHART_INTERVAL,
+        payload: { interval: '1h' },
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.tokenOverviewChartInterval).toBe('1h');
     });
   });
 

@@ -41,7 +41,7 @@ const AVATAR_TOKEN_SIZE_TO_PIXELS: Record<AvatarTokenSize, number> = {
  * 2. MetaMask static CDN URL (derived from tokenAddress + chain)
  * 3. AvatarToken text monogram (first letter of tokenSymbol)
  */
-const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
+const PositionTokenAvatarComponent: React.FC<PositionTokenAvatarProps> = ({
   position,
   size = AvatarTokenSize.Lg,
   showChainBadge = false,
@@ -141,5 +141,17 @@ const PositionTokenAvatar: React.FC<PositionTokenAvatarProps> = ({
 
   return avatar;
 };
+
+const PositionTokenAvatar = React.memo(
+  PositionTokenAvatarComponent,
+  (prev, next) =>
+    prev.size === next.size &&
+    prev.showChainBadge === next.showChainBadge &&
+    prev.position.positionId === next.position.positionId &&
+    prev.position.tokenAddress === next.position.tokenAddress &&
+    prev.position.chain === next.position.chain &&
+    prev.position.tokenSymbol === next.position.tokenSymbol &&
+    prev.position.tokenImageUrl === next.position.tokenImageUrl,
+);
 
 export default PositionTokenAvatar;

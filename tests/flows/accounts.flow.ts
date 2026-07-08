@@ -27,7 +27,10 @@ import { AssertionOptions } from '../framework/types';
 import Utilities from '../framework/Utilities';
 import ContactsView from '../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../page-objects/Settings/Contacts/AddContactView';
-import { loginToAppPlaywright } from './wallet.flow';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from './wallet.flow';
 
 const PASSWORD = '123123123';
 
@@ -57,7 +60,7 @@ async function expectTextVisible(
 }
 
 export const openImportSrpFromAccountList = async (): Promise<void> => {
-  await AccountListBottomSheet.tapAddAccountButton();
+  await AccountListBottomSheet.openAddAccountSheet();
   await AddAccountBottomSheet.tapImportSrp();
   await Assertions.expectElementToBeVisible(ImportSrpView.container);
 };
@@ -134,11 +137,14 @@ export const goToAccountActions = async (accountIndex: number) => {
 export const importAccountViaPrivateKey = async (
   privateKey: string,
 ): Promise<void> => {
-  await AccountListBottomSheet.tapAddWalletButton();
+  await AccountListBottomSheet.openAddWalletSheet();
   await AddAccountBottomSheet.tapImportAccount();
   await Assertions.expectElementToBeVisible(ImportAccountView.container);
   await ImportAccountView.enterPrivateKey(privateKey);
-  await Assertions.expectElementToBeVisible(SuccessImportAccountView.container);
+  await expectElementVisible(SuccessImportAccountView.container, {
+    description: 'Import success screen should be visible',
+    timeout: 30_000,
+  });
   await SuccessImportAccountView.tapCloseButton();
   if (FrameworkDetector.isAppium()) {
     await AddAccountBottomSheet.tapBackToWalletView();
@@ -157,10 +163,7 @@ export const loginAndOpenContacts = async (
   options: { scenarioType?: string } = {},
 ): Promise<void> => {
   await loginToAppPlaywright(options);
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet should be visible after login',
-    timeout: 15_000,
-  });
+  await waitForWalletHomePlaywright(15_000);
   await openContactsViaAccountMenu();
 };
 
@@ -226,6 +229,10 @@ export const renameAccountAtIndex = async (
   await EditAccountName.updateAccountName(newName);
   await EditAccountName.tapSave();
   await AccountDetails.tapBackButton();
+
+  if (FrameworkDetector.isAppium()) {
+    await AccountListBottomSheet.waitForAccountListVisible();
+  }
 };
 
 export const assertAccountCount = async (

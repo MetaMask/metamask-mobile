@@ -1,6 +1,9 @@
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { RootState } from '../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   selectTransactions,
   selectLastUsedPaymentMethod,
@@ -55,6 +58,16 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactions(state)).toStrictEqual(transactions);
+    });
+
+    it('returns an empty array if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      expect(selectTransactions(state)).toStrictEqual([]);
     });
   });
 
@@ -112,6 +125,16 @@ describe('TransactionController Selectors', () => {
           },
         },
       } as unknown as RootState;
+      expect(selectSwapsTransactions(state)).toStrictEqual({});
+    });
+
+    it('returns an empty object if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
       expect(selectSwapsTransactions(state)).toStrictEqual({});
     });
   });
@@ -319,6 +342,82 @@ describe('TransactionController Selectors', () => {
       ).toStrictEqual([]);
     });
 
+    it('hides prior failed attempts when a live attempt exists at the same nonce', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'failed-attempt',
+            chainId: '0x1',
+            time: 100,
+            status: TransactionStatus.failed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'retry-success',
+            chainId: '0x1',
+            time: 200,
+            status: TransactionStatus.confirmed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'retry-success' }),
+      ]);
+    });
+
+    it('hides prior failed attempts when a pending retry exists at the same nonce', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'failed-attempt',
+            chainId: '0x1',
+            time: 100,
+            status: TransactionStatus.failed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'retry-pending',
+            chainId: '0x1',
+            time: 200,
+            status: TransactionStatus.submitted,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'retry-pending' }),
+      ]);
+    });
+
+    it('keeps all failed attempts visible when no live attempt exists at the same nonce', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'failed-1',
+            chainId: '0x1',
+            time: 100,
+            status: TransactionStatus.failed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'failed-2',
+            chainId: '0x1',
+            time: 200,
+            status: TransactionStatus.failed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'failed-2' }),
+        expect.objectContaining({ id: 'failed-1' }),
+      ]);
+    });
+
     it('excludes incoming transactions populated by the TransactionController incoming-transactions feature', () => {
       const state = buildLocalTxState({
         transactions: [
@@ -405,6 +504,18 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactionBatchMetadataById(state, 'batch-id')).toBe(batch);
+    });
+
+    it('returns undefined if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      expect(
+        selectTransactionBatchMetadataById(state, 'batch-id'),
+      ).toBeUndefined();
     });
   });
 

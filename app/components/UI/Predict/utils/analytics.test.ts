@@ -478,6 +478,38 @@ describe('parseAnalyticsProperties', () => {
     });
   });
 
+  describe('share price source (buy side)', () => {
+    it('tracks the ask (buyPrice) as sharePrice when present, not the mid', () => {
+      const market = createMockMarket();
+      // Wide spread: mid 0.63, ask 0.92 -> analytics must record the ask.
+      const outcomeToken = createMockOutcomeToken({
+        price: 0.63,
+        buyPrice: 0.92,
+      });
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+      );
+
+      expect(result.sharePrice).toBe(0.92);
+    });
+
+    it('falls back to the mid price when buyPrice is absent', () => {
+      const market = createMockMarket();
+      const outcomeToken = createMockOutcomeToken({ price: 0.63 });
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+      );
+
+      expect(result.sharePrice).toBe(0.63);
+    });
+  });
+
   describe('mapClaimFailureReason', () => {
     it.each([
       ['PREDICT_MARKET_PENDING_RESOLUTION', 'pending_resolution'],

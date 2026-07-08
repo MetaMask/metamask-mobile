@@ -2,6 +2,8 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import CreatePriceAlertView from './CreatePriceAlertView';
 import { CreatePriceAlertTestIds } from '../../constants';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
 const mockPop = jest.fn();
@@ -97,30 +99,38 @@ describe('CreatePriceAlertView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows percentage pickers and hides Set button before any input', () => {
-    const { getByTestId, queryByTestId } = renderWithToast();
+  it('shows percentage pickers and Set button before any input', () => {
+    const { getByTestId } = renderWithToast();
 
     expect(
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     ).toBeOnTheScreen();
-    expect(queryByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON)).toBeNull();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
   });
 
-  it('hides percentage pickers and shows Set button once user types a digit', () => {
-    const { getByTestId, queryByTestId } = renderWithToast();
+  it('keeps percentage pickers visible and enables Set button once user types a digit', () => {
+    const { getByTestId } = renderWithToast();
 
     fireEvent.press(getByTestId('keypad-key-1'));
 
     expect(
-      queryByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
-    ).toBeNull();
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
   });
 
-  it('keeps percentage pickers and hides Set button for zero-valued keypad input like "0."', () => {
-    const { getByTestId, getByText, queryByTestId } = renderWithToast();
+  it('keeps percentage pickers visible and Set button disabled for zero-valued keypad input like "0."', () => {
+    const { getByTestId, getByText } = renderWithToast();
 
     fireEvent.press(getByTestId('keypad-key-dot'));
 
@@ -128,10 +138,12 @@ describe('CreatePriceAlertView', () => {
     expect(
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     ).toBeOnTheScreen();
-    expect(queryByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON)).toBeNull();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
   });
 
-  it('shows Set button after a quick-percentage pill is pressed', () => {
+  it('enables Set button after a quick-percentage pill is pressed', () => {
     const { getByTestId } = renderWithToast();
 
     fireEvent.press(
@@ -141,19 +153,9 @@ describe('CreatePriceAlertView', () => {
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('shows under development message when price change is selected', () => {
-    const { getByTestId, getByText } = renderWithToast();
-
-    fireEvent.press(getByTestId(CreatePriceAlertTestIds.PRICE_CHANGE_TAB));
-
     expect(
-      getByTestId(CreatePriceAlertTestIds.UNDER_DEVELOPMENT),
-    ).toBeOnTheScreen();
-    expect(
-      getByText('This experience is currently under development'),
-    ).toBeOnTheScreen();
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
   });
 
   it('updates the displayed price when a quick-percentage pill is pressed', () => {
@@ -190,11 +192,13 @@ describe('CreatePriceAlertView', () => {
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     );
 
-    expect(getByText('5%')).toBeOnTheScreen();
+    expect(getByTestId(CreatePriceAlertTestIds.PERCENT_DIFF)).toHaveTextContent(
+      /\+5%/,
+    );
     expect(getByText(/above current ETH price/)).toBeOnTheScreen();
   });
 
-  it('shows the percentage and "below" wording when target is less than current price', () => {
+  it('shows the negative percentage and "below" wording when target is less than current price', () => {
     const { getByTestId, getByText } = renderWithToast();
 
     // $1000 is ~17% below 1201.98
@@ -203,7 +207,27 @@ describe('CreatePriceAlertView', () => {
     fireEvent.press(getByTestId('keypad-key-0'));
     fireEvent.press(getByTestId('keypad-key-0'));
 
+    expect(getByTestId(CreatePriceAlertTestIds.PERCENT_DIFF)).toHaveTextContent(
+      /-17%/,
+    );
     expect(getByText(/below current ETH price/)).toBeOnTheScreen();
+  });
+
+  it('shows signed labels on quick percentage buttons', () => {
+    const { getByTestId } = renderWithToast();
+
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}--10`),
+    ).toHaveTextContent('-10%');
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}--5`),
+    ).toHaveTextContent('-5%');
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
+    ).toHaveTextContent('+5%');
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-10`),
+    ).toHaveTextContent('+10%');
   });
 
   describe('Set price alert button', () => {
@@ -286,7 +310,7 @@ describe('CreatePriceAlertView', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('does not navigate or show toast when submit throws', async () => {
+    it('does not navigate but shows an error toast when submit throws', async () => {
       mockSubmit.mockRejectedValueOnce(new Error('HTTP 500'));
       const { getByTestId } = renderWithToast();
 
@@ -297,7 +321,16 @@ describe('CreatePriceAlertView', () => {
       });
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Failed to save price alert. Please try again.',
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('does not call submit a second time when the button is pressed while already submitting', async () => {
@@ -413,7 +446,7 @@ describe('CreatePriceAlertView — tiny price token', () => {
     expect(getByText('$0.000000000000011')).toBeOnTheScreen();
   });
 
-  it('quick-percentage pill produces a non-zero value and reveals the Set button', () => {
+  it('quick-percentage pill produces a non-zero value and enables the Set button', () => {
     const { getByTestId } = render(<CreatePriceAlertView />);
 
     fireEvent.press(
@@ -423,6 +456,9 @@ describe('CreatePriceAlertView — tiny price token', () => {
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
   });
 
   it('allows manual keypad entry beyond two decimal places for sub-cent tokens', () => {
@@ -654,5 +690,175 @@ describe('CreatePriceAlertView — edit mode', () => {
     expect(mockUseSubmitPriceAlert).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'alert-42' }),
     );
+  });
+});
+
+describe('CreatePriceAlertView — analytics', () => {
+  const baseRoute = {
+    symbol: 'ETH',
+    ticker: 'ETH',
+    currentPrice: 1201.98,
+    currentCurrency: 'USD',
+    assetId: 'eip155:1/slip44:60',
+  };
+
+  const editingAlert = {
+    id: 'alert-42',
+    userId: 'user-1',
+    asset: 'eip155:1/slip44:60',
+    threshold: 1500,
+    recurring: true,
+    active: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
+  };
+
+  const mockAnalytics = jest.mocked(useAnalytics)();
+
+  // Locate the builder double created for a specific event, since several
+  // events may be tracked within a single render (e.g. Creation Initiated on
+  // mount followed by Created on save).
+  const builderForEvent = (event: unknown) => {
+    const calls = jest.mocked(mockAnalytics.createEventBuilder).mock.calls;
+    const idx = calls.findIndex((c) => c[0] === event);
+    return jest.mocked(mockAnalytics.createEventBuilder).mock.results[idx]
+      .value;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSubmit.mockResolvedValue(undefined);
+    mockUseSubmitPriceAlert.mockImplementation(() => ({
+      submit: mockSubmit,
+      isSubmitting: false,
+    }));
+    setRoute(baseRoute);
+  });
+
+  it('tracks Price Alert Creation Initiated on mount with has_existing_alert false', () => {
+    renderWithToast();
+
+    expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED,
+    );
+    expect(
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
+        .addProperties,
+    ).toHaveBeenCalledWith({
+      asset_id: 'eip155:1/slip44:60',
+      token_symbol: 'ETH',
+      has_existing_alert: false,
+    });
+  });
+
+  it('sets has_existing_alert true when existing thresholds are passed through', () => {
+    setRoute({ ...baseRoute, fromManage: true, existingThresholds: [1500] });
+
+    renderWithToast();
+
+    expect(
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
+        .addProperties,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({ has_existing_alert: true }),
+    );
+  });
+
+  it('tracks Price Alert Creation Interaction (created) on save', async () => {
+    const { getByTestId } = renderWithToast();
+
+    fireEvent.press(getByTestId('keypad-key-1'));
+    fireEvent.press(getByTestId('keypad-key-5'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+    fireEvent.press(getByTestId('keypad-key-0'));
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+    );
+    expect(
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+        .addProperties,
+    ).toHaveBeenCalledWith({
+      interaction_type: 'created',
+      asset_id: 'eip155:1/slip44:60',
+      token_symbol: 'ETH',
+      alert_type: 'threshold',
+      alert_value: 1500,
+      alert_recurring: true,
+      alert_active: true,
+    });
+  });
+
+  it('records alert_recurring false when the toggle is off', async () => {
+    const { getByTestId } = renderWithToast();
+
+    fireEvent(
+      getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+    fireEvent.press(getByTestId('keypad-key-2'));
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    expect(
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+        .addProperties,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interaction_type: 'created',
+        alert_value: 2,
+        alert_recurring: false,
+        alert_active: true,
+      }),
+    );
+  });
+
+  it('tracks Price Alert Creation Interaction (updated) when editing', async () => {
+    setRoute({
+      ...baseRoute,
+      fromManage: true,
+      existingThresholds: [1500],
+      editingAlert,
+    });
+
+    const { getByTestId } = renderWithToast();
+
+    fireEvent(
+      getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED,
+    );
+    expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+    );
+    expect(
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+        .addProperties,
+    ).toHaveBeenCalledWith({
+      interaction_type: 'updated',
+      asset_id: 'eip155:1/slip44:60',
+      token_symbol: 'ETH',
+      alert_type: 'threshold',
+      alert_value: 1500,
+      alert_recurring: false,
+      alert_active: true,
+      prev_alert_value: 1500,
+      prev_alert_recurring: true,
+      prev_alert_active: true,
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -20,8 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellQuoteDetailsModal() {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
   const surfaceClass = useElevatedSurface();
   const batchSellQuoteData = useBatchSellQuoteData({

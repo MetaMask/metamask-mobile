@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   BackHandler,
-  Image,
-  type ImageSourcePropType,
+  Keyboard,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
@@ -12,6 +11,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -28,7 +28,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  TextButton,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { InterestSelectionIndicator } from './InterestSelectionIndicator';
@@ -41,14 +40,7 @@ import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setOnboardingInterests } from '../../../actions/onboarding';
 import { selectAccountGroupBalanceForEmptyState } from '../../../selectors/assets/balances';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
-import Routes from '../../../constants/navigation/Routes';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
-import buyAndSellCryptoImage from '../../../images/buy_and_sell_crypto.png';
-import advancedTradesImage from '../../../images/advanced_trades.png';
-import predictSportsEventsImage from '../../../images/predict_sports_events.png';
-import cryptoAsMoneyImage from '../../../images/crypto_as_money.png';
-import connectAppsSitesImage from '../../../images/connect_apps_sites.png';
-import consolidateWalletsImage from '../../../images/consolidate_wallets.png';
 
 type InterestOptionId =
   | 'swap_tokens'
@@ -102,21 +94,6 @@ const INTEREST_OPTIONS: InterestOption[] = [
     emoji: '📝',
   },
 ];
-
-const INTEREST_OPTION_IMAGES: Partial<
-  Record<InterestOptionId, ImageSourcePropType>
-> = {
-  swap_tokens: buyAndSellCryptoImage,
-  trade_perpetuals: advancedTradesImage,
-  prediction_markets: predictSportsEventsImage,
-  send_receive_crypto: cryptoAsMoneyImage,
-  earn_and_spend: consolidateWalletsImage,
-  use_other_crypto_apps: connectAppsSitesImage,
-};
-
-const INTEREST_OPTION_ICONS: Partial<Record<InterestOptionId, IconName>> = {
-  other: IconName.Edit,
-};
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
@@ -195,10 +172,12 @@ const OnboardingInterestQuestionnaire = () => {
   );
 
   const handleOtherBottomSheetClose = useCallback(() => {
+    Keyboard.dismiss();
     setIsOtherBottomSheetVisible(false);
   }, []);
 
   const handleOtherDone = useCallback((value: string) => {
+    Keyboard.dismiss();
     const isEmpty = value.length === 0;
     setOtherText(isEmpty ? '' : value);
     setSelectedIds((prev) => {
@@ -255,8 +234,8 @@ const OnboardingInterestQuestionnaire = () => {
     createEventBuilder,
     accountType,
     onComplete,
-    navigation,
     walletHasFunds,
+    navigation,
   ]);
 
   const onSkip = useCallback(() => {
@@ -293,8 +272,9 @@ const OnboardingInterestQuestionnaire = () => {
             color={TextColor.TextDefault}
             onPress={onSkip}
             testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
+            style={tw.style('pr-4')}
           >
-            {strings('onboarding_fund_wallet.skip')}
+            {strings('onboarding_interest_questionnaire.skip')}
           </Text>
         }
       />
@@ -327,8 +307,8 @@ const OnboardingInterestQuestionnaire = () => {
               style={tw.style(
                 'flex-row items-center rounded-full px-6 py-4 border',
                 isSelected
-                  ? 'border-default bg-background-muted'
-                  : 'border-border-muted',
+                  ? 'border-text-default bg-background-section'
+                  : 'border-text-muted',
               )}
               testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
               accessibilityRole="checkbox"
@@ -356,7 +336,7 @@ const OnboardingInterestQuestionnaire = () => {
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    twClassName="flex-shrink"
+                    twClassName="flex-shrink mr-2"
                   >
                     {otherText}
                   </Text>
@@ -373,6 +353,7 @@ const OnboardingInterestQuestionnaire = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={onNext}
+          isDisabled={selectedIds.size === 0}
           style={tw.style('w-full')}
           testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
         >

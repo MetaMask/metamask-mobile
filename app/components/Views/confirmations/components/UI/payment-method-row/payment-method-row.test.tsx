@@ -2,6 +2,8 @@ import React from 'react';
 import { Text } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import PaymentMethodRow from './payment-method-row';
+import { LastUsedTag } from '../last-used-tag';
+import { NoFeeTag } from '../no-fee-tag';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -34,32 +36,80 @@ describe('PaymentMethodRow', () => {
     );
   });
 
-  it('renders Last used tag when isLastUsed is true', () => {
-    const { getByTestId } = render(
-      <PaymentMethodRow {...baseProps} isLastUsed />,
-    );
-
-    expect(
-      getByTestId('payment-method-row-usdc-last-used-tag'),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the Last used label inside the tag with the localised string', () => {
-    const { getByTestId } = render(
-      <PaymentMethodRow {...baseProps} isLastUsed />,
-    );
-
-    expect(
-      getByTestId('payment-method-row-usdc-last-used-tag'),
-    ).toHaveTextContent('confirm.pay_with_bottom_sheet.last_used');
-  });
-
-  it('does not render Last used tag when isLastUsed is false', () => {
+  it('renders no tag when tagRenderers is undefined', () => {
     const { queryByTestId } = render(<PaymentMethodRow {...baseProps} />);
 
-    expect(
-      queryByTestId('payment-method-row-usdc-last-used-tag'),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId('last-used-tag')).not.toBeOnTheScreen();
+    expect(queryByTestId('no-fee-tag')).not.toBeOnTheScreen();
+  });
+
+  it('renders no tag when all renderers return null', () => {
+    const { queryByTestId } = render(
+      <PaymentMethodRow
+        {...baseProps}
+        tagRenderers={[() => null, () => null]}
+      />,
+    );
+
+    expect(queryByTestId('last-used-tag')).not.toBeOnTheScreen();
+    expect(queryByTestId('no-fee-tag')).not.toBeOnTheScreen();
+  });
+
+  it('renders the first non-null tag from tagRenderers', () => {
+    const { getByTestId, queryByTestId } = render(
+      <PaymentMethodRow
+        {...baseProps}
+        tagRenderers={[() => <NoFeeTag />, () => <LastUsedTag />]}
+      />,
+    );
+
+    expect(getByTestId('no-fee-tag')).toBeOnTheScreen();
+    expect(queryByTestId('last-used-tag')).not.toBeOnTheScreen();
+  });
+
+  it('falls back to the next renderer when an earlier one returns null', () => {
+    const { getByTestId, queryByTestId } = render(
+      <PaymentMethodRow
+        {...baseProps}
+        tagRenderers={[() => null, () => <LastUsedTag />]}
+      />,
+    );
+
+    expect(getByTestId('last-used-tag')).toBeOnTheScreen();
+    expect(queryByTestId('no-fee-tag')).not.toBeOnTheScreen();
+  });
+
+  it('preserves precedence: "No fee" wins over "Last used" via array order', () => {
+    const { getByTestId, queryByTestId } = render(
+      <PaymentMethodRow
+        {...baseProps}
+        tagRenderers={[() => <NoFeeTag />, () => <LastUsedTag />]}
+      />,
+    );
+
+    expect(getByTestId('no-fee-tag')).toBeOnTheScreen();
+    expect(queryByTestId('last-used-tag')).not.toBeOnTheScreen();
+  });
+
+  it('renders the localised label of the winning tag', () => {
+    const { getByText } = render(
+      <PaymentMethodRow {...baseProps} tagRenderers={[() => <NoFeeTag />]} />,
+    );
+
+    expect(getByText('money.potential_earnings.no_fee')).toBeOnTheScreen();
+  });
+
+  it('supports tag testID overrides for disambiguation across rows', () => {
+    const { getByTestId } = render(
+      <PaymentMethodRow
+        {...baseProps}
+        tagRenderers={[
+          () => <NoFeeTag testID="payment-method-row-usdc-no-fee-tag" />,
+        ]}
+      />,
+    );
+
+    expect(getByTestId('payment-method-row-usdc-no-fee-tag')).toBeOnTheScreen();
   });
 
   it('renders checkmark when trailingElement is "checkmark"', () => {
@@ -154,51 +204,5 @@ describe('PaymentMethodRow', () => {
     expect(JSON.stringify(selectedStyle)).not.toEqual(
       JSON.stringify(unselectedStyle),
     );
-  });
-
-  it('renders No fee tag when isNoFee is true', () => {
-    const { getByTestId } = render(<PaymentMethodRow {...baseProps} isNoFee />);
-
-    expect(getByTestId('payment-method-row-usdc-no-fee-tag')).toBeOnTheScreen();
-  });
-
-  it('does not render No fee tag when isNoFee is false', () => {
-    const { queryByTestId } = render(<PaymentMethodRow {...baseProps} />);
-
-    expect(
-      queryByTestId('payment-method-row-usdc-no-fee-tag'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders No fee tag with localised string', () => {
-    const { getByTestId } = render(<PaymentMethodRow {...baseProps} isNoFee />);
-
-    expect(getByTestId('payment-method-row-usdc-no-fee-tag')).toHaveTextContent(
-      'money.potential_earnings.no_fee',
-    );
-  });
-
-  it('renders No fee tag instead of Last used tag when both isNoFee and isLastUsed are true', () => {
-    const { getByTestId, queryByTestId } = render(
-      <PaymentMethodRow {...baseProps} isNoFee isLastUsed />,
-    );
-
-    expect(getByTestId('payment-method-row-usdc-no-fee-tag')).toBeOnTheScreen();
-    expect(
-      queryByTestId('payment-method-row-usdc-last-used-tag'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders Last used tag when only isLastUsed is true', () => {
-    const { getByTestId, queryByTestId } = render(
-      <PaymentMethodRow {...baseProps} isLastUsed />,
-    );
-
-    expect(
-      getByTestId('payment-method-row-usdc-last-used-tag'),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId('payment-method-row-usdc-no-fee-tag'),
-    ).not.toBeOnTheScreen();
   });
 });

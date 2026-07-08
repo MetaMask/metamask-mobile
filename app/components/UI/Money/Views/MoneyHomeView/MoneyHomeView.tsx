@@ -28,7 +28,9 @@ import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
-import MoneyActivityList from '../../components/MoneyActivityList';
+import MoneyActivityList, {
+  MAX_PREVIEW_ITEMS as MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+} from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
@@ -38,11 +40,11 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
+import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import AppConstants from '../../../../../core/AppConstants';
 import {
@@ -70,8 +72,13 @@ import {
   deriveCardState,
 } from '../../../Card/util/metrics';
 
+import { TraceName } from '../../../../../util/trace';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  useMoneyHomePerformance,
+  type MoneyHomeSegment,
+} from '../../hooks/useMoneyHomePerformance';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
@@ -84,6 +91,7 @@ import {
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -93,7 +101,6 @@ const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedCardActionRowViewRef = useRef(false);
@@ -118,7 +125,10 @@ const MoneyHomeView = () => {
     lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
+    apyDecimal,
   } = useMoneyAccountBalance();
+
+  const refreshMusdFiatRate = useRefreshMusdFiatRate();
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
@@ -128,17 +138,23 @@ const MoneyHomeView = () => {
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refetchBalance();
+      await Promise.all([refetchBalance(), refreshMusdFiatRate()]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBalance]);
+  }, [refetchBalance, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
-  const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
+  // mUSD is USD-pegged 1:1, so show the token balance as dollars — consistent
+  // with the account balance and projected earnings above, which also use USD.
+  const { tokenBalanceAggregated: musdTokenBalanceAggregated } =
     useMusdBalance();
+  const musdFiatFormatted = useMemo(
+    () => moneyFormatUsd(new BigNumber(musdTokenBalanceAggregated)),
+    [musdTokenBalanceAggregated],
+  );
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -147,10 +163,21 @@ const MoneyHomeView = () => {
   // preview shows the "All" bucket; `isLoading` is already mock-aware.
   const {
     buckets,
-    isLoading: showCardActivityLoading,
+    hasMore: hasMoreActivity,
+    // Still settling while the initial query loads or the auto-fill may yet
+    // deliver a first preview row — the hook derives this from the same
+    // predicate that drives its fetch loop, so the skeleton can neither
+    // vanish mid-fill nor outlive a fill that stopped (budget spent, error).
+    isSettling: isActivitySettling,
+    error: activityError,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyActivityItems();
+  } = useMoneyActivityItems({
+    fill: {
+      bucket: MoneyActivityFilter.All,
+      count: MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+    },
+  });
   const activityItems = buckets[MoneyActivityFilter.All];
 
   const isCardholder = useSelector(selectIsCardholder);
@@ -211,38 +238,67 @@ const MoneyHomeView = () => {
   const isFunded = hasSpendableBalance || activityItems.length > 0;
   const isEmptyState = hasBalanceValue && !isFunded;
 
-  const formattedZero = useMemo(
-    () => moneyFormatFiat(new BigNumber(0), currentCurrency),
-    [currentCurrency],
-  );
+  // Report time-to-content separately for the balance and the activity list, so
+  // their load times can be compared, plus a combined "fully usable" span.
+  const balanceReady = !isBalanceLoading;
+  // Only ready once the preview is no longer settling, so the time-to-content
+  // trace can't close before auto-fill rows are actually on screen. A failed
+  // fetch ends the span as a failure rather than a (fast) success.
+  const activityReady = !isActivitySettling;
+  // Each segment carries its own content_state so it is sampled from data
+  // that segment has actually settled — the combined span may only read
+  // `isFunded` because it waits for both. Rebuilt every render; the hook ends
+  // each span at most once, so no memoisation is needed.
+  const moneyHomePerformanceSegments: MoneyHomeSegment[] = [
+    {
+      name: TraceName.MoneyHomeBalanceTimeToContent,
+      ready: balanceReady,
+      contentState: hasSpendableBalance ? 'filled' : 'empty',
+    },
+    {
+      name: TraceName.MoneyHomeActivityTimeToContent,
+      ready: activityReady,
+      failed: activityError,
+      contentState: activityItems.length > 0 ? 'filled' : 'empty',
+    },
+    {
+      name: TraceName.MoneyHomeTimeToContent,
+      ready: balanceReady && activityReady,
+      failed: activityError,
+      contentState: isFunded ? 'filled' : 'empty',
+    },
+  ];
+  useMoneyHomePerformance({ segments: moneyHomePerformanceSegments });
+
+  const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
   const monthlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
-      apyPercent,
+      apyDecimal,
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatUsd(new BigNumber(earnings));
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
-      apyPercent,
+      apyDecimal,
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatUsd(new BigNumber(earnings));
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
     trackButtonClicked({
@@ -529,10 +585,8 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
-      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
-    });
-  }, [trackSurfaceClicked]);
+    openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
     trackButtonClicked({
@@ -543,10 +597,8 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
-      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
-    });
-  }, [trackButtonClicked]);
+    openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
+  }, [navigation, trackButtonClicked]);
 
   const handleHowItWorksPress = useCallback(
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
@@ -683,15 +735,16 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (showCardActivityLoading || activityItems.length >= 1) {
+  if (isActivitySettling || activityItems.length >= 1) {
     contentSections.push({
       key: 'activity',
-      node: showCardActivityLoading ? (
+      node: isActivitySettling ? (
         <MoneyActivityLoading />
       ) : (
         <MoneyActivityList
           items={activityItems}
           moneyAddress={moneyAddress}
+          hasMore={hasMoreActivity}
           onViewAllPress={handleViewAllActivityPress}
           onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
@@ -706,7 +759,7 @@ const MoneyHomeView = () => {
       node: (
         <MoneyPotentialEarnings
           tokens={depositTokens}
-          apy={apyPercent}
+          apyDecimal={apyDecimal}
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}

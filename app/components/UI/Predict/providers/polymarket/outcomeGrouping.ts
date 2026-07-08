@@ -9,6 +9,8 @@ import {
 import type { PolymarketApiMarket } from './types';
 
 const DISPLAYED_SPREAD_LINE_PATTERN = /([+-]\d+(?:\.\d+)?)$/;
+const SOCCER_TEAM_TOTALS_MARKET_TYPE = 'soccer_team_totals';
+const OVER_UNDER_SUBJECT_PATTERN = /^(.*?)[:]?\s*O\/U\s*[\d.]+\s*$/;
 
 export const normalizeSportsMarketType = (type: string): string => {
   const lower = type.toLowerCase();
@@ -73,15 +75,71 @@ const sortLineOutcomesForDisplay = (
   });
 };
 
-export const normalizeEnabledSportsMarketTypes = (value: unknown): string[] => {
-  const rawTypes = Array.isArray(value)
-    ? value
-    : [...SUPPORTED_SPORTS_MARKET_TYPES];
+const isSoccerTeamTotalsMarketType = (type?: string): boolean =>
+  type?.toLowerCase() === SOCCER_TEAM_TOTALS_MARKET_TYPE;
 
+const getOutcomeSubject = (outcome: PredictOutcome): string => {
+  const raw = outcome.groupItemTitle || outcome.title || outcome.id;
+  const overUnder = raw.match(OVER_UNDER_SUBJECT_PATTERN);
+  const subject = overUnder?.[1]?.trim();
+
+  return subject || raw.trim() || outcome.id;
+};
+
+const buildSoccerTeamTotalsSubgroups = (
+  outcomes: PredictOutcome[],
+): PredictOutcomeGroup[] => {
+  const outcomesBySubject = new Map<string, PredictOutcome[]>();
+
+  for (const outcome of outcomes) {
+    const subject = getOutcomeSubject(outcome);
+    const bucket = outcomesBySubject.get(subject);
+    if (bucket) {
+      bucket.push(outcome);
+    } else {
+      outcomesBySubject.set(subject, [outcome]);
+    }
+  }
+
+  return [...outcomesBySubject.entries()].map(
+    ([subject, subjectOutcomes], index) => ({
+      key: `${SOCCER_TEAM_TOTALS_MARKET_TYPE}-${index}`,
+      title: `${subject} Totals`,
+      outcomes: sortLineOutcomesForDisplay(
+        subjectOutcomes,
+        SOCCER_TEAM_TOTALS_MARKET_TYPE,
+      ),
+    }),
+  );
+};
+
+const buildSubgroupsForType = (
+  type: string,
+  outcomes: PredictOutcome[],
+): PredictOutcomeGroup[] => {
+  if (isSoccerTeamTotalsMarketType(type)) {
+    return buildSoccerTeamTotalsSubgroups(outcomes);
+  }
+
+  return [
+    {
+      key: type,
+      outcomes: sortLineOutcomesForDisplay(outcomes, type),
+    },
+  ];
+};
+
+export const normalizeSportsMarketTypes = (value: unknown): string[] => {
+  const rawTypes = Array.isArray(value) ? value : [];
   return [
     ...new Set(rawTypes.map((type) => String(type).toLowerCase())),
   ].filter((type) => SUPPORTED_SPORTS_MARKET_TYPES.has(type));
 };
+
+export const normalizeEnabledSportsMarketTypes = (value: unknown): string[] =>
+  normalizeSportsMarketTypes(
+    Array.isArray(value) ? value : [...SUPPORTED_SPORTS_MARKET_TYPES],
+  );
 
 export const filterGroupableOutcomes = (
   outcomes: PredictOutcome[],
@@ -170,6 +228,15 @@ export function buildOutcomeGroups(
     }
 
     if (typeMap.size < 2) {
+      const [[type, typeOutcomes]] = typeMap.entries();
+      if (isSoccerTeamTotalsMarketType(type)) {
+        return {
+          key,
+          outcomes: [],
+          subgroups: buildSubgroupsForType(type, typeOutcomes),
+        };
+      }
+
       return {
         key,
         outcomes: sortLineOutcomesForDisplay(
@@ -189,10 +256,9 @@ export function buildOutcomeGroups(
     return {
       key,
       outcomes: [],
-      subgroups: subgroupEntries.map(([subKey, subOutcomes]) => ({
-        key: subKey,
-        outcomes: sortLineOutcomesForDisplay(subOutcomes, subKey),
-      })),
+      subgroups: subgroupEntries.flatMap(([subKey, subOutcomes]) =>
+        buildSubgroupsForType(subKey, subOutcomes),
+      ),
     };
   });
 }

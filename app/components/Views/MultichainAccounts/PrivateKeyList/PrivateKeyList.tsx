@@ -124,7 +124,7 @@ export const PrivateKeyList = () => {
     await Promise.all(
       pkAccounts.map(async (account: InternalAccount) => {
         const pk = await KeyringController.exportAccount(
-          password,
+          { password },
           account.address,
         );
         privateKeyMap[account.id] = pk;

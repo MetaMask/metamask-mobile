@@ -30,6 +30,16 @@ const cashback: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
+const refund: AccountsApiActivity = {
+  kind: 'refund',
+  hash: '0xrefund' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f' as Hex,
+  token,
+  amount: '1500000',
+  receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
+};
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 let mockRouteParams: { activity?: AccountsApiActivity } | undefined;
@@ -149,6 +159,8 @@ jest.mock('../../../../../util/intl', () => ({
   getIntlDateTimeFormatter: (_locale: string, _opts?: object) => ({
     format: () => 'Jun',
   }),
+  getIntlNumberFormatter: (locale: string, opts?: Intl.NumberFormatOptions) =>
+    new Intl.NumberFormat(locale, opts),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -164,10 +176,10 @@ describe('MoneyApiActivityDetailsView', () => {
   });
 
   describe('card spend', () => {
-    it('renders the card title', () => {
+    it('renders the Purchase title', () => {
       const { getByTestId } = render(<MoneyApiActivityDetailsView />);
       expect(getByTestId('header-title')).toHaveTextContent(
-        'money.api_activity_details.card_title',
+        'money.transaction.purchase',
       );
     });
 
@@ -181,10 +193,18 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByText('money.api_activity_details.you_spent')).toBeTruthy();
     });
 
-    it('renders the "To" row with the "Money account" label', () => {
-      const { getByText } = render(<MoneyApiActivityDetailsView />);
-      expect(getByText('transaction_details.label.to')).toBeTruthy();
+    it('renders the Money account hero icon', () => {
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+      expect(getByTestId('money-account-hero-icon')).toBeTruthy();
+    });
+
+    it('renders the From row with the Money account label', () => {
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(getByText('transaction_details.label.from')).toBeTruthy();
       expect(getByText('transaction_details.label.money_account')).toBeTruthy();
+      expect(queryByText('transaction_details.label.to')).toBeNull();
     });
   });
 
@@ -193,10 +213,10 @@ describe('MoneyApiActivityDetailsView', () => {
       mockRouteParams = { activity: cashback };
     });
 
-    it('renders the cashback title', () => {
+    it('renders the mUSD back title', () => {
       const { getByTestId } = render(<MoneyApiActivityDetailsView />);
       expect(getByTestId('header-title')).toHaveTextContent(
-        'money.api_activity_details.cashback_title',
+        'money.transaction.musd_back',
       );
     });
 
@@ -210,6 +230,11 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByText('money.api_activity_details.you_earned')).toBeTruthy();
     });
 
+    it('renders the Money account hero icon', () => {
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+      expect(getByTestId('money-account-hero-icon')).toBeTruthy();
+    });
+
     it('renders the "Received from" row with the sender', () => {
       const { getByText, getByTestId } = render(
         <MoneyApiActivityDetailsView />,
@@ -219,6 +244,46 @@ describe('MoneyApiActivityDetailsView', () => {
       ).toBeTruthy();
       expect(getByTestId('counterparty-name')).toHaveTextContent(
         cashback.receivedFrom,
+      );
+    });
+  });
+
+  describe('refund', () => {
+    beforeEach(() => {
+      mockRouteParams = { activity: refund };
+    });
+
+    it('renders the Refund title', () => {
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+      expect(getByTestId('header-title')).toHaveTextContent(
+        'money.transaction.refund',
+      );
+    });
+
+    it('renders the refunded amount with a plus sign', () => {
+      const { getByText } = render(<MoneyApiActivityDetailsView />);
+      expect(getByText(/\+1\.50 mUSD/)).toBeTruthy();
+    });
+
+    it('renders the "You were refunded" label, not "You earned"', () => {
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(
+        getByText('money.api_activity_details.you_were_refunded'),
+      ).toBeTruthy();
+      expect(queryByText('money.api_activity_details.you_earned')).toBeNull();
+    });
+
+    it('renders the "Received from" row with the sender', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(
+        getByText('money.api_activity_details.received_from'),
+      ).toBeTruthy();
+      expect(getByTestId('counterparty-name')).toHaveTextContent(
+        refund.receivedFrom,
       );
     });
   });

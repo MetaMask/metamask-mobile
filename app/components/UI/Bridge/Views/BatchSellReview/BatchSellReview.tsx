@@ -53,6 +53,8 @@ import {
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
+import { useTrackBatchSellQuotePageViewed } from '../../hooks/useTrackBatchSellQuotePageViewed';
+import { useTrackBatchSellQuotePageReviewClicked } from '../../hooks/useTrackBatchSellQuotePageReviewClicked';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
@@ -170,6 +172,18 @@ export function BatchSellReview() {
     };
   }, [hasValidSourceAmounts, updateBatchSellQuoteParams]);
 
+  useTrackBatchSellQuotePageViewed({
+    batchSellSlippages,
+    selectedTokens,
+    tokenData: batchSellQuoteData.tokenData,
+  });
+  const trackBatchSellQuotePageReviewClicked =
+    useTrackBatchSellQuotePageReviewClicked({
+      batchSellSlippages,
+      selectedTokens,
+      tokenData: batchSellQuoteData.tokenData,
+    });
+
   useEffect(
     () => () => {
       // Clear controller quote state so returning to review does not show stale quotes.
@@ -284,10 +298,12 @@ export function BatchSellReview() {
   );
 
   const handleOpenFinalReview = useCallback(() => {
+    trackBatchSellQuotePageReviewClicked();
+
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });
-  }, [navigation]);
+  }, [navigation, trackBatchSellQuotePageReviewClicked]);
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {

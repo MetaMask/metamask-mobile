@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
-import { selectTokenIndicators } from '../../../../reducers/user/selectors';
+import { useTokenChartPreferences } from '../../AssetOverview/Price/hooks/useTokenChartPreferences';
 import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -116,7 +116,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
-  const indicatorsActive = useSelector(selectTokenIndicators);
+  const { indicators: indicatorsActive } = useTokenChartPreferences();
 
   const useErrorAccent = useAmbientColor && isPricePositive === false;
 

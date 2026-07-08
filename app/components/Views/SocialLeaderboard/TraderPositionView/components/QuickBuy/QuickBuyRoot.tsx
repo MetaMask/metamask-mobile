@@ -18,11 +18,8 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
-import {
-  SocialLeaderboardEventProperties,
-  SocialLeaderboardEventValues,
-  useSocialLeaderboardAnalytics,
-} from '../../../analytics';
+import { QuickBuyEventProperties, QuickBuyEventValues } from './analytics';
+import { useSocialLeaderboardAnalytics } from '../../../analytics';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
@@ -127,17 +124,16 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       return;
     }
     track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
-      [SocialLeaderboardEventProperties.ASSET_NAME]: target.tokenSymbol,
+      [QuickBuyEventProperties.ASSET_NAME]: target.tokenSymbol,
       ...(typeof analyticsContext.marketCap === 'number'
         ? {
-            [SocialLeaderboardEventProperties.MARKET_CAP]:
-              analyticsContext.marketCap,
+            [QuickBuyEventProperties.MARKET_CAP]: analyticsContext.marketCap,
           }
         : {}),
-      [SocialLeaderboardEventProperties.SOURCE]: source,
-      [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]:
+      [QuickBuyEventProperties.SOURCE]: source,
+      [QuickBuyEventProperties.TRADER_TRADE_TYPE]:
         analyticsContext.traderTradeType ??
-        SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
+        QuickBuyEventValues.TRADER_TRADE_TYPE.BUY,
     });
   }, [analyticsContext, target.tokenSymbol, track]);
 

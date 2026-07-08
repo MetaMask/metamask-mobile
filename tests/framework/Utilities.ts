@@ -10,11 +10,12 @@ import PlaywrightAssertions from './PlaywrightAssertions.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { createLogger } from './logger.ts';
+import { resolveE2EWaitTimeoutMs } from './Constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
 const TEST_CONFIG_DEFAULTS = {
-  timeout: 15000,
+  timeout: resolveE2EWaitTimeoutMs(15000),
   retryInterval: 500,
   actionDelay: 100,
   stabilityCheckInterval: 200,
@@ -50,6 +51,24 @@ export default class Utilities {
   static async checkElementEnabled(
     elem: EncapsulatedElementType,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const el = await asPlaywrightElement(elem);
+      if (!(await el.isEnabled())) {
+        throw new Error(
+          [
+            '🚫 Element is not enabled.',
+            '',
+            '💡 If this element might be disabled in some situations,',
+            '   consider using the {checkEnabled: false} option.',
+            '',
+            '📝 Example:',
+            '   await Gestures.waitAndTap(element, {checkEnabled: false})',
+          ].join('\n'),
+        );
+      }
+      return;
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || !attributes.enabled) {

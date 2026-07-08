@@ -204,7 +204,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
   return (
     <>
       {/* Divider */}
-      <Box twClassName="mt-4 border-b border-border-muted" />
+      <Box twClassName="my-4 border-b border-border-muted" />
       <Box testID="referred-by-code-section" twClassName="gap-4 flex-col px-4">
         <Box twClassName="gap-2 mt-2">
           <Text variant={TextVariant.HeadingMd}>

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 import { type Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import Text from '../../../../../../component-library/components/Texts/Text';
@@ -17,6 +18,19 @@ import {
 } from '../../../utils/transaction';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import { getTokenTransferData } from '../../../utils/transaction-pay';
+import MoneyIcon from '../../../../../../images/money.png';
+
+const iconStyles = StyleSheet.create({
+  moneyIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  moneyIcon: { width: 32, height: 32 },
+});
 
 const SEND_TYPES: TransactionType[] = [
   TransactionType.moneyAccountWithdraw,
@@ -39,6 +53,21 @@ export function TransactionDetailsToRow() {
   const staticLabel = getToLabel(transactionMeta, isMoneyContext);
 
   if (staticLabel) {
+    const isMoneyAccount =
+      staticLabel === strings('transaction_details.label.money_account');
+
+    const icon = isMoneyAccount ? (
+      <View style={iconStyles.moneyIconWrapper}>
+        <Image
+          source={MoneyIcon}
+          style={iconStyles.moneyIcon}
+          testID="money-account-icon"
+        />
+      </View>
+    ) : (
+      <AvatarAccount accountAddress={recipient ?? '0x0'} size={AvatarSize.Sm} />
+    );
+
     return (
       <TransactionDetailsRow label={strings('transaction_details.label.to')}>
         <Box
@@ -46,10 +75,7 @@ export function TransactionDetailsToRow() {
           alignItems={AlignItems.center}
           gap={6}
         >
-          <AvatarAccount
-            accountAddress={recipient ?? '0x0'}
-            size={AvatarSize.Sm}
-          />
+          {icon}
           <Text>{staticLabel}</Text>
         </Box>
       </TransactionDetailsRow>
