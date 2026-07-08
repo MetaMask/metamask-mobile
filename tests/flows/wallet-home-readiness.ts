@@ -1,5 +1,6 @@
 import PlaywrightMatchers from '../framework/PlaywrightMatchers';
 import { withImplicitWait } from '../framework/PlaywrightUtilities';
+import { PlatformDetector } from '../framework/PlatformLocator';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 
@@ -11,7 +12,8 @@ const IOS_WALLET_HOME_INDICATOR_IDS = [
   WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER,
 ] as const;
 
-const isElementDisplayedById = async (testId: string): Promise<boolean> => {
+/** Fast Appium probe — avoids full assertion polling on every bootstrap loop. */
+export const isTestIdDisplayed = async (testId: string): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
       const el = await PlaywrightMatchers.getElementById(testId, {
@@ -23,6 +25,21 @@ const isElementDisplayedById = async (testId: string): Promise<boolean> => {
     return false;
   }
 };
+
+export const isLoginScreenDisplayed = (): Promise<boolean> =>
+  isTestIdDisplayed(LoginViewSelectors.CONTAINER);
+
+export const isWalletContainerDisplayed = (): Promise<boolean> =>
+  isTestIdDisplayed(WalletViewSelectorsIDs.WALLET_CONTAINER);
+
+export const isWalletHomeReadyOnAndroid = async (): Promise<boolean> => {
+  if (!(await isWalletContainerDisplayed())) {
+    return false;
+  }
+  return !(await isLoginScreenDisplayed());
+};
+
+const isElementDisplayedById = isTestIdDisplayed;
 
 const isAnyWalletHomeIndicatorDisplayedOnIOS = async (): Promise<boolean> => {
   for (const testId of IOS_WALLET_HOME_INDICATOR_IDS) {
@@ -63,4 +80,14 @@ export const isWalletHomeReadyOnIOS = async (): Promise<boolean> => {
     return true;
   }
   return isWalletScreenExistsWithLoginHiddenOnIOS();
+};
+
+export const isWalletHomeReadyOnAppium = async (): Promise<boolean> => {
+  if (PlatformDetector.isIOS()) {
+    return isWalletHomeReadyOnIOS();
+  }
+  if (PlatformDetector.isAndroid()) {
+    return isWalletHomeReadyOnAndroid();
+  }
+  return false;
 };
