@@ -6,6 +6,9 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class ConnectBottomSheet {
   get container(): EncapsulatedElementType {
@@ -14,6 +17,10 @@ class ConnectBottomSheet {
     );
   }
   get connectButton(): EncapsulatedElementType {
+    if (FrameworkDetector.isAppium()) {
+      return Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
+    }
+
     return device.getPlatform() === 'android'
       ? Matchers.getElementByLabel(CommonSelectorsIDs.CONNECT_BUTTON)
       : Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
@@ -56,6 +63,21 @@ class ConnectBottomSheet {
   }
 
   async tapConnectButton(): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const button = await PlaywrightMatchers.getElementById(
+        CommonSelectorsIDs.CONNECT_BUTTON,
+      );
+      await PlaywrightGestures.waitAndTap(button, {
+        waitForInteractive: true,
+        postEnabledSettleMs: 300,
+        timeout: 15_000,
+      });
+      await button
+        .unwrap()
+        .waitForDisplayed({ reverse: true, timeout: 15_000 });
+      return;
+    }
+
     await Gestures.waitAndTap(this.connectButton, {
       elemDescription: 'Tap on the connect button',
     });

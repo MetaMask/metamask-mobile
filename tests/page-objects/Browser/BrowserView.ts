@@ -25,10 +25,7 @@ import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { createPlaywrightLogger } from '../../framework/playwrightLogger';
 import { openUrlInBrowserView } from '../../flows/browser.flow';
-
-const logger = createPlaywrightLogger('BrowserView');
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -222,20 +219,16 @@ class Browser {
    * Navigate via the browser URL bar (preserves `http://` scheme).
    */
   private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
-    logger.info(`navigateToUrlViaUrlBarAppium: ${url}`);
     await this.tapUrlInputBox();
 
     const input = await asPlaywrightElement(this.urlBarTextInput);
     await input.waitForDisplayed({ timeout: 10_000 });
     await input.clear();
     // Trailing `\n` triggers React Native `onSubmitEditing` (returnKeyType="go").
-    await PlaywrightGestures.typeText(input, url);
-    await PlaywrightGestures.submitAndroidUrlBar();
+    await PlaywrightGestures.typeText(input, `${url}\n`);
 
     const settleMs = process.env.CI === 'true' ? 8_000 : 3_000;
-    logger.info(`navigateToUrlViaUrlBarAppium: settle ${settleMs}ms`);
     await sleep(settleMs);
-    logger.info('navigateToUrlViaUrlBarAppium: complete');
   }
 
   /**
@@ -246,18 +239,13 @@ class Browser {
     const hostAndPath = url.replace(/^https?:\/\//, '');
     const deeplink = `dapp://${hostAndPath}`;
 
-    logger.info(`navigateToUrlViaDeeplink: opening ${deeplink}`);
     await executeMobileDeepLink(deeplink);
     const isAndroidCi =
       FrameworkDetector.isAppium() &&
       PlatformDetector.isAndroid() &&
       process.env.CI === 'true';
     const settleMs = isAndroidCi ? 8_000 : 3_000;
-    logger.info(
-      `navigateToUrlViaDeeplink: settle ${settleMs}ms after deeplink`,
-    );
     await sleep(settleMs);
-    logger.info('navigateToUrlViaDeeplink: complete');
   }
 
   private async typeUrlAppium(url: string): Promise<void> {
@@ -300,6 +288,15 @@ class Browser {
     // be restored under RN 0.81 / React 19, leaving the close button missing.
     // Defensively dismiss the URL editor if the Cancel button is visible.
     await this.dismissUrlEditorIfOpen();
+
+    if (FrameworkDetector.isAppium()) {
+      const closeBtn = await PlaywrightMatchers.getElementById(
+        BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
+      );
+      await PlaywrightGestures.waitAndTap(closeBtn, { timeout: 10_000 });
+      return;
+    }
+
     await Gestures.waitAndTap(this.closeBrowserButton, {
       elemDescription: 'Close browser button',
     });
@@ -448,13 +445,16 @@ class Browser {
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      logger.info(`navigateToURL(Appium): ${url}`);
       await this.typeUrlAppium(url);
       return;
     }
-    await Gestures.typeText(this.urlInputBoxID, url, {
-      hideKeyboard: true,
+    await Gestures.replaceText(this.urlInputBoxID, url, {
       elemDescription: 'URL input box',
+    });
+    await Gestures.typeText(this.urlInputBoxID, '\n', {
+      clearFirst: false,
+      hideKeyboard: false,
+      elemDescription: 'URL input submit',
     });
 
     // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
@@ -490,7 +490,9 @@ class Browser {
 
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
-    await this.navigateToURL(getDappUrl(0));
+    // Cancel dismiss resets the bar to the fixture tab URL (…/health-check) if
+    // navigation has not committed yet — skip until the dapp page has loaded.
+    await this.navigateToURL(getDappUrl(0), { skipUrlEditorDismissal: true });
   }
 
   async navigateToSecondTestDApp(): Promise<void> {

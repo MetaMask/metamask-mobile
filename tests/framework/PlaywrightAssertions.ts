@@ -298,6 +298,63 @@ export default class PlaywrightAssertions {
     );
   }
 
+  static async expectElementToHaveLabel(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    expectedLabel: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const timeout = this.getTimeout(options);
+    const interval = 300;
+    const start = Date.now();
+    const el = await targetElement;
+
+    const normalize = (value: string): string =>
+      value
+        .replace(/[\s,]+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+    const matchesLabel = (actual: string): boolean => {
+      const normalizedActual = normalize(actual);
+      const normalizedExpected = normalize(expectedLabel);
+      if (normalizedActual.includes(normalizedExpected)) {
+        return true;
+      }
+
+      return expectedLabel
+        .split(',')
+        .map((part) => normalize(part))
+        .every((part) => part.length > 0 && normalizedActual.includes(part));
+    };
+
+    while (Date.now() - start < timeout) {
+      const label = await this.getElementAccessibilityLabel(el);
+      if (matchesLabel(label)) {
+        return;
+      }
+      await sleep(interval);
+    }
+
+    const lastLabel = await this.getElementAccessibilityLabel(el);
+    throw new Error(
+      `Expected label "${expectedLabel}" but got "${lastLabel}" within ${timeout}ms`,
+    );
+  }
+
+  private static async getElementAccessibilityLabel(
+    el: PlaywrightElement,
+  ): Promise<string> {
+    const raw = el.unwrap();
+    const contentDesc = (await raw.getAttribute('content-desc')) ?? '';
+    let text = '';
+    try {
+      text = await raw.getText();
+    } catch {
+      text = '';
+    }
+    return [contentDesc, text].filter(Boolean).join(', ');
+  }
+
   static async expectTextNotDisplayed(
     text: string,
     options: AssertionOptions = {},

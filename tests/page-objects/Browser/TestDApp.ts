@@ -8,9 +8,9 @@ import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTa
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities } from '../../framework';
-import { createPlaywrightLogger } from '../../framework/playwrightLogger';
-
-const logger = createPlaywrightLogger('TestDApp');
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -476,12 +476,8 @@ class TestDApp {
     elementId: WebElement,
     options: TapOptions = {},
   ): Promise<void> {
-    const description = options.elemDescription ?? 'web element';
-    logger.info(`tapButton: scroll ${description} into view`);
     await Gestures.scrollToWebViewPort(elementId);
-    logger.info(`tapButton: tap ${description}`);
     await Gestures.tap(elementId, options);
-    logger.info(`tapButton: done ${description}`);
   }
 
   async navigateToTestDappWithContract({
@@ -542,17 +538,46 @@ class TestDApp {
   }
 
   async tapOpenNetworkPicker(): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const picker = await PlaywrightMatchers.getElementById(
+        TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
+      );
+      const webview = await PlaywrightMatchers.getElementById(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      );
+      await PlaywrightGestures.scrollIntoView(picker, {
+        scrollableElement: webview,
+        scrollParams: { direction: 'up' },
+        maxScrolls: 40,
+      });
+      await PlaywrightGestures.tap(picker);
+      return;
+    }
+
     await this.tapButton(this.openNetworkPicker, {
       elemDescription: 'Open Network Picker Button',
     });
   }
 
   async tapNetworkByName(networkName: string): Promise<void> {
-    logger.info(`tapNetworkByName: ${networkName}`);
+    if (FrameworkDetector.isAppium()) {
+      const networkItem =
+        await PlaywrightMatchers.getElementByText(networkName);
+      const webview = await PlaywrightMatchers.getElementById(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      );
+      await PlaywrightGestures.scrollIntoView(networkItem, {
+        scrollableElement: webview,
+        scrollParams: { direction: 'up' },
+        maxScrolls: 20,
+      });
+      await PlaywrightGestures.tap(networkItem);
+      return;
+    }
+
     // Try to find the network without scrolling first
     try {
       const networkItem = await this.getNetworkItemByName(networkName);
-      logger.info(`tapNetworkByName: found item for ${networkName}`);
       await Assertions.expectElementToBeVisible(
         networkItem as unknown as WebElement,
         { timeout: 2000, description: 'network item by label' },
@@ -560,11 +585,8 @@ class TestDApp {
       await Gestures.waitAndTap(networkItem as unknown as WebElement, {
         elemDescription: `tap ${networkName} network`,
       });
-      logger.info(`tapNetworkByName: tapped ${networkName}`);
       return;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      logger.error(`tapNetworkByName: failed for ${networkName} — ${message}`);
+    } catch {
       throw new Error(`Could not find network "${networkName}"`);
     }
   }

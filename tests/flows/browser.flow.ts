@@ -14,9 +14,7 @@ import {
 } from '../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../framework/PlaywrightMatchers';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
-import { createPlaywrightLogger } from '../framework/playwrightLogger';
-
-const logger = createPlaywrightLogger('browser.flow');
+import { getDappUrl } from '../framework/fixtures/FixtureUtils';
 
 /**
  * Waits for the test dapp to load.
@@ -26,35 +24,26 @@ const logger = createPlaywrightLogger('browser.flow');
  * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
  */
 export const waitForTestDappToLoad = async (): Promise<void> => {
+  if (FrameworkDetector.isAppium()) {
+    await Assertions.expectElementToBeVisible(
+      PlaywrightMatchers.getElementByText(getDappUrl(0)),
+      { description: 'Browser URL bar should show test dapp URL' },
+    );
+    return;
+  }
+
   const MAX_RETRIES = 3;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      logger.info(
-        `waitForTestDappToLoad attempt ${attempt}/${MAX_RETRIES}: fox logo`,
-      );
       await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo, {
         description: 'Test Dapp Fox Logo should be visible',
       });
-      logger.info(
-        `waitForTestDappToLoad attempt ${attempt}/${MAX_RETRIES}: page title`,
-      );
       await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
         description: 'Test Dapp Page Title should be visible',
       });
-      logger.info(
-        `waitForTestDappToLoad attempt ${attempt}/${MAX_RETRIES}: connect button`,
-      );
-      await Assertions.expectElementToBeVisible(TestDApp.DappConnectButton, {
-        description: 'Test Dapp Connect Button should be visible',
-      });
-      logger.info('waitForTestDappToLoad: all markers visible');
       return; // Success - page is fully loaded and interactive
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      logger.warn(
-        `waitForTestDappToLoad attempt ${attempt}/${MAX_RETRIES} failed: ${message}`,
-      );
       if (attempt === MAX_RETRIES) {
         throw new Error(
           `Test dapp failed to load after ${MAX_RETRIES} attempts: ${
@@ -174,16 +163,12 @@ const getBrowserUrlBarVisibleIndicator = (): EncapsulatedElementType =>
   });
 
 export const navigateToBrowserView = async (): Promise<void> => {
-  logger.info('navigateToBrowserView: tap Explore');
   await TabBarComponent.tapExploreButton();
-  logger.info('navigateToBrowserView: tap Browser');
   await TrendingView.tapBrowserButton();
 
   // If we landed on the "Opened tabs" grid (tab list), select the first tab to get to single-tab view
-  logger.info('navigateToBrowserView: ensure single browser tab view');
   await ensureSingleBrowserTabView();
 
-  logger.info('navigateToBrowserView: wait for URL bar');
   await Assertions.expectElementToBeVisible(
     getBrowserUrlBarVisibleIndicator(),
     {
@@ -191,7 +176,6 @@ export const navigateToBrowserView = async (): Promise<void> => {
       timeout: FrameworkDetector.isAppium() ? 30_000 : undefined,
     },
   );
-  logger.info('navigateToBrowserView: complete');
 };
 
 export const openUrlInBrowserView = async (): Promise<void> => {

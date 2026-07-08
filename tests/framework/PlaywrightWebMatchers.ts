@@ -25,7 +25,7 @@ export default class PlaywrightWebMatchers {
 
   private static async ensureWebViewContext(pageUrl: string): Promise<void> {
     const fragment = this.getWebViewUrlFragment(pageUrl);
-    logger.info(`ensureWebViewContext: ${fragment}`);
+    logger.debug(`Ensuring WebView context for: ${fragment}`);
     await PlaywrightContextHelpers.switchToWebViewContext(fragment);
   }
 
@@ -33,7 +33,6 @@ export default class PlaywrightWebMatchers {
     innerID: string,
     pageUrl: string,
   ): Promise<PlaywrightElement> {
-    logger.info(`getElementByWebID: #${innerID} (${pageUrl})`);
     await this.ensureWebViewContext(pageUrl);
     return this.findElementByWebID(innerID);
   }
@@ -58,7 +57,6 @@ export default class PlaywrightWebMatchers {
 
     const escapedId = innerID.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     const selector = `[id="${escapedId}"]`;
-    logger.info(`findElementByWebID: waiting for ${selector}`);
     const rawElem = await drv.$(selector);
 
     await withTimeout(
@@ -67,7 +65,6 @@ export default class PlaywrightWebMatchers {
       `WebView element lookup (${selector})`,
     );
 
-    logger.info(`findElementByWebID: found ${selector}`);
     return wrapElement(rawElem);
   }
 
@@ -75,7 +72,6 @@ export default class PlaywrightWebMatchers {
     xpath: string,
     pageUrl: string,
   ): Promise<PlaywrightElement> {
-    logger.info(`getElementByXPath: ${xpath} (${pageUrl})`);
     await this.ensureWebViewContext(pageUrl);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');

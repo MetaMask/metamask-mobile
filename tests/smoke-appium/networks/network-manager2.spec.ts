@@ -18,10 +18,9 @@ import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccounts
 import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet.js';
 import { CustomNetworks } from '../../resources/networks.e2e.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import { createE2EStepLogger } from '../../framework/e2eStepLogger.js';
+import { getDappUrlForFixture } from '../../framework/fixtures/FixtureUtils.js';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
-const step = createE2EStepLogger('network-manager2');
 
 appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
   appiumTest(
@@ -34,14 +33,18 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
               dappVariant: DappVariants.TEST_DAPP,
             },
           ],
-          fixture: new FixtureBuilder()
-            .withNetworkEnabledMap({
-              eip155: { '0x1': true },
-            })
-            .withPermissionControllerConnectedToTestDapp()
-            .withChainPermission()
-            .withPopularNetworks()
-            .build(),
+          fixture: (() => {
+            const built = new FixtureBuilder()
+              .withNetworkEnabledMap({
+                eip155: { '0x1': true },
+              })
+              .withPermissionControllerConnectedToTestDapp()
+              .withChainPermission()
+              .withPopularNetworks()
+              .build();
+            built.state.browser.tabs[0].url = getDappUrlForFixture(0);
+            return built;
+          })(),
           restartDevice: true,
           currentDeviceDetails,
           testSpecificMock: async (mockServer) => {
@@ -51,83 +54,50 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
           },
         },
         async () => {
-          await step('login', () =>
-            loginToAppPlaywright({ scenarioType: 'e2e' }),
+          await loginToAppPlaywright({ scenarioType: 'e2e' });
+
+          await NetworkManager.openNetworkManagerFromHomepage();
+          await NetworkManager.waitForNetworkManagerToLoad();
+          await NetworkManager.checkPopularNetworksContainerIsVisible();
+          await NetworkManager.checkTabIsSelected('Popular');
+
+          await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+          await NetworkManager.checkBaseControlBarText(
+            NetworkToCaipChainId.ETHEREUM,
           );
 
-          await step('open network manager from homepage', () =>
-            NetworkManager.openNetworkManagerFromHomepage(),
-          );
-          await step('wait for network manager to load', () =>
-            NetworkManager.waitForNetworkManagerToLoad(),
-          );
-          await step('verify popular networks tab', async () => {
-            await NetworkManager.checkPopularNetworksContainerIsVisible();
-            await NetworkManager.checkTabIsSelected('Popular');
-          });
+          await NetworkManager.navigateBackFromTokensFullView();
 
-          await step('select Ethereum network', async () => {
-            await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-            await NetworkManager.checkBaseControlBarText(
-              NetworkToCaipChainId.ETHEREUM,
-            );
-          });
-
-          await step('navigate back from tokens full view', () =>
-            NetworkManager.navigateBackFromTokensFullView(),
-          );
-
-          await step('navigate to browser view', () => navigateToBrowserView());
-          await step('open test dapp via deeplink', () =>
-            Browser.navigateToTestDApp(),
-          );
-          await step('wait for test dapp to load', () =>
-            waitForTestDappToLoad(),
-          );
-          await step('open network picker in test dapp', () =>
-            TestDApp.tapOpenNetworkPicker(),
-          );
-          await step(`select ${POLYGON} in test dapp`, () =>
-            TestDApp.tapNetworkByName(POLYGON),
-          );
+          await navigateToBrowserView();
+          await waitForTestDappToLoad();
+          await TestDApp.tapOpenNetworkPicker();
+          await TestDApp.tapNetworkByName(POLYGON);
 
           const expectedText = `Use your enabled networks, Requesting for ${POLYGON} Mainnet`;
-          await step('verify edit networks permissions label', () =>
-            Assertions.expectElementToHaveLabel(
-              ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
-              expectedText,
-              {
-                description: `edit networks permissions button should show "${expectedText}"`,
-              },
-            ),
+          await Assertions.expectElementToHaveLabel(
+            ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+            expectedText,
+            {
+              description: `edit networks permissions button should show "${expectedText}"`,
+            },
           );
-          await step('verify connect button visible', () =>
-            Assertions.expectElementToBeVisible(
-              ConnectBottomSheet.connectButton,
-            ),
+          await Assertions.expectElementToBeVisible(
+            ConnectBottomSheet.connectButton,
           );
 
-          await step('approve network addition', () =>
-            ConnectBottomSheet.tapConnectButton(),
-          );
+          await ConnectBottomSheet.tapConnectButton();
 
-          await step('verify browser screen after connect', () =>
-            Assertions.expectElementToBeVisible(Browser.browserScreenID, {
-              description: 'Browser screen should be visible after connecting',
-            }),
-          );
-
-          await step('close browser and return to wallet', async () => {
-            await Browser.tapCloseBrowserButton();
-            await TabBarComponent.tapWallet();
+          await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
+            description: 'Browser screen should be visible after connecting',
           });
 
-          await step('verify Ethereum still active network', async () => {
-            await NetworkManager.navigateToTokensFullView();
-            await NetworkManager.checkBaseControlBarText(
-              NetworkToCaipChainId.ETHEREUM,
-            );
-          });
+          await Browser.tapCloseBrowserButton();
+          await TabBarComponent.tapWallet();
+
+          await NetworkManager.navigateToTokensFullView();
+          await NetworkManager.checkBaseControlBarText(
+            NetworkToCaipChainId.ETHEREUM,
+          );
         },
       );
     },

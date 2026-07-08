@@ -1,6 +1,9 @@
 import { SmokeNetworkAbstractions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import {
+  navigateToBrowserView,
+  waitForTestDappToLoad,
+} from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
@@ -15,6 +18,7 @@ import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { getDappUrlForFixture } from '../../framework/fixtures/FixtureUtils';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -37,14 +41,19 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
             dappVariant: DappVariants.TEST_DAPP,
           },
         ],
-        fixture: new FixtureBuilder()
-          .withNetworkEnabledMap({
-            eip155: { '0x1': true }, // Ethereum Mainnet enabled
-          })
-          .withPermissionControllerConnectedToTestDapp()
-          .withChainPermission()
-          .withPopularNetworks()
-          .build(),
+        fixture: (() => {
+          const built = new FixtureBuilder()
+            .withNetworkEnabledMap({
+              eip155: { '0x1': true }, // Ethereum Mainnet enabled
+            })
+            .withPermissionControllerConnectedToTestDapp()
+            .withChainPermission()
+            .withPopularNetworks()
+            .build();
+          // Default tab URL is …/health-check; open the test dapp directly.
+          built.state.browser.tabs[0].url = getDappUrlForFixture(0);
+          return built;
+        })(),
         restartDevice: true,
         testSpecificMock: dappTestMock,
       },
@@ -68,7 +77,7 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
         // Step 2: Navigate to dapp and request network addition
         await navigateToBrowserView();
-        await Browser.navigateToTestDApp();
+        await waitForTestDappToLoad();
         await TestDApp.tapOpenNetworkPicker();
         await TestDApp.tapNetworkByName(POLYGON);
 
