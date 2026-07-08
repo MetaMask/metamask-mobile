@@ -32,6 +32,7 @@ import {
   DOCUMENT_URL_FOR_URL_BAR,
   WEB_SHARE_MESSAGE_TYPE,
   buildWebSharePolyfillScript,
+  buildWebShareResultScript,
   buildWebClipboardPolyfillScript,
   WEB_DOWNLOAD_MESSAGE_TYPE,
   buildWebDownloadInterceptorScript,
@@ -1093,7 +1094,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
           if (dataParsed.type === WEB_SHARE_MESSAGE_TYPE) {
-            handleWebShare(dataParsed.payload);
+            const shareRequestId: string | undefined = dataParsed.payload?.id;
+            handleWebShare(dataParsed.payload).then((result) => {
+              // Settle the page-side navigator.share() promise so the page can
+              // distinguish success from cancel/failure like a real browser.
+              if (shareRequestId) {
+                webviewRef.current?.injectJavaScript(
+                  buildWebShareResultScript(
+                    shareRequestId,
+                    result.status,
+                    result.message,
+                  ),
+                );
+              }
+            });
             return;
           }
           if (dataParsed.type === WEB_DOWNLOAD_MESSAGE_TYPE) {

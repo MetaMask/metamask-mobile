@@ -162,4 +162,162 @@ describe('handleWebShare', () => {
       expect.not.objectContaining({ useInternalStorage: true }),
     );
   });
+
+  it('shares every file via urls/filenames arrays for multi-file shares on Android', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+
+    await handleWebShare({
+      title: 'My Cards',
+      text: 'Check out my cards',
+      files: [
+        {
+          name: 'card.png',
+          type: 'image/png',
+          data: 'data:image/png;base64,iVBORw0KGgo=',
+        },
+        {
+          name: 'card.jpg',
+          type: 'image/jpeg',
+          data: 'data:image/jpeg;base64,/9j/4AAQ=',
+        },
+      ],
+    });
+
+    expect(Share.open).toHaveBeenCalledWith(
+      expect.objectContaining({
+        urls: [
+          'data:image/png;base64,iVBORw0KGgo=',
+          'data:image/jpeg;base64,/9j/4AAQ=',
+        ],
+        filenames: ['card.png', 'card.jpg'],
+        message: 'Check out my cards',
+        title: 'My Cards',
+        subject: 'My Cards',
+        failOnCancel: false,
+        useInternalStorage: true,
+      }),
+    );
+    expect(Share.open).toHaveBeenCalledWith(
+      expect.not.objectContaining({ url: expect.anything() }),
+    );
+  });
+
+  it('shares every file via urls/filenames arrays for multi-file shares on iOS without useInternalStorage', async () => {
+    jest.replaceProperty(Platform, 'OS', 'ios');
+
+    await handleWebShare({
+      files: [
+        {
+          name: 'a.png',
+          type: 'image/png',
+          data: 'data:image/png;base64,aaa',
+        },
+        {
+          name: 'b.pdf',
+          type: 'application/pdf',
+          data: 'JVBERi0=',
+        },
+      ],
+    });
+
+    expect(Share.open).toHaveBeenCalledWith(
+      expect.objectContaining({
+        urls: [
+          'data:image/png;base64,aaa',
+          'data:application/pdf;base64,JVBERi0=',
+        ],
+        filenames: ['a.png', 'b.pdf'],
+      }),
+    );
+    expect(Share.open).toHaveBeenCalledWith(
+      expect.not.objectContaining({ useInternalStorage: true }),
+    );
+  });
+
+  describe('result reporting', () => {
+    it('returns an error status when there is nothing to share', async () => {
+      const result = await handleWebShare({ title: 'Title only' });
+
+      expect(result).toEqual({
+        status: 'error',
+        message: 'Nothing to share',
+      });
+    });
+
+    it('returns success when a text share is completed', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+      (RNShare.share as jest.Mock).mockResolvedValue({
+        action: RNShare.sharedAction,
+      });
+
+      const result = await handleWebShare({ url: 'https://example.com' });
+
+      expect(result).toEqual({ status: 'success' });
+    });
+
+    it('returns cancelled when the iOS share sheet is dismissed', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      (RNShare.share as jest.Mock).mockResolvedValue({
+        action: RNShare.dismissedAction,
+      });
+
+      const result = await handleWebShare({ url: 'https://example.com' });
+
+      expect(result).toEqual({ status: 'cancelled' });
+    });
+
+    it('returns success when a file share is completed', async () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+      (Share.open as jest.Mock).mockResolvedValueOnce({ success: true });
+
+      const result = await handleWebShare({
+        files: [
+          {
+            name: 'card.png',
+            type: 'image/png',
+            data: 'data:image/png;base64,abc123',
+          },
+        ],
+      });
+
+      expect(result).toEqual({ status: 'success' });
+    });
+
+    it('returns cancelled when a file share is dismissed', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      (Share.open as jest.Mock).mockResolvedValueOnce({
+        success: false,
+        dismissedAction: true,
+      });
+
+      const result = await handleWebShare({
+        files: [
+          {
+            name: 'card.png',
+            type: 'image/png',
+            data: 'data:image/png;base64,abc123',
+          },
+        ],
+      });
+
+      expect(result).toEqual({ status: 'cancelled' });
+    });
+
+    it('returns an error status when the native share throws', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      (Share.open as jest.Mock).mockRejectedValueOnce(new Error('boom'));
+
+      const result = await handleWebShare({
+        files: [
+          {
+            name: 'card.png',
+            type: 'image/png',
+            data: 'data:image/png;base64,abc123',
+          },
+        ],
+      });
+
+      expect(result).toEqual({ status: 'error', message: 'boom' });
+    });
+  });
 });

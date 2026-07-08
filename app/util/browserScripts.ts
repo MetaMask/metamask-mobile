@@ -186,6 +186,35 @@ const WEB_SHARE_CAN_SHARE_FN = `function canShareData(data) {
     return !!(data.url || data.text || data.title);
   }`;
 
+// Resolves/rejects the promise returned by navigator.share() once the native
+// side reports the real outcome (a target was picked, or the sheet was
+// cancelled/failed). Native calls window.__mmResolveWebShare via injected JS.
+const WEB_SHARE_RESOLVE_FN = `function resolveWebShare(id, status, message) {
+    var pending = window.__mmWebSharePending;
+    if (!pending || !pending[id]) {
+      return;
+    }
+    var entry = pending[id];
+    delete pending[id];
+    if (status === 'success') {
+      entry.resolve();
+      return;
+    }
+    // The Web Share API rejects with an AbortError DOMException both when the
+    // user cancels and when sharing fails, so pages can catch() either case.
+    var reason;
+    try {
+      reason = new DOMException(
+        message || (status === 'cancelled' ? 'Share canceled' : 'Share failed'),
+        'AbortError',
+      );
+    } catch (e) {
+      reason = new Error(message || 'Share failed');
+      reason.name = 'AbortError';
+    }
+    entry.reject(reason);
+  }`;
+
 const WEB_SHARE_SHARE_FN = `function shareData(data) {
     if (!window.ReactNativeWebView || !window.ReactNativeWebView.postMessage) {
       return Promise.reject(new Error('Share failed'));
@@ -200,15 +229,26 @@ const WEB_SHARE_SHARE_FN = `function shareData(data) {
       : Promise.all(files.map(readFileAsBase64));
 
     return readFiles.then(function (encodedFiles) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: ${JSON.stringify(WEB_SHARE_MESSAGE_TYPE)},
-        payload: {
-          url: data.url,
-          text: data.text,
-          title: data.title,
-          files: encodedFiles,
-        },
-      }));
+      // Do NOT resolve here: the Web Share API contract requires the promise to
+      // settle only after the user picks a target (resolve) or cancels/fails
+      // (reject). Register the pending promise so the native result handler can
+      // settle it once the share sheet is dismissed.
+      return new Promise(function (resolve, reject) {
+        var pending = window.__mmWebSharePending || (window.__mmWebSharePending = {});
+        var id =
+          'mm-share-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+        pending[id] = { resolve: resolve, reject: reject };
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: ${JSON.stringify(WEB_SHARE_MESSAGE_TYPE)},
+          payload: {
+            id: id,
+            url: data.url,
+            text: data.text,
+            title: data.title,
+            files: encodedFiles,
+          },
+        }));
+      });
     });
   }`;
 
@@ -222,7 +262,12 @@ export const buildWebSharePolyfillScript = (forceInstall = false): string =>
   `(function () {
   ${WEB_SHARE_READ_FILE_FN}
   ${WEB_SHARE_CAN_SHARE_FN}
+  ${WEB_SHARE_RESOLVE_FN}
   ${WEB_SHARE_SHARE_FN}
+
+  // Persist across re-injections so an in-flight share can still be settled.
+  window.__mmWebSharePending = window.__mmWebSharePending || {};
+  window.__mmResolveWebShare = resolveWebShare;
 
   ${
     forceInstall
@@ -257,6 +302,34 @@ true;`;
  * Polyfill script for Android WebView. Always overrides share/canShare.
  */
 export const WEB_SHARE_API_POLYFILL_SCRIPT = buildWebSharePolyfillScript(true);
+
+/** Outcome of a native Web Share request, reported back to the page. */
+export type WebShareResultStatus = 'success' | 'cancelled' | 'error';
+
+/**
+ * Builds a script that settles the promise returned by a polyfilled
+ * `navigator.share()` call. Injected by the native side once the share sheet
+ * has been dismissed so the page can distinguish success from cancel/failure.
+ *
+ * @param id - The request id echoed back from the original share message.
+ * @param status - Whether the share succeeded, was cancelled, or failed.
+ * @param message - Optional detail used as the rejection reason message.
+ */
+export const buildWebShareResultScript = (
+  id: string,
+  status: WebShareResultStatus,
+  message?: string,
+): string =>
+  `(function () {
+  if (typeof window.__mmResolveWebShare === 'function') {
+    window.__mmResolveWebShare(
+      ${JSON.stringify(id)},
+      ${JSON.stringify(status)},
+      ${JSON.stringify(message ?? '')}
+    );
+  }
+})();
+true;`;
 
 /** Shown when Android WebView resolves image clipboard writes without copying. */
 export const WEB_CLIPBOARD_IMAGE_UNSUPPORTED_MESSAGE =

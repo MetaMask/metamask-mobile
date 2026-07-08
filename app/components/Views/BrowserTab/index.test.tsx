@@ -126,7 +126,7 @@ jest.mock('../../../util/phishingDetection', () => ({
 }));
 
 jest.mock('../../../util/browser/handleWebShare', () => ({
-  handleWebShare: jest.fn(() => Promise.resolve()),
+  handleWebShare: jest.fn(() => Promise.resolve({ status: 'success' })),
 }));
 
 jest.mock('../../../util/browser/handleWebDownload', () => ({
@@ -634,6 +634,46 @@ describe('BrowserTab', () => {
       });
 
       expect(handleWebShare).toHaveBeenCalledWith(sharePayload);
+    });
+
+    it('injects the share result back into the WebView to settle navigator.share()', async () => {
+      (handleWebShare as jest.Mock).mockResolvedValueOnce({
+        status: 'cancelled',
+      });
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+
+      mockInjectJavaScript.mockClear();
+
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: WEB_SHARE_MESSAGE_TYPE,
+            payload: {
+              id: 'mm-share-123',
+              url: 'https://example.com',
+            },
+          }),
+        },
+      });
+
+      await waitFor(() => {
+        const injectedResultScript = mockInjectJavaScript.mock.calls
+          .map((call) => call[0] as string)
+          .find((script) => script.includes('__mmResolveWebShare'));
+        expect(injectedResultScript).toBeDefined();
+        expect(injectedResultScript).toContain('mm-share-123');
+        expect(injectedResultScript).toContain('cancelled');
+      });
     });
 
     it('routes Web Download messages to handleWebDownload', async () => {
