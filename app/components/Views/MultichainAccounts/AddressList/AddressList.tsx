@@ -10,7 +10,7 @@ import {
   selectInternalAccountListSpreadByScopesByGroupId,
   selectInternalAccountsByGroupId,
 } from '../../../../selectors/multichainAccounts/accounts';
-import { IconName, Toaster, toast } from '@metamask/design-system-react-native';
+import { IconName, toast } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -156,7 +156,6 @@ export const AddressList = () => {
         renderItem={renderAddressItem}
         onLoad={onLoad}
       />
-      <Toaster />
     </View>
   );
 };
