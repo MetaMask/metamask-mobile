@@ -1388,9 +1388,8 @@ const App: React.FC = () => {
         {/*
           FullWindowOverlay (iOS) renders <Toaster /> in a UIWindow above every native
           layer — including native-stack card screens — which a plain absolute View as a
-          sibling of <AppFlow /> cannot reach. On Android it is a passthrough. Legacy
-          <Toast /> stays outside the overlay; MMDS toasts require this wrapper to show
-          on pushed flows such as address list, private key list, and account connect.
+          sibling of <AppFlow /> cannot reach. Without this wrapper some Toasts render 
+          behind the native stack card screens and are not visible.
         */}
         <FullWindowOverlay>
           <Toaster />
