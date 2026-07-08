@@ -172,11 +172,11 @@
   "previewBuilds": {
     "@metamask/ramps-controller": {
       "type": "non-breaking",
-      "previewVersion": "15.1.0-preview-bbd2df29f"
+      "previewVersion": "15.1.0-preview-aa4ef4666"
     }
   },
   "resolutions": {
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@15.1.0-preview-bbd2df29f",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@15.1.0-preview-aa4ef4666",
     "@metamask/perps-controller": "^9.0.0",
     "@metamask/network-controller": "33.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
