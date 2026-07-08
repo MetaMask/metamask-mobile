@@ -27,6 +27,7 @@ import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import {
   BottomSheet,
   HeaderStandard,
@@ -417,6 +418,16 @@ const Checkout = () => {
           }
           addOrder(rampsOrder);
 
+          // TRAM-3623/3691: carry the headless context (surface + region) so the
+          // terminal RAMPS_TRANSACTION_FAILED is tagged HEADLESS — whether it
+          // fails now (read by emitTerminalOrderAnalyticsFromCallback below) or
+          // later via polling/relaunch. Mirrors useTransakRouting; safe here
+          // because this branch is already headless-gated.
+          setHeadlessOrderContext(rampsOrder.providerOrderId, {
+            rampSurface: headlessRampSurface,
+            region: regionCode ?? '',
+          });
+
           // TRAM-3691: headless callback skips OrderDetails, so an
           // already-terminal order here is never polled and its terminal
           // metrics event would be lost. Emit it directly (no-ops for
@@ -490,6 +501,8 @@ const Checkout = () => {
       providerName,
       effectiveOrderId,
       headlessBaseOverrides,
+      headlessRampSurface,
+      regionCode,
     ],
   );
 
