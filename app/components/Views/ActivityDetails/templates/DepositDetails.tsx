@@ -13,7 +13,7 @@ export function DepositDetails({
 }: {
   item: Extract<
     ActivityListItem,
-    { type: 'buy' | 'claim' | 'deposit' | 'unstake' }
+    { type: 'buy' | 'claim' | 'deposit' | 'stake' | 'unstake' }
   >;
 }) {
   return (
