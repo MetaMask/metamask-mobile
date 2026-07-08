@@ -795,6 +795,22 @@ export function mapLocalTransaction(
       };
     }
 
+    case TransactionType.deployContract: {
+      return {
+        type: 'contractDeployment',
+        chainId,
+        status,
+        timestamp,
+        hash,
+        raw: { type: 'localTransaction', data: transactionGroup },
+        data: {
+          from,
+          to,
+          ...(fees ? { fees } : {}),
+        },
+      };
+    }
+
     default: {
       const isSupplyContractInteraction =
         initialTransaction.type === TransactionType.contractInteraction &&
