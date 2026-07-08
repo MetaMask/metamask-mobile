@@ -9,7 +9,10 @@ import {
 } from '@metamask/preferences-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { UserFeeLevel } from '@metamask/transaction-controller';
-import type { PreferencesStateWithSavedGasFees } from './preferences-controller-types';
+import type {
+  MutablePreferencesControllerWithSavedGasFees,
+  PreferencesStateWithSavedGasFees,
+} from './preferences-controller-types';
 
 jest.mock('@metamask/preferences-controller');
 
@@ -66,7 +69,9 @@ describe('PreferencesControllerInit', () => {
       controller: ReturnType<typeof preferencesControllerInit>['controller'],
       state: PreferencesStateWithSavedGasFees,
     ) {
-      const updateMock = jest.mocked(controller.update);
+      const mutableController =
+        controller as unknown as MutablePreferencesControllerWithSavedGasFees;
+      const updateMock = jest.mocked(mutableController.update);
       const callback = updateMock.mock.calls[
         updateMock.mock.calls.length - 1
       ][0] as (draftState: PreferencesStateWithSavedGasFees) => void;
@@ -76,9 +81,9 @@ describe('PreferencesControllerInit', () => {
 
     it('saves gas fee preferences for the normalized account on the chain', () => {
       const { controller } = preferencesControllerInit(getInitRequestMock());
-      const state: PreferencesStateWithSavedGasFees = {
+      const state = {
         advancedGasFee: {},
-      } as PreferencesStateWithSavedGasFees;
+      } as unknown as PreferencesStateWithSavedGasFees;
 
       controller.setAdvancedGasFee({
         account,
@@ -106,7 +111,7 @@ describe('PreferencesControllerInit', () => {
     it('merges new preferences with existing preferences for other accounts on the chain', () => {
       const { controller } = preferencesControllerInit(getInitRequestMock());
       const otherAccount = '0xdef0000000000000000000000000000000000d';
-      const state: PreferencesStateWithSavedGasFees = {
+      const state = {
         advancedGasFee: {
           [chainId]: {
             [otherAccount]: {
@@ -116,7 +121,7 @@ describe('PreferencesControllerInit', () => {
             },
           },
         },
-      } as PreferencesStateWithSavedGasFees;
+      } as unknown as PreferencesStateWithSavedGasFees;
 
       controller.setAdvancedGasFee({
         account,
@@ -149,7 +154,7 @@ describe('PreferencesControllerInit', () => {
     it('removes the preference for the account when gasFeePreferences is undefined', () => {
       const { controller } = preferencesControllerInit(getInitRequestMock());
       const otherAccount = '0xdef0000000000000000000000000000000000d';
-      const state: PreferencesStateWithSavedGasFees = {
+      const state = {
         advancedGasFee: {
           [chainId]: {
             [account.toLowerCase()]: {
@@ -164,7 +169,7 @@ describe('PreferencesControllerInit', () => {
             },
           },
         },
-      } as PreferencesStateWithSavedGasFees;
+      } as unknown as PreferencesStateWithSavedGasFees;
 
       controller.setAdvancedGasFee({
         account,
