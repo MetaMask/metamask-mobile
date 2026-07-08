@@ -1,5 +1,7 @@
 import type {
   PredictMarketGame,
+  PredictOutcome,
+  PredictOutcomeToken,
   PredictSportTeam,
   PredictSportsLeague,
 } from '../types';
@@ -181,6 +183,10 @@ interface TeamMatchedOutcome {
   tokens: { title?: string }[];
 }
 
+interface SportsTeamLogoMarket extends NegRiskSportsMarket {
+  sportsMarketType?: string;
+}
+
 export const hasNegRiskMoneylineGroupItem = <T extends NegRiskSportsMarket>(
   market: T,
 ): market is T & { groupItemTitle: string } =>
@@ -235,6 +241,14 @@ export const getMatchingSportTeam = (
     sportTeamMatchesLabel(groupItemTitle, team),
   );
 
+const isGenericTeamLabel = (label: string): boolean => {
+  const normalizedLabel = normalizeTeamLabel(label);
+  return (
+    normalizedLabel === 'team to advance' ||
+    normalizedLabel?.startsWith('draw') === true
+  );
+};
+
 export const resolveNegRiskMoneylineShortTitles = (
   market: NegRiskSportsMarket,
   game: PredictMarketGame,
@@ -271,6 +285,76 @@ export const getNegRiskMoneylineTeamLogo = (
   }
 
   return getMatchingSportTeam(market.groupItemTitle, game)?.logo;
+};
+
+const hasSportsMarketTeamGroupItem = <T extends SportsTeamLogoMarket>(
+  market: T,
+): market is T & { groupItemTitle: string } =>
+  Boolean(
+    market.groupItemTitle &&
+      (hasNegRiskMoneylineGroupItem(market) ||
+        isTeamToAdvanceMarketType(market.sportsMarketType)),
+  );
+
+export const getSportsMarketTeamLogo = (
+  market: SportsTeamLogoMarket,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (!game || !hasSportsMarketTeamGroupItem(market)) {
+    return undefined;
+  }
+
+  if (isGenericTeamLabel(market.groupItemTitle)) {
+    return undefined;
+  }
+
+  return getMatchingSportTeam(market.groupItemTitle, game)?.logo;
+};
+
+export const getTeamToAdvanceTokenLogo = (
+  tokenTitle: string | undefined,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (!game || !tokenTitle || isGenericTeamLabel(tokenTitle)) {
+    return undefined;
+  }
+
+  return getMatchingSportTeam(tokenTitle, game)?.logo;
+};
+
+export const getTokenImage = ({
+  sportsMarketType,
+  tokenTitle,
+  game,
+}: {
+  sportsMarketType?: string;
+  tokenTitle?: string;
+  game?: PredictMarketGame;
+}): string | undefined => {
+  if (isTeamToAdvanceMarketType(sportsMarketType)) {
+    return getTeamToAdvanceTokenLogo(tokenTitle, game);
+  }
+
+  return undefined;
+};
+
+export const getBuyOutcomeImage = ({
+  outcome,
+  outcomeToken,
+  game,
+}: {
+  outcome: PredictOutcome;
+  outcomeToken?: PredictOutcomeToken;
+  game?: PredictMarketGame;
+}): string | undefined => {
+  if (
+    game?.league === WORLD_CUP_LEAGUE &&
+    isTeamToAdvanceMarketType(outcome.sportsMarketType)
+  ) {
+    return outcomeToken?.image ?? outcome.image;
+  }
+
+  return outcome.image;
 };
 
 export const getPrimaryMoneylineOutcomes = <

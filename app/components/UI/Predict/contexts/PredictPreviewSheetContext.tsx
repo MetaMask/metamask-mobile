@@ -52,7 +52,7 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
-import { shouldShowRegTimeTag } from '../constants/sports';
+import { getBuyOutcomeImage, shouldShowRegTimeTag } from '../constants/sports';
 import { usePredictBottomSheet } from '../hooks/usePredictBottomSheet';
 import PredictRegTimeInfoSheet from '../components/PredictGameDetailsContent/PredictRegTimeInfoSheet';
 
@@ -546,7 +546,11 @@ export const PredictPreviewSheetProvider: React.FC<
           ref={buySheetRef}
           isFullscreen={false}
           title={getBuySheetTitle(buyParams)}
-          image={buyParams.outcome?.image}
+          image={getBuyOutcomeImage({
+            outcome: buyParams.outcome,
+            outcomeToken: buyParams.outcomeToken,
+            game: buyParams.market.game,
+          })}
           subtitle={getBuySheetSubtitle(buyParams)}
           renderRightComponent={
             showBuyRegTimeTag

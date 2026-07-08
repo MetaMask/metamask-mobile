@@ -677,6 +677,116 @@ describe('polymarket utils', () => {
     );
   });
 
+  it('parses World Cup team-to-advance tokens with team logos', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      fra: {
+        id: 'team-fra',
+        name: 'France',
+        logo: 'fra.png',
+        abbreviation: 'fra',
+        color: 'blue',
+        alias: 'FRA',
+        league: 'fifwc',
+      },
+      mar: {
+        id: 'team-mar',
+        name: 'Morocco',
+        logo: 'mar.png',
+        abbreviation: 'mar',
+        color: 'red',
+        alias: 'MAR',
+        league: 'fifwc',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: 'event-team-to-advance',
+      slug: 'fifwc-fra-mar-2026-07-09',
+      title: 'France vs Morocco',
+      description: 'World Cup match',
+      icon: 'event-icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '11433',
+          slug: 'world-cup',
+          title: 'World Cup',
+          recurrence: 'none',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-team-to-advance',
+          question: 'France vs. Morocco: Team to Advance',
+          description: 'Team to advance market',
+          icon: 'soccer-ball.png',
+          image: 'soccer-ball.png',
+          groupItemTitle: 'Team to Advance',
+          groupItemThreshold: 11,
+          sportsMarketType: 'soccer_team_to_advance',
+          status: 'open',
+          volumeNum: 1889622.657849014,
+          liquidity: 3102688.1944,
+          negRisk: false,
+          clobTokenIds: '["token-fra","token-mar"]',
+          outcomes: '["France","Morocco"]',
+          outcomePrices: '["0.785","0.215"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'games', label: 'Games', slug: 'games' },
+        { id: 'world-cup', label: 'World Cup', slug: 'fifa-world-cup' },
+      ],
+      liquidity: 3102688.1944,
+      volume: 1889622.657849014,
+      gameId: 'game-fra-mar',
+      startTime: '2026-07-09T20:00:00.000Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: 'game-fra-mar',
+        league: 'fifwc',
+        homeTeam: expect.objectContaining({ abbreviation: 'fra' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'mar' }),
+      }),
+    );
+    expect(market.outcomes[0]).toEqual(
+      expect.objectContaining({
+        image: 'soccer-ball.png',
+        groupItemTitle: 'Team to Advance',
+        sportsMarketType: 'soccer_team_to_advance',
+        tokens: [
+          expect.objectContaining({
+            id: 'token-fra',
+            title: 'France',
+            shortTitle: 'fra',
+            image: 'fra.png',
+          }),
+          expect.objectContaining({
+            id: 'token-mar',
+            title: 'Morocco',
+            shortTitle: 'mar',
+            image: 'mar.png',
+          }),
+        ],
+      }),
+    );
+  });
+
   it('does not apply team logo and short title normalization to non-moneyline markets', () => {
     const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
       usa: {

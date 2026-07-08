@@ -5,6 +5,7 @@ import {
 } from '@react-navigation/native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { Image } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket } from '../../types';
@@ -2148,6 +2149,50 @@ describe('PredictBuyPreview', () => {
       expect(screen.getByText('Korea Republic')).toBeOnTheScreen();
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
       expect(screen.queryByText('Korea Republic at 50¢')).not.toBeOnTheScreen();
+    });
+
+    it('uses token image for World Cup team-to-advance picks', () => {
+      const teamToAdvanceMarket: PredictMarket = {
+        ...mockMarket,
+        title: 'France vs. Morocco',
+        game: { league: 'fifwc' } as PredictMarket['game'],
+        outcomes: [
+          {
+            ...mockMarket.outcomes[0],
+            title: 'France vs. Morocco: Team to Advance',
+            groupItemTitle: 'Team to Advance',
+            image: 'https://example.com/soccer-ball.png',
+            sportsMarketType: 'soccer_team_to_advance',
+            tokens: [
+              {
+                id: 'outcome-token-789',
+                title: 'France',
+                price: 0.785,
+                image: 'https://example.com/france.png',
+              },
+            ],
+          },
+        ],
+      };
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          market: teamToAdvanceMarket,
+          outcome: teamToAdvanceMarket.outcomes[0],
+          outcomeToken: teamToAdvanceMarket.outcomes[0].tokens[0],
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      const { UNSAFE_getByType } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      expect(UNSAFE_getByType(Image).props.source).toEqual({
+        uri: 'https://example.com/france.png',
+      });
     });
   });
 

@@ -559,6 +559,35 @@ describe('PredictPreviewSheetContext', () => {
     expect(screen.getByTestId('sheet-image')).toBeOnTheScreen();
   });
 
+  it('passes token image to buy sheet for World Cup team-to-advance', () => {
+    const params = createWorldCupBuyParams({
+      outcome: {
+        ...buyParams.outcome,
+        title: 'France vs. Morocco: Team to Advance',
+        groupItemTitle: 'Team to Advance',
+        image: 'https://example.com/soccer-ball.png',
+        sportsMarketType: 'soccer_team_to_advance',
+      } as PredictBuyPreviewParams['outcome'],
+      outcomeToken: {
+        ...buyParams.outcomeToken,
+        title: 'France',
+        image: 'https://example.com/france.png',
+      },
+    });
+
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer buyParamsOverride={params} />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('sheet-image')).toHaveTextContent(
+      'https://example.com/france.png',
+    );
+  });
+
   it('renders provider-normalized moneyline team selections in the buy sheet header', () => {
     const moneylineBuyParams: PredictBuyPreviewParams = {
       market: {

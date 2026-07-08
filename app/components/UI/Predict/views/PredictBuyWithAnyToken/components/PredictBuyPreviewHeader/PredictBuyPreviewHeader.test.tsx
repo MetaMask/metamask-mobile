@@ -1,5 +1,6 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
+import { Image } from 'react-native';
 import PredictBuyPreviewHeader, {
   PredictBuyPreviewHeaderTitle,
   PredictBuyPreviewHeaderBack,
@@ -384,6 +385,43 @@ describe('PredictBuyPreviewHeader', () => {
 
       expect(screen.getAllByText(/Korea Republic/).length).toBeGreaterThan(0);
       expect(screen.getByText(/Yes at 0\.65¢/)).toBeOnTheScreen();
+    });
+
+    it('uses token image for World Cup team-to-advance picks', () => {
+      const market = createMockMarket({
+        title: 'France vs. Morocco',
+        game: { league: 'fifwc' } as PredictMarket['game'],
+      });
+      const outcome = createMockOutcome({
+        title: 'France vs. Morocco: Team to Advance',
+        groupItemTitle: 'Team to Advance',
+        image: 'https://example.com/soccer-ball.png',
+        sportsMarketType: 'soccer_team_to_advance',
+        tokens: [
+          {
+            id: 'token-1',
+            title: 'France',
+            price: 0.785,
+            image: 'https://example.com/france.png',
+          },
+        ],
+      });
+      const { UNSAFE_getByType } = renderWithProvider(
+        <PredictBuyPreviewHeaderTitle
+          market={market}
+          outcome={outcome}
+          outcomeToken={createMockOutcomeToken({
+            id: 'token-1',
+            title: 'France',
+            price: 0.785,
+            image: 'https://example.com/france.png',
+          })}
+        />,
+      );
+
+      expect(UNSAFE_getByType(Image).props.source).toEqual({
+        uri: 'https://example.com/france.png',
+      });
     });
 
     it('applies success color for Yes outcome', () => {

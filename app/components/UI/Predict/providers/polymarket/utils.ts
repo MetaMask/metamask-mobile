@@ -29,7 +29,8 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
-  getNegRiskMoneylineTeamLogo,
+  getSportsMarketTeamLogo,
+  getTokenImage,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
   resolveNegRiskMoneylineShortTitles,
@@ -813,10 +814,17 @@ const parsePolymarketMarketOutcomes = (
         shortTitle = negRiskShort.noShort;
       }
 
+      const tokenImage = getTokenImage({
+        sportsMarketType: market.sportsMarketType,
+        tokenTitle: title,
+        game,
+      });
+
       return {
         id: tokenId,
         title,
         ...(shortTitle && { shortTitle }),
+        ...(tokenImage && { image: tokenImage }),
         price: parseFloat(outcomePrices[index]),
       };
     },
@@ -915,8 +923,7 @@ export const parsePolymarketMarket = (
   marketId: event.id,
   title: market.question,
   description: market.description,
-  image:
-    getNegRiskMoneylineTeamLogo(market, game) ?? market.icon ?? market.image,
+  image: getSportsMarketTeamLogo(market, game) ?? market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   groupItemThreshold:
     market.groupItemThreshold != null

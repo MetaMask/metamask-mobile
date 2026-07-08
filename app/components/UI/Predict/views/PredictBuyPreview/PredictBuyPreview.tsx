@@ -74,6 +74,7 @@ import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
+import { getBuyOutcomeImage } from '../../constants/sports';
 import {
   getPredictBuyAllInCost,
   getPredictExchangeFee,
@@ -423,7 +424,13 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>
       <Image
-        source={{ uri: outcome?.image }}
+        source={{
+          uri: getBuyOutcomeImage({
+            outcome,
+            outcomeToken,
+            game: market.game,
+          }),
+        }}
         style={tw.style('w-10 h-10 rounded')}
       />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">

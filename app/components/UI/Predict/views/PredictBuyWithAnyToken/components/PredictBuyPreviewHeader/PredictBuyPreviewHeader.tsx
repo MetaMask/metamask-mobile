@@ -20,6 +20,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../../../types';
+import { getBuyOutcomeImage } from '../../../../constants/sports';
 import { formatCents } from '../../../../utils/format';
 import { getDisplayBuyPrice } from '../../../../utils/prices';
 
@@ -81,7 +82,13 @@ export function PredictBuyPreviewHeaderTitle({
       twClassName="flex-1 min-w-0 gap-3"
     >
       <Image
-        source={{ uri: outcome.image }}
+        source={{
+          uri: getBuyOutcomeImage({
+            outcome,
+            outcomeToken,
+            game: market.game,
+          }),
+        }}
         style={tw.style('w-10 h-10 rounded')}
       />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">

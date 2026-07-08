@@ -1,11 +1,15 @@
 import {
   MONEYLINE_MARKET_TYPES,
   filterSupportedLeagues,
+  getBuyOutcomeImage,
   getMatchingSportTeam,
   getNegRiskMoneylineTeamLogo,
   getPrimaryMoneylineOutcomes,
   getPrimarySportsCardOutcomes,
+  getSportsMarketTeamLogo,
+  getTeamToAdvanceTokenLogo,
   getTeamOutcome,
+  getTokenImage,
   hasNegRiskMoneylineGroupItem,
   isMoneylineLikeMarketType,
   isTeamToAdvanceMarketType,
@@ -14,7 +18,7 @@ import {
   shouldShowRegTimeTag,
   sportTeamMatchesLabel,
 } from './sports';
-import type { PredictMarketGame } from '../types';
+import type { PredictMarketGame, PredictOutcome } from '../types';
 
 const game: PredictMarketGame = {
   id: 'game-1',
@@ -409,5 +413,101 @@ describe('sports moneyline helpers', () => {
         game,
       ),
     ).toBeUndefined();
+  });
+
+  it('uses team logos for team-to-advance group item markets', () => {
+    expect(
+      getSportsMarketTeamLogo(
+        {
+          sportsMarketType: 'soccer_team_to_advance',
+          groupItemTitle: 'Czechia',
+        },
+        game,
+      ),
+    ).toBe('https://example.com/czechia.png');
+    expect(
+      getSportsMarketTeamLogo(
+        {
+          sportsMarketType: 'soccer_team_to_advance',
+          groupItemTitle: 'Team to Advance',
+        },
+        game,
+      ),
+    ).toBeUndefined();
+    expect(
+      getSportsMarketTeamLogo(
+        {
+          sportsMarketType: 'soccer_team_to_advance',
+          groupItemTitle: 'Draw',
+        },
+        game,
+      ),
+    ).toBeUndefined();
+  });
+
+  it('uses team logos for combined team-to-advance tokens', () => {
+    expect(getTeamToAdvanceTokenLogo('Korea Republic', game)).toBe(
+      'https://example.com/korea.png',
+    );
+    expect(getTeamToAdvanceTokenLogo('CZE', game)).toBe(
+      'https://example.com/czechia.png',
+    );
+    expect(getTeamToAdvanceTokenLogo('Team to Advance', game)).toBeUndefined();
+  });
+
+  it('resolves token images based on sports market type', () => {
+    expect(
+      getTokenImage({
+        sportsMarketType: 'soccer_team_to_advance',
+        tokenTitle: 'Korea Republic',
+        game,
+      }),
+    ).toBe('https://example.com/korea.png');
+    expect(
+      getTokenImage({
+        sportsMarketType: 'moneyline',
+        tokenTitle: 'Korea Republic',
+        game,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('uses token images only for World Cup team-to-advance buy headers', () => {
+    const teamToAdvanceOutcome = {
+      image: 'https://example.com/outcome.png',
+      sportsMarketType: 'soccer_team_to_advance',
+    } as PredictOutcome;
+    const moneylineOutcome = {
+      image: 'https://example.com/moneyline.png',
+      sportsMarketType: 'moneyline',
+    } as PredictOutcome;
+    const outcomeToken = {
+      id: 'token-1',
+      title: 'Korea Republic',
+      image: 'https://example.com/token.png',
+      price: 0.5,
+    };
+
+    expect(
+      getBuyOutcomeImage({
+        outcome: teamToAdvanceOutcome,
+        outcomeToken,
+        game,
+      }),
+    ).toBe('https://example.com/token.png');
+    expect(
+      getBuyOutcomeImage({
+        outcome: teamToAdvanceOutcome,
+        outcomeToken,
+        game: { ...game, league: 'ucl' },
+      }),
+    ).toBe('https://example.com/outcome.png');
+    expect(
+      getBuyOutcomeImage({
+        outcome: moneylineOutcome,
+        outcomeToken,
+        game,
+      }),
+    ).toBe('https://example.com/moneyline.png');
   });
 });
