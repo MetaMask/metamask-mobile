@@ -28,6 +28,20 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../AnimatedMoneyCard', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      cardType,
+      testID,
+    }: {
+      cardType: 'virtual' | 'metal';
+      testID?: string;
+    }) => <View testID={testID} accessibilityLabel={`card-${cardType}`} />,
+  };
+});
+
 describe('MoneyMetaMaskCard', () => {
   const analyticsProps = {
     analyticsScreen: CardScreens.MONEY_HOME,

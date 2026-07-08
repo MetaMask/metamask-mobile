@@ -23,6 +23,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
+import AnimatedMoneyCard from '../AnimatedMoneyCard';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
 import styles from './MoneyMetaMaskCard.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -34,7 +35,6 @@ import {
 } from '../../../Card/util/metrics';
 
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
-import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 
 interface MoneyMetaMaskCardProps {
@@ -209,8 +209,8 @@ const LinkContent = ({
           twClassName="gap-4"
           testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
         >
-          <Image
-            source={showMetalCard ? mmCardMetal : mmCardRegular}
+          <AnimatedMoneyCard
+            cardType={showMetalCard ? 'metal' : 'virtual'}
             style={styles.linkCardImage}
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
@@ -236,7 +236,7 @@ const LinkContent = ({
 };
 
 const ManageRow = ({
-  imageSource,
+  showMetalCard,
   title,
   subtitle,
   isBalanceStale = false,
@@ -247,7 +247,7 @@ const ManageRow = ({
   ctaTestID,
   subtitleTestID,
 }: {
-  imageSource: ImageSourcePropType;
+  showMetalCard: boolean;
   title: string;
   subtitle?: string;
   isBalanceStale?: boolean;
@@ -270,7 +270,10 @@ const ManageRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-3 flex-1"
     >
-      <Image source={imageSource} style={styles.manageCardImage} />
+      <AnimatedMoneyCard
+        cardType={showMetalCard ? 'metal' : 'virtual'}
+        style={styles.manageCardImage}
+      />
       <Box twClassName="gap-1 flex-1">
         <Box>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -322,7 +325,7 @@ const ManageContent = ({
 }) => (
   <Box twClassName="gap-2" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
     <ManageRow
-      imageSource={showMetalCard ? mmCardMetal : mmCardRegular}
+      showMetalCard={showMetalCard}
       title={strings('money.metamask_card.avail_balance')}
       subtitle={cardBalance}
       isBalanceStale={isBalanceStale}

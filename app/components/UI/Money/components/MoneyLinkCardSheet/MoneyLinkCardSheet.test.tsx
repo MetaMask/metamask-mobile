@@ -11,8 +11,6 @@ import {
   selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
 import { CardType } from '../../../Card/types';
-import mmCardRegular from '../../../../../images/mm_card_regular.png';
-import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   CardActions,
@@ -64,6 +62,20 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('../AnimatedMoneyCard', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      cardType,
+      testID,
+    }: {
+      cardType: 'virtual' | 'metal';
+      testID?: string;
+    }) => <View testID={testID} accessibilityLabel={`card-${cardType}`} />,
+  };
+});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -255,42 +267,39 @@ describe('MoneyLinkCardSheet', () => {
   });
 
   describe('card illustration adapts to user card type', () => {
-    const getCardImageSource = (
-      root: ReturnType<typeof renderWithProvider>,
-    ) => {
+    const getCardType = (root: ReturnType<typeof renderWithProvider>) => {
       const illustration = root.getByTestId(
         MoneyLinkCardSheetTestIds.ILLUSTRATION,
       );
-      const image = illustration.findByProps({ resizeMode: 'contain' });
-      return image.props.source;
+      return illustration.props.accessibilityLabel;
     };
 
-    it('renders the metal card image when the user has a metal card', () => {
+    it('renders the metal card when the user has a metal card', () => {
       mockSelectCardHomeData.mockReturnValue({
         card: { type: CardType.METAL },
       });
 
       const root = renderWithProvider(<MoneyLinkCardSheet />);
 
-      expect(getCardImageSource(root)).toBe(mmCardMetal);
+      expect(getCardType(root)).toBe('card-metal');
     });
 
-    it('renders the virtual card image when the user has a virtual card', () => {
+    it('renders the virtual card when the user has a virtual card', () => {
       mockSelectCardHomeData.mockReturnValue({
         card: { type: CardType.VIRTUAL },
       });
 
       const root = renderWithProvider(<MoneyLinkCardSheet />);
 
-      expect(getCardImageSource(root)).toBe(mmCardRegular);
+      expect(getCardType(root)).toBe('card-virtual');
     });
 
-    it('renders the virtual card image when there is no card data available', () => {
+    it('renders the virtual card when there is no card data available', () => {
       mockSelectCardHomeData.mockReturnValue(null);
 
       const root = renderWithProvider(<MoneyLinkCardSheet />);
 
-      expect(getCardImageSource(root)).toBe(mmCardRegular);
+      expect(getCardType(root)).toBe('card-virtual');
     });
   });
 
