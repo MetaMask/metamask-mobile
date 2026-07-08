@@ -38,6 +38,7 @@ import {
   isPerpsPredictMoneyWithdraw,
   nestedTxWithType,
   perpsPredictServiceFamily,
+  resolveMoneyDepositIntent,
 } from '../utils/moneyTransactionGuards';
 import useMoneyToasts from './useMoneyToasts';
 import {
@@ -200,6 +201,12 @@ export const useMoneyTransactionStatus = () => {
       return toastKey;
     };
 
+    // Prefer the intent captured when the deposit was initiated; fall back to
+    // deriving it from the transaction's own payment data when it's missing.
+    const resolveDepositIntent = (transactionMeta: TransactionMeta) =>
+      getMoneyAccountDepositIntent(transactionMeta.batchId) ??
+      resolveMoneyDepositIntent(transactionMeta);
+
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
@@ -210,7 +217,7 @@ export const useMoneyTransactionStatus = () => {
         if (isSend) {
           showToast(MoneyToastOptions.send.inProgress());
         } else if (isMoneyDepositTx(transactionMeta)) {
-          const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+          const intent = resolveDepositIntent(transactionMeta);
           showToast(MoneyToastOptions.deposit.inProgress({ intent }));
         } else {
           showToast(MoneyToastOptions.withdraw.inProgress());
@@ -227,7 +234,7 @@ export const useMoneyTransactionStatus = () => {
       if (isSend) {
         showToast(MoneyToastOptions.send.failed());
       } else if (isMoneyDepositTx(transactionMeta)) {
-        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        const intent = resolveDepositIntent(transactionMeta);
         showToast(MoneyToastOptions.deposit.failed({ intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
@@ -291,7 +298,7 @@ export const useMoneyTransactionStatus = () => {
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
-        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        const intent = resolveDepositIntent(transactionMeta);
         showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {

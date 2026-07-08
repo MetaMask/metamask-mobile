@@ -434,6 +434,55 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositFailedFn).toHaveBeenCalledWith({ intent: 'addMusd' });
     });
 
+    describe('intent falls back to the transaction funding method when no batch intent is stored', () => {
+      it('derives "card" from a fiat on-ramp deposit', () => {
+        const { statusUpdatedHandler } = renderAndGetHandlers();
+
+        statusUpdatedHandler({
+          transactionMeta: buildTxMeta({
+            id: 'tx-fiat-deposit',
+            type: TransactionType.moneyAccountDeposit,
+            status: TransactionStatus.approved,
+            metamaskPay: { fiat: true },
+          } as unknown as Partial<TransactionMeta>),
+        });
+        jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+        expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'card' });
+      });
+
+      it('derives "addMusd" from a deposit paid with mUSD', () => {
+        const { statusUpdatedHandler } = renderAndGetHandlers();
+
+        statusUpdatedHandler({
+          transactionMeta: buildTxMeta({
+            id: 'tx-musd-deposit',
+            type: TransactionType.moneyAccountDeposit,
+            status: TransactionStatus.approved,
+            metamaskPay: { tokenAddress: MUSD_ADDRESS },
+          } as unknown as Partial<TransactionMeta>),
+        });
+        jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+        expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+      });
+
+      it('derives "convert" from a crypto deposit with no fiat/mUSD payment', () => {
+        const { statusUpdatedHandler } = renderAndGetHandlers();
+
+        statusUpdatedHandler({
+          transactionMeta: buildTxMeta({
+            id: 'tx-crypto-deposit',
+            type: TransactionType.moneyAccountDeposit,
+            status: TransactionStatus.approved,
+          }),
+        });
+        jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+        expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'convert' });
+      });
+    });
+
     it('confirmed → success toast with decoded fiat amount', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
@@ -1119,7 +1168,10 @@ describe('useMoneyTransactionStatus', () => {
         }),
       );
 
-      expect(depositSuccessFn).toHaveBeenCalledWith({ amountFiat: undefined });
+      expect(depositSuccessFn).toHaveBeenCalledWith({
+        amountFiat: undefined,
+        intent: 'convert',
+      });
     });
   });
 
