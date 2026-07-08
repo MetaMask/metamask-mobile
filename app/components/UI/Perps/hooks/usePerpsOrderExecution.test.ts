@@ -99,6 +99,34 @@ describe('usePerpsOrderExecution', () => {
     });
   };
 
+  describe('limit orders (no position-render CUF)', () => {
+    it('confirms immediately without arming or waiting on the position stream', async () => {
+      const onSuccess = jest.fn();
+      mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'lim1' });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'limit',
+          price: '10000',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPlacing).toBe(false);
+      });
+
+      // Resting limit orders confirm on API success; the market baseline
+      // snapshot is never read because the CUF is not armed.
+      expect(onSuccess).toHaveBeenCalledWith();
+      expect(mockGetSnapshot).not.toHaveBeenCalled();
+    });
+  });
+
   describe('successful order placement', () => {
     it('calls onSuccess with the position once the stream renders it', async () => {
       const onSuccess = jest.fn();

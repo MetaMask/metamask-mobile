@@ -80,6 +80,11 @@ export function usePerpsOrderExecution(
       // Place-order CUF: submit -> matching position rendered by the stream.
       // The confirmation toast is coupled to the same stream render, so the
       // toast<->position delta is measured, not an artifact of a fixed delay.
+      // Market-only by design: the span ends on a position render, so a resting
+      // limit order would time out or fold exchange fill-wait time into an
+      // app-responsiveness metric. Limit orders are intentionally not measured
+      // here; a dedicated order-render CUF can be added later if needed.
+      const isMarketOrder = orderParams.orderType === 'market';
       const endPlaceOrderCuf = (
         data: Record<string, PerpsOrderTrackingValue>,
       ) =>
@@ -87,22 +92,34 @@ export function usePerpsOrderExecution(
           name: TraceName.PerpsPlaceOrderToPositionRendered,
           data,
         });
-      startPerpsCufTrace({
-        name: TraceName.PerpsPlaceOrderToPositionRendered,
-        tags: {
-          [PERPS_CUF_TAG.DIRECTION]: orderParams.isBuy
-            ? PERPS_EVENT_VALUE.DIRECTION.LONG
-            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          [PERPS_CUF_TAG.ORDER_TYPE]: orderParams.orderType,
-        },
-      });
-      // Baseline lets the stream matcher tell the order's fill apart from a
-      // position that already existed on this market before the order.
-      const baseline =
-        stream.positions
-          .getSnapshot()
-          ?.find((p) => p.symbol === orderParams.symbol) ?? null;
-      const cufGeneration = armPerpsPlaceOrderCuf(orderParams.symbol, baseline);
+      const endPlaceOrderRendered = (
+        renderedAt: number,
+        toastShownAt: number,
+      ) =>
+        endPlaceOrderCuf({
+          [PERPS_CUF_TAG.SUCCESS]: true,
+          [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+          [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]: renderedAt - toastShownAt,
+        });
+      let cufGeneration = 0;
+      if (isMarketOrder) {
+        startPerpsCufTrace({
+          name: TraceName.PerpsPlaceOrderToPositionRendered,
+          tags: {
+            [PERPS_CUF_TAG.DIRECTION]: orderParams.isBuy
+              ? PERPS_EVENT_VALUE.DIRECTION.LONG
+              : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+            [PERPS_CUF_TAG.ORDER_TYPE]: orderParams.orderType,
+          },
+        });
+        // Baseline lets the stream matcher tell the order's fill apart from a
+        // position that already existed on this market before the order.
+        const baseline =
+          stream.positions
+            .getSnapshot()
+            ?.find((p) => p.symbol === orderParams.symbol) ?? null;
+        cufGeneration = armPerpsPlaceOrderCuf(orderParams.symbol, baseline);
+      }
 
       try {
         setIsPlacing(true);
@@ -169,58 +186,54 @@ export function usePerpsOrderExecution(
             track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, partialProps);
           }
 
-          // Wait briefly for the stream to render the new/changed position so
-          // the confirmation toast fires together with it.
-          const rendered = await waitForPerpsPlaceOrderPositionRendered(
-            PERPS_CUF_STREAM_CONFIRM_RACE_MS,
-            cufGeneration,
-          );
-          const toastShownAt = Date.now();
-          if (rendered) {
-            endPlaceOrderCuf({
-              [PERPS_CUF_TAG.SUCCESS]: true,
-              [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-              [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]:
-                rendered.renderedAt - toastShownAt,
-            });
-            const position = stream.positions
-              .getSnapshot()
-              ?.find((p) => p.symbol === orderParams.symbol);
-            DevLogger.log(
-              'usePerpsOrderExecution: Position rendered by stream',
-              rendered.position,
-            );
-            onSuccess?.(position);
-          } else {
-            // Stream quiet: unblock the toast now, end the span when the
-            // position finally renders (or record the miss on timeout).
-            DevLogger.log(
-              'usePerpsOrderExecution: Position not rendered yet, toasting without it',
-            );
+          if (!isMarketOrder) {
+            // Resting limit order: accepted, no position renders now. Confirm
+            // immediately; the position-render CUF does not apply.
             onSuccess?.();
-            // Deliberately not awaited: the caller must not block on the span.
-            waitForPerpsPlaceOrderPositionRendered(
-              PERPS_CUF_STREAM_TIMEOUT_MS,
+          } else {
+            // Wait briefly for the stream to render the new/changed position so
+            // the confirmation toast fires together with it.
+            const rendered = await waitForPerpsPlaceOrderPositionRendered(
+              PERPS_CUF_STREAM_CONFIRM_RACE_MS,
               cufGeneration,
-            ).then((late) => {
-              // A newer order owns the span now; this continuation is stale.
-              if (!isPerpsPlaceOrderCufCurrent(cufGeneration)) {
-                return;
-              }
-              if (late) {
-                endPlaceOrderCuf({
-                  [PERPS_CUF_TAG.SUCCESS]: true,
-                  [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-                  [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]:
-                    late.renderedAt - toastShownAt,
-                });
-              } else {
-                endPlaceOrderCuf({
-                  [PERPS_CUF_TAG.SUCCESS]: false,
-                  [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
-                });
-              }
-            });
+            );
+            const toastShownAt = Date.now();
+            if (rendered) {
+              endPlaceOrderRendered(rendered.renderedAt, toastShownAt);
+              const position = stream.positions
+                .getSnapshot()
+                ?.find((p) => p.symbol === orderParams.symbol);
+              DevLogger.log(
+                'usePerpsOrderExecution: Position rendered by stream',
+                rendered.position,
+              );
+              onSuccess?.(position);
+            } else {
+              // Stream quiet: unblock the toast now, end the span when the
+              // position finally renders (or record the miss on timeout).
+              DevLogger.log(
+                'usePerpsOrderExecution: Position not rendered yet, toasting without it',
+              );
+              onSuccess?.();
+              // Deliberately not awaited: the caller must not block on the span.
+              waitForPerpsPlaceOrderPositionRendered(
+                PERPS_CUF_STREAM_TIMEOUT_MS,
+                cufGeneration,
+              ).then((late) => {
+                // A newer order owns the span now; this continuation is stale.
+                if (!isPerpsPlaceOrderCufCurrent(cufGeneration)) {
+                  return;
+                }
+                if (late) {
+                  endPlaceOrderRendered(late.renderedAt, toastShownAt);
+                } else {
+                  endPlaceOrderCuf({
+                    [PERPS_CUF_TAG.SUCCESS]: false,
+                    [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+                  });
+                }
+              });
+            }
           }
         } else {
           const errorMessage =
