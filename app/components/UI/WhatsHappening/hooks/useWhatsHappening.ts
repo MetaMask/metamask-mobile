@@ -134,7 +134,9 @@ const prependOutdatedItem = (
     isOutdated: !hasDuplicate,
   };
   const rest = hasDuplicate
-    ? baseItems.filter((baseItem) => getTitleKey(baseItem.title) !== outdatedKey)
+    ? baseItems.filter(
+        (baseItem) => getTitleKey(baseItem.title) !== outdatedKey,
+      )
     : baseItems;
 
   return [item, ...rest].slice(0, limit);
