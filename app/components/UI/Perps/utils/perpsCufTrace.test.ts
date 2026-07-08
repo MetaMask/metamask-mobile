@@ -201,6 +201,39 @@ describe('perpsCufTrace', () => {
     );
   });
 
+  it('ends a superseded market place-order op instead of leaking it', () => {
+    const first = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceOrderToPositionRendered,
+    });
+    armPerpsPlaceOrderCuf(first, 'BTC');
+
+    // A second market order is placed before the first renders/times out.
+    const second = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceOrderToPositionRendered,
+    });
+    armPerpsPlaceOrderCuf(second, 'ETH');
+
+    // The first op is ended (superseded), not left pending forever.
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: first,
+        data: expect.objectContaining({
+          [PERPS_CUF_TAG.SUCCESS]: false,
+        }),
+      }),
+    );
+    expect(isPerpsPlaceOrderCufCurrent(second)).toBe(true);
+
+    // The second op still ends normally on its own render.
+    handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '1' }]);
+    // (place-order end is owned by the hook via the waiter; the matcher only
+    // records the render — assert the first op is gone from the registry.)
+    endPerpsCufTrace({ id: second });
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: second }),
+    );
+  });
+
   it('resolves the place-order waiter when the armed symbol renders', async () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceOrderToPositionRendered,

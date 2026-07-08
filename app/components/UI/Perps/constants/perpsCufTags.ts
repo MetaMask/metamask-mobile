@@ -32,6 +32,8 @@ export const PERPS_CUF_END_REASON = {
   REQUEST_FAILED: 'request_failed',
   EXCEPTION: 'exception',
   STREAM_TIMEOUT: 'stream_timeout',
+  /** A newer operation of the same flow replaced this one before it confirmed. */
+  SUPERSEDED: 'superseded',
 } as const;
 
 /** How long the place-order span may wait for the position stream to close it. */

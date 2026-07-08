@@ -51,8 +51,10 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       setIsUpdating(true);
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
-      // Confirmation CUF: ends when the stream shows the position's TP/SL
-      // values changed (the optimistic patch renders through the same path).
+      // Confirmation CUF: ends when the live positions stream delivers the
+      // backend-confirmed TP/SL change (that delivery runs the CUF dispatcher).
+      // The optimistic cache patch renders sooner but does not end the span, so
+      // this measures gesture -> confirmed live data, not the optimistic guess.
       const tpslCufOpId = startPerpsCufTrace({
         name: TraceName.PerpsUpdateTPSLToConfirmation,
       });

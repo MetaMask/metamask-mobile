@@ -10,7 +10,11 @@ import {
   TraceOperation,
   type TraceValue,
 } from '../../../../util/trace';
-import { PERPS_CUF_TAG, PERPS_CUF_BOUNDARY } from '../constants/perpsCufTags';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_BOUNDARY,
+  PERPS_CUF_END_REASON,
+} from '../constants/perpsCufTags';
 import { getPerpsLifecycleContext } from './perpsLifecycleContext';
 
 /**
@@ -173,6 +177,19 @@ export function armPerpsPlaceOrderCuf(
   symbol: string,
   baseline?: PerpsCufPositionLike | null,
 ): void {
+  // A prior place-order op still pending is being superseded: end it now so it
+  // can't linger in the registry as an open span (the position path has no
+  // scheduled fallback — its only ends are this arm, the stream render, and the
+  // waiter timeout, all of which key off the current op id).
+  if (placeOrderOpId && pendingCufMeta.has(placeOrderOpId)) {
+    endPerpsCufTrace({
+      id: placeOrderOpId,
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.SUPERSEDED,
+      },
+    });
+  }
   placeOrderOpId = opId;
   placeOrderRendered = null;
   placeOrderResolver = null;

@@ -87,9 +87,10 @@ export function usePerpsOrderExecution(
       // app-responsiveness metric. Limit orders are intentionally not measured
       // here; a dedicated order-render CUF can be added later if needed.
       // Market orders measure submit -> position rendered (toast coupled to the
-      // same stream render). Limit orders measure submit -> resting order
-      // rendered in the orders stream (no exchange fill-wait time). Each start
-      // mints a unique op id so overlapping orders never collide.
+      // same stream render) via PerpsPlaceOrderToPositionRendered. Limit orders
+      // measure submit -> resting order rendered in the orders stream (no
+      // exchange fill-wait time) via PerpsPlaceLimitOrderToOrderRendered. Each
+      // start mints a unique op id so overlapping orders never collide.
       const isMarketOrder = orderParams.orderType === 'market';
       const cufOpId = startPerpsCufTrace({
         name: isMarketOrder
