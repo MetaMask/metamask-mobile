@@ -24,11 +24,12 @@ appiumTest.describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
           await loginAndOpenTestSnaps();
           await TestSnaps.installSnap('connectGetPreferencesButton');
           await TestSnaps.tapButton('getPreferencesButton');
-          // Device locale varies locally and in CI; assert all other preference fields exactly.
+          // Locale varies locally; CI emulators are en-US.
           await TestSnaps.checkResultJsonExcluding(
             'preferencesResultSpan',
-            ['locale'],
+            process.env.CI ? [] : ['locale'],
             {
+              ...(process.env.CI ? { locale: 'en-US' } : {}),
               currency: 'usd',
               hideBalances: true,
               useSecurityAlerts: true,
