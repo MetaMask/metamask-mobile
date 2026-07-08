@@ -1,5 +1,4 @@
 import {
-  Box,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
@@ -43,12 +42,10 @@ const showPendingToast = ({
     iconName: IconName.Loading,
     hasNoTimeout: false,
     startAccessory: (
-      <Box twClassName="pr-3">
-        <Spinner
-          color={ReactNativeDsIconColor.PrimaryDefault}
-          spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
-        />
-      </Box>
+      <Spinner
+        color={ReactNativeDsIconColor.IconDefault}
+        spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+      />
     ),
     ...(trackLabel && onTrack
       ? {
@@ -66,11 +63,13 @@ const showSuccessToast = ({
   title,
   description,
   iconColor,
+  iconName = IconName.Confirmation,
 }: {
   showToast: ToastRef['showToast'];
   title: string;
   description: string;
   iconColor: string;
+  iconName?: IconName;
 }) =>
   showToast({
     variant: ToastVariants.Icon,
@@ -79,7 +78,7 @@ const showSuccessToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
-    iconName: IconName.Confirmation,
+    iconName,
     iconColor,
     hasNoTimeout: false,
   });
@@ -90,7 +89,6 @@ const showErrorToast = ({
   description,
   retryLabel,
   onRetry,
-  backgroundColor,
   iconColor,
 }: {
   showToast: ToastRef['showToast'];
@@ -98,7 +96,6 @@ const showErrorToast = ({
   description: string;
   retryLabel?: string;
   onRetry?: () => void;
-  backgroundColor: string;
   iconColor: string;
 }) =>
   showToast({
@@ -110,7 +107,6 @@ const showErrorToast = ({
     ],
     iconName: IconName.Error,
     iconColor,
-    backgroundColor,
     hasNoTimeout: false,
     ...(retryLabel && onRetry
       ? {
@@ -176,6 +172,7 @@ export const createPredictTransactionStatusChangedHandler =
         queryKey: predictQueries.unrealizedPnL.keys.all(),
       });
 
+      // Deposit/Withdraw should not invalidate positions/activity
       if (type === 'claim' || type === 'order') {
         queryClient.invalidateQueries({
           queryKey: predictQueries.positions.keys.all(),
@@ -245,7 +242,6 @@ export const createPredictTransactionStatusChangedHandler =
                 },
               }
             : {}),
-          backgroundColor: theme.colors.accent04.normal,
           iconColor: theme.colors.error.default,
         });
         return;
@@ -273,10 +269,21 @@ export const createPredictTransactionStatusChangedHandler =
       }
 
       if (status === 'confirmed') {
+        if ((amount ?? 0) <= 0) {
+          showSuccessToast({
+            showToast,
+            title: strings('predict.claim.toasts.redeemed.title'),
+            description: strings('predict.claim.toasts.redeemed.description'),
+            iconName: IconName.Info,
+            iconColor: theme.colors.primary.default,
+          });
+          return;
+        }
+
         showSuccessToast({
           showToast,
-          title: strings('predict.deposit.account_ready'),
-          description: strings('predict.deposit.account_ready_description', {
+          title: strings('predict.claim.toasts.confirmed.title'),
+          description: strings('predict.claim.toasts.confirmed.description', {
             amount: formattedClaimAmount,
           }),
           iconColor: theme.colors.success.default,
@@ -299,7 +306,6 @@ export const createPredictTransactionStatusChangedHandler =
                 },
               }
             : {}),
-          backgroundColor: theme.colors.accent04.normal,
           iconColor: theme.colors.error.default,
         });
       }
@@ -353,7 +359,6 @@ export const createPredictTransactionStatusChangedHandler =
                 },
               }
             : {}),
-          backgroundColor: theme.colors.accent04.normal,
           iconColor: theme.colors.error.default,
         });
         return;
@@ -379,7 +384,7 @@ export const createPredictTransactionStatusChangedHandler =
       if (status === 'confirmed') {
         showToast({
           variant: ToastVariants.Icon,
-          iconName: IconName.Check,
+          iconName: IconName.Confirmation,
           iconColor: theme.colors.success.default,
           labelOptions: [
             {
@@ -400,7 +405,6 @@ export const createPredictTransactionStatusChangedHandler =
           showToast,
           title: strings('predict.order.prediction_failed'),
           description: strings('predict.order.order_failed_generic'),
-          backgroundColor: theme.colors.accent04.normal,
           iconColor: theme.colors.error.default,
         });
         return;
