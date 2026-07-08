@@ -296,21 +296,18 @@ describe('getActiveNetworksByScopes', () => {
     },
   );
 
-  it.each(Object.values(XlmScope))(
-    'returns correct network for Stellar: %s',
-    (scope: XlmScope) => {
-      const account = {
-        address: MOCK_STELLAR_ACCOUNT,
-        scopes: [scope],
-      };
-      const result = getActiveNetworksByScopes(baseState, account);
-      expect(result).toEqual([
-        {
-          caipChainId: scope,
-        },
-      ]);
-    },
-  );
+  it('returns correct network for Stellar pubnet', () => {
+    const account = {
+      address: MOCK_STELLAR_ACCOUNT,
+      scopes: [XlmScope.Pubnet],
+    };
+    const result = getActiveNetworksByScopes(baseState, account);
+    expect(result).toEqual([
+      {
+        caipChainId: XlmScope.Pubnet,
+      },
+    ]);
+  });
 
   it('returns an empty array if account has no scopes', () => {
     const account = {

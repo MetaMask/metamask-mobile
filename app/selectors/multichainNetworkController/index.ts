@@ -163,13 +163,6 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         ticker: MULTICHAIN_NETWORK_TICKER[XlmScope.Pubnet] ?? 'XLM',
         isTestnet: false,
       },
-      [XlmScope.Testnet]: {
-        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[XlmScope.Testnet] ?? 7,
-        imageSource: imageIcons.STELLAR,
-        ticker: MULTICHAIN_NETWORK_TICKER[XlmScope.Testnet] ?? 'XLM',
-        isTestnet: true,
-        name: 'Stellar Testnet',
-      },
       ///: END:ONLY_INCLUDE_IF(stellar)
     };
 
@@ -193,7 +186,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       // TrxScope.Shasta,
       ///: END:ONLY_INCLUDE_IF
       ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-      ...(isStellarAccountsEnabled ? [XlmScope.Pubnet, XlmScope.Testnet] : []),
+      ...(isStellarAccountsEnabled ? [XlmScope.Pubnet] : []),
       ///: END:ONLY_INCLUDE_IF
     ];
 
@@ -375,13 +368,6 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       return [
         {
           caipChainId: XlmScope.Pubnet,
-        },
-      ];
-    }
-    if (account.scopes.includes(XlmScope.Testnet)) {
-      return [
-        {
-          caipChainId: XlmScope.Testnet,
         },
       ];
     }
