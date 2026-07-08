@@ -150,6 +150,11 @@ export interface TVCrosshairParams {
 export interface TVMainSeries {
   /** Re-attaches the main series to the right price scale. */
   detachToRight(): void;
+  /** Directly update style properties for a specific chart type (2=line, 10=baseline, etc.). */
+  setChartStyleProperties(
+    chartStyle: number,
+    properties: Record<string, unknown>,
+  ): void;
 }
 
 /** Entity id returned by TradingView's `createShape`. */
