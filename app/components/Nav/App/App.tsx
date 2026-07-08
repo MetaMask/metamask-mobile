@@ -35,6 +35,7 @@ import { Authentication } from '../../../core/';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import {
+  addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
   slideFromRightNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -403,11 +404,7 @@ const OnboardingRootNav = () => (
     <NativeStack.Screen
       name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
       component={VerificationCodeBottomSheet}
-      options={{
-        presentation: 'transparentModal',
-        animation: 'none',
-        contentStyle: { backgroundColor: importedColors.transparent },
-      }}
+      options={addDeviceVerificationCodeScreenOptions}
     />
     <NativeStack.Screen
       name={Routes.WEBVIEW.MAIN}
@@ -641,6 +638,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
       component={VerificationCodeBottomSheet}
+      options={addDeviceVerificationCodeScreenOptions}
     />
     <NativeStack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
@@ -1124,11 +1122,7 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
         component={VerificationCodeBottomSheet}
-        options={{
-          presentation: 'transparentModal',
-          animation: 'none',
-          contentStyle: { backgroundColor: importedColors.transparent },
-        }}
+        options={addDeviceVerificationCodeScreenOptions}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { DeviceEventEmitter, Image } from 'react-native';
+import { Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -25,8 +25,8 @@ import {
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
-import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
+import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Logger from '../../../util/Logger';
@@ -110,16 +110,9 @@ const AddDeviceToWallet = () => {
     isScannerOpen,
   });
 
-  useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener(
-      ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
-      () => {
-        Engine.context.QrSyncController.resetState();
-      },
-    );
-
-    return () => subscription.remove();
-  }, []);
+  useAddDeviceResetToInstructionsListener({
+    enabled: !isScannerOpen,
+  });
 
   const submitQrPayload = useCallback(async (qrPayload: string) => {
     await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);

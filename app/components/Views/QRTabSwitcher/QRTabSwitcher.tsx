@@ -1,15 +1,13 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef, useEffect, useCallback } from 'react';
-import { DeviceEventEmitter, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import QRScanner from '../QRScanner';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DeviceAdded from '../AddDeviceToWallet/DeviceAdded';
-import {
-  ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
-  showExtensionCancelledErrorSheet,
-} from '../../../core/QrSync/showExtensionCancelledErrorSheet';
+import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
+import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
 import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
@@ -111,6 +109,10 @@ const QRTabSwitcher = () => {
     showAddDeviceVerificationSheet(navigation);
   }, [navigation]);
 
+  const resetExtensionCancelSheetState = useCallback(() => {
+    hasShownExtensionCancelSheetRef.current = false;
+  }, []);
+
   useEffect(() => {
     if (!isAddDeviceOrigin) {
       return;
@@ -166,25 +168,12 @@ const QRTabSwitcher = () => {
     prevPhaseRef.current = phase;
   }, [isAddDeviceOrigin, phase, showExtensionCancelSheetOnce]);
 
-  useEffect(() => {
-    if (!isAddDeviceOrigin) {
-      return undefined;
-    }
-
-    const subscription = DeviceEventEmitter.addListener(
-      ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
-      () => {
-        hasShownExtensionCancelSheetRef.current = false;
-        Engine.context.QrSyncController.resetState();
-
-        if (navigation.canGoBack()) {
-          navigation.goBack();
-        }
-      },
-    );
-
-    return () => subscription.remove();
-  }, [isAddDeviceOrigin, navigation]);
+  useAddDeviceResetToInstructionsListener({
+    enabled: isAddDeviceOrigin,
+    navigation,
+    shouldGoBack: true,
+    onReset: resetExtensionCancelSheetState,
+  });
 
   // QR scanner displays camera view for scanning codes
   const selectedIndex = QRTabSwitcherScreens.Scanner;

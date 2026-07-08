@@ -25,18 +25,35 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text: RNText } = jest.requireActual('react-native');
 
-  const MockBottomSheet = ({
-    children,
-    goBack,
-  }: {
-    children: React.ReactNode;
-    goBack?: () => void;
-  }) =>
-    ReactActual.createElement(
-      View,
-      { testID: 'verification-bottom-sheet', onTouchEnd: goBack },
-      children,
-    );
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        goBack,
+      }: {
+        children: React.ReactNode;
+        goBack?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+        onOpenBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (callback?: () => void) => {
+          goBack?.();
+          callback?.();
+        },
+        onOpenBottomSheet: jest.fn(),
+      }));
+
+      return ReactActual.createElement(
+        View,
+        { testID: 'verification-bottom-sheet', onTouchEnd: goBack },
+        children,
+      );
+    },
+  );
 
   const MockBottomSheetHeader = ({ children }: { children: React.ReactNode }) =>
     ReactActual.createElement(
