@@ -115,15 +115,14 @@ const createBalanceMock = (
     apyDecimal: 0.04,
     apyPercent: 4,
     apyPercentFormatted: '4%',
-    vaultApyQuery: {
-      data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
-      isLoading: false,
-    },
-    moneyBalanceQuery: {
+    positionsQuery: {
       data: {
-        musdBalance: '1000000000',
-        vmusdValueInMusd: '0',
-        totalBalance: '1000000000',
+        address: '0x0',
+        as_of_block: 0,
+        as_of_timestamp: '2026-01-01T00:00:00Z',
+        data_freshness: 'live' as const,
+        indexer_lag_seconds: 0,
+        positions: [],
       },
       isLoading: false,
     },
@@ -540,10 +539,11 @@ describe('MoneyBalanceCard', () => {
     it('renders APY skeleton when APY is loading', () => {
       mockUseMoneyAccountBalance.mockReturnValue(
         createBalanceMock({
-          vaultApyQuery: {
+          isBalanceLoading: true,
+          positionsQuery: {
             data: undefined,
             isLoading: true,
-          } as ReturnType<typeof useMoneyAccountBalance>['vaultApyQuery'],
+          } as ReturnType<typeof useMoneyAccountBalance>['positionsQuery'],
         }),
       );
 

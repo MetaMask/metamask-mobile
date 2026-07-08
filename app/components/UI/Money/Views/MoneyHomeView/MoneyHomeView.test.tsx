@@ -448,15 +448,29 @@ describe('MoneyHomeView', () => {
       apyDecimal: 0.05,
       apyPercent: 5,
       apyPercentFormatted: '5%',
-      vaultApyQuery: {
-        data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
-        isLoading: false,
-      },
-      moneyBalanceQuery: {
+      positionsQuery: {
         data: {
-          musdBalance: '1000000',
-          vmusdValueInMusd: '2000000',
-          totalBalance: '3000000',
+          address: '0x0',
+          as_of_block: 0,
+          as_of_timestamp: '2026-01-01T00:00:00Z',
+          data_freshness: 'live' as const,
+          indexer_lag_seconds: 0,
+          positions: [
+            {
+              vault_address: '0x0',
+              shares_held: '0',
+              current_rate: '1',
+              current_value_assets: '3',
+              current_value_usd: '3',
+              cost_basis_assets: '0',
+              cost_basis_usd: '0',
+              realized_interest_usd: '0',
+              unrealised_interest_usd: '0',
+              lifetime_interest_usd: '0',
+              current_apy: '0.05',
+              effective_apy: '0.05',
+            },
+          ],
         },
         isLoading: false,
       },
@@ -582,8 +596,7 @@ describe('MoneyHomeView', () => {
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
     });
 
@@ -634,8 +647,7 @@ describe('MoneyHomeView', () => {
         lastKnownTotalFiatFormatted: undefined,
         refetchBalance: jest.fn(),
         apyPercent: 5,
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -669,8 +681,7 @@ describe('MoneyHomeView', () => {
           isBalanceFetching: false,
           refetchBalance: jest.fn(),
           apyPercent: 5,
-          vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-          moneyBalanceQuery: { data: undefined, isLoading: false },
+          positionsQuery: { data: undefined, isLoading: false },
         } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       });
 
@@ -712,8 +723,7 @@ describe('MoneyHomeView', () => {
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>;
 
       beforeEach(() => {
@@ -762,8 +772,7 @@ describe('MoneyHomeView', () => {
           lastKnownTotalFiatFormatted: undefined,
           refetchBalance: jest.fn(),
           apyPercent: 5,
-          vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-          moneyBalanceQuery: { data: undefined, isLoading: false },
+          positionsQuery: { data: undefined, isLoading: false },
         } as unknown as ReturnType<typeof useMoneyAccountBalance>);
         mockUseMoneyAccountTransactions.mockReturnValue({
           allTransactions: [],
@@ -830,8 +839,7 @@ describe('MoneyHomeView', () => {
         isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyPercent: 5,
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
@@ -863,9 +871,7 @@ describe('MoneyHomeView', () => {
         lastKnownTotalFiatFormatted,
         refetchBalance: jest.fn(),
         apyPercent: 5,
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        musdBalanceQuery: { data: undefined, isLoading: false },
-        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       }) as unknown as ReturnType<typeof useMoneyAccountBalance>;
 
     it('shows the banner with a dash when no last known balance exists', () => {
@@ -1182,8 +1188,7 @@ describe('MoneyHomeView', () => {
       isBalanceFetching: false,
       refetchBalance: mockRefetchBalance,
       apyPercent: 5,
-      vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-      moneyBalanceQuery: { data: undefined, isLoading: false },
+      positionsQuery: { data: undefined, isLoading: false },
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: [],
@@ -1247,8 +1252,7 @@ describe('MoneyHomeView', () => {
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1276,8 +1280,7 @@ describe('MoneyHomeView', () => {
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
@@ -1606,8 +1609,7 @@ describe('MoneyHomeView', () => {
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
@@ -1903,8 +1905,7 @@ describe('MoneyHomeView', () => {
         isBalanceFetching: false,
         refetchBalance: mockRefetchBalance,
         apyPercent: 5,
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
@@ -1945,8 +1946,7 @@ describe('MoneyHomeView', () => {
         apyDecimal: 0.05,
         apyPercent: 5,
         apyPercentFormatted: '5%',
-        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
-        moneyBalanceQuery: { data: undefined, isLoading: false },
+        positionsQuery: { data: undefined, isLoading: false },
       } as unknown as ReturnType<typeof useMoneyAccountBalance>);
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: Array.from({ length: 3 }, (_, index) => ({

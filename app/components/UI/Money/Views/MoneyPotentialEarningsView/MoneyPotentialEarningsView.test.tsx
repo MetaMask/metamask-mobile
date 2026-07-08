@@ -148,15 +148,14 @@ describe('MoneyPotentialEarningsView', () => {
       totalFiatRaw: '10000',
       tokenTotal: undefined,
       isBalanceLoading: false,
-      vaultApyQuery: {
-        data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
-        isLoading: false,
-      },
-      moneyBalanceQuery: {
+      positionsQuery: {
         data: {
-          musdBalance: '10000000000',
-          vmusdValueInMusd: '0',
-          totalBalance: '10000000000',
+          address: '0x0',
+          as_of_block: 0,
+          as_of_timestamp: '2026-01-01T00:00:00Z',
+          data_freshness: 'live' as const,
+          indexer_lag_seconds: 0,
+          positions: [],
         },
         isLoading: false,
       },

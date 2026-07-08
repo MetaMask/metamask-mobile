@@ -104,24 +104,32 @@ interface QueryState<T> {
   refetch?: jest.Mock;
 }
 
-const DEFAULT_MONEY_BALANCE_QUERY: QueryState<{
-  musdBalance: string;
-  vmusdValueInMusd: string;
-  totalBalance: string;
-}> = {
-  data: {
-    musdBalance: '1000000',
-    vmusdValueInMusd: '2000000',
-    totalBalance: '3000000',
-  },
-  isLoading: false,
-  isError: false,
-  isFetching: false,
-  refetch: jest.fn(),
+const MOCK_POSITION = {
+  vault_address: '0x0',
+  shares_held: '0',
+  current_rate: '1',
+  current_value_assets: '3',
+  current_value_usd: '3',
+  cost_basis_assets: '0',
+  cost_basis_usd: '0',
+  realized_interest_usd: '0',
+  unrealised_interest_usd: '0',
+  lifetime_interest_usd: '0',
+  current_apy: '0.05',
+  effective_apy: '0.05',
 };
 
-const DEFAULT_VAULT_APY_QUERY: QueryState<{ apy: number }> = {
-  data: { apy: 0.05 },
+const MOCK_POSITION_RESPONSE = {
+  address: MOCK_ADDRESS,
+  as_of_block: 0,
+  as_of_timestamp: '2026-01-01T00:00:00Z',
+  data_freshness: 'live' as const,
+  indexer_lag_seconds: 0,
+  positions: [MOCK_POSITION],
+};
+
+const DEFAULT_POSITIONS_QUERY: QueryState<typeof MOCK_POSITION_RESPONSE> = {
+  data: MOCK_POSITION_RESPONSE,
   isLoading: false,
   isError: false,
   isFetching: false,
@@ -129,22 +137,13 @@ const DEFAULT_VAULT_APY_QUERY: QueryState<{ apy: number }> = {
 };
 
 function setupDefaultQueries(
-  moneyBalance: QueryState<{
-    musdBalance: string;
-    vmusdValueInMusd: string;
-    totalBalance: string;
-  }> = DEFAULT_MONEY_BALANCE_QUERY,
-  vaultApy: QueryState<{ apy: number }> = DEFAULT_VAULT_APY_QUERY,
+  positionsQuery: QueryState<
+    typeof MOCK_POSITION_RESPONSE
+  > = DEFAULT_POSITIONS_QUERY,
 ) {
-  mockUseQuery.mockImplementation(((options: { queryKey?: unknown[] }) => {
-    if (
-      options.queryKey?.[0] ===
-      'MoneyAccountBalanceService:getMoneyAccountBalance'
-    ) {
-      return moneyBalance;
-    }
-    return vaultApy;
-  }) as unknown as typeof useQuery);
+  mockUseQuery.mockImplementation(
+    (() => positionsQuery) as unknown as typeof useQuery,
+  );
 }
 
 describe('getLiveVedaVaultExchangeRate', () => {
@@ -179,7 +178,7 @@ describe('useMoneyAccountBalance', () => {
     setupDefaultQueries();
   });
 
-  it('isBalanceLoading is true when moneyBalanceQuery is loading', () => {
+  it('isBalanceLoading is true when positions query is loading', () => {
     setupDefaultQueries({
       data: undefined,
       isLoading: true,
@@ -211,18 +210,16 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.tokenTotal).toBeUndefined();
   });
 
-  it('returns sum of musd and vault token balances as tokenTotal when loaded', () => {
-    // musdBalance '1000000' = 1 mUSD (6 decimals), vmusdValueInMusd '2000000' = 2 mUSD
+  it('returns sum of position values as tokenTotal when loaded', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
     expect(result.current.tokenTotal?.toFixed(0)).toBe('3');
   });
 
-  it('returns withdrawableMusd as the vmUSD-shares-only mUSD equivalent when loaded', () => {
-    // vmusdValueInMusd '2000000' = 2 mUSD (6 decimals) — vmUSD shares only, not including bare mUSD
+  it('returns withdrawableMusd as the total position assets value when loaded', () => {
     const { result } = renderHook(() => useMoneyAccountBalance());
 
-    expect(result.current.withdrawableMusd?.toFixed(0)).toBe('2');
+    expect(result.current.withdrawableMusd?.toFixed(0)).toBe('3');
   });
 
   it('returns undefined withdrawableMusd while loading', () => {
@@ -240,7 +237,16 @@ describe('useMoneyAccountBalance', () => {
 
   it('returns $0.00 in USD when the balance is zero', () => {
     setupDefaultQueries({
-      data: { musdBalance: '0', vmusdValueInMusd: '0', totalBalance: '0' },
+      data: {
+        ...MOCK_POSITION_RESPONSE,
+        positions: [
+          {
+            ...MOCK_POSITION,
+            current_value_assets: '0',
+            current_value_usd: '0',
+          },
+        ],
+      },
       isLoading: false,
       isError: false,
       isFetching: false,
@@ -259,7 +265,7 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.totalFiatFormatted).toBe('$3.00');
   });
 
-  it('disables moneyBalanceQuery when no account address', () => {
+  it('disables positions query when no account address', () => {
     setupDefaultSelectors();
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
@@ -276,12 +282,8 @@ describe('useMoneyAccountBalance', () => {
 
     renderHook(() => useMoneyAccountBalance());
 
-    const balanceCallArgs = mockUseQuery.mock.calls.find(
-      ([opts]) =>
-        (opts as { queryKey: string[] }).queryKey[0] ===
-        'MoneyAccountBalanceService:getMoneyAccountBalance',
-    );
-    expect((balanceCallArgs?.[0] as { enabled?: boolean }).enabled).toBe(false);
+    const queryCallArgs = mockUseQuery.mock.calls[0];
+    expect((queryCallArgs?.[0] as { enabled?: boolean }).enabled).toBe(false);
   });
 
   it('totalFiatRaw is the string representation of totalFiat', () => {
@@ -311,8 +313,11 @@ describe('useMoneyAccountBalance', () => {
   it('rounds apyPercent half up to one decimal place for high-precision APY', () => {
     const apyDecimal = 0.0377356238130822;
 
-    setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
-      data: { apy: apyDecimal },
+    setupDefaultQueries({
+      data: {
+        ...MOCK_POSITION_RESPONSE,
+        positions: [{ ...MOCK_POSITION, current_apy: String(apyDecimal) }],
+      },
       isLoading: false,
       isError: false,
       isFetching: false,
@@ -328,8 +333,11 @@ describe('useMoneyAccountBalance', () => {
   it('rounds apyPercent down to one decimal place for a high-precision APY', () => {
     const apyDecimal = 0.03341;
 
-    setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
-      data: { apy: apyDecimal },
+    setupDefaultQueries({
+      data: {
+        ...MOCK_POSITION_RESPONSE,
+        positions: [{ ...MOCK_POSITION, current_apy: String(apyDecimal) }],
+      },
       isLoading: false,
       isError: false,
       isFetching: false,
@@ -342,8 +350,8 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.apyPercentFormatted).toBe('3.3%');
   });
 
-  it('returns undefined for all APY fields when vault APY data is not available and no fallback configured', () => {
-    setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+  it('returns undefined for all APY fields when positions are loading and no fallback configured', () => {
+    setupDefaultQueries({
       data: undefined,
       isLoading: true,
       isError: false,
@@ -360,10 +368,7 @@ describe('useMoneyAccountBalance', () => {
   describe('effective APY precedence', () => {
     it('uses serviceApy when no override and service returns a value', () => {
       setupDefaultSelectors();
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
-        data: { apy: 0.05 },
-        isLoading: false,
-      });
+      setupDefaultQueries();
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -372,15 +377,15 @@ describe('useMoneyAccountBalance', () => {
       expect(result.current.apyPercentFormatted).toBe('5%');
     });
 
-    it('uses vaultApyFallback when service returns undefined and fallback is configured', () => {
+    it('uses vaultApyFallback when positions have no entries and fallback is configured', () => {
       setupDefaultSelectors({
         remoteApyConfig: {
           vaultApyFallback: 0.04,
           vaultApyOverride: undefined,
         },
       });
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
-        data: undefined,
+      setupDefaultQueries({
+        data: { ...MOCK_POSITION_RESPONSE, positions: [] },
         isLoading: false,
       });
 
@@ -391,14 +396,14 @@ describe('useMoneyAccountBalance', () => {
       expect(result.current.apyPercentFormatted).toBe('4%');
     });
 
-    it('does not use vaultApyFallback while vault APY query is loading', () => {
+    it('does not use vaultApyFallback while positions query is loading', () => {
       setupDefaultSelectors({
         remoteApyConfig: {
           vaultApyFallback: 0.04,
           vaultApyOverride: undefined,
         },
       });
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+      setupDefaultQueries({
         data: undefined,
         isLoading: true,
         isError: false,
@@ -411,14 +416,14 @@ describe('useMoneyAccountBalance', () => {
       expect(result.current.apyPercentFormatted).toBeUndefined();
     });
 
-    it('uses vaultApyFallback when vault APY query errors and fallback is configured', () => {
+    it('uses vaultApyFallback when positions query errors and fallback is configured', () => {
       setupDefaultSelectors({
         remoteApyConfig: {
           vaultApyFallback: 0.04,
           vaultApyOverride: undefined,
         },
       });
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+      setupDefaultQueries({
         data: undefined,
         isLoading: false,
         isError: true,
@@ -438,7 +443,7 @@ describe('useMoneyAccountBalance', () => {
           vaultApyOverride: 0.08,
         },
       });
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+      setupDefaultQueries({
         data: undefined,
         isLoading: false,
         isError: true,
@@ -451,15 +456,15 @@ describe('useMoneyAccountBalance', () => {
       expect(result.current.apyPercentFormatted).toBe('8%');
     });
 
-    it('returns undefined APY when service is undefined and vaultApyFallback is unconfigured', () => {
+    it('returns undefined APY when no positions and vaultApyFallback is unconfigured', () => {
       setupDefaultSelectors({
         remoteApyConfig: {
           vaultApyFallback: undefined,
           vaultApyOverride: undefined,
         },
       });
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
-        data: undefined,
+      setupDefaultQueries({
+        data: { ...MOCK_POSITION_RESPONSE, positions: [] },
         isLoading: false,
       });
 
@@ -474,10 +479,7 @@ describe('useMoneyAccountBalance', () => {
       setupDefaultSelectors({
         remoteApyConfig: { vaultApyFallback: 0, vaultApyOverride: 0.08 },
       });
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
-        data: { apy: 0.05 },
-        isLoading: false,
-      });
+      setupDefaultQueries();
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -490,10 +492,7 @@ describe('useMoneyAccountBalance', () => {
       setupDefaultSelectors({
         remoteApyConfig: { vaultApyFallback: 0, vaultApyOverride: 0 },
       });
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
-        data: { apy: 0.05 },
-        isLoading: false,
-      });
+      setupDefaultQueries();
 
       const { result } = renderHook(() => useMoneyAccountBalance());
 
@@ -509,8 +508,11 @@ describe('useMoneyAccountBalance', () => {
           vaultApyOverride: undefined,
         },
       });
-      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
-        data: { apy: 0 },
+      setupDefaultQueries({
+        data: {
+          ...MOCK_POSITION_RESPONSE,
+          positions: [{ ...MOCK_POSITION, current_apy: '0' }],
+        },
         isLoading: false,
       });
 
@@ -522,12 +524,17 @@ describe('useMoneyAccountBalance', () => {
     });
   });
 
-  it('collapses sub-cent total fiat to $0.00 when both balances are 1 minimal unit', () => {
+  it('collapses sub-cent total fiat to $0.00 when position value is sub-cent', () => {
     setupDefaultQueries({
       data: {
-        musdBalance: '1',
-        vmusdValueInMusd: '1',
-        totalBalance: '2',
+        ...MOCK_POSITION_RESPONSE,
+        positions: [
+          {
+            ...MOCK_POSITION,
+            current_value_assets: '0.001',
+            current_value_usd: '0.001',
+          },
+        ],
       },
       isLoading: false,
       isError: false,
@@ -540,7 +547,7 @@ describe('useMoneyAccountBalance', () => {
   });
 
   describe('error surface', () => {
-    it('exposes isBalanceFetchError true when moneyBalanceQuery has errored', () => {
+    it('exposes isBalanceFetchError true when positions query has errored', () => {
       setupDefaultQueries({
         data: undefined,
         isLoading: false,
@@ -618,10 +625,7 @@ describe('useMoneyAccountBalance', () => {
 
       expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: [
-          'MoneyAccountBalanceService:getMoneyAccountBalance',
-          MOCK_ADDRESS,
-        ],
+        queryKey: ['MoneyAccountApiDataService:fetchPositions', MOCK_ADDRESS],
         refetchType: 'all',
       });
     });

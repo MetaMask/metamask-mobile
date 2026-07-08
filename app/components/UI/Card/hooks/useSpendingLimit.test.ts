@@ -197,8 +197,7 @@ const buildBalanceReturn = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
 ) =>
   ({
-    moneyBalanceQuery: {} as never,
-    vaultApyQuery: {} as never,
+    positionsQuery: {} as never,
     isBalanceLoading: false,
     tokenTotal: new BigNumber(0),
     totalFiatFormatted: '$0.00',
