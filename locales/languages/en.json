@@ -6668,7 +6668,12 @@
   },
   "download_files": {
     "error": "Failed to download attachment.",
-    "unknownError": "Unknown error occurred"
+    "unknownError": "Unknown error occurred",
+    "downloaded_title": "Download complete",
+    "downloaded_message": "{{filename}} was saved to your Downloads folder.",
+    "confirm_message": "Do you want to download \n{{filename}}?",
+    "confirm_action": "Download",
+    "cancel_action": "Cancel"
   },
   "remember_me": {
     "enable_remember_me": "Turn on Remember me",
