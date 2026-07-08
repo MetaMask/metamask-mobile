@@ -109,7 +109,7 @@ export function useMoneyAccountDeposit() {
 
       // Navigate early for better UX; recover on failure below.
       navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
+        loader: ConfirmationLoader.AdvancedCustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
@@ -198,7 +198,7 @@ export function useMoneyAccountWithdrawal() {
 
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 

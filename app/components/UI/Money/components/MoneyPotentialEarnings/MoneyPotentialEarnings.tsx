@@ -102,6 +102,21 @@ const MoneyPotentialEarnings = ({
     return null;
   }
 
+  const infoIcon = onInfoPress ? (
+    <>
+      {' '}
+      <Text twClassName="align-middle">
+        <Icon
+          testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+          onPress={onInfoPress}
+        />
+      </Text>
+    </>
+  ) : null;
+
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
@@ -137,19 +152,7 @@ const MoneyPotentialEarnings = ({
             {` ${strings(
               'money.potential_earnings.description_with_amounts_suffix',
             )}`}
-            {onInfoPress && (
-              <>
-                {' '}
-                <Icon
-                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  style={{ transform: [{ translateY: 3 }] }}
-                  onPress={onInfoPress}
-                />
-              </>
-            )}
+            {infoIcon}
           </Text>
         ) : (
           <Text
@@ -158,19 +161,7 @@ const MoneyPotentialEarnings = ({
             color={TextColor.TextAlternative}
           >
             {strings('money.potential_earnings.description')}
-            {onInfoPress && (
-              <>
-                {' '}
-                <Icon
-                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-                  onPress={onInfoPress}
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  style={{ transform: [{ translateY: 3 }] }}
-                />
-              </>
-            )}
+            {infoIcon}
           </Text>
         )}
       </Box>

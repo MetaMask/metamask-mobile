@@ -52,6 +52,9 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    name: {
+      flexShrink: 1,
+    },
   });
 
 const PerpsMarketRowItem = ({
@@ -177,6 +180,14 @@ const PerpsMarketRowItem = ({
 
   const badgeType = getMarketBadgeType(displayMarket);
 
+  const assetLabel = useMemo(() => {
+    const label =
+      showFullAssetNames && displayMarket.name
+        ? displayMarket.name
+        : displayMarket.symbol;
+    return getPerpsDisplaySymbol(label);
+  }, [showFullAssetNames, displayMarket.name, displayMarket.symbol]);
+
   return (
     <Card
       onPress={handlePress}
@@ -188,7 +199,7 @@ const PerpsMarketRowItem = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-1"
+        twClassName="flex-1 mr-2"
       >
         <Box marginRight={4}>
           <PerpsTokenLogo
@@ -211,13 +222,14 @@ const PerpsMarketRowItem = ({
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Default}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={styles.name}
               testID={getPerpsMarketRowItemSelector.assetLabel(
                 displayMarket.symbol,
               )}
             >
-              {showFullAssetNames && displayMarket.name
-                ? displayMarket.name
-                : getPerpsDisplaySymbol(displayMarket.symbol)}
+              {assetLabel}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </Box>

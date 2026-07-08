@@ -16,6 +16,7 @@ import { SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
 import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_CHECKLIST_STEPPER_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/WalletHomeOnboardingSteps/abTestConfig';
+import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 
 export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Card
@@ -36,6 +37,9 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Wallet home onboarding checklist
   ONBOARDING_CHECKLIST_STEPPER_AB_TEST_ANALYTICS_MAPPING,
+
+  // Onboarding interest questionnaire
+  ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING,
 
   // Explore
   WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING,

@@ -472,10 +472,8 @@ const ImportFromSecretRecoveryPhrase = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.dispatch(resetAction);
-            },
             accountType: AccountType.Imported,
+            successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
           });
         }
       } catch (error) {
