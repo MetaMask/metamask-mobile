@@ -597,30 +597,30 @@ describe('selectMoneyParallaxAnimationEnabledFlag', () => {
     expect(result).toBe(false);
   });
 
-  it('defaults to true when remote flag returns undefined and env is unset', () => {
+  it('defaults to false when remote flag returns undefined and env is unset', () => {
     mockedValidate.mockReturnValue(undefined);
     delete process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED;
 
     const state = createState({
-      _unique: 'parallax-default-on',
-    });
-
-    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when env var is set to false and remote is undefined', () => {
-    mockedValidate.mockReturnValue(undefined);
-    process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED = 'false';
-
-    const state = createState({
-      _unique: 'parallax-env-false',
+      _unique: 'parallax-default-off',
     });
 
     const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
 
     expect(result).toBe(false);
+  });
+
+  it('returns true when env var is set to true and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      _unique: 'parallax-env-true',
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
   });
 
   it('remote flag takes precedence over env var', () => {

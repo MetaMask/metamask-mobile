@@ -68,12 +68,12 @@ export function useDeviceOrientation(
   }, [onOrientation]);
 
   useEffect(() => {
+    // Do no sensor work (including reading device memory) while disabled — e.g.
+    // when the feature flag is off or reduce-motion is on.
+    if (!enabled) return undefined;
+
     const hz = isLowEndDevice() ? HZ_LOW_END : HZ_DEFAULT;
     setUpdateIntervalForType(SensorTypes.accelerometer, 1000 / hz);
-  }, []);
-
-  useEffect(() => {
-    if (!enabled) return undefined;
 
     smoothed.current = { x: 0, y: 0 };
 
