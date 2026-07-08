@@ -18,6 +18,9 @@ import {
 } from '../reducers/user/selectors';
 import { setAppInstallEventFired } from '../actions/user';
 
+/** Prevents parallel start() calls from double-firing before Redux persists. */
+let trackAppInstallInFlight = false;
+
 /**
  * Fire the App Installed analytics event exactly once on first install.
  * Mirrors the extension's addAppInstalledEvent / onInstall logic:
@@ -27,6 +30,11 @@ import { setAppInstallEventFired } from '../actions/user';
  * - The analytics queue handles pre-opt-in buffering automatically
  */
 export async function trackAppInstallOnce() {
+  if (trackAppInstallInFlight) {
+    return;
+  }
+
+  trackAppInstallInFlight = true;
   try {
     const state = ReduxService.store.getState();
     const existingUser = selectExistingUser(state);
@@ -35,9 +43,6 @@ export async function trackAppInstallOnce() {
     if (existingUser || alreadyFired) {
       return;
     }
-
-    // Mark fired before async work so parallel start() calls don't double-fire
-    ReduxService.store.dispatch(setAppInstallEventFired());
 
     // Set install date trait (yyyy-mm-dd), mirrors InstallDateExt on extension
     const installDate = new Date().toISOString().split('T')[0];
@@ -70,11 +75,16 @@ export async function trackAppInstallOnce() {
     }
 
     analytics.trackEvent(eventBuilder.build());
+
+    // Only persist after tracking succeeds so a failed attempt can retry
+    ReduxService.store.dispatch(setAppInstallEventFired());
   } catch (error) {
     Logger.error(
       error as Error,
       'AppStateManager: Error tracking app install event',
     );
+  } finally {
+    trackAppInstallInFlight = false;
   }
 }
 

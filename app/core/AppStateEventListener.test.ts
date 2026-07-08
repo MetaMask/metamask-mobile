@@ -476,6 +476,49 @@ describe('AppStateEventListener', () => {
         branchError,
         'AppStateManager: Error tracking app install event',
       );
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith({
+        type: 'SET_APP_INSTALL_EVENT_FIRED',
+      });
+    });
+
+    it('does not mark event fired when trackEvent throws so install can retry', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({});
+      const trackError = new Error('Analytics unavailable');
+      mockAnalytics.trackEvent.mockImplementation(() => {
+        throw trackError;
+      });
+
+      await trackAppInstallOnce();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        trackError,
+        'AppStateManager: Error tracking app install event',
+      );
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith({
+        type: 'SET_APP_INSTALL_EVENT_FIRED',
+      });
+    });
+
+    it('retries tracking after a prior failure', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({});
+      mockAnalytics.trackEvent
+        .mockImplementationOnce(() => {
+          throw new Error('Analytics unavailable');
+        })
+        .mockImplementation(() => undefined);
+
+      await trackAppInstallOnce();
+      await trackAppInstallOnce();
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
+      expect(mockStore.dispatch).toHaveBeenCalledTimes(1);
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_APP_INSTALL_EVENT_FIRED',
+      });
     });
   });
 });
