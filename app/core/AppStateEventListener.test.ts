@@ -7,6 +7,40 @@ import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../util/analytics/analytics';
 import ReduxService, { ReduxStore } from './redux';
 import { saveAttribution } from './redux/slices/attribution';
+import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { setAppInstallEventFired } from '../actions/user';
+import generateDeviceAnalyticsMetaData from '../util/metrics';
+import generateUserSettingsAnalyticsMetaData from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import branch from 'react-native-branch';
+
+// Default: existing user so trackAppInstallOnce bails early and does not
+// interfere with tests that only care about APP_OPENED / identify.
+let mockSelectExistingUser = true;
+let mockSelectAppInstallEventFired = true;
+
+jest.mock('../reducers/user/selectors', () => ({
+  selectExistingUser: jest.fn(() => mockSelectExistingUser),
+  selectAppInstallEventFired: jest.fn(() => mockSelectAppInstallEventFired),
+}));
+
+jest.mock('../actions/user', () => ({
+  setAppInstallEventFired: jest.fn(() => ({
+    type: 'SET_APP_INSTALL_EVENT_FIRED',
+  })),
+}));
+
+// jest.mock() is hoisted above variable declarations, so the factory must
+// create jest.fn() inline — referencing an outer variable captures undefined.
+// Access the mock via the import after setup.
+jest.mock('react-native-branch', () => ({
+  __esModule: true,
+  default: {
+    getLatestReferringParams: jest.fn(),
+  },
+}));
+
+const mockBranchGetLatestReferringParams =
+  branch.getLatestReferringParams as jest.Mock;
 
 function createMockReduxStore(): ReduxStore {
   return {
@@ -47,6 +81,10 @@ jest.mock('../util/analytics/AnalyticsEventBuilder');
 
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
+// Flushes all pending microtasks. Prefer over single Promise.resolve()
+// for multi-hop async chains (e.g. branch.getLatestReferringParams → then).
+const flushPromises = () => new Promise(setImmediate);
+
 describe('AppStateEventListener', () => {
   let appStateManager: AppStateEventListener;
   let mockAppStateListener: (state: AppStateStatus) => void;
@@ -61,8 +99,21 @@ describe('AppStateEventListener', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.resetModules();
     jest.useFakeTimers();
+    mockSelectExistingUser = true;
+    mockSelectAppInstallEventFired = true;
+
+    // Prevent a throwing identify implementation from one test bleeding into
+    // the next. clearAllMocks preserves implementations; mockReset clears them.
+    mockAnalytics.identify.mockReset();
+
+    mockBranchGetLatestReferringParams.mockResolvedValue({});
+    mockEventBuilder.addProperties.mockReturnThis();
+    mockEventBuilder.build.mockReturnValue({
+      name: 'App Opened',
+      properties: {},
+      sensitiveProperties: {},
+    });
     (AppState.addEventListener as jest.Mock).mockImplementation(
       (_, listener) => {
         mockAppStateListener = listener;
@@ -72,12 +123,20 @@ describe('AppStateEventListener', () => {
     (AnalyticsEventBuilder.createEventBuilder as jest.Mock).mockReturnValue(
       mockEventBuilder,
     );
+
+    // Provide a default store so trackAppInstallOnce (which calls
+    // ReduxService.store.getState()) does not throw Logger.error noise in
+    // tests that only care about APP_OPENED / identify.
+    jest
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue(createMockReduxStore());
+
     appStateManager = new AppStateEventListener();
     appStateManager.start();
   });
 
   afterEach(() => {
-    jest.useFakeTimers({ legacyFakeTimers: true });
+    jest.useRealTimers();
   });
 
   it('subscribes to AppState changes on instantiation', () => {
@@ -181,8 +240,7 @@ describe('AppStateEventListener', () => {
   });
 
   it('identifies user when app starts', () => {
-    // The identify is called in start(), which is called in beforeEach
-    // So we just verify it was called with the combined traits
+    // identify is called in start(), which runs in beforeEach
     expect(mockAnalytics.identify).toHaveBeenCalledWith({
       deviceProp: 'Device value',
       userProp: 'User value',
@@ -190,12 +248,9 @@ describe('AppStateEventListener', () => {
   });
 
   it('logs error when identifying user fails', () => {
-    jest.clearAllMocks();
     mockAnalytics.identify.mockImplementation(() => {
       throw new Error('Test error');
     });
-
-    // Create a new instance to trigger the error in identifyUserOnAppStart
     const newAppStateManager = new AppStateEventListener();
     newAppStateManager.start();
 
@@ -206,10 +261,6 @@ describe('AppStateEventListener', () => {
   });
 
   it('handles errors gracefully', () => {
-    jest.clearAllMocks();
-    jest
-      .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue(createMockReduxStore());
     const testError = new Error('Test error');
     (processAttribution as jest.Mock).mockImplementation(() => {
       throw testError;
@@ -240,7 +291,6 @@ describe('AppStateEventListener', () => {
   });
 
   it('does not process app state change when app is not becoming active', () => {
-    jest.clearAllMocks();
     mockAppStateListener('background');
     jest.advanceTimersByTime(2000);
 
@@ -248,10 +298,6 @@ describe('AppStateEventListener', () => {
   });
 
   it('does not process app state change when app state has not changed', () => {
-    jest.clearAllMocks();
-    jest
-      .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue(createMockReduxStore());
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
     mockAppStateListener('background');
@@ -267,13 +313,8 @@ describe('AppStateEventListener', () => {
   });
 
   it('fires APP_OPENED when transitioning from background through inactive to active (iOS intermediate state)', () => {
-    jest.clearAllMocks();
-    jest
-      .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue(createMockReduxStore());
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
-    // Simulate iOS background → inactive → active sequence
     mockAppStateListener('background');
     mockAppStateListener('inactive');
     mockAppStateListener('active');
@@ -286,13 +327,8 @@ describe('AppStateEventListener', () => {
   });
 
   it('does not fire APP_OPENED when transitioning from inactive to active (e.g. system permission dialog dismissed)', () => {
-    jest.clearAllMocks();
-    jest
-      .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue(createMockReduxStore());
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
-    // Simulate iOS system permission dialog: active → inactive → active
     mockAppStateListener('inactive');
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
@@ -301,7 +337,10 @@ describe('AppStateEventListener', () => {
   });
 
   it('handles undefined store gracefully', () => {
-    jest.clearAllMocks();
+    // Simulate the real ReduxService.store throwing when not initialized.
+    jest.spyOn(ReduxService, 'store', 'get').mockImplementation(() => {
+      throw new Error('Redux store does not exist!');
+    });
     const { processAttribution: realProcessAttribution } = jest.requireActual(
       './processAttribution',
     );
@@ -313,12 +352,143 @@ describe('AppStateEventListener', () => {
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    const missingReduxStoreError = new Error('Redux store does not exist!');
-    const appStateManagerErrorMessage =
-      'AppStateManager: Error processing app state change';
     expect(Logger.error).toHaveBeenCalledWith(
-      missingReduxStoreError,
-      appStateManagerErrorMessage,
+      new Error('Redux store does not exist!'),
+      'AppStateManager: Error processing app state change',
     );
+  });
+
+  describe('trackAppInstallOnce', () => {
+    let mockStore: ReturnType<typeof createMockReduxStore>;
+
+    beforeEach(() => {
+      // Real timers so flushPromises (setImmediate) works correctly.
+      jest.useRealTimers();
+      mockStore = createMockReduxStore();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+    });
+
+    it('fires APP_INSTALLED and sets install date trait on first install', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({
+        '+is_first_session': false,
+        '+clicked_branch_link': false,
+      });
+
+      const listener = new AppStateEventListener();
+      listener.start();
+      await flushPromises();
+
+      expect(mockAnalytics.identify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          [UserProfileProperty.INSTALL_DATE_MOBILE]: expect.stringMatching(
+            /^\d{4}-\d{2}-\d{2}$/,
+          ),
+        }),
+      );
+      expect(mockStore.dispatch).toHaveBeenCalledWith({
+        type: 'SET_APP_INSTALL_EVENT_FIRED',
+      });
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.APP_INSTALLED,
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('does not add deeplink properties when install is not from a Branch deferred link', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({
+        '+is_first_session': false,
+        '+clicked_branch_link': false,
+      });
+
+      const listener = new AppStateEventListener();
+      listener.start();
+      await flushPromises();
+
+      expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ install_source: 'deeplink' }),
+      );
+    });
+
+    it('adds install_source and deeplink_path when opened via Branch deferred deeplink', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({
+        '+is_first_session': true,
+        '+clicked_branch_link': true,
+        $deeplink_path: 'buy',
+      });
+
+      const listener = new AppStateEventListener();
+      listener.start();
+      await flushPromises();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        install_source: 'deeplink',
+        deeplink_path: 'buy',
+      });
+    });
+
+    it('omits deeplink_path when $deeplink_path is absent', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      mockBranchGetLatestReferringParams.mockResolvedValue({
+        '+is_first_session': true,
+        '+clicked_branch_link': true,
+      });
+
+      const listener = new AppStateEventListener();
+      listener.start();
+      await flushPromises();
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        install_source: 'deeplink',
+      });
+    });
+
+    it('skips when existingUser is true', async () => {
+      mockSelectExistingUser = true;
+      mockSelectAppInstallEventFired = false;
+
+      const listener = new AppStateEventListener();
+      listener.start();
+      await flushPromises();
+
+      expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.APP_INSTALLED,
+      );
+    });
+
+    it('skips when event was already fired', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = true;
+
+      const listener = new AppStateEventListener();
+      listener.start();
+      await flushPromises();
+
+      expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.APP_INSTALLED,
+      );
+    });
+
+    it('logs error and does not throw when Branch call fails', async () => {
+      mockSelectExistingUser = false;
+      mockSelectAppInstallEventFired = false;
+      const branchError = new Error('Branch unavailable');
+      mockBranchGetLatestReferringParams.mockRejectedValue(branchError);
+
+      const listener = new AppStateEventListener();
+      listener.start();
+      await flushPromises();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        branchError,
+        'AppStateManager: Error tracking app install event',
+      );
+    });
   });
 });
