@@ -25,7 +25,6 @@ import { getPerpsLifecycleContext } from './perpsLifecycleContext';
 /** Internal metadata keys shared between the starting and ending surfaces. */
 const CUF_META = {
   SYMBOL: 'symbol',
-  TOAST_AT: 'toastAt',
   WATCH: 'watch',
   ORDER_ID: 'orderId',
   SNAPSHOT: 'snapshot',
@@ -128,17 +127,55 @@ export function endPerpsCufTrace({
   endTrace({ name, id, data, timestamp });
 }
 
-/** Register the order symbol the place-order CUF span is waiting on. */
-export function setPerpsPlaceOrderCufSymbol(symbol: string): void {
+/** First stream render matching an armed place-order confirmation. */
+export interface PerpsCufPositionRendered {
+  position: PerpsCufPositionLike;
+  renderedAt: number;
+}
+
+let placeOrderRendered: PerpsCufPositionRendered | null = null;
+let placeOrderResolver: (() => void) | null = null;
+
+/**
+ * Arm the place-order confirmation: the stream matcher fires when a position
+ * for `symbol` renders that is new or changed versus the pre-order baseline,
+ * so a pre-existing position on the same market can't confirm the order early.
+ */
+export function armPerpsPlaceOrderCuf(
+  symbol: string,
+  baseline?: PerpsCufPositionLike | null,
+): void {
+  placeOrderRendered = null;
+  placeOrderResolver = null;
   setPerpsCufMeta(TraceName.PerpsPlaceOrderToPositionRendered, {
     [CUF_META.SYMBOL]: symbol,
+    ...(baseline ? { [CUF_META.SNAPSHOT]: positionSnapshot(baseline) } : {}),
   });
 }
 
-/** Stamp the toast moment so the stream end can compute the toast<->position delta. */
-export function setPerpsPlaceOrderCufToastShown(): void {
-  setPerpsCufMeta(TraceName.PerpsPlaceOrderToPositionRendered, {
-    [CUF_META.TOAST_AT]: Date.now(),
+/**
+ * Resolve with the armed position's first stream render, or `null` after
+ * `timeoutMs`. Resolves immediately when the render already happened.
+ */
+export function waitForPerpsPlaceOrderPositionRendered(
+  timeoutMs: number,
+): Promise<PerpsCufPositionRendered | null> {
+  if (!pendingCufMeta.has(TraceName.PerpsPlaceOrderToPositionRendered)) {
+    return Promise.resolve(null);
+  }
+  if (placeOrderRendered) {
+    return Promise.resolve(placeOrderRendered);
+  }
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      placeOrderResolver = null;
+      resolve(null);
+    }, timeoutMs);
+    placeOrderResolver = () => {
+      clearTimeout(timer);
+      placeOrderResolver = null;
+      resolve(placeOrderRendered);
+    };
   });
 }
 
@@ -155,34 +192,36 @@ export function endPerpsCufTraceAfter(
 }
 
 /**
- * Stream-side end for the place-order CUF: called by the position stream when
- * fresh positions are delivered to subscribers (the moment the new position
- * renders). Ends the span only if one is pending and its symbol just arrived.
+ * Stream-side matcher for the place-order CUF: records when the armed
+ * position first renders (new, or changed versus the pre-order baseline) and
+ * wakes the waiter. The hook owns ending the span so the confirmation toast
+ * and the measured delta stay coupled to this render.
  */
-export function endPerpsPlaceOrderCufOnPositions(
-  positions: readonly { symbol: string }[] | null,
+function resolvePerpsPlaceOrderCufOnPositions(
+  positions: readonly PerpsCufPositionLike[] | null,
 ): void {
+  if (placeOrderRendered || !positions) {
+    return;
+  }
   const meta = pendingCufMeta.get(TraceName.PerpsPlaceOrderToPositionRendered);
-  if (!meta || !positions) {
+  if (!meta) {
     return;
   }
   const symbol = meta[CUF_META.SYMBOL];
-  if (
-    typeof symbol !== 'string' ||
-    !positions.some((p) => p.symbol === symbol)
-  ) {
+  if (typeof symbol !== 'string') {
     return;
   }
-  const toastAt = meta[CUF_META.TOAST_AT];
-  endPerpsCufTrace({
-    name: TraceName.PerpsPlaceOrderToPositionRendered,
-    data: {
-      [PERPS_CUF_TAG.SUCCESS]: true,
-      [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-      [PERPS_CUF_TAG.TOAST_TO_POSITION_MS]:
-        typeof toastAt === 'number' ? Date.now() - toastAt : -1,
-    },
-  });
+  const current = positions.find((p) => p.symbol === symbol);
+  if (!current) {
+    return;
+  }
+  const baseline = meta[CUF_META.SNAPSHOT];
+  if (typeof baseline === 'string' && positionSnapshot(current) === baseline) {
+    // Pre-order position unchanged: the order's fill hasn't rendered yet.
+    return;
+  }
+  placeOrderRendered = { position: current, renderedAt: Date.now() };
+  placeOrderResolver?.();
 }
 
 /** Watch for the given position to change (or vanish) before ending `name`. */
@@ -228,7 +267,7 @@ const STREAM_END_DATA = {
 export function handlePerpsCufPositionsDelivered(
   positions: readonly PerpsCufPositionLike[] | null,
 ): void {
-  endPerpsPlaceOrderCufOnPositions(positions);
+  resolvePerpsPlaceOrderCufOnPositions(positions);
   if (!positions) {
     return;
   }
@@ -245,7 +284,7 @@ export function handlePerpsCufPositionsDelivered(
       continue;
     }
     const current = positions.find((p) => p.symbol === symbol);
-    const currentSnapshot = current ? positionSnapshot(current) : undefined;
+    const currentSnapshot = current && positionSnapshot(current);
     if (currentSnapshot !== meta[CUF_META.SNAPSHOT]) {
       endPerpsCufTrace({ name, data: { ...STREAM_END_DATA } });
     }
@@ -276,7 +315,7 @@ export function handlePerpsCufOrdersDelivered(
   if (typeof orderId !== 'string') {
     return;
   }
-  if (orders?.some((o) => o.orderId === orderId) === false) {
+  if (!orders?.some((o) => o.orderId === orderId)) {
     endPerpsCufTrace({
       name: TraceName.PerpsCancelOrderToConfirmation,
       data: { ...STREAM_END_DATA },

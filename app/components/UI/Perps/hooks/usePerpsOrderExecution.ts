@@ -19,20 +19,22 @@ import { usePerpsTrading } from './usePerpsTrading';
 import {
   startPerpsCufTrace,
   endPerpsCufTrace,
-  endPerpsCufTraceAfter,
-  setPerpsPlaceOrderCufSymbol,
-  setPerpsPlaceOrderCufToastShown,
+  armPerpsPlaceOrderCuf,
+  waitForPerpsPlaceOrderPositionRendered,
 } from '../utils/perpsCufTrace';
 import {
   PERPS_CUF_TAG,
   PERPS_CUF_END_REASON,
   PERPS_CUF_BOUNDARY,
   PERPS_CUF_STREAM_TIMEOUT_MS,
+  PERPS_CUF_STREAM_CONFIRM_RACE_MS,
 } from '../constants/perpsCufTags';
+import { usePerpsStream } from '../providers/PerpsStreamManager';
 
 interface UsePerpsOrderExecutionParams {
-  /** Called when the order has been successfully submitted to the exchange (before position fetch). */
+  /** Called when the order has been successfully submitted to the exchange. */
   onSubmitted?: () => void;
+  /** Called when the position has rendered via the stream (or, on stream timeout, without it). */
   onSuccess?: (position?: Position) => void;
   onError?: (error: string) => void;
 }
@@ -48,14 +50,16 @@ type PerpsOrderTrackingValue = string | number | boolean;
 
 /**
  * Hook to handle order execution flow
- * Manages loading states, success/error handling, and position fetching
+ * Manages loading states, success/error handling, and stream-confirmed
+ * position rendering
  */
 export function usePerpsOrderExecution(
   params: UsePerpsOrderExecutionParams = {},
 ): UsePerpsOrderExecutionReturn {
   const { onSubmitted, onSuccess, onError } = params;
-  const { placeOrder: controllerPlaceOrder, getPositions } = usePerpsTrading();
+  const { placeOrder: controllerPlaceOrder } = usePerpsTrading();
   const { track } = usePerpsEventTracking();
+  const stream = usePerpsStream();
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [lastResult, setLastResult] = useState<OrderResult>();
@@ -72,10 +76,9 @@ export function usePerpsOrderExecution(
 
   const placeOrder = useCallback(
     async (orderParams: OrderParams) => {
-      // Place-order CUF: submit -> matching position confirmed. toast delta is
-      // measured against the MSO <=200ms target; the post-submit getPositions
-      // check is the position-confirmed proxy.
-      let toastAt: number | undefined;
+      // Place-order CUF: submit -> matching position rendered by the stream.
+      // The confirmation toast is coupled to the same stream render, so the
+      // toast<->position delta is measured, not an artifact of a fixed delay.
       const endPlaceOrderCuf = (
         data: Record<string, PerpsOrderTrackingValue>,
       ) =>
@@ -83,19 +86,6 @@ export function usePerpsOrderExecution(
           name: TraceName.PerpsPlaceOrderToPositionRendered,
           data,
         });
-      // Used when the poll misses the position: keeps the span open for the
-      // stream boundary but guarantees it closes if the stream never delivers.
-      const schedulePlaceOrderCufTimeout = () =>
-        endPerpsCufTraceAfter(
-          {
-            name: TraceName.PerpsPlaceOrderToPositionRendered,
-            data: {
-              [PERPS_CUF_TAG.SUCCESS]: false,
-              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
-            },
-          },
-          PERPS_CUF_STREAM_TIMEOUT_MS,
-        );
       startPerpsCufTrace({
         name: TraceName.PerpsPlaceOrderToPositionRendered,
         tags: {
@@ -105,8 +95,13 @@ export function usePerpsOrderExecution(
           [PERPS_CUF_TAG.ORDER_TYPE]: orderParams.orderType,
         },
       });
-      // The position stream ends this span when the matching position renders.
-      setPerpsPlaceOrderCufSymbol(orderParams.symbol);
+      // Baseline lets the stream matcher tell the order's fill apart from a
+      // position that already existed on this market before the order.
+      const baseline =
+        stream.positions
+          .getSnapshot()
+          ?.find((p) => p.symbol === orderParams.symbol) ?? null;
+      armPerpsPlaceOrderCuf(orderParams.symbol, baseline);
 
       try {
         setIsPlacing(true);
@@ -122,9 +117,6 @@ export function usePerpsOrderExecution(
 
         const result = await controllerPlaceOrder(orderParams);
         setLastResult(result);
-        // Toast fires on lastResult — stamp it to measure the toast<->position delta.
-        toastAt = Date.now();
-        setPerpsPlaceOrderCufToastShown();
 
         if (result.success) {
           DevLogger.log(
@@ -176,47 +168,52 @@ export function usePerpsOrderExecution(
             track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, partialProps);
           }
 
-          // Try to fetch the newly created position
-          try {
-            // Add a small delay to ensure the position is available
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            const fetchedPositions = await getPositions();
-            const newPosition = fetchedPositions.find(
-              (p) => p.symbol === orderParams.symbol,
-            );
-
-            if (newPosition) {
-              // No-op when the position stream already closed the span.
-              endPlaceOrderCuf({
-                [PERPS_CUF_TAG.SUCCESS]: true,
-                [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.POLL_FALLBACK,
-                [PERPS_CUF_TAG.TOAST_TO_POSITION_MS]:
-                  toastAt !== undefined ? Date.now() - toastAt : -1,
-              });
-              DevLogger.log(
-                'usePerpsOrderExecution: Found new position',
-                newPosition,
-              );
-              onSuccess?.(newPosition);
-            } else {
-              // Poll missed the position — leave the span open for the stream
-              // boundary, with a timeout end in case the stream never delivers.
-              schedulePlaceOrderCufTimeout();
-              DevLogger.log(
-                'usePerpsOrderExecution: Position not found immediately',
-              );
-              // Still call success, but without position data
-              onSuccess?.();
-            }
-          } catch (fetchError) {
-            schedulePlaceOrderCufTimeout();
+          // Wait briefly for the stream to render the new/changed position so
+          // the confirmation toast fires together with it.
+          const rendered = await waitForPerpsPlaceOrderPositionRendered(
+            PERPS_CUF_STREAM_CONFIRM_RACE_MS,
+          );
+          const toastShownAt = Date.now();
+          if (rendered) {
+            endPlaceOrderCuf({
+              [PERPS_CUF_TAG.SUCCESS]: true,
+              [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+              [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]:
+                rendered.renderedAt - toastShownAt,
+            });
+            const position = stream.positions
+              .getSnapshot()
+              ?.find((p) => p.symbol === orderParams.symbol);
             DevLogger.log(
-              'usePerpsOrderExecution: Error fetching positions after order',
-              fetchError,
+              'usePerpsOrderExecution: Position rendered by stream',
+              rendered.position,
             );
-            // Don't fail the whole operation, just proceed without position data
+            onSuccess?.(position);
+          } else {
+            // Stream quiet: unblock the toast now, end the span when the
+            // position finally renders (or record the miss on timeout).
+            DevLogger.log(
+              'usePerpsOrderExecution: Position not rendered yet, toasting without it',
+            );
             onSuccess?.();
+            // Deliberately not awaited: the caller must not block on the span.
+            waitForPerpsPlaceOrderPositionRendered(
+              PERPS_CUF_STREAM_TIMEOUT_MS,
+            ).then((late) => {
+              if (late) {
+                endPlaceOrderCuf({
+                  [PERPS_CUF_TAG.SUCCESS]: true,
+                  [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+                  [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]:
+                    late.renderedAt - toastShownAt,
+                });
+              } else {
+                endPlaceOrderCuf({
+                  [PERPS_CUF_TAG.SUCCESS]: false,
+                  [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+                });
+              }
+            });
           }
         } else {
           const errorMessage =
@@ -337,14 +334,7 @@ export function usePerpsOrderExecution(
         setIsPlacing(false);
       }
     },
-    [
-      controllerPlaceOrder,
-      getPositions,
-      onSubmitted,
-      onSuccess,
-      onError,
-      track,
-    ],
+    [controllerPlaceOrder, stream, onSubmitted, onSuccess, onError, track],
   );
 
   return {

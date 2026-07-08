@@ -8,9 +8,8 @@ import {
 import {
   startPerpsCufTrace,
   endPerpsCufTrace,
-  setPerpsPlaceOrderCufSymbol,
-  setPerpsPlaceOrderCufToastShown,
-  endPerpsPlaceOrderCufOnPositions,
+  armPerpsPlaceOrderCuf,
+  waitForPerpsPlaceOrderPositionRendered,
   watchPerpsCufPositionChanged,
   watchPerpsCufOrderAbsent,
   watchPerpsCufAnyPositions,
@@ -113,39 +112,67 @@ describe('perpsCufTrace', () => {
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
   });
 
-  it('ends the place-order span from the stream when the symbol arrives', () => {
+  it('resolves the place-order waiter when the armed symbol renders', async () => {
     startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
-    setPerpsPlaceOrderCufSymbol('BTC');
-    setPerpsPlaceOrderCufToastShown();
+    armPerpsPlaceOrderCuf('BTC');
 
-    endPerpsPlaceOrderCufOnPositions([{ symbol: 'ETH' }, { symbol: 'BTC' }]);
+    handlePerpsCufPositionsDelivered([
+      { symbol: 'ETH', size: '1' },
+      { symbol: 'BTC', size: '0.01' },
+    ]);
+    const rendered = await waitForPerpsPlaceOrderPositionRendered(5);
 
-    expect(mockEndTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: TraceName.PerpsPlaceOrderToPositionRendered,
-        data: expect.objectContaining({
-          [PERPS_CUF_TAG.SUCCESS]: true,
-          [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-          [PERPS_CUF_TAG.TOAST_TO_POSITION_MS]: expect.any(Number),
-        }),
-      }),
+    expect(rendered).toEqual({
+      position: { symbol: 'BTC', size: '0.01' },
+      renderedAt: expect.any(Number),
+    });
+  });
+
+  it('resolves a waiter registered before the stream delivers', async () => {
+    startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
+    armPerpsPlaceOrderCuf('BTC');
+
+    const pendingWait = waitForPerpsPlaceOrderPositionRendered(1000);
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.01' }]);
+
+    await expect(pendingWait).resolves.toEqual(
+      expect.objectContaining({ position: { symbol: 'BTC', size: '0.01' } }),
     );
   });
 
-  it('stream end ignores positions that do not match the pending symbol', () => {
+  it('does not resolve for a pre-existing position unchanged from the baseline', async () => {
+    const existing = { symbol: 'BTC', size: '0.01' };
     startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
-    setPerpsPlaceOrderCufSymbol('BTC');
+    armPerpsPlaceOrderCuf('BTC', existing);
 
-    endPerpsPlaceOrderCufOnPositions([{ symbol: 'ETH' }]);
-    endPerpsPlaceOrderCufOnPositions(null);
+    handlePerpsCufPositionsDelivered([existing]);
 
-    expect(mockEndTrace).not.toHaveBeenCalled();
+    await expect(waitForPerpsPlaceOrderPositionRendered(5)).resolves.toBeNull();
   });
 
-  it('stream end no-ops when no place-order span is pending', () => {
-    endPerpsPlaceOrderCufOnPositions([{ symbol: 'BTC' }]);
+  it('resolves when the armed position changes versus the baseline (add to position)', async () => {
+    startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
+    armPerpsPlaceOrderCuf('BTC', { symbol: 'BTC', size: '0.01' });
 
-    expect(mockEndTrace).not.toHaveBeenCalled();
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.02' }]);
+
+    await expect(waitForPerpsPlaceOrderPositionRendered(5)).resolves.toEqual(
+      expect.objectContaining({ position: { symbol: 'BTC', size: '0.02' } }),
+    );
+  });
+
+  it('ignores deliveries that do not match the armed symbol', async () => {
+    startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
+    armPerpsPlaceOrderCuf('BTC');
+
+    handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '1' }]);
+    handlePerpsCufPositionsDelivered(null);
+
+    await expect(waitForPerpsPlaceOrderPositionRendered(5)).resolves.toBeNull();
+  });
+
+  it('waiter resolves null when no place-order span is pending', async () => {
+    await expect(waitForPerpsPlaceOrderPositionRendered(5)).resolves.toBeNull();
   });
 
   const btc = { symbol: 'BTC', size: '0.01', takeProfitPrice: '70000' };

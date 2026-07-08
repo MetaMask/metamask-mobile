@@ -7,14 +7,14 @@ export const PERPS_CUF_TAG = {
   ORDER_TYPE: 'order_type',
   SUCCESS: 'success',
   REASON: 'reason',
-  TOAST_TO_POSITION_MS: 'toast_to_position_ms',
+  /** Signed ms between confirmation toast and position render; positive = position rendered after the toast. */
+  TOAST_POSITION_DELTA_MS: 'toast_position_delta_ms',
   BOUNDARY: 'boundary',
 } as const;
 
 /** Which surface closed the place-order CUF span. */
 export const PERPS_CUF_BOUNDARY = {
   STREAM: 'stream',
-  POLL_FALLBACK: 'poll_fallback',
 } as const;
 
 /** Account/flow variant tag values. */
@@ -28,8 +28,6 @@ export const PERPS_CUF_VARIANT = {
 
 /** Terminal reasons for the place-order CUF span. */
 export const PERPS_CUF_END_REASON = {
-  POSITION_NOT_FOUND: 'position_not_found',
-  POSITION_FETCH_ERROR: 'position_fetch_error',
   ORDER_FAILED: 'order_failed',
   REQUEST_FAILED: 'request_failed',
   EXCEPTION: 'exception',
@@ -38,3 +36,9 @@ export const PERPS_CUF_END_REASON = {
 
 /** How long the place-order span may wait for the position stream to close it. */
 export const PERPS_CUF_STREAM_TIMEOUT_MS = 30000;
+
+/**
+ * How long the success path waits for the stream to render the position
+ * before unblocking the confirmation toast without it.
+ */
+export const PERPS_CUF_STREAM_CONFIRM_RACE_MS = 1000;

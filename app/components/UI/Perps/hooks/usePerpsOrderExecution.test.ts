@@ -8,8 +8,13 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
+import { handlePerpsCufPositionsDelivered } from '../utils/perpsCufTrace';
 
 jest.mock('./usePerpsTrading');
+const mockGetSnapshot = jest.fn();
+jest.mock('../providers/PerpsStreamManager', () => ({
+  usePerpsStream: () => ({ positions: { getSnapshot: mockGetSnapshot } }),
+}));
 const mockTrack = jest.fn();
 jest.mock('./usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
@@ -36,15 +41,13 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 describe('usePerpsOrderExecution', () => {
   const mockPlaceOrder = jest.fn();
-  const mockGetPositions = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrack.mockClear();
-    mockGetPositions.mockResolvedValue([]); // Setup default
+    mockGetSnapshot.mockReturnValue(null); // No cached positions by default
     (usePerpsTrading as jest.Mock).mockReturnValue({
       placeOrder: mockPlaceOrder,
-      getPositions: mockGetPositions,
     });
   });
 
@@ -80,16 +83,28 @@ describe('usePerpsOrderExecution', () => {
     stopLossCount: 0,
   };
 
+  /**
+   * Order succeeds and the position stream renders it: the stream delivery
+   * happens inside placeOrder (after the CUF is armed), and the post-render
+   * snapshot contains the position.
+   */
+  const mockPlaceOrderSuccessWithRender = (
+    result: Record<string, unknown> = {},
+  ) => {
+    mockGetSnapshot.mockReturnValueOnce(null); // pre-order baseline: none
+    mockGetSnapshot.mockReturnValue([mockPosition]);
+    mockPlaceOrder.mockImplementation(async () => {
+      handlePerpsCufPositionsDelivered([mockPosition]);
+      return { success: true, orderId: 'order123', ...result };
+    });
+  };
+
   describe('successful order placement', () => {
-    it('places order and fetches position then calls onSuccess with position', async () => {
+    it('calls onSuccess with the position once the stream renders it', async () => {
       const onSuccess = jest.fn();
       const onError = jest.fn();
 
-      mockPlaceOrder.mockResolvedValue({
-        success: true,
-        orderId: 'order123',
-      });
-      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockPlaceOrderSuccessWithRender();
 
       const { result } = renderHook(() =>
         usePerpsOrderExecution({ onSuccess, onError }),
@@ -104,7 +119,6 @@ describe('usePerpsOrderExecution', () => {
       });
 
       expect(mockPlaceOrder).toHaveBeenCalledWith(mockOrderParams);
-      expect(mockGetPositions).toHaveBeenCalled();
       expect(onSuccess).toHaveBeenCalledWith(mockPosition);
       expect(onError).not.toHaveBeenCalled();
       expect(result.current.lastResult).toEqual({
@@ -114,14 +128,14 @@ describe('usePerpsOrderExecution', () => {
       expect(result.current.error).toBeUndefined();
     });
 
-    it('calls onSuccess with no args when position is not found after order', async () => {
+    it('calls onSuccess with no args when the stream has not rendered the position yet', async () => {
       const onSuccess = jest.fn();
 
       mockPlaceOrder.mockResolvedValue({
         success: true,
         orderId: 'order123',
       });
-      mockGetPositions.mockResolvedValue([]); // No positions
+      // No stream delivery: the confirm race times out and toasts without it.
 
       const { result } = renderHook(() =>
         usePerpsOrderExecution({ onSuccess }),
@@ -136,32 +150,12 @@ describe('usePerpsOrderExecution', () => {
       });
 
       expect(onSuccess).toHaveBeenCalledWith();
-    });
 
-    it('calls onSuccess with no args when position fetch rejects', async () => {
-      const onSuccess = jest.fn();
-      const onError = jest.fn();
-
-      mockPlaceOrder.mockResolvedValue({
-        success: true,
-        orderId: 'order123',
+      // Deliver the late render so the pending stream waiter (and its
+      // timeout) resolves instead of leaking past the test.
+      act(() => {
+        handlePerpsCufPositionsDelivered([mockPosition]);
       });
-      mockGetPositions.mockRejectedValue(new Error('Network error'));
-
-      const { result } = renderHook(() =>
-        usePerpsOrderExecution({ onSuccess, onError }),
-      );
-
-      await act(async () => {
-        await result.current.placeOrder(mockOrderParams);
-      });
-
-      await waitFor(() => {
-        expect(result.current.isPlacing).toBe(false);
-      });
-
-      expect(onSuccess).toHaveBeenCalledWith();
-      expect(onError).not.toHaveBeenCalled();
     });
 
     it('tracks partially filled event with trackingData when filledSize is between 0 and order size', async () => {
@@ -178,12 +172,7 @@ describe('usePerpsOrderExecution', () => {
         },
       };
 
-      mockPlaceOrder.mockResolvedValue({
-        success: true,
-        orderId: 'order123',
-        filledSize: '0.1',
-      });
-      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockPlaceOrderSuccessWithRender({ filledSize: '0.1' });
 
       const { result } = renderHook(() =>
         usePerpsOrderExecution({ onSuccess, onError: jest.fn() }),
@@ -221,12 +210,7 @@ describe('usePerpsOrderExecution', () => {
         },
       };
 
-      mockPlaceOrder.mockResolvedValue({
-        success: true,
-        orderId: 'order123',
-        filledSize: '0.1',
-      });
-      mockGetPositions.mockResolvedValue([mockPosition]);
+      mockPlaceOrderSuccessWithRender({ filledSize: '0.1' });
 
       const { result } = renderHook(() =>
         usePerpsOrderExecution({ onSuccess, onError: jest.fn() }),
@@ -473,7 +457,10 @@ describe('usePerpsOrderExecution', () => {
     it('clears error when a subsequent order placement succeeds', async () => {
       mockPlaceOrder
         .mockResolvedValueOnce({ success: false, error: 'First error' })
-        .mockResolvedValueOnce({ success: true });
+        .mockImplementation(async () => {
+          handlePerpsCufPositionsDelivered([mockPosition]);
+          return { success: true };
+        });
 
       const { result } = renderHook(() => usePerpsOrderExecution());
 
@@ -497,7 +484,7 @@ describe('usePerpsOrderExecution', () => {
 
   describe('without callbacks', () => {
     it('updates lastResult when placeOrder succeeds and no onSuccess provided', async () => {
-      mockPlaceOrder.mockResolvedValue({ success: true });
+      mockPlaceOrderSuccessWithRender();
 
       const { result } = renderHook(() => usePerpsOrderExecution());
 
