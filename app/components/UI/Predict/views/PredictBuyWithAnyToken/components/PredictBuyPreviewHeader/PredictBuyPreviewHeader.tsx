@@ -23,6 +23,8 @@ import {
 import { getBuyOutcomeImage } from '../../../../constants/sports';
 import { formatCents } from '../../../../utils/format';
 import { getDisplayBuyPrice } from '../../../../utils/prices';
+import PredictRegTimeTag from '../../../../components/PredictRegTimeTag';
+import { usePredictRegTimeBuyAccessory } from '../../../../hooks/usePredictRegTimeBuyAccessory';
 
 export interface PredictBuyPreviewHeaderProps {
   market: PredictMarket;
@@ -68,6 +70,11 @@ export function PredictBuyPreviewHeaderTitle({
     outcomeToken,
     preview,
   );
+  const { showRegTimeTag, onRegTimeInfoPress, regTimeInfoSheet } =
+    usePredictRegTimeBuyAccessory({
+      game: market.game,
+      sportsMarketType: outcome.sportsMarketType,
+    });
 
   const separator = '·';
   const outcomeTokenLabel = strings('predict.buy_preview_outcome_at_price', {
@@ -76,56 +83,81 @@ export function PredictBuyPreviewHeaderTitle({
   });
 
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="flex-1 min-w-0 gap-3"
-    >
-      <Image
-        source={{
-          uri: getBuyOutcomeImage({
-            outcome,
-            outcomeToken,
-            game: market.game,
-          }),
-        }}
-        style={tw.style('w-10 h-10 rounded')}
-      />
-      <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
-        <Text variant={TextVariant.HeadingSm}>{market.title}</Text>
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1 flex-wrap">
-          {!!outcome.groupItemTitle && (
-            <>
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="font-medium"
-                color={TextColor.TextAlternative}
-              >
-                {outcome.groupItemTitle}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="font-medium"
-                color={TextColor.TextAlternative}
-              >
-                {separator}
-              </Text>
-            </>
-          )}
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="font-medium"
-            color={
-              outcomeTokenTitle === 'Yes'
-                ? TextColor.SuccessDefault
-                : TextColor.ErrorDefault
-            }
+    <>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="flex-1 min-w-0 gap-3"
+      >
+        <Image
+          source={{
+            uri: getBuyOutcomeImage({
+              outcome,
+              outcomeToken,
+              game: market.game,
+            }),
+          }}
+          style={tw.style('w-10 h-10 rounded')}
+        />
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          twClassName="flex-1 min-w-0"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2 min-w-0"
           >
-            {outcomeTokenLabel}
-          </Text>
+            <Text
+              variant={TextVariant.HeadingSm}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              twClassName="flex-1"
+            >
+              {market.title}
+            </Text>
+            {showRegTimeTag ? (
+              <PredictRegTimeTag onPress={onRegTimeInfoPress} />
+            ) : null}
+          </Box>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            twClassName="gap-1 flex-wrap"
+          >
+            {!!outcome.groupItemTitle && (
+              <>
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
+                >
+                  {outcome.groupItemTitle}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
+                >
+                  {separator}
+                </Text>
+              </>
+            )}
+            <Text
+              variant={TextVariant.BodySm}
+              twClassName="font-medium"
+              color={
+                outcomeTokenTitle === 'Yes'
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault
+              }
+            >
+              {outcomeTokenLabel}
+            </Text>
+          </Box>
         </Box>
       </Box>
-    </Box>
+      {regTimeInfoSheet}
+    </>
   );
 }
 

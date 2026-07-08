@@ -15,6 +15,7 @@ import {
   isTeamToAdvanceMarketType,
   outcomeMatchesTeam,
   resolveNegRiskMoneylineShortTitles,
+  resolveSportCardButtons,
   shouldShowRegTimeTag,
   sportTeamMatchesLabel,
 } from './sports';
@@ -245,6 +246,109 @@ describe('getPrimarySportsCardOutcomes', () => {
     );
 
     expect(result).toEqual([moneylineOutcome]);
+  });
+});
+
+describe('resolveSportCardButtons', () => {
+  it('resolves combined World Cup team-to-advance tokens from one outcome', () => {
+    const moneylineOutcome = {
+      id: 'moneyline',
+      sportsMarketType: 'moneyline',
+      tokens: [
+        { id: 'home-token', title: 'Korea Republic', price: 0.6 },
+        { id: 'draw-token', title: 'Draw', price: 0.2 },
+        { id: 'away-token', title: 'Czechia', price: 0.4 },
+      ],
+    };
+    const teamToAdvanceOutcome = {
+      id: 'team-to-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'Team to Advance',
+      tokens: [
+        { id: 'home-advance-token', title: 'Korea Republic', price: 0.78 },
+        { id: 'away-advance-token', title: 'Czechia', price: 0.22 },
+      ],
+    };
+
+    const result = resolveSportCardButtons({
+      outcomes: [moneylineOutcome, teamToAdvanceOutcome],
+      game,
+      showDraw: true,
+    });
+
+    expect(result).toEqual({
+      home: {
+        outcome: teamToAdvanceOutcome,
+        token: teamToAdvanceOutcome.tokens[0],
+      },
+      away: {
+        outcome: teamToAdvanceOutcome,
+        token: teamToAdvanceOutcome.tokens[1],
+      },
+      draw: undefined,
+      isTeamToAdvance: true,
+      remainingOptions: 0,
+    });
+  });
+
+  it('falls back to moneyline when World Cup has no team-to-advance outcome', () => {
+    const moneylineOutcome = {
+      id: 'moneyline',
+      sportsMarketType: 'moneyline',
+      tokens: [
+        { id: 'home-token', title: 'KOR', price: 0.6 },
+        { id: 'draw-token', title: 'Draw', price: 0.2 },
+        { id: 'away-token', title: 'CZE', price: 0.4 },
+      ],
+    };
+    const spreadOutcome = {
+      id: 'spread',
+      sportsMarketType: 'spreads',
+      tokens: [
+        { id: 'spread-token', title: 'Korea Republic -1.5', price: 0.5 },
+      ],
+    };
+
+    const result = resolveSportCardButtons({
+      outcomes: [spreadOutcome, moneylineOutcome],
+      game,
+      showDraw: true,
+    });
+
+    expect(result.home?.token.id).toBe('home-token');
+    expect(result.draw?.token.id).toBe('draw-token');
+    expect(result.away?.token.id).toBe('away-token');
+    expect(result.isTeamToAdvance).toBe(false);
+  });
+
+  it('keeps split team-to-advance support without assuming token order', () => {
+    const homeAdvanceOutcome = {
+      id: 'home-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'Korea Republic',
+      tokens: [
+        { id: 'home-no-token', title: 'No', price: 0.2 },
+        { id: 'home-advance-token', title: 'Korea Republic', price: 0.8 },
+      ],
+    };
+    const awayAdvanceOutcome = {
+      id: 'away-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'Czechia',
+      tokens: [
+        { id: 'away-no-token', title: 'No', price: 0.7 },
+        { id: 'away-advance-token', title: 'Czechia', price: 0.3 },
+      ],
+    };
+
+    const result = resolveSportCardButtons({
+      outcomes: [homeAdvanceOutcome, awayAdvanceOutcome],
+      game,
+      showDraw: true,
+    });
+
+    expect(result.home?.token.id).toBe('home-advance-token');
+    expect(result.away?.token.id).toBe('away-advance-token');
   });
 });
 
@@ -495,6 +599,13 @@ describe('sports moneyline helpers', () => {
         game,
       }),
     ).toBe('https://example.com/token.png');
+    expect(
+      getBuyOutcomeImage({
+        outcome: teamToAdvanceOutcome,
+        outcomeToken: { ...outcomeToken, image: undefined },
+        game,
+      }),
+    ).toBe('https://example.com/korea.png');
     expect(
       getBuyOutcomeImage({
         outcome: teamToAdvanceOutcome,

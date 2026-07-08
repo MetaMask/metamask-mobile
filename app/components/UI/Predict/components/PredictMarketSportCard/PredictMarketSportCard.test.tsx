@@ -286,24 +286,14 @@ describe('PredictMarketSportCard', () => {
   });
 
   it('prefers team-to-advance outcomes for World Cup games', () => {
-    const homeAdvanceOutcome = {
+    const teamToAdvanceOutcome = {
       ...mockMarket.outcomes[0],
-      id: 'outcome-spain-advance',
+      id: 'outcome-team-to-advance',
       sportsMarketType: 'soccer_team_to_advance',
-      groupItemTitle: 'Spain',
+      groupItemTitle: 'Team to Advance',
       tokens: [
-        { id: 'token-spain-advance-yes', title: 'Spain', price: 0.72 },
-        { id: 'token-spain-advance-no', title: 'No', price: 0.28 },
-      ],
-    };
-    const awayAdvanceOutcome = {
-      ...mockMarket.outcomes[0],
-      id: 'outcome-england-advance',
-      sportsMarketType: 'soccer_team_to_advance',
-      groupItemTitle: 'England',
-      tokens: [
-        { id: 'token-england-advance-yes', title: 'England', price: 0.41 },
-        { id: 'token-england-advance-no', title: 'No', price: 0.59 },
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
       ],
     };
     const marketWithTeamToAdvance: PredictMarketType = {
@@ -314,8 +304,7 @@ describe('PredictMarketSportCard', () => {
           id: 'outcome-moneyline',
           sportsMarketType: 'moneyline',
         },
-        homeAdvanceOutcome,
-        awayAdvanceOutcome,
+        teamToAdvanceOutcome,
       ],
     };
 
@@ -335,33 +324,23 @@ describe('PredictMarketSportCard', () => {
 
     expect(mockOpenBuySheet).toHaveBeenCalledWith(
       expect.objectContaining({
-        outcome: awayAdvanceOutcome,
+        outcome: teamToAdvanceOutcome,
         outcomeToken: expect.objectContaining({
-          id: 'token-england-advance-yes',
+          id: 'token-england-advance',
         }),
       }),
     );
   });
 
   it('keeps moneyline outcomes for non-World-Cup games with team-to-advance outcomes', () => {
-    const homeAdvanceOutcome = {
+    const teamToAdvanceOutcome = {
       ...mockMarket.outcomes[0],
-      id: 'outcome-spain-advance',
+      id: 'outcome-team-to-advance',
       sportsMarketType: 'soccer_team_to_advance',
-      groupItemTitle: 'Spain',
+      groupItemTitle: 'Team to Advance',
       tokens: [
-        { id: 'token-spain-advance-yes', title: 'Spain', price: 0.72 },
-        { id: 'token-spain-advance-no', title: 'No', price: 0.28 },
-      ],
-    };
-    const awayAdvanceOutcome = {
-      ...mockMarket.outcomes[0],
-      id: 'outcome-england-advance',
-      sportsMarketType: 'soccer_team_to_advance',
-      groupItemTitle: 'England',
-      tokens: [
-        { id: 'token-england-advance-yes', title: 'England', price: 0.41 },
-        { id: 'token-england-advance-no', title: 'No', price: 0.59 },
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
       ],
     };
     const marketWithTeamToAdvance: PredictMarketType = {
@@ -376,8 +355,7 @@ describe('PredictMarketSportCard', () => {
           id: 'outcome-moneyline',
           sportsMarketType: 'moneyline',
         },
-        homeAdvanceOutcome,
-        awayAdvanceOutcome,
+        teamToAdvanceOutcome,
       ],
     };
 

@@ -5,7 +5,6 @@ import {
 } from '@react-navigation/native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { Image } from 'react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket } from '../../types';
@@ -18,6 +17,7 @@ import {
   PredictEventValues,
   PredictDismissalMethod,
 } from '../../constants/eventNames';
+import { PREDICT_REG_TIME_TAG_TEST_IDS } from '../../components/PredictRegTimeTag/PredictRegTimeTag';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock Engine
@@ -436,6 +436,40 @@ describe('PredictBuyPreview', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
+    });
+
+    it('renders Reg time tag for World Cup regular-time screen previews', () => {
+      const worldCupMarket: PredictMarket = {
+        ...mockMarket,
+        title: 'France vs Morocco',
+        game: { league: 'fifwc' } as PredictMarket['game'],
+        outcomes: [
+          {
+            ...mockMarket.outcomes[0],
+            sportsMarketType: 'moneyline',
+          },
+        ],
+      };
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          market: worldCupMarket,
+          outcome: worldCupMarket.outcomes[0],
+        },
+      });
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(
+        screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.TAG),
+      ).toHaveTextContent('Reg time');
+
+      fireEvent.press(
+        screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.INFO_BUTTON),
+      );
+
+      expect(screen.getByText('Regulation time')).toBeOnTheScreen();
     });
 
     it('displays group title when market has multiple outcomes', () => {
@@ -2149,50 +2183,6 @@ describe('PredictBuyPreview', () => {
       expect(screen.getByText('Korea Republic')).toBeOnTheScreen();
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
       expect(screen.queryByText('Korea Republic at 50¢')).not.toBeOnTheScreen();
-    });
-
-    it('uses token image for World Cup team-to-advance picks', () => {
-      const teamToAdvanceMarket: PredictMarket = {
-        ...mockMarket,
-        title: 'France vs. Morocco',
-        game: { league: 'fifwc' } as PredictMarket['game'],
-        outcomes: [
-          {
-            ...mockMarket.outcomes[0],
-            title: 'France vs. Morocco: Team to Advance',
-            groupItemTitle: 'Team to Advance',
-            image: 'https://example.com/soccer-ball.png',
-            sportsMarketType: 'soccer_team_to_advance',
-            tokens: [
-              {
-                id: 'outcome-token-789',
-                title: 'France',
-                price: 0.785,
-                image: 'https://example.com/france.png',
-              },
-            ],
-          },
-        ],
-      };
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          market: teamToAdvanceMarket,
-          outcome: teamToAdvanceMarket.outcomes[0],
-          outcomeToken: teamToAdvanceMarket.outcomes[0].tokens[0],
-        },
-      });
-      mockBalance = 1000;
-      mockBalanceLoading = false;
-
-      const { UNSAFE_getByType } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      expect(UNSAFE_getByType(Image).props.source).toEqual({
-        uri: 'https://example.com/france.png',
-      });
     });
   });
 

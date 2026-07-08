@@ -29,7 +29,6 @@ import { useAppThemeFromContext } from '../../../../util/theme';
 import {
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictBottomSheetEnabledFlag,
-  selectNonRegTimeSportsMarketTypes,
 } from '../selectors/featureFlags';
 import {
   PredictBuyPreviewParams,
@@ -52,9 +51,8 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
-import { getBuyOutcomeImage, shouldShowRegTimeTag } from '../constants/sports';
-import { usePredictBottomSheet } from '../hooks/usePredictBottomSheet';
-import PredictRegTimeInfoSheet from '../components/PredictGameDetailsContent/PredictRegTimeInfoSheet';
+import { getBuyOutcomeImage } from '../constants/sports';
+import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
 
 // Registration stack of sheet-mode providers — multiple providers can be
 // mounted simultaneously (e.g. HomeTabs + PredictScreenStack when the user
@@ -249,20 +247,11 @@ export const PredictPreviewSheetProvider: React.FC<
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
   );
-  const nonRegTimeSportsMarketTypes = useSelector(
-    selectNonRegTimeSportsMarketTypes,
-  );
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const theme = useAppThemeFromContext();
 
   const buySheetRef = useRef<PredictPreviewSheetRef>(null);
   const sellSheetRef = useRef<PredictPreviewSheetRef>(null);
-  const {
-    sheetRef: regTimeSheetRef,
-    isVisible: isRegTimeSheetVisible,
-    handleSheetClosed: handleRegTimeSheetClosed,
-    getRefHandlers: getRegTimeRefHandlers,
-  } = usePredictBottomSheet();
   const [buyParams, setBuyParams] = useState<PredictBuyPreviewParams | null>(
     null,
   );
@@ -304,13 +293,14 @@ export const PredictPreviewSheetProvider: React.FC<
    */
   const providerIdRef = useRef<number | null>(null);
   const hasBuyParams = useCallback(() => lastBuyParamsRef.current !== null, []);
-  const regTimeSheetHandlers = useMemo(
-    () => getRegTimeRefHandlers(),
-    [getRegTimeRefHandlers],
-  );
-  const handleRegTimeInfoPress = useCallback(() => {
-    regTimeSheetHandlers.onOpenBottomSheet();
-  }, [regTimeSheetHandlers]);
+  const {
+    showRegTimeTag: showBuyRegTimeTag,
+    onRegTimeInfoPress: handleRegTimeInfoPress,
+    regTimeInfoSheet,
+  } = usePredictRegTimeBuyAccessory({
+    game: buyParams?.market.game,
+    sportsMarketType: buyParams?.outcome.sportsMarketType,
+  });
 
   useEffect(() => {
     if (!disableBottomSheet) {
@@ -530,14 +520,6 @@ export const PredictPreviewSheetProvider: React.FC<
     [openBuySheet, openSellSheet, dismissPreviewSheet, buyParams],
   );
 
-  const showBuyRegTimeTag = buyParams
-    ? shouldShowRegTimeTag({
-        game: buyParams.market.game,
-        sportsMarketType: buyParams.outcome.sportsMarketType,
-        nonRegTimeSportsMarketTypes,
-      })
-    : false;
-
   return (
     <PredictPreviewSheetContext.Provider value={contextValue}>
       {children}
@@ -582,12 +564,7 @@ export const PredictPreviewSheetProvider: React.FC<
           )}
         </PredictPreviewSheet>
       )}
-      {isRegTimeSheetVisible && (
-        <PredictRegTimeInfoSheet
-          ref={regTimeSheetRef}
-          onClose={handleRegTimeSheetClosed}
-        />
-      )}
+      {regTimeInfoSheet}
     </PredictPreviewSheetContext.Provider>
   );
 };

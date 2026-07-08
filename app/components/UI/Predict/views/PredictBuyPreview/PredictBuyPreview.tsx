@@ -62,6 +62,7 @@ import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
+import PredictRegTimeTag from '../../components/PredictRegTimeTag';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -72,6 +73,7 @@ import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import { usePredictRegTimeBuyAccessory } from '../../hooks/usePredictRegTimeBuyAccessory';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 import { getBuyOutcomeImage } from '../../constants/sports';
@@ -148,6 +150,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
   const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
+  const { showRegTimeTag, onRegTimeInfoPress, regTimeInfoSheet } =
+    usePredictRegTimeBuyAccessory({
+      game: market.game,
+      sportsMarketType: outcome.sportsMarketType,
+    });
 
   const analyticsProperties = useMemo(
     () =>
@@ -434,7 +441,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         style={tw.style('w-10 h-10 rounded')}
       />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="min-w-0 gap-2"
+        >
           <Box twClassName="flex-1 min-w-0">
             <Text
               variant={TextVariant.HeadingSm}
@@ -444,6 +455,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               {title}
             </Text>
           </Box>
+          {!isSheetMode && showRegTimeTag ? (
+            <PredictRegTimeTag onPress={onRegTimeInfoPress} />
+          ) : null}
         </Box>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">
           <Box twClassName="flex-1 min-w-0">
@@ -684,6 +698,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   return (
     <Wrapper {...wrapperProps}>
       {!isSheetMode && renderHeader()}
+      {!isSheetMode && regTimeInfoSheet}
       {renderAmount()}
       {renderMinimumBetWarning()}
       <PredictKeypad

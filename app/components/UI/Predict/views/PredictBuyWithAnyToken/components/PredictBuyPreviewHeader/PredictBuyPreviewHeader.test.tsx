@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
-import { Image } from 'react-native';
 import PredictBuyPreviewHeader, {
   PredictBuyPreviewHeaderTitle,
   PredictBuyPreviewHeaderBack,
 } from './PredictBuyPreviewHeader';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { PREDICT_REG_TIME_TAG_TEST_IDS } from '../../../../components/PredictRegTimeTag/PredictRegTimeTag';
 import {
   Side,
   Recurrence,
@@ -19,6 +19,12 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, options?: Record<string, unknown>) => {
     if (key === 'predict.buy_preview_outcome_at_price') {
       return `${options?.outcome} at ${options?.price}`;
+    }
+    if (key === 'predict.reg_time_info.tag') {
+      return 'Reg time';
+    }
+    if (key === 'predict.reg_time_info.title') {
+      return 'Regulation time';
     }
     return key;
   }),
@@ -387,41 +393,31 @@ describe('PredictBuyPreviewHeader', () => {
       expect(screen.getByText(/Yes at 0\.65¢/)).toBeOnTheScreen();
     });
 
-    it('uses token image for World Cup team-to-advance picks', () => {
+    it('renders Reg time tag for World Cup regular-time picks', () => {
       const market = createMockMarket({
         title: 'France vs. Morocco',
         game: { league: 'fifwc' } as PredictMarket['game'],
       });
       const outcome = createMockOutcome({
-        title: 'France vs. Morocco: Team to Advance',
-        groupItemTitle: 'Team to Advance',
-        image: 'https://example.com/soccer-ball.png',
-        sportsMarketType: 'soccer_team_to_advance',
-        tokens: [
-          {
-            id: 'token-1',
-            title: 'France',
-            price: 0.785,
-            image: 'https://example.com/france.png',
-          },
-        ],
+        sportsMarketType: 'moneyline',
       });
-      const { UNSAFE_getByType } = renderWithProvider(
+      renderWithProvider(
         <PredictBuyPreviewHeaderTitle
           market={market}
           outcome={outcome}
-          outcomeToken={createMockOutcomeToken({
-            id: 'token-1',
-            title: 'France',
-            price: 0.785,
-            image: 'https://example.com/france.png',
-          })}
+          outcomeToken={createMockOutcomeToken()}
         />,
       );
 
-      expect(UNSAFE_getByType(Image).props.source).toEqual({
-        uri: 'https://example.com/france.png',
-      });
+      expect(
+        screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.TAG),
+      ).toHaveTextContent('Reg time');
+
+      fireEvent.press(
+        screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.INFO_BUTTON),
+      );
+
+      expect(screen.getByText('Regulation time')).toBeOnTheScreen();
     });
 
     it('applies success color for Yes outcome', () => {

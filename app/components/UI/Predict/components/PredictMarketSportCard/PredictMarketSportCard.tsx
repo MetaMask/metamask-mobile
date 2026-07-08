@@ -20,12 +20,8 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import {
-  getTeamOutcome,
-  getPrimarySportsCardOutcomes,
   isDrawCapableLeague,
-  isTeamToAdvanceMarketType,
-  sportTeamMatchesLabel,
-  WORLD_CUP_LEAGUE,
+  resolveSportCardButtons,
 } from '../../constants/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -90,142 +86,38 @@ const buildButtonItems = (
   game: PredictMarketGame,
   showDraw: boolean,
 ): SportOutcomeButtonItem[] => {
-  const primaryOutcomes = getPrimarySportsCardOutcomes(
-    market.outcomes,
-    game.league,
-  );
-  const sortedDrawOutcomes =
-    showDraw && primaryOutcomes.length >= 3
-      ? [...primaryOutcomes].sort(
-          (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-        )
-      : null;
-
-  if (sortedDrawOutcomes) {
-    const homeOutcome = sortedDrawOutcomes[0];
-    const drawOutcome = sortedDrawOutcomes[1];
-    const awayOutcome = sortedDrawOutcomes[2];
-    const homeToken = homeOutcome?.tokens[0];
-    const drawToken = drawOutcome?.tokens[0];
-    const awayToken = awayOutcome?.tokens[0];
-
-    return compactButtonItems([
-      homeToken
-        ? {
-            key: homeToken.id,
-            label: getTeamButtonLabel(game.homeTeam),
-            token: homeToken,
-            outcome: homeOutcome,
-            teamColor: game.homeTeam.color,
-            variant: 'home',
-          }
-        : undefined,
-      drawToken
-        ? {
-            key: drawToken.id,
-            label: 'Draw',
-            token: drawToken,
-            outcome: drawOutcome,
-            variant: 'draw',
-          }
-        : undefined,
-      awayToken
-        ? {
-            key: awayToken.id,
-            label: getTeamButtonLabel(game.awayTeam),
-            token: awayToken,
-            outcome: awayOutcome,
-            teamColor: game.awayTeam.color,
-            variant: 'away',
-          }
-        : undefined,
-    ]);
-  }
-
-  const isTeamToAdvance =
-    game.league === WORLD_CUP_LEAGUE &&
-    isTeamToAdvanceMarketType(primaryOutcomes[0]?.sportsMarketType);
-
-  if (isTeamToAdvance && primaryOutcomes.length >= 2) {
-    const homeOutcome = getTeamOutcome(primaryOutcomes, game.homeTeam, 0);
-    const awayOutcome = getTeamOutcome(
-      primaryOutcomes,
-      game.awayTeam,
-      1,
-      homeOutcome,
-    );
-    const homeToken = homeOutcome?.tokens[0];
-    const awayToken = awayOutcome?.tokens[0];
-
-    return compactButtonItems([
-      homeToken && homeOutcome
-        ? {
-            key: homeToken.id,
-            label: getTeamButtonLabel(game.homeTeam),
-            token: homeToken,
-            outcome: homeOutcome,
-            teamColor: game.homeTeam.color,
-            variant: 'home',
-          }
-        : undefined,
-      awayToken && awayOutcome
-        ? {
-            key: awayToken.id,
-            label: getTeamButtonLabel(game.awayTeam),
-            token: awayToken,
-            outcome: awayOutcome,
-            teamColor: game.awayTeam.color,
-            variant: 'away',
-          }
-        : undefined,
-    ]);
-  }
-
-  const outcome = primaryOutcomes[0];
-  if (!outcome) return [];
-
-  const homeToken =
-    outcome.tokens.find((token) =>
-      sportTeamMatchesLabel(token.title, game.homeTeam),
-    ) ?? outcome.tokens[0];
-  const drawToken = showDraw
-    ? outcome.tokens.find((token) => token.title?.toLowerCase() === 'draw')
-    : undefined;
-  const awayToken =
-    outcome.tokens.find((token) =>
-      sportTeamMatchesLabel(token.title, game.awayTeam),
-    ) ??
-    outcome.tokens.find(
-      (token) => token.id !== homeToken?.id && token.id !== drawToken?.id,
-    ) ??
-    outcome.tokens[1];
+  const { home, draw, away } = resolveSportCardButtons({
+    outcomes: market.outcomes,
+    game,
+    showDraw,
+  });
 
   return compactButtonItems([
-    homeToken
+    home
       ? {
-          key: homeToken.id,
+          key: home.token.id,
           label: getTeamButtonLabel(game.homeTeam),
-          token: homeToken,
-          outcome,
+          token: home.token,
+          outcome: home.outcome,
           teamColor: game.homeTeam.color,
           variant: 'home',
         }
       : undefined,
-    drawToken
+    draw
       ? {
-          key: drawToken.id,
+          key: draw.token.id,
           label: 'Draw',
-          token: drawToken,
-          outcome,
+          token: draw.token,
+          outcome: draw.outcome,
           variant: 'draw',
         }
       : undefined,
-    awayToken
+    away
       ? {
-          key: awayToken.id,
+          key: away.token.id,
           label: getTeamButtonLabel(game.awayTeam),
-          token: awayToken,
-          outcome,
+          token: away.token,
+          outcome: away.outcome,
           teamColor: game.awayTeam.color,
           variant: 'away',
         }

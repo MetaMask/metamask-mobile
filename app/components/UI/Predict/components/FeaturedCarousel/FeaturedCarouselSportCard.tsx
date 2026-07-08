@@ -36,12 +36,8 @@ import { usePredictPreviewSheet } from '../../contexts';
 import { usePredictGame } from '../../hooks/usePredictGame';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import {
-  getTeamOutcome,
-  getPrimarySportsCardOutcomes,
   isDrawCapableLeague,
-  isTeamToAdvanceMarketType,
-  sportTeamMatchesLabel,
-  WORLD_CUP_LEAGUE,
+  resolveSportCardButtons,
 } from '../../constants/sports';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
@@ -109,37 +105,18 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
     : null;
   const footerTimeText = timeRemaining ?? scheduledTime;
 
-  const primaryOutcomes = useMemo(
-    () => getPrimarySportsCardOutcomes(market.outcomes, game.league),
-    [game.league, market.outcomes],
+  const buttonResolution = useMemo(
+    () =>
+      resolveSportCardButtons({
+        outcomes: market.outcomes,
+        game,
+        showDraw,
+      }),
+    [game, market.outcomes, showDraw],
   );
-  const outcome = primaryOutcomes[0];
-
-  const isTeamToAdvance =
-    game.league === WORLD_CUP_LEAGUE &&
-    isTeamToAdvanceMarketType(outcome?.sportsMarketType);
-  const homeOutcome =
-    isTeamToAdvance && primaryOutcomes.length >= 2
-      ? getTeamOutcome(primaryOutcomes, game.homeTeam, 0)
-      : outcome;
-  const awayOutcome =
-    isTeamToAdvance && primaryOutcomes.length >= 2
-      ? getTeamOutcome(primaryOutcomes, game.awayTeam, 1, homeOutcome)
-      : outcome;
-  const homeToken =
-    homeOutcome?.tokens?.find((t) =>
-      sportTeamMatchesLabel(t.title, game.homeTeam),
-    ) ?? homeOutcome?.tokens?.[0];
-  const awayToken =
-    awayOutcome?.tokens?.find((t) =>
-      sportTeamMatchesLabel(t.title, game.awayTeam),
-    ) ??
-    awayOutcome?.tokens?.find((t) => t.id !== homeToken?.id) ??
-    awayOutcome?.tokens?.[1];
-  const drawToken =
-    showDraw && !isTeamToAdvance
-      ? outcome?.tokens?.find((t) => t.title?.toLowerCase() === 'draw')
-      : undefined;
+  const homeToken = buttonResolution.home?.token;
+  const drawToken = buttonResolution.draw?.token;
+  const awayToken = buttonResolution.away?.token;
   const tokenIds = useMemo(
     () =>
       [homeToken, drawToken, awayToken]
@@ -198,9 +175,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   );
 
   const totalVolume = calculateTotalVolume(market.outcomes);
-  const remainingOptions = isTeamToAdvance
-    ? 0
-    : Math.max(0, market.outcomes.length - 1);
+  const remainingOptions = buttonResolution.remainingOptions;
 
   const renderTeamLogo = (team: PredictSportTeam, testID?: string) =>
     config.TeamIcon ? (
@@ -344,7 +319,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {homeToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(homeToken, homeOutcome)}
+                  onPress={() =>
+                    handleBuy(homeToken, buttonResolution.home?.outcome)
+                  }
                   twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
@@ -364,7 +341,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {drawToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(drawToken, outcome)}
+                  onPress={() =>
+                    handleBuy(drawToken, buttonResolution.draw?.outcome)
+                  }
                   isFullWidth
                   size={ButtonBaseSize.Lg}
                 >
@@ -384,7 +363,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {awayToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(awayToken, awayOutcome)}
+                  onPress={() =>
+                    handleBuy(awayToken, buttonResolution.away?.outcome)
+                  }
                   twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
