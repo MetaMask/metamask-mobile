@@ -13,7 +13,11 @@ import LoginView from '../page-objects/wallet/LoginView';
 import WalletView from '../page-objects/wallet/WalletView';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
-import { isWalletHomeReadyOnIOS } from './wallet-home-readiness';
+import {
+  isLoginScreenDisplayed,
+  isWalletContainerDisplayed,
+  isWalletHomeReadyOnIOS,
+} from './wallet-home-readiness';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'node:child_process';
 
@@ -238,6 +242,8 @@ export const waitForAppReady = async (
 ): Promise<void> => {
   const startTime = Date.now();
   const deadline = startTime + timeout;
+  const appiumProbeMs = 500;
+  const pollIntervalMs = FrameworkDetector.isAppium() ? 500 : 2000;
 
   logger.debug('Waiting for app to reach login or wallet home...');
 
@@ -246,6 +252,26 @@ export const waitForAppReady = async (
       if (await isWalletHomeReadyOnIOS()) {
         logger.debug(
           `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
+        );
+        return;
+      }
+    } else if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+      // Android Appium: probe login before wallet-screen. The wallet container
+      // may exist in the native tree while the lock screen is showing, and a
+      // full visibility wait burns several seconds per poll on every test start.
+      if (await isLoginScreenDisplayed()) {
+        await sleep(appiumProbeMs);
+        if (await isLoginScreenDisplayed()) {
+          logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+          return;
+        }
+      }
+      if (
+        (await isWalletContainerDisplayed()) &&
+        !(await isLoginScreenDisplayed())
+      ) {
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
         );
         return;
       }
@@ -264,23 +290,25 @@ export const waitForAppReady = async (
       }
     }
 
-    try {
-      await Assertions.expectElementToBeVisible(LoginView.container, {
-        description: 'Login view should be stable',
-        timeout: 3000,
-      });
-      await sleep(500);
-      await Assertions.expectElementToBeVisible(LoginView.container, {
-        description: 'Login view should remain visible',
-        timeout: 1500,
-      });
-      logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
-      return;
-    } catch {
-      // Still booting — keep polling.
+    if (!(FrameworkDetector.isAppium() && PlatformDetector.isAndroid())) {
+      try {
+        await Assertions.expectElementToBeVisible(LoginView.container, {
+          description: 'Login view should be stable',
+          timeout: 3000,
+        });
+        await sleep(500);
+        await Assertions.expectElementToBeVisible(LoginView.container, {
+          description: 'Login view should remain visible',
+          timeout: 1500,
+        });
+        logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+        return;
+      } catch {
+        // Still booting — keep polling.
+      }
     }
 
-    await sleep(2000);
+    await sleep(pollIntervalMs);
   }
 
   throw new Error(

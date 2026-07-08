@@ -713,22 +713,25 @@ export const loginToAppPlaywright = async (
   };
 
   await dismissAndroidSystemOverlaysPlaywright();
-  await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
 
-  // Fast path: already on wallet home (e.g. session persisted across tests).
-  try {
-    await waitForWalletHomePlaywright(2_000);
+  // Fast path: session persisted — skip the 60s bootstrap when wallet is already up.
+  if (await Utilities.isElementVisible(WalletView.container, 1_000)) {
     await dismissPostLoginModals();
     return;
-  } catch {
-    // Login screen expected — continue below.
+  }
+
+  await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
+
+  if (await Utilities.isElementVisible(WalletView.container, 1_000)) {
+    await dismissPostLoginModals();
+    return;
   }
 
   // Dev menu overlays wallet/explore, not the login screen. Probing it while
   // login is visible wastes ~20s on absent Continue/xmark/Close elements.
   const onLoginScreen = await Utilities.isElementVisible(
     LoginView.container,
-    1500,
+    1_500,
   );
   if (!onLoginScreen) {
     await dismissDeveloperMenuPlaywright();
@@ -736,17 +739,10 @@ export const loginToAppPlaywright = async (
   }
 
   await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login view container',
-      timeout: 5_000,
-    },
-  );
-  await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.passwordInput),
     {
       description: 'Login password input',
-      timeout: 3_000,
+      timeout: 5_000,
     },
   );
 

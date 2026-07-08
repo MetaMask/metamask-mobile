@@ -16,7 +16,6 @@ export {
   boxedStep,
   executeMobileDeepLink,
   getDriver,
-  executeMobileDeepLink,
   withSnapshotSettings,
   startOverheadTracking,
   addOverhead,

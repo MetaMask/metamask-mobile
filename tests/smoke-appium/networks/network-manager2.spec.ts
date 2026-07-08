@@ -24,7 +24,7 @@ const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
 appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
   appiumTest(
-    'should preserve existing enabled networks when adding a network via dapp',
+    'preserve existing enabled networks when adding a network via dapp',
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withFixtures(
         {

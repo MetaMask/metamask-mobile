@@ -150,6 +150,7 @@ class NetworkManager {
     const tokenElement = this.getTokenBySymbol(symbol);
     await Assertions.expectElementToNotBeVisible(tokenElement, {
       elemDescription: `Token ${symbol} should not be visible`,
+      timeout: 3000,
     });
   }
 

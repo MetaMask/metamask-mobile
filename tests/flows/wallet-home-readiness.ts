@@ -11,7 +11,8 @@ const IOS_WALLET_HOME_INDICATOR_IDS = [
   WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER,
 ] as const;
 
-const isElementDisplayedById = async (testId: string): Promise<boolean> => {
+/** Fast Appium probe — avoids full assertion polling on every bootstrap loop. */
+export const isTestIdDisplayed = async (testId: string): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
       const el = await PlaywrightMatchers.getElementById(testId, {
@@ -23,6 +24,14 @@ const isElementDisplayedById = async (testId: string): Promise<boolean> => {
     return false;
   }
 };
+
+export const isLoginScreenDisplayed = (): Promise<boolean> =>
+  isTestIdDisplayed(LoginViewSelectors.CONTAINER);
+
+export const isWalletContainerDisplayed = (): Promise<boolean> =>
+  isTestIdDisplayed(WalletViewSelectorsIDs.WALLET_CONTAINER);
+
+const isElementDisplayedById = isTestIdDisplayed;
 
 const isAnyWalletHomeIndicatorDisplayedOnIOS = async (): Promise<boolean> => {
   for (const testId of IOS_WALLET_HOME_INDICATOR_IDS) {
