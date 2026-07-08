@@ -62,9 +62,7 @@ export async function trackAppInstallOnce() {
     );
 
     if (isDeferredDeeplinkInstall) {
-      const deeplinkPath = branchParams?.$deeplink_path as
-        | string
-        | undefined;
+      const deeplinkPath = branchParams?.$deeplink_path as string | undefined;
       eventBuilder.addProperties({
         install_source: 'deeplink',
         ...(deeplinkPath ? { deeplink_path: deeplinkPath } : {}),
