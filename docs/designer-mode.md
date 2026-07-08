@@ -93,8 +93,10 @@ There are three pieces:
 
 1. **The inspector** — built into the app, behind the `DESIGNER_MODE` flag.
 2. **The relay server** — a small Node script **bundled with the `designer-mode`
-   skill** (synced in via `yarn skills`; the agent starts it for you).
-3. **The agent skill** — `.claude/skills/designer-mode/SKILL.md`, which tells the
+   skill**. The skill is currently **experimental**, so a plain `yarn skills`
+   skips it — opt in explicitly with `yarn skills --include ui/designer-mode`
+   (the agent starts the relay for you).
+3. **The agent skill** — `.claude/skills/mms-designer-mode/SKILL.md`, which tells the
    agent to run the relay and **block on `/api/wait`** for each request. This is a
    pull loop (no stdout-watching/"monitor" tool needed), so it works with any
    agent that can run a shell command — Claude Code, Cursor, Codex, Aider, Gemini.
@@ -103,12 +105,12 @@ There are three pieces:
 
 ## For developers / agents — the loop
 
-The skill (`.claude/skills/designer-mode/SKILL.md`) drives this, but the loop is a
+The skill (`.claude/skills/mms-designer-mode/SKILL.md`) drives this, but the loop is a
 simple **blocking long-poll** — no stdout-watching tool required:
 
 ```bash
 # 1. Start the relay once, in the background (bundled with the designer-mode skill).
-node .claude/skills/designer-mode/scripts/server.mjs &
+node .claude/skills/mms-designer-mode/scripts/server.mjs &
 
 # 2. Block until the next request arrives, then handle it. Repeat forever.
 #    /api/wait returns the request body the instant the app sends one, or empty
@@ -135,7 +137,7 @@ pkill -f "designer-mode/scripts/server.mjs"
 
 ### Permissions
 
-Your agent will ask to approve the relay commands (`node .claude/skills/designer-mode/scripts/server.mjs`
+Your agent will ask to approve the relay commands (`node .claude/skills/mms-designer-mode/scripts/server.mjs`
 and the `curl` calls to `localhost`) the first time it runs them — these are normal
 tool-permission prompts. Approve them. To avoid being re-prompted on every re-arm,
 choose your harness's **"don't ask again"** option, or allow them in **your own**
