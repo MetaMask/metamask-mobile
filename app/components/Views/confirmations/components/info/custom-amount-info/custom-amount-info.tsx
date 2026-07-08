@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { View } from 'react-native';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -26,6 +27,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
   SetPayTokenRequest,
@@ -86,6 +88,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
+import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
@@ -169,6 +172,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] =
       useState(!isAddMusdIntent);
+
+    useMMPayNavigation(isKeyboardVisible, setIsKeyboardVisible);
+
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
@@ -289,6 +295,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             isLoading={isPrefillPending}
             onPress={handleAmountPress}
             disabled={!hasPaymentOption}
+            showCursor={isKeyboardVisible}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&
@@ -410,6 +417,27 @@ export function CustomAmountInfoSkeleton() {
         <DepositKeyboardSkeleton />
       </Box>
     </Box>
+  );
+}
+
+export function AdvancedCustomAmountInfoSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <View
+      style={styles.container}
+      testID="advanced-custom-amount-info-skeleton"
+    >
+      <View style={styles.inputContainer}>
+        <CustomAmountSkeleton />
+        <PayTokenAmountSkeleton />
+      </View>
+      <View>
+        <AccountSelectorSkeleton />
+        <PayWithRowSkeleton />
+        <DepositKeyboardSkeleton />
+      </View>
+    </View>
   );
 }
 

@@ -775,6 +775,18 @@ describe('PerpsMarketListView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('disables autocorrect and autocapitalize on the search input', () => {
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      const searchInput = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
+      );
+
+      expect(searchInput.props.autoCorrect).toBe(false);
+      expect(searchInput.props.autoCapitalize).toBe('none');
+      expect(searchInput.props.autoComplete).toBe('off');
+    });
+
     it('shows all markets when search query is empty', async () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 

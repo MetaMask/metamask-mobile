@@ -53,7 +53,6 @@ react {
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
     reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
-    hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
     codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
@@ -62,26 +61,60 @@ react {
     autolinkLibrariesWithApp()
 }
 
-// Override default React Native to generate source maps for Hermes
-project.ext.react = [
-  bundleCommand: "ram-bundle",
-  bundleAssetName: "index.bundle",
-  entryFile: "index.js",
-  hermesCommand: "../../node_modules/hermes-engine/%OS-BIN%/hermesc",
-  cliPath: "../../node_modules/react-native/cli.js",
-  composeSourceMapsPath: "../../node_modules/react-native/scripts/compose-source-maps.js",
-]
+// Workaround for upstream React Native bug facebook/react-native#56334 (New Arch, RN 0.78–0.83.x).
+//
+// The intended build ordering for codegen-only libraries (e.g. react-native-keychain,
+// react-native-mmkv, @sentry/react-native) is:
+//   1. Each library runs `generateCodegenArtifactsFromSchema` (via its `preBuild`), which CREATES
+//      its `build/generated/source/codegen/jni/` directory of generated C++ glue.
+//   2. THEN the app's `configureCMake*`/`buildCMake*` reads `Android-autolinking.cmake` and
+//      `add_subdirectory(...)`s into each of those directories to compile + link the glue.
+//
+// `GenerateAutolinkingNewArchitecturesFileTask` emits those `add_subdirectory(...)` entries
+// unconditionally, but `:app:configureCMake*` declares NO dependency on the step-1 tasks, so
+// Gradle is free to run step 2 before step 1. On a clean machine (e.g. CI) those directories don't
+// pre-exist, so the app's CMake configure runs first and fails with:
+//   add_subdirectory given source ".../codegen/jni/" which is not an existing directory
+// (Prefab-publishing libraries have the same gap via their `prefab<Variant>Package` outputs.)
+//
+// Restore the missing ordering edges so every library's step-1 codegen/prefab output is produced
+// before the app's step-2 CMake configure/build runs. This is the proper fix (vs. guarding the
+// generated CMake) because it guarantees the codegen-only TurboModule specs are actually built and
+// linked, instead of being silently skipped.
+afterEvaluate {
+    def cmakeTasks = tasks.matching {
+        it.name.startsWith("configureCMake") || it.name.startsWith("buildCMake")
+    }
+    rootProject.subprojects.each { sub ->
+        if (sub == project) return
+        sub.tasks.matching { it.name == "preBuild" }.all { preBuildTask ->
+            cmakeTasks.configureEach { it.dependsOn(preBuildTask) }
+        }
+        sub.tasks.matching { it.name.startsWith("prefab") && it.name.endsWith("Package") }.all { prefabTask ->
+            cmakeTasks.configureEach { it.dependsOn(prefabTask) }
+        }
+    }
+}
 
 // Sentry environment variables used by Sentry CLI to upload files. Upload is disabled by default
 // TODO - Move to JS side to be shared between platform - Android sets these automatically
 // System.env.SENTRY_DIST
 // System.env.SENTRY_RELEASE
 
-// Configure sentry properties
+// Configure sentry properties.
+// @sentry/react-native 7.x throws if `sentryProperties` points to a file that
+// does not exist (6.x silently skipped it). Local/dev builds frequently run
+// without it — see checkAuthToken in scripts/build.sh, which only generates the
+// file when MM_SENTRY_AUTH_TOKEN is set and otherwise just warns and continues.
+// So only set `sentryProperties` when the file actually exists. Production builds
+// still upload because checkAuthToken guarantees the release file is present.
+def sentryPropertiesPath = System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
 project.ext.sentryCli = [
     logLevel: "debug",
-    sentryProperties: System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
 ]
+if (file(sentryPropertiesPath).exists()) {
+    project.ext.sentryCli.sentryProperties = sentryPropertiesPath
+}
 
 // Sentry gradle from React Native (@sentry/react-native) that handles uploads Sentry source maps.
 apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
@@ -144,19 +177,6 @@ def getPassword(String currentUser, String keyChain) {
 def enableProguardInReleaseBuilds = true
 
 /**
- * The preferred build flavor of JavaScriptCore (JSC)
- *
- * For example, to use the international variant, you can use:
- * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
- *
- * The international variant includes ICU i18n library and necessary data
- * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
- * give correct results when using with locales other than en-US. Note that
- * this variant is about 6MiB larger per architecture than default.
- */
-def jscFlavor = 'org.webkit:android-jsc:+'
-
-/**
  * Private function to get the list of Native Architectures you want to build.
  * This reads the value from reactNativeArchitectures in your gradle.properties
  * file and works together with the --active-arch-only flag of react-native run-android.
@@ -181,7 +201,7 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "8.2.0"
+        versionName "8.3.0"
         versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -404,11 +424,9 @@ dependencies {
     androidTestImplementation 'androidx.test:core:1.5.0'
     androidTestImplementation 'androidx.test:core-ktx:1.5.0'
 
-    if (hermesEnabled.toBoolean()) {
-        implementation("com.facebook.react:hermes-android")
-    } else {
-        implementation jscFlavor
-    }
+    // Hermes is the default (and only bundled) JS engine in React Native 0.83+.
+    // JSC was removed from core, so we always link Hermes.
+    implementation("com.facebook.react:hermes-android")
     // Detox's AAR still reflects Espresso UiControllerImpl.eventInjector, but its POM pulls
     // espresso-* 3.6.x where that field was removed. Exclude Espresso from Detox and pin 3.5.1.
     androidTestImplementation(project(path: ":detox")) {
