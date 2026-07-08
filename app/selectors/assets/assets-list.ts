@@ -521,7 +521,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
             if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
-            if (isTrustlineAsset(asset.assetId)) return false;
+            if (isTrustlineAsset(asset.assetId)) return true;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;

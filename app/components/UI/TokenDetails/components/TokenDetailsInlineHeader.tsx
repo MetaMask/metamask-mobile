@@ -31,12 +31,6 @@ import StockBadge from '../../shared/StockBadge/StockBadge';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
-///: BEGIN:ONLY_INCLUDE_IF(stellar)
-import {
-  getStellarNativeDisplayName,
-  isStellarNativeToken,
-} from '../utils/isStellarNativeToken';
-///: END:ONLY_INCLUDE_IF
 
 export const TokenDetailsInlineHeader = ({
   token,
@@ -62,10 +56,6 @@ export const TokenDetailsInlineHeader = ({
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  const stellarNativeToken = isStellarNativeToken(token) ? token : null;
-  ///: END:ONLY_INCLUDE_IF
 
   const isNativeToken = token.isETH || token.isNative;
   const contractAddress = useMemo(() => {
@@ -212,14 +202,7 @@ export const TokenDetailsInlineHeader = ({
           <AssetLogo asset={token} />
         </BadgeWrapper>
       }
-      title={
-        ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-        stellarNativeToken != null
-          ? getStellarNativeDisplayName(stellarNativeToken)
-          : 
-        ///: END:ONLY_INCLUDE_IF
-            token.ticker || token.symbol
-      }
+      title={token.ticker || token.symbol}
       titleEndAccessory={titleEndAccessory}
       description={
         contractAddress ? formatAddress(contractAddress, 'short') : undefined

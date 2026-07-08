@@ -8,15 +8,8 @@ import {
   TransactionStatus as KeyringTransactionStatus,
   TransactionType as KeyringTransactionType,
 } from '@metamask/keyring-api';
-import type {
-  ActivityFee,
-  ActivityListItem,
-  Status,
-  TokenAmount,
-} from '../types';
-import {
-  hasTrustlineTypeLabel,
-} from '../trustline';
+import { ActivityFee, ActivityListItem, Status, TokenAmount } from '../types';
+import { hasTrustlineTypeLabel } from '../trustline';
 
 type Movement = Transaction['from'][number];
 type Fee = Transaction['fees'][number];
@@ -262,7 +255,7 @@ export function mapKeyringTransaction({
         data: {
           from,
           to,
-          token: rawToken,
+          token: rawToken ? { ...rawToken, amount: undefined } : undefined,
           ...(fees ? { fees } : {}),
         },
       };
@@ -296,7 +289,7 @@ export function mapKeyringTransaction({
         data: {
           from,
           to,
-          token: rawToken,
+          token: rawToken ? { ...rawToken, amount: undefined } : undefined,
           ...(fees ? { fees } : {}),
         },
       };

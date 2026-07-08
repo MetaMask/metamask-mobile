@@ -57,7 +57,6 @@ const MultichainTransactionListItem = ({
     priorityFee,
     baseFee,
     isRedeposit,
-    shouldShowAmountOrUnit,
     isUnlimitedApproval,
   } = displayData;
 
@@ -118,10 +117,6 @@ const MultichainTransactionListItem = ({
   };
 
   const displayAmount = () => {
-    if (!shouldShowAmountOrUnit) {
-      return '';
-    }
-
     if (isRedeposit) {
       return `${priorityFee?.amount} ${priorityFee?.unit}`;
     }

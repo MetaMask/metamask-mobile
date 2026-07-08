@@ -23,14 +23,6 @@ export interface SpendableBalanceSectionProps {
   symbol: string;
   baseReserve: string;
   fiatValue: string | undefined;
-  showFiat: boolean;
-}
-
-function formatDisplayAmount(value: number): string {
-  if (!Number.isFinite(value)) {
-    return '0.00';
-  }
-  return value.toFixed(2);
 }
 
 export const SpendableBalanceSection = ({
@@ -38,24 +30,13 @@ export const SpendableBalanceSection = ({
   symbol,
   baseReserve,
   fiatValue,
-  showFiat,
 }: SpendableBalanceSectionProps) => {
   const { totalDisplay, spendableDisplay, reservedDisplay } = useMemo(() => {
     const spendable = computeSpendableBalance(totalBalance, baseReserve);
-    const total = Number.parseFloat(totalBalance);
-    const reserved = Number.parseFloat(baseReserve);
-    const spendableNumber = Number.parseFloat(spendable);
-
     return {
-      totalDisplay: `${formatDisplayAmount(
-        Number.isFinite(total) ? total : 0,
-      )} ${symbol}`,
-      spendableDisplay: `${formatDisplayAmount(
-        Number.isFinite(spendableNumber) ? spendableNumber : 0,
-      )} ${symbol}`,
-      reservedDisplay: `${formatDisplayAmount(
-        Number.isFinite(reserved) ? reserved : 0,
-      )} ${symbol}`,
+      totalDisplay: `${totalBalance} ${symbol}`,
+      spendableDisplay: `${spendable} ${symbol}`,
+      reservedDisplay: `${baseReserve} ${symbol}`,
     };
   }, [baseReserve, symbol, totalBalance]);
 
@@ -65,7 +46,9 @@ export const SpendableBalanceSection = ({
       flexDirection={BoxFlexDirection.Column}
       twClassName="px-4 py-3 gap-3"
     >
-      <Text variant={TextVariant.HeadingSm}>{strings('asset_spendable_balance.balance')}</Text>
+      <Text variant={TextVariant.HeadingSm}>
+        {strings('asset_spendable_balance.balance')}
+      </Text>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
           <Text
@@ -80,29 +63,24 @@ export const SpendableBalanceSection = ({
             fontWeight={FontWeight.Medium}
             testID={SpendableBalanceSectionTestIds.TOTAL}
           >
-            {totalDisplay}
+            {totalBalance}
           </Text>
         </Box>
-        {showFiat ? (
-          <Box
-            flexDirection={BoxFlexDirection.Column}
-            twClassName="flex-1 gap-1"
+        <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {strings('asset_spendable_balance.fiat_value')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              testID={SpendableBalanceSectionTestIds.FIAT}
-            >
-              {fiatValue ?? '—'}
-            </Text>
-          </Box>
-        ) : null}
+            {strings('asset_spendable_balance.fiat_value')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            testID={SpendableBalanceSectionTestIds.FIAT}
+          >
+            {fiatValue ?? '—'}
+          </Text>
+        </Box>
       </Box>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 gap-1">
