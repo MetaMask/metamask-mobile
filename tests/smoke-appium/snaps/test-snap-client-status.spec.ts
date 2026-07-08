@@ -6,9 +6,8 @@ import packageJson from '../../../package.json';
 import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
-// Can't test this right now because the client needs to be unlocked in order
-// to interact with the Snap.
-// it.todo('returns the client status with a locked client');
+// TODO: Re-introduce locked-client status when we can interact with snaps while locked
+// (the client must be unlocked to interact with the Snap).
 appiumTest.describe(SmokeSnaps('Client Status Snap Tests'), () => {
   appiumTest(
     'connects to the Client Status Snap and returns the client status',
