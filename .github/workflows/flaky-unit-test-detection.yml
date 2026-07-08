@@ -1,0 +1,158 @@
+# Flaky unit test detection — MCWP-474
+#
+# Three sequential stages in one job, sharing files under .ai-pr-analyzer/
+# on the runner (no artifact upload/download):
+#
+#   1. Deterministic history — flaky-history-analysis.ts samples the last 10
+#      completed ci.yml runs on main, per modified test file.
+#      → writes .ai-pr-analyzer/flaky-history.json
+#
+#   2. AI analyzer — MetaMask/ai-analyzer's flaky-unit-test-analysis mode
+#      (defined in .ai-pr-analyzer/modes/) scans only the modified test files
+#      for J1-J10 patterns from the flaky-test-detection skill.
+#      → writes .ai-pr-analyzer/flaky-ai-analysis.json
+#
+#   3. Sticky comment — flaky-sticky-comment.ts merges both artifacts into
+#      one PR comment under the <!-- metamask-flaky-test-detection --> marker,
+#      with 4-state create/update/no-op/all-clear logic.
+#
+# Historical failure rate is treated as a HINT — a file can be flagged in (1)
+# with zero AI findings, or have AI findings with no historical signal.
+#
+# The workflow is informational only: every step exits 0, no required check
+# gates the PR, and Stage 2 is gracefully skipped on fork PRs (their secrets
+# aren't propagated by GitHub).
+
+name: Flaky unit test detection
+
+on:
+  pull_request:
+    branches: [main]
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: flaky-unit-test-detection-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
+jobs:
+  detect-flaky-tests:
+    name: Detect flaky unit tests
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 is required so `git diff origin/${base}...HEAD` in
+      # Stage 1 has enough history to compute the PR's changed files.
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install CI script dependencies
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: cd .github/scripts && yarn --immutable
+
+      # Stage 1: deterministic historical analysis. Identifies modified unit
+      # test files and checks their failure rate over the last 10 completed
+      # ci.yml runs on main (failure+success runs only; cancelled/timed_out
+      # are excluded from the denominator). Never hard-fails — writes an
+      # empty-but-valid JSON artifact when there is nothing to analyze.
+      - name: Detect modified unit test files and historical failure rate
+        id: detect-history
+        working-directory: .github/scripts
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn flaky-history-analysis
+
+      # Stage 2 preflight: sync the flaky-test-detection skill from
+      # MetaMask/skills using the cloud-agent bootstrap path documented in
+      # https://github.com/MetaMask/skills#for-cloud-agents-cursor-cloud-codex-cloud-etc
+      # This avoids `yarn install` (multi-minute) just to run `yarn skills`.
+      # The synced SKILL.md is then copied into .ai-pr-analyzer/skills/ so the
+      # analyzer's load_skill tool can find it (single source of truth — no
+      # hand-duplicated pattern content in this repo).
+      - name: Sync flaky-test-detection skill
+        if: >-
+          steps.detect-history.outputs.has_test_files == 'true' &&
+          !github.event.pull_request.head.repo.fork
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/MetaMask/skills/main/tools/bootstrap \
+            | bash -s -- --repo metamask-mobile --domain coding
+          mkdir -p .ai-pr-analyzer/skills
+          cp .agents/skills/mms-flaky-test-detection/SKILL.md \
+             .ai-pr-analyzer/skills/mms-flaky-test-detection.md
+
+      # Stage 2: AI analyzer review, scoped to only the modified unit test
+      # files (via --changed-files), using the flaky-unit-test-analysis
+      # custom mode defined in .ai-pr-analyzer/modes/. Skipped on fork PRs
+      # because AI_ANALYZER_TOKEN / AI_ANALYZER_LITELLM_KEY are not available
+      # to workflows triggered from forks.
+      - name: Checkout AI Analyzer
+        if: >-
+          steps.detect-history.outputs.has_test_files == 'true' &&
+          !github.event.pull_request.head.repo.fork
+        uses: actions/checkout@v6
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: v1
+          path: .ai-analyzer-action
+          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+
+      - name: Install AI Analyzer dependencies
+        if: >-
+          steps.detect-history.outputs.has_test_files == 'true' &&
+          !github.event.pull_request.head.repo.fork
+        working-directory: .ai-analyzer-action
+        run: npm ci
+
+      # Invokes the analyzer CLI directly (instead of `uses: ./.ai-analyzer-action`)
+      # so --changed-files can hard-scope analysis to only the modified unit
+      # test files — the composite action always analyzes the full PR diff.
+      # This also means the analyzer never has a chance to post its own PR
+      # comment; Stage 3 below is the only PR-visible output.
+      - name: Run flaky unit test AI analysis
+        if: >-
+          steps.detect-history.outputs.has_test_files == 'true' &&
+          !github.event.pull_request.head.repo.fork
+        continue-on-error: true
+        env:
+          LITELLM_API_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CI: 'true'
+          NODE_PATH: ${{ github.workspace }}/.ai-analyzer-action/node_modules
+        run: |
+          node -r esbuild-register .ai-analyzer-action/src/index.ts \
+            --config .ai-pr-analyzer \
+            --mode flaky-unit-test-analysis \
+            --base-branch "origin/${{ github.base_ref }}" \
+            --changed-files "${{ steps.detect-history.outputs.files }}"
+
+      # Stage 3: unified sticky PR comment combining Stage 1 + Stage 2
+      # output. Always runs (even if Stage 2 was skipped/failed) so a
+      # historical-only signal can still surface, and to flip an existing
+      # sticky comment to "fixed" once findings clear. Never blocks the PR.
+      - name: Post unified sticky comment
+        if: always()
+        continue-on-error: true
+        working-directory: .github/scripts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: yarn flaky-sticky-comment

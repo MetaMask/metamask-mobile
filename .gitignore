@@ -221,6 +221,9 @@ release-signoffs.json
 .claude/skills/
 .claude/commands/
 .agents/skills/
+# Skills copied at CI time by .github/workflows/flaky-unit-test-detection.yml
+# from .agents/skills/mms-*/SKILL.md into ai-analyzer's skill lookup path.
+.ai-pr-analyzer/skills/*
 .cursor/rules/*
 !.cursor/rules/*.mdc
 .cursor/skills/

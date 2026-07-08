@@ -1,0 +1,269 @@
+/**
+ * Stage 3 — Unified sticky PR comment (MCWP-474).
+ *
+ * Reads the Stage 1 (deterministic history) and Stage 2 (AI pattern findings)
+ * JSON artifacts and posts ONE sticky comment combining both signals. This is
+ * the only PR-visible output of the workflow — Stage 2 is deliberately
+ * invoked via the analyzer CLI (not the composite action) so it never posts
+ * its own comment.
+ *
+ * 4-state logic (per MCWP-474 AC):
+ *   findings + no sticky  → create
+ *   findings + sticky     → update with latest findings
+ *   no findings + sticky  → update to "all previously flagged issues fixed"
+ *   no findings + none    → do nothing
+ *
+ * Never fails the job — GitHub API errors are downgraded to warnings so the
+ * check stays informational-only.
+ */
+import * as core from '@actions/core';
+import { getOctokit } from '@actions/github';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
+
+// Stable HTML comment on the first line — used to identify and update this
+// script's own comment across runs. Any change breaks stickiness (a new
+// comment will be created and the old one will be orphaned).
+const MARKER = '<!-- metamask-flaky-test-detection -->';
+// Canonical source of the flaky-test-detection skill. The synced copy at
+// .agents/skills/mms-flaky-test-detection/SKILL.md is .gitignore'd, so we link
+// to the real source repo (MetaMask/skills) instead of a 404 blob path.
+const SKILL_LINK =
+  'https://github.com/MetaMask/skills/blob/main/domains/coding/skills/flaky-test-detection/skill.md';
+
+// GITHUB_WORKSPACE is always set in Actions; fall back to process.cwd() so
+// the script can also be run locally from any directory.
+const WORKSPACE_ROOT = process.env.GITHUB_WORKSPACE ?? process.cwd();
+const HISTORY_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
+const AI_ANALYSIS_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-ai-analysis.json');
+
+interface HistoryFile {
+  path: string;
+  failures: number;
+  runsSampled: number;
+  failureRatePercent: number;
+  flaky: boolean;
+  runHistoryUrl: string;
+}
+
+interface HistoryArtifact {
+  files?: HistoryFile[];
+}
+
+interface Finding {
+  file: string;
+  line?: number;
+  patternId: string;
+  patternName: string;
+  severity: string;
+  snippet?: string;
+  explanation: string;
+  suggestedFix: string;
+  historicalHintUsed: boolean;
+}
+
+interface AiAnalysisArtifact {
+  findings?: Finding[];
+}
+
+interface Comment {
+  id: number;
+  body?: string;
+}
+
+const env = {
+  token: process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? '',
+  repo: process.env.GITHUB_REPOSITORY ?? '',
+  prNumber: Number(process.env.PR_NUMBER ?? '0'),
+  serverUrl: process.env.GITHUB_SERVER_URL ?? 'https://github.com',
+};
+
+// Missing/malformed artifacts are treated as their empty shape rather than a
+// hard error: Stage 2 may have been skipped (no unit tests changed, or a fork
+// PR without secrets), and we still want Stage 3 to reason about whatever
+// artifacts DO exist so the all-clear path can fire.
+function readJsonOrEmpty<T>(path: string, emptyShape: T): T {
+  if (!existsSync(path)) return emptyShape;
+  try {
+    return JSON.parse(readFileSync(path, 'utf8')) as T;
+  } catch (error) {
+    core.warning(`Failed to parse ${path}: ${(error as Error).message}`);
+    return emptyShape;
+  }
+}
+
+function buildHistoryTable(flakyFiles: HistoryFile[]): string {
+  if (flakyFiles.length === 0) return '';
+  const rows = flakyFiles
+    .map(
+      (f) =>
+        `| \`${f.path}\` | ${f.failures}/${f.runsSampled} | ${f.failureRatePercent}% | [Run history](${f.runHistoryUrl}) |`,
+    )
+    .join('\n');
+  return `### Historical CI failure rate\n\n| File | Failures | Rate | |\n|---|---|---|---|\n${rows}\n`;
+}
+
+function buildFindingsSection(findings: Finding[]): string {
+  if (findings.length === 0) return '';
+  const byFile = new Map<string, Finding[]>();
+  for (const finding of findings) {
+    if (!byFile.has(finding.file)) byFile.set(finding.file, []);
+    byFile.get(finding.file)?.push(finding);
+  }
+
+  let out = '### AI-detected flaky patterns\n\n';
+  for (const [file, fileFindings] of byFile) {
+    out += `#### \`${file}\`\n\n`;
+    for (const f of fileFindings) {
+      const hint = f.historicalHintUsed ? ' _(matches historical failure signal)_' : '';
+      out += `- **${f.patternId} — ${f.patternName}** (${f.severity})${hint}${f.line ? ` — line ${f.line}` : ''}\n`;
+      out += `  - ${f.explanation}\n`;
+      // Fenced block so multi-line fixes render correctly in GitHub Markdown.
+      out += `  - Suggested fix:\n    \`\`\`ts\n    ${f.suggestedFix}\n    \`\`\`\n`;
+    }
+    out += '\n';
+  }
+  return out;
+}
+
+function buildCommentBody({
+  historyFiles,
+  findings,
+  runHistoryUrl,
+}: {
+  historyFiles: HistoryFile[];
+  findings: Finding[];
+  runHistoryUrl: string;
+}): string {
+  const flakyFiles = historyFiles.filter((f) => f.flaky);
+  const historyTable = buildHistoryTable(flakyFiles);
+  const findingsSection = buildFindingsSection(findings);
+
+  return `${MARKER}
+## 🧪 Flaky unit test detection
+
+${historyTable}
+${findingsSection}
+Historical failure rate is a hint, not proof — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
+
+[View recent run history](${runHistoryUrl})
+
+_This check is informational only and does not block merging._`;
+}
+
+function buildAllClearBody(runHistoryUrl: string): string {
+  return `${MARKER}
+## 🧪 Flaky unit test detection
+
+✅ All previously detected unit test flakiness issues in this PR have been fixed.
+
+[View recent run history](${runHistoryUrl})
+
+_This check is informational only and does not block merging._`;
+}
+
+async function findExistingStickyComment(
+  octokit: ReturnType<typeof getOctokit>,
+  owner: string,
+  repo: string,
+): Promise<Comment | null> {
+  // octokit.paginate follows the Link header automatically, so comments on
+  // PRs with more than per_page entries are all scanned.
+  const comments = await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: env.prNumber,
+    per_page: 100,
+  });
+  return comments.find((c) => c.body?.startsWith(MARKER)) ?? null;
+}
+
+async function main(): Promise<void> {
+  if (!env.token || !env.repo || !env.prNumber) {
+    console.log('⏭️  Missing token/repo/PR number — skipping sticky comment');
+    return;
+  }
+
+  const [owner, repo] = env.repo.split('/');
+  const octokit = getOctokit(env.token);
+
+  const history = readJsonOrEmpty<HistoryArtifact>(HISTORY_PATH, { files: [] });
+  const aiAnalysis = readJsonOrEmpty<AiAnalysisArtifact>(AI_ANALYSIS_PATH, { findings: [] });
+
+  const historyFiles = Array.isArray(history.files) ? history.files : [];
+  const rawFindings = Array.isArray(aiAnalysis.findings) ? aiAnalysis.findings : [];
+
+  // Post-hoc scope enforcement: the analyzer's tools (read_file, grep_codebase,
+  // etc.) let the AI reach any file in the checkout. The task prompt tells it
+  // to stay inside the modified test files, but as a hard guarantee we drop
+  // any finding that references a file outside that allowlist here. The
+  // allowlist is exactly Stage 1's file list — it was also what we passed as
+  // --changed-files to the analyzer, so a correctly-behaving analyzer will
+  // produce zero dropped findings.
+  const allowedFiles = new Set(historyFiles.map((f) => f.path));
+  const findings = rawFindings.filter((finding) => {
+    if (allowedFiles.has(finding.file)) return true;
+    core.warning(
+      `Dropping out-of-scope AI finding for ${finding.file} (not in the modified unit test file list)`,
+    );
+    return false;
+  });
+
+  // "Has findings" means either signal fired. History alone is enough because
+  // the whole point of Stage 1 is to catch flakiness even when Stage 2 was
+  // skipped (fork PR / analyzer error / no LLM key).
+  const hasFindings = historyFiles.some((f) => f.flaky) || findings.length > 0;
+
+  const runHistoryUrl =
+    historyFiles[0]?.runHistoryUrl ??
+    `${env.serverUrl}/${env.repo}/actions/workflows/ci.yml?query=branch%3Amain`;
+
+  try {
+    const existingComment = await findExistingStickyComment(octokit, owner, repo);
+
+    // 4-state matrix — order matters because each branch returns early.
+    if (!hasFindings && !existingComment) {
+      console.log('✅ No findings and no existing sticky comment — nothing to do');
+      return;
+    }
+
+    if (hasFindings && !existingComment) {
+      await octokit.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: env.prNumber,
+        body: buildCommentBody({ historyFiles, findings, runHistoryUrl }),
+      });
+      console.log('📝 Created sticky flaky-test-detection comment');
+      return;
+    }
+
+    if (hasFindings && existingComment) {
+      await octokit.rest.issues.updateComment({
+        owner,
+        repo,
+        comment_id: existingComment.id,
+        body: buildCommentBody({ historyFiles, findings, runHistoryUrl }),
+      });
+      console.log('🔄 Updated sticky flaky-test-detection comment with latest findings');
+      return;
+    }
+
+    // !hasFindings && existingComment — flip the sticky to "all clear" so the
+    // author gets positive feedback that their fix landed. Deleting instead
+    // would erase evidence that flakiness was ever flagged on this PR.
+    await octokit.rest.issues.updateComment({
+      owner,
+      repo,
+      comment_id: existingComment!.id,
+      body: buildAllClearBody(runHistoryUrl),
+    });
+    console.log('🎉 Updated sticky comment — all previously flagged issues are fixed');
+  } catch (error) {
+    core.warning(`Failed to manage sticky comment: ${(error as Error).message}`);
+  }
+}
+
+main().catch((error: Error) => {
+  core.warning(`Stage 3 failed: ${error.message}`);
+});

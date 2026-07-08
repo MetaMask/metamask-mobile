@@ -17,6 +17,7 @@ describe('useAsyncResult', () => {
     });
   });
 
+  // [mcwp-474-tmp]
   it('should return error state on async function error', async () => {
     const error = new Error('test error');
     const { result } = renderHook(() =>
