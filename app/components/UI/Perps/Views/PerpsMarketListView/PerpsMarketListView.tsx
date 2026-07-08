@@ -480,6 +480,9 @@ const PerpsMarketListView = ({
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
             testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
+            autoComplete="off"
+            autoCorrect={false}
+            autoCapitalize="none"
             clearButtonProps={{
               testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
             }}
