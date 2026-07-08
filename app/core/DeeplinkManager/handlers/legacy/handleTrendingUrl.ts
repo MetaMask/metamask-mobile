@@ -4,6 +4,7 @@ import {
   type ExploreTabIndex,
 } from '../../../../constants/navigation/exploreTabIndices';
 import type { ExploreFeedRouteParams } from '../../../../components/Views/TrendingView/TrendingView';
+import type { ExploreSearchRouteParams } from '../../../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 import type { RootStackParamList } from '../../../NavigationService/types';
 import type {
   DeeplinkIntent,
@@ -21,6 +22,9 @@ const TRENDING_QUERY_PARAM = {
   SCREEN: 'screen',
   /** Selects a tab inside the Explore (Trending) view. */
   TAB: 'tab',
+  /** Prefills Explore search when used with `screen=search`. */
+  QUERY: 'q',
+  QUERY_ALT: 'query',
 } as const;
 
 /**
@@ -101,26 +105,39 @@ const exploreFullScreenTarget = (
   backTab: Routes.TRENDING_VIEW,
 });
 
+type ExploreScreenTargetBuilder = (
+  urlParams: URLSearchParams,
+) => MainStackDeeplinkNavigationTarget;
+
+const getExploreSearchQueryParam = (
+  urlParams: URLSearchParams,
+): ExploreSearchRouteParams | undefined => {
+  const query =
+    urlParams.get(TRENDING_QUERY_PARAM.QUERY) ||
+    urlParams.get(TRENDING_QUERY_PARAM.QUERY_ALT);
+  const initialQuery = query?.trim();
+  return initialQuery ? { initialQuery } : undefined;
+};
+
 const EXPLORE_SCREEN_TARGETS: Record<
   ExploreScreenDeeplinkParam,
-  MainStackDeeplinkNavigationTarget
+  ExploreScreenTargetBuilder
 > = {
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS]: exploreFullScreenTarget(
-    Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-  ),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS]: exploreFullScreenTarget(
-    Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-  ),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.SITES]: exploreFullScreenTarget(
-    Routes.SITES_FULL_VIEW,
-  ),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES]: exploreFullScreenTarget(
-    Routes.SITES_FULL_VIEW,
-    { mode: 'favorites' } satisfies RootStackParamList['SitesFullView'],
-  ),
-  [EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH]: exploreFullScreenTarget(
-    Routes.EXPLORE_SEARCH,
-  ),
+  [EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS]: () =>
+    exploreFullScreenTarget(Routes.WALLET.RWA_TOKENS_FULL_VIEW),
+  [EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS]: () =>
+    exploreFullScreenTarget(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW),
+  [EXPLORE_SCREEN_DEEPLINK_PARAM.SITES]: () =>
+    exploreFullScreenTarget(Routes.SITES_FULL_VIEW),
+  [EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES]: () =>
+    exploreFullScreenTarget(Routes.SITES_FULL_VIEW, {
+      mode: 'favorites',
+    } satisfies RootStackParamList['SitesFullView']),
+  [EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH]: (urlParams) =>
+    exploreFullScreenTarget(
+      Routes.EXPLORE_SEARCH,
+      getExploreSearchQueryParam(urlParams),
+    ),
 };
 
 const exploreTabTarget = (
@@ -145,6 +162,7 @@ const getUrlParams = (actionPath: string): URLSearchParams =>
 /**
  * Resolves the trending/explore deeplink:
  * - `?screen=<view>` opens a full-screen view above the Explore tab (see {@link EXPLORE_SCREEN_DEEPLINK_PARAM}).
+ * - `?screen=search&q=<query>` (or `query=`) opens Explore search with the query prefilled.
  * - `?tab=<tab>` opens Explore with the given tab preselected (see {@link EXPLORE_TAB_DEEPLINK_PARAM}).
  * - Anything else falls back to the Explore tab on its default tab.
  */
@@ -156,7 +174,7 @@ export const createTrendingDeeplinkIntent = ({
   const tabParam = urlParams.get(TRENDING_QUERY_PARAM.TAB)?.toLowerCase();
 
   if (screenParam && isExploreScreenDeeplinkParam(screenParam)) {
-    return { target: EXPLORE_SCREEN_TARGETS[screenParam] };
+    return { target: EXPLORE_SCREEN_TARGETS[screenParam](urlParams) };
   }
 
   if (tabParam && isExploreTabDeeplinkParam(tabParam)) {

@@ -115,10 +115,24 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
       screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
       expectedRoute: Routes.EXPLORE_SEARCH,
     },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      actionPath: '?screen=search&q=ethereum',
+      expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: { initialQuery: 'ethereum' },
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      actionPath: '?screen=search&query=bitcoin',
+      expectedRoute: Routes.EXPLORE_SEARCH,
+      expectedParams: { initialQuery: 'bitcoin' },
+    },
   ])(
     'activates Explore tab then navigates to the full view for screen=$screenParam',
-    async ({ screenParam, expectedRoute, expectedParams }) => {
-      await handleTrendingUrl({ actionPath: `?screen=${screenParam}` });
+    async ({ screenParam, actionPath, expectedRoute, expectedParams }) => {
+      await handleTrendingUrl({
+        actionPath: actionPath ?? `?screen=${screenParam}`,
+      });
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
       expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
