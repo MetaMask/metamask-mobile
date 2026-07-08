@@ -261,6 +261,7 @@ import {
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
@@ -1672,6 +1673,65 @@ describe('HomepageDiscoveryTabs AB test', () => {
     });
 
     expect(mockHomepageDiscoveryTabsRefresh).toHaveBeenCalled();
+  });
+
+  it('updates wallet header height from HeaderRoot layout in treatment', () => {
+    mockDiscoveryTabsVariantName = 'treatment';
+
+    const { getByTestId } = renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+      'layout',
+      {
+        nativeEvent: { layout: { height: 120, width: 320, x: 0, y: 0 } },
+      },
+    );
+
+    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
+      walletHeaderHeight?: number;
+    };
+
+    expect(props.walletHeaderHeight).toBe(120);
+  });
+
+  it('logs error when wallet refresh fails in treatment', async () => {
+    mockDiscoveryTabsVariantName = 'treatment';
+    mockHomepageDiscoveryTabsRefresh.mockRejectedValueOnce(
+      new Error('refresh failed'),
+    );
+    const loggerErrorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
+      refreshControl?: React.ReactElement<{ onRefresh: () => Promise<void> }>;
+    };
+
+    await act(async () => {
+      await props.refreshControl?.props.onRefresh();
+    });
+
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'refresh failed' }),
+      'Error refreshing wallet',
+    );
+
+    loggerErrorSpy.mockRestore();
   });
 
   it('renders Homepage scroll view (not HomepageDiscoveryTabs) when variant is control', () => {

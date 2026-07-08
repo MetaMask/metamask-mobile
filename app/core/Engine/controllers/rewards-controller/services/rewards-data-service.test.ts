@@ -4684,6 +4684,41 @@ describe('RewardsDataService', () => {
       );
     });
 
+    it('includes the wallet address in the payload when provided', async () => {
+      const mockWalletAddress = '0xabc';
+
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+        mockWalletAddress,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/benefits/impression',
+        expect.objectContaining({
+          body: JSON.stringify({
+            benefitId: mockBenefitId,
+            benefitType: mockBenefitType,
+            walletAddress: mockWalletAddress,
+          }),
+        }),
+      );
+    });
+
+    it('omits the wallet address from the payload when not provided', async () => {
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+
+      const requestBody = JSON.parse(
+        (mockFetch.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(requestBody).not.toHaveProperty('walletAddress');
+    });
+
     it('throws when post benefit impression response is not ok', async () => {
       mockFetch.mockResolvedValue({
         ok: false,
