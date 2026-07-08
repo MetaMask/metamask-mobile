@@ -5431,6 +5431,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tradeTO880AbtestOnboardingInterestQuestion: {
+    name: 'tradeTO880AbtestOnboardingInterestQuestion',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: { type: 'percentage_rollout', value: 0.75 },
+      },
+      {
+        name: 'treatment',
+        scope: { type: 'percentage_rollout', value: 1.0 },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   homeTMCU828AbtestOnboardingChecklistStepper: {
     name: 'homeTMCU828AbtestOnboardingChecklistStepper',
     type: FeatureFlagType.Remote,

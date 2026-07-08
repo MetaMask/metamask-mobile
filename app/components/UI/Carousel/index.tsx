@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  FC,
-  useMemo,
-  useEffect,
-  useRef,
-} from 'react';
+import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
 import { Dimensions, Animated, Linking } from 'react-native';
 import Reanimated, {
   useAnimatedStyle,
@@ -138,30 +131,28 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [isCarouselVisible, setIsCarouselVisible] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isDismissingLastCard, setIsDismissingLastCard] = useState(false);
+  const [emptyCardId] = useState(() => `empty-card-${Date.now()}`);
 
   // Current card animations (exit)
-  const currentCardOpacity = useRef(new Animated.Value(1)).current;
-  const currentCardScale = useRef(new Animated.Value(1)).current;
-  const currentCardTranslateY = useRef(new Animated.Value(0)).current;
+  const [currentCardOpacity] = useState(() => new Animated.Value(1));
+  const [currentCardScale] = useState(() => new Animated.Value(1));
+  const [currentCardTranslateY] = useState(() => new Animated.Value(0));
 
   // Next card animations (enter)
-  const nextCardOpacity = useRef(new Animated.Value(0)).current;
-  const nextCardScale = useRef(new Animated.Value(0.96)).current; // Starts slightly smaller
-  const nextCardTranslateY = useRef(new Animated.Value(8)).current; // Starts slightly lower
-  const nextCardBgOpacity = useRef(new Animated.Value(1)).current; // Background pressed state
+  const [nextCardOpacity] = useState(() => new Animated.Value(0));
+  const [nextCardScale] = useState(() => new Animated.Value(0.96));
+  const [nextCardTranslateY] = useState(() => new Animated.Value(8));
+  const [nextCardBgOpacity] = useState(() => new Animated.Value(1));
 
   // Carousel-level animations for empty state dismissal
-  const carouselOpacity = useRef(new Animated.Value(1)).current;
+  const [carouselOpacity] = useState(() => new Animated.Value(1));
   const carouselHeight = useSharedValue(BANNER_HEIGHT + 6);
-  const carouselScaleY = useRef(new Animated.Value(1)).current;
+  const [carouselScaleY] = useState(() => new Animated.Value(1));
   const carouselContainerStyle = useAnimatedStyle(() => ({
     height: carouselHeight.value,
   }));
-
-  const isAnimating = useRef(false);
-
-  // Ref to track if we're mid-animation on the last card
-  const dismissingLastCardRef = useRef(false);
 
   // Animation hooks
   const transitionToNextCard = useTransitionToNextCard({
@@ -228,13 +219,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     const hasNonDismissedSlides = slides.some(
       (s) => !dismissedBanners.includes(s.id),
     );
-    const shouldAddEmpty =
-      hasNonDismissedSlides || dismissingLastCardRef.current;
+    // Read isDismissingLastCard here but omit from memo deps so setting the flag
+    // does not regenerate emptyCardId mid-transition (Bugbot PR #32611).
+    const shouldAddEmpty = hasNonDismissedSlides || isDismissingLastCard;
 
     // Add empty card only if there are non-dismissed slides or during dismissal animation
     if (shouldAddEmpty && slides.length > 0) {
       const emptyCard: CarouselSlide = {
-        id: `empty-card-${Date.now()}`,
+        id: emptyCardId,
         title: '',
         description: '',
         navigation: {
@@ -248,12 +240,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
 
     return slides;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- omit isDismissingLastCard; see shouldAddEmpty
   }, [
     applyLocalNavigation,
     isZeroBalance,
     priorityContentfulSlides,
     regularContentfulSlides,
     dismissedBanners,
+    emptyCardId,
   ]);
 
   const visibleSlides = useMemo(() => {
@@ -266,7 +260,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
     // If we're in the middle of dismissing the last card,
     // keep the empty card in visibleSlides so the animation completes
-    if (dismissingLastCardRef.current && filtered.length === 0) {
+    if (isDismissingLastCard && filtered.length === 0) {
       // Re-add the empty card so the animation completes
       const emptyCards = slidesConfig.filter(
         (s) => getSlideVariableName(s) === 'empty',
@@ -275,7 +269,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
 
     return filtered.slice(0, MAX_CAROUSEL_SLIDES);
-  }, [slidesConfig, dismissedBanners]);
+  }, [slidesConfig, dismissedBanners, isDismissingLastCard]);
 
   // Ensure activeSlideIndex is within bounds after filtering
   const safeActiveSlideIndex = Math.min(
@@ -297,7 +291,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   // Reset card animations when slides change (but not during transitions)
   useEffect(() => {
-    if (!isAnimating.current && !isTransitioning) {
+    if (!isAnimating && !isTransitioning) {
       // Use requestAnimationFrame to prevent flash during re-render
       requestAnimationFrame(() => {
         // Reset current card to visible state
@@ -325,6 +319,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     visibleSlides.length,
     hasNextSlide,
     isTransitioning,
+    isAnimating,
     currentCardOpacity,
     currentCardScale,
     currentCardTranslateY,
@@ -391,9 +386,9 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
   const handleTransitionToNextCard = useCallback(
     async (slideId: string) => {
-      if (isAnimating.current) return;
+      if (isAnimating) return;
 
-      isAnimating.current = true;
+      setIsAnimating(true);
       setIsTransitioning(true);
 
       // Check if next card is the empty card (last non-empty slide being dismissed)
@@ -402,7 +397,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
 
       // Set flag to keep empty card visible during dismissal animation
       if (isNextCardEmpty) {
-        dismissingLastCardRef.current = true;
+        setIsDismissingLastCard(true);
       }
 
       try {
@@ -456,13 +451,13 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           }
 
           setIsTransitioning(false);
-          isAnimating.current = false;
+          setIsAnimating(false);
         });
       } catch (error) {
         console.error('Transition to next card failed:', error);
-        dismissingLastCardRef.current = false;
+        setIsDismissingLastCard(false);
         setIsTransitioning(false);
-        isAnimating.current = false;
+        setIsAnimating(false);
       }
     },
     [
@@ -480,13 +475,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       nextCardOpacity,
       nextCardScale,
       nextCardTranslateY,
+      isAnimating,
     ],
   );
 
   const handleTransitionToEmpty = useCallback(async () => {
-    if (isAnimating.current) return;
+    if (isAnimating) return;
 
-    isAnimating.current = true;
+    setIsAnimating(true);
 
     try {
       // Trigger empty state component (fold-up and remove carousel)
@@ -496,18 +492,18 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         // state are synchronized. If this flag were not reset at this point, future
         // transitions to the empty state would be blocked, causing the carousel to get
         // stuck and preventing further dismissals or animations.
-        dismissingLastCardRef.current = false;
+        setIsDismissingLastCard(false);
         onEmptyState?.();
         setIsCarouselVisible(false);
       });
 
-      isAnimating.current = false;
+      setIsAnimating(false);
     } catch (error) {
       console.error('Transition to empty failed:', error);
-      dismissingLastCardRef.current = false;
-      isAnimating.current = false;
+      setIsDismissingLastCard(false);
+      setIsAnimating(false);
     }
-  }, [transitionToEmpty, onEmptyState]);
+  }, [transitionToEmpty, onEmptyState, isAnimating]);
 
   const renderCard = useCallback(
     (slide: CarouselSlide, isCurrentCard: boolean) => {
@@ -585,10 +581,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     createEventBuilder,
   ]);
 
-  if (
-    !isCarouselVisible ||
-    (visibleSlides.length === 0 && !isAnimating.current)
-  ) {
+  if (!isCarouselVisible || (visibleSlides.length === 0 && !isAnimating)) {
     return null;
   }
 
