@@ -1,0 +1,30 @@
+app/core/HardwareWallet/HardwareWalletProvider.test.tsx
+  s_403df451701de1::t_a6e2b653e693e0 247-256,348-352,470-476,850,863-868
+  s_a4dd260fd679e0::t_bb419fa8d29185 869
+app/core/HardwareWallet/HardwareWalletProvider.tsx
+  s_403df451701de1::t_a6e2b653e693e0 291-301,305-323
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2b5764f77f2db3c71eedd1dc288ddd93e4e53af6",
+  "prompts": {},
+  "sessions": {
+    "s_403df451701de1": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0bdedcf0bffehtuj05hB5i14J4",
+        "model": "claude-fable-5"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    },
+    "s_a4dd260fd679e0": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0be3b33deffeM2HDTjbddq4eL3",
+        "model": "claude-fable-5"
+      },
+      "human_author": "cryptotavares <joao.tavares@consensys.net>"
+    }
+  }
+}
