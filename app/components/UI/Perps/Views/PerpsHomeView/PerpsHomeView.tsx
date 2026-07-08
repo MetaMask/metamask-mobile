@@ -347,6 +347,14 @@ const PerpsHomeView = ({
     conditions: [!isAnyLoading],
   });
 
+  const entryCufVariant = hasPositions
+    ? PERPS_CUF_VARIANT.POSITION
+    : PERPS_CUF_VARIANT.EMPTY;
+  const entryCufEndData = {
+    [PERPS_CUF_TAG.VARIANT]:
+      orders.length > 0 ? PERPS_CUF_VARIANT.ORDER : entryCufVariant,
+  };
+
   // Entry CUF: enter Perps -> live market list. Starts at mount; launch-context
   // tag splits cold from warm p75. Captured at mount so the tag is the launch
   // context, not the post-settle value.
@@ -355,13 +363,7 @@ const PerpsHomeView = ({
     traceName: TraceName.PerpsEntryToLiveMarketList,
     conditions: [!isAnyLoading],
     tags: entryCufTags,
-    endData: {
-      [PERPS_CUF_TAG.VARIANT]: hasPositions
-        ? PERPS_CUF_VARIANT.POSITION
-        : orders.length > 0
-          ? PERPS_CUF_VARIANT.ORDER
-          : PERPS_CUF_VARIANT.EMPTY,
-    },
+    endData: entryCufEndData,
   });
 
   // After the entry renders, later in-session flows are warm.

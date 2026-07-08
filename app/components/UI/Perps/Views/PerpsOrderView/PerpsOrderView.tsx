@@ -476,7 +476,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     tags: tradePageCufTags,
     endData: {
       [PERPS_CUF_TAG.VARIANT]:
-        !!account?.totalBalance && parseFloat(account.totalBalance) > 0
+        !!account?.totalBalance && Number.parseFloat(account.totalBalance) > 0
           ? PERPS_CUF_VARIANT.FUNDED
           : PERPS_CUF_VARIANT.UNFUNDED,
     },

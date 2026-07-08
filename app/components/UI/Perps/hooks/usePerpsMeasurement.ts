@@ -16,6 +16,8 @@ const allTrue = (conditionArray: boolean[]): boolean =>
 const anyTrue = (conditionArray: boolean[]): boolean =>
   conditionArray.some(Boolean);
 
+type MeasurementValue = string | number | boolean;
+
 interface MeasurementOptions {
   traceName: TraceName;
   op?: TraceOperation; // Optional operation type, defaults to PerpsOperation
@@ -33,12 +35,12 @@ interface MeasurementOptions {
   // Filterable Sentry tags applied at span start (e.g. feature:perps,
   // lifecycle_context). Unlike debugContext (span attributes), these are
   // queryable as tags in Discover/dashboards.
-  tags?: Record<string, string | number | boolean>;
+  tags?: Record<string, MeasurementValue>;
 
   // Span attributes set at span END, for values only known once the flow
   // completes (e.g. the empty/position/order variant, which depends on loaded
   // data). Queryable in the Sentry spans dataset.
-  endData?: Record<string, string | number | boolean>;
+  endData?: Record<string, MeasurementValue>;
 }
 
 /**

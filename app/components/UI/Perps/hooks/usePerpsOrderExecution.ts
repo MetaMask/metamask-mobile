@@ -44,6 +44,8 @@ interface UsePerpsOrderExecutionReturn {
   error?: string;
 }
 
+type PerpsOrderTrackingValue = string | number | boolean;
+
 /**
  * Hook to handle order execution flow
  * Manages loading states, success/error handling, and position fetching
@@ -75,7 +77,7 @@ export function usePerpsOrderExecution(
       // check is the position-confirmed proxy.
       let toastAt: number | undefined;
       const endPlaceOrderCuf = (
-        data: Record<string, string | number | boolean>,
+        data: Record<string, PerpsOrderTrackingValue>,
       ) =>
         endPerpsCufTrace({
           name: TraceName.PerpsPlaceOrderToPositionRendered,

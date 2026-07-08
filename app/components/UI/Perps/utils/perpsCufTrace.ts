@@ -245,7 +245,8 @@ export function handlePerpsCufPositionsDelivered(
       continue;
     }
     const current = positions.find((p) => p.symbol === symbol);
-    if (!current || positionSnapshot(current) !== meta[CUF_META.SNAPSHOT]) {
+    const currentSnapshot = current ? positionSnapshot(current) : undefined;
+    if (currentSnapshot !== meta[CUF_META.SNAPSHOT]) {
       endPerpsCufTrace({ name, data: { ...STREAM_END_DATA } });
     }
   }
@@ -275,7 +276,7 @@ export function handlePerpsCufOrdersDelivered(
   if (typeof orderId !== 'string') {
     return;
   }
-  if (!orders.some((o) => o.orderId === orderId)) {
+  if (orders?.some((o) => o.orderId === orderId) === false) {
     endPerpsCufTrace({
       name: TraceName.PerpsCancelOrderToConfirmation,
       data: { ...STREAM_END_DATA },
