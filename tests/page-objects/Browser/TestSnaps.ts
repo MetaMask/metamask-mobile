@@ -18,7 +18,7 @@ import { SNAP_INSTALL_OK } from '../../../app/components/Approvals/InstallSnapAp
 import TestHelpers from '../../helpers';
 import Assertions from '../../framework/Assertions';
 import { IndexableWebElement } from 'detox/detox';
-import Utilities from '../../framework/Utilities';
+import Utilities, { stripJsonKeys } from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import { RetryOptions, EncapsulatedElementType } from '../../framework';
@@ -29,6 +29,7 @@ import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import {
   assertAndroidTestSnapsClientStatus,
   assertAndroidTestSnapsJson,
+  assertAndroidTestSnapsJsonExcluding,
   assertAndroidTestSnapsTextContains,
   fillAndroidTestSnapsInput,
   tapAndroidTestSnapsButton,
@@ -232,6 +233,16 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
+    if (PlatformDetector.isAndroidAppium()) {
+      await assertAndroidTestSnapsJsonExcluding(
+        selector,
+        excludedKeys,
+        expectedJson,
+        options,
+      );
+      return;
+    }
+
     await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
@@ -248,25 +259,9 @@ class TestSnaps {
           );
         }
 
-        const stripKeys = (value: Json): Json => {
-          if (
-            typeof value !== 'object' ||
-            value === null ||
-            Array.isArray(value)
-          ) {
-            return value;
-          }
-
-          const next = { ...(value as Record<string, Json>) };
-          for (const key of excludedKeys) {
-            delete next[key];
-          }
-          return next;
-        };
-
         await Assertions.checkIfJsonEqual(
-          stripKeys(actualJson),
-          stripKeys(expectedJson),
+          stripJsonKeys(actualJson, excludedKeys),
+          stripJsonKeys(expectedJson, excludedKeys),
         );
       }, options);
     });

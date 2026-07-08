@@ -10,7 +10,7 @@ import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 import { getDriver } from '../../../framework/PlaywrightUtilities';
-import Utilities, { sleep } from '../../../framework/Utilities';
+import Utilities, { sleep, stripJsonKeys } from '../../../framework/Utilities';
 import {
   TestSnapInputSelectorWebIDS,
   TestSnapResultSelectorWebIDS,
@@ -126,6 +126,39 @@ export async function assertAndroidTestSnapsTextContains(
       timeout: options.timeout ?? 5_000,
       interval: options.interval ?? 100,
       description: `Assert native result "${webId}" contains "${normalized}"`,
+    },
+  );
+}
+
+export async function assertAndroidTestSnapsJsonExcluding(
+  resultKey: ResultKey,
+  excludedKeys: string[],
+  expectedJson: Json,
+  options: { timeout?: number; interval?: number } = {},
+): Promise<void> {
+  const webId = TestSnapResultSelectorWebIDS[resultKey];
+
+  await Utilities.executeWithRetry(
+    async () => {
+      const actualText = await readNativeWebIdText(webId);
+      let actualJson: Json;
+      try {
+        actualJson = JSON.parse(actualText) as Json;
+      } catch {
+        throw new Error(
+          `Failed to parse JSON from native result "${webId}": ${actualText}`,
+        );
+      }
+
+      await Assertions.checkIfJsonEqual(
+        stripJsonKeys(actualJson, excludedKeys),
+        stripJsonKeys(expectedJson, excludedKeys),
+      );
+    },
+    {
+      timeout: options.timeout ?? 5_000,
+      interval: options.interval ?? 100,
+      description: `Assert native JSON result "${webId}" excluding ${excludedKeys.join(', ')}`,
     },
   );
 }

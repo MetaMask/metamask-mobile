@@ -24,20 +24,23 @@ appiumTest.describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
           await loginAndOpenTestSnaps();
           await TestSnaps.installSnap('connectGetPreferencesButton');
           await TestSnaps.tapButton('getPreferencesButton');
-          // CI emulators are en-US; locally, device locale varies so we only pin locale in CI.
-          await TestSnaps.checkResultJson('preferencesResultSpan', {
-            ...(process.env.CI === 'true' ? { locale: 'en-US' } : {}),
-            currency: 'usd',
-            hideBalances: true,
-            useSecurityAlerts: true,
-            simulateOnChainActions: true,
-            useTokenDetection: true,
-            batchCheckBalances: true,
-            displayNftMedia: true,
-            useNftDetection: true,
-            useExternalPricingData: true,
-            showTestnets: true,
-          });
+          // Device locale varies locally and in CI; assert all other preference fields exactly.
+          await TestSnaps.checkResultJsonExcluding(
+            'preferencesResultSpan',
+            ['locale'],
+            {
+              currency: 'usd',
+              hideBalances: true,
+              useSecurityAlerts: true,
+              simulateOnChainActions: true,
+              useTokenDetection: true,
+              batchCheckBalances: true,
+              displayNftMedia: true,
+              useNftDetection: true,
+              useExternalPricingData: true,
+              showTestnets: true,
+            },
+          );
         },
       );
     },
