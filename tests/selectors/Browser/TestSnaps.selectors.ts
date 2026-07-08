@@ -1,6 +1,6 @@
 // Shared test-snaps URL for flows, selectors, and helpers without importing TestSnaps.
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.4.2/';
+  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
 
 // Only keep selectors that are actually used in tests
 export const TestSnapViewSelectorWebIDS = {
@@ -85,6 +85,7 @@ export const TestSnapViewSelectorWebIDS = {
   trackEventButton: 'trackEvent',
   startTraceButton: 'start-trace',
   endTraceButton: 'end-trace',
+  messengerCallButton: 'messenger-call',
 };
 
 export const TestSnapInputSelectorWebIDS = {
@@ -149,6 +150,7 @@ export const TestSnapResultSelectorWebIDS = {
   multichainProviderResultSpan: 'multichainProviderResult',
   personalSignResultSpan: 'personalSignResult',
   preferencesResultSpan: 'preferencesResult',
+  preinstalledResultSpan: 'preinstalledResult',
   retrieveManageStateResultSpan: 'retrieveManageStateResult',
   retrieveManageStateUnencryptedResultSpan:
     'retrieveManageStateUnencryptedResult',

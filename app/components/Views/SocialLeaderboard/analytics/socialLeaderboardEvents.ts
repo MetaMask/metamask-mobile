@@ -12,7 +12,9 @@ export const SocialLeaderboardEventProperties = {
   ACTION: 'action',
   ASSET_NAME: 'asset_name',
   CAIP19: 'caip19',
+  PERPS_MARKET: 'perps_market',
   CHAIN_FILTER: 'chain_filter',
+  CTA_TYPE: 'cta_type',
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
@@ -34,6 +36,10 @@ export const SocialLeaderboardEventValues = {
   TAB: {
     OPEN: 'open',
     CLOSED: 'closed',
+  },
+  CTA_TYPE: {
+    BUY: 'buy',
+    TRADE: 'trade',
   },
 } as const;
 
