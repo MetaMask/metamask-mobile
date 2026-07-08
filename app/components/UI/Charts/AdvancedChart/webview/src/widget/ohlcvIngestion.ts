@@ -22,8 +22,11 @@ import {
   bumpHotReloadSeq,
   bumpOhlcvGeneration,
   clearOhlcvPagination,
+  doesLegendOwnLayoutSettle,
+  getActiveStudies,
   getCurrentResolution,
   getHotReloadSeq,
+  getMaStudies,
   getOhlcvData,
   getOhlcvGeneration,
   getSlbMode,
@@ -31,7 +34,7 @@ import {
   getWidget,
   isChartReady,
   setCurrentResolution,
-  setInHotReloadPreResetPhase,
+  setLegendOwnsLayoutSettle,
   setOhlcvData,
   setOhlcvPagination,
   setRnBackedPagination,
@@ -53,6 +56,17 @@ type FirstDataCallback = () => void;
 
 let firstDataCallback: FirstDataCallback | null = null;
 let firstDataDelivered = false;
+
+/**
+ * When active indicators exist, defers the CHART_LAYOUT_SETTLED signal to the
+ * legend module so it fires after the first successful legend render — not on
+ * the premature 2-rAF timer in emitLayoutSettled.
+ */
+function claimLegendSettleOwnership(): void {
+  if (getActiveStudies().size > 0 || getMaStudies().size > 0) {
+    setLegendOwnsLayoutSettle(true);
+  }
+}
 
 /**
  * Registers the callback invoked the first time SET_OHLCV_DATA arrives.
@@ -106,7 +120,8 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
     try {
       const chart = widget.activeChart();
       if (previousResolution === newResolution) {
-        setInHotReloadPreResetPhase(false);
+        // Same resolution — TV won't re-fetch via getBars, so we must
+        // resetData to force it to pick up the new bars from the datafeed.
         resetDatafeedCacheBeforeHotReload(widget);
         chart.resetData();
         resetMainPriceScaleAutoScale(chart);
@@ -114,28 +129,22 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
         applyVisibleRange(chart);
         emitLayoutSettled();
       } else {
-        setInHotReloadPreResetPhase(true);
+        // Different resolution — let setResolution handle the transition
+        // naturally. TV calls getBars internally, the datafeed returns the
+        // new bars (already stored via setOhlcvData above), and TV renders
+        // them smoothly without a blank frame. No resetData needed.
+        claimLegendSettleOwnership();
         const seq = bumpHotReloadSeq();
         chart.setResolution(newResolution, () => {
           if (getHotReloadSeq() !== seq) {
             return;
           }
-          setInHotReloadPreResetPhase(false);
-          try {
-            resetDatafeedCacheBeforeHotReload(widget);
-            chart.resetData();
-            resetMainPriceScaleAutoScale(chart);
-            notifyDataLifecycle('ohlcvReset');
-            applyVisibleRange(chart);
-            emitLayoutSettled();
-          } catch (error) {
-            setInHotReloadPreResetPhase(false);
-            reportErrorToRN(error);
-          }
+          resetMainPriceScaleAutoScale(chart);
+          applyVisibleRange(chart);
+          emitLayoutSettled();
         });
       }
     } catch (error) {
-      setInHotReloadPreResetPhase(false);
       reportErrorToRN(error);
     }
     return;
@@ -218,6 +227,9 @@ function applyVisibleRange(chart: TVActiveChart): void {
 }
 
 function emitLayoutSettled(): void {
+  if (doesLegendOwnLayoutSettle()) {
+    return;
+  }
   const send = (): void => {
     if (getWidget() && isChartReady()) {
       postToRN('CHART_LAYOUT_SETTLED', {});

@@ -166,9 +166,9 @@ const state = {
     rnBackedPagination: { enabled: false },
     hasExplicitCurrentPriceLine: false,
     hotReloadSeq: 0,
-    inHotReloadPreResetPhase: false,
     slbMode: false,
     slbCenteringPending: false,
+    legendOwnsLayoutSettle: false,
 };
 // ----- Widget lifecycle ---------------------------------------------------
 function getWidget() {
@@ -350,12 +350,6 @@ function bumpHotReloadSeq() {
 function getHotReloadSeq() {
     return state.hotReloadSeq;
 }
-function isInHotReloadPreResetPhase() {
-    return state.inHotReloadPreResetPhase;
-}
-function setInHotReloadPreResetPhase(phase) {
-    state.inHotReloadPreResetPhase = phase;
-}
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 function getSlbMode() {
     return state.slbMode;
@@ -368,6 +362,13 @@ function isSlbCenteringPending() {
 }
 function setSlbCenteringPending(pending) {
     state.slbCenteringPending = pending;
+}
+// ----- Legend owns layout settle ---------------------------------------------
+function setLegendOwnsLayoutSettle(owns) {
+    state.legendOwnsLayoutSettle = owns;
+}
+function doesLegendOwnLayoutSettle() {
+    return state.legendOwnsLayoutSettle;
 }
 // ----- Explicit current price line -------------------------------------------
 function getHasExplicitCurrentPriceLine() {
@@ -405,9 +406,9 @@ function __resetStateForTests() {
     state.rnBackedPagination = { enabled: false };
     state.hasExplicitCurrentPriceLine = false;
     state.hotReloadSeq = 0;
-    state.inHotReloadPreResetPhase = false;
     state.slbMode = false;
     state.slbCenteringPending = false;
+    state.legendOwnsLayoutSettle = false;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/loadLibrary.ts
@@ -1333,10 +1334,6 @@ const customDatafeed = {
             const fromMs = periodParams.from * 1000;
             const toMs = periodParams.to * 1000;
             const { countBack, firstDataRequest } = periodParams;
-            if (firstDataRequest && isInHotReloadPreResetPhase()) {
-                onResult([], { noData: true });
-                return;
-            }
             const bars = filterBarsForRange(fromMs, toMs, countBack);
             if (bars.length > 0) {
                 onResult(bars, { noData: false });
@@ -1582,6 +1579,16 @@ function detectResolution(data) {
 let firstDataCallback = null;
 let firstDataDelivered = false;
 /**
+ * When active indicators exist, defers the CHART_LAYOUT_SETTLED signal to the
+ * legend module so it fires after the first successful legend render — not on
+ * the premature 2-rAF timer in emitLayoutSettled.
+ */
+function claimLegendSettleOwnership() {
+    if (getActiveStudies().size > 0 || getMaStudies().size > 0) {
+        setLegendOwnsLayoutSettle(true);
+    }
+}
+/**
  * Registers the callback invoked the first time SET_OHLCV_DATA arrives.
  * Bootstrap wires this to widget creation (loads the TV library if needed,
  * then calls createChartWidget).
@@ -1625,7 +1632,8 @@ function handleSetOHLCVData(payload) {
         try {
             const chart = widget.activeChart();
             if (previousResolution === newResolution) {
-                setInHotReloadPreResetPhase(false);
+                // Same resolution — TV won't re-fetch via getBars, so we must
+                // resetData to force it to pick up the new bars from the datafeed.
                 resetDatafeedCacheBeforeHotReload(widget);
                 chart.resetData();
                 resetMainPriceScaleAutoScale(chart);
@@ -1634,30 +1642,23 @@ function handleSetOHLCVData(payload) {
                 emitLayoutSettled();
             }
             else {
-                setInHotReloadPreResetPhase(true);
+                // Different resolution — let setResolution handle the transition
+                // naturally. TV calls getBars internally, the datafeed returns the
+                // new bars (already stored via setOhlcvData above), and TV renders
+                // them smoothly without a blank frame. No resetData needed.
+                claimLegendSettleOwnership();
                 const seq = bumpHotReloadSeq();
                 chart.setResolution(newResolution, () => {
                     if (getHotReloadSeq() !== seq) {
                         return;
                     }
-                    setInHotReloadPreResetPhase(false);
-                    try {
-                        resetDatafeedCacheBeforeHotReload(widget);
-                        chart.resetData();
-                        resetMainPriceScaleAutoScale(chart);
-                        notifyDataLifecycle('ohlcvReset');
-                        applyVisibleRange(chart);
-                        emitLayoutSettled();
-                    }
-                    catch (error) {
-                        setInHotReloadPreResetPhase(false);
-                        reportErrorToRN(error);
-                    }
+                    resetMainPriceScaleAutoScale(chart);
+                    applyVisibleRange(chart);
+                    emitLayoutSettled();
                 });
             }
         }
         catch (error) {
-            setInHotReloadPreResetPhase(false);
             reportErrorToRN(error);
         }
         return;
@@ -1731,6 +1732,9 @@ function applyVisibleRange(chart) {
     subscription.subscribe(null, onLoaded);
 }
 function emitLayoutSettled() {
+    if (doesLegendOwnLayoutSettle()) {
+        return;
+    }
     const send = () => {
         if (getWidget() && isChartReady()) {
             postToRN('CHART_LAYOUT_SETTLED', {});
@@ -2997,7 +3001,13 @@ function hasAnyEmpty(entries) {
 }
 function notifyLegendRendered() {
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => postToRN('LEGEND_RENDERED', {}));
+        requestAnimationFrame(() => {
+            postToRN('LEGEND_RENDERED', {});
+            if (doesLegendOwnLayoutSettle()) {
+                setLegendOwnsLayoutSettle(false);
+                postToRN('CHART_LAYOUT_SETTLED', {});
+            }
+        });
     });
 }
 function clearTimer() {

@@ -15,6 +15,7 @@
 
 import { postToRN } from '../../core/bridge';
 import {
+  doesLegendOwnLayoutSettle,
   getActiveStudies,
   getLegendStudyOrder,
   getMaStudies,
@@ -22,6 +23,7 @@ import {
   getVolumeStudyId,
   getWidget,
   isChartReady,
+  setLegendOwnsLayoutSettle,
 } from '../../core/state';
 import { eachChartDocument } from '../../widget/tvDomHelpers';
 import type {
@@ -343,7 +345,13 @@ function hasAnyEmpty(entries: StudyDataEntry[]): boolean {
 
 function notifyLegendRendered(): void {
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => postToRN('LEGEND_RENDERED', {}));
+    requestAnimationFrame(() => {
+      postToRN('LEGEND_RENDERED', {});
+      if (doesLegendOwnLayoutSettle()) {
+        setLegendOwnsLayoutSettle(false);
+        postToRN('CHART_LAYOUT_SETTLED', {});
+      }
+    });
   });
 }
 
