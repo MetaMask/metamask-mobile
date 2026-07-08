@@ -253,7 +253,7 @@
     "@metamask/bitcoin-wallet-snap": "^1.14.2",
     "@metamask/bitcoin-wallet-standard": "^1.0.0",
     "@metamask/bridge-controller": "^77.3.0",
-    "@metamask/bridge-status-controller": "^74.0.2",
+    "@metamask/bridge-status-controller": "^74.1.0",
     "@metamask/chain-agnostic-permission": "^1.5.0",
     "@metamask/chomp-api-service": "^3.1.0",
     "@metamask/client-controller": "^1.0.1",
