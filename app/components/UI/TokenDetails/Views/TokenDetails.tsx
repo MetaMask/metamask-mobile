@@ -72,6 +72,12 @@ import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
+import { selectTokenWatchlistEnabled } from '../../Assets/selectors/featureFlags';
+import { useTokenWatchlist } from '../../Assets/watchlist/hooks/useTokenWatchlist';
+import ToastService from '../../../../core/ToastService/ToastService';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../locales/i18n';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -212,6 +218,9 @@ const TokenDetails: React.FC<{
   }, [token.address, token.chainId]);
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
+  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+  const { isWatched, toggle: toggleWatchlist } =
+    useTokenWatchlist(caip19AssetId);
 
   const handleShare = useCallback(() => {
     if (!caip19AssetId) {
@@ -440,6 +449,51 @@ const TokenDetails: React.FC<{
     </>
   );
 
+  const isNativeToken = Boolean(token.isETH || token.isNative);
+
+  const handleStarToggle = useCallback(() => {
+    const wasWatched = isWatched;
+    toggleWatchlist();
+
+    ToastService.showToast({
+      variant: ToastVariants.Icon,
+      iconName: wasWatched ? IconName.Star : IconName.Confirmation,
+      iconColor: theme.colors.success.default,
+      backgroundColor: theme.colors.background.section,
+      labelOptions: [
+        {
+          label: wasWatched
+            ? strings('token_watchlist.removed_from_watchlist')
+            : strings('token_watchlist.added_to_watchlist'),
+        },
+      ],
+      hasNoTimeout: false,
+    });
+
+    const eventName = wasWatched
+      ? MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED
+      : MetaMetricsEvents.WATCHLIST_TOKEN_ADDED;
+
+    trackEvent(
+      createEventBuilder(eventName)
+        .addProperties({
+          source: 'token_details',
+          asset_type: isNativeToken ? 'native' : 'erc20',
+          ...(wasWatched ? {} : { has_balance: hasBalanceValue }),
+        })
+        .build(),
+    );
+  }, [
+    isWatched,
+    toggleWatchlist,
+    trackEvent,
+    createEventBuilder,
+    isNativeToken,
+    hasBalanceValue,
+    theme.colors.success.default,
+    theme.colors.background.section,
+  ]);
+
   const renderLoader = () => (
     <View style={styles.loader}>
       <ActivityIndicator style={styles.loader} size="small" />
@@ -452,6 +506,8 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         onBackPress={() => navigation.goBack()}
         onSharePress={handleShare}
+        onStarPress={isWatchlistEnabled ? handleStarToggle : undefined}
+        isWatched={isWatched}
         onPriceAlertPress={
           isPriceAlertsFeatureEnabled &&
           isPriceAlertsChainSupported &&

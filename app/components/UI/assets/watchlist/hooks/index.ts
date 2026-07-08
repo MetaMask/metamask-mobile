@@ -1,5 +1,9 @@
 export { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
 export {
+  useTokenWatchlist,
+  type UseTokenWatchlistResult,
+} from './useTokenWatchlist';
+export {
   tokenWatchlistBatcher,
   useTokenWatchlistAddItemMutation,
   useTokenWatchlistRemoveItemMutation,
