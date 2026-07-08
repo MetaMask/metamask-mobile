@@ -18,6 +18,68 @@ import {
 } from '../reducers/user/selectors';
 import { setAppInstallEventFired } from '../actions/user';
 
+/**
+ * Fire the App Installed analytics event exactly once on first install.
+ * Mirrors the extension's addAppInstalledEvent / onInstall logic:
+ * - Sets InstallDateMobile user trait (yyyy-mm-dd)
+ * - Adds install_source + deeplink_path when app was opened via a Branch
+ * deferred deeplink (+is_first_session && +clicked_branch_link)
+ * - The analytics queue handles pre-opt-in buffering automatically
+ */
+export async function trackAppInstallOnce() {
+  try {
+    const state = ReduxService.store.getState();
+    const existingUser = selectExistingUser(state);
+    const alreadyFired = selectAppInstallEventFired(state);
+
+    if (existingUser || alreadyFired) {
+      return;
+    }
+
+    // Mark fired before async work so parallel start() calls don't double-fire
+    ReduxService.store.dispatch(setAppInstallEventFired());
+
+    // Set install date trait (yyyy-mm-dd), mirrors InstallDateExt on extension
+    const installDate = new Date().toISOString().split('T')[0];
+    analytics.identify({
+      [UserProfileProperty.INSTALL_DATE_MOBILE]: installDate,
+    });
+
+    // Detect deferred deeplink install via Branch
+    const branchParams = await branch.getLatestReferringParams();
+    const isFirstSession = branchParams?.['+is_first_session'] as
+      | boolean
+      | undefined;
+    const clickedBranchLink = branchParams?.['+clicked_branch_link'] as
+      | boolean
+      | undefined;
+
+    const isDeferredDeeplinkInstall =
+      isFirstSession === true && clickedBranchLink === true;
+
+    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.APP_INSTALLED,
+    );
+
+    if (isDeferredDeeplinkInstall) {
+      const deeplinkPath = branchParams?.$deeplink_path as
+        | string
+        | undefined;
+      eventBuilder.addProperties({
+        install_source: 'deeplink',
+        ...(deeplinkPath ? { deeplink_path: deeplinkPath } : {}),
+      });
+    }
+
+    analytics.trackEvent(eventBuilder.build());
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'AppStateManager: Error tracking app install event',
+    );
+  }
+}
+
 export class AppStateEventListener {
   private appStateSubscription:
     | ReturnType<typeof AppState.addEventListener>
@@ -96,67 +158,7 @@ export class AppStateEventListener {
     }
   };
 
-  /**
-   * Fire the App Installed analytics event exactly once on first install.
-   * Mirrors the extension's addAppInstalledEvent / onInstall logic:
-   * - Sets InstallDateMobile user trait (yyyy-mm-dd)
-   * - Adds install_source + deeplink_path when app was opened via a Branch
-   *   deferred deeplink (+is_first_session && +clicked_branch_link)
-   * - The analytics queue handles pre-opt-in buffering automatically
-   */
-  private trackAppInstallOnce = async () => {
-    try {
-      const state = ReduxService.store.getState();
-      const existingUser = selectExistingUser(state);
-      const alreadyFired = selectAppInstallEventFired(state);
-
-      if (existingUser || alreadyFired) {
-        return;
-      }
-
-      // Mark fired before async work so parallel start() calls don't double-fire
-      ReduxService.store.dispatch(setAppInstallEventFired());
-
-      // Set install date trait (yyyy-mm-dd), mirrors InstallDateExt on extension
-      const installDate = new Date().toISOString().split('T')[0];
-      analytics.identify({
-        [UserProfileProperty.INSTALL_DATE_MOBILE]: installDate,
-      });
-
-      // Detect deferred deeplink install via Branch
-      const branchParams = await branch.getLatestReferringParams();
-      const isFirstSession = branchParams?.['+is_first_session'] as
-        | boolean
-        | undefined;
-      const clickedBranchLink = branchParams?.['+clicked_branch_link'] as
-        | boolean
-        | undefined;
-
-      const isDeferredDeeplinkInstall =
-        isFirstSession === true && clickedBranchLink === true;
-
-      const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.APP_INSTALLED,
-      );
-
-      if (isDeferredDeeplinkInstall) {
-        const deeplinkPath = branchParams?.['$deeplink_path'] as
-          | string
-          | undefined;
-        eventBuilder.addProperties({
-          install_source: 'deeplink',
-          ...(deeplinkPath ? { deeplink_path: deeplinkPath } : {}),
-        });
-      }
-
-      analytics.trackEvent(eventBuilder.build());
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'AppStateManager: Error tracking app install event',
-      );
-    }
-  };
+  private trackAppInstallOnce = trackAppInstallOnce;
 
   private processAppStateChange = () => {
     try {
