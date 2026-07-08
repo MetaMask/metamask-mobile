@@ -24,7 +24,6 @@ import OnboardingFundWallet from '../../Views/OnboardingFundWallet';
 import OnboardingReceiveQR from '../../Views/OnboardingFundWallet/OnboardingReceiveQR';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import TokenListRoutes from '../../UI/Ramp/routes';
-import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
@@ -434,7 +433,6 @@ const OnboardingRootNav = () => {
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
       />
-      <NativeStack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={OnboardingMultichainAddressList}
