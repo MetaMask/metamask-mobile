@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -39,6 +40,7 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { Theme } from '@metamask/design-tokens';
+import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 
 const styleSheet = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
@@ -71,6 +73,8 @@ const PerpsMarketRowItem = ({
   });
 
   const { styles } = useStyles(styleSheet, {});
+
+  const showFullAssetNames = useSelector(selectPerpsShowFullAssetNamesFlag);
 
   // Merge live price into market data
   const displayMarket = useMemo(() => {
@@ -201,7 +205,7 @@ const PerpsMarketRowItem = ({
         </Box>
 
         <Box twClassName="flex-1">
-          {/* Symbol + leverage */}
+          {/* Asset label + leverage */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -213,9 +217,13 @@ const PerpsMarketRowItem = ({
               numberOfLines={1}
               ellipsizeMode="tail"
               style={styles.name}
+              testID={getPerpsMarketRowItemSelector.assetLabel(
+                displayMarket.symbol,
+              )}
             >
-              {displayMarket.name ||
-                getPerpsDisplaySymbol(displayMarket.symbol)}
+              {showFullAssetNames && displayMarket.name
+                ? displayMarket.name
+                : getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </Box>
