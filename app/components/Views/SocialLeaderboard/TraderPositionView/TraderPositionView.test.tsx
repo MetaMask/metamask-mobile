@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
@@ -138,6 +139,15 @@ jest.mock('../../../../util/haptics', () => {
 });
 
 const mockPlayImpact = jest.mocked(playImpact);
+const mockTrack = jest.fn();
+
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 // New hooks added for deep-link self-sufficiency. Existing tests pass `position`
 // via route params, so these are effectively no-ops in the existing flow.
@@ -466,6 +476,70 @@ describe('TraderPositionView', () => {
       });
     });
 
+    it('fires Follow Trading Token Screen Viewed with perps_market on mount', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED,
+        expect.objectContaining({
+          trader_address: '0xabc',
+          asset_name: 'ETH',
+          perps_market: 'ETH',
+          source: 'trader_profile',
+        }),
+      );
+    });
+
+    it('fires Follow Trading Token Trade Clicked when the Trade button is pressed', () => {
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+        expect.objectContaining({
+          trader_address: '0xabc',
+          asset_name: 'ETH',
+          perps_market: 'ETH',
+        }),
+      );
+    });
+
+    it('fires Follow Trading Token Dismissed with perps_market when backing out without trading', () => {
+      const { unmount } = renderWithProvider(<TraderPositionView />, {
+        state: mockState,
+      });
+
+      unmount();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED,
+        {
+          trader_address: '0xabc',
+          perps_market: 'ETH',
+        },
+      );
+    });
+
+    it('does not fire Follow Trading Token Dismissed after Trade is pressed', () => {
+      const { unmount } = renderWithProvider(<TraderPositionView />, {
+        state: mockState,
+      });
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      );
+      mockTrack.mockClear();
+      unmount();
+
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED,
+        expect.anything(),
+      );
+    });
+
     it('renders the perp leverage and direction badges in the header', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -571,6 +645,12 @@ describe('TraderPositionView', () => {
             source: 'social_leaderboard',
           },
         });
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+          expect.objectContaining({
+            perps_market: 'xyz:SPCX',
+          }),
+        );
       });
 
       it('links another HIP-3 provider to its xyz equivalent when that market exists', () => {
@@ -598,6 +678,12 @@ describe('TraderPositionView', () => {
             source: 'social_leaderboard',
           },
         });
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+          expect.objectContaining({
+            perps_market: 'xyz:SPCX',
+          }),
+        );
       });
 
       it('disables the Trade button as Unsupported market when the loaded market list lacks the xyz market', () => {
@@ -652,6 +738,12 @@ describe('TraderPositionView', () => {
             source: 'social_leaderboard',
           },
         });
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+          expect.objectContaining({
+            perps_market: 'xyz:SPCX',
+          }),
+        );
       });
 
       it('stays optimistic when the market set is empty even with isLoading false (fetch in flight / empty cache)', () => {
@@ -683,6 +775,12 @@ describe('TraderPositionView', () => {
             source: 'social_leaderboard',
           },
         });
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+          expect.objectContaining({
+            perps_market: 'xyz:SPCX',
+          }),
+        );
       });
     });
   });

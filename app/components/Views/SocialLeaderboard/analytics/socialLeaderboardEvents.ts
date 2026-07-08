@@ -12,6 +12,7 @@ export const SocialLeaderboardEventProperties = {
   ACTION: 'action',
   ASSET_NAME: 'asset_name',
   CAIP19: 'caip19',
+  PERPS_MARKET: 'perps_market',
   CHAIN_FILTER: 'chain_filter',
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
