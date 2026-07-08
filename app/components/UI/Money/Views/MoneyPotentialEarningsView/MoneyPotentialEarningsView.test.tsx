@@ -147,6 +147,7 @@ describe('MoneyPotentialEarningsView', () => {
       totalFiatFormatted: '$10,000.00',
       totalFiatRaw: '10000',
       tokenTotal: undefined,
+      musdBalance: undefined,
       isBalanceLoading: false,
       positionsQuery: {
         data: {
@@ -159,7 +160,7 @@ describe('MoneyPotentialEarningsView', () => {
         },
         isLoading: false,
       },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
   });
 
   it('renders the container', () => {

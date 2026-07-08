@@ -6,6 +6,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
@@ -20,6 +21,21 @@ import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 
 /**
+ * Extended position response that includes the top-level `balance` object.
+ * The API will return raw uint256 strings in smallest units (6-decimal mUSD).
+ *
+ * TODO: Remove once the package type includes the `balance` field
+ * (pending va-mmcx-money-account-api PR #25).
+ */
+type PositionResponseWithBalance = PositionResponse & {
+  balance?: {
+    musd_balance: string;
+    total_balance: string;
+    vmusd_value_in_musd: string;
+  };
+};
+
+/**
  * Fetches the live exchange rate for the mUSD token.
  * This is necessary when we need the most current rate at runtime (e.g. Money account withdrawal).
  * @returns The live exchange rate for the mUSD token.
@@ -30,14 +46,17 @@ export const getLiveVedaVaultExchangeRate = async () =>
     .then(({ rate }) => rate);
 
 interface UseMoneyAccountBalanceResult {
-  positionsQuery: UseQueryResult<PositionResponse>;
+  positionsQuery: UseQueryResult<PositionResponseWithBalance>;
   isBalanceLoading: boolean;
   isBalanceFetchError: boolean;
   isBalanceFetching: boolean;
   isBalanceUnavailable: boolean;
   lastKnownTotalFiatFormatted: string | undefined;
   refetchBalance: () => void;
+  /** Total balance (mUSD + vmUSD valued in mUSD) */
   tokenTotal: BigNumber | undefined;
+  /** Bare mUSD balance not deposited into the vault */
+  musdBalance: BigNumber | undefined;
   totalFiatFormatted: string | undefined;
   totalFiatRaw: string | undefined;
   withdrawableFiatFormatted: string | undefined;
@@ -70,7 +89,7 @@ const useMoneyAccountBalance = (
     ],
     enabled: Boolean(moneyAccountAddress),
     refetchInterval,
-  }) as UseQueryResult<PositionResponse>;
+  }) as UseQueryResult<PositionResponseWithBalance>;
 
   const isBalanceLoading = positionsQuery.isLoading;
   const isBalanceFetchError = positionsQuery.isError;
@@ -88,41 +107,68 @@ const useMoneyAccountBalance = (
     [moneyAccountAddress],
   );
 
-  const { tokenTotal, totalFiat, withdrawableFiat, withdrawableMusd } =
-    useMemo(() => {
-      const positions = positionsQuery.data?.positions;
+  const {
+    tokenTotal,
+    musdBalance,
+    totalFiat,
+    withdrawableFiat,
+    withdrawableMusd,
+  } = useMemo(() => {
+    if (isBalanceLoading || isBalanceFetchError) {
+      return {
+        tokenTotal: undefined,
+        musdBalance: undefined,
+        totalFiat: undefined,
+        withdrawableFiat: undefined,
+        withdrawableMusd: undefined,
+      };
+    }
 
-      // The API returns `current_value_usd` as a decimal string (e.g. "150.25")
-      // and `current_value_assets` as the value in underlying asset terms.
-      // Since mUSD is pegged 1:1 to USD, both are effectively equivalent.
-      const totalUsd =
-        positions?.reduce(
-          (sum, pos) => sum.plus(new BigNumber(pos.current_value_usd)),
-          new BigNumber(0),
-        ) ?? new BigNumber(0);
+    const { balance, positions } = positionsQuery.data ?? {};
 
-      // The withdrawable amount is the vmUSD position's value in assets
-      // (all vault positions represent withdrawable vmUSD).
-      const totalAssets =
-        positions?.reduce(
-          (sum, pos) => sum.plus(new BigNumber(pos.current_value_assets)),
-          new BigNumber(0),
-        ) ?? new BigNumber(0);
-
-      const computedWithdrawableMusd =
-        isBalanceLoading || isBalanceFetchError ? undefined : totalAssets;
-
-      const computedTokenTotal =
-        isBalanceLoading || isBalanceFetchError ? undefined : totalAssets;
+    if (balance) {
+      // `balance` values are raw uint256 strings in smallest units (6-decimal mUSD).
+      const totalBalanceMusd = new BigNumber(balance.total_balance).shiftedBy(
+        -MUSD_DECIMALS,
+      );
+      const vmusdValueInMusd = new BigNumber(
+        balance.vmusd_value_in_musd,
+      ).shiftedBy(-MUSD_DECIMALS);
+      const bareMusd = new BigNumber(balance.musd_balance).shiftedBy(
+        -MUSD_DECIMALS,
+      );
 
       return {
-        tokenTotal: computedTokenTotal,
-        totalFiat:
-          isBalanceLoading || isBalanceFetchError ? undefined : totalUsd,
-        withdrawableFiat: computedWithdrawableMusd,
-        withdrawableMusd: computedWithdrawableMusd,
+        tokenTotal: totalBalanceMusd,
+        musdBalance: bareMusd,
+        totalFiat: totalBalanceMusd,
+        withdrawableFiat: vmusdValueInMusd,
+        withdrawableMusd: vmusdValueInMusd,
       };
-    }, [isBalanceLoading, isBalanceFetchError, positionsQuery.data]);
+    }
+
+    // Fallback: derive from positions when `balance` field is not yet available.
+    // Positions only cover vmUSD; bare mUSD is unknown without the balance field.
+    const totalUsd =
+      positions?.reduce(
+        (sum, pos) => sum.plus(new BigNumber(pos.current_value_usd)),
+        new BigNumber(0),
+      ) ?? new BigNumber(0);
+
+    const totalAssets =
+      positions?.reduce(
+        (sum, pos) => sum.plus(new BigNumber(pos.current_value_assets)),
+        new BigNumber(0),
+      ) ?? new BigNumber(0);
+
+    return {
+      tokenTotal: totalAssets,
+      musdBalance: undefined,
+      totalFiat: totalUsd,
+      withdrawableFiat: totalAssets,
+      withdrawableMusd: totalAssets,
+    };
+  }, [isBalanceLoading, isBalanceFetchError, positionsQuery.data]);
 
   const totalFiatFormatted =
     !isBalanceFetchError && totalFiat ? moneyFormatUsd(totalFiat) : undefined;
@@ -210,6 +256,7 @@ const useMoneyAccountBalance = (
     lastKnownTotalFiatFormatted,
     refetchBalance,
     tokenTotal,
+    musdBalance,
     totalFiatFormatted,
     totalFiatRaw,
     withdrawableFiatFormatted,

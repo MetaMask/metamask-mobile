@@ -119,6 +119,12 @@ const MOCK_POSITION = {
   effective_apy: '0.05',
 };
 
+const MOCK_BALANCE = {
+  musd_balance: '2000000',
+  total_balance: '4307659000000',
+  vmusd_value_in_musd: '4307657000000',
+};
+
 const MOCK_POSITION_RESPONSE = {
   address: MOCK_ADDRESS,
   as_of_block: 0,
@@ -126,6 +132,11 @@ const MOCK_POSITION_RESPONSE = {
   data_freshness: 'live' as const,
   indexer_lag_seconds: 0,
   positions: [MOCK_POSITION],
+};
+
+const MOCK_POSITION_RESPONSE_WITH_BALANCE = {
+  ...MOCK_POSITION_RESPONSE,
+  balance: MOCK_BALANCE,
 };
 
 const DEFAULT_POSITIONS_QUERY: QueryState<typeof MOCK_POSITION_RESPONSE> = {
@@ -711,6 +722,68 @@ describe('useMoneyAccountBalance', () => {
       const { result } = renderHook(() => useMoneyAccountBalance());
 
       expect(result.current.lastKnownTotalFiatFormatted).toBeUndefined();
+    });
+  });
+
+  describe('balance field (raw uint256 mUSD)', () => {
+    it('derives tokenTotal from balance.total_balance when balance field is present', () => {
+      setupDefaultQueries({
+        data: MOCK_POSITION_RESPONSE_WITH_BALANCE,
+        isLoading: false,
+        isError: false,
+        isFetching: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.tokenTotal?.toFixed(0)).toBe('4307659');
+    });
+
+    it('derives musdBalance from balance.musd_balance', () => {
+      setupDefaultQueries({
+        data: MOCK_POSITION_RESPONSE_WITH_BALANCE,
+        isLoading: false,
+        isError: false,
+        isFetching: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.musdBalance?.toFixed(0)).toBe('2');
+    });
+
+    it('derives withdrawableMusd from balance.vmusd_value_in_musd', () => {
+      setupDefaultQueries({
+        data: MOCK_POSITION_RESPONSE_WITH_BALANCE,
+        isLoading: false,
+        isError: false,
+        isFetching: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.withdrawableMusd?.toFixed(0)).toBe('4307657');
+    });
+
+    it('returns undefined musdBalance when balance field is absent (fallback path)', () => {
+      setupDefaultQueries();
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.musdBalance).toBeUndefined();
+    });
+
+    it('returns undefined musdBalance while loading', () => {
+      setupDefaultQueries({
+        data: undefined,
+        isLoading: true,
+        isError: false,
+        isFetching: false,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.musdBalance).toBeUndefined();
     });
   });
 });
