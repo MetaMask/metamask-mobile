@@ -2,6 +2,7 @@ import {
   DistributionType,
   EnvironmentType,
 } from '@metamask/remote-feature-flag-controller';
+import type { Json } from '@metamask/utils';
 
 // Points to the LaunchDarkly environment based on the METAMASK_ENVIRONMENT environment variable
 export const getFeatureFlagAppEnvironment = () => {
@@ -44,3 +45,38 @@ export const getFeatureFlagAppDistribution = () => {
 
 export const isRemoteFeatureFlagOverrideActivated =
   process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
+
+// TEMP: RC test for ETH -> mUSD deposit, revert before merge.
+// True on every non-production build. Gates the directMoneyMusdEnabled override
+// below so production continues to honour the real LaunchDarkly value.
+export const shouldForceDirectMoneyMusdOff = () =>
+  process.env.METAMASK_ENVIRONMENT !== 'production';
+
+// TEMP: RC test for ETH -> mUSD deposit, revert before merge.
+// Core (`@metamask/transaction-pay-controller` `getDirectMoneyMusdEnabled`) reads
+// `remoteFeatureFlags.confirmations_pay_fiat.directMoneyMusdEnabled === true`.
+// On RC that flag is currently true, which routes the Money Account fiat deposit
+// through the mUSD-direct path. Regions without an mUSD provider (e.g. New York)
+// get no quotes there, so we force it OFF to take the buy-ETH-then-convert path.
+// Returns the same reference when no change is needed so callers can skip
+// redundant controller updates (and avoid re-entrant stateChange loops). Other
+// keys in confirmations_pay_fiat are preserved.
+export const withDirectMoneyMusdOff = (
+  remoteFeatureFlags: Record<string, Json>,
+): Record<string, Json> => {
+  const payFiat = remoteFeatureFlags?.confirmations_pay_fiat as
+    | Record<string, Json>
+    | undefined;
+
+  if (!payFiat || payFiat.directMoneyMusdEnabled === false) {
+    return remoteFeatureFlags;
+  }
+
+  return {
+    ...remoteFeatureFlags,
+    confirmations_pay_fiat: {
+      ...payFiat,
+      directMoneyMusdEnabled: false,
+    },
+  };
+};

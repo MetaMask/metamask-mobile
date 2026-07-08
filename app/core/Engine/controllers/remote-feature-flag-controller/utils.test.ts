@@ -5,6 +5,8 @@ import {
 import {
   getFeatureFlagAppEnvironment,
   getFeatureFlagAppDistribution,
+  shouldForceDirectMoneyMusdOff,
+  withDirectMoneyMusdOff,
 } from './utils';
 
 describe('RemoteFeatureFlagController utils', () => {
@@ -81,6 +83,80 @@ describe('RemoteFeatureFlagController utils', () => {
     it('returns DistributionType.Main when METAMASK_BUILD_TYPE is not set', () => {
       process.env.METAMASK_BUILD_TYPE = '';
       expect(getFeatureFlagAppDistribution()).toBe(DistributionType.Main);
+    });
+  });
+
+  // TEMP: RC test for ETH -> mUSD deposit, revert before merge
+  describe('shouldForceDirectMoneyMusdOff', () => {
+    const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
+
+    afterAll(() => {
+      process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
+    });
+
+    it('returns false on production builds', () => {
+      process.env.METAMASK_ENVIRONMENT = 'production';
+      expect(shouldForceDirectMoneyMusdOff()).toBe(false);
+    });
+
+    it('returns true on rc builds', () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc';
+      expect(shouldForceDirectMoneyMusdOff()).toBe(true);
+    });
+
+    it('returns true when the environment is unset', () => {
+      process.env.METAMASK_ENVIRONMENT = '';
+      expect(shouldForceDirectMoneyMusdOff()).toBe(true);
+    });
+  });
+
+  // TEMP: RC test for ETH -> mUSD deposit, revert before merge
+  describe('withDirectMoneyMusdOff', () => {
+    it('forces directMoneyMusdEnabled to false while preserving other keys', () => {
+      const input = {
+        confirmations_pay_fiat: {
+          directMoneyMusdEnabled: true,
+          enabledTransactionTypes: ['money_account_deposit'],
+        },
+        someOtherFlag: true,
+      };
+
+      const result = withDirectMoneyMusdOff(input);
+
+      expect(result).not.toBe(input);
+      expect(result.confirmations_pay_fiat).toStrictEqual({
+        directMoneyMusdEnabled: false,
+        enabledTransactionTypes: ['money_account_deposit'],
+      });
+      expect(result.someOtherFlag).toBe(true);
+    });
+
+    it('sets directMoneyMusdEnabled to false when the key is absent but the object exists', () => {
+      const input = {
+        confirmations_pay_fiat: {
+          enabledTransactionTypes: [],
+        },
+      };
+
+      const result = withDirectMoneyMusdOff(input);
+
+      expect(result).not.toBe(input);
+      expect(result.confirmations_pay_fiat).toStrictEqual({
+        enabledTransactionTypes: [],
+        directMoneyMusdEnabled: false,
+      });
+    });
+
+    it('returns the same reference when confirmations_pay_fiat is missing', () => {
+      const input = { someOtherFlag: true };
+      expect(withDirectMoneyMusdOff(input)).toBe(input);
+    });
+
+    it('returns the same reference when directMoneyMusdEnabled is already false', () => {
+      const input = {
+        confirmations_pay_fiat: { directMoneyMusdEnabled: false },
+      };
+      expect(withDirectMoneyMusdOff(input)).toBe(input);
     });
   });
 });

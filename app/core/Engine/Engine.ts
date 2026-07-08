@@ -174,6 +174,11 @@ import { geolocationControllerInit } from './controllers/geolocation-controller'
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
+// TEMP: RC test for ETH -> mUSD deposit, revert before merge
+import {
+  shouldForceDirectMoneyMusdOff,
+  withDirectMoneyMusdOff,
+} from './controllers/remote-feature-flag-controller/utils';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
@@ -898,6 +903,35 @@ export class Engine {
         })
         .catch((error) => Logger.log('Feature flags update failed: ', error));
     }
+
+    // TEMP: RC test for ETH -> mUSD deposit, revert before merge.
+    // Force confirmations_pay_fiat.directMoneyMusdEnabled OFF on non-production
+    // builds so core routes the Money Account fiat deposit through the
+    // buy-ETH-then-convert path instead of mUSD-direct. Re-applied on every
+    // remote flag refresh; the reference-equality guard in withDirectMoneyMusdOff
+    // avoids redundant updates and re-entrant stateChange loops.
+    const applyDirectMoneyMusdRcOverride = () => {
+      if (!shouldForceDirectMoneyMusdOff()) {
+        return;
+      }
+      const current = remoteFeatureFlagController.state.remoteFeatureFlags;
+      const next = withDirectMoneyMusdOff(current);
+      if (next === current) {
+        return;
+      }
+      // @ts-expect-error TS2589 - BaseController.update causes deep type recursion.
+      remoteFeatureFlagController.update(
+        (state: RemoteFeatureFlagControllerState) => ({
+          ...state,
+          remoteFeatureFlags: next,
+        }),
+      );
+    };
+    applyDirectMoneyMusdRcOverride();
+    this.controllerMessenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      applyDirectMoneyMusdRcOverride,
+    );
 
     let previousBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
     store.subscribe(() => {
