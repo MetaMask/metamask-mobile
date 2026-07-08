@@ -15,7 +15,7 @@ import { PlatformDetector } from '../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import {
   isLoginScreenDisplayed,
-  isWalletContainerDisplayed,
+  isWalletHomeReadyOnAndroid,
   isWalletHomeReadyOnIOS,
 } from './wallet-home-readiness';
 // eslint-disable-next-line import-x/no-nodejs-modules
@@ -225,6 +225,8 @@ export const dismissAndroidSystemOverlaysPlaywright =
     }
   };
 
+export type AppReadyScreen = 'login' | 'wallet';
+
 /**
  * Waits for app initialization and rehydration to complete.
  * This ensures the app is in a stable state before proceeding with tests.
@@ -234,15 +236,14 @@ export const dismissAndroidSystemOverlaysPlaywright =
  * @async
  * @function waitForAppReady
  * @param {number} timeout - Maximum time to wait in milliseconds (default: 20000)
- * @returns {Promise<void>} Resolves when app is ready
+ * @returns {Promise<AppReadyScreen>} Which screen the app stabilized on
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
   timeout: number = resolveE2EWaitTimeoutMs(60_000),
-): Promise<void> => {
+): Promise<AppReadyScreen> => {
   const startTime = Date.now();
   const deadline = startTime + timeout;
-  const appiumProbeMs = 500;
   const pollIntervalMs = FrameworkDetector.isAppium() ? 500 : 2000;
 
   logger.debug('Waiting for app to reach login or wallet home...');
@@ -253,27 +254,20 @@ export const waitForAppReady = async (
         logger.debug(
           `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
         );
-        return;
+        return 'wallet';
       }
     } else if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
       // Android Appium: probe login before wallet-screen. The wallet container
-      // may exist in the native tree while the lock screen is showing, and a
-      // full visibility wait burns several seconds per poll on every test start.
+      // may exist in the native tree while the lock screen is showing.
       if (await isLoginScreenDisplayed()) {
-        await sleep(appiumProbeMs);
-        if (await isLoginScreenDisplayed()) {
-          logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
-          return;
-        }
+        logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+        return 'login';
       }
-      if (
-        (await isWalletContainerDisplayed()) &&
-        !(await isLoginScreenDisplayed())
-      ) {
+      if (await isWalletHomeReadyOnAndroid()) {
         logger.debug(
           `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
         );
-        return;
+        return 'wallet';
       }
     } else {
       try {
@@ -284,7 +278,7 @@ export const waitForAppReady = async (
         logger.debug(
           `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
         );
-        return;
+        return 'wallet';
       } catch {
         // Not on wallet yet.
       }
@@ -302,7 +296,7 @@ export const waitForAppReady = async (
           timeout: 1500,
         });
         logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
-        return;
+        return 'login';
       } catch {
         // Still booting — keep polling.
       }

@@ -54,7 +54,10 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
-import { isWalletHomeReadyOnIOS } from './wallet-home-readiness';
+import {
+  isWalletHomeReadyOnAppium,
+  isWalletHomeReadyOnIOS,
+} from './wallet-home-readiness';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -714,37 +717,38 @@ export const loginToAppPlaywright = async (
 
   await dismissAndroidSystemOverlaysPlaywright();
 
-  // Fast path: session persisted — skip the 60s bootstrap when wallet is already up.
-  if (await Utilities.isElementVisible(WalletView.container, 1_000)) {
+  if (await isWalletHomeReadyOnAppium()) {
     await dismissPostLoginModals();
     return;
   }
 
-  await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
+  const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
 
-  if (await Utilities.isElementVisible(WalletView.container, 1_000)) {
+  if (readyScreen === 'wallet') {
     await dismissPostLoginModals();
     return;
   }
 
-  // Dev menu overlays wallet/explore, not the login screen. Probing it while
-  // login is visible wastes ~20s on absent Continue/xmark/Close elements.
-  const onLoginScreen = await Utilities.isElementVisible(
-    LoginView.container,
-    1_500,
-  );
-  if (!onLoginScreen) {
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.passwordInput),
+      {
+        description: 'Login password input',
+        timeout: 3_000,
+      },
+    );
+  } catch {
+    // Dev menu can overlay login on local builds — dismiss and retry once.
     await dismissDeveloperMenuPlaywright();
     await dismissAndroidSystemOverlaysPlaywright();
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.passwordInput),
+      {
+        description: 'Login password input',
+        timeout: 5_000,
+      },
+    );
   }
-
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.passwordInput),
-    {
-      description: 'Login password input',
-      timeout: 5_000,
-    },
-  );
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock

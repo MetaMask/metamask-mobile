@@ -1,5 +1,6 @@
 import PlaywrightMatchers from '../framework/PlaywrightMatchers';
 import { withImplicitWait } from '../framework/PlaywrightUtilities';
+import { PlatformDetector } from '../framework/PlatformLocator';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 
@@ -30,6 +31,13 @@ export const isLoginScreenDisplayed = (): Promise<boolean> =>
 
 export const isWalletContainerDisplayed = (): Promise<boolean> =>
   isTestIdDisplayed(WalletViewSelectorsIDs.WALLET_CONTAINER);
+
+export const isWalletHomeReadyOnAndroid = async (): Promise<boolean> => {
+  if (!(await isWalletContainerDisplayed())) {
+    return false;
+  }
+  return !(await isLoginScreenDisplayed());
+};
 
 const isElementDisplayedById = isTestIdDisplayed;
 
@@ -72,4 +80,14 @@ export const isWalletHomeReadyOnIOS = async (): Promise<boolean> => {
     return true;
   }
   return isWalletScreenExistsWithLoginHiddenOnIOS();
+};
+
+export const isWalletHomeReadyOnAppium = async (): Promise<boolean> => {
+  if (PlatformDetector.isIOS()) {
+    return isWalletHomeReadyOnIOS();
+  }
+  if (PlatformDetector.isAndroid()) {
+    return isWalletHomeReadyOnAndroid();
+  }
+  return false;
 };
