@@ -149,7 +149,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    startDeposit();
+    startDeposit({ intent: 'convert' });
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
