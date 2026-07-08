@@ -45,10 +45,13 @@ appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
 
           // Account 3 is created on the first SRP (near the top). Scrolling to the
           // bottom first scrolls it off-screen and breaks Android taps.
-          await AccountListBottomSheet.expectAccountVisibleByNameV2('Account 3', {
-            description: 'Account 3 should be visible after creation',
-            timeout: 15_000,
-          });
+          await AccountListBottomSheet.expectAccountVisibleByNameV2(
+            'Account 3',
+            {
+              description: 'Account 3 should be visible after creation',
+              timeout: 15_000,
+            },
+          );
           await AccountListBottomSheet.tapAccountByNameV2('Account 3', true);
           await waitForWalletHomePlaywright();
 
