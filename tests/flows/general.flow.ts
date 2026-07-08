@@ -260,8 +260,11 @@ export const waitForAppReady = async (
       // Android Appium: probe login before wallet-screen. The wallet container
       // may exist in the native tree while the lock screen is showing.
       if (await isLoginScreenDisplayed()) {
-        logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
-        return 'login';
+        await sleep(500);
+        if (await isLoginScreenDisplayed()) {
+          logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+          return 'login';
+        }
       }
       if (await isWalletHomeReadyOnAndroid()) {
         logger.debug(
