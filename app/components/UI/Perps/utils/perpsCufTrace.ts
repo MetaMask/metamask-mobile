@@ -28,7 +28,11 @@ const CUF_META = {
   WATCH: 'watch',
   ORDER_ID: 'orderId',
   SNAPSHOT: 'snapshot',
+  INSTANCE: 'instance',
 } as const;
+
+/** Monotonic id per span start so delayed fallbacks can't end a successor. */
+let cufInstanceCounter = 0;
 
 /** What a pending confirmation span is watching for in the stream. */
 const PERPS_CUF_WATCH = {
@@ -90,7 +94,8 @@ export function startPerpsCufTrace({
   data,
 }: StartPerpsCufTraceOptions): void {
   const startTags = buildPerpsCufStartTags(tags);
-  pendingCufMeta.set(name, {});
+  cufInstanceCounter += 1;
+  pendingCufMeta.set(name, { [CUF_META.INSTANCE]: cufInstanceCounter });
   DevLogger?.log?.(
     `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsCUF: ${name} started ${JSON.stringify(startTags)}`,
   );
@@ -202,15 +207,24 @@ export function waitForPerpsPlaceOrderPositionRendered(
 }
 
 /**
- * Schedule a fallback end; a no-op if another surface (e.g. the position
- * stream) closes the span first. Used when a poll misses the position so the
- * span stays open for the stream instead of closing at the poll boundary.
+ * Schedule a fallback end for the CURRENTLY pending span instance; a no-op if
+ * another surface (e.g. the position stream) closes it first, and inert if a
+ * new span with the same name has started by the time the delay fires.
  */
 export function endPerpsCufTraceAfter(
   options: EndPerpsCufTraceOptions,
   delayMs: number,
 ): void {
-  setTimeout(() => endPerpsCufTrace(options), delayMs);
+  const instance = pendingCufMeta.get(options.name)?.[CUF_META.INSTANCE];
+  if (instance === undefined) {
+    return;
+  }
+  setTimeout(() => {
+    if (pendingCufMeta.get(options.name)?.[CUF_META.INSTANCE] !== instance) {
+      return;
+    }
+    endPerpsCufTrace(options);
+  }, delayMs);
 }
 
 /**

@@ -8,6 +8,7 @@ import {
 import {
   startPerpsCufTrace,
   endPerpsCufTrace,
+  endPerpsCufTraceAfter,
   armPerpsPlaceOrderCuf,
   isPerpsPlaceOrderCufCurrent,
   waitForPerpsPlaceOrderPositionRendered,
@@ -111,6 +112,65 @@ describe('perpsCufTrace', () => {
     endPerpsCufTrace({ name: TraceName.PerpsEntryToLiveMarketList });
 
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('scheduled fallback ends its own span instance when nothing else does', () => {
+    jest.useFakeTimers();
+    try {
+      startPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
+      endPerpsCufTraceAfter(
+        {
+          name: TraceName.PerpsCancelOrderToConfirmation,
+          data: { [PERPS_CUF_TAG.SUCCESS]: false },
+        },
+        1000,
+      );
+
+      jest.advanceTimersByTime(1000);
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsCancelOrderToConfirmation,
+          data: { [PERPS_CUF_TAG.SUCCESS]: false },
+        }),
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('stale scheduled fallback does not end a successor span with the same name', () => {
+    jest.useFakeTimers();
+    try {
+      startPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
+      endPerpsCufTraceAfter(
+        {
+          name: TraceName.PerpsCancelOrderToConfirmation,
+          data: { [PERPS_CUF_TAG.SUCCESS]: false },
+        },
+        1000,
+      );
+      // The stream ends the first span, then a second cancel starts before
+      // the first span's fallback fires.
+      endPerpsCufTrace({
+        name: TraceName.PerpsCancelOrderToConfirmation,
+        data: { [PERPS_CUF_TAG.SUCCESS]: true },
+      });
+      startPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
+      mockEndTrace.mockClear();
+
+      jest.advanceTimersByTime(2000);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      // The successor span is still pending and can complete normally.
+      endPerpsCufTrace({
+        name: TraceName.PerpsCancelOrderToConfirmation,
+        data: { [PERPS_CUF_TAG.SUCCESS]: true },
+      });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('resolves the place-order waiter when the armed symbol renders', async () => {

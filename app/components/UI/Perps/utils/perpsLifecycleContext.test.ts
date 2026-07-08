@@ -1,10 +1,12 @@
 import {
   getPerpsLifecycleContext,
   handlePerpsAppStateChange,
+  initPerpsLifecycleTracking,
   markPerpsForegroundSettled,
   resetPerpsLifecycleContextForTests,
   PERPS_LIFECYCLE_CONTEXT,
 } from './perpsLifecycleContext';
+import { AppState } from 'react-native';
 
 describe('perpsLifecycleContext', () => {
   beforeEach(() => {
@@ -41,6 +43,23 @@ describe('perpsLifecycleContext', () => {
     expect(getPerpsLifecycleContext()).toBe(
       PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
     );
+  });
+
+  it('tags background_resume on the first resume when init happens already active', () => {
+    // Init while already foregrounded: no initial 'active' event will fire,
+    // so init must seed the flag itself.
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+    const cleanup = initPerpsLifecycleTracking();
+
+    handlePerpsAppStateChange('active', 'background');
+
+    expect(getPerpsLifecycleContext()).toBe(
+      PERPS_LIFECYCLE_CONTEXT.BACKGROUND_RESUME,
+    );
+    cleanup();
   });
 
   it('returns to warm after a background_resume flow settles', () => {

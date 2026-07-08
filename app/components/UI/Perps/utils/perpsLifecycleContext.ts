@@ -53,6 +53,11 @@ export function initPerpsLifecycleTracking(): () => void {
     return () => subscription?.remove();
   }
   let lastState = AppState.currentState;
+  // Already foregrounded at init: no initial 'active' event will fire, so
+  // seed the flag or the first real resume would read as the first foreground.
+  if (lastState === 'active') {
+    hasEnteredForegroundOnce = true;
+  }
   subscription = AppState.addEventListener('change', (nextState) => {
     const prevState = lastState;
     lastState = nextState;

@@ -224,6 +224,15 @@ export const usePerpsClosePosition = (
             fallbackMessage: strings('perps.close_position.error_unknown'),
           });
 
+          // Rejected request, not an exception: classify before the throw so
+          // the catch's EXCEPTION end no-ops (matches TPSL/cancel paths).
+          endPerpsCufTrace({
+            name: TraceName.PerpsClosePositionToConfirmation,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
           throw new Error(errorMessage);
         }
 
