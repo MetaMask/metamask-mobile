@@ -1,7 +1,10 @@
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Theme } from '@metamask/design-tokens';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
+import {
+  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
+  SupportedCaipChainId,
+} from '@metamask/multichain-network-controller';
+import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -27,7 +30,12 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
 import { RootState } from '../../../../reducers';
-import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
+import {
+  selectNetworkConfigurationByChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { TraceName, endTrace } from '../../../../util/trace';
@@ -64,7 +72,6 @@ import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
-import { usePriceInUsd } from '../../Assets/PriceAlerts/hooks/usePriceInUsd';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -189,8 +196,16 @@ const TokenDetails: React.FC<{
         return token.address as CaipAssetType;
       }
       if (!token.chainId) return null;
-      return (formatAddressToAssetId(token.address, token.chainId) ??
-        null) as CaipAssetType | null;
+      const formatted = formatAddressToAssetId(token.address, token.chainId);
+      if (formatted) return formatted as CaipAssetType;
+      // For non-EVM native tokens (e.g. Bitcoin), formatAddressToAssetId returns
+      // undefined for addresses like "native". Fall back to the chain's native
+      // currency CAIP-19 id from the multichain network configurations.
+      const nonEvmConfig =
+        AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+          token.chainId as SupportedCaipChainId
+        ];
+      return (nonEvmConfig?.nativeCurrency as CaipAssetType) ?? null;
     } catch {
       return null;
     }
@@ -250,6 +265,11 @@ const TokenDetails: React.FC<{
   );
   const networkName = networkConfigurationByChainId?.name;
 
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
+  const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
+
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   const {
@@ -265,10 +285,25 @@ const TokenDetails: React.FC<{
     hasInsufficientCoverage,
   } = useTokenPrice({ token });
 
-  const currentPriceUsd = usePriceInUsd(
-    isPriceAlertsFeatureEnabled ? (token.chainId as Hex) : null,
+  const currentPriceUsd = useMemo(() => {
+    if (!isPriceAlertsFeatureEnabled || !Number.isFinite(currentPrice)) {
+      return null;
+    }
+    return (
+      calcUsdAmountFromFiat({
+        tokenFiatValue: currentPrice,
+        chainId: token.chainId ?? undefined,
+        networkConfigurationsByChainId,
+        evmMultiChainCurrencyRates,
+      }) ?? null
+    );
+  }, [
+    isPriceAlertsFeatureEnabled,
     currentPrice,
-  );
+    token.chainId,
+    networkConfigurationsByChainId,
+    evmMultiChainCurrencyRates,
+  ]);
 
   const [chartPricePositive, setChartPricePositive] = useState<boolean | null>(
     null,
