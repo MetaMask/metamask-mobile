@@ -41,13 +41,13 @@ import {
 
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../hooks';
-import { shouldTopAlignToastContent } from '../../components/Toast/Toast';
-import { ToastSelectorsIDs } from '../../components/Toast/ToastModal.testIds';
 import {
-  TOAST_SPRING_CONFIG,
-  TOAST_TOP_PADDING,
-  visibilityDuration,
-} from '../../components/Toast/Toast.constants';
+  NOTIFICATION_SPRING_CONFIG,
+  NOTIFICATION_TOP_PADDING,
+  NOTIFICATION_VISIBILITY_DURATION,
+} from './BaseNotification.constants';
+import { shouldTopAlignNotificationContent } from './BaseNotification.layout.utils';
+import { ToastSelectorsIDs } from '../../components/Toast/ToastModal.testIds';
 
 import styleSheet from './BaseNotification.styles';
 import {
@@ -174,7 +174,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const notificationHeight = useSharedValue(screenHeight);
   const translateYProgress = useSharedValue(-screenHeight);
   const hasEnteredRef = useRef(false);
-  const dismissDurationMs = dismissDuration ?? visibilityDuration;
+  const dismissDurationMs = dismissDuration ?? NOTIFICATION_VISIBILITY_DURATION;
 
   const topOffset = 0;
   const hasCloseIconButton = autoDismiss;
@@ -182,7 +182,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     ? getDescription(status, safeData)
     : description;
   const hasDescription = resolvedDescription.length > 0;
-  const shouldTopAlign = shouldTopAlignToastContent({
+  const shouldTopAlign = shouldTopAlignNotificationContent({
     titleLineCount,
     hasDescription,
     descriptionLineCount,
@@ -244,7 +244,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
       translateYProgress.value = withSpring(
         hiddenTranslateY,
-        TOAST_SPRING_CONFIG,
+        NOTIFICATION_SPRING_CONFIG,
         () => {
           if (onComplete) {
             runOnJS(onComplete)();
@@ -276,7 +276,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       hasEnteredRef.current = true;
       const { height } = event.nativeEvent.layout;
       const hiddenTranslateY = getHiddenTranslateY(height, topOffset);
-      const visibleTranslateY = topInset + TOAST_TOP_PADDING;
+      const visibleTranslateY = topInset + NOTIFICATION_TOP_PADDING;
 
       notificationHeight.value = height;
       translateYProgress.value = hiddenTranslateY;
@@ -284,18 +284,18 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       if (persistUntilDismiss) {
         translateYProgress.value = withSpring(
           visibleTranslateY,
-          TOAST_SPRING_CONFIG,
+          NOTIFICATION_SPRING_CONFIG,
         );
         return;
       }
 
       translateYProgress.value = withSpring(
         visibleTranslateY,
-        TOAST_SPRING_CONFIG,
+        NOTIFICATION_SPRING_CONFIG,
         () => {
           translateYProgress.value = withDelay(
             dismissDurationMs,
-            withSpring(hiddenTranslateY, TOAST_SPRING_CONFIG, () => {
+            withSpring(hiddenTranslateY, NOTIFICATION_SPRING_CONFIG, () => {
               runOnJS(handleDismissComplete)();
             }),
           );

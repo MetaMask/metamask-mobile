@@ -34,7 +34,7 @@ export interface BaseNotificationProps {
   isVisible?: boolean;
   /** Called after the exit spring animation completes. */
   onDismissComplete?: () => void;
-  /** Auto-dismiss delay in ms. Defaults to Toast visibilityDuration (2750ms). */
+  /** Auto-dismiss delay in ms. Defaults to NOTIFICATION_VISIBILITY_DURATION (2750ms). */
   dismissDuration?: number;
   /** When true, the notification stays visible until manually dismissed. */
   persistUntilDismiss?: boolean;
