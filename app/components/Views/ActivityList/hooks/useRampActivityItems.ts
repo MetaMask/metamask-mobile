@@ -10,7 +10,7 @@ import { getOrders } from '../../../../reducers/fiatOrders';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { useRampsOrders } from '../../../UI/Ramp/hooks/useRampsOrders';
 import { mergeDisplayOrders } from '../../../UI/Ramp/utils/displayOrder';
-import { rampsOrderToFiatOrder } from '../../../UI/Ramp/utils/rampsOrderToFiatOrder';
+import { rampsOrderToFiatOrder } from '../../../UI/Ramp/orderProcessor/unifiedOrderProcessor';
 import {
   mapRampOrder,
   type ActivityListItem,
