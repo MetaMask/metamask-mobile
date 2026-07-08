@@ -15,12 +15,17 @@ class DownloadFile {
   async verifySuccessStateVisible(): Promise<void> {
     if (device.getPlatform() === 'ios') {
       // saveToFiles presents UIDocumentPickerViewController (export), not a
-      // UIActivityViewController with a top-level "Save" action. The picker
-      // always exposes Cancel in the navigation bar once it is presented.
+      // UIActivityViewController with a top-level "Save" action. Cancel appears
+      // in the hierarchy but is not hittable (DOCRemoteBarButtonTrackingView is
+      // clipped), so we only assert presentation — same as the pre-bridge test.
       await device.disableSynchronization();
-      const cancelButton = element(by.label('Cancel'));
-      await waitFor(cancelButton).toExist().withTimeout(20000);
-      await cancelButton.tap();
+      try {
+        await waitFor(element(by.label('Cancel')))
+          .toExist()
+          .withTimeout(20000);
+      } finally {
+        await device.enableSynchronization();
+      }
       return;
     }
 
