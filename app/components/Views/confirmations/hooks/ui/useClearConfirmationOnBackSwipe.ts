@@ -54,10 +54,9 @@ const useClearConfirmationOnBackSwipe = () => {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
         () => {
-          if (mmPayRequestInProgressNavHandler.current) {
-            return true;
+          if (!mmPayRequestInProgressNavHandler.current) {
+            rejectConfirmation();
           }
-          rejectConfirmation();
           return true;
         },
       );

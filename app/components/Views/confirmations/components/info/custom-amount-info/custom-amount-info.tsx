@@ -7,7 +7,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
