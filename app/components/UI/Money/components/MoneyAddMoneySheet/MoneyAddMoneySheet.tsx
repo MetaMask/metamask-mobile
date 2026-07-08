@@ -34,7 +34,7 @@ import {
   type InitiateDepositOptions,
 } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
+import { useFiatDepositRoute } from '../../../Ramp/hooks/useFiatDepositRoute';
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { selectTransactions } from '../../../../../selectors/transactionController';
@@ -74,8 +74,12 @@ const MoneyAddMoneySheet: React.FC = () => {
   const transactions = useSelector(selectTransactions);
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
+  // The route resolver keeps the option visible either when a provider serves
+  // mUSD directly, or (with the ETH-fallback flag on) when a provider serves
+  // native ETH that a downstream step converts into mUSD.
   const depositAssetId = useMoneyAccountDepositAssetId();
-  const regionHasFiatProvider = useRegionHasFiatProvider(depositAssetId);
+  const depositRoute = useFiatDepositRoute(depositAssetId);
+  const regionHasFiatProvider = depositRoute !== undefined;
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],

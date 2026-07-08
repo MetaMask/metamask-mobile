@@ -8,7 +8,7 @@ import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
+import { useFiatDepositRoute } from '../../../Ramp/hooks/useFiatDepositRoute';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -60,8 +60,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../Ramp/hooks/useRegionHasFiatProvider', () => ({
-  useRegionHasFiatProvider: jest.fn(),
+jest.mock('../../../Ramp/hooks/useFiatDepositRoute', () => ({
+  useFiatDepositRoute: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
@@ -127,7 +127,10 @@ describe('MoneyAddMoneySheet', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
+    (useFiatDepositRoute as jest.Mock).mockReturnValue({
+      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD],
+      isFallback: false,
+    });
   });
 
   it('renders all options', () => {
@@ -320,7 +323,7 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('hides the Deposit funds option when the region has no usable fiat provider', () => {
-    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(false);
+    (useFiatDepositRoute as jest.Mock).mockReturnValue(undefined);
 
     const { queryByTestId, getByTestId } = renderWithProvider(
       <MoneyAddMoneySheet />,
@@ -345,7 +348,10 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('shows the Deposit funds option when the region has a usable fiat provider', () => {
-    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
+    (useFiatDepositRoute as jest.Mock).mockReturnValue({
+      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD],
+      isFallback: false,
+    });
 
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -354,10 +360,23 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('gates on the mUSD-on-Monad asset id', () => {
+  it('shows the Deposit funds option when only an ETH fallback route is available', () => {
+    (useFiatDepositRoute as jest.Mock).mockReturnValue({
+      assetId: 'eip155:1/slip44:60',
+      isFallback: true,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
+  });
+
+  it('resolves the deposit route against the mUSD-on-Monad asset id', () => {
     renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(useRegionHasFiatProvider).toHaveBeenCalledWith(
+    expect(useFiatDepositRoute).toHaveBeenCalledWith(
       MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD],
     );
   });

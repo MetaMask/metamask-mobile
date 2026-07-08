@@ -5,6 +5,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
 interface MoneyAccountFeatureFlag {
   moneyAccountDepositEnabled?: boolean;
   moneyAccountWithdrawEnabled?: boolean;
+  moneyDepositEthFallbackEnabled?: boolean;
 }
 
 export const selectMoneyAccountDepositEnabledFlag = createSelector(
@@ -13,6 +14,21 @@ export const selectMoneyAccountDepositEnabledFlag = createSelector(
     const flag =
       remoteFeatureFlags?.moneyAccount as unknown as MoneyAccountFeatureFlag;
     return flag?.moneyAccountDepositEnabled ?? false;
+  },
+);
+
+/**
+ * Whether the Money Account fiat deposit may fall back to buying a convertible
+ * asset (native ETH) in regions that have no on-ramp provider serving mUSD
+ * directly. Off by default; the ETH is converted to mUSD downstream (Relay +
+ * vault/CHOMP).
+ */
+export const selectMoneyDepositEthFallbackEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const flag =
+      remoteFeatureFlags?.moneyAccount as unknown as MoneyAccountFeatureFlag;
+    return flag?.moneyDepositEthFallbackEnabled ?? false;
   },
 );
 

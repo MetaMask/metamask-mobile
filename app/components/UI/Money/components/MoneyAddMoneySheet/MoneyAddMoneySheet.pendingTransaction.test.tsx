@@ -14,7 +14,7 @@ import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
+import { useFiatDepositRoute } from '../../../Ramp/hooks/useFiatDepositRoute';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
@@ -153,8 +153,8 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
   () => ({ useMMPayFiatConfig: jest.fn() }),
 );
-jest.mock('../../../Ramp/hooks/useRegionHasFiatProvider', () => ({
-  useRegionHasFiatProvider: jest.fn(),
+jest.mock('../../../Ramp/hooks/useFiatDepositRoute', () => ({
+  useFiatDepositRoute: jest.fn(),
 }));
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
@@ -217,7 +217,10 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
+    (useFiatDepositRoute as jest.Mock).mockReturnValue({
+      assetId: 'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+      isFallback: false,
+    });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: jest.fn(),
       trackSurfaceClicked: jest.fn(),
