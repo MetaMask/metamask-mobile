@@ -307,7 +307,6 @@ const WalletRecovery = () => {
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
       <HeaderStandard
         title={strings('app_settings.manage_recovery_method')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
         onBack={handleBack}
         includesTopInset
         testID="wallet-recovery-header"
