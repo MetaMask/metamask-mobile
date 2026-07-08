@@ -42,6 +42,7 @@ import moneyBalanceReducer from '../core/redux/slices/moneyBalance';
 import rewardsReducer, { RewardsState } from './rewards';
 import { isTestEnvironment } from '../util/test/utils';
 import attributionReducer from '../core/redux/slices/attribution';
+import headlessOrderContextsReducer from '../core/redux/slices/headlessOrderContexts';
 
 /**
  * Infer state from a reducer
@@ -131,6 +132,7 @@ export interface RootState {
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
   attribution: StateFromReducer<typeof attributionReducer>;
+  headlessOrderContexts: StateFromReducer<typeof headlessOrderContextsReducer>;
 }
 
 const baseReducers = {
@@ -187,6 +189,7 @@ if (isTestEnvironment) {
 const rootReducer = combineReducers<RootState, any>({
   ...baseReducers,
   attribution: attributionReducer,
+  headlessOrderContexts: headlessOrderContextsReducer,
 });
 
 export default rootReducer;

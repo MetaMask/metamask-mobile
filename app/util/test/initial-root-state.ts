@@ -79,6 +79,7 @@ const initialRootState: RootState = {
   attribution: {
     attribution: null,
   },
+  headlessOrderContexts: {},
 };
 
 if (isTestEnvironment) {
