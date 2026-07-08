@@ -58,6 +58,7 @@ import {
   PerpsTutorialSelectorsIDs,
   PerpsCompactOrderRowSelectorsIDs,
 } from '../../Perps.testIds';
+import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -81,6 +82,7 @@ import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvance
 import {
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsButtonColorTestVariant,
+  selectPerpsMarketAboutEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -201,6 +203,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isRelatedMarketsEnabled = useSelector(
     selectPerpsRelatedMarketsEnabledFlag,
   );
+  const isMarketAboutEnabled = useSelector(selectPerpsMarketAboutEnabledFlag);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
@@ -209,7 +212,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const hasFormattedMaxLeverage =
     typeof routeMarket?.maxLeverage === 'string' &&
     routeMarket.maxLeverage.endsWith('x');
-  const needsEnrichment = !hasFormattedMaxLeverage;
+  // The About section relies on `description`, which minimal/legacy route
+  // payloads may omit even when `maxLeverage` is formatted. Enrich in that case
+  // so a market that has a description isn't hidden due to a partial payload.
+  const routeMarketHasDescription =
+    typeof routeMarket?.description === 'string' &&
+    routeMarket.description.trim().length > 0;
+  const needsEnrichment =
+    !hasFormattedMaxLeverage ||
+    (isMarketAboutEnabled && !routeMarketHasDescription);
   const { markets } = usePerpsMarkets({
     skipInitialFetch: !needsEnrichment,
   });
@@ -1496,6 +1507,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               }
             />
           </View>
+
+          {/* About Section. The component self-guards on an empty description,
+              but we also gate here so the wrapping `styles.section` (with its
+              vertical spacing) isn't rendered as an empty gap for markets that
+              have no description. */}
+          {isMarketAboutEnabled && market?.description?.trim() ? (
+            <View style={styles.section}>
+              <PerpsMarketAboutSection market={market} />
+            </View>
+          ) : null}
 
           {/* Related Markets Section */}
           {isRelatedMarketsEnabled && market ? (

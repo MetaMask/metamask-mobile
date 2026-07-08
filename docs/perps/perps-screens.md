@@ -172,17 +172,18 @@ Detailed market view with TradingView chart, market stats, and trading interface
 
 ### Key Components Used
 
-| Component                       | Purpose                            |
-| ------------------------------- | ---------------------------------- |
-| `PerpsMarketHeader`             | Title, price, 24h change           |
-| `TradingViewChart`              | Chart with multiple timeframes     |
-| `PerpsCandlePeriodSelector`     | Candle period (1m, 5m, 1h, 4h, 1d) |
-| `PerpsMarketTabs`               | Info/Orders/Positions tabs         |
-| `PerpsNavigationCard`           | Quick action buttons               |
-| `PerpsOICapWarning`             | OI capacity warning                |
-| `PerpsMarketHoursBanner`        | Trading hours status               |
-| `PerpsMarketBalanceActions`     | Balance info                       |
-| `PerpsFlipPositionConfirmSheet` | Flip position confirmation modal   |
+| Component                       | Purpose                             |
+| ------------------------------- | ----------------------------------- |
+| `PerpsMarketHeader`             | Title, price, 24h change            |
+| `TradingViewChart`              | Chart with multiple timeframes      |
+| `PerpsCandlePeriodSelector`     | Candle period (1m, 5m, 1h, 4h, 1d)  |
+| `PerpsMarketTabs`               | Info/Orders/Positions tabs          |
+| `PerpsNavigationCard`           | Quick action buttons                |
+| `PerpsOICapWarning`             | OI capacity warning                 |
+| `PerpsMarketHoursBanner`        | Trading hours status                |
+| `PerpsMarketBalanceActions`     | Balance info                        |
+| `PerpsMarketAboutSection`       | Asset description (feature-flagged) |
+| `PerpsFlipPositionConfirmSheet` | Flip position confirmation modal    |
 
 ### Hooks Consumed
 

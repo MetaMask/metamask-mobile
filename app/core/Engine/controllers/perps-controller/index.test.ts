@@ -124,6 +124,10 @@ describe('perps controller init', () => {
         testnet: [],
         mainnet: [],
       },
+      recentlyViewedMarkets: {
+        testnet: [],
+        mainnet: [],
+      },
       tradeConfigurations: {
         testnet: {},
         mainnet: {},

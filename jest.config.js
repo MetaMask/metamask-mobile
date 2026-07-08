@@ -98,6 +98,14 @@ const config = {
     '^@metamask/perps-controller/(.*)$':
       '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
+    // @metamask/perps-controller 9.2.0 ships a broken CommonJS build that bakes
+    // in an absolute CI path (require("file:///home/runner/work/hyperliquid/...
+    // /src/mod.ts")) instead of the '@nktkas/hyperliquid' specifier. Metro uses
+    // the (correct) ESM build via package exports, but Jest maps to the CJS
+    // build, so redirect the broken path to the same hyperliquid mock.
+    // TODO: remove once the upstream CJS artifact is fixed (> 9.2.0).
+    '^file:///.*/hyperliquid/src/mod\\.ts$':
+      '<rootDir>/app/__mocks__/hyperliquidMock.js',
     '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':

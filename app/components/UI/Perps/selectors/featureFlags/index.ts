@@ -143,6 +143,28 @@ export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for the Market About section feature flag (TAT-2308).
+ * Controls visibility of the "About" section on the Perps market details screen,
+ * which shows a brief description of the underlying asset.
+ *
+ * Hidden by default: when no remote flag is set (and no local override), the
+ * section is not rendered.
+ *
+ * @returns boolean - true if the About section should be shown, false otherwise
+ */
+export const selectPerpsMarketAboutEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_MARKET_ABOUT_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsMarketAboutEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for button color A/B test variant from LaunchDarkly
  * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
  *

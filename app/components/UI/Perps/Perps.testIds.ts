@@ -421,6 +421,18 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS MARKET ABOUT SECTION SELECTORS
+// ========================================
+
+export const PerpsMarketAboutSectionSelectorsIDs = {
+  CONTAINER: 'perps-market-about-section',
+  TITLE: 'perps-market-about-section-title',
+  DESCRIPTION: 'perps-market-about-section-description',
+  DESCRIPTION_MEASURE: 'perps-market-about-section-description-measure',
+  TOGGLE: 'perps-market-about-section-toggle',
+};
+
+// ========================================
 // PERPS MARKET HEADER SELECTORS
 // ========================================
 

@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   getPerpsRelatedMarketsSelector,
+  PerpsMarketAboutSectionSelectorsIDs,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
@@ -17,6 +18,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsMarketAboutEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
@@ -400,10 +402,11 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock for usePerpsMarkets that can be modified per test
+// Mock for usePerpsMarkets that can be modified per test. Options are captured
+// so tests can assert the enrichment gating (skipInitialFetch).
 const mockUsePerpsMarketsImpl = jest.fn<
   ReturnType<typeof import('../../hooks/usePerpsMarkets').usePerpsMarkets>,
-  []
+  [options?: { skipInitialFetch?: boolean }]
 >(() => ({
   markets: [],
   isLoading: false,
@@ -414,7 +417,8 @@ const mockUsePerpsMarketsImpl = jest.fn<
 
 // Mock the direct import path for usePerpsMarkets
 jest.mock('../../hooks/usePerpsMarkets', () => ({
-  usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+  usePerpsMarkets: (options?: { skipInitialFetch?: boolean }) =>
+    mockUsePerpsMarketsImpl(options),
 }));
 
 const mockRefreshMarketStats = jest.fn();
@@ -558,7 +562,8 @@ jest.mock('../../hooks', () => ({
     closePosition: jest.fn(),
     isClosing: false,
   })),
-  usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+  usePerpsMarkets: (options?: { skipInitialFetch?: boolean }) =>
+    mockUsePerpsMarketsImpl(options),
   usePerpsMarketData: jest.fn(() => ({
     marketData: null,
     isLoading: false,
@@ -882,6 +887,9 @@ describe('PerpsMarketDetailsView', () => {
       if (selector === selectPerpsAdvancedChartEnabledFlag) {
         return false;
       }
+      if (selector === selectPerpsMarketAboutEnabledFlag) {
+        return false;
+      }
       return undefined;
     });
 
@@ -904,6 +912,18 @@ describe('PerpsMarketDetailsView', () => {
     mockUsePerpsLiveFillsImpl.mockReturnValue({
       fills: [],
       isInitialLoading: false,
+    });
+
+    // Reset the markets mock to a safe default. afterEach's clearAllMocks()
+    // clears recorded calls but not implementations, so without this a
+    // per-test mockReturnValue (e.g. the enrichment loading state) could leak
+    // into later specs.
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
     });
   });
 
@@ -1079,6 +1099,181 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(getPerpsRelatedMarketsSelector.tile('xyz:MSFT')),
     ).toBeOnTheScreen();
+  });
+
+  describe('About section', () => {
+    const enableAboutFlag = () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsMarketAboutEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+    };
+
+    it('renders the About section when the flag is enabled and the market has a description', () => {
+      enableAboutFlag();
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        description: 'Bitcoin is a decentralized digital currency.',
+      } as PerpsMarketData;
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.TITLE),
+      ).toHaveTextContent('About Bitcoin');
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('Bitcoin is a decentralized digital currency.');
+      // Route market already has a description, so no enrichment fetch is needed.
+      expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: true }),
+      );
+    });
+
+    it('does not render the About section when the flag is disabled', () => {
+      // Default beforeEach mock leaves the About flag disabled.
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        description: 'Bitcoin is a decentralized digital currency.',
+      } as PerpsMarketData;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('does not render the About section for a whitespace-only description', () => {
+      enableAboutFlag();
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        description: '   ',
+      } as PerpsMarketData;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('renders the About section using an enriched description when the route market omits it', () => {
+      enableAboutFlag();
+      // Route market has a formatted maxLeverage but no description, so the view
+      // must enrich from the streamed markets to surface the About section.
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      } as PerpsMarketData;
+      mockUsePerpsMarketsImpl.mockReturnValue({
+        markets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$60,000',
+            change24h: '+$1,000',
+            change24hPercent: '+1.70%',
+            volume: '$10B',
+            maxLeverage: '40x',
+            marketType: 'crypto',
+            description: 'Bitcoin is a decentralized digital currency.',
+            volumeNumber: 10000000000,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      // Enriched copy from the streamed market is rendered.
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('Bitcoin is a decentralized digital currency.');
+      // Route market lacked a description, so enrichment must fetch markets.
+      expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: false }),
+      );
+    });
+
+    it('hides the About section while enrichment is still loading the description', () => {
+      enableAboutFlag();
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      } as PerpsMarketData;
+      // Enrichment in progress: no market data yet, so no description exists.
+      mockUsePerpsMarketsImpl.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
   });
 
   it('shows tooltip when Open Interest info icon is clicked', async () => {
