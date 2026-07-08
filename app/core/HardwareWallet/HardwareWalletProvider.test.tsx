@@ -244,7 +244,16 @@ describe('HardwareWalletProvider', () => {
 
     describe('connect (internal, via bottom sheet props)', () => {
       it('connects to device', async () => {
-        renderWithActions();
+        const { result } = renderWithActions();
+
+        // The bottom sheet (and its captured props) only mounts while a flow
+        // is active, so start scanning first
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
 
         const internalConnect = capturedBottomSheetProps.connect as (
           deviceId: string,
@@ -336,6 +345,11 @@ describe('HardwareWalletProvider', () => {
           result.current.actions.setPendingOperationAddress('0xqr');
         });
 
+        // Mount the bottom sheet so its props can be captured
+        await act(async () => {
+          result.current.actions.showAwaitingConfirmation('transaction');
+        });
+
         await waitFor(() => {
           expect(capturedBottomSheetProps.walletType).toBe(
             HardwareWalletType.Qr,
@@ -359,12 +373,6 @@ describe('HardwareWalletProvider', () => {
 
         await act(async () => {
           result.current.actions.setPendingOperationAddress('0xqr');
-        });
-
-        await waitFor(() => {
-          expect(capturedBottomSheetProps.walletType).toBe(
-            HardwareWalletType.Qr,
-          );
         });
 
         expect(
@@ -458,6 +466,13 @@ describe('HardwareWalletProvider', () => {
     describe('selectDevice', () => {
       it('updates selected device in state', async () => {
         const { result } = renderWithActions();
+
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
 
         const mockDevice = { id: 'device-1', name: 'Nano X' };
 
@@ -832,6 +847,7 @@ describe('HardwareWalletProvider', () => {
       const useTestActions = () => {
         const hw = useHardwareWallet();
         return {
+          actions: hw,
           state: {
             connectionState: hw.connectionState,
           },
@@ -842,6 +858,13 @@ describe('HardwareWalletProvider', () => {
         wrapper: ({ children }: { children: React.ReactNode }) => (
           <HardwareWalletProvider>{children}</HardwareWalletProvider>
         ),
+      });
+
+      act(() => {
+        result.current.actions.ensureDeviceReady();
+      });
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
       });
 
       const internalConnect = capturedBottomSheetProps.connect as (
