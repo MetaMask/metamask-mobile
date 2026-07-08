@@ -79,13 +79,6 @@ export function usePerpsOrderExecution(
 
   const placeOrder = useCallback(
     async (orderParams: OrderParams) => {
-      // Place-order CUF: submit -> matching position rendered by the stream.
-      // The confirmation toast is coupled to the same stream render, so the
-      // toast<->position delta is measured, not an artifact of a fixed delay.
-      // Market-only by design: the span ends on a position render, so a resting
-      // limit order would time out or fold exchange fill-wait time into an
-      // app-responsiveness metric. Limit orders are intentionally not measured
-      // here; a dedicated order-render CUF can be added later if needed.
       // Market orders measure submit -> position rendered (toast coupled to the
       // same stream render) via PerpsPlaceOrderToPositionRendered. Limit orders
       // measure submit -> resting order rendered in the orders stream (no
