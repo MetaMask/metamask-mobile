@@ -49,9 +49,7 @@ const createStyles = (params: {
       alignItems: 'center',
       paddingHorizontal: 16,
       width: '100%',
-      backgroundColor: isSelected
-        ? colors.background.section
-        : 'transparent',
+      backgroundColor: isSelected ? colors.background.section : 'transparent',
     },
     selectedIndicator: {
       marginLeft: -12, // The width of the indicator is 4px, so we need to offset by 12px to align with the cell
