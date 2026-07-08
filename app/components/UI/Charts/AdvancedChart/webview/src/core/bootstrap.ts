@@ -17,7 +17,11 @@
 import { onFromRN, postToRN, reportErrorToRN } from './bridge';
 import { loadTradingViewLibrary } from './loadLibrary';
 import { dispatchInboundMessage, registerHandler } from '../messages/handler';
-import { applyThemeColors, initThemeFromConfig } from '../widget/theme';
+import {
+  applyThemeColors,
+  flushPendingTheme,
+  initThemeFromConfig,
+} from '../widget/theme';
 import { customDatafeed } from '../widget/datafeed';
 import { advancedChartPriceFormatterFactory } from '../widget/priceFormatter';
 import { getApproxBarDurationSec } from './timeUtils';
@@ -168,6 +172,7 @@ export function bootstrap(): ChartConfig {
           timeframe: buildInitialTimeframe(),
           onReady: (widget) => {
             try {
+              flushPendingTheme();
               applyScaleLayout();
               applyVisualOverrides(config.visualOverrides);
               setupLegendOverlay(config.legendOverlay, config.indicatorColors);
