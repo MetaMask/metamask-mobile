@@ -1,4 +1,3 @@
-// Prefer release/main-e2e builds for Snap smoke — debug builds may open the RN dev menu during browser actions (see helpers/snap-smoke.helpers.ts).
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeSnaps } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';

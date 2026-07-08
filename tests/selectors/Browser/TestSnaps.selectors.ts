@@ -1,3 +1,4 @@
+// Shared test-snaps URL for flows, selectors, and helpers without importing TestSnaps.
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/3.4.2/';
 

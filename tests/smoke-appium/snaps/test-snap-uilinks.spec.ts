@@ -1,4 +1,3 @@
-// Prefer release/main-e2e builds for Snap smoke — debug builds may open the RN dev menu during browser actions (see helpers/snap-smoke.helpers.ts).
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeSnaps } from '../../tags.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
@@ -14,6 +13,9 @@ appiumTest.describe(SmokeSnaps('UI Links Snap Test'), () => {
         await TestSnaps.installSnap('connectDialogSnapButton');
         await TestSnaps.tapButton('sendConfirmationButton');
         await TestSnaps.expectSnapDialogLinkDisplayed({ timeout: 30_000 });
+        // Today there's no way to assert that the link opened the device browser. Instead we just test that
+        // the link is displayed.
+        // TODO: Assert that the browser has been opened and that the correct page has been displayed
       });
     },
   );
