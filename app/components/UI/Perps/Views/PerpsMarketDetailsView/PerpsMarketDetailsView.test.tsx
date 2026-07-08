@@ -598,10 +598,10 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
-// Mock useABTest to return default variant
+// Mock useABTest to return default (control/white) variant
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: () => ({
-    variantName: 'semantic',
+    variantName: 'control',
     isActive: false,
   }),
 }));

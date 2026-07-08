@@ -23,17 +23,17 @@ describe('Perps abTestConfig', () => {
       expect(BUTTON_COLOR_VARIANTS).toHaveProperty(ButtonColorVariant.Control);
     });
 
-    it('maps control to green/red', () => {
+    it('maps control (default/fallback) to white/white', () => {
       expect(BUTTON_COLOR_VARIANTS[ButtonColorVariant.Control]).toEqual({
-        long: 'green',
-        short: 'red',
+        long: 'white',
+        short: 'white',
       });
     });
 
-    it('maps monochrome to white/white', () => {
-      expect(BUTTON_COLOR_VARIANTS[ButtonColorVariant.Monochrome]).toEqual({
-        long: 'white',
-        short: 'white',
+    it('maps colors to green/red', () => {
+      expect(BUTTON_COLOR_VARIANTS[ButtonColorVariant.Colors]).toEqual({
+        long: 'green',
+        short: 'red',
       });
     });
   });
@@ -45,10 +45,10 @@ describe('Perps abTestConfig', () => {
       );
     });
 
-    it('declares control and monochrome as valid variants', () => {
+    it('declares control and colors as valid variants', () => {
       expect(BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING.validVariants).toEqual([
         ButtonColorVariant.Control,
-        ButtonColorVariant.Monochrome,
+        ButtonColorVariant.Colors,
       ]);
     });
 

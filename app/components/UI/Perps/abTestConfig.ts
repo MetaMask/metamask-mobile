@@ -5,8 +5,14 @@ import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnaly
  * TAT-1937: Long/Short Button Color Test
  *
  * Tests the impact of button colors on trading behavior:
- * - Control: Traditional green (long) / red (short) - familiar and intuitive
- * - Monochrome: White buttons for both - reduces risk anxiety, promotes balanced participation
+ * - Control (default/fallback): White buttons for both - reduces risk anxiety,
+ *   promotes balanced participation
+ * - Colors: Traditional green (long) / red (short) - familiar and intuitive
+ *
+ * `control` is the required fallback key for `useABTest` (see
+ * `app/hooks/useABTest.ts`), so it is always what's shown when the flag is
+ * absent, invalid, or the test is inactive — white is therefore the default
+ * experience, and `colors` is the active-experiment variant.
  *
  * Migrated to the canonical A/B testing standard (see `docs/ab-testing.md`) under TAT-3308.
  *
@@ -20,7 +26,7 @@ export const PERPS_BUTTON_COLOR_AB_TEST_KEY = 'perpsTAT1937AbtestButtonColor';
 
 export enum ButtonColorVariant {
   Control = 'control',
-  Monochrome = 'monochrome',
+  Colors = 'colors',
 }
 
 export interface ButtonColorVariantConfig {
@@ -32,8 +38,8 @@ export const BUTTON_COLOR_VARIANTS: Record<
   ButtonColorVariant,
   ButtonColorVariantConfig
 > = {
-  [ButtonColorVariant.Control]: { long: 'green', short: 'red' },
-  [ButtonColorVariant.Monochrome]: { long: 'white', short: 'white' },
+  [ButtonColorVariant.Control]: { long: 'white', short: 'white' },
+  [ButtonColorVariant.Colors]: { long: 'green', short: 'red' },
 };
 
 export const BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {

@@ -219,7 +219,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 // Mock useABTest to return default control variant (controllable per-test)
 const mockUseABTest = jest.fn(() => ({
   variantName: 'control',
-  variant: { long: 'green', short: 'red' },
+  variant: { long: 'white', short: 'white' },
   isActive: false,
 }));
 jest.mock('../../../../../hooks/useABTest', () => ({

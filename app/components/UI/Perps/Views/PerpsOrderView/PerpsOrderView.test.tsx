@@ -589,7 +589,7 @@ jest.mock('../../../../../core/Engine', () => ({
 // Mock useABTest hook (controllable per-test)
 const mockUseABTest = jest.fn(() => ({
   variantName: 'control',
-  variant: { long: 'green', short: 'red' },
+  variant: { long: 'white', short: 'white' },
   isActive: false,
 }));
 jest.mock('../../../../../hooks/useABTest', () => ({
@@ -2336,10 +2336,10 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
     });
 
-    it('disables monochrome button variant when TP/SL is invalid', async () => {
-      // Arrange: monochrome A/B test variant + invalid TP
+    it('disables control (white) button variant when TP/SL is invalid', async () => {
+      // Arrange: control (default/white) A/B test variant + invalid TP
       mockUseABTest.mockReturnValue({
-        variantName: 'monochrome',
+        variantName: 'control',
         variant: { long: 'white', short: 'white' },
         isActive: true,
       });
@@ -2359,12 +2359,12 @@ describe('PerpsOrderView', () => {
       // Act
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      // Assert: warning visible (proves hasInvalidTPSL is true in monochrome path)
+      // Assert: warning visible (proves hasInvalidTPSL is true in control/white path)
       await waitFor(() => {
         expect(screen.getByText(/Take profit must be above/)).toBeDefined();
       });
 
-      // Assert: monochrome button rendered and receives isDisabled prop
+      // Assert: control (white) button rendered and receives isDisabled prop
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
