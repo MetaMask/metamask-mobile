@@ -15,6 +15,7 @@ const EXPECTED_E2E_STREAM_ROOT_KEYS = [
   'account',
   'candles',
   'fills',
+  'focusedPrice',
   'marketData',
   'oiCaps',
   'orders',
