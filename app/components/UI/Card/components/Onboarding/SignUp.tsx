@@ -8,7 +8,6 @@ import React, {
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
-  FontWeight,
   Text,
   TextVariant,
   Icon,
@@ -406,16 +405,15 @@ const SignUp = () => {
           ? strings('card.card_onboarding.sign_up.join_waitlist')
           : strings('card.card_onboarding.continue_button')}
       </Button>
-      <TouchableOpacity onPress={handleAlreadyHaveAccountPress}>
-        <Text
-          testID="signup-i-already-have-an-account-text"
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-default text-center p-4"
-        >
-          {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
-        </Text>
-      </TouchableOpacity>
+      <Button
+        variant={ButtonVariant.Tertiary}
+        size={ButtonSize.Lg}
+        onPress={handleAlreadyHaveAccountPress}
+        isFullWidth
+        testID="signup-i-already-have-an-account-text"
+      >
+        {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
+      </Button>
     </>
   );
 
