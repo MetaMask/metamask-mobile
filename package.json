@@ -14,7 +14,7 @@
     "clean:android": "rm -rf android/app/build",
     "clean": "yarn clean:ios && yarn clean:android && yarn install --immutable",
     "generate-method-action-types": "messenger-action-types app --generate",
-    "generate-method-action-types:check": "yarn generate-method-action-types app --check",
+    "generate-method-action-types:check": "messenger-action-types app --check",
     "lint": "NODE_OPTIONS='--max-old-space-size=12288' eslint '**/*.{js,ts,tsx}' --cache && yarn generate-method-action-types:check",
     "lint:fix": "NODE_OPTIONS='--max-old-space-size=12288' eslint '**/*.{js,ts,tsx}' --fix --cache && yarn generate-method-action-types",
     "lint:clean": "rm -f .eslintcache",
