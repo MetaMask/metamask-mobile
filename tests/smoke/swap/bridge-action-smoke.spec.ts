@@ -160,8 +160,8 @@ describe(SmokeSwap('Bridge functionality'), () => {
             request.proxiedUrl.includes('getTxStatus'),
           );
 
-          expect(getQuoteStatusRequests.length).toBeGreaterThan(0);
-          expect(getTxStatusRequests.length).toBe(0);
+          await Assertions.checkIfArrayHasMinLength(getQuoteStatusRequests, 1);
+          await Assertions.checkIfArrayHasLength(getTxStatusRequests, 0);
         },
       );
     });
@@ -194,8 +194,8 @@ describe(SmokeSwap('Bridge functionality'), () => {
             request.proxiedUrl.includes('getTxStatus'),
           );
 
-          expect(getQuoteStatusRequests.length).toBeGreaterThan(0);
-          expect(getTxStatusRequests.length).toBeGreaterThan(0);
+          await Assertions.checkIfArrayHasMinLength(getQuoteStatusRequests, 1);
+          await Assertions.checkIfArrayHasMinLength(getTxStatusRequests, 1);
         },
       );
     });
