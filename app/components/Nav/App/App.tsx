@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import { FullWindowOverlay } from 'react-native-screens';
 import { useRoute } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
@@ -1385,15 +1386,15 @@ const App: React.FC = () => {
         <AppFlow />
         <Toast ref={toastRef} />
         {/*
-          FullWindowOverlay (iOS) renders in a UIWindow above every native layer —
-          including native-stack modal screens — which a plain absolute View in the
-          JS root cannot reach (see AgentStepHud). We mount <Toaster /> as a sibling
-          after <AppFlow /> instead: MMDS toasts use absolute bottom positioning and
-          verified flows (address list, private key list, account connect) render
-          correctly without the extra window. Revisit FullWindowOverlay if a toast is
-          hidden behind a top-level AppFlow card push.
+          FullWindowOverlay (iOS) renders <Toaster /> in a UIWindow above every native
+          layer — including native-stack card screens — which a plain absolute View as a
+          sibling of <AppFlow /> cannot reach. On Android it is a passthrough. Legacy
+          <Toast /> stays outside the overlay; MMDS toasts require this wrapper to show
+          on pushed flows such as address list, private key list, and account connect.
         */}
-        <Toaster />
+        <FullWindowOverlay>
+          <Toaster />
+        </FullWindowOverlay>
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
