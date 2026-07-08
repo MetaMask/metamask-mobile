@@ -605,9 +605,10 @@ class AuthenticationService {
       );
 
       if (isQrSync) {
-        await Engine.context.QrSyncController.importRemainingSecrets(
+        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
           primaryEntropySource,
         );
+        await Engine.context.QrSyncController.importRemainingSecrets();
       }
 
       await this.storePassword(password, authData.currentAuthType, true);

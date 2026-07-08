@@ -72,21 +72,11 @@ export function finalizeOnboardingCompletion({
 
     const keyrings = Engine.context.KeyringController.state.keyrings;
     if (needsQrProvisioning) {
-      const { QrSyncProvisioningService } = Engine.context;
-
-      if (!QrSyncProvisioningService) {
-        Logger.error(
-          new Error('QR sync provisioning service is unavailable'),
-          'OnboardingSuccess: provisionFromMetadata failed',
-        );
-        return;
-      }
-
-      QrSyncProvisioningService.provisionFromMetadata().catch(
+      Engine.context.QrSyncProvisioningService.provisionFromMetadata().catch(
         (error: unknown) => {
           Logger.error(
             error as Error,
-            'OnboardingSuccess: provisionFromMetadata failed',
+            `${discoverAccountsLogContext}: provisionFromMetadata failed`,
           );
         },
       );

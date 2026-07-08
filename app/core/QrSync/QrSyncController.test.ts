@@ -660,9 +660,10 @@ describe('QrSyncController', () => {
       walletClient.emit('message', createSyncReadyWireMessage());
       await flushPromises();
 
-      await orchestratingController.importRemainingSecrets(
+      orchestratingController.enrichPrimaryProvisioningEntry(
         'primary-entropy' as EntropySourceId,
       );
+      await orchestratingController.importRemainingSecrets();
 
       expect(callSpy).toHaveBeenCalledWith(
         'QrSyncProvisioningService:importSecretsToVault',
@@ -684,9 +685,7 @@ describe('QrSyncController', () => {
         getIsOnboardingCompleted: () => false,
       });
 
-      await idleController.importRemainingSecrets(
-        'primary-entropy' as EntropySourceId,
-      );
+      await idleController.importRemainingSecrets();
 
       expect(callSpy).not.toHaveBeenCalled();
     });

@@ -199,26 +199,11 @@ export class QrSyncController extends BaseController<
 
   /**
    * Phase B entrypoint: validates state, then delegates vault imports to the
-   * provisioning service.
-   *
-   * @param primaryEntropySource - The entropy source to enrich the primary provisioning entry with.
+   * provisioning service for non-primary pending secrets.
    */
-  public async importRemainingSecrets(
-    primaryEntropySource?: EntropySourceId,
-  ): Promise<void> {
+  public async importRemainingSecrets(): Promise<void> {
     if (!isQrSyncReadyForSecretImport(this.state)) {
       return;
-    }
-
-    if (primaryEntropySource) {
-      try {
-        this.enrichPrimaryProvisioningEntry(primaryEntropySource);
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'QrSyncController.importRemainingSecrets enrichPrimary',
-        );
-      }
     }
 
     const { pendingSecretImports } = this.state;
@@ -476,7 +461,7 @@ export class QrSyncController extends BaseController<
   /**
    * Enriches the primary mnemonic entry after the primary vault restore.
    */
-  private enrichPrimaryProvisioningEntry(
+  public enrichPrimaryProvisioningEntry(
     primaryEntropySource: EntropySourceId,
   ): void {
     if (!isQrSyncReadyForSecretImport(this.state)) {
@@ -492,9 +477,16 @@ export class QrSyncController extends BaseController<
       return;
     }
 
-    this.enrichProvisioningEntry(primarySecret.index, {
-      entropySource: primaryEntropySource,
-    });
+    try {
+      this.enrichProvisioningEntry(primarySecret.index, {
+        entropySource: primaryEntropySource,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'QrSyncController.enrichPrimaryProvisioningEntry',
+      );
+    }
   }
 
   /**

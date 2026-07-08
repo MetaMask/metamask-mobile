@@ -41,7 +41,7 @@ export type QrSyncControllerState = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type QrSyncControllerImportRemainingSecretsAction = {
   type: `${typeof QR_SYNC_CONTROLLER_NAME}:importRemainingSecrets`;
-  handler: (primaryEntropySource: EntropySourceId) => Promise<void>;
+  handler: () => Promise<void>;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

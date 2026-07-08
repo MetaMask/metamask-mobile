@@ -62,12 +62,15 @@ export function routeIncomingQrSyncMessage(
     case QrSyncActionTypes.SYNC_READY: {
       const parseResult = parseQrSyncSyncReadyMessage(rawMessage);
 
-      if (!parseResult.valid && parseResult.error) {
+      if (!parseResult.valid) {
         return {
           handled: false,
           event: {
             type: QrSyncActionTypes.SYNC_ERROR,
-            data: parseResult.error,
+            data: parseResult.error ?? {
+              code: 'UNKNOWN_ERROR',
+              message: 'Unknown error',
+            },
           } satisfies QrSyncSyncErrorEvent,
         };
       }

@@ -61,7 +61,8 @@ export type QrSyncErrorCode =
   | 'UNSUPPORTED_VERSION'
   | 'SESSION_EXPIRED'
   | 'SYNC_REJECTED'
-  | 'SYNC_FAILED';
+  | 'SYNC_FAILED'
+  | 'UNKNOWN_ERROR';
 
 /** Structured QR sync error surfaced to services and UI bridges. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

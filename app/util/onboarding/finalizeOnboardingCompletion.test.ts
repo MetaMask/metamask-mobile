@@ -140,51 +140,19 @@ describe('finalizeOnboardingCompletion', () => {
       walletSetupAttributionProps: {},
       dispatch: mockDispatch,
       needsQrProvisioning: true,
+      discoverAccountsLogContext: 'TestContext',
     });
 
     await Promise.resolve();
 
     expect(loggerSpy).toHaveBeenCalledWith(
       expect.any(Error),
-      'OnboardingSuccess: provisionFromMetadata failed',
+      'TestContext: provisionFromMetadata failed',
     );
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
 
     loggerSpy.mockRestore();
     mockProvisionFromMetadata.mockResolvedValue(undefined);
-  });
-
-  it('logs when the QR sync provisioning service is unavailable', () => {
-    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
-      // no-op
-    });
-    const engineModule = jest.requireMock('../../core/Engine/Engine') as {
-      context: {
-        QrSyncProvisioningService?: {
-          provisionFromMetadata: () => Promise<void>;
-        };
-      };
-    };
-    const originalService = engineModule.context.QrSyncProvisioningService;
-    engineModule.context.QrSyncProvisioningService = undefined;
-
-    finalizeOnboardingCompletion({
-      successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-      accountType: AccountType.Imported,
-      isBasicFunctionalityEnabled: true,
-      walletSetupAttributionProps: {},
-      dispatch: mockDispatch,
-      needsQrProvisioning: true,
-    });
-
-    expect(loggerSpy).toHaveBeenCalledWith(
-      expect.any(Error),
-      'OnboardingSuccess: provisionFromMetadata failed',
-    );
-    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
-    expect(mockDiscoverAccounts).not.toHaveBeenCalled();
-
-    engineModule.context.QrSyncProvisioningService = originalService;
-    loggerSpy.mockRestore();
   });
 
   it('logs discoverAccounts failures with the provided context', async () => {

@@ -214,6 +214,7 @@ jest.mock('../Engine', () => ({
     },
 
     QrSyncController: {
+      enrichPrimaryProvisioningEntry: jest.fn(),
       importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
     },
   },
@@ -1425,8 +1426,11 @@ describe('Authentication', () => {
         );
 
         expect(
-          Engine.context.QrSyncController.importRemainingSecrets,
+          Engine.context.QrSyncController.enrichPrimaryProvisioningEntry,
         ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
+        expect(
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).toHaveBeenCalledWith();
       });
 
       it('does not import remaining QR sync secrets when isQrSync is false', async () => {
