@@ -51,11 +51,7 @@ import {
 } from './Toast.types';
 import styleSheet from './Toast.styles';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
-import {
-  TOAST_SPRING_CONFIG,
-  TOAST_TOP_PADDING,
-  visibilityDuration,
-} from './Toast.constants';
+import { TOAST_SPRING_CONFIG, visibilityDuration } from './Toast.constants';
 import { useStyles } from '../../hooks';
 import { ButtonProps, ButtonVariants } from '../Buttons/Button/Button.types';
 import ButtonIcon from '../Buttons/ButtonIcon';
@@ -266,7 +262,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     if (toastOptions) {
       const { height } = e.nativeEvent.layout;
       const hiddenTranslateY = getHiddenTranslateY(height, topOffset);
-      const visibleTranslateY = topInset + TOAST_TOP_PADDING;
+      const visibleTranslateY = topInset + 8;
 
       toastHeight.value = height;
       translateYProgress.value = hiddenTranslateY;

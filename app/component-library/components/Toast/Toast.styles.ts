@@ -2,19 +2,6 @@
 import { StyleSheet, Dimensions } from 'react-native';
 import { AppThemeKey, Theme } from '../../../util/theme/models';
 
-import {
-  TOAST_ACTION_MARGIN_TOP,
-  TOAST_CLOSE_MARGIN_TOP,
-  TOAST_DESCRIPTION_MARGIN_TOP,
-  TOAST_PADDING_BOTTOM_WITH_ACTION,
-  TOAST_PADDING_HORIZONTAL,
-  TOAST_PADDING_RIGHT_WITH_CLOSE_ICON,
-  TOAST_PADDING_TOP_WITHOUT_DESCRIPTION,
-  TOAST_PADDING_VERTICAL,
-  TOAST_ICON_BACKGROUND_SIZE,
-  TOAST_ROW_GAP,
-} from './Toast.constants';
-
 const marginWidth = 16;
 const toastWidth = Dimensions.get('window').width - marginWidth * 2;
 
@@ -40,13 +27,13 @@ const styleSheet = (params: { theme: Theme }) => {
       borderWidth: 1,
       borderColor: colors.border.muted,
       borderRadius: 16,
-      paddingTop: TOAST_PADDING_VERTICAL,
-      paddingBottom: TOAST_PADDING_VERTICAL,
-      paddingLeft: TOAST_PADDING_HORIZONTAL,
-      paddingRight: TOAST_PADDING_HORIZONTAL,
+      paddingTop: 12,
+      paddingBottom: 12,
+      paddingLeft: 16,
+      paddingRight: 16,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: TOAST_ROW_GAP,
+      gap: 16,
     },
     labelsContainer: {
       flex: 1,
@@ -56,35 +43,35 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'flex-start',
     },
     iconBackground: {
-      width: TOAST_ICON_BACKGROUND_SIZE,
-      height: TOAST_ICON_BACKGROUND_SIZE,
-      borderRadius: TOAST_ICON_BACKGROUND_SIZE / 2,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       alignItems: 'center',
       justifyContent: 'center',
     },
     baseWithoutDescription: {
-      paddingTop: TOAST_PADDING_TOP_WITHOUT_DESCRIPTION,
+      paddingTop: 10,
     },
     baseTopAligned: {
       alignItems: 'flex-start',
     },
     baseWithActionButton: {
-      paddingBottom: TOAST_PADDING_BOTTOM_WITH_ACTION,
+      paddingBottom: 16,
     },
     baseWithCloseIconButton: {
-      paddingRight: TOAST_PADDING_RIGHT_WITH_CLOSE_ICON,
+      paddingRight: 8,
     },
     label: {
       color: colors.text.default,
     },
     description: {
-      marginTop: TOAST_DESCRIPTION_MARGIN_TOP,
+      marginTop: 2,
     },
     actionButton: {
-      marginTop: TOAST_ACTION_MARGIN_TOP,
+      marginTop: 8,
     },
     closeButton: {
-      marginTop: TOAST_CLOSE_MARGIN_TOP,
+      marginTop: -4,
     },
     trailingActionButton: {
       alignSelf: 'center',

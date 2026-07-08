@@ -20,14 +20,17 @@ import {
   ToastVariants,
   ToastOptions,
 } from './Toast.types';
-import {
-  TEST_ACCOUNT_ADDRESS,
-  TEST_APP_ICON_SOURCE,
-  TEST_NETWORK_IMAGE_SOURCE,
-  TEST_NETWORK_NAME,
-} from './Toast.constants';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
 import { lightTheme } from '@metamask/design-tokens';
+
+const TEST_ACCOUNT_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
+const TEST_NETWORK_NAME = 'Ethereum Mainnet';
+const TEST_NETWORK_IMAGE_SOURCE = {
+  uri: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
+};
+const TEST_APP_ICON_SOURCE = {
+  uri: 'https://app.uniswap.org/favicon.ico',
+};
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
