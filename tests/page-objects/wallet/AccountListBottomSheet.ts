@@ -450,7 +450,7 @@ class AccountListBottomSheet {
               const cells =
                 await this.getAccountElementsByAccountNameV2(accountName);
               if (cells.length === 0) {
-                return false;
+                throw new Error(`No account row found for "${accountName}"`);
               }
 
               const cell = cells[cells.length - 1];
@@ -462,14 +462,16 @@ class AccountListBottomSheet {
                   });
                   if (await cell.isVisible()) {
                     await PlaywrightGestures.waitAndTap(cell);
-                    return true;
+                    return;
                   }
                 } catch {
                   // try the other scroll direction
                 }
               }
 
-              return false;
+              throw new Error(
+                `Account "${accountName}" is not visible or tappable in the account list`,
+              );
             },
             {
               description: `Tap account with name: ${accountName}`,
