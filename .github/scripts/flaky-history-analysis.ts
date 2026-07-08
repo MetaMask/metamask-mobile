@@ -27,10 +27,10 @@ const WORKFLOW = 'ci.yml';
 // the exact job name.
 const JOB_NAME = 'Unit tests';
 // How far back the historical window extends. Failures are bucketed into the
-// nested windows below, so a failure 5 days ago counts in all four windows and
-// one 200 days ago counts only in the 365d bucket.
-const LOOKBACK_DAYS = 365;
-const WINDOWS_DAYS = [7, 30, 90, 365] as const;
+// nested windows below, so a failure 5 days ago counts in both windows and
+// one 20 days ago counts only in the 30d bucket.
+const LOOKBACK_DAYS = 30;
+const WINDOWS_DAYS = [7, 30] as const;
 type WindowKey = `${(typeof WINDOWS_DAYS)[number]}d`;
 const WINDOW_KEYS = WINDOWS_DAYS.map((d) => `${d}d` as WindowKey);
 type WindowCounts = Record<WindowKey, number>;
@@ -327,7 +327,7 @@ async function main(): Promise<void> {
   const { files, runsSampled } = await buildHistory(octokit, owner, repo, modifiedFiles, runs);
   console.log(
     `🔍 Sampled ${runs.length} completed ci.yml run(s) on main over the last ${LOOKBACK_DAYS}d ` +
-      `(${runsSampled['365d']} failure/success within window)`,
+      `(${runsSampled['30d']} failure/success within window)`,
   );
 
   const result = writeHistoryFile(files, runsSampled);
