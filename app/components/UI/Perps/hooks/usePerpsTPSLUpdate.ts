@@ -53,14 +53,13 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
       // Confirmation CUF: ends when the stream shows the position's TP/SL
       // values changed (the optimistic patch renders through the same path).
-      startPerpsCufTrace({ name: TraceName.PerpsUpdateTPSLToConfirmation });
-      watchPerpsCufPositionChanged(
-        TraceName.PerpsUpdateTPSLToConfirmation,
-        position,
-      );
+      const tpslCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsUpdateTPSLToConfirmation,
+      });
+      watchPerpsCufPositionChanged(tpslCufOpId, position);
       endPerpsCufTraceAfter(
         {
-          name: TraceName.PerpsUpdateTPSLToConfirmation,
+          id: tpslCufOpId,
           data: {
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
@@ -100,7 +99,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         }
         DevLogger.log('Failed to update position TP/SL:', result.error);
         endPerpsCufTrace({
-          name: TraceName.PerpsUpdateTPSLToConfirmation,
+          id: tpslCufOpId,
           data: {
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
@@ -121,7 +120,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         return { success: false };
       } catch (error) {
         endPerpsCufTrace({
-          name: TraceName.PerpsUpdateTPSLToConfirmation,
+          id: tpslCufOpId,
           data: {
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,

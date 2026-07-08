@@ -16,23 +16,21 @@ import { getPerpsLifecycleContext } from './perpsLifecycleContext';
 /**
  * Helpers for the Perps user-perceived CUF spans. These measure from the user
  * gesture to render-complete with live data, so start and end can live in
- * different surfaces; keying by a deterministic id (the trace name) lets the
- * ending surface close the span the starting surface opened. A pending
- * registry makes ends idempotent: the first surface to observe completion
- * (e.g. the position stream) wins, later fallbacks no-op.
+ * different surfaces. Each start mints a unique operation id; the pending
+ * registry is keyed by that id (not the trace name) so overlapping operations
+ * of the same flow — e.g. two cancels in flight — each get their own span and
+ * are matched/ended independently. The ending surface (usually the stream)
+ * finds the right pending op by matching its watched criteria.
  */
 
-/** Internal metadata keys shared between the starting and ending surfaces. */
+/** Internal metadata keys carried from the starting to the ending surface. */
 const CUF_META = {
+  NAME: 'name',
   SYMBOL: 'symbol',
   WATCH: 'watch',
   ORDER_ID: 'orderId',
   SNAPSHOT: 'snapshot',
-  INSTANCE: 'instance',
 } as const;
-
-/** Monotonic id per span start so delayed fallbacks can't end a successor. */
-let cufInstanceCounter = 0;
 
 /** What a pending confirmation span is watching for in the stream. */
 const PERPS_CUF_WATCH = {
@@ -54,8 +52,15 @@ function positionSnapshot(position: PerpsCufPositionLike): string {
   return `${position.size}|${position.takeProfitPrice ?? ''}|${position.stopLossPrice ?? ''}`;
 }
 
-/** Open CUF spans: name -> metadata handed from starter to ender. */
+/** Open CUF spans: unique op id -> metadata handed from starter to ender. */
 const pendingCufMeta = new Map<string, Record<string, TraceValue>>();
+let cufOpCounter = 0;
+
+/** Mint a unique, greppable op id for a span start. */
+function nextCufOpId(name: TraceName): string {
+  cufOpCounter += 1;
+  return `${name}#${cufOpCounter}`;
+}
 
 /** Start tags shared by all CUF spans: feature + lifecycle_context, plus caller variants. */
 export function buildPerpsCufStartTags(
@@ -70,7 +75,6 @@ export function buildPerpsCufStartTags(
 
 export interface StartPerpsCufTraceOptions {
   name: TraceName;
-  id?: string;
   op?: TraceOperation;
   /** Flow variant tags merged onto the shared start tags. */
   tags?: Record<string, TraceValue>;
@@ -78,59 +82,73 @@ export interface StartPerpsCufTraceOptions {
   data?: Record<string, TraceValue>;
 }
 
-export interface EndPerpsCufTraceOptions {
-  name: TraceName;
-  id?: string;
-  data?: Record<string, TraceValue>;
-  timestamp?: number;
-}
-
-/** Start a CUF span at the user gesture. */
+/** Start a CUF span at the user gesture. Returns the op id used to end it. */
 export function startPerpsCufTrace({
   name,
-  id = name,
   op = TraceOperation.PerpsOperation,
   tags,
   startTime,
   data,
-}: StartPerpsCufTraceOptions): void {
+}: StartPerpsCufTraceOptions): string {
+  const opId = nextCufOpId(name);
   const startTags = buildPerpsCufStartTags(tags);
-  cufInstanceCounter += 1;
-  pendingCufMeta.set(name, { [CUF_META.INSTANCE]: cufInstanceCounter });
+  pendingCufMeta.set(opId, { [CUF_META.NAME]: name });
   DevLogger?.log?.(
     `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsCUF: ${name} started ${JSON.stringify(startTags)}`,
   );
-  trace({ name, id, op, startTime, data, tags: startTags });
+  trace({ name, id: opId, op, startTime, data, tags: startTags });
+  return opId;
 }
 
-/** Attach metadata (e.g. order symbol, toast timestamp) to an open CUF span. */
+/** Attach metadata (e.g. order symbol, watch criteria) to an open CUF span. */
 export function setPerpsCufMeta(
-  name: TraceName,
+  opId: string,
   meta: Record<string, TraceValue>,
 ): void {
-  const existing = pendingCufMeta.get(name);
+  const existing = pendingCufMeta.get(opId);
   if (existing) {
-    pendingCufMeta.set(name, { ...existing, ...meta });
+    pendingCufMeta.set(opId, { ...existing, ...meta });
   }
+}
+
+export interface EndPerpsCufTraceOptions {
+  id: string;
+  data?: Record<string, TraceValue>;
+  timestamp?: number;
 }
 
 /**
- * End a CUF span once the flow has rendered. Idempotent: no-ops unless the
- * span is still pending, so a fallback end after a stream end is harmless.
+ * End a CUF span once the flow has rendered. Idempotent: no-ops unless the op
+ * is still pending, so a fallback end after a stream end is harmless, and a
+ * fallback for a superseded op cannot touch a newer one (distinct op ids).
  */
 export function endPerpsCufTrace({
-  name,
-  id = name,
+  id,
   data,
   timestamp,
 }: EndPerpsCufTraceOptions): void {
-  if (!pendingCufMeta.delete(name)) {
+  const meta = pendingCufMeta.get(id);
+  if (!meta) {
     return;
   }
+  pendingCufMeta.delete(id);
+  const name = meta[CUF_META.NAME] as TraceName;
   DevLogger?.log?.(
     `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsCUF: ${name} completed ${JSON.stringify(data ?? {})}`,
   );
   endTrace({ name, id, data, timestamp });
+}
+
+/**
+ * Schedule a fallback end for a specific op; a no-op if the stream (or the
+ * caller) closes that op first. Because ids are unique per operation, a
+ * superseded op's fallback can never close a later op of the same flow.
+ */
+export function endPerpsCufTraceAfter(
+  options: EndPerpsCufTraceOptions,
+  delayMs: number,
+): void {
+  setTimeout(() => endPerpsCufTrace(options), delayMs);
 }
 
 /** First stream render matching an armed place-order confirmation. */
@@ -141,48 +159,52 @@ export interface PerpsCufPositionRendered {
 
 let placeOrderRendered: PerpsCufPositionRendered | null = null;
 let placeOrderResolver: (() => void) | null = null;
-/** Bumped on every arm so waiters from a superseded order go inert. */
-let placeOrderGeneration = 0;
+/** Op id of the place-order span currently awaiting its position render. */
+let placeOrderOpId: string | null = null;
 
 /**
- * Arm the place-order confirmation: the stream matcher fires when a position
- * for `symbol` renders that is new or changed versus the pre-order baseline,
- * so a pre-existing position on the same market can't confirm the order early.
- * Returns a generation token; waiters from earlier generations resolve null
- * and never touch the newly armed order's span.
+ * Arm the place-order confirmation for `opId`: the stream matcher fires when a
+ * position for `symbol` renders that is new or changed versus the pre-order
+ * baseline, so a pre-existing position on the same market can't confirm early.
+ * A newer arm supersedes any earlier place-order waiter.
  */
 export function armPerpsPlaceOrderCuf(
+  opId: string,
   symbol: string,
   baseline?: PerpsCufPositionLike | null,
-): number {
-  placeOrderGeneration += 1;
+): void {
+  placeOrderOpId = opId;
   placeOrderRendered = null;
   placeOrderResolver = null;
-  setPerpsCufMeta(TraceName.PerpsPlaceOrderToPositionRendered, {
+  setPerpsCufMeta(opId, {
     [CUF_META.SYMBOL]: symbol,
     ...(baseline ? { [CUF_META.SNAPSHOT]: positionSnapshot(baseline) } : {}),
   });
-  return placeOrderGeneration;
 }
 
-/** Whether `generation` still owns the place-order confirmation state. */
-export function isPerpsPlaceOrderCufCurrent(generation: number): boolean {
-  return generation === placeOrderGeneration;
+/** Whether `opId` still owns the place-order confirmation state. */
+export function isPerpsPlaceOrderCufCurrent(opId: string): boolean {
+  return opId === placeOrderOpId;
+}
+
+/** Test-only: drop all pending spans and place-order state between tests. */
+export function resetPerpsCufTraceForTests(): void {
+  pendingCufMeta.clear();
+  placeOrderRendered = null;
+  placeOrderResolver = null;
+  placeOrderOpId = null;
 }
 
 /**
  * Resolve with the armed position's first stream render, or `null` after
  * `timeoutMs`. Resolves immediately when the render already happened or when
- * `generation` has been superseded by a newer order.
+ * `opId` has been superseded by a newer order.
  */
 export function waitForPerpsPlaceOrderPositionRendered(
   timeoutMs: number,
-  generation: number,
+  opId: string,
 ): Promise<PerpsCufPositionRendered | null> {
-  if (
-    !isPerpsPlaceOrderCufCurrent(generation) ||
-    !pendingCufMeta.has(TraceName.PerpsPlaceOrderToPositionRendered)
-  ) {
+  if (!isPerpsPlaceOrderCufCurrent(opId) || !pendingCufMeta.has(opId)) {
     return Promise.resolve(null);
   }
   if (placeOrderRendered) {
@@ -197,9 +219,7 @@ export function waitForPerpsPlaceOrderPositionRendered(
       if (placeOrderResolver === wake) {
         placeOrderResolver = null;
       }
-      resolve(
-        isPerpsPlaceOrderCufCurrent(generation) ? placeOrderRendered : null,
-      );
+      resolve(isPerpsPlaceOrderCufCurrent(opId) ? placeOrderRendered : null);
     };
     const timer = setTimeout(wake, timeoutMs);
     cancelTimer = () => clearTimeout(timer);
@@ -208,39 +228,20 @@ export function waitForPerpsPlaceOrderPositionRendered(
 }
 
 /**
- * Schedule a fallback end for the CURRENTLY pending span instance; a no-op if
- * another surface (e.g. the position stream) closes it first, and inert if a
- * new span with the same name has started by the time the delay fires.
- */
-export function endPerpsCufTraceAfter(
-  options: EndPerpsCufTraceOptions,
-  delayMs: number,
-): void {
-  const instance = pendingCufMeta.get(options.name)?.[CUF_META.INSTANCE];
-  if (instance === undefined) {
-    return;
-  }
-  setTimeout(() => {
-    if (pendingCufMeta.get(options.name)?.[CUF_META.INSTANCE] !== instance) {
-      return;
-    }
-    endPerpsCufTrace(options);
-  }, delayMs);
-}
-
-/**
- * Stream-side matcher for the place-order CUF: records when the armed
- * position first renders (new, or changed versus the pre-order baseline) and
- * wakes the waiter. The hook owns ending the span so the confirmation toast
- * and the measured delta stay coupled to this render.
+ * Stream-side matcher for the place-order CUF: records when the armed position
+ * first renders (new, or changed versus the pre-order baseline) and wakes the
+ * waiter. `flushThrottled` is invoked before the render timestamp is stamped so
+ * throttled subscribers actually receive the data at the measured instant.
+ * Returns true when it matched (so the caller can flush once for the tick).
  */
 function resolvePerpsPlaceOrderCufOnPositions(
-  positions: readonly PerpsCufPositionLike[] | null,
+  positions: readonly PerpsCufPositionLike[],
+  flushThrottled?: () => void,
 ): void {
-  if (placeOrderRendered || !positions) {
+  if (placeOrderRendered || !placeOrderOpId) {
     return;
   }
-  const meta = pendingCufMeta.get(TraceName.PerpsPlaceOrderToPositionRendered);
+  const meta = pendingCufMeta.get(placeOrderOpId);
   if (!meta) {
     return;
   }
@@ -257,47 +258,42 @@ function resolvePerpsPlaceOrderCufOnPositions(
     // Pre-order position unchanged: the order's fill hasn't rendered yet.
     return;
   }
+  flushThrottled?.();
   placeOrderRendered = { position: current, renderedAt: Date.now() };
   placeOrderResolver?.();
 }
 
-/** Watch for the given position to change (or vanish) before ending `name`. */
+/** Watch for the given position to change (or vanish) before ending `opId`. */
 export function watchPerpsCufPositionChanged(
-  name: TraceName,
+  opId: string,
   position: PerpsCufPositionLike,
 ): void {
-  setPerpsCufMeta(name, {
+  setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.POSITION_CHANGED,
     [CUF_META.SYMBOL]: position.symbol,
     [CUF_META.SNAPSHOT]: positionSnapshot(position),
   });
 }
 
-/** Watch for the given order to disappear before ending `name`. */
-export function watchPerpsCufOrderAbsent(
-  name: TraceName,
-  orderId: string,
-): void {
-  setPerpsCufMeta(name, {
+/** Watch for the given order to disappear before ending `opId`. */
+export function watchPerpsCufOrderAbsent(opId: string, orderId: string): void {
+  setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_ABSENT,
     [CUF_META.ORDER_ID]: orderId,
   });
 }
 
-/** Watch for the given order to appear (render) in the stream before ending `name`. */
-export function watchPerpsCufOrderPresent(
-  name: TraceName,
-  orderId: string,
-): void {
-  setPerpsCufMeta(name, {
+/** Watch for the given order to appear (render) in the stream before ending `opId`. */
+export function watchPerpsCufOrderPresent(opId: string, orderId: string): void {
+  setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_PRESENT,
     [CUF_META.ORDER_ID]: orderId,
   });
 }
 
-/** End `name` on the next positions delivery, whatever it contains. */
-export function watchPerpsCufAnyPositions(name: TraceName): void {
-  setPerpsCufMeta(name, {
+/** End `opId` on the next positions delivery, whatever it contains. */
+export function watchPerpsCufAnyPositions(opId: string): void {
+  setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.ANY_POSITIONS,
   });
 }
@@ -307,85 +303,146 @@ const STREAM_END_DATA = {
   [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
 } as const;
 
+/** Op ids of every pending span with the given trace name. */
+function pendingOpIdsForName(name: TraceName): string[] {
+  const ids: string[] = [];
+  for (const [opId, meta] of pendingCufMeta) {
+    if (meta[CUF_META.NAME] === name) {
+      ids.push(opId);
+    }
+  }
+  return ids;
+}
+
 /**
  * Positions just rendered to stream subscribers: close every pending CUF span
  * whose watched condition is now visible (new position, changed/absent
- * position, or any fresh delivery after a reconnect).
+ * position, or any fresh delivery after a reconnect). `flushThrottled` is
+ * called once, before any span is ended, so throttled subscribers receive the
+ * update at the measured render instant instead of up to a throttle interval
+ * later.
  */
 export function handlePerpsCufPositionsDelivered(
   positions: readonly PerpsCufPositionLike[] | null,
+  flushThrottled?: () => void,
 ): void {
-  resolvePerpsPlaceOrderCufOnPositions(positions);
   if (!positions) {
     return;
   }
-  for (const name of [
+
+  // Collect matches first so a single flush covers the whole tick.
+  const positionChangedNames = [
     TraceName.PerpsClosePositionToConfirmation,
     TraceName.PerpsUpdateTPSLToConfirmation,
-  ]) {
-    const meta = pendingCufMeta.get(name);
-    if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.POSITION_CHANGED) {
-      continue;
-    }
-    const symbol = meta[CUF_META.SYMBOL];
-    if (typeof symbol !== 'string') {
-      continue;
-    }
-    const current = positions.find((p) => p.symbol === symbol);
-    const currentSnapshot = current?.symbol
-      ? positionSnapshot(current)
-      : undefined;
-    if (currentSnapshot !== meta[CUF_META.SNAPSHOT]) {
-      endPerpsCufTrace({ name, data: { ...STREAM_END_DATA } });
+  ];
+  const toEnd: string[] = [];
+  for (const name of positionChangedNames) {
+    for (const opId of pendingOpIdsForName(name)) {
+      const meta = pendingCufMeta.get(opId);
+      if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.POSITION_CHANGED) {
+        continue;
+      }
+      const symbol = meta[CUF_META.SYMBOL];
+      if (typeof symbol !== 'string') {
+        continue;
+      }
+      const current = positions.find((p) => p.symbol === symbol);
+      const currentSnapshot = current ? positionSnapshot(current) : undefined;
+      if (currentSnapshot !== meta[CUF_META.SNAPSHOT]) {
+        toEnd.push(opId);
+      }
     }
   }
-  const reconnectMeta = pendingCufMeta.get(
+  for (const opId of pendingOpIdsForName(
     TraceName.PerpsWebSocketReconnectToFreshData,
-  );
-  if (reconnectMeta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ANY_POSITIONS) {
-    endPerpsCufTrace({
-      name: TraceName.PerpsWebSocketReconnectToFreshData,
-      data: { ...STREAM_END_DATA },
-    });
+  )) {
+    if (
+      pendingCufMeta.get(opId)?.[CUF_META.WATCH] ===
+      PERPS_CUF_WATCH.ANY_POSITIONS
+    ) {
+      toEnd.push(opId);
+    }
+  }
+
+  const placeWillMatch =
+    !placeOrderRendered &&
+    !!placeOrderOpId &&
+    (() => {
+      const meta = pendingCufMeta.get(placeOrderOpId);
+      if (!meta) {
+        return false;
+      }
+      const symbol = meta[CUF_META.SYMBOL];
+      if (typeof symbol !== 'string') {
+        return false;
+      }
+      const current = positions.find((p) => p.symbol === symbol);
+      if (!current) {
+        return false;
+      }
+      const baseline = meta[CUF_META.SNAPSHOT];
+      return (
+        typeof baseline !== 'string' || positionSnapshot(current) !== baseline
+      );
+    })();
+
+  // Flush once if anything is about to be confirmed, so the measured render
+  // instant reflects real subscriber delivery (not the throttle enqueue).
+  if (flushThrottled && (toEnd.length > 0 || placeWillMatch)) {
+    flushThrottled();
+  }
+
+  resolvePerpsPlaceOrderCufOnPositions(positions);
+  for (const opId of toEnd) {
+    endPerpsCufTrace({ id: opId, data: { ...STREAM_END_DATA } });
   }
 }
 
 /**
- * Orders just rendered to stream subscribers: close a pending cancel span once
- * its order is absent, and a pending limit-order-render span once its order is
- * present.
+ * Orders just rendered to stream subscribers: close pending cancel spans once
+ * their order is absent, and pending limit-order-render spans once their order
+ * is present. Flushes throttled subscribers once before ending, as above.
  */
 export function handlePerpsCufOrdersDelivered(
   orders: readonly { orderId: string }[] | null,
+  flushThrottled?: () => void,
 ): void {
   if (!orders) {
     return;
   }
-  const cancelMeta = pendingCufMeta.get(
+
+  const toEnd: string[] = [];
+  for (const opId of pendingOpIdsForName(
     TraceName.PerpsCancelOrderToConfirmation,
-  );
-  if (
-    cancelMeta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_ABSENT &&
-    typeof cancelMeta[CUF_META.ORDER_ID] === 'string' &&
-    orders.every((o) => o.orderId !== cancelMeta[CUF_META.ORDER_ID])
-  ) {
-    endPerpsCufTrace({
-      name: TraceName.PerpsCancelOrderToConfirmation,
-      data: { ...STREAM_END_DATA },
-    });
+  )) {
+    const meta = pendingCufMeta.get(opId);
+    const orderId = meta?.[CUF_META.ORDER_ID];
+    if (
+      meta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_ABSENT &&
+      typeof orderId === 'string' &&
+      orders.every((o) => o.orderId !== orderId)
+    ) {
+      toEnd.push(opId);
+    }
+  }
+  for (const opId of pendingOpIdsForName(
+    TraceName.PerpsPlaceLimitOrderToOrderRendered,
+  )) {
+    const meta = pendingCufMeta.get(opId);
+    const orderId = meta?.[CUF_META.ORDER_ID];
+    if (
+      meta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_PRESENT &&
+      typeof orderId === 'string' &&
+      orders.some((o) => o.orderId === orderId)
+    ) {
+      toEnd.push(opId);
+    }
   }
 
-  const placeMeta = pendingCufMeta.get(
-    TraceName.PerpsPlaceLimitOrderToOrderRendered,
-  );
-  if (
-    placeMeta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_PRESENT &&
-    typeof placeMeta[CUF_META.ORDER_ID] === 'string' &&
-    orders.some((o) => o.orderId === placeMeta[CUF_META.ORDER_ID])
-  ) {
-    endPerpsCufTrace({
-      name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
-      data: { ...STREAM_END_DATA },
-    });
+  if (flushThrottled && toEnd.length > 0) {
+    flushThrottled();
+  }
+  for (const opId of toEnd) {
+    endPerpsCufTrace({ id: opId, data: { ...STREAM_END_DATA } });
   }
 }

@@ -1015,13 +1015,13 @@ class PerpsConnectionManagerClass {
     );
 
     // Freshness CUF: reconnect start -> first fresh positions delivery.
-    startPerpsCufTrace({
+    const reconnectCufOpId = startPerpsCufTrace({
       name: TraceName.PerpsWebSocketReconnectToFreshData,
     });
-    watchPerpsCufAnyPositions(TraceName.PerpsWebSocketReconnectToFreshData);
+    watchPerpsCufAnyPositions(reconnectCufOpId);
     endPerpsCufTraceAfter(
       {
-        name: TraceName.PerpsWebSocketReconnectToFreshData,
+        id: reconnectCufOpId,
         data: {
           [PERPS_CUF_TAG.SUCCESS]: false,
           [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,

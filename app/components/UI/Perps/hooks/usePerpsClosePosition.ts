@@ -74,17 +74,15 @@ export const usePerpsClosePosition = (
       // Confirmation CUF (market close): ends when the stream shows the
       // position reduced or absent. Limit closes rest until filled, so their
       // confirmation is not a render-latency measurement.
+      let closeCufOpId: string | undefined;
       if (orderType === 'market') {
-        startPerpsCufTrace({
+        closeCufOpId = startPerpsCufTrace({
           name: TraceName.PerpsClosePositionToConfirmation,
         });
-        watchPerpsCufPositionChanged(
-          TraceName.PerpsClosePositionToConfirmation,
-          position,
-        );
+        watchPerpsCufPositionChanged(closeCufOpId, position);
         endPerpsCufTraceAfter(
           {
-            name: TraceName.PerpsClosePositionToConfirmation,
+            id: closeCufOpId,
             data: {
               [PERPS_CUF_TAG.SUCCESS]: false,
               [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
@@ -226,25 +224,29 @@ export const usePerpsClosePosition = (
 
           // Rejected request, not an exception: classify before the throw so
           // the catch's EXCEPTION end no-ops (matches TPSL/cancel paths).
-          endPerpsCufTrace({
-            name: TraceName.PerpsClosePositionToConfirmation,
-            data: {
-              [PERPS_CUF_TAG.SUCCESS]: false,
-              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
-            },
-          });
+          if (closeCufOpId) {
+            endPerpsCufTrace({
+              id: closeCufOpId,
+              data: {
+                [PERPS_CUF_TAG.SUCCESS]: false,
+                [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+              },
+            });
+          }
           throw new Error(errorMessage);
         }
 
         return result;
       } catch (err) {
-        endPerpsCufTrace({
-          name: TraceName.PerpsClosePositionToConfirmation,
-          data: {
-            [PERPS_CUF_TAG.SUCCESS]: false,
-            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
-          },
-        });
+        if (closeCufOpId) {
+          endPerpsCufTrace({
+            id: closeCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+            },
+          });
+        }
         const closeError =
           err instanceof Error
             ? err

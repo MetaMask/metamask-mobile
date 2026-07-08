@@ -197,6 +197,25 @@ abstract class StreamChannel<T> {
   }
 
   /**
+   * Immediately deliver any throttled subscriber's pending update, cancelling
+   * its timer. Used to close CUF confirmations at the instant subscribers
+   * actually render, instead of up to a throttle interval later.
+   */
+  public flushThrottledDeliveries() {
+    this.subscribers.forEach((subscriber) => {
+      if (!subscriber.timer) {
+        return;
+      }
+      clearTimeout(subscriber.timer);
+      subscriber.timer = undefined;
+      if (subscriber.pendingUpdate !== undefined) {
+        subscriber.callback(subscriber.pendingUpdate);
+        subscriber.pendingUpdate = undefined;
+      }
+    });
+  }
+
+  /**
    * Register a subscription's symbols into the reverse index so symbol-scoped
    * dispatch can find it. No-op for subscriptions without symbols.
    */
@@ -881,8 +900,12 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
-        // Orders just rendered to subscribers — close a pending cancel CUF span.
-        handlePerpsCufOrdersDelivered(orders);
+        // Orders just rendered to subscribers — close pending cancel / limit
+        // order-render CUF spans, flushing throttled subscribers first so the
+        // span ends when they actually render, not at throttle-enqueue time.
+        handlePerpsCufOrdersDelivered(orders, () =>
+          this.flushThrottledDeliveries(),
+        );
         this.triggerPersist();
       },
     });
@@ -1024,8 +1047,11 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
         // Positions just rendered to subscribers — close any pending CUF span
-        // (place/close/TPSL/reconnect) at its user-perceived boundary.
-        handlePerpsCufPositionsDelivered(positions);
+        // (place/close/TPSL/reconnect) at its user-perceived boundary, flushing
+        // throttled subscribers first so the span ends at real render time.
+        handlePerpsCufPositionsDelivered(positions, () =>
+          this.flushThrottledDeliveries(),
+        );
         this.triggerPersist();
       },
     });

@@ -86,65 +86,38 @@ export function usePerpsOrderExecution(
       // limit order would time out or fold exchange fill-wait time into an
       // app-responsiveness metric. Limit orders are intentionally not measured
       // here; a dedicated order-render CUF can be added later if needed.
+      // Market orders measure submit -> position rendered (toast coupled to the
+      // same stream render). Limit orders measure submit -> resting order
+      // rendered in the orders stream (no exchange fill-wait time). Each start
+      // mints a unique op id so overlapping orders never collide.
       const isMarketOrder = orderParams.orderType === 'market';
-      const endPlaceOrderCuf = (
-        data: Record<string, PerpsOrderTrackingValue>,
-      ) =>
-        endPerpsCufTrace({
-          name: TraceName.PerpsPlaceOrderToPositionRendered,
-          data,
-        });
-      const endPlaceOrderRendered = (
-        renderedAt: number,
-        toastShownAt: number,
-      ) =>
-        endPlaceOrderCuf({
+      const cufOpId = startPerpsCufTrace({
+        name: isMarketOrder
+          ? TraceName.PerpsPlaceOrderToPositionRendered
+          : TraceName.PerpsPlaceLimitOrderToOrderRendered,
+        tags: {
+          [PERPS_CUF_TAG.DIRECTION]: orderParams.isBuy
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_CUF_TAG.ORDER_TYPE]: orderParams.orderType,
+        },
+      });
+      const endCuf = (data: Record<string, PerpsOrderTrackingValue>) =>
+        endPerpsCufTrace({ id: cufOpId, data });
+      const endCufRendered = (renderedAt: number, toastShownAt: number) =>
+        endCuf({
           [PERPS_CUF_TAG.SUCCESS]: true,
           [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
           [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]: renderedAt - toastShownAt,
         });
-      // Limit orders get their own app-responsiveness CUF instead: submit ->
-      // the resting order renders in the live orders stream (no fill wait).
-      const endLimitOrderCuf = (
-        data: Record<string, PerpsOrderTrackingValue>,
-      ) =>
-        endPerpsCufTrace({
-          name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
-          data,
-        });
-      const endStartedPlaceOrderCuf = (
-        data: Record<string, PerpsOrderTrackingValue>,
-      ) => {
-        if (isMarketOrder) {
-          endPlaceOrderCuf(data);
-        } else {
-          endLimitOrderCuf(data);
-        }
-      };
-      const cufStartTags = {
-        [PERPS_CUF_TAG.DIRECTION]: orderParams.isBuy
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-        [PERPS_CUF_TAG.ORDER_TYPE]: orderParams.orderType,
-      };
-      let cufGeneration = 0;
       if (isMarketOrder) {
-        startPerpsCufTrace({
-          name: TraceName.PerpsPlaceOrderToPositionRendered,
-          tags: cufStartTags,
-        });
         // Baseline lets the stream matcher tell the order's fill apart from a
         // position that already existed on this market before the order.
         const baseline =
           stream.positions
             .getSnapshot()
             ?.find((p) => p.symbol === orderParams.symbol) ?? null;
-        cufGeneration = armPerpsPlaceOrderCuf(orderParams.symbol, baseline);
-      } else {
-        startPerpsCufTrace({
-          name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
-          tags: cufStartTags,
-        });
+        armPerpsPlaceOrderCuf(cufOpId, orderParams.symbol, baseline);
       }
 
       try {
@@ -219,7 +192,7 @@ export function usePerpsOrderExecution(
             onSuccess?.();
             const orderId = result.orderId;
             if (typeof orderId !== 'string') {
-              endLimitOrderCuf({
+              endCuf({
                 [PERPS_CUF_TAG.SUCCESS]: false,
                 [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
               });
@@ -227,18 +200,15 @@ export function usePerpsOrderExecution(
               stream.orders.getSnapshot()?.some((o) => o.orderId === orderId)
             ) {
               // Already rendered between submit and here.
-              endLimitOrderCuf({
+              endCuf({
                 [PERPS_CUF_TAG.SUCCESS]: true,
                 [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
               });
             } else {
-              watchPerpsCufOrderPresent(
-                TraceName.PerpsPlaceLimitOrderToOrderRendered,
-                orderId,
-              );
+              watchPerpsCufOrderPresent(cufOpId, orderId);
               endPerpsCufTraceAfter(
                 {
-                  name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
+                  id: cufOpId,
                   data: {
                     [PERPS_CUF_TAG.SUCCESS]: false,
                     [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
@@ -252,11 +222,11 @@ export function usePerpsOrderExecution(
             // the confirmation toast fires together with it.
             const rendered = await waitForPerpsPlaceOrderPositionRendered(
               PERPS_CUF_STREAM_CONFIRM_RACE_MS,
-              cufGeneration,
+              cufOpId,
             );
             const toastShownAt = Date.now();
             if (rendered) {
-              endPlaceOrderRendered(rendered.renderedAt, toastShownAt);
+              endCufRendered(rendered.renderedAt, toastShownAt);
               const position = stream.positions
                 .getSnapshot()
                 ?.find((p) => p.symbol === orderParams.symbol);
@@ -275,16 +245,16 @@ export function usePerpsOrderExecution(
               // Deliberately not awaited: the caller must not block on the span.
               waitForPerpsPlaceOrderPositionRendered(
                 PERPS_CUF_STREAM_TIMEOUT_MS,
-                cufGeneration,
+                cufOpId,
               ).then((late) => {
                 // A newer order owns the span now; this continuation is stale.
-                if (!isPerpsPlaceOrderCufCurrent(cufGeneration)) {
+                if (!isPerpsPlaceOrderCufCurrent(cufOpId)) {
                   return;
                 }
                 if (late) {
-                  endPlaceOrderRendered(late.renderedAt, toastShownAt);
+                  endCufRendered(late.renderedAt, toastShownAt);
                 } else {
-                  endPlaceOrderCuf({
+                  endCuf({
                     [PERPS_CUF_TAG.SUCCESS]: false,
                     [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
                   });
@@ -295,11 +265,10 @@ export function usePerpsOrderExecution(
         } else {
           const errorMessage =
             result.error || strings('perps.order.error.unknown');
-          const failedData = {
+          endCuf({
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ORDER_FAILED,
-          };
-          endStartedPlaceOrderCuf(failedData);
+          });
           setError(errorMessage);
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
 
@@ -338,11 +307,10 @@ export function usePerpsOrderExecution(
           onError?.(errorMessage);
         }
       } catch (err) {
-        const exceptionData = {
+        endCuf({
           [PERPS_CUF_TAG.SUCCESS]: false,
           [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
-        };
-        endStartedPlaceOrderCuf(exceptionData);
+        });
         const errorObject = ensureError(
           err,
           'usePerpsOrderExecution.placeOrder',

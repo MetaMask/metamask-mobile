@@ -79,14 +79,13 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       // Confirmation CUF: every cancel UI path funnels through here; the span
       // ends when the stream no longer lists the order.
-      startPerpsCufTrace({ name: TraceName.PerpsCancelOrderToConfirmation });
-      watchPerpsCufOrderAbsent(
-        TraceName.PerpsCancelOrderToConfirmation,
-        params.orderId,
-      );
+      const cancelCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsCancelOrderToConfirmation,
+      });
+      watchPerpsCufOrderAbsent(cancelCufOpId, params.orderId);
       endPerpsCufTraceAfter(
         {
-          name: TraceName.PerpsCancelOrderToConfirmation,
+          id: cancelCufOpId,
           data: {
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
@@ -98,7 +97,7 @@ export function usePerpsTrading() {
         const result = await controller.cancelOrder(params);
         if (!result?.success) {
           endPerpsCufTrace({
-            name: TraceName.PerpsCancelOrderToConfirmation,
+            id: cancelCufOpId,
             data: {
               [PERPS_CUF_TAG.SUCCESS]: false,
               [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
@@ -108,7 +107,7 @@ export function usePerpsTrading() {
         return result;
       } catch (error) {
         endPerpsCufTrace({
-          name: TraceName.PerpsCancelOrderToConfirmation,
+          id: cancelCufOpId,
           data: {
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
