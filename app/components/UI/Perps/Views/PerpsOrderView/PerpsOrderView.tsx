@@ -1419,7 +1419,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
       <PerpsOrderHeader
-        asset={getPerpsDisplaySymbol(orderForm.asset)}
+        asset={orderForm.asset}
         price={assetData.price}
         priceChange={assetData.change}
         orderType={orderForm.type}
