@@ -411,6 +411,7 @@ const SignUp = () => {
         onPress={handleAlreadyHaveAccountPress}
         isFullWidth
         testID="signup-i-already-have-an-account-text"
+        twClassName="mt-2"
       >
         {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
       </Button>
