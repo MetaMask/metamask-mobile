@@ -32,7 +32,7 @@ const ROW_HEIGHT = 56;
 
 export interface SelectOption {
   label: string;
-  key: string;
+  key: string | number;
   value: string;
 }
 
