@@ -1,14 +1,5 @@
 import { Dimensions, StyleSheet } from 'react-native';
 import { AppThemeKey, Theme } from '../../../util/theme/models';
-import {
-  NOTIFICATION_CLOSE_MARGIN_TOP,
-  NOTIFICATION_DESCRIPTION_MARGIN_TOP,
-  NOTIFICATION_PADDING_HORIZONTAL,
-  NOTIFICATION_PADDING_RIGHT_WITH_CLOSE_ICON,
-  NOTIFICATION_PADDING_VERTICAL,
-  NOTIFICATION_ROW_GAP,
-} from './BaseNotification.constants';
-
 const marginWidth = 16;
 const notificationWidth = Dimensions.get('window').width - marginWidth * 2;
 
@@ -30,25 +21,25 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.border.muted,
-      paddingTop: NOTIFICATION_PADDING_VERTICAL,
-      paddingBottom: NOTIFICATION_PADDING_VERTICAL,
-      paddingLeft: NOTIFICATION_PADDING_HORIZONTAL,
-      paddingRight: NOTIFICATION_PADDING_HORIZONTAL,
+      paddingTop: 12,
+      paddingBottom: 12,
+      paddingLeft: 16,
+      paddingRight: 16,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: NOTIFICATION_ROW_GAP,
+      gap: 16,
     },
     baseTopAligned: {
       alignItems: 'flex-start',
     },
     baseWithCloseIconButton: {
-      paddingRight: NOTIFICATION_PADDING_RIGHT_WITH_CLOSE_ICON,
+      paddingRight: 8,
     },
     pressableContent: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: NOTIFICATION_ROW_GAP,
+      gap: 16,
     },
     pressableContentTopAligned: {
       alignItems: 'flex-start',
@@ -64,10 +55,10 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.default,
     },
     flashText: {
-      marginTop: NOTIFICATION_DESCRIPTION_MARGIN_TOP,
+      marginTop: 2,
     },
     closeButton: {
-      marginTop: NOTIFICATION_CLOSE_MARGIN_TOP,
+      marginTop: -4,
     },
   });
 };

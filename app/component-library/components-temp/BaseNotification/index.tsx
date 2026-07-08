@@ -46,8 +46,7 @@ import {
   NOTIFICATION_TOP_PADDING,
   NOTIFICATION_VISIBILITY_DURATION,
 } from './BaseNotification.constants';
-import { shouldTopAlignNotificationContent } from './BaseNotification.layout.utils';
-import { ToastSelectorsIDs } from '../../components/Toast/ToastModal.testIds';
+import { BaseNotificationTestIds } from './BaseNotification.testIds';
 
 import styleSheet from './BaseNotification.styles';
 import {
@@ -58,8 +57,7 @@ import {
 
 const screenHeight = Dimensions.get('window').height;
 
-const getHiddenTranslateY = (height: number, offset: number) =>
-  -(height + offset);
+const getHiddenTranslateY = (height: number) => -height;
 
 export const getIcon = (status: BaseNotificationStatus | undefined) => {
   switch (status) {
@@ -176,21 +174,16 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const hasEnteredRef = useRef(false);
   const dismissDurationMs = dismissDuration ?? NOTIFICATION_VISIBILITY_DURATION;
 
-  const topOffset = 0;
   const hasCloseIconButton = autoDismiss;
   const resolvedDescription = !description
     ? getDescription(status, safeData)
     : description;
   const hasDescription = resolvedDescription.length > 0;
-  const shouldTopAlign = shouldTopAlignNotificationContent({
-    titleLineCount,
-    hasDescription,
-    descriptionLineCount,
-    hasActionButton: false,
-    hasTrailingTextButton: false,
-  });
+  const shouldTopAlign =
+    (titleLineCount !== null && titleLineCount > 1 && hasDescription) ||
+    (descriptionLineCount !== null && descriptionLineCount > 1);
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateYProgress.value + topOffset }],
+    transform: [{ translateY: translateYProgress.value }],
   }));
   const baseStyle: StyleProp<ViewStyle> = useMemo(
     () => [
@@ -237,10 +230,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
   const runExitAnimation = useCallback(
     (onComplete?: () => void) => {
-      const hiddenTranslateY = getHiddenTranslateY(
-        notificationHeight.value,
-        topOffset,
-      );
+      const hiddenTranslateY = getHiddenTranslateY(notificationHeight.value);
 
       translateYProgress.value = withSpring(
         hiddenTranslateY,
@@ -252,7 +242,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
         },
       );
     },
-    [notificationHeight, topOffset, translateYProgress],
+    [notificationHeight, translateYProgress],
   );
 
   const handleDismissComplete = useCallback(() => {
@@ -275,7 +265,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
       hasEnteredRef.current = true;
       const { height } = event.nativeEvent.layout;
-      const hiddenTranslateY = getHiddenTranslateY(height, topOffset);
+      const hiddenTranslateY = getHiddenTranslateY(height);
       const visibleTranslateY = topInset + NOTIFICATION_TOP_PADDING;
 
       notificationHeight.value = height;
@@ -309,7 +299,6 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       notificationHeight,
       persistUntilDismiss,
       topInset,
-      topOffset,
       translateYProgress,
     ],
   );
@@ -339,14 +328,14 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
             styles.flashLabel,
             shouldTopAlign && styles.flashLabelTopAligned,
           ]}
-          testID={ToastSelectorsIDs.CONTAINER}
+          testID={BaseNotificationTestIds.CONTAINER}
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             style={styles.flashTitle}
-            testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
+            testID={BaseNotificationTestIds.NOTIFICATION_TITLE}
             onTextLayout={handleTitleTextLayout}
           >
             {!title ? getTitle(status, safeData) : title}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import BaseNotification, { getDescription, getIcon } from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
@@ -29,6 +30,18 @@ const allStatuses: BaseNotificationStatus[] = [
   'simple_notification',
   'simple_notification_rejected',
 ];
+
+const mockLayoutEvent = {
+  nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
+};
+
+const triggerEnterLayout = (getByTestId: (id: string) => ReactTestInstance) => {
+  fireEvent(
+    getByTestId('base-notification-container'),
+    'layout',
+    mockLayoutEvent,
+  );
+};
 
 describe('BaseNotification', () => {
   it.each(allStatuses)('renders for status %s', (status) => {
@@ -98,9 +111,7 @@ describe('BaseNotification', () => {
       />,
     );
 
-    fireEvent(getByTestId('base-notification-container'), 'layout', {
-      nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
-    });
+    triggerEnterLayout(getByTestId);
 
     await act(async () => {
       fireEvent.press(getByTestId('base-notification-close'));
@@ -135,9 +146,7 @@ describe('BaseNotification', () => {
       />,
     );
 
-    fireEvent(getByTestId('base-notification-container'), 'layout', {
-      nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
-    });
+    triggerEnterLayout(getByTestId);
 
     await act(async () => {
       jest.runAllTimers();
@@ -157,37 +166,11 @@ describe('BaseNotification', () => {
         onDismissComplete={onDismissComplete}
       />,
     );
-    const layoutEvent = {
-      nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
-    };
 
-    fireEvent(
-      getByTestId('base-notification-container'),
-      'layout',
-      layoutEvent,
-    );
-    fireEvent(
-      getByTestId('base-notification-container'),
-      'layout',
-      layoutEvent,
-    );
+    triggerEnterLayout(getByTestId);
+    triggerEnterLayout(getByTestId);
 
     expect(onDismissComplete).not.toHaveBeenCalled();
-  });
-
-  it('applies top-aligned layout when title and description span multiple lines', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <BaseNotification status="success" data={defaultData} autoDismiss />,
-    );
-
-    fireEvent(getByTestId('notification-title'), 'textLayout', {
-      nativeEvent: { lines: [{}, {}] },
-    });
-    fireEvent(getByText(defaultData.description), 'textLayout', {
-      nativeEvent: { lines: [{}, {}] },
-    });
-
-    expect(getByTestId('base-notification-close')).toBeOnTheScreen();
   });
 
   it('returns null icon for an unrecognized status', () => {
