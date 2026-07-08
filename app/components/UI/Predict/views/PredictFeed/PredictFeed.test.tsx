@@ -1366,4 +1366,88 @@ describe('PredictFeed', () => {
       );
     });
   });
+
+  describe('lazy tab data fetching (enabled gate)', () => {
+    // PagerView mounts every PredictTabContent at once, so usePredictMarketData
+    // is called for every tab on every render. Only the active tab (and tabs the
+    // user has already visited) should pass `enabled: true` so that just the
+    // visible tab fires a getMarkets request on mount.
+    const getEnabledForCategory = (category: string): boolean | undefined => {
+      const calls = mockUsePredictMarketData.mock.calls.filter(
+        (call: [{ category?: string; enabled?: boolean }]) =>
+          call[0]?.category === category,
+      );
+      return calls[calls.length - 1]?.[0]?.enabled;
+    };
+
+    const wireTabSwitchToActiveIndex = () => {
+      mockUseFeedScrollManager.mockImplementation(
+        ({ setActiveIndex }: { setActiveIndex: (index: number) => void }) => ({
+          headerTranslateY: { value: 0 },
+          headerHidden: false,
+          headerHeight: 100,
+          tabBarHeight: 48,
+          layoutReady: true,
+          onTabSwitch: setActiveIndex,
+          scrollHandler: jest.fn(),
+          onHeaderLayout: jest.fn(),
+          onTabBarLayout: jest.fn(),
+        }),
+      );
+    };
+
+    it('enables only the active tab and disables the rest on mount', () => {
+      render(<PredictFeed />);
+
+      // Default active tab is the first base tab ("trending").
+      expect(getEnabledForCategory('trending')).toBe(true);
+      expect(getEnabledForCategory('ending-soon')).toBe(false);
+      expect(getEnabledForCategory('new')).toBe(false);
+      expect(getEnabledForCategory('sports')).toBe(false);
+      expect(getEnabledForCategory('crypto')).toBe(false);
+      expect(getEnabledForCategory('politics')).toBe(false);
+    });
+
+    it('enables the deep-linked tab and disables the others on mount', () => {
+      mockUseRoute.mockReturnValue({
+        params: { entryPoint: 'deeplink', tab: 'new' },
+      });
+
+      render(<PredictFeed />);
+
+      expect(getEnabledForCategory('new')).toBe(true);
+      expect(getEnabledForCategory('trending')).toBe(false);
+      expect(getEnabledForCategory('sports')).toBe(false);
+    });
+
+    it('enables a tab once the user switches to it', () => {
+      wireTabSwitchToActiveIndex();
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      expect(getEnabledForCategory('new')).toBe(false);
+
+      fireEvent.press(getByTestId(getPredictFeedMockSelector.tabKey('new')));
+
+      expect(getEnabledForCategory('new')).toBe(true);
+    });
+
+    it('keeps a previously-visited tab enabled when switching back (warm cache)', () => {
+      wireTabSwitchToActiveIndex();
+
+      const { getByTestId } = render(<PredictFeed />);
+
+      // Visit "new", then return to "trending".
+      fireEvent.press(getByTestId(getPredictFeedMockSelector.tabKey('new')));
+      expect(getEnabledForCategory('new')).toBe(true);
+
+      fireEvent.press(
+        getByTestId(getPredictFeedMockSelector.tabKey('trending')),
+      );
+
+      // "new" stays warm (enabled never flips back to false) so it never refetches.
+      expect(getEnabledForCategory('new')).toBe(true);
+      expect(getEnabledForCategory('trending')).toBe(true);
+    });
+  });
 });

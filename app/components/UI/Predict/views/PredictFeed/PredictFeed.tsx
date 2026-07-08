@@ -307,6 +307,13 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     pageSize: 20,
     customQueryParams,
     refine,
+    // Only fetch for the active tab or tabs the user has already visited.
+    // PagerView mounts every PredictTabContent at once; without this gate each
+    // tab would fire its own getMarkets on mount. Using `isActive ||
+    // hasEverBeenActive` enables the fetch in the same render the tab becomes
+    // active (so the hook's useLayoutEffect empty-frame guard runs before
+    // paint) while keeping already-visited tabs warm when swiping back.
+    enabled: isActive || hasEverBeenActive,
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
