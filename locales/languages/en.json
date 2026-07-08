@@ -2178,6 +2178,7 @@
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
     },
+    "recently_viewed": "Recently viewed",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "testnet": "Testnet",

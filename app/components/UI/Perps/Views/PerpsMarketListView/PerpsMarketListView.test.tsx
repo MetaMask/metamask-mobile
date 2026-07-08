@@ -34,6 +34,7 @@ jest.mock('../../../../../core/Engine', () => ({
       getActiveProvider: jest.fn(() => ({
         protocolId: 'hyperliquid',
       })),
+      recordMarketViewed: jest.fn(),
     },
   },
 }));
@@ -163,6 +164,9 @@ jest.mock('../../hooks', () => ({
         marketTypeFilter: 'all',
         setMarketTypeFilter: jest.fn(),
       },
+      recentlyViewedState: {
+        recentlyViewedMarketObjects: [],
+      },
       marketCounts: {
         crypto: 3, // Set to non-zero so tabs render
         stocks: 0,
@@ -244,6 +248,38 @@ jest.mock(
     };
   },
 );
+
+jest.mock('../../components/PerpsRecentlyViewedRail', () => {
+  const MockReact = jest.requireActual('react');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+  const MockPerpsRecentlyViewedRail = ({
+    markets,
+    onMarketPress,
+  }: {
+    markets: { symbol: string }[];
+    onMarketPress?: (market: { symbol: string }) => void;
+  }) =>
+    MockReact.createElement(
+      View,
+      { testID: 'perps-recently-viewed-rail-mock' },
+      markets.map((m) =>
+        MockReact.createElement(
+          TouchableOpacity,
+          {
+            key: m.symbol,
+            testID: `recently-viewed-row-${m.symbol}`,
+            onPress: () => onMarketPress?.(m),
+          },
+          MockReact.createElement(Text, null, m.symbol),
+        ),
+      ),
+    );
+  return {
+    __esModule: true,
+    default: MockPerpsRecentlyViewedRail,
+    RECENTLY_VIEWED_SOURCE_SECTION: 'recently_viewed',
+  };
+});
 
 jest.mock('../../components/PerpsMarketBalanceActions', () => {
   const MockReact = jest.requireActual('react');
@@ -395,6 +431,7 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(() => true),
   selectPerpsWatchlistMarkets: jest.fn(() => []),
+  selectPerpsRecentlyViewedMarkets: jest.fn(() => []),
   selectPerpsMarketFilterPreferences: jest.fn(() => ({
     optionId: 'volume',
     direction: 'desc',
@@ -402,8 +439,12 @@ jest.mock('../../selectors/perpsController', () => ({
 }));
 
 let mockWatchlistFlagEnabled = false;
+let mockRecentlyViewedFlagEnabled = false;
 jest.mock('../../selectors/featureFlags', () => ({
   selectPerpsWatchlistEnabledFlag: jest.fn(() => mockWatchlistFlagEnabled),
+  selectPerpsRecentlyViewedEnabledFlag: jest.fn(
+    () => mockRecentlyViewedFlagEnabled,
+  ),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
@@ -649,6 +690,7 @@ describe('PerpsMarketListView', () => {
 
     // Reset watchlist flag so each test starts with it off
     mockWatchlistFlagEnabled = false;
+    mockRecentlyViewedFlagEnabled = false;
 
     // Set mock market data for the hook
     mockMarketDataForHook.length = 0;
@@ -860,6 +902,9 @@ describe('PerpsMarketListView', () => {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
         },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
         marketCounts: {
           crypto: 3,
           stocks: 0,
@@ -914,6 +959,9 @@ describe('PerpsMarketListView', () => {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
         },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
         marketCounts: {
           crypto: 3,
           stocks: 0,
@@ -963,6 +1011,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 3,
@@ -1026,6 +1077,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 3,
@@ -1094,6 +1148,9 @@ describe('PerpsMarketListView', () => {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
         },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
         marketCounts: {
           crypto: 3,
           stocks: 0,
@@ -1157,6 +1214,9 @@ describe('PerpsMarketListView', () => {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
         },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
         marketCounts: {
           crypto: 3,
           stocks: 0,
@@ -1209,6 +1269,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 3,
@@ -1266,6 +1329,9 @@ describe('PerpsMarketListView', () => {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
         },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
         marketCounts: {
           crypto: 3,
           stocks: 0,
@@ -1321,6 +1387,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 3,
@@ -1637,6 +1706,9 @@ describe('PerpsMarketListView', () => {
           marketTypeFilter: 'all' as const,
           setMarketTypeFilter: jest.fn(),
         },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
+        },
         marketCounts: {
           crypto: 1,
           stocks: 0,
@@ -1670,6 +1742,135 @@ describe('PerpsMarketListView', () => {
     });
   });
 
+  describe('Recently Viewed Rail', () => {
+    const { PerpsController: mockPerpsController } = jest.requireMock(
+      '../../../../../core/Engine',
+    ).context;
+
+    type HookReturn = ReturnType<typeof mockUsePerpsMarketListView>;
+
+    const buildHookReturn = (
+      overrides: {
+        searchQuery?: string;
+        showFavoritesOnly?: boolean;
+        recentlyViewedMarketObjects?: PerpsMarketData[];
+      } = {},
+    ): HookReturn => ({
+      markets: mockMarketData,
+      searchState: {
+        searchQuery: overrides.searchQuery ?? '',
+        setSearchQuery: mockSetSearchQuery,
+        clearSearch: mockClearSearch,
+      },
+      sortState: {
+        selectedOptionId: 'volume',
+        sortBy: 'volume',
+        direction: 'desc',
+        handleOptionChange: jest.fn(),
+      },
+      favoritesState: {
+        showFavoritesOnly: overrides.showFavoritesOnly ?? false,
+        setShowFavoritesOnly: jest.fn(),
+        hasWatchlistMarkets: false,
+        watchlistMarketObjects: [],
+        suggestedMarkets: [],
+      },
+      marketTypeFilterState: {
+        marketTypeFilter: 'all',
+        setMarketTypeFilter: jest.fn(),
+      },
+      recentlyViewedState: {
+        recentlyViewedMarketObjects: overrides.recentlyViewedMarketObjects ?? [
+          mockMarketData[1],
+        ],
+      },
+      marketCounts: {
+        crypto: 3,
+        stocks: 0,
+        'pre-ipo': 0,
+        indices: 0,
+        etfs: 0,
+        commodities: 0,
+        forex: 0,
+        new: 0,
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    beforeEach(() => {
+      mockRecentlyViewedFlagEnabled = true;
+    });
+
+    it('does not render the rail when the recently-viewed feature flag is OFF', () => {
+      mockRecentlyViewedFlagEnabled = false;
+      mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId('perps-recently-viewed-rail-mock'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the rail with recently viewed markets when the flag is ON', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId('perps-recently-viewed-rail-mock'),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('recently-viewed-row-ETH')).toBeOnTheScreen();
+    });
+
+    it('hides the rail while a search query is active', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({ searchQuery: 'BT' }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId('perps-recently-viewed-rail-mock'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the rail while the watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({ showFavoritesOnly: true }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.queryByTestId('perps-recently-viewed-rail-mock'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('records the view and navigates with source_section=recently_viewed when a rail pill is pressed', () => {
+      mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getByTestId('recently-viewed-row-ETH'));
+
+      expect(mockPerpsController.recordMarketViewed).toHaveBeenCalledWith(
+        'ETH',
+      );
+      expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            params: expect.objectContaining({
+              source_section: 'recently_viewed',
+            }),
+          }),
+        }),
+      );
+    });
+  });
+
   describe('Edge Cases', () => {
     it('filters markets with whitespace-only query', async () => {
       mockSearchQuery = '   ';
@@ -1698,6 +1899,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilterState: {
           marketTypeFilter: 'all',
           setMarketTypeFilter: jest.fn(),
+        },
+        recentlyViewedState: {
+          recentlyViewedMarketObjects: [],
         },
         marketCounts: {
           crypto: 3,

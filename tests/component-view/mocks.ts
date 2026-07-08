@@ -488,6 +488,7 @@ jest.mock('../../app/core/Engine', () => {
         markTutorialCompleted: jest.fn(),
         resetFirstTimeUserState: jest.fn(),
         clearPendingTransactionRequests: jest.fn(),
+        recordMarketViewed: jest.fn(),
       },
     },
     controllerMessenger: {

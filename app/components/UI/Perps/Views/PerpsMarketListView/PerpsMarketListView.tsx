@@ -25,12 +25,18 @@ import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFie
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
+import PerpsRecentlyViewedRail, {
+  RECENTLY_VIEWED_SOURCE_SECTION,
+} from '../../components/PerpsRecentlyViewedRail';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
   usePerpsNavigation,
 } from '../../hooks';
-import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsWatchlistEnabledFlag,
+  selectPerpsRecentlyViewedEnabledFlag,
+} from '../../selectors/featureFlags';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
 import styleSheet from './PerpsMarketListView.styles';
@@ -49,6 +55,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
@@ -90,6 +97,9 @@ const PerpsMarketListView = ({
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  const isRecentlyViewedEnabled = useSelector(
+    selectPerpsRecentlyViewedEnabledFlag,
+  );
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
@@ -100,6 +110,7 @@ const PerpsMarketListView = ({
     sortState,
     favoritesState,
     marketTypeFilterState,
+    recentlyViewedState,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
@@ -128,16 +139,27 @@ const PerpsMarketListView = ({
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
 
+  // Destructure recently viewed state
+  const { recentlyViewedMarketObjects } = recentlyViewedState;
+
   // Handler for market press (defined early to avoid use-before-define)
   const handleMarketPress = useCallback(
-    (market: PerpsMarketData) => {
+    (market: PerpsMarketData, sourceSectionOverride?: string) => {
+      // Record the view for the Recently Viewed rail regardless of entry path
+      // (direct navigation or a custom onMarketSelect consumer).
+      Engine.context.PerpsController.recordMarketViewed(market.symbol);
+
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        // Compute source_section so asset_details can include it in PERPS_SCREEN_VIEWED
+        // Compute source_section so asset_details can include it in PERPS_SCREEN_VIEWED.
+        // Callers like the Recently Viewed rail pass an explicit override since
+        // that section is orthogonal to the current search/watchlist/category state.
         let source_section: string;
         const trimmedQuery = searchQuery.trim();
-        if (trimmedQuery) {
+        if (sourceSectionOverride) {
+          source_section = sourceSectionOverride;
+        } else if (trimmedQuery) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ACTIVE_SEARCH;
         } else if (showFavoritesOnly) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST;
@@ -502,6 +524,19 @@ const PerpsMarketListView = ({
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}
+
+      {isRecentlyViewedEnabled &&
+        !isLoadingMarkets &&
+        !error &&
+        !searchQuery.trim() &&
+        !(isWatchlistEnabled && showFavoritesOnly) && (
+          <PerpsRecentlyViewedRail
+            markets={recentlyViewedMarketObjects}
+            onMarketPress={(market) =>
+              handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
+            }
+          />
+        )}
 
       {/* Market List - Single list with JavaScript filtering */}
       <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
