@@ -230,6 +230,42 @@ describe('determinePreferredProvider', () => {
     });
   });
 
+  describe('fallbackToFirstAvailable (widened provider scope)', () => {
+    it('returns the first available provider (autoSelected true) when no order/native signal', () => {
+      const providers = [mockProvider1, mockProvider2];
+
+      const result = determinePreferredProvider([], providers, {
+        fallbackToFirstAvailable: true,
+      });
+
+      expect(result).toEqual({
+        provider: mockProvider1,
+        autoSelected: true,
+      });
+    });
+
+    it('still prefers Transak over the first-available fallback', () => {
+      const providers = [mockProvider1, mockProvider2, mockTransakProvider];
+
+      const result = determinePreferredProvider([], providers, {
+        fallbackToFirstAvailable: true,
+      });
+
+      expect(result).toEqual({
+        provider: mockTransakProvider,
+        autoSelected: false,
+      });
+    });
+
+    it('returns null when there are no providers even with the fallback', () => {
+      const result = determinePreferredProvider([], [], {
+        fallbackToFirstAvailable: true,
+      });
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('provider matching', () => {
     it('matches provider by id case-insensitively', () => {
       const completedOrders = [{ providerId: 'PROVIDER-1', completedAt: 1000 }];

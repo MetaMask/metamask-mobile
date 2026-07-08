@@ -77,17 +77,26 @@ export interface PreferredProviderResult {
  * Fallback order:
  * 1. Provider from most recent completed order (autoSelected: false)
  * 2. Transak (autoSelected: false)
- * 3. null — no preselection; wait for the user to pick a token, then
- * choose the first provider that supports it.
+ * 3. When `fallbackToFirstAvailable` is set (widened provider scope): the first
+ * available provider (autoSelected: true), so non-native regions (e.g. New
+ * York, aggregator-only) get a selection and can load payment methods.
+ * 4. null — no preselection; wait for the user to pick a token, then choose the
+ * first provider that supports it.
  *
  * @param completedOrders - Completed orders from any source (legacy + controller)
  * @param availableProviders - Available providers from RampsController
+ * @param options - Selection options.
+ * @param options.fallbackToFirstAvailable - When true, fall back to the first
+ * available provider instead of returning null. Set by callers under a widened
+ * (non-`off`) provider scope, where aggregator-only regions must still resolve a
+ * provider for the fiat deposit flow.
  * @returns The preferred provider with its selection source, or null if no
  * providers are available or no signal exists to pick one.
  */
 export function determinePreferredProvider(
   completedOrders: CompletedOrderInfo[],
   availableProviders: Provider[],
+  options: { fallbackToFirstAvailable?: boolean } = {},
 ): PreferredProviderResult | null {
   if (availableProviders.length === 0) {
     return null;
@@ -117,6 +126,10 @@ export function determinePreferredProvider(
 
   if (transakProvider) {
     return { provider: transakProvider, autoSelected: false };
+  }
+
+  if (options.fallbackToFirstAvailable) {
+    return { provider: availableProviders[0], autoSelected: true };
   }
 
   return null;

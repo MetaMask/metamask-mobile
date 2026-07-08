@@ -17,6 +17,7 @@ import {
 import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { getOrders } from '../../../../reducers/fiatOrders';
 import { rampsQueries } from '../queries';
+import { getEffectiveProviderScope } from '../utils/providerScope';
 
 /**
  * Result returned by the useRampsProviders hook.
@@ -77,6 +78,7 @@ export function useRampsProviders(options?: {
 
   const userRegion = useSelector(selectUserRegion);
   const regionCode = userRegion?.regionCode ?? '';
+  const providerScope = useSelector(getEffectiveProviderScope);
   const queryClient = useQueryClient();
 
   // Mark all ramp queries as stale when region changes so that switching
@@ -142,7 +144,13 @@ export function useRampsProviders(options?: {
       providers.length > 0 &&
       !selectedProvider
     ) {
-      const result = determinePreferredProvider(completedOrders, providers);
+      // Under a widened provider scope (in-app/all), fall back to the first
+      // available provider when there is no prior-order/native signal, so
+      // aggregator-only regions (e.g. New York) resolve a provider and can load
+      // payment methods for the fiat deposit flow.
+      const result = determinePreferredProvider(completedOrders, providers, {
+        fallbackToFirstAvailable: providerScope !== 'off',
+      });
       if (result) {
         (
           Engine.context.RampsController as {
@@ -156,7 +164,13 @@ export function useRampsProviders(options?: {
         });
       }
     }
-  }, [enableSideEffects, providers, selectedProvider, completedOrders]);
+  }, [
+    enableSideEffects,
+    providers,
+    selectedProvider,
+    completedOrders,
+    providerScope,
+  ]);
 
   let error: string | null = null;
 

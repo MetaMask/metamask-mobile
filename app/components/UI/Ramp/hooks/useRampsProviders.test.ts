@@ -329,6 +329,9 @@ describe('useRampsProviders', () => {
       expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
         expect.any(Array),
         mockProviders,
+        expect.objectContaining({
+          fallbackToFirstAvailable: expect.any(Boolean),
+        }),
       );
     });
 
