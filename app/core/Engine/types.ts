@@ -1034,7 +1034,6 @@ export type MessengerClientsToInitialize =
   | 'TokenRatesController'
   | 'TokensController'
   | 'TokenSearchDiscoveryDataController'
-  | 'TransactionController'
   | 'TransactionPayController'
   | 'PermissionController'
   | 'PerpsController'

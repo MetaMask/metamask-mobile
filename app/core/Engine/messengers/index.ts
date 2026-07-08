@@ -35,10 +35,6 @@ import { getMultichainBalancesControllerMessenger } from './multichain-balances-
 import { getMultichainTransactionsControllerMessenger } from './multichain-transactions-controller-messenger/multichain-transactions-controller-messenger';
 import { getSnapAccountServiceMessenger } from './snap-account-service-messenger/snap-account-service-messenger';
 ///: END:ONLY_INCLUDE_IF
-import {
-  getTransactionControllerInitMessenger,
-  getTransactionControllerMessenger,
-} from './transaction-controller-messenger';
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
 import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
@@ -204,10 +200,6 @@ export const MESSENGER_FACTORIES = {
   TokensController: {
     getMessenger: getTokensControllerMessenger,
     getInitMessenger: getTokensControllerInitMessenger,
-  },
-  TransactionController: {
-    getMessenger: getTransactionControllerMessenger,
-    getInitMessenger: getTransactionControllerInitMessenger,
   },
   TransactionPayController: {
     getMessenger: getTransactionPayControllerMessenger,
