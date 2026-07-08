@@ -182,22 +182,6 @@ export default class PlaywrightMatchers {
       .replace(/\\D/g, '[^0-9]');
   }
 
-  private static wrapElementAtIndex(
-    elements: ChainablePromiseElement[],
-    index: number,
-    targetDescription: string,
-  ): PlaywrightElement {
-    const element = elements[index] as unknown as
-      | ChainablePromiseElement
-      | undefined;
-    if (!element) {
-      throw new Error(
-        `No element at index ${index} for ${targetDescription} (found ${elements.length} match(es)).`,
-      );
-    }
-    return wrapElement(element);
-  }
-
   /**
    * Resolves an indexed element from a multi-match locator.
    * When `$$` returns no matches, falls back to a lazy `$` ref so negative
@@ -212,19 +196,20 @@ export default class PlaywrightMatchers {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const elements = await drv.$$(locator);
+    const matchCount = await elements.length;
     const element = elements[index] as unknown as
       | ChainablePromiseElement
       | undefined;
     if (element) {
       return wrapElement(element);
     }
-    if (elements.length === 0) {
+    if (matchCount === 0) {
       return wrapElement(
         (await drv.$(locator)) as unknown as ChainablePromiseElement,
       );
     }
     throw new Error(
-      `No element at index ${index} for ${targetDescription} (found ${elements.length} match(es)).`,
+      `No element at index ${index} for ${targetDescription} (found ${matchCount} match(es)).`,
     );
   }
 
