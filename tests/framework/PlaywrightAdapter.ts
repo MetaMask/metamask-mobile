@@ -69,6 +69,22 @@ export class PlaywrightElement {
   }
 
   /**
+   * Detox-compatible alias for textContent (used by WebView page objects).
+   */
+  @boxedStep
+  async getText(): Promise<string> {
+    return this.textContent();
+  }
+
+  /**
+   * Scroll element into view inside a WebView (Detox scrollToView equivalent).
+   */
+  @boxedStep
+  async scrollToView(): Promise<void> {
+    await this.elem.scrollIntoView();
+  }
+
+  /**
    * Check if elem is visible (Playwright-style)
    * Maps to WebdriverIO's isDisplayed()
    */

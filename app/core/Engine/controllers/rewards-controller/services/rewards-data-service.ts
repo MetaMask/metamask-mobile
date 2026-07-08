@@ -1662,12 +1662,14 @@ export class RewardsDataService {
    * @param subscriptionId - The subscription ID for authentication.
    * @param benefitId - The benefit ID to record impression for.
    * @param benefitType - The benefit type to record impression for.
+   * @param walletAddress - The wallet address that viewed the benefit. Optional; omitted from the body when not provided.
    * @returns Promise that resolves when the impression is recorded successfully.
    */
   async postBenefitImpression(
     subscriptionId: string,
     benefitId: number,
     benefitType: number,
+    walletAddress?: string,
   ): Promise<void> {
     const response = await this.makeRequest(
       `/benefits/impression`,
@@ -1676,6 +1678,7 @@ export class RewardsDataService {
         body: JSON.stringify({
           benefitId,
           benefitType,
+          ...(walletAddress ? { walletAddress } : {}),
         }),
       },
       subscriptionId,

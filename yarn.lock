@@ -7958,15 +7958,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@metamask/ai-controllers@npm:0.7.0"
+"@metamask/ai-controllers@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@metamask/ai-controllers@npm:0.8.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/129d02a26595f16362c6bb1905ef3885b369529eb0a174da46ed7add5fd1d6ffa4d00ba29e09f7583ef70a299dc99f33c82efc45eeea08ab7e5e712c4a3dc11d
+    "@metamask/utils": "npm:^11.11.0"
+  checksum: 10/a3afa17519d91d72b8c4cf4d85540d59c02b11a95e8dd55799448e49f89cd577a63c72016f9b88e8430173327f5d4f55743b897e3760940b07806f04815de5f2
   languageName: node
   linkType: hard
 
@@ -8232,10 +8232,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bitcoin-wallet-snap@npm:^1.14.0":
-  version: 1.14.1
-  resolution: "@metamask/bitcoin-wallet-snap@npm:1.14.1"
-  checksum: 10/011a36d1ea1de224c5e5df19a34dce9ed072a6b34a29b87a5adef0c7e4d8d39f7695ffc6640ed147e5e0761a1d9c814f9bcf01d566c6d19ede7bc136f425d0e5
+"@metamask/bitcoin-wallet-snap@npm:^1.14.2":
+  version: 1.14.2
+  resolution: "@metamask/bitcoin-wallet-snap@npm:1.14.2"
+  checksum: 10/1d109536bdbf2e840eb0ce7867c5c1c2416946b8e5d003b05d1b23a579eaa8c8ee023703e7c87f4096833806e8309ca1eb846cde5a450c28b0ae9f81c6abf561
   languageName: node
   linkType: hard
 
@@ -8552,12 +8552,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.33.0":
-  version: 0.33.0
-  resolution: "@metamask/design-system-react-native@npm:0.33.0"
+"@metamask/design-system-react-native@npm:^0.34.0":
+  version: 0.34.0
+  resolution: "@metamask/design-system-react-native@npm:0.34.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.27.0"
-    fast-text-encoding: "npm:^1.0.6"
+    "@metamask/design-system-shared": "npm:^0.28.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.7.0
@@ -8567,20 +8566,21 @@ __metadata:
     react: ">=18.2.0"
     react-native: ">=0.76.0"
     react-native-gesture-handler: ">=2.25.0"
-    react-native-reanimated: ">=3.17.0"
+    react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/19ac65ab820a620d974cca91498669c2feb7e8a0d7d716fb52fd83d9c63acb78ad3c6511e477e752082b4f34b5ae63b67acc24e134ef9941b04fb34ea2942c0b
+    react-native-worklets: ">=0.7.4"
+  checksum: 10/c9538ebb2deb857fb02ba5ff60a7c14ee6d850803f535674981dba8d82ca4dde0aa9aaef932d362e41c0d2ec9e77a74cddcc21801c6b6b1ac8c6563794c42e48
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.27.0":
-  version: 0.27.0
-  resolution: "@metamask/design-system-shared@npm:0.27.0"
+"@metamask/design-system-shared@npm:^0.28.0":
+  version: 0.28.0
+  resolution: "@metamask/design-system-shared@npm:0.28.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/2c8b211baa3f8ba30c8c619716c9581eae10335a9fcaa9080b199ea99e82384fc370a2934209b1d7b14390aec9d8957fc99982f3cd2c41e4904d00582f90c971
+  checksum: 10/5a478a1e7da1648a8ecc9ed94d74ebbbc4ff34921f93d3bdd0f64fbe2bd048fe3f6a93ce7d8be8f928471b5630486899eccd0d83d1dfacef6a0087174ab34f52
   languageName: node
   linkType: hard
 
@@ -9283,6 +9283,27 @@ __metadata:
   version: 1.1.2
   resolution: "@metamask/message-signing-snap@npm:1.1.2"
   checksum: 10/99970642e6bbcb4dbfeb9defbc286ce92f992d11c542000ea761c5c892b2fbac5fdee9d5c6c8f8df05666322848ab7bb510289780959a14fbb390d556fd63f19
+  languageName: node
+  linkType: hard
+
+"@metamask/messenger-cli@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/messenger-cli@npm:0.2.0"
+  dependencies:
+    "@metamask/utils": "npm:^11.9.0"
+    yargs: "npm:^17.7.2"
+  peerDependencies:
+    oxfmt: ^0.44.0
+    prettier: ^3.0.0
+    typescript: ">=5.0.0"
+  peerDependenciesMeta:
+    oxfmt:
+      optional: true
+    prettier:
+      optional: true
+  bin:
+    messenger-action-types: ./dist/cli.mjs
+  checksum: 10/db8e10215f45d42d165cb85cdbb666956d2cd208fedf65c041f278b5b278aaeec18ad62d0146e0dacac069c145cd1892d84fa9d90e764d544c828bd50b5349fe
   languageName: node
   linkType: hard
 
@@ -10372,10 +10393,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^2.9.1":
-  version: 2.9.1
-  resolution: "@metamask/solana-wallet-snap@npm:2.9.1"
-  checksum: 10/231656d193d49a15fe31048bde73f8c9bb60fa930c574a746b2b7882087040f8f2e83d21805de7f8f04000aec47ce61f36261156278efdd624c19fb9bcb90065
+"@metamask/solana-wallet-snap@npm:^2.10.0":
+  version: 2.10.0
+  resolution: "@metamask/solana-wallet-snap@npm:2.10.0"
+  checksum: 10/cb62950bbba0bc23974f0f50597382fb35ff4c0778d863911b872913cb667e1ca11fcdc0a6b808ccfeb8185ce0a467ea85ff7298a086e68b11eb2e9edbab8c39
   languageName: node
   linkType: hard
 
@@ -10559,10 +10580,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.28.0":
-  version: 1.28.0
-  resolution: "@metamask/tron-wallet-snap@npm:1.28.0"
-  checksum: 10/e8fe563735e0fca306cd1caa2cde45b193d0f09f7a3da545be24eee55a64f1ff239a7460ad9c4a0c6b67552a1423ef18328350a4b76a2409a1fbe609f69b8769
+"@metamask/tron-wallet-snap@npm:^1.29.0":
+  version: 1.29.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.29.0"
+  checksum: 10/8afc50c84215f63ae1d8ab985ff682f2a5d3b16cf15bb50f12c7d1d95df8e60d29881dbe13858941655e2163410dccba6b609307a4a3fb85458c042f799a6bb8
   languageName: node
   linkType: hard
 
@@ -29790,7 +29811,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-text-encoding@npm:1.0.6, fast-text-encoding@npm:^1.0.6":
+"fast-text-encoding@npm:1.0.6":
   version: 1.0.6
   resolution: "fast-text-encoding@npm:1.0.6"
   checksum: 10/f7b9e2e7a21e4ae5f4b8d3729850be83fb45052b28c9c38c09b8366463a291d6dc5448359238bdaf87f6a9e907d5895a94319a2c5e0e9f0786859ad6312d1d06
@@ -35502,7 +35523,7 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^7.5.0"
     "@metamask/accounts-controller": "npm:^39.0.2"
     "@metamask/address-book-controller": "npm:^7.1.2"
-    "@metamask/ai-controllers": "npm:^0.7.0"
+    "@metamask/ai-controllers": "npm:^0.8.0"
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
@@ -35511,7 +35532,7 @@ __metadata:
     "@metamask/authenticated-user-storage": "npm:^3.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/bitcoin-wallet-snap": "npm:^1.14.0"
+    "@metamask/bitcoin-wallet-snap": "npm:^1.14.2"
     "@metamask/bitcoin-wallet-standard": "npm:^1.0.0"
     "@metamask/bridge-controller": "npm:^77.3.0"
     "@metamask/bridge-status-controller": "npm:^74.0.2"
@@ -35528,7 +35549,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.33.0"
+    "@metamask/design-system-react-native": "npm:^0.34.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.7.0"
     "@metamask/design-tokens": "npm:^8.7.0"
     "@metamask/earn-controller": "npm:^12.1.0"
@@ -35567,6 +35588,7 @@ __metadata:
     "@metamask/logging-controller": "npm:^8.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/messenger-cli": "npm:^0.2.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
@@ -35620,7 +35642,7 @@ __metadata:
     "@metamask/snaps-sdk": "npm:^11.1.1"
     "@metamask/snaps-utils": "npm:^12.2.0"
     "@metamask/social-controllers": "npm:2.3.1"
-    "@metamask/solana-wallet-snap": "npm:^2.9.1"
+    "@metamask/solana-wallet-snap": "npm:^2.10.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/storage-service": "npm:^1.0.0"
@@ -35632,7 +35654,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^68.2.0"
     "@metamask/transaction-pay-controller": "npm:^23.17.4"
-    "@metamask/tron-wallet-snap": "npm:^1.28.0"
+    "@metamask/tron-wallet-snap": "npm:^1.29.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^6.0.0"
     "@myx-trade/sdk": "npm:^0.1.265"
