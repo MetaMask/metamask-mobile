@@ -81,9 +81,8 @@ export default class PlaywrightMatchers {
       const drv = getDriver();
       if (!drv) throw new Error('Driver is not available');
       if (options.index !== undefined) {
-        const elements = await drv.$$(locator);
-        return this.wrapElementAtIndex(
-          elements as unknown as ChainablePromiseElement[],
+        return this.resolveIndexedElementByLocator(
+          locator,
           options.index,
           `resource id pattern ${elementId.source}`,
         );
@@ -111,9 +110,8 @@ export default class PlaywrightMatchers {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     if (options.index !== undefined) {
-      const elements = await drv.$$(locator);
-      return this.wrapElementAtIndex(
-        elements as unknown as ChainablePromiseElement[],
+      return this.resolveIndexedElementByLocator(
+        locator,
         options.index,
         `id ${String(elementId)}`,
       );
@@ -198,6 +196,36 @@ export default class PlaywrightMatchers {
       );
     }
     return wrapElement(element);
+  }
+
+  /**
+   * Resolves an indexed element from a multi-match locator.
+   * When `$$` returns no matches, falls back to a lazy `$` ref so negative
+   * assertions (e.g. expectElementToNotBeVisible) can poll until absent.
+   * Throws when matches exist but the requested index is out of range.
+   */
+  private static async resolveIndexedElementByLocator(
+    locator: string,
+    index: number,
+    targetDescription: string,
+  ): Promise<PlaywrightElement> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const elements = await drv.$$(locator);
+    const element = elements[index] as unknown as
+      | ChainablePromiseElement
+      | undefined;
+    if (element) {
+      return wrapElement(element);
+    }
+    if (elements.length === 0) {
+      return wrapElement(
+        (await drv.$(locator)) as unknown as ChainablePromiseElement,
+      );
+    }
+    throw new Error(
+      `No element at index ${index} for ${targetDescription} (found ${elements.length} match(es)).`,
+    );
   }
 
   /**
