@@ -3,8 +3,9 @@
 # Three sequential stages in one job, sharing files under .ai-pr-analyzer/
 # on the runner (no artifact upload/download):
 #
-#   1. Deterministic history — flaky-history-analysis.ts samples the last 10
-#      completed ci.yml runs on main, per modified test file.
+#   1. Deterministic history — flaky-history-analysis.ts counts how often each
+#      modified test file failed on main over the last 365 days of completed
+#      ci.yml runs, bucketed into 7d/30d/90d/365d windows.
 #      → writes .ai-pr-analyzer/flaky-history.json
 #
 #   2. AI analyzer — MetaMask/ai-analyzer's flaky-unit-test-analysis mode
@@ -68,10 +69,11 @@ jobs:
           command: cd .github/scripts && yarn --immutable
 
       # Stage 1: deterministic historical analysis. Identifies modified unit
-      # test files and checks their failure rate over the last 10 completed
-      # ci.yml runs on main (failure+success runs only; cancelled/timed_out
-      # are excluded from the denominator). Never hard-fails — writes an
-      # empty-but-valid JSON artifact when there is nothing to analyze.
+      # test files and counts their failures on main over the last 365 days of
+      # completed ci.yml runs, bucketed into 7d/30d/90d/365d windows
+      # (failure+success runs only; cancelled/timed_out are excluded from the
+      # denominator). Never hard-fails — writes an empty-but-valid JSON
+      # artifact when there is nothing to analyze.
       - name: Detect modified unit test files and historical failure rate
         id: detect-history
         working-directory: .github/scripts

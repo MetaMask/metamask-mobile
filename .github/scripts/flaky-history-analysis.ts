@@ -1,10 +1,10 @@
 /**
  * Stage 1 — Deterministic historical analysis (MCWP-474).
  *
- * Identifies Jest unit test files modified in the PR and checks their
- * historical failure rate over the last RUNS_TO_SAMPLE completed ci.yml
- * runs on main. Writes a machine-readable JSON artifact consumed by Stage 2
- * (AI analyzer) and Stage 3 (sticky PR comment).
+ * Identifies Jest unit test files modified in the PR and counts how often each
+ * one failed on main over the last LOOKBACK_DAYS of completed ci.yml runs,
+ * bucketed into 7d/30d/90d/365d windows. Writes a machine-readable JSON
+ * artifact consumed by Stage 2 (AI analyzer) and Stage 3 (sticky PR comment).
  *
  * Historical failure is a HINT, not proof — a file can be flagged here with
  * zero AI findings, or have AI findings with no historical signal.
@@ -24,13 +24,30 @@ const WORKFLOW = 'ci.yml';
 // lines in the raw job logs, which covers all unit-test shards regardless of
 // the exact job name.
 const JOB_NAME = 'Unit tests';
-// 10 runs is enough to compute a meaningful rate at the 20% threshold (2/10)
-// while keeping the total `gh run view --log-failed` cost bounded (~10 API
-// calls per PR). Bumping this raises API cost linearly.
-const RUNS_TO_SAMPLE = 10;
-// 20% comes from the Jira acceptance criteria. Rounded down to the nearest
-// integer failure count against RUNS_TO_SAMPLE, so at 10 runs this means
-// "flagged when >= 2 out of 10 recent runs on main failed for this file."
+// How far back the historical window extends. Failures are bucketed into the
+// nested windows below, so a failure 5 days ago counts in all four windows and
+// one 200 days ago counts only in the 365d bucket.
+const LOOKBACK_DAYS = 365;
+const WINDOWS_DAYS = [7, 30, 90, 365] as const;
+type WindowKey = `${(typeof WINDOWS_DAYS)[number]}d`;
+const WINDOW_KEYS = WINDOWS_DAYS.map((d) => `${d}d` as WindowKey);
+type WindowCounts = Record<WindowKey, number>;
+// Listing runs is cheap (metadata only, 100 per page); the created>= filter is
+// the real bound. This cap is just a safety valve against an unbounded page
+// walk on an extremely busy repo.
+const MAX_RUNS_LISTED = 3000;
+// Downloading a run's failed-step log is the expensive part (one
+// `gh run view --log-failed` per failed run). Bound the total and process
+// failed runs newest-first so the short windows (7d/30d) stay accurate even if
+// an unusually red year exceeds the cap — only the oldest 365d tail is then
+// undercounted.
+const MAX_FAILED_LOG_FETCHES = 200;
+// A window needs at least this many countable runs before its failure rate is
+// trusted for the flaky flag, so a single early failure in a nearly-empty
+// window cannot flag the file on its own.
+const MIN_RUNS_FOR_RATE = 5;
+// 20% comes from the Jira acceptance criteria: a file is flagged flaky when its
+// failure rate reaches this threshold in any window with enough sampled runs.
 const FLAKY_THRESHOLD_PERCENT = 20;
 
 // GITHUB_WORKSPACE is always set in Actions; fall back to process.cwd() so
@@ -41,13 +58,12 @@ const OUTPUT_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
 interface WorkflowRun {
   id: number;
   conclusion: string | null;
+  createdAt: string;
 }
 
 interface HistoryFile {
   path: string;
-  failures: number;
-  runsSampled: number;
-  failureRatePercent: number;
+  failures: WindowCounts;
   flaky: boolean;
   runHistoryUrl: string;
 }
@@ -57,9 +73,26 @@ interface HistoryResult {
   workflow: string;
   job: string;
   branch: string;
-  runsSampled: number;
+  lookbackDays: number;
+  windows: number[];
+  // Denominator per window (identical across files: it only counts how many
+  // countable runs happened in each window, independent of the file).
+  runsSampled: WindowCounts;
   threshold: number;
   files: HistoryFile[];
+}
+
+function emptyWindowCounts(): WindowCounts {
+  return WINDOW_KEYS.reduce((acc, key) => {
+    acc[key] = 0;
+    return acc;
+  }, {} as WindowCounts);
+}
+
+// The windows a run of the given age (in days) contributes to — every window
+// at least as wide as the run's age.
+function windowKeysForAge(ageDays: number): WindowKey[] {
+  return WINDOWS_DAYS.filter((d) => ageDays <= d).map((d) => `${d}d` as WindowKey);
 }
 
 const env = {
@@ -99,24 +132,36 @@ function getModifiedUnitTestFiles(): string[] {
     .filter((f) => !EXCLUDE_PATTERNS.some((pattern) => pattern.test(f)));
 }
 
-async function getRecentCompletedRuns(
+async function getCompletedRunsInLookback(
   octokit: ReturnType<typeof getOctokit>,
 ): Promise<WorkflowRun[]> {
   const [owner, repo] = env.repo.split('/');
+  const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  const runs: WorkflowRun[] = [];
   try {
-    const { data } = await octokit.rest.actions.listWorkflowRuns({
+    // paginate.iterator walks the Link header page-by-page so we can stop at
+    // MAX_RUNS_LISTED instead of buffering the whole (potentially huge) year.
+    const iterator = octokit.paginate.iterator(octokit.rest.actions.listWorkflowRuns, {
       owner,
       repo,
       workflow_id: WORKFLOW,
       branch: 'main',
       status: 'completed',
-      per_page: RUNS_TO_SAMPLE,
+      created: `>=${since}`,
+      per_page: 100,
     });
-    return data.workflow_runs.map((r) => ({ id: r.id, conclusion: r.conclusion }));
+    for await (const { data } of iterator) {
+      for (const r of data) {
+        runs.push({ id: r.id, conclusion: r.conclusion, createdAt: r.created_at });
+        if (runs.length >= MAX_RUNS_LISTED) return runs;
+      }
+    }
   } catch (error) {
     core.warning(`listWorkflowRuns failed: ${(error as Error).message}`);
-    return [];
   }
+  return runs;
 }
 
 // Extracts every `FAIL <path>` line Jest emits at the top of a failed test
@@ -140,49 +185,70 @@ function getFailedTestFilesForRun(runId: number): string[] {
 }
 
 // Intersects failed-file names from the sampled runs with the PR's modified
-// files. The denominator is failure+success runs only — cancelled/timed_out
-// runs don't tell us whether the test suite passed, so counting them inflates
-// the sample size and deflates the failure rate.
-function buildHistory(modifiedFiles: string[], runs: WorkflowRun[]): HistoryFile[] {
+// files, bucketing each failure into every window it falls in. The denominator
+// is failure+success runs only — cancelled/timed_out runs don't tell us whether
+// the suite passed, so counting them inflates the sample and deflates the rate.
+function buildHistory(
+  modifiedFiles: string[],
+  runs: WorkflowRun[],
+): { files: HistoryFile[]; runsSampled: WindowCounts } {
+  const now = Date.now();
+  const ageInDays = (createdAt: string) =>
+    (now - new Date(createdAt).getTime()) / (24 * 60 * 60 * 1000);
+
   const countableRuns = runs.filter(
     (r) => r.conclusion === 'failure' || r.conclusion === 'success',
   );
-  const failedRuns = countableRuns.filter((r) => r.conclusion === 'failure');
-  const failureCounts = new Map<string, number>();
 
+  const runsSampled = emptyWindowCounts();
+  for (const run of countableRuns) {
+    for (const key of windowKeysForAge(ageInDays(run.createdAt))) runsSampled[key]++;
+  }
+
+  // Newest-first so the failed-log budget is spent on recent runs, keeping the
+  // short windows accurate if the cap is ever hit.
+  const failedRuns = countableRuns
+    .filter((r) => r.conclusion === 'failure')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, MAX_FAILED_LOG_FETCHES);
+
+  const failuresByFile = new Map<string, WindowCounts>();
   for (const run of failedRuns) {
-    const failedFiles = getFailedTestFilesForRun(run.id);
-    for (const file of failedFiles) {
+    const keys = windowKeysForAge(ageInDays(run.createdAt));
+    for (const file of getFailedTestFilesForRun(run.id)) {
       if (!modifiedFiles.includes(file)) continue;
-      failureCounts.set(file, (failureCounts.get(file) ?? 0) + 1);
+      if (!failuresByFile.has(file)) failuresByFile.set(file, emptyWindowCounts());
+      const counts = failuresByFile.get(file) as WindowCounts;
+      for (const key of keys) counts[key]++;
     }
   }
 
   const runHistoryUrl = `${env.serverUrl}/${env.repo}/actions/workflows/${WORKFLOW}?query=branch%3Amain`;
 
-  return modifiedFiles.map((path) => {
-    const failures = failureCounts.get(path) ?? 0;
-    const runsSampled = countableRuns.length;
-    const failureRatePercent =
-      runsSampled > 0 ? Math.round((failures / runsSampled) * 100) : 0;
-    return {
-      path,
-      failures,
-      runsSampled,
-      failureRatePercent,
-      flaky: failureRatePercent >= FLAKY_THRESHOLD_PERCENT,
-      runHistoryUrl,
-    };
+  const files = modifiedFiles.map((path) => {
+    const failures = failuresByFile.get(path) ?? emptyWindowCounts();
+    const flaky = WINDOW_KEYS.some((key) => {
+      const denominator = runsSampled[key];
+      return (
+        denominator >= MIN_RUNS_FOR_RATE &&
+        (failures[key] / denominator) * 100 >= FLAKY_THRESHOLD_PERCENT
+      );
+    });
+    return { path, failures, flaky, runHistoryUrl };
   });
+
+  return { files, runsSampled };
 }
 
-function writeHistoryFile(files: HistoryFile[], runsSampled: number): HistoryResult {
+function writeHistoryFile(files: HistoryFile[], runsSampled: WindowCounts): HistoryResult {
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   const result: HistoryResult = {
     generatedAt: new Date().toISOString(),
     workflow: WORKFLOW,
     job: JOB_NAME,
     branch: 'main',
+    lookbackDays: LOOKBACK_DAYS,
+    windows: [...WINDOWS_DAYS],
     runsSampled,
     threshold: FLAKY_THRESHOLD_PERCENT,
     files,
@@ -206,7 +272,7 @@ async function main(): Promise<void> {
   core.setOutput('files', modifiedFiles.join(' '));
 
   if (modifiedFiles.length === 0) {
-    writeHistoryFile([], 0);
+    writeHistoryFile([], emptyWindowCounts());
     console.log('💡 No modified unit test files — skipping history sampling');
     return;
   }
@@ -216,28 +282,24 @@ async function main(): Promise<void> {
     writeHistoryFile(
       modifiedFiles.map((path) => ({
         path,
-        failures: 0,
-        runsSampled: 0,
-        failureRatePercent: 0,
+        failures: emptyWindowCounts(),
         flaky: false,
         runHistoryUrl: `${env.serverUrl}/${env.repo}/actions/workflows/${WORKFLOW}?query=branch%3Amain`,
       })),
-      0,
+      emptyWindowCounts(),
     );
     return;
   }
 
   const octokit = getOctokit(env.token);
-  const runs = await getRecentCompletedRuns(octokit);
-  const countableRuns = runs.filter(
-    (r) => r.conclusion === 'failure' || r.conclusion === 'success',
-  );
+  const runs = await getCompletedRunsInLookback(octokit);
+  const { files, runsSampled } = buildHistory(modifiedFiles, runs);
   console.log(
-    `🔍 Sampled ${runs.length} completed ci.yml run(s) on main (${countableRuns.length} failure/success)`,
+    `🔍 Sampled ${runs.length} completed ci.yml run(s) on main over the last ${LOOKBACK_DAYS}d ` +
+      `(${runsSampled['365d']} failure/success within window)`,
   );
 
-  const files = buildHistory(modifiedFiles, runs);
-  const result = writeHistoryFile(files, countableRuns.length);
+  const result = writeHistoryFile(files, runsSampled);
 
   const flakyCount = files.filter((f) => f.flaky).length;
   console.log(

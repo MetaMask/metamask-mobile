@@ -37,16 +37,23 @@ const WORKSPACE_ROOT = process.env.GITHUB_WORKSPACE ?? process.cwd();
 const HISTORY_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
 const AI_ANALYSIS_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-ai-analysis.json');
 
+// Failure counts bucketed by lookback window (nested: a failure in 7d also
+// counts in 30d/90d/365d). Kept as a permissive Record so a future window edit
+// in Stage 1 doesn't require a matching type change here.
+type WindowCounts = Record<string, number>;
+
 interface HistoryFile {
   path: string;
-  failures: number;
-  runsSampled: number;
-  failureRatePercent: number;
+  failures: WindowCounts;
   flaky: boolean;
   runHistoryUrl: string;
 }
 
 interface HistoryArtifact {
+  windows?: number[];
+  // Denominator per window, shared across files (how many countable runs fell
+  // in each window). Used to render `failures/runs` cells.
+  runsSampled?: WindowCounts;
   files?: HistoryFile[];
 }
 
@@ -92,15 +99,30 @@ function readJsonOrEmpty<T>(path: string, emptyShape: T): T {
   }
 }
 
-function buildHistoryTable(flakyFiles: HistoryFile[]): string {
+// Fallback window set used only if the Stage 1 artifact predates the `windows`
+// field; the live artifact always supplies its own list.
+const DEFAULT_WINDOWS = [7, 30, 90, 365];
+
+function buildHistoryTable(
+  flakyFiles: HistoryFile[],
+  windows: number[],
+  runsSampled: WindowCounts,
+): string {
   if (flakyFiles.length === 0) return '';
+  const windowKeys = windows.map((d) => `${d}d`);
+  const header = `| File | ${windowKeys.join(' | ')} |`;
+  const divider = `|---|${windowKeys.map(() => '---|').join('')}`;
   const rows = flakyFiles
-    .map(
-      (f) =>
-        `| \`${f.path}\` | ${f.failures}/${f.runsSampled} | ${f.failureRatePercent}% | [Run history](${f.runHistoryUrl}) |`,
-    )
+    .map((f) => {
+      // `failures/runs` — failures for the file over the number of countable
+      // runs sampled in that window.
+      const cells = windowKeys
+        .map((key) => `${f.failures[key] ?? 0}/${runsSampled[key] ?? 0}`)
+        .join(' | ');
+      return `| \`${f.path}\` | ${cells} |`;
+    })
     .join('\n');
-  return `### Historical CI failure rate\n\n| File | Failures | Rate | |\n|---|---|---|---|\n${rows}\n`;
+  return `### Historical CI failures on main\n\nFailures / runs sampled per window (nested — a failure in 7d is also counted in 30d/90d/365d):\n\n${header}\n${divider}\n${rows}\n`;
 }
 
 function buildFindingsSection(findings: Finding[]): string {
@@ -136,23 +158,27 @@ function buildCommentBody({
   historyFiles,
   findings,
   runHistoryUrl,
+  windows,
+  runsSampled,
 }: {
   historyFiles: HistoryFile[];
   findings: Finding[];
   runHistoryUrl: string;
+  windows: number[];
+  runsSampled: WindowCounts;
 }): string {
   const flakyFiles = historyFiles.filter((f) => f.flaky);
-  const historyTable = buildHistoryTable(flakyFiles);
+  const historyTable = buildHistoryTable(flakyFiles, windows, runsSampled);
   const findingsSection = buildFindingsSection(findings);
 
   return `${MARKER}
 ## 🧪 Flaky unit test detection
 
 ${historyTable}
+[View recent run history](${runHistoryUrl})
+
 ${findingsSection}
 Historical failure rate is a hint, not proof — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
-
-[View recent run history](${runHistoryUrl})
 
 _This check is informational only and does not block merging._`;
 }
@@ -197,6 +223,8 @@ async function main(): Promise<void> {
   const aiAnalysis = readJsonOrEmpty<AiAnalysisArtifact>(AI_ANALYSIS_PATH, { findings: [] });
 
   const historyFiles = Array.isArray(history.files) ? history.files : [];
+  const windows = Array.isArray(history.windows) ? history.windows : DEFAULT_WINDOWS;
+  const runsSampled = history.runsSampled ?? {};
   const rawFindings = Array.isArray(aiAnalysis.findings) ? aiAnalysis.findings : [];
 
   // Post-hoc scope enforcement: the analyzer's tools (read_file, grep_codebase,
@@ -238,7 +266,7 @@ async function main(): Promise<void> {
         owner,
         repo,
         issue_number: env.prNumber,
-        body: buildCommentBody({ historyFiles, findings, runHistoryUrl }),
+        body: buildCommentBody({ historyFiles, findings, runHistoryUrl, windows, runsSampled }),
       });
       console.log('📝 Created sticky flaky-test-detection comment');
       return;
@@ -249,7 +277,7 @@ async function main(): Promise<void> {
         owner,
         repo,
         comment_id: existingComment.id,
-        body: buildCommentBody({ historyFiles, findings, runHistoryUrl }),
+        body: buildCommentBody({ historyFiles, findings, runHistoryUrl, windows, runsSampled }),
       });
       console.log('🔄 Updated sticky flaky-test-detection comment with latest findings');
       return;
