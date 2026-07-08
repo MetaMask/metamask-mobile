@@ -18,7 +18,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
-interface V2AdditionalVerificationParams {
+export interface V2AdditionalVerificationParams {
   quote: TransakBuyQuote;
   kycUrl: string;
   workFlowRunId: string;

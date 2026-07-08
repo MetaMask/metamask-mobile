@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   CustomAmountInfo,
   CustomAmountInfoProps,
+  AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
 } from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
@@ -49,6 +50,7 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/ui/useMMPayNavigation');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -332,6 +334,7 @@ describe('CustomAmountInfo', () => {
     });
 
     useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
@@ -1105,5 +1108,25 @@ describe('CustomAmountInfoSkeleton', () => {
     });
 
     expect(queryByTestId('account-selector-skeleton')).toBeNull();
+  });
+});
+
+describe('AdvancedCustomAmountInfoSkeleton', () => {
+  it('renders skeleton with AccountSelectorSkeleton', () => {
+    const { getByTestId } = renderWithProvider(
+      <AdvancedCustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(getByTestId('account-selector-skeleton')).toBeTruthy();
+    expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
+    expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
   });
 });

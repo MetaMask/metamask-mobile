@@ -26,7 +26,7 @@ import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.4.2/';
+  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
 
 class TestSnaps {
   get getConnectSnapButton(): EncapsulatedElementType {
@@ -433,7 +433,7 @@ class TestSnaps {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
-    ) as Promise<IndexableWebElement>;
+    ) as unknown as Promise<IndexableWebElement>;
     // New gestures currently don't support web elements
     await Gestures.typeInWebElement(webElement, message);
   }
