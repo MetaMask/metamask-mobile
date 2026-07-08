@@ -56,6 +56,11 @@ jest.mock('../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
 }));
 
+let mockSocialLeaderboardEnabled = true;
+jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
+  selectSocialLeaderboardEnabled: () => mockSocialLeaderboardEnabled,
+}));
+
 describe('Settings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -146,6 +151,27 @@ describe('Settings', () => {
       SettingsViewSelectorsIDs.EXPERIMENTAL,
     );
     expect(experimentalSettings).toBeDefined();
+  });
+  it('renders the Top Traders button and navigates to it when the leaderboard is enabled', () => {
+    mockSocialLeaderboardEnabled = true;
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    const topTraders = getByTestId(SettingsViewSelectorsIDs.TOP_TRADERS);
+    expect(topTraders).toBeDefined();
+
+    fireEvent.press(topTraders);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.TOP_TRADERS);
+  });
+  it('hides the Top Traders button when the leaderboard is disabled', () => {
+    mockSocialLeaderboardEnabled = false;
+    const { queryByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+    expect(
+      queryByTestId(SettingsViewSelectorsIDs.TOP_TRADERS),
+    ).not.toBeOnTheScreen();
+    mockSocialLeaderboardEnabled = true;
   });
   it('does not render about metamask (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {

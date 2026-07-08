@@ -20,6 +20,7 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTestEnvironment } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
@@ -88,6 +89,10 @@ const Settings = () => {
     navigation.navigate(Routes.RAMP.SETTINGS);
   };
 
+  const onPressTopTraders = () => {
+    navigation.navigate(Routes.SETTINGS.TOP_TRADERS);
+  };
+
   const onPressExperimental = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SETTINGS_EXPERIMENTAL).build(),
@@ -113,6 +118,9 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
+  const isSocialLeaderboardEnabled = useSelector(
+    selectSocialLeaderboardEnabled,
+  );
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
       <HeaderStandard
@@ -183,6 +191,14 @@ const Settings = () => {
           onPress={onPressOnRamp}
           testID={SettingsViewSelectorsIDs.ON_RAMP}
         />
+        {isSocialLeaderboardEnabled && (
+          <SettingsDrawer
+            title={strings('app_settings.top_traders_title')}
+            description={strings('app_settings.top_traders_desc')}
+            onPress={onPressTopTraders}
+            testID={SettingsViewSelectorsIDs.TOP_TRADERS}
+          />
+        )}
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}
           description={strings('app_settings.experimental_desc')}

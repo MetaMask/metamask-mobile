@@ -17,6 +17,7 @@ import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
+import TopTradersSettings from '../../Views/Settings/TopTradersSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
@@ -153,6 +154,7 @@ import {
   TraderProfileView,
   TraderPositionView,
   TradingSignalsSetupBottomSheet,
+  LeaderboardOptOutBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -450,6 +452,10 @@ const SettingsFlow = () => {
         component={AccountsMenu}
       />
       <NativeStack.Screen name="Settings" component={Settings} />
+      <NativeStack.Screen
+        name={Routes.SETTINGS.TOP_TRADERS}
+        component={TopTradersSettings}
+      />
       <NativeStack.Screen name="GeneralSettings" component={GeneralSettings} />
       <NativeStack.Screen
         name="AdvancedSettings"
@@ -1397,6 +1403,16 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP}
           component={TradingSignalsSetupBottomSheet}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.OPT_OUT}
+          component={LeaderboardOptOutBottomSheet}
           options={{
             ...clearNativeStackNavigatorOptions,
             ...transparentModalScreenOptions,

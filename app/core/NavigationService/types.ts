@@ -743,6 +743,7 @@ export type RootStackParamList = {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
+  LeaderboardOptOutBottomSheet: undefined;
 
   // Misc routes
   LockScreen: undefined;
