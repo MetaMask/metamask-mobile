@@ -3,27 +3,34 @@ import { MessengerClientInitFunction } from '../types';
 import {
   MoneyAccountBalanceService,
   MoneyAccountBalanceServiceMessenger,
+  MoneyAccountBalanceServiceTraceCallback,
+  MoneyAccountBalanceServiceTraceRequest,
 } from '@metamask/money-account-balance-service';
-import { trace, TraceOperation } from '../../../util/trace';
+import type { TraceContext } from '@metamask/controller-utils';
+import { trace, TraceOperation, TraceRequest } from '../../../util/trace';
 
-// TODO: Clean up typing in file after testing
-const traceMoneyAccountDataFetch = (
-  request: Record<string, unknown>,
-  fn?: (...args: unknown[]) => unknown,
-) => {
-  const taggedRequest = {
-    ...request,
-    op: TraceOperation.MoneyAccountDataFetch,
-    data: {
-      ...(request.data as Record<string, unknown> | undefined),
-      app_state: AppState.currentState ?? 'unknown',
-    },
+const traceMoneyAccountDataFetch: MoneyAccountBalanceServiceTraceCallback =
+  async <ReturnType>(
+    request: MoneyAccountBalanceServiceTraceRequest,
+    fn?: (context?: TraceContext) => ReturnType,
+  ): Promise<ReturnType> => {
+    const taggedRequest: TraceRequest = {
+      id: request.id,
+      name: request.name as TraceRequest['name'],
+      startTime: request.startTime,
+      op: TraceOperation.MoneyAccountDataFetch,
+      tags: request.tags,
+      data: {
+        ...request.data,
+        app_state: AppState.currentState ?? 'unknown',
+      },
+    };
+    if (!fn) {
+      trace(taggedRequest);
+      return undefined as ReturnType;
+    }
+    return await Promise.resolve(trace(taggedRequest, fn));
   };
-
-  // Remove disabled rule after testing
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (trace as any)(taggedRequest, fn);
-};
 
 /**
  * Initialize the money account balance service.
@@ -38,9 +45,7 @@ export const moneyAccountBalanceServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new MoneyAccountBalanceService({
     messenger: controllerMessenger,
-    // Remove disabled rule after testing
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    trace: traceMoneyAccountDataFetch as any,
+    trace: traceMoneyAccountDataFetch,
   });
 
   controller.init();
