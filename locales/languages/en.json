@@ -2177,7 +2177,8 @@
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
     },
-    "market_count": "{{count}} markets",
+    "market_count": "{{count}} market",
+    "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
     "no_markets_found": "No markets found",

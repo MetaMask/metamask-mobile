@@ -61,7 +61,9 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
             color={TextColor.Alternative}
             testID={testID ? `${testID}-market-count` : undefined}
           >
-            {strings('perps.market_count', { count: marketCount })}
+            {marketCount === 1
+              ? strings('perps.market_count', { count: marketCount })
+              : strings('perps.market_count_plural', { count: marketCount })}
           </Text>
           <PerpsMarketSortDropdowns
             selectedOptionId={selectedOptionId}

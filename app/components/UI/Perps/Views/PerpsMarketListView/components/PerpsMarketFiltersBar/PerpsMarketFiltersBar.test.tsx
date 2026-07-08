@@ -202,6 +202,15 @@ describe('PerpsMarketFiltersBar', () => {
       expect(getByText('0 markets')).toBeTruthy();
     });
 
+    it('displays singular market count when there is exactly one market', () => {
+      const { getByText, queryByText } = render(
+        <PerpsMarketFiltersBar {...defaultProps} marketCount={1} />,
+      );
+
+      expect(getByText('1 market')).toBeTruthy();
+      expect(queryByText('1 markets')).toBeNull();
+    });
+
     it('renders market count with the derived testID', () => {
       const { getByTestId } = render(
         <PerpsMarketFiltersBar {...defaultProps} testID="filters-bar" />,
