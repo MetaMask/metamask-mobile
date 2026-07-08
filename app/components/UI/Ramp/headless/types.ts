@@ -123,6 +123,13 @@ export interface HeadlessBuyParams {
    */
   paymentMethodId?: string;
   /**
+   * Receiving wallet address used to build provider widget/order URLs. When
+   * omitted, `startHeadlessBuy` snapshots the currently selected account for
+   * the asset chain so the invisible Host does not depend on later controller
+   * or account-selection churn.
+   */
+  walletAddress?: string;
+  /**
    * Override the redirect URL injected into provider widget URLs. Defaults
    * to the same `getRampCallbackBaseUrl()` value that BuildQuote uses, so
    * the in-app Checkout WebView can detect "completed" / "fallback" routes

@@ -193,13 +193,13 @@ function HeadlessHost() {
   // `headlessSessionId` is unchanged during the loop, the effect does not
   // re-fire.
   //
-  // `walletAddress` begins as null while `useRampAccountAddress` resolves
-  // async. The effect body validates chainId before deferring on wallet:
+  // `walletAddress` can be null when the selected account group does not
+  // support the quoted chain. The effect body validates chainId before
+  // checking the wallet:
   // a null chainId also yields walletAddress === null (falsy chain id), so
-  // the invalid-assetId branch must run first or the host would defer
-  // forever. After chainId is valid, defer (leave status as 'pending') until
-  // walletAddress settles — a non-null value is a required input for
-  // widget/order URLs.
+  // the invalid-assetId branch must run first or the host would surface a
+  // misleading wallet error for malformed asset ids. After chainId is valid,
+  // a non-null value is a required input for widget/order URLs.
   //
   // `session` is intentionally excluded from deps and re-read inside via
   // `getSession(headlessSessionId)`. This removes the fragile object-reference
@@ -230,10 +230,17 @@ function HeadlessHost() {
       failHeadlessSession({ code: 'UNKNOWN', message });
       return;
     }
-    // Defer until walletAddress resolves — avoids calling continueWithQuote
-    // with an undefined address that downstream screens (widget URL, order
-    // creation) cannot recover from. Effect re-fires when walletAddress changes.
-    if (walletAddress === null) {
+    const receivingWalletAddress =
+      currentSession.params.walletAddress ?? walletAddress;
+
+    // Avoid calling continueWithQuote with an undefined address that
+    // downstream screens (widget URL, order creation) cannot recover from.
+    // useRampAccountAddress is selector-backed, so a null value here is
+    // already a terminal "no account for this chain" condition.
+    if (!receivingWalletAddress) {
+      const message = `HeadlessHost: could not resolve wallet address for assetId "${currentSession.params.assetId}"`;
+      Logger.error(new Error(message));
+      failSession(headlessSessionId, { code: 'UNKNOWN', message });
       return;
     }
 
@@ -258,7 +265,7 @@ function HeadlessHost() {
       amount,
       assetId,
       chainId,
-      walletAddress: walletAddress ?? undefined,
+      walletAddress: receivingWalletAddress,
       currency: currency ?? userRegion?.country?.currency,
       cryptoSymbol: quote.quote.cryptoTranslation?.symbol,
       paymentMethodId: resolvedPaymentMethodId,

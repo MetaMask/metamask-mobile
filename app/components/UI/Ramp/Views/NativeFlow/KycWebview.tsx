@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { type TransakBuyQuote } from '@metamask/ramps-controller';
 
 import Checkout from '../Checkout';
@@ -17,18 +17,33 @@ interface KycWebviewParams {
   workFlowRunId: string;
   quote: TransakBuyQuote;
   amount?: number;
+  /**
+   * When present, post-ID-proof routing must continue inside the invisible
+   * headless stack instead of falling back to the regular amount input base.
+   */
+  headlessSessionId?: string;
 }
 
 export const createKycWebviewNavDetails =
   createNavigationDetails<KycWebviewParams>(Routes.RAMP.KYC_WEBVIEW);
 
 function KycWebview() {
-  const { workFlowRunId, quote, amount } = useParams<KycWebviewParams>();
+  const { workFlowRunId, quote, amount, headlessSessionId } =
+    useParams<KycWebviewParams>();
   const hasNavigatedRef = useRef(false);
 
-  const { routeAfterAuthentication } = useTransakRouting({
-    screenLocation: 'KycWebview Screen',
-  });
+  const transakRoutingConfig = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+            screenLocation: 'KycWebview Screen',
+          }
+        : { screenLocation: 'KycWebview Screen' },
+    [headlessSessionId],
+  );
+  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
 
   const { idProofStatus } = useTransakIdProofPolling(
     workFlowRunId,
