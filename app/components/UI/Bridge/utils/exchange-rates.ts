@@ -94,7 +94,12 @@ export const calcUsdAmountFromFiat = ({
   const fallbackEvmCurrencyEntry = Object.values(
     evmMultiChainCurrencyRates ?? {},
   ).find((entry) => entry?.conversionRate && entry?.usdConversionRate);
-  const currencyEntry = evmChainCurrencyEntry ?? fallbackEvmCurrencyEntry;
+  const currencyEntry =
+    evmChainCurrencyEntry?.conversionRate &&
+    evmChainCurrencyEntry?.usdConversionRate
+      ? evmChainCurrencyEntry
+      : fallbackEvmCurrencyEntry;
+
   return convertFiatToUsd(
     tokenFiatValue,
     currencyEntry?.conversionRate,
