@@ -84,6 +84,21 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
+jest.mock('./CardEducationAnimation', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      testID,
+      fallbackSource,
+    }: {
+      testID?: string;
+      fallbackSource: unknown;
+    }) => <View testID={testID} fallbackSource={fallbackSource} />,
+  };
+});
+
 jest.mock('../../../../../util/theme', () => {
   const actual = jest.requireActual('../../../../../util/theme');
   return {
@@ -156,7 +171,9 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
+      const cardImage = getByTestId(CardWelcomeSelectors.CARD_IMAGE);
+      expect(cardImage).toBeTruthy();
+      expect(cardImage.props.fallbackSource).toBe(1);
       expect(
         getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
       ).toBeTruthy();

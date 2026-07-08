@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect } from 'react';
-import { Image, StatusBar, View, useWindowDimensions } from 'react-native';
+import { StatusBar, View, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,6 +10,7 @@ import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import createStyles, { GRADIENT_COLORS } from './CardWelcome.styles';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
+import CardEducationAnimation from './CardEducationAnimation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -154,10 +155,9 @@ const CardWelcome = () => {
 
       {/* Image Section - Positioned absolutely to extend behind footer */}
       <View style={styles.imageContainer}>
-        <Image
-          source={StackedCardsImage}
+        <CardEducationAnimation
           style={styles.image}
-          resizeMode="contain"
+          fallbackSource={StackedCardsImage}
           testID={CardWelcomeSelectors.CARD_IMAGE}
         />
       </View>
