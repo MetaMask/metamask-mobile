@@ -57,7 +57,6 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
 
           await NetworkManager.openNetworkManagerFromHomepage();
-          await NetworkManager.waitForNetworkManagerToLoad();
           await NetworkManager.checkPopularNetworksContainerIsVisible();
           await NetworkManager.checkTabIsSelected('Popular');
 

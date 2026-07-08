@@ -3,6 +3,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
@@ -13,6 +14,8 @@ import {
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EncapsulatedElementType } from '../../framework';
+import WalletView from './WalletView';
+import TokensFullView from './HomeSections';
 
 class NetworkManager {
   /**
@@ -206,13 +209,21 @@ class NetworkManager {
    * so that the network filter control bar becomes accessible.
    */
   async navigateToTokensFullView(): Promise<void> {
-    const tokensSectionHeader = Matchers.getElementByText(
-      WalletViewSelectorsText.TOKENS_SECTION,
-    );
-    await Gestures.waitAndTap(tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'Tokens Section Header (navigate to full view)',
+    await encapsulatedAction({
+      detox: async () => {
+        const tokensSectionHeader = Matchers.getElementByText(
+          WalletViewSelectorsText.TOKENS_SECTION,
+        );
+        await Gestures.waitAndTap(tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'Tokens Section Header (navigate to full view)',
+        });
+      },
+      appium: async () => {
+        await WalletView.tapOnNewTokensSection();
+      },
     });
+    await TokensFullView.waitForVisible();
   }
 
   /**
@@ -236,6 +247,7 @@ class NetworkManager {
     await this.navigateToTokensFullView();
     await Gestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button (from TokensFullView)',
+      timeout: 10_000,
     });
     await this.waitForNetworkManagerToLoad();
   }
