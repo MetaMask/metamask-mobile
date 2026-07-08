@@ -52,9 +52,7 @@ import { selectGeolocationLocation } from '../../../../../selectors/geolocationC
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
-const passwordAutoComplete = Platform.select<
-  TextInputProps['autoComplete']
->({
+const passwordAutoComplete = Platform.select<TextInputProps['autoComplete']>({
   android: 'password-new',
   default: 'password-new',
 });
@@ -374,9 +372,7 @@ const SignUp = () => {
             secureTextEntry={!isPasswordVisible}
             autoComplete={passwordAutoComplete}
             textContentType={passwordTextContentType}
-            passwordRules={
-              Platform.OS === 'ios' ? 'minlength: 15;' : undefined
-            }
+            passwordRules={Platform.OS === 'ios' ? 'minlength: 15;' : undefined}
             accessibilityLabel={strings(
               'card.card_onboarding.sign_up.password_label',
             )}
