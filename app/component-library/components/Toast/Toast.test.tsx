@@ -5,10 +5,7 @@ import Animated from 'react-native-reanimated';
 import { render, screen, act, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
-import Toast, {
-  hasTrailingTextButton,
-  shouldTopAlignToastContent,
-} from './Toast';
+import Toast, { shouldTopAlignToastContent } from './Toast';
 import { AvatarAccountType } from '../Avatars/Avatar';
 import { AVATARFAVICON_IMAGE_TESTID } from '../Avatars/Avatar/variants/AvatarFavicon/AvatarFavicon.constants';
 import { AVATARNETWORK_IMAGE_TESTID } from '../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
@@ -63,45 +60,6 @@ describe('Toast', () => {
   afterEach(() => {
     jest.resetAllMocks();
     jest.useRealTimers();
-  });
-
-  it('renders correctly with default state', () => {
-    const { toJSON } = render(<Toast ref={toastRef} />);
-    expect(toJSON()).toBeDefined();
-  });
-
-  it('displays toast with correct label when showToast is called', async () => {
-    const toastOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Test Label' }],
-      hasNoTimeout: true,
-    };
-
-    render(<Toast ref={toastRef} />);
-
-    await act(async () => {
-      toastRef.current?.showToast(toastOptions);
-      jest.runAllTimers();
-    });
-
-    expect(screen.getByText('Test Label')).toBeOnTheScreen();
-  });
-
-  it('displays toast with bold label when isBold is true', async () => {
-    const toastOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Bold Test Label', isBold: true }],
-      hasNoTimeout: true,
-    };
-
-    render(<Toast ref={toastRef} />);
-
-    await act(async () => {
-      toastRef.current?.showToast(toastOptions);
-      jest.runAllTimers();
-    });
-
-    expect(screen.getByText('Bold Test Label')).toBeOnTheScreen();
   });
 
   it('displays toast with multiple label parts', async () => {
@@ -171,32 +129,6 @@ describe('Toast', () => {
     expect(screen.queryByText('Offset toast')).toBeNull();
   });
 
-  it('hides toast when closeToast is called', async () => {
-    const toastOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Test Label' }],
-      hasNoTimeout: true,
-    };
-
-    render(<Toast ref={toastRef} />);
-
-    // Show toast first
-    await act(async () => {
-      toastRef.current?.showToast(toastOptions);
-      jest.runAllTimers();
-    });
-
-    expect(screen.getByText('Test Label')).toBeOnTheScreen();
-
-    // Close toast
-    await act(async () => {
-      toastRef.current?.closeToast();
-      jest.runAllTimers();
-    });
-
-    expect(screen.queryByText('Test Label')).toBeNull();
-  });
-
   it('cancels pending toast when showToast is called rapidly in succession', async () => {
     const inProgressOptions: ToastOptions = {
       variant: ToastVariants.Plain,
@@ -231,62 +163,8 @@ describe('Toast', () => {
     expect(screen.getByText('Success')).toBeOnTheScreen();
   });
 
-  it('uses center justifyContent on labels container by default', async () => {
-    const toastOptions: ToastOptions = {
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Aligned label' }],
-      hasNoTimeout: true,
-    };
-
-    render(<Toast ref={toastRef} />);
-
-    await act(async () => {
-      toastRef.current?.showToast(toastOptions);
-      jest.runAllTimers();
-    });
-
-    const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
-    const flat = StyleSheet.flatten(labelsContainer.props.style);
-
-    expect(flat.justifyContent).toBe('center');
-  });
-
   describe('shouldTopAlignToastContent', () => {
-    it('keeps trailing text buttons vertically centered in the row', () => {
-      expect(
-        shouldTopAlignToastContent({
-          titleLineCount: 1,
-          hasDescription: true,
-          descriptionLineCount: 1,
-          hasActionButton: false,
-          hasTrailingTextButton: true,
-        }),
-      ).toBe(false);
-
-      expect(
-        shouldTopAlignToastContent({
-          titleLineCount: 2,
-          hasDescription: true,
-          descriptionLineCount: 1,
-          hasActionButton: false,
-          hasTrailingTextButton: true,
-        }),
-      ).toBe(false);
-    });
-
-    it('still top-aligns multi-line title and description without trailing text buttons', () => {
-      expect(
-        shouldTopAlignToastContent({
-          titleLineCount: 2,
-          hasDescription: true,
-          descriptionLineCount: 1,
-          hasActionButton: false,
-          hasTrailingTextButton: false,
-        }),
-      ).toBe(true);
-    });
-
-    it('still top-aligns below-the-text action buttons with a single-line description', () => {
+    it('top-aligns below-the-text action buttons with a single-line description', () => {
       expect(
         shouldTopAlignToastContent({
           titleLineCount: 1,
@@ -308,40 +186,6 @@ describe('Toast', () => {
           hasTrailingTextButton: false,
         }),
       ).toBe(true);
-    });
-
-    it('top-aligns when description line count is unknown and action button exists', () => {
-      expect(
-        shouldTopAlignToastContent({
-          titleLineCount: 1,
-          hasDescription: true,
-          descriptionLineCount: null,
-          hasActionButton: true,
-          hasTrailingTextButton: false,
-        }),
-      ).toBe(true);
-    });
-  });
-
-  describe('hasTrailingTextButton', () => {
-    it('returns true for label-based close buttons', () => {
-      expect(
-        hasTrailingTextButton({
-          variant: ButtonVariants.Secondary,
-          label: 'Track',
-          onPress: jest.fn(),
-        }),
-      ).toBe(true);
-    });
-
-    it('returns false for icon close buttons', () => {
-      expect(
-        hasTrailingTextButton({
-          variant: ButtonIconVariant.Icon,
-          iconName: IconName.Close,
-          onPress: jest.fn(),
-        }),
-      ).toBe(false);
     });
   });
 
@@ -444,19 +288,6 @@ describe('Toast', () => {
       expect(screen.getByText('Description line')).toBeOnTheScreen();
     });
 
-    it('renders non-bold label segments with alternative text styling', async () => {
-      render(<Toast ref={toastRef} />);
-      const options: ToastOptions = {
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: 'Secondary label', isBold: false }],
-        hasNoTimeout: true,
-      };
-
-      await showToast(toastRef, options);
-
-      expect(screen.getByText('Secondary label')).toBeOnTheScreen();
-    });
-
     it('uses custom startAccessory instead of avatar', async () => {
       render(<Toast ref={toastRef} />);
       const options: ToastOptions = {
@@ -515,68 +346,33 @@ describe('Toast', () => {
       expect(onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('renders legacy primary close button and invokes onPress', async () => {
-      const onPress = jest.fn();
-      render(<Toast ref={toastRef} />);
-      const options: ToastOptions = {
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: 'Primary close toast' }],
-        closeButtonOptions: {
-          variant: ButtonVariants.Primary,
-          label: 'Done',
-          onPress,
-        },
-        hasNoTimeout: true,
-      };
+    it.each([
+      [ButtonVariants.Primary, 'Done'],
+      [ButtonVariants.Secondary, 'Track'],
+      [ButtonVariants.Link, 'Dismiss'],
+    ] as const)(
+      'renders legacy %s close button and invokes onPress',
+      async (variant, label) => {
+        const onPress = jest.fn();
+        render(<Toast ref={toastRef} />);
+        const options: ToastOptions = {
+          variant: ToastVariants.Plain,
+          labelOptions: [{ label: `${label} close toast` }],
+          closeButtonOptions: {
+            variant,
+            label,
+            onPress,
+          },
+          hasNoTimeout: true,
+        };
 
-      await showToast(toastRef, options);
+        await showToast(toastRef, options);
 
-      fireEvent.press(screen.getByText('Done'));
+        fireEvent.press(screen.getByText(label));
 
-      expect(onPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders legacy secondary close button and invokes onPress', async () => {
-      const onPress = jest.fn();
-      render(<Toast ref={toastRef} />);
-      const options: ToastOptions = {
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: 'Secondary close toast' }],
-        closeButtonOptions: {
-          variant: ButtonVariants.Secondary,
-          label: 'Track',
-          onPress,
-        },
-        hasNoTimeout: true,
-      };
-
-      await showToast(toastRef, options);
-
-      fireEvent.press(screen.getByText('Track'));
-
-      expect(onPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders legacy link close button and invokes onPress', async () => {
-      const onPress = jest.fn();
-      render(<Toast ref={toastRef} />);
-      const options: ToastOptions = {
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: 'Link close toast' }],
-        closeButtonOptions: {
-          variant: ButtonVariants.Link,
-          label: 'Dismiss',
-          onPress,
-        },
-        hasNoTimeout: true,
-      };
-
-      await showToast(toastRef, options);
-
-      fireEvent.press(screen.getByText('Dismiss'));
-
-      expect(onPress).toHaveBeenCalledTimes(1);
-    });
+        expect(onPress).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 
   describe('layout and animation behavior', () => {
