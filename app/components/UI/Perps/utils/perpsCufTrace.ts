@@ -2,7 +2,7 @@ import {
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
 } from '@metamask/perps-controller';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   trace,
   endTrace,
@@ -92,7 +92,7 @@ export function startPerpsCufTrace({
 }: StartPerpsCufTraceOptions): void {
   const startTags = buildPerpsCufStartTags(tags);
   pendingCufMeta.set(name, {});
-  DevLogger.log(
+  DevLogger?.log?.(
     `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsCUF: ${name} started ${JSON.stringify(startTags)}`,
   );
   trace({ name, id, op, startTime, data, tags: startTags });
@@ -122,7 +122,7 @@ export function endPerpsCufTrace({
   if (!pendingCufMeta.delete(name)) {
     return;
   }
-  DevLogger.log(
+  DevLogger?.log?.(
     `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsCUF: ${name} completed ${JSON.stringify(data ?? {})}`,
   );
   endTrace({ name, id, data, timestamp });
