@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
-import BaseNotification, { getDescription } from './';
+import BaseNotification, { getDescription, getIcon } from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { BaseNotificationStatus } from './BaseNotification.types';
@@ -109,6 +109,109 @@ describe('BaseNotification', () => {
 
     expect(onHide).toHaveBeenCalledTimes(1);
     jest.useRealTimers();
+  });
+
+  it('renders nothing when isVisible is false', () => {
+    const { queryByTestId } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        isVisible={false}
+      />,
+    );
+
+    expect(queryByTestId('base-notification-container')).not.toBeOnTheScreen();
+  });
+
+  it('invokes onDismissComplete after the auto dismiss animation completes', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={100}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    fireEvent(getByTestId('base-notification-container'), 'layout', {
+      nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
+    });
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('ignores repeated layout events after the enter animation starts', () => {
+    const onDismissComplete = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        persistUntilDismiss
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+    const layoutEvent = {
+      nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
+    };
+
+    fireEvent(
+      getByTestId('base-notification-container'),
+      'layout',
+      layoutEvent,
+    );
+    fireEvent(
+      getByTestId('base-notification-container'),
+      'layout',
+      layoutEvent,
+    );
+
+    expect(onDismissComplete).not.toHaveBeenCalled();
+  });
+
+  it('applies top-aligned layout when title and description span multiple lines', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <BaseNotification status="success" data={defaultData} autoDismiss />,
+    );
+
+    fireEvent(getByTestId('notification-title'), 'textLayout', {
+      nativeEvent: { lines: [{}, {}] },
+    });
+    fireEvent(getByText(defaultData.description), 'textLayout', {
+      nativeEvent: { lines: [{}, {}] },
+    });
+
+    expect(getByTestId('base-notification-close')).toBeOnTheScreen();
+  });
+
+  it('returns null icon for an unrecognized status', () => {
+    expect(getIcon(undefined)).toBeNull();
+  });
+
+  it('returns a typed message when amount and type are provided', () => {
+    const result = getDescription('received', {
+      amount: '0.5',
+      type: 'eth',
+    });
+
+    expect(result).toBe(
+      strings('notifications.eth_received_message', { amount: '0.5' }),
+    );
+  });
+
+  it('renders without a generated title for statuses outside getTitle', () => {
+    const { getByTestId } = renderWithProvider(
+      <BaseNotification status="import_success" data={{}} />,
+    );
+
+    expect(getByTestId('notification-title')).toBeOnTheScreen();
+    expect(getByTestId('notification-title')).toHaveTextContent('');
   });
 
   describe('EIP-7702 transactions (without nonce)', () => {

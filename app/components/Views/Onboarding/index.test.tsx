@@ -3061,6 +3061,47 @@ describe('Onboarding', () => {
 
       backHandlerSpy.mockRestore();
     });
+
+    it('displays wallet reset notification when delete param is present', async () => {
+      mockRoute.params = { delete: true };
+
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getByText(strings('onboarding.success'))).toBeOnTheScreen();
+      expect(getByText(strings('onboarding.your_wallet'))).toBeOnTheScreen();
+
+      mockRoute.params = {};
+    });
+
+    it('does not display a notification when route params are absent', async () => {
+      mockRoute.params = {};
+
+      const { queryByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(
+        queryByTestId('base-notification-container'),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('disableBackPress', () => {
@@ -3467,6 +3508,32 @@ describe('Onboarding', () => {
           "We're investigating this problem. Try creating your wallet again.",
         ),
       ).toBeTruthy();
+    });
+
+    it('hides the notification after the dismiss animation completes', async () => {
+      const { getByText, queryByText, getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getByText('Error report sent')).toBeOnTheScreen();
+
+      fireEvent(getByTestId('base-notification-container'), 'layout', {
+        nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(queryByText('Error report sent')).not.toBeOnTheScreen();
     });
   });
 });
