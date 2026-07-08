@@ -1064,6 +1064,25 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                 1000,
               )}...`,
             );
+            // Dropping the message here would leave the page-side
+            // navigator.share() promise pending forever, since the polyfill
+            // waits for a native result. Settle it with an error. The request
+            // id sits at the start of the payload (before the large files
+            // data), so it can be extracted without parsing the oversized JSON.
+            if (isWebShareMessage) {
+              const shareRequestId = data
+                .slice(0, 1000)
+                .match(/"id":"([^"]+)"/)?.[1];
+              if (shareRequestId) {
+                webviewRef.current?.injectJavaScript(
+                  buildWebShareResultScript(
+                    shareRequestId,
+                    'error',
+                    'Share data too large',
+                  ),
+                );
+              }
+            }
             return;
           }
           const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;

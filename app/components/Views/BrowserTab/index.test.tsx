@@ -126,10 +126,12 @@ jest.mock('../../../util/phishingDetection', () => ({
 }));
 
 jest.mock('../../../util/browser/handleWebShare', () => ({
+  WEB_SHARE_MAX_MESSAGE_LENGTH: 15_000_000,
   handleWebShare: jest.fn(() => Promise.resolve({ status: 'success' })),
 }));
 
 jest.mock('../../../util/browser/handleWebDownload', () => ({
+  WEB_DOWNLOAD_MAX_MESSAGE_LENGTH: 15_000_000,
   handleWebDownload: jest.fn(() => Promise.resolve()),
 }));
 
@@ -674,6 +676,42 @@ describe('BrowserTab', () => {
         expect(injectedResultScript).toContain('mm-share-123');
         expect(injectedResultScript).toContain('cancelled');
       });
+    });
+
+    it('settles navigator.share() with an error when a share message exceeds the size limit', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+
+      mockInjectJavaScript.mockClear();
+
+      // Construct an oversized share message (type first so it is detected as a
+      // Web Share message, id near the start so it is recoverable).
+      const oversizedData = `{"type":"${WEB_SHARE_MESSAGE_TYPE}","payload":{"id":"mm-share-oversized","files":[{"data":"${'a'.repeat(
+        15_000_001,
+      )}"}]}}`;
+
+      onMessage({
+        nativeEvent: {
+          data: oversizedData,
+        },
+      });
+
+      expect(handleWebShare).not.toHaveBeenCalled();
+
+      const injectedResultScript = mockInjectJavaScript.mock.calls
+        .map((call) => call[0] as string)
+        .find((script) => script.includes('__mmResolveWebShare'));
+      expect(injectedResultScript).toBeDefined();
+      expect(injectedResultScript).toContain('mm-share-oversized');
+      expect(injectedResultScript).toContain('error');
     });
 
     it('routes Web Download messages to handleWebDownload', async () => {
