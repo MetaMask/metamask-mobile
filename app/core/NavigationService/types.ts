@@ -88,6 +88,12 @@ import type {
   AssetLoaderParams,
   AssetViewParams,
 } from '../../components/Views/Asset/Asset.types';
+import type { NftDetailsParams } from '../../components/Views/NftDetails/NftDetails.types';
+import type { TokenDetailsRouteParams } from '../../components/UI/TokenDetails/constants/constants';
+import type {
+  PriceAlertRouteParams,
+  CreatePriceAlertRouteParams,
+} from '../../components/UI/Assets/PriceAlerts/constants';
 
 // Stake params
 import type {
@@ -129,6 +135,8 @@ import type { ImportAsset } from '../../components/Views/AddAsset/utils/utils';
 
 // Contact form params
 import type { ContactFormParams } from '../../components/Views/Settings/Contacts/ContactForm.types';
+import type { NetworkDetailsViewParams } from '../../components/Views/NetworksManagement/NetworkDetailsView/NetworkDetailsView.types';
+import type { NotificationSettingsSectionProps } from '../../components/Views/Settings/NotificationsSettings/NotificationSettingsSection';
 
 // SDK params
 import type {
@@ -530,14 +538,20 @@ export type RootStackParamList = {
   AccountBackupStep1B: AccountBackupParams | undefined;
 
   // Settings routes
+  Settings: undefined;
+  ContactsSettings: undefined;
+  CompanySettings: undefined;
   AdvancedSettings: undefined;
   ResetPassword: undefined;
   ContactForm: ContactFormParams | undefined;
   DeveloperOptions: undefined;
   ExperimentalSettings: undefined;
   NotificationsSettings: undefined;
+  NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
   SDKSessionsManager: undefined;
+  NetworksManagement: undefined;
+  NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
 
@@ -545,6 +559,7 @@ export type RootStackParamList = {
   AccountSelector: AccountSelectorParams | undefined;
   AddressSelector: AddressSelectorParams | undefined;
   AddAccount: AddAccountParams | undefined;
+  AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: undefined;
   ConfirmTurnOnBackupAndSync: undefined;
@@ -606,6 +621,7 @@ export type RootStackParamList = {
   WalletTabHome: NestedNavigationParams | undefined;
   WalletTabStackFlow: NestedNavigationParams | undefined;
   WalletConnectSessionsView: undefined;
+  DeFiFullView: undefined;
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
@@ -873,6 +889,19 @@ export type RootStackParamList = {
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
+
+  // Asset detail stack routes (nested under the `Asset` navigator)
+  AssetStackFlow: NestedNavigationParams | undefined;
+  SecurityTrust: TokenDetailsRouteParams & {
+    isPricePositive?: boolean;
+    useAmbientColor?: boolean;
+  };
+  CreatePriceAlert: CreatePriceAlertRouteParams;
+  ManagePriceAlerts: PriceAlertRouteParams;
+
+  // NFT detail routes
+  NftDetails: NftDetailsParams;
+  NftDetailsFullImage: NftDetailsParams;
 
   // SDK routes
   ReturnToDappToast: ReturnToDappNotificationParams | undefined;
