@@ -24,3 +24,13 @@ export const selectSocialLeaderboardPerpsEnabled = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
+
+export const selectSocialAIQuickBuyStreamQuotesEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.socialAIQuickBuyStreamQuotes as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
