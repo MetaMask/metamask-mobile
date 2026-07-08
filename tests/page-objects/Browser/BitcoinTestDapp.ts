@@ -1,6 +1,5 @@
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import Matchers from '../../framework/Matchers';
 import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';

@@ -1,5 +1,4 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import Matchers from '../../framework/Matchers';
 import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
