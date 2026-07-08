@@ -60,72 +60,16 @@ import { useStyles } from '../../hooks';
 import { ButtonProps, ButtonVariants } from '../Buttons/Button/Button.types';
 import ButtonIcon from '../Buttons/ButtonIcon';
 import { ButtonIconSizes } from '../Buttons/ButtonIcon/ButtonIcon.types';
+import {
+  hasToastDescription,
+  hasTrailingTextButton,
+  shouldTopAlignToastContent,
+} from './Toast.layout';
 
 const screenHeight = Dimensions.get('window').height;
 
 const getHiddenTranslateY = (height: number, offset: number) =>
   -(height + offset);
-
-const hasToastDescription = (options: ToastOptions | undefined): boolean => {
-  if (!options) {
-    return false;
-  }
-
-  if (options.descriptionOptions?.description) {
-    return true;
-  }
-
-  const descriptionSplitIndex = options.labelOptions.findIndex(
-    (option, index) => index > 0 && option.label === '\n',
-  );
-
-  return (
-    descriptionSplitIndex !== -1 &&
-    options.labelOptions.slice(descriptionSplitIndex + 1).length > 0
-  );
-};
-
-const shouldTopAlignToastContent = ({
-  titleLineCount,
-  hasDescription,
-  descriptionLineCount,
-  hasActionButton,
-  hasTrailingTextButton,
-}: {
-  titleLineCount: number | null;
-  hasDescription: boolean;
-  descriptionLineCount: number | null;
-  hasActionButton: boolean;
-  hasTrailingTextButton: boolean;
-}): boolean => {
-  if (hasTrailingTextButton) {
-    return false;
-  }
-
-  if (titleLineCount !== null && titleLineCount > 1 && hasDescription) {
-    return true;
-  }
-
-  if (!hasDescription) {
-    return false;
-  }
-
-  if (descriptionLineCount === null) {
-    return hasActionButton;
-  }
-
-  if (descriptionLineCount > 1) {
-    return true;
-  }
-
-  return descriptionLineCount === 1 && hasActionButton;
-};
-
-const hasTrailingTextButton = (
-  closeButtonOptions: ToastCloseButtonOptions | undefined,
-): boolean =>
-  closeButtonOptions != null &&
-  closeButtonOptions.variant !== ButtonIconVariant.Icon;
 
 const mapLegacyButtonVariant = (variant?: ButtonVariants): ButtonVariant => {
   if (variant === ButtonVariants.Secondary) {
@@ -508,5 +452,4 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
 });
 
-export { shouldTopAlignToastContent, hasTrailingTextButton };
 export default Toast;
