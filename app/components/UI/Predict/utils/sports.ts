@@ -288,3 +288,18 @@ export const resolveSportCardButtons = <
     away: awayToken ? { outcome: firstOutcome, token: awayToken } : undefined,
   };
 };
+
+export const resolvePredictSportCardButtons = ({
+  outcomes,
+  game,
+  showDraw,
+}: {
+  outcomes: PredictOutcome[];
+  game: PredictMarketGame;
+  showDraw: boolean;
+}): ResolvedSportCardButtons<PredictOutcome, PredictOutcomeToken> =>
+  resolveSportCardButtons<PredictOutcome, PredictOutcomeToken>({
+    outcomes,
+    game,
+    showDraw,
+  });

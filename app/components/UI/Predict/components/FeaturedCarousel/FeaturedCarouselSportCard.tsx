@@ -36,7 +36,7 @@ import { usePredictPreviewSheet } from '../../contexts';
 import { usePredictGame } from '../../hooks/usePredictGame';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { isDrawCapableLeague } from '../../constants/sports';
-import { resolveSportCardButtons } from '../../utils/sports';
+import { resolvePredictSportCardButtons } from '../../utils/sports';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
@@ -105,7 +105,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
 
   const buttonResolution = useMemo(
     () =>
-      resolveSportCardButtons({
+      resolvePredictSportCardButtons({
         outcomes: market.outcomes,
         game,
         showDraw,

@@ -10,7 +10,7 @@ import {
   resolveWorldCupFeedEvents,
   shouldFetchWorldCupChildMarkets,
 } from './sportsUtils';
-import type { PolymarketApiEvent } from './types';
+import type { PolymarketApiEvent, PolymarketApiMarket } from './types';
 import type { PredictMarketGame } from '../../types';
 
 const game: PredictMarketGame = {
@@ -38,6 +38,39 @@ const game: PredictMarketGame = {
   },
 };
 
+type SportsFeedTestMarket = PolymarketApiMarket & { id: string };
+
+const createSportsMarket = ({
+  id,
+  sportsMarketType,
+}: {
+  id: string;
+  sportsMarketType?: string;
+}): SportsFeedTestMarket =>
+  ({
+    id,
+    conditionId: id,
+    question: `${id} question`,
+    description: `${id} description`,
+    icon: 'icon.png',
+    image: 'image.png',
+    groupItemTitle: id,
+    sportsMarketType,
+    status: 'open',
+    volumeNum: 100,
+    liquidity: 100,
+    negRisk: false,
+    clobTokenIds: '["yes","no"]',
+    outcomes: '["Yes","No"]',
+    outcomePrices: '["0.5","0.5"]',
+    closed: false,
+    active: true,
+    acceptingOrders: true,
+    resolvedBy: '',
+    orderPriceMinTickSize: 0.01,
+    umaResolutionStatus: '',
+  }) as SportsFeedTestMarket;
+
 const createWorldCupEvent = (
   overrides: Partial<PolymarketApiEvent> = {},
 ): PolymarketApiEvent =>
@@ -57,7 +90,12 @@ const createWorldCupEvent = (
         recurrence: 'none',
       },
     ],
-    markets: [{ id: 'moneyline-market', sportsMarketType: 'moneyline' }],
+    markets: [
+      createSportsMarket({
+        id: 'moneyline-market',
+        sportsMarketType: 'moneyline',
+      }),
+    ],
     ...overrides,
   }) as PolymarketApiEvent;
 
@@ -92,10 +130,10 @@ describe('sportsUtils', () => {
         shouldFetchWorldCupChildMarkets({
           event: createWorldCupEvent({
             markets: [
-              {
+              createSportsMarket({
                 id: 'team-to-advance-market',
                 sportsMarketType: 'soccer_team_to_advance',
-              },
+              }),
             ],
           }),
           extendedSportsMarketsLeagues: ['fifwc'],
@@ -107,23 +145,34 @@ describe('sportsUtils', () => {
   describe('mergeChildMarketsIntoEvent', () => {
     it('merges child markets without duplicating existing markets', () => {
       const event = createWorldCupEvent({
-        markets: [{ id: 'moneyline-market', sportsMarketType: 'moneyline' }],
+        markets: [
+          createSportsMarket({
+            id: 'moneyline-market',
+            sportsMarketType: 'moneyline',
+          }),
+        ],
       });
 
       expect(
         mergeChildMarketsIntoEvent(event, [
-          { id: 'moneyline-market', sportsMarketType: 'moneyline' },
-          {
+          createSportsMarket({
+            id: 'moneyline-market',
+            sportsMarketType: 'moneyline',
+          }),
+          createSportsMarket({
             id: 'team-to-advance-market',
             sportsMarketType: 'soccer_team_to_advance',
-          },
+          }),
         ]).markets,
       ).toEqual([
-        { id: 'moneyline-market', sportsMarketType: 'moneyline' },
-        {
+        createSportsMarket({
+          id: 'moneyline-market',
+          sportsMarketType: 'moneyline',
+        }),
+        createSportsMarket({
           id: 'team-to-advance-market',
           sportsMarketType: 'soccer_team_to_advance',
-        },
+        }),
       ]);
     });
   });
@@ -131,10 +180,10 @@ describe('sportsUtils', () => {
   describe('resolveWorldCupFeedEvents', () => {
     it('adds child markets to World Cup parent feed events', async () => {
       const parentEvent = createWorldCupEvent();
-      const teamToAdvanceMarket = {
+      const teamToAdvanceMarket = createSportsMarket({
         id: 'team-to-advance-market',
         sportsMarketType: 'soccer_team_to_advance',
-      };
+      });
       const fetchChildEvents = jest.fn().mockResolvedValue([
         createWorldCupEvent({ id: 'fetched-parent', markets: [] }),
         createWorldCupEvent({
@@ -164,10 +213,10 @@ describe('sportsUtils', () => {
       const events = [
         createWorldCupEvent({
           markets: [
-            {
+            createSportsMarket({
               id: 'team-to-advance-market',
               sportsMarketType: 'soccer_team_to_advance',
-            },
+            }),
           ],
         }),
       ];

@@ -20,7 +20,7 @@ import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { isDrawCapableLeague } from '../../constants/sports';
-import { resolveSportCardButtons } from '../../utils/sports';
+import { resolvePredictSportCardButtons } from '../../utils/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
@@ -84,7 +84,7 @@ const buildButtonItems = (
   game: PredictMarketGame,
   showDraw: boolean,
 ): SportOutcomeButtonItem[] => {
-  const { home, draw, away } = resolveSportCardButtons({
+  const { home, draw, away } = resolvePredictSportCardButtons({
     outcomes: market.outcomes,
     game,
     showDraw,
