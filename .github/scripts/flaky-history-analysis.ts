@@ -18,6 +18,8 @@ import { execFileSync } from 'child_process';
 import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
+type Octokit = ReturnType<typeof getOctokit>;
+
 const WORKFLOW = 'ci.yml';
 // JOB_NAME is written into the output artifact as metadata only — it is not
 // used to filter the sampled runs. Failure-file intersection is done via FAIL
@@ -36,11 +38,11 @@ type WindowCounts = Record<WindowKey, number>;
 // the real bound. This cap is just a safety valve against an unbounded page
 // walk on an extremely busy repo.
 const MAX_RUNS_LISTED = 3000;
-// Downloading a run's failed-step log is the expensive part (one
-// `gh run view --log-failed` per failed run). Bound the total and process
-// failed runs newest-first so the short windows (7d/30d) stay accurate even if
-// an unusually red year exceeds the cap — only the oldest 365d tail is then
-// undercounted.
+// Downloading failed-step logs is the expensive part (one Octokit
+// downloadJobLogsForWorkflowRun call per failed job per failed run). Bound the
+// total and process failed runs newest-first so the short windows (7d/30d)
+// stay accurate even if an unusually red year exceeds the cap — only the
+// oldest 365d tail is then undercounted.
 const MAX_FAILED_LOG_FETCHES = 200;
 // A window needs at least this many countable runs before its failure rate is
 // trusted for the flaky flag, so a single early failure in a nearly-empty
@@ -132,9 +134,7 @@ function getModifiedUnitTestFiles(): string[] {
     .filter((f) => !EXCLUDE_PATTERNS.some((pattern) => pattern.test(f)));
 }
 
-async function getCompletedRunsInLookback(
-  octokit: ReturnType<typeof getOctokit>,
-): Promise<WorkflowRun[]> {
+async function getCompletedRunsInLookback(octokit: Octokit): Promise<WorkflowRun[]> {
   const [owner, repo] = env.repo.split('/');
   const since = new Date(Date.now() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
     .toISOString()
@@ -165,19 +165,46 @@ async function getCompletedRunsInLookback(
 }
 
 // Extracts every `FAIL <path>` line Jest emits at the top of a failed test
-// file's output. We use `gh run view --log-failed` here rather than the
-// Octokit downloadWorkflowRunLogs endpoint because the latter returns a full
-// zip archive that would need to be unzipped and parsed — `gh --log-failed`
-// streams only the failed-step output and is materially simpler on runners.
-function getFailedTestFilesForRun(runId: number): string[] {
-  let logOutput: string;
+// file's output. For each failed run, lists its jobs via Octokit, keeps only
+// the failed jobs, then downloads their plaintext logs one by one.
+// downloadJobLogsForWorkflowRun returns plaintext (not a zip archive) so no
+// extra dependency is needed and there is no spawnSync buffer cap.
+async function getFailedTestFilesForRun(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  runId: number,
+): Promise<string[]> {
+  let jobs: { id: number; conclusion: string | null }[];
   try {
-    logOutput = sh('gh', ['run', 'view', String(runId), '--repo', env.repo, '--log-failed']);
+    jobs = await octokit.paginate(octokit.rest.actions.listJobsForWorkflowRun, {
+      owner,
+      repo,
+      run_id: runId,
+      filter: 'latest',
+      per_page: 100,
+    });
   } catch (error) {
-    core.warning(`gh run view ${runId} failed: ${(error as Error).message}`);
+    core.warning(`listJobsForWorkflowRun ${runId} failed: ${(error as Error).message}`);
     return [];
   }
 
+  const failedJobs = jobs.filter((j) => j.conclusion === 'failure');
+  const logParts: string[] = [];
+  for (const job of failedJobs) {
+    try {
+      const res = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
+        owner,
+        repo,
+        job_id: job.id,
+      });
+      logParts.push(String(res.data));
+    } catch (error) {
+      core.warning(`downloadJobLogsForWorkflowRun ${job.id} failed: ${(error as Error).message}`);
+    }
+  }
+
+  const logOutput = logParts.join('\n');
   // Alternation order: try the longest extension first so "tsx" isn't
   // truncated to "ts" by an early match.
   const matches = logOutput.matchAll(/FAIL\s+(\S+\.(?:test|spec)\.(?:tsx|ts|js))(?=\s|$)/gm);
@@ -188,10 +215,13 @@ function getFailedTestFilesForRun(runId: number): string[] {
 // files, bucketing each failure into every window it falls in. The denominator
 // is failure+success runs only — cancelled/timed_out runs don't tell us whether
 // the suite passed, so counting them inflates the sample and deflates the rate.
-function buildHistory(
+async function buildHistory(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
   modifiedFiles: string[],
   runs: WorkflowRun[],
-): { files: HistoryFile[]; runsSampled: WindowCounts } {
+): Promise<{ files: HistoryFile[]; runsSampled: WindowCounts }> {
   const now = Date.now();
   const ageInDays = (createdAt: string) =>
     (now - new Date(createdAt).getTime()) / (24 * 60 * 60 * 1000);
@@ -215,7 +245,7 @@ function buildHistory(
   const failuresByFile = new Map<string, WindowCounts>();
   for (const run of failedRuns) {
     const keys = windowKeysForAge(ageInDays(run.createdAt));
-    for (const file of getFailedTestFilesForRun(run.id)) {
+    for (const file of await getFailedTestFilesForRun(octokit, owner, repo, run.id)) {
       if (!modifiedFiles.includes(file)) continue;
       if (!failuresByFile.has(file)) failuresByFile.set(file, emptyWindowCounts());
       const counts = failuresByFile.get(file) as WindowCounts;
@@ -291,9 +321,10 @@ async function main(): Promise<void> {
     return;
   }
 
+  const [owner, repo] = env.repo.split('/');
   const octokit = getOctokit(env.token);
   const runs = await getCompletedRunsInLookback(octokit);
-  const { files, runsSampled } = buildHistory(modifiedFiles, runs);
+  const { files, runsSampled } = await buildHistory(octokit, owner, repo, modifiedFiles, runs);
   console.log(
     `🔍 Sampled ${runs.length} completed ci.yml run(s) on main over the last ${LOOKBACK_DAYS}d ` +
       `(${runsSampled['365d']} failure/success within window)`,
