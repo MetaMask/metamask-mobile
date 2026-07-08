@@ -12,7 +12,6 @@ import {
 } from '../../../../util/test/analyticsMock';
 import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -39,7 +38,7 @@ const mockBenefit: SubscriptionBenefitDto = {
   thumbnail: 'https://example.com/thumb.png',
   validFrom: '2026-01-01T00:00:00Z',
   validTo: '2026-12-31T23:59:59Z',
-  url: 'https://benefits.example.com/claim',
+  url: 'https://benefits.example.com/claim?wallet=0x1111111111111111111111111111111111111111',
   actionDate: '2026-12-30T00:00:00Z',
   companyName: 'Pudgy Penguins',
   chain: 'ethereum',
@@ -120,19 +119,14 @@ const MOCK_WALLET_ADDRESS = '0x1111111111111111111111111111111111111111';
 
 describe('BenefitFullView', () => {
   let mockSubscriptionId: string | null;
-  let mockSelectedAccount: { address: string } | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteBenefit = mockBenefit;
     mockSubscriptionId = 'subscription-123';
-    mockSelectedAccount = { address: MOCK_WALLET_ADDRESS };
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectRewardsSubscriptionId) {
         return mockSubscriptionId;
-      }
-      if (selector === selectSelectedInternalAccount) {
-        return mockSelectedAccount;
       }
       return undefined;
     });
@@ -175,7 +169,7 @@ describe('BenefitFullView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('posts benefit impression on mount with the selected wallet address when subscription exists', async () => {
+  it('posts benefit impression on mount with the wallet address from the benefit click URL', async () => {
     render(<BenefitFullView />);
 
     await waitFor(() => {
@@ -189,8 +183,31 @@ describe('BenefitFullView', () => {
     });
   });
 
-  it('posts benefit impression with an undefined wallet address when no account is selected', async () => {
-    mockSelectedAccount = undefined;
+  it('posts the wallet from the click URL even when it is not the first account in the wallet list', async () => {
+    const otherWallet = '0x2222222222222222222222222222222222222222';
+    mockRouteBenefit = {
+      ...mockBenefit,
+      url: `https://benefits.example.com/claim?wallet=${otherWallet}&ref=abc`,
+    };
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+        'RewardsController:postBenefitImpression',
+        'subscription-123',
+        mockBenefit.id,
+        mockBenefit.type.id,
+        otherWallet,
+      );
+    });
+  });
+
+  it('posts benefit impression with an undefined wallet address when the URL has no wallet param', async () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      url: 'https://benefits.example.com/claim',
+    };
 
     render(<BenefitFullView />);
 
@@ -203,6 +220,42 @@ describe('BenefitFullView', () => {
         undefined,
       );
     });
+  });
+
+  it('posts benefit impression with an undefined wallet address when the benefit has no URL', async () => {
+    mockRouteBenefit = { ...mockBenefit, url: '' };
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+        'RewardsController:postBenefitImpression',
+        'subscription-123',
+        mockBenefit.id,
+        mockBenefit.type.id,
+        undefined,
+      );
+    });
+  });
+
+  it('posts exactly one benefit impression when the subscription hydrates after mount', async () => {
+    mockSubscriptionId = null;
+    const { rerender } = render(<BenefitFullView />);
+    expect(mockPostBenefitImpression).not.toHaveBeenCalled();
+
+    mockSubscriptionId = 'subscription-123';
+    rerender(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledTimes(1);
+    });
+    expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+      'RewardsController:postBenefitImpression',
+      'subscription-123',
+      mockBenefit.id,
+      mockBenefit.type.id,
+      MOCK_WALLET_ADDRESS,
+    );
   });
 
   it('does not post benefit impression when subscription is missing', async () => {
