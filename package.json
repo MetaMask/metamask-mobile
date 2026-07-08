@@ -515,7 +515,7 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.20.0",
     "react-native-sensors": "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch",
-    "react-native-share": "7.3.7",
+    "react-native-share": "patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch",
     "react-native-size-matters": "0.4.0",
     "react-native-skeleton-placeholder": "^5.0.0",
     "react-native-step-indicator": "^1.0.3",

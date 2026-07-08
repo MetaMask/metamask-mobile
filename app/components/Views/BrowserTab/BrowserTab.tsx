@@ -30,8 +30,22 @@ import {
   JS_DESELECT_TEXT,
   SCROLL_TRACKER_SCRIPT,
   DOCUMENT_URL_FOR_URL_BAR,
+  WEB_SHARE_MESSAGE_TYPE,
+  buildWebSharePolyfillScript,
+  buildWebShareResultScript,
+  buildWebClipboardPolyfillScript,
+  WEB_DOWNLOAD_MESSAGE_TYPE,
+  buildWebDownloadInterceptorScript,
   buildDocumentUrlForUrlBarScript,
 } from '../../../util/browserScripts';
+import {
+  handleWebShare,
+  WEB_SHARE_MAX_MESSAGE_LENGTH,
+} from '../../../util/browser/handleWebShare';
+import {
+  handleWebDownload,
+  WEB_DOWNLOAD_MAX_MESSAGE_LENGTH,
+} from '../../../util/browser/handleWebDownload';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
 import URLParse from 'url-parse';
@@ -214,6 +228,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       | undefined
     >(undefined);
     const searchEngine = useSelector(selectSearchEngine);
+
+    const webSharePolyfillScript = useMemo(
+      () => buildWebSharePolyfillScript(Device.isAndroid()),
+      [],
+    );
+
+    // blob:/data: downloads are broken in the WebView on both platforms, so the
+    // interceptor is installed everywhere (it is idempotent via a window guard).
+    const webBrowserBridgeScript = useMemo(
+      () =>
+        webSharePolyfillScript +
+        buildWebDownloadInterceptorScript() +
+        buildWebClipboardPolyfillScript(Device.isAndroid()),
+      [webSharePolyfillScript],
+    );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
@@ -531,7 +560,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       const getEntryScriptWeb3 = async () => {
         const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
         setEntryScriptWeb3(
-          entryScriptWeb3Fetched +
+          webBrowserBridgeScript +
+            entryScriptWeb3Fetched +
             SPA_urlChangeListener +
             SCROLL_TRACKER_SCRIPT,
         );
@@ -539,7 +569,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
       getEntryScriptWeb3();
       handleFirstUrl();
-    }, [isTabActive, handleFirstUrl]);
+    }, [isTabActive, handleFirstUrl, webBrowserBridgeScript]);
 
     // Cleanup bridges when tab is closed
     useEffect(
@@ -973,8 +1003,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Reset pull-to-refresh state when page finishes loading
         isRefreshing.value = false;
+
+        webviewRef.current?.injectJavaScript(webBrowserBridgeScript);
       },
-      [handleError, handleSuccessfulPageResolution, favicon, isRefreshing],
+      [
+        handleError,
+        handleSuccessfulPageResolution,
+        favicon,
+        isRefreshing,
+        webBrowserBridgeScript,
+      ],
     );
 
     /**
@@ -1001,13 +1039,49 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       ({ nativeEvent }: WebViewMessageEvent) => {
         const data = nativeEvent.data;
         try {
-          if (data.length > MAX_MESSAGE_LENGTH) {
+          const isWebShareMessage =
+            typeof data === 'string' &&
+            data.startsWith(
+              `{"type":${JSON.stringify(WEB_SHARE_MESSAGE_TYPE)}`,
+            );
+          const isWebDownloadMessage =
+            typeof data === 'string' &&
+            data.startsWith(
+              `{"type":${JSON.stringify(WEB_DOWNLOAD_MESSAGE_TYPE)}`,
+            );
+          let maxMessageLength = MAX_MESSAGE_LENGTH;
+          if (isWebShareMessage) {
+            maxMessageLength = WEB_SHARE_MAX_MESSAGE_LENGTH;
+          } else if (isWebDownloadMessage) {
+            maxMessageLength = WEB_DOWNLOAD_MAX_MESSAGE_LENGTH;
+          }
+
+          if (data.length > maxMessageLength) {
             console.warn(
               `message exceeded size limit and will be dropped: ${data.slice(
                 0,
                 1000,
               )}...`,
             );
+            // Dropping the message here would leave the page-side
+            // navigator.share() promise pending forever, since the polyfill
+            // waits for a native result. Settle it with an error. The request
+            // id sits at the start of the payload (before the large files
+            // data), so it can be extracted without parsing the oversized JSON.
+            if (isWebShareMessage) {
+              const shareRequestId = data
+                .slice(0, 1000)
+                .match(/"id":"([^"]+)"/)?.[1];
+              if (shareRequestId) {
+                webviewRef.current?.injectJavaScript(
+                  buildWebShareResultScript(
+                    shareRequestId,
+                    'error',
+                    'Share data too large',
+                  ),
+                );
+              }
+            }
             return;
           }
           const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
@@ -1035,6 +1109,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
           if (dataParsed.type === DOCUMENT_URL_FOR_URL_BAR) {
             handleDocumentUrlForUrlBar(dataParsed.payload);
+            return;
+          }
+          if (dataParsed.type === WEB_SHARE_MESSAGE_TYPE) {
+            const shareRequestId: string | undefined = dataParsed.payload?.id;
+            handleWebShare(dataParsed.payload).then((result) => {
+              // Settle the page-side navigator.share() promise so the page can
+              // distinguish success from cancel/failure like a real browser.
+              if (shareRequestId) {
+                webviewRef.current?.injectJavaScript(
+                  buildWebShareResultScript(
+                    shareRequestId,
+                    result.status,
+                    result.message,
+                  ),
+                );
+              }
+            });
+            return;
+          }
+          if (dataParsed.type === WEB_DOWNLOAD_MESSAGE_TYPE) {
+            handleWebDownload(dataParsed.payload);
             return;
           }
           if (dataParsed.name) {
@@ -1584,6 +1679,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         renderError={renderError}
                         source={webViewSource}
                         injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                        injectedJavaScript={webBrowserBridgeScript}
                         style={styles.webview}
                         onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
                         onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}

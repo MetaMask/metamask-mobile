@@ -6,7 +6,13 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import Routes from '../../../constants/navigation/Routes';
-import { DOCUMENT_URL_FOR_URL_BAR } from '../../../util/browserScripts';
+import {
+  DOCUMENT_URL_FOR_URL_BAR,
+  WEB_SHARE_MESSAGE_TYPE,
+  WEB_DOWNLOAD_MESSAGE_TYPE,
+} from '../../../util/browserScripts';
+import { handleWebShare } from '../../../util/browser/handleWebShare';
+import { handleWebDownload } from '../../../util/browser/handleWebDownload';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 const mockInjectJavaScript = jest.fn();
@@ -117,6 +123,16 @@ jest.mock('../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn(() =>
     Promise.resolve({ result: false, name: '' }),
   ),
+}));
+
+jest.mock('../../../util/browser/handleWebShare', () => ({
+  WEB_SHARE_MAX_MESSAGE_LENGTH: 15_000_000,
+  handleWebShare: jest.fn(() => Promise.resolve({ status: 'success' })),
+}));
+
+jest.mock('../../../util/browser/handleWebDownload', () => ({
+  WEB_DOWNLOAD_MAX_MESSAGE_LENGTH: 15_000_000,
+  handleWebDownload: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
@@ -570,6 +586,140 @@ describe('BrowserTab', () => {
       });
 
       expect(mockNavigation.setParams).not.toHaveBeenCalled();
+    });
+
+    it('routes Web Share API messages to handleWebShare', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+      const sharePayload = {
+        title: 'Share title',
+        text: 'Share text',
+        url: 'https://example.com',
+      };
+
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: WEB_SHARE_MESSAGE_TYPE,
+            payload: sharePayload,
+          }),
+        },
+      });
+
+      expect(handleWebShare).toHaveBeenCalledWith(sharePayload);
+    });
+
+    it('injects the share result back into the WebView to settle navigator.share()', async () => {
+      (handleWebShare as jest.Mock).mockResolvedValueOnce({
+        status: 'cancelled',
+      });
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+
+      mockInjectJavaScript.mockClear();
+
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: WEB_SHARE_MESSAGE_TYPE,
+            payload: {
+              id: 'mm-share-123',
+              url: 'https://example.com',
+            },
+          }),
+        },
+      });
+
+      await waitFor(() => {
+        const injectedResultScript = mockInjectJavaScript.mock.calls
+          .map((call) => call[0] as string)
+          .find((script) => script.includes('__mmResolveWebShare'));
+        expect(injectedResultScript).toBeDefined();
+        expect(injectedResultScript).toContain('mm-share-123');
+        expect(injectedResultScript).toContain('cancelled');
+      });
+    });
+
+    it('settles navigator.share() with an error when a share message exceeds the size limit', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+
+      mockInjectJavaScript.mockClear();
+
+      // Construct an oversized share message (type first so it is detected as a
+      // Web Share message, id near the start so it is recoverable).
+      const oversizedData = `{"type":"${WEB_SHARE_MESSAGE_TYPE}","payload":{"id":"mm-share-oversized","files":[{"data":"${'a'.repeat(
+        15_000_001,
+      )}"}]}}`;
+
+      onMessage({
+        nativeEvent: {
+          data: oversizedData,
+        },
+      });
+
+      expect(handleWebShare).not.toHaveBeenCalled();
+
+      const injectedResultScript = mockInjectJavaScript.mock.calls
+        .map((call) => call[0] as string)
+        .find((script) => script.includes('__mmResolveWebShare'));
+      expect(injectedResultScript).toBeDefined();
+      expect(injectedResultScript).toContain('mm-share-oversized');
+      expect(injectedResultScript).toContain('error');
+    });
+
+    it('routes Web Download messages to handleWebDownload', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+      const downloadPayload = {
+        filename: 'mm-ten-card-blob.png',
+        mimeType: 'image/png',
+        data: 'data:image/png;base64,iVBORw0KGgo=',
+      };
+
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: WEB_DOWNLOAD_MESSAGE_TYPE,
+            payload: downloadPayload,
+          }),
+        },
+      });
+
+      expect(handleWebDownload).toHaveBeenCalledWith(downloadPayload);
     });
   });
 });
