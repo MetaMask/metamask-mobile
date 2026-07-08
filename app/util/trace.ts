@@ -182,6 +182,15 @@ export enum TraceName {
   PerpsAdvancedChartInitialVisible = 'Perps Advanced Chart Initial Visible',
   /** Perps advanced chart: skeleton cleared after interval change only. */
   PerpsAdvancedChartIntervalVisible = 'Perps Advanced Chart Interval Visible',
+  // Perps user-perceived CUF spans: gesture/open -> render with live data
+  /** Tap/open -> Perps market list rendered with live prices. */
+  PerpsEntryToLiveMarketList = 'Perps Entry To Live Market List',
+  /** Market route open -> stats + chart + top-of-book live. */
+  PerpsMarketDetailLive = 'Perps Market Detail Live',
+  /** Market detail -> order form ready with current price + account state. */
+  PerpsTradePageRender = 'Perps Trade Page Render',
+  /** Order submit tap -> matching position rendered from the live stream. */
+  PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
   // Predict
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',

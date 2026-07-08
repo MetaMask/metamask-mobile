@@ -97,6 +97,9 @@ import Reanimated, { SharedValue } from 'react-native-reanimated';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
+import { markPerpsForegroundSettled } from '../../utils/perpsLifecycleContext';
+import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -343,6 +346,30 @@ const PerpsHomeView = ({
     traceName: TraceName.PerpsMarketListView, // Keep same trace name for consistency
     conditions: [!isAnyLoading],
   });
+
+  // Entry CUF: enter Perps -> live market list. Starts at mount; launch-context
+  // tag splits cold from warm p75. Captured at mount so the tag is the launch
+  // context, not the post-settle value.
+  const entryCufTags = useMemo(() => buildPerpsCufStartTags(), []);
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsEntryToLiveMarketList,
+    conditions: [!isAnyLoading],
+    tags: entryCufTags,
+    endData: {
+      [PERPS_CUF_TAG.VARIANT]: hasPositions
+        ? PERPS_CUF_VARIANT.POSITION
+        : orders.length > 0
+          ? PERPS_CUF_VARIANT.ORDER
+          : PERPS_CUF_VARIANT.EMPTY,
+    },
+  });
+
+  // After the entry renders, later in-session flows are warm.
+  useEffect(() => {
+    if (!isAnyLoading) {
+      markPerpsForegroundSettled();
+    }
+  }, [isAnyLoading]);
 
   // Reset section tracking when screen comes into focus
   // This ensures sections can be tracked again when navigating back to the screen

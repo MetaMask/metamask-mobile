@@ -16,6 +16,19 @@ import {
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufTraceAfter,
+  setPerpsPlaceOrderCufSymbol,
+  setPerpsPlaceOrderCufToastShown,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_BOUNDARY,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange (before position fetch). */
@@ -57,6 +70,42 @@ export function usePerpsOrderExecution(
 
   const placeOrder = useCallback(
     async (orderParams: OrderParams) => {
+      // Place-order CUF: submit -> matching position confirmed. toast delta is
+      // measured against the MSO <=200ms target; the post-submit getPositions
+      // check is the position-confirmed proxy.
+      let toastAt: number | undefined;
+      const endPlaceOrderCuf = (
+        data: Record<string, string | number | boolean>,
+      ) =>
+        endPerpsCufTrace({
+          name: TraceName.PerpsPlaceOrderToPositionRendered,
+          data,
+        });
+      // Used when the poll misses the position: keeps the span open for the
+      // stream boundary but guarantees it closes if the stream never delivers.
+      const schedulePlaceOrderCufTimeout = () =>
+        endPerpsCufTraceAfter(
+          {
+            name: TraceName.PerpsPlaceOrderToPositionRendered,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+            },
+          },
+          PERPS_CUF_STREAM_TIMEOUT_MS,
+        );
+      startPerpsCufTrace({
+        name: TraceName.PerpsPlaceOrderToPositionRendered,
+        tags: {
+          [PERPS_CUF_TAG.DIRECTION]: orderParams.isBuy
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_CUF_TAG.ORDER_TYPE]: orderParams.orderType,
+        },
+      });
+      // The position stream ends this span when the matching position renders.
+      setPerpsPlaceOrderCufSymbol(orderParams.symbol);
+
       try {
         setIsPlacing(true);
         setError(undefined);
@@ -71,6 +120,9 @@ export function usePerpsOrderExecution(
 
         const result = await controllerPlaceOrder(orderParams);
         setLastResult(result);
+        // Toast fires on lastResult — stamp it to measure the toast<->position delta.
+        toastAt = Date.now();
+        setPerpsPlaceOrderCufToastShown();
 
         if (result.success) {
           DevLogger.log(
@@ -133,12 +185,22 @@ export function usePerpsOrderExecution(
             );
 
             if (newPosition) {
+              // No-op when the position stream already closed the span.
+              endPlaceOrderCuf({
+                [PERPS_CUF_TAG.SUCCESS]: true,
+                [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.POLL_FALLBACK,
+                [PERPS_CUF_TAG.TOAST_TO_POSITION_MS]:
+                  toastAt !== undefined ? Date.now() - toastAt : -1,
+              });
               DevLogger.log(
                 'usePerpsOrderExecution: Found new position',
                 newPosition,
               );
               onSuccess?.(newPosition);
             } else {
+              // Poll missed the position — leave the span open for the stream
+              // boundary, with a timeout end in case the stream never delivers.
+              schedulePlaceOrderCufTimeout();
               DevLogger.log(
                 'usePerpsOrderExecution: Position not found immediately',
               );
@@ -146,6 +208,7 @@ export function usePerpsOrderExecution(
               onSuccess?.();
             }
           } catch (fetchError) {
+            schedulePlaceOrderCufTimeout();
             DevLogger.log(
               'usePerpsOrderExecution: Error fetching positions after order',
               fetchError,
@@ -156,6 +219,10 @@ export function usePerpsOrderExecution(
         } else {
           const errorMessage =
             result.error || strings('perps.order.error.unknown');
+          endPlaceOrderCuf({
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ORDER_FAILED,
+          });
           setError(errorMessage);
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
 
@@ -194,6 +261,10 @@ export function usePerpsOrderExecution(
           onError?.(errorMessage);
         }
       } catch (err) {
+        endPlaceOrderCuf({
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+        });
         const errorObject = ensureError(
           err,
           'usePerpsOrderExecution.placeOrder',

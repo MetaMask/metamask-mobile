@@ -42,6 +42,7 @@ import {
 } from '@metamask/perps-controller/constants/perpsConfig';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
+import { endPerpsPlaceOrderCufOnPositions } from '../utils/perpsCufTrace';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -963,6 +964,9 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
+        // Positions just rendered to subscribers — close a pending
+        // place-order CUF span at its user-perceived boundary.
+        endPerpsPlaceOrderCufOnPositions(positions);
         this.triggerPersist();
       },
     });
