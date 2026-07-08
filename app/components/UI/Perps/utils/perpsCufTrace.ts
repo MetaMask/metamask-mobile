@@ -135,47 +135,69 @@ export interface PerpsCufPositionRendered {
 
 let placeOrderRendered: PerpsCufPositionRendered | null = null;
 let placeOrderResolver: (() => void) | null = null;
+/** Bumped on every arm so waiters from a superseded order go inert. */
+let placeOrderGeneration = 0;
 
 /**
  * Arm the place-order confirmation: the stream matcher fires when a position
  * for `symbol` renders that is new or changed versus the pre-order baseline,
  * so a pre-existing position on the same market can't confirm the order early.
+ * Returns a generation token; waiters from earlier generations resolve null
+ * and never touch the newly armed order's span.
  */
 export function armPerpsPlaceOrderCuf(
   symbol: string,
   baseline?: PerpsCufPositionLike | null,
-): void {
+): number {
+  placeOrderGeneration += 1;
   placeOrderRendered = null;
   placeOrderResolver = null;
   setPerpsCufMeta(TraceName.PerpsPlaceOrderToPositionRendered, {
     [CUF_META.SYMBOL]: symbol,
     ...(baseline ? { [CUF_META.SNAPSHOT]: positionSnapshot(baseline) } : {}),
   });
+  return placeOrderGeneration;
+}
+
+/** Whether `generation` still owns the place-order confirmation state. */
+export function isPerpsPlaceOrderCufCurrent(generation: number): boolean {
+  return generation === placeOrderGeneration;
 }
 
 /**
  * Resolve with the armed position's first stream render, or `null` after
- * `timeoutMs`. Resolves immediately when the render already happened.
+ * `timeoutMs`. Resolves immediately when the render already happened or when
+ * `generation` has been superseded by a newer order.
  */
 export function waitForPerpsPlaceOrderPositionRendered(
   timeoutMs: number,
+  generation: number,
 ): Promise<PerpsCufPositionRendered | null> {
-  if (!pendingCufMeta.has(TraceName.PerpsPlaceOrderToPositionRendered)) {
+  if (
+    !isPerpsPlaceOrderCufCurrent(generation) ||
+    !pendingCufMeta.has(TraceName.PerpsPlaceOrderToPositionRendered)
+  ) {
     return Promise.resolve(null);
   }
   if (placeOrderRendered) {
     return Promise.resolve(placeOrderRendered);
   }
   return new Promise((resolve) => {
-    const timer = setTimeout(() => {
-      placeOrderResolver = null;
-      resolve(null);
-    }, timeoutMs);
-    placeOrderResolver = () => {
-      clearTimeout(timer);
-      placeOrderResolver = null;
-      resolve(placeOrderRendered);
+    let cancelTimer = () => {
+      // Replaced once the timeout is scheduled.
     };
+    const wake = () => {
+      cancelTimer();
+      if (placeOrderResolver === wake) {
+        placeOrderResolver = null;
+      }
+      resolve(
+        isPerpsPlaceOrderCufCurrent(generation) ? placeOrderRendered : null,
+      );
+    };
+    const timer = setTimeout(wake, timeoutMs);
+    cancelTimer = () => clearTimeout(timer);
+    placeOrderResolver = wake;
   });
 }
 

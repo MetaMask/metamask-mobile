@@ -20,6 +20,7 @@ import {
   startPerpsCufTrace,
   endPerpsCufTrace,
   armPerpsPlaceOrderCuf,
+  isPerpsPlaceOrderCufCurrent,
   waitForPerpsPlaceOrderPositionRendered,
 } from '../utils/perpsCufTrace';
 import {
@@ -101,7 +102,7 @@ export function usePerpsOrderExecution(
         stream.positions
           .getSnapshot()
           ?.find((p) => p.symbol === orderParams.symbol) ?? null;
-      armPerpsPlaceOrderCuf(orderParams.symbol, baseline);
+      const cufGeneration = armPerpsPlaceOrderCuf(orderParams.symbol, baseline);
 
       try {
         setIsPlacing(true);
@@ -172,6 +173,7 @@ export function usePerpsOrderExecution(
           // the confirmation toast fires together with it.
           const rendered = await waitForPerpsPlaceOrderPositionRendered(
             PERPS_CUF_STREAM_CONFIRM_RACE_MS,
+            cufGeneration,
           );
           const toastShownAt = Date.now();
           if (rendered) {
@@ -199,7 +201,12 @@ export function usePerpsOrderExecution(
             // Deliberately not awaited: the caller must not block on the span.
             waitForPerpsPlaceOrderPositionRendered(
               PERPS_CUF_STREAM_TIMEOUT_MS,
+              cufGeneration,
             ).then((late) => {
+              // A newer order owns the span now; this continuation is stale.
+              if (!isPerpsPlaceOrderCufCurrent(cufGeneration)) {
+                return;
+              }
               if (late) {
                 endPlaceOrderCuf({
                   [PERPS_CUF_TAG.SUCCESS]: true,

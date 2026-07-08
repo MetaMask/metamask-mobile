@@ -9,6 +9,7 @@ import {
   startPerpsCufTrace,
   endPerpsCufTrace,
   armPerpsPlaceOrderCuf,
+  isPerpsPlaceOrderCufCurrent,
   waitForPerpsPlaceOrderPositionRendered,
   watchPerpsCufPositionChanged,
   watchPerpsCufOrderAbsent,
@@ -114,13 +115,16 @@ describe('perpsCufTrace', () => {
 
   it('resolves the place-order waiter when the armed symbol renders', async () => {
     startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
-    armPerpsPlaceOrderCuf('BTC');
+    const generation = armPerpsPlaceOrderCuf('BTC');
 
     handlePerpsCufPositionsDelivered([
       { symbol: 'ETH', size: '1' },
       { symbol: 'BTC', size: '0.01' },
     ]);
-    const rendered = await waitForPerpsPlaceOrderPositionRendered(5);
+    const rendered = await waitForPerpsPlaceOrderPositionRendered(
+      5,
+      generation,
+    );
 
     expect(rendered).toEqual({
       position: { symbol: 'BTC', size: '0.01' },
@@ -130,9 +134,12 @@ describe('perpsCufTrace', () => {
 
   it('resolves a waiter registered before the stream delivers', async () => {
     startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
-    armPerpsPlaceOrderCuf('BTC');
+    const generation = armPerpsPlaceOrderCuf('BTC');
 
-    const pendingWait = waitForPerpsPlaceOrderPositionRendered(1000);
+    const pendingWait = waitForPerpsPlaceOrderPositionRendered(
+      1000,
+      generation,
+    );
     handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.01' }]);
 
     await expect(pendingWait).resolves.toEqual(
@@ -143,36 +150,72 @@ describe('perpsCufTrace', () => {
   it('does not resolve for a pre-existing position unchanged from the baseline', async () => {
     const existing = { symbol: 'BTC', size: '0.01' };
     startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
-    armPerpsPlaceOrderCuf('BTC', existing);
+    const generation = armPerpsPlaceOrderCuf('BTC', existing);
 
     handlePerpsCufPositionsDelivered([existing]);
 
-    await expect(waitForPerpsPlaceOrderPositionRendered(5)).resolves.toBeNull();
+    await expect(
+      waitForPerpsPlaceOrderPositionRendered(5, generation),
+    ).resolves.toBeNull();
   });
 
   it('resolves when the armed position changes versus the baseline (add to position)', async () => {
     startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
-    armPerpsPlaceOrderCuf('BTC', { symbol: 'BTC', size: '0.01' });
+    const generation = armPerpsPlaceOrderCuf('BTC', {
+      symbol: 'BTC',
+      size: '0.01',
+    });
 
     handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.02' }]);
 
-    await expect(waitForPerpsPlaceOrderPositionRendered(5)).resolves.toEqual(
+    await expect(
+      waitForPerpsPlaceOrderPositionRendered(5, generation),
+    ).resolves.toEqual(
       expect.objectContaining({ position: { symbol: 'BTC', size: '0.02' } }),
     );
   });
 
   it('ignores deliveries that do not match the armed symbol', async () => {
     startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
-    armPerpsPlaceOrderCuf('BTC');
+    const generation = armPerpsPlaceOrderCuf('BTC');
 
     handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '1' }]);
     handlePerpsCufPositionsDelivered(null);
 
-    await expect(waitForPerpsPlaceOrderPositionRendered(5)).resolves.toBeNull();
+    await expect(
+      waitForPerpsPlaceOrderPositionRendered(5, generation),
+    ).resolves.toBeNull();
   });
 
   it('waiter resolves null when no place-order span is pending', async () => {
-    await expect(waitForPerpsPlaceOrderPositionRendered(5)).resolves.toBeNull();
+    const generation = armPerpsPlaceOrderCuf('BTC');
+    endPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
+
+    await expect(
+      waitForPerpsPlaceOrderPositionRendered(5, generation),
+    ).resolves.toBeNull();
+  });
+
+  it('superseded waiter goes inert instead of touching the next order', async () => {
+    startPerpsCufTrace({ name: TraceName.PerpsPlaceOrderToPositionRendered });
+    const staleGeneration = armPerpsPlaceOrderCuf('BTC');
+    const staleWait = waitForPerpsPlaceOrderPositionRendered(
+      5,
+      staleGeneration,
+    );
+
+    // A second order re-arms before the first waiter settles.
+    const generation = armPerpsPlaceOrderCuf('ETH');
+    const liveWait = waitForPerpsPlaceOrderPositionRendered(1000, generation);
+
+    await expect(staleWait).resolves.toBeNull();
+    expect(isPerpsPlaceOrderCufCurrent(staleGeneration)).toBe(false);
+
+    // The stale waiter's timeout must not have cleared the live resolver.
+    handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '2' }]);
+    await expect(liveWait).resolves.toEqual(
+      expect.objectContaining({ position: { symbol: 'ETH', size: '2' } }),
+    );
   });
 
   const btc = { symbol: 'BTC', size: '0.01', takeProfitPrice: '70000' };
