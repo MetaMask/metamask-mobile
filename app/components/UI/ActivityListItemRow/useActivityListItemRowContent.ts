@@ -50,12 +50,23 @@ function isPerpsFundingKind(type: ActivityKind): boolean {
   return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
 }
 
+/**
+ * Perps trade fills, whose amount is realized PnL (gains green, losses red).
+ * Excludes orders, funds, and funding — they show a notional and stay neutral.
+ */
+function isPerpsPnlKind(type: ActivityKind): boolean {
+  return (
+    type.startsWith('perps') &&
+    !isPerpsFundsKind(type) &&
+    !isPerpsFundingKind(type)
+  );
+}
+
 function isPerpsTradeKind(type: ActivityKind): boolean {
   return (
-    (type.startsWith('perps') &&
-      !isPerpsFundsKind(type) &&
-      !isPerpsFundingKind(type)) ||
+    isPerpsPnlKind(type) ||
     type.startsWith('market') ||
+    type.startsWith('limit') ||
     type.startsWith('stopMarket')
   );
 }
@@ -304,19 +315,16 @@ const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   limitCloseShort: () => strings('transactions.activity_limit_close_short'),
 };
 
-// Domain (perps/predict) rows have no bespoke failed copy, so mark a
-// failed/cancelled status with an em-dash "—Failed" suffix, mirroring the perps
-// severity suffix style (e.g. "Closed short—liquidated"). The failed color is
-// applied separately by the row layout.
+// Domain (perps/predict) rows have no bespoke failed copy, so mark a failed/cancelled status
 function withDomainStatusSuffix(
   title: string,
   status: ActivityListItem['status'],
 ): string {
   if (status === 'failed') {
-    return `${title}—${strings('transaction.failed')}`;
+    return `${title} — ${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.canceled')}`;
+    return `${title} — ${strings('transaction.canceled')}`;
   }
   return title;
 }
@@ -1260,5 +1268,6 @@ export function useActivityListItemRowContent(
     secondaryToken,
     primaryAmount,
     secondaryAmount,
+    isPnlAmount: isPerpsPnlKind(item.type),
   };
 }
