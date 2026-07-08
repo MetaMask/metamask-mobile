@@ -13,7 +13,6 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import { mergeValue } from './SnapUIRenderer/utils';
 import Engine from '../../core/Engine/Engine';
@@ -71,7 +70,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
   // UI. It's kept in a ref to avoid useless re-rendering of the entire tree of
   // components.
   const internalState = useRef<InterfaceState>(initialState ?? {});
-  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const focusedInput = useRef<string | null>(null);
 
   // Since the internal state is kept in a reference, it won't update when the
   // interface is updated. We have to manually update it.
@@ -171,7 +170,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
   );
 
   const setCurrentFocusedInput: SetCurrentInputFocus = useCallback((name) => {
-    setFocusedInput(name);
+    focusedInput.current = name;
   }, []);
 
   const value = useMemo(
@@ -180,17 +179,10 @@ export const SnapInterfaceContextProvider: FunctionComponent<
       getValue,
       handleInputChange,
       setCurrentFocusedInput,
-      focusedInput,
+      focusedInput: focusedInput.current,
       snapId,
     }),
-    [
-      handleEvent,
-      getValue,
-      handleInputChange,
-      setCurrentFocusedInput,
-      focusedInput,
-      snapId,
-    ],
+    [handleEvent, getValue, handleInputChange, setCurrentFocusedInput, snapId],
   );
 
   return (
