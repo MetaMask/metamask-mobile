@@ -70,14 +70,14 @@ describe('mapRampOrder', () => {
     });
   });
 
-  it('maps deposit orders to deposit', () => {
+  it('maps deposit orders to buy', () => {
     const order = {
       ...baseOrder,
       orderType: DepositOrderType.Deposit,
     };
 
     expect(mapRampOrder({ order })).toMatchObject({
-      type: 'deposit',
+      type: 'buy',
       data: { token: { direction: 'in' } },
     });
   });

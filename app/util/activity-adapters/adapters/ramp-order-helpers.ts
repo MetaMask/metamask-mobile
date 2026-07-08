@@ -15,7 +15,7 @@ import type { ActivityListItem, Status, TokenAmount } from '../types';
 
 export type RampActivityKind = Extract<
   ActivityListItem['type'],
-  'buy' | 'sell' | 'deposit'
+  'buy' | 'sell'
 >;
 
 export function mapRampOrderType(
@@ -23,11 +23,10 @@ export function mapRampOrderType(
 ): RampActivityKind | null {
   switch (orderType) {
     case OrderOrderTypeEnum.Buy:
+    case DepositOrderType.Deposit:
       return 'buy';
     case OrderOrderTypeEnum.Sell:
       return 'sell';
-    case DepositOrderType.Deposit:
-      return 'deposit';
     default:
       return null;
   }
