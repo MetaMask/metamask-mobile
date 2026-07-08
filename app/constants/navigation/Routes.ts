@@ -232,7 +232,6 @@ const Routes = {
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
     NOTIFICATION_SETTINGS_SECTION: 'NotificationSettingsSection',
-    TOP_TRADERS: 'TopTradersSettings',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
     NETWORKS_MANAGEMENT: 'NetworksManagement',
@@ -406,7 +405,6 @@ const Routes = {
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
-    OPT_OUT: 'LeaderboardOptOutBottomSheet',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {

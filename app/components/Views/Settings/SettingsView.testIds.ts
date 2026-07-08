@@ -28,5 +28,4 @@ export const SettingsViewSelectorsIDs = {
   SNAPS: 'snaps',
   REGION: 'region-settings',
   ADD_DEVICE: 'add-device-settings',
-  TOP_TRADERS: 'top-traders-settings',
 };

@@ -1070,10 +1070,10 @@
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
     },
-    "opt_out": {
-      "title": "Leaderboard",
-      "description": "Opt out of the leaderboard and prevent this account's addresses from being shown.",
-      "cta": "Opt out of leaderboard"
+    "settings": {
+      "section_title": "Top Traders",
+      "show_account_on_leaderboard": "Show account on leaderboard",
+      "show_account_on_leaderboard_description": "Appear on top traders leaderboard when your weekly earnings rank."
     },
     "follow": "Follow",
     "following": "Following",
@@ -3696,8 +3696,6 @@
     "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect and more...",
-    "top_traders_title": "Top Traders",
-    "top_traders_desc": "Manage your top trader preferences, opt out, etc.",
     "legal_title": "Legal",
     "conversion_title": "Currency conversion",
     "conversion_desc": "Display fiat values in using a specific currency throughout the application.",
