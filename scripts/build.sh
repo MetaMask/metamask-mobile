@@ -531,8 +531,10 @@ generateAndroidBinary() {
 		# Memory optimization for E2E builds (Keep an eye out if this breaks outside of E2E CI builds)
 		# BrowserStack builds target real ARM devices, so skip x86_64-only restriction.
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ] ; then
-			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
-			if [ "${CI:-false}" = "true" ] ; then
+			# CI restricts to x86_64 emulators unless a build explicitly opts into arm64
+			# (e.g. the scheduled build for Apple Silicon emulators). Local builds always
+			# include both so they run on Apple Silicon.
+			if [ "${CI:-false}" = "true" ] && [ "${E2E_INCLUDE_ARM64:-false}" != "true" ] ; then
 				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
 			else
 				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64,arm64-v8a"

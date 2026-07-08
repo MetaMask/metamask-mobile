@@ -11,10 +11,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import { renderShortAddress } from '../../../../util/address';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../../selectors/networkController';
@@ -25,7 +22,7 @@ import {
 } from '../constants/activityStyles';
 import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
-import { moneyFormatFiat } from '../utils/moneyFormatFiat';
+import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import {
   isMusdToken,
   isMusdTokenOnChain,
@@ -187,7 +184,6 @@ export function useMoneyTransactionDisplayInfo(
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
   const paymentMethodName = useFiatPaymentMethodName(tx);
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
   const tokenMarketData = useSelector(selectTokenMarketData);
 
@@ -246,24 +242,20 @@ export function useMoneyTransactionDisplayInfo(
     let fiatAmount = buildMoneyActivityFiatLine(
       tx,
       currencyRates,
-      currentCurrency,
       tokenMarketData,
     );
-    if (!fiatAmount && currentCurrency) {
+    if (!fiatAmount) {
       const rawFiat = Number(tx.metamaskPay?.targetFiat);
       if (!isNaN(rawFiat) && rawFiat > 0) {
-        fiatAmount = `+${moneyFormatFiat(new BigNumber(rawFiat), currentCurrency)}`;
+        fiatAmount = `+${moneyFormatUsd(new BigNumber(rawFiat))}`;
       }
     }
 
     if (status === 'failed') {
       primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
-      if (currentCurrency) {
-        fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatFiat(
-          new BigNumber(0),
-          currentCurrency,
-        )}`;
-      }
+      fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatUsd(
+        new BigNumber(0),
+      )}`;
     }
 
     // Perps/Predict ↔ Money transfers carry no `requiredAssets` and aren't token
@@ -277,12 +269,7 @@ export function useMoneyTransactionDisplayInfo(
       if (!isNaN(fiat) && fiat > 0) {
         const amount = new BigNumber(fiat);
         primaryAmount = formatMusdAmount(amount, isIncoming);
-        if (currentCurrency) {
-          fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatFiat(
-            amount,
-            currentCurrency,
-          )}`;
-        }
+        fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatUsd(amount)}`;
       }
     }
 
@@ -305,7 +292,6 @@ export function useMoneyTransactionDisplayInfo(
     tx,
     subtitle,
     paymentMethodName,
-    currentCurrency,
     currencyRates,
     tokenMarketData,
     payToken,

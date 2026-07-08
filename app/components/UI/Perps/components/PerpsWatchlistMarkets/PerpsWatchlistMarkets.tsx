@@ -77,6 +77,8 @@ interface PerpsWatchlistMarketsProps {
   onSeeAllPress?: () => void;
   /** Whether to render the "Watchlist" section header. Defaults to true. */
   showHeader?: boolean;
+  /** Whether to render a divider above the section header. Defaults to true. */
+  showLeadingDivider?: boolean;
   /** Whether to render the collapsible "Show more"/"Show less" toggle. Defaults to true. */
   enableShowMore?: boolean;
 }
@@ -98,6 +100,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   sectionStyle,
   contentContainerStyle,
   onMarketPress,
+  showLeadingDivider = true,
 }) => {
   const navigation = useNavigation();
 
@@ -159,7 +162,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
 
   return (
     <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
-      <SectionDivider />
+      {showLeadingDivider ? <SectionDivider /> : null}
       <SectionHeader title={strings('perps.home.watchlist')} />
       <Box paddingHorizontal={4} style={contentContainerStyle}>
         {isLoading ? (
@@ -196,6 +199,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   onSeeAllPress,
   showHeader = true,
   enableShowMore = true,
+  showLeadingDivider = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -262,7 +266,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
 
   const watchlistHeader = showHeader ? (
     <>
-      <SectionDivider />
+      {showLeadingDivider ? <SectionDivider /> : null}
       <SectionHeader
         title={strings('perps.home.watchlist')}
         isInteractive={Boolean(onSeeAllPress)}

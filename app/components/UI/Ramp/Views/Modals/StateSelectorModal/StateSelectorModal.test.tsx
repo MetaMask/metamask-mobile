@@ -100,7 +100,7 @@ describe('StateSelectorModal (V2)', () => {
     const searchInput = getByPlaceholderText('Search by state');
     fireEvent.changeText(searchInput, 'Cal');
     expect(queryByText('New York')).not.toBeOnTheScreen();
-    const clearButton = getByTestId('textfield-endacccessory');
+    const clearButton = getByTestId('searchable-selector-clear-button');
     fireEvent.press(clearButton);
     expect(queryByText('No states match')).not.toBeOnTheScreen();
   });

@@ -129,7 +129,9 @@ module.exports.transform = async ({ src, filename, options }) => {
   }
 
   const environment = process.env.METAMASK_ENVIRONMENT ?? 'production';
-  const shouldLintFencedFiles = environment === 'production';
+
+  const shouldLintFencedFiles =
+    environment === 'production' && process.env.SKIP_TRANSFORM_LINT !== 'true';
 
   /**
    * Params based on builds we're code splitting

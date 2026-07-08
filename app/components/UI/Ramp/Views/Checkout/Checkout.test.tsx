@@ -53,6 +53,15 @@ jest.mock('../../headless/sessionRegistry', () => ({
   failSession: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry',
+  () => ({
+    setHeadlessOrderContext: jest.fn(),
+    getHeadlessOrderContext: jest.fn(),
+    deleteHeadlessOrderContext: jest.fn(),
+  }),
+);
+
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
@@ -654,6 +663,9 @@ describe('Checkout', () => {
       .closeSession as jest.Mock;
     const mockFailSession = jest.requireMock('../../headless/sessionRegistry')
       .failSession as jest.Mock;
+    const mockSetHeadlessOrderContext = jest.requireMock(
+      '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry',
+    ).setHeadlessOrderContext as jest.Mock;
 
     const mockOrder = {
       providerOrderId: 'headless-order-1',
@@ -676,6 +688,7 @@ describe('Checkout', () => {
       mockGetSession.mockReset();
       mockCloseSession.mockReset();
       mockFailSession.mockReset();
+      mockSetHeadlessOrderContext.mockReset();
       mockParentPop = jest.fn();
       mockNavigation.getParent.mockImplementation(() => ({
         pop: mockParentPop,
@@ -740,6 +753,33 @@ describe('Checkout', () => {
         type: 'PROTECT_WALLET_MODAL_VISIBLE',
       });
       expect(mockNavigation.reset).not.toHaveBeenCalled();
+    });
+
+    it('persists the headless order context so a later terminal failure stays tagged HEADLESS', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { rampSurface: 'money_account' },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(mockSetHeadlessOrderContext).toHaveBeenCalledWith(
+          'headless-order-1',
+          expect.objectContaining({ rampSurface: 'money_account' }),
+        );
+      });
     });
 
     it('emits HEADLESS RAMPS_ORDER_FAILED with quote context when a live session is failed', async () => {

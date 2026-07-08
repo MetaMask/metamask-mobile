@@ -153,7 +153,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         tabName="Now"
         sectionName="perps_movers"
       />
-      <Box twClassName="mb-3">
+      <Box twClassName="px-4 mb-3">
         <SegmentedControl
           value={activeMoverDirection}
           onChange={handleMoverPillSelect}
@@ -372,8 +372,9 @@ const NowTabContent: React.FC<TabProps> = ({
         content: (
           <WhatsHappeningSection
             source={WhatsHappeningSource.Explore}
-            hideHeader
             feed={whatsHappening}
+            tabName="Now"
+            sectionName="whats_happening"
           />
         ),
       });

@@ -46,12 +46,41 @@ describe('activityDetailsDoItAgainUtils', () => {
         direction: 'out',
       } as TokenAmount;
 
-      expect(toBridgeToken(token, 'eip155:1')).toStrictEqual({
-        address: NATIVE_SWAPS_TOKEN_ADDRESS,
-        symbol: 'ETH',
+      expect(toBridgeToken(token, 'eip155:1')).toEqual(
+        expect.objectContaining({
+          address: NATIVE_SWAPS_TOKEN_ADDRESS,
+          symbol: 'ETH',
+          decimals: 18,
+          chainId: 'eip155:1',
+        }),
+      );
+    });
+
+    it('normalizes Polygon native (0x…1010) to the zero address so it matches held holdings', () => {
+      const token = {
+        assetId: 'eip155:137/erc20:0x0000000000000000000000000000000000001010',
+        symbol: 'POL',
         decimals: 18,
-        chainId: 'eip155:1',
-      });
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(toBridgeToken(token, 'eip155:137')?.address).toBe(
+        NATIVE_SWAPS_TOKEN_ADDRESS,
+      );
+    });
+
+    it('populates the icon url from the asset id (so un-held tokens still show an icon)', () => {
+      const token = {
+        assetId:
+          'eip155:42161/erc20:0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
+        symbol: 'DAI',
+        decimals: 18,
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(toBridgeToken(token, 'eip155:1')?.image).toEqual(
+        expect.stringContaining('static.cx.metamask.io'),
+      );
     });
 
     it('derives chainId from the asset id when present', () => {
@@ -66,6 +95,51 @@ describe('activityDetailsDoItAgainUtils', () => {
         'eip155:8453',
       );
       expect(toBridgeToken(token, 'eip155:1')?.chainId).toBe('eip155:8453');
+    });
+
+    it('returns undefined for EVM rows missing decimals', () => {
+      const token = {
+        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        symbol: 'USDC',
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(toBridgeToken(token, 'eip155:1')).toBeUndefined();
+    });
+
+    it('builds a non-EVM (Solana) SPL token without decimals, keyed by the full asset id so it can hydrate from held tokens', () => {
+      const token = {
+        // Non-EVM activity rows carry no decimals.
+        assetId:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'USDC',
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(
+        toBridgeToken(token, 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      ).toEqual(
+        expect.objectContaining({
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          symbol: 'USDC',
+          decimals: 0,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        }),
+      );
+    });
+
+    it('builds a non-EVM (Solana) native token keyed by its full slip44 asset id', () => {
+      const token = {
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        symbol: 'SOL',
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(
+        toBridgeToken(token, 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp')
+          ?.address,
+      ).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501');
     });
   });
 });
