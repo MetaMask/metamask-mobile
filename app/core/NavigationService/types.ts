@@ -75,6 +75,7 @@ import type {
   WebviewModalParams,
   KycWebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
+import type { RampNavigationParamList } from '../../components/UI/Ramp/types/navigation';
 import type { DepositNavigationParams } from '../../components/UI/Ramp/types/depositNavigationParams';
 
 // Transactions params
@@ -381,6 +382,30 @@ export type RootStackParamList = {
   RampPaymentMethodSelectorModal: undefined;
   RampSettingsModal: undefined;
   RampBuildQuoteSettingsModal: undefined;
+
+  // Ramp native (V2) flow screens + modals — see RampNavigationParamList.
+  RampTokenSelectionRoot: RampNavigationParamList['RampTokenSelectionRoot'];
+  RampsOrderDetails: RampNavigationParamList['RampsOrderDetails'];
+  RampHeadlessHost: RampNavigationParamList['RampHeadlessHost'];
+  RampEnterEmail: RampNavigationParamList['RampEnterEmail'];
+  RampOtpCode: RampNavigationParamList['RampOtpCode'];
+  RampBasicInfo: RampNavigationParamList['RampBasicInfo'];
+  RampEnterAddress: RampNavigationParamList['RampEnterAddress'];
+  RampVerifyIdentity: RampNavigationParamList['RampVerifyIdentity'];
+  RampBankDetails: RampNavigationParamList['RampBankDetails'];
+  RampBankDetailsStandalone: RampNavigationParamList['RampBankDetailsStandalone'];
+  RampOrderProcessing: RampNavigationParamList['RampOrderProcessing'];
+  RampKycProcessing: RampNavigationParamList['RampKycProcessing'];
+  RampAdditionalVerification: RampNavigationParamList['RampAdditionalVerification'];
+  RampKycWebview: RampNavigationParamList['RampKycWebview'];
+  RampPaymentSelectionModal: RampNavigationParamList['RampPaymentSelectionModal'];
+  RampTokenNotAvailableModal: RampNavigationParamList['RampTokenNotAvailableModal'];
+  RampProviderSelectionModal: RampNavigationParamList['RampProviderSelectionModal'];
+  RampErrorDetailsModal: RampNavigationParamList['RampErrorDetailsModal'];
+  RampProcessingInfoModal: RampNavigationParamList['RampProcessingInfoModal'];
+  RampSsnInfoModal: RampNavigationParamList['RampSsnInfoModal'];
+  RampStateSelectorModal: RampNavigationParamList['RampStateSelectorModal'];
+  RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
