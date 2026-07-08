@@ -5,7 +5,6 @@
 // clearPositionLines (~line 2608), and positionShapeIds state.
 
 import { reportErrorToRN } from '../../core/bridge';
-import { onDataLifecycle } from '../../core/dataLifecycle';
 import {
   getWidget,
   isChartReady,
@@ -206,10 +205,5 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
 export function registerPositionLinesOverlay(): void {
   registerHandler('SET_POSITION_LINES', (payload) => {
     handleSetPositionLines(payload);
-  });
-
-  // resetData drops Drawing API shapes, so clear tracking on every OHLCV reset
-  onDataLifecycle('ohlcvReset', () => {
-    clearPositionShapeIds();
   });
 }

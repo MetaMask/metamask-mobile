@@ -656,22 +656,71 @@ function applyThemeColors(payload) {
     setTheme(updated);
     const widget = getWidget();
     if (!widget || !isChartReady()) {
-        // Theme is now updated in state; the next listener / chart-ready cycle
-        // will pick it up. Mid-init theme changes are rare in practice.
         notifyListeners(updated);
         return;
     }
+    const lineColor = getThemeLineColor(updated);
     try {
         widget.applyOverrides({
             ...getCandleStyleOverrides(updated),
-            ...getSeriesColorOverrides(getThemeLineColor(updated), getThemeLastPriceLineColor(updated)),
+            ...getSeriesColorOverrides(lineColor, getThemeLastPriceLineColor(updated)),
             ...getBuiltInScaleLabelOverrides(updated),
         });
     }
     catch (error) {
         reportErrorToRN(error);
     }
+    applySeriesStyleProperties(widget, lineColor);
     notifyListeners(updated);
+}
+/**
+ * Re-apply the current theme from state to the widget. Called on chart ready
+ * to flush any SET_THEME_COLORS that arrived before the chart was initialized.
+ * Ensures the first visible frame shows the correct color, not stale CONFIG.
+ */
+function flushPendingTheme() {
+    const theme = getTheme();
+    if (!theme)
+        return;
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    const lineColor = getThemeLineColor(theme);
+    try {
+        widget.applyOverrides({
+            ...getCandleStyleOverrides(theme),
+            ...getSeriesColorOverrides(lineColor, getThemeLastPriceLineColor(theme)),
+            ...getBuiltInScaleLabelOverrides(theme),
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+    applySeriesStyleProperties(widget, lineColor);
+}
+/**
+ * Directly update the live series stroke color for line (2) and baseline (10)
+ * chart styles. \`applyOverrides\` only sets widget-level defaults; this call
+ * ensures the already-rendered series picks up the new color immediately.
+ */
+function applySeriesStyleProperties(widget, lineColor) {
+    try {
+        const series = widget.activeChart().getSeries();
+        series.setChartStyleProperties(2, {
+            color: lineColor,
+            colorType: 'solid',
+            linewidth: 2,
+        });
+        series.setChartStyleProperties(10, {
+            topLineColor: lineColor,
+            bottomLineColor: lineColor,
+            topLineWidth: 2,
+            bottomLineWidth: 2,
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
 }
 function notifyListeners(theme) {
     for (const listener of listeners) {
@@ -4579,7 +4628,6 @@ function __resetPositionLineStateForTests() {
 
 
 
-
 function clearPositionLines() {
     const widget = getWidget();
     if (!widget || !isChartReady()) {
@@ -4745,10 +4793,6 @@ function registerPositionLinesOverlay() {
     registerHandler('SET_POSITION_LINES', (payload) => {
         handleSetPositionLines(payload);
     });
-    // resetData drops Drawing API shapes, so clear tracking on every OHLCV reset
-    onDataLifecycle('ohlcvReset', () => {
-        clearPositionShapeIds();
-    });
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/bootstrap.ts
@@ -4883,6 +4927,7 @@ function bootstrap() {
                 timeframe: buildInitialTimeframe(),
                 onReady: (widget) => {
                     try {
+                        flushPendingTheme();
                         applyScaleLayout();
                         applyVisualOverrides(config.visualOverrides);
                         setupLegendOverlay(config.legendOverlay, config.indicatorColors);

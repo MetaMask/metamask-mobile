@@ -26,6 +26,10 @@ export enum TokenDetailsSource {
   ExploreSearch = 'explore_search',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
+  /** Swap discovery feed — hot tokens / movers pills */
+  MoversSwaps = 'movers-swaps',
+  /** Swap discovery feed — stocks section */
+  RwasStocksSwaps = 'rwas_stocks-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */
   HomepageTrending = 'homepage-trending',
   /** Swap/Bridge token selector */

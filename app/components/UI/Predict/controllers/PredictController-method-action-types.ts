@@ -76,7 +76,6 @@ export type PredictControllerGetUnrealizedPnLAction = {
 /**
  * Track Predict trade transaction analytics event
  * Uses a single consolidated event with status discriminator
- *
  * @public
  */
 export type PredictControllerTrackPredictOrderEventAction = {
