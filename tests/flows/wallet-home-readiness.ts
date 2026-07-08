@@ -1,8 +1,11 @@
 import PlaywrightMatchers from '../framework/PlaywrightMatchers';
 import { withImplicitWait } from '../framework/PlaywrightUtilities';
 import { PlatformDetector } from '../framework/PlatformLocator';
+import { sleep } from '../framework/Utilities';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
+
+const READINESS_STABILITY_MS = 500;
 
 const IOS_WALLET_HOME_INDICATOR_IDS = [
   WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
@@ -37,6 +40,14 @@ export const isWalletHomeReadyOnAndroid = async (): Promise<boolean> => {
     return false;
   }
   return !(await isLoginScreenDisplayed());
+};
+
+export const isWalletHomeReadyOnAndroidStable = async (): Promise<boolean> => {
+  if (!(await isWalletHomeReadyOnAndroid())) {
+    return false;
+  }
+  await sleep(READINESS_STABILITY_MS);
+  return isWalletHomeReadyOnAndroid();
 };
 
 const isElementDisplayedById = isTestIdDisplayed;

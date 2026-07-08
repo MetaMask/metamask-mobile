@@ -3,6 +3,7 @@ import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
   encapsulated,
+  FrameworkDetector,
   Matchers,
   PlatformDetector,
   PlaywrightAssertions,
@@ -55,6 +56,8 @@ import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/Experience
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import {
+  isLoginScreenDisplayed,
+  isWalletHomeReadyOnAndroidStable,
   isWalletHomeReadyOnAppium,
   isWalletHomeReadyOnIOS,
 } from './wallet-home-readiness';
@@ -96,6 +99,23 @@ export const waitForWalletHomePlaywright = async (
   throw new Error(
     `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
   );
+};
+
+const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
+  if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+    return isWalletHomeReadyOnAndroidStable();
+  }
+  if (!(await isWalletHomeReadyOnAppium())) {
+    return false;
+  }
+  return !(await isLoginScreenDisplayed());
+};
+
+const completeUnlockedWalletHome = async (
+  dismissPostLoginModals: () => Promise<void>,
+): Promise<void> => {
+  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await dismissPostLoginModals();
 };
 
 /**
@@ -717,15 +737,15 @@ export const loginToAppPlaywright = async (
 
   await dismissAndroidSystemOverlaysPlaywright();
 
-  if (await isWalletHomeReadyOnAppium()) {
-    await dismissPostLoginModals();
+  if (await isUnlockedWalletHomeReady()) {
+    await completeUnlockedWalletHome(dismissPostLoginModals);
     return;
   }
 
   const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
 
   if (readyScreen === 'wallet') {
-    await dismissPostLoginModals();
+    await completeUnlockedWalletHome(dismissPostLoginModals);
     return;
   }
 
