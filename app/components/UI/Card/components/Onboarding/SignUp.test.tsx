@@ -292,6 +292,22 @@ describe('SignUp Component', () => {
       expect(passwordInput.props.secureTextEntry).toBe(true);
     });
 
+    it('uses password autofill props for iOS strong password suggestions', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+
+      expect(emailInput.props.autoComplete).toBe('email');
+      expect(emailInput.props.textContentType).toBe('emailAddress');
+      expect(passwordInput.props.autoComplete).toBe('password-new');
+      expect(passwordInput.props.textContentType).toBe('newPassword');
+    });
+
     it('toggles password visibility when eye icon is pressed', () => {
       const { getByTestId } = render(
         <Provider store={store}>

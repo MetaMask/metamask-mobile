@@ -41,9 +41,23 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+const otpAutoComplete = Platform.select<TextInputProps['autoComplete']>({
   android: 'sms-otp',
   default: 'one-time-code',
+});
+
+const passwordTextContentType = Platform.select<
+  TextInputProps['textContentType']
+>({
+  ios: 'password',
+  default: undefined,
+});
+
+const usernameTextContentType = Platform.select<
+  TextInputProps['textContentType']
+>({
+  ios: 'username',
+  default: undefined,
 });
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -350,7 +364,7 @@ const CardAuthentication = () => {
                 numberOfLines: 1,
                 keyboardType: 'number-pad',
                 textContentType: 'oneTimeCode',
-                autoComplete,
+                autoComplete: otpAutoComplete,
                 maxLength: CODE_LENGTH,
                 accessibilityLabel: strings(
                   'card.card_otp_authentication.confirm_code_label',
@@ -461,6 +475,7 @@ const CardAuthentication = () => {
               inputProps={{
                 autoCapitalize: 'none',
                 autoComplete: 'username',
+                textContentType: usernameTextContentType,
                 numberOfLines: 1,
                 returnKeyType: 'next',
                 keyboardType: 'email-address',
@@ -493,6 +508,7 @@ const CardAuthentication = () => {
               inputProps={{
                 autoCapitalize: 'none',
                 autoComplete: 'password',
+                textContentType: passwordTextContentType,
                 numberOfLines: 1,
                 maxLength: 255,
                 returnKeyType: 'done',

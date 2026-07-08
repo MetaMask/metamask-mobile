@@ -34,7 +34,12 @@ import { validatePassword } from '../../util/validatePassword';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import {
+  ActivityIndicator,
+  Platform,
+  TouchableOpacity,
+  TextInputProps,
+} from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -46,6 +51,20 @@ import type { Region } from '../../types';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
+
+const passwordAutoComplete = Platform.select<
+  TextInputProps['autoComplete']
+>({
+  android: 'password-new',
+  default: 'password-new',
+});
+
+const passwordTextContentType = Platform.select<
+  TextInputProps['textContentType']
+>({
+  ios: 'newPassword',
+  default: undefined,
+});
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -309,7 +328,8 @@ const SignUp = () => {
         <Label>{strings('card.card_onboarding.sign_up.email_label')}</Label>
         <TextField
           autoCapitalize={'none'}
-          autoComplete="one-time-code"
+          autoComplete="email"
+          textContentType="emailAddress"
           onChangeText={handleEmailChange}
           numberOfLines={1}
           value={email}
@@ -352,7 +372,11 @@ const SignUp = () => {
             value={password}
             maxLength={255}
             secureTextEntry={!isPasswordVisible}
-            autoComplete="one-time-code"
+            autoComplete={passwordAutoComplete}
+            textContentType={passwordTextContentType}
+            passwordRules={
+              Platform.OS === 'ios' ? 'minlength: 15;' : undefined
+            }
             accessibilityLabel={strings(
               'card.card_onboarding.sign_up.password_label',
             )}
