@@ -1031,7 +1031,7 @@ describe('mapLocalTransaction', () => {
     );
   });
 
-  it('maps a staking deposit to a deposit activity with the network fee', () => {
+  it('maps a staking deposit to a stake activity with the network fee', () => {
     const transaction = {
       chainId: mainnet,
       hash: '0xstakedeposit',
@@ -1044,7 +1044,7 @@ describe('mapLocalTransaction', () => {
 
     expect(mapLocalTransaction(makeGroup(transaction))).toEqual(
       expect.objectContaining({
-        type: 'deposit',
+        type: 'stake',
         data: expect.objectContaining({ fees: expect.any(Array) }),
       }),
     );
@@ -1174,7 +1174,7 @@ describe('mapLocalTransaction', () => {
     const result = mapLocalTransaction(
       makeGroup(transaction, { nativeAssetSymbol: undefined }),
     );
-    expect(result.type).toBe('deposit');
+    expect(result.type).toBe('stake');
     const { token } = result.data as { token?: unknown };
     expect(token).toBeUndefined();
   });

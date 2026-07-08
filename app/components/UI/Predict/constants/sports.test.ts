@@ -36,8 +36,8 @@ const game: PredictMarketGame = {
 };
 
 describe('MONEYLINE_MARKET_TYPES', () => {
-  it('contains exactly 6 entries', () => {
-    expect(MONEYLINE_MARKET_TYPES.size).toBe(6);
+  it('contains exactly 7 entries', () => {
+    expect(MONEYLINE_MARKET_TYPES.size).toBe(7);
   });
 
   it('contains moneyline', () => {
@@ -50,6 +50,10 @@ describe('MONEYLINE_MARKET_TYPES', () => {
 
   it('contains soccer_halftime_result', () => {
     expect(MONEYLINE_MARKET_TYPES.has('soccer_halftime_result')).toBe(true);
+  });
+
+  it('contains soccer_second_half_result', () => {
+    expect(MONEYLINE_MARKET_TYPES.has('soccer_second_half_result')).toBe(true);
   });
 
   it('contains soccer_first_to_score', () => {
@@ -84,6 +88,12 @@ describe('isMoneylineLikeMarketType', () => {
     expect(result).toBe(true);
   });
 
+  it('returns true for soccer_second_half_result', () => {
+    const result = isMoneylineLikeMarketType('soccer_second_half_result');
+
+    expect(result).toBe(true);
+  });
+
   it('returns true for soccer_first_to_score', () => {
     const result = isMoneylineLikeMarketType('soccer_first_to_score');
 
@@ -106,6 +116,7 @@ describe('isMoneylineLikeMarketType', () => {
     expect(isMoneylineLikeMarketType('Moneyline')).toBe(true);
     expect(isMoneylineLikeMarketType('FIRST_HALF_MONEYLINE')).toBe(true);
     expect(isMoneylineLikeMarketType('Soccer_Halftime_Result')).toBe(true);
+    expect(isMoneylineLikeMarketType('Soccer_Second_Half_Result')).toBe(true);
     expect(isMoneylineLikeMarketType('Soccer_First_To_Score')).toBe(true);
     expect(isMoneylineLikeMarketType('Soccer_Team_To_Advance')).toBe(true);
     expect(isMoneylineLikeMarketType('Tennis_First_Set_Winner')).toBe(true);
