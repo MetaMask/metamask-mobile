@@ -175,22 +175,12 @@ export const ONBOARDING_TOP_TRADERS_LIMIT = 3;
 
 /**
  * Pure safety net for the rare case the artboard is mounted before the
- * top-traders fetch has settled (e.g. the query cache was evicted between
- * `Wallet`'s prefetch and navigation). It bounds how long we wait before
- * mounting the artboard anyway with bundled placeholder avatars for any trader
- * whose real data hasn't arrived yet.
+ * top-traders fetch has settled. It bounds how long we wait before mounting the
+ * artboard anyway with bundled placeholder avatars for any trader whose real
+ * data hasn't arrived yet.
  *
- * In the normal flow this never fires: `Wallet` prefetches this exact query and
- * only navigates here once the data is in cache (see
- * `util/social/socialLeaderboardOnboardingQueries.ts`), so the artboard mounts
- * with live data immediately.
+ * In the normal flow this rarely fires: the leaderboard is usually opened from
+ * the home "Weekly Top Traders" section, which has already warmed the same
+ * react-query cache, so the onboarding's `useTopTraders` resolves immediately.
  */
 export const REFERENCED_ASSETS_TIMEOUT_MS = 1500;
-
-/**
- * When `MM_SOCIAL_LEADERBOARD_ONBOARDING_SKIP_SEEN=true`, the onboarding is not
- * persisted as seen and Wallet home will navigate to it on every mount. For
- * local dev/QA only — remove or unset before release.
- */
-export const isSocialLeaderboardOnboardingSkipSeen =
-  process.env.MM_SOCIAL_LEADERBOARD_ONBOARDING_SKIP_SEEN === 'true';

@@ -21,7 +21,6 @@ import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 import {
   ActivityIndicator,
   DeviceEventEmitter,
-  InteractionManager,
   Linking,
   RefreshControl,
   ScrollView,
@@ -52,7 +51,6 @@ import { baseStyles } from '../../../styles/common';
 import {
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
-  SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
 } from '../../../constants/storage';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
@@ -186,18 +184,6 @@ import {
   selectPredictEnabledFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
 } from '../../UI/Predict/selectors/featureFlags';
-import {
-  selectSocialLeaderboardEnabled,
-  selectAiSocialLeaderboardOnboardingEnabled,
-  selectSocialLeaderboardPerpsEnabled,
-} from '../../../selectors/featureFlagController/socialLeaderboard';
-import ReactQueryService from '../../../core/ReactQueryService';
-import {
-  prefetchOnboardingLeaderboardData,
-  buildOnboardingLeaderboardQueryKey,
-} from '../../../util/social/socialLeaderboardOnboardingQueries';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { ALL_CHAINS, SPOT_CHAINS } from '../shared/top-traders-constants';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -401,16 +387,6 @@ const Wallet = ({
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictGTMModalEnabled = useSelector(
     selectPredictGtmOnboardingModalEnabledFlag,
-  );
-
-  const isSocialLeaderboardFlagEnabled = useSelector(
-    selectSocialLeaderboardEnabled,
-  );
-  const isSocialLeaderboardOnboardingEnabled = useSelector(
-    selectAiSocialLeaderboardOnboardingEnabled,
-  );
-  const isSocialLeaderboardPerpsEnabled = useSelector(
-    selectSocialLeaderboardPerpsEnabled,
   );
 
   const { toastRef } = useContext(ToastContext);
@@ -655,91 +631,6 @@ const Wallet = ({
       });
     }
   }, [navigate]);
-
-  // Resolves whether the Social Leaderboard onboarding should be shown this
-  // session, warming its data cache as a side effect. Returns `false` (skip)
-  // when already seen or when the leaderboard data can't be loaded — never
-  // navigates itself, so the caller can gate navigation on the Wallet home
-  // having settled first.
-  const prepareSocialLeaderboardOnboarding =
-    useCallback(async (): Promise<boolean> => {
-      // Dev/QA escape hatch: when set, always show without persisting "seen".
-      const skipSeen =
-        process.env.MM_SOCIAL_LEADERBOARD_ONBOARDING_SKIP_SEEN === 'true';
-
-      if (!skipSeen) {
-        const hasSeenOnboarding = await StorageWrapper.getItem(
-          SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
-        );
-
-        if (hasSeenOnboarding === 'true') {
-          return false;
-        }
-      }
-
-      // The onboarding renders live trader cards (names, PnL, avatars) inside
-      // the Rive artboard, so it must NOT be entered until that data is actually
-      // in the query cache — otherwise the user sees an empty/loading artboard.
-      // Prefetch runs behind the Wallet screen (it never blocks Wallet's own
-      // render), and we only show it once the data has landed. If the fetch
-      // can't resolve (offline/error), we skip onboarding for this session and
-      // try again on the next launch rather than showing a broken screen.
-      const chains = isSocialLeaderboardPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
-      const { queryClient } = ReactQueryService;
-
-      await prefetchOnboardingLeaderboardData(queryClient, chains).catch(
-        () => undefined,
-      );
-
-      return Boolean(
-        queryClient.getQueryData(buildOnboardingLeaderboardQueryKey(chains)),
-      );
-    }, [isSocialLeaderboardPerpsEnabled]);
-
-  useEffect(() => {
-    if (
-      !isSocialLeaderboardFlagEnabled ||
-      !isSocialLeaderboardOnboardingEnabled
-    ) {
-      return undefined;
-    }
-
-    let isCancelled = false;
-    let interactionHandle:
-      | ReturnType<typeof InteractionManager.runAfterInteractions>
-      | undefined;
-
-    // Wait for the post-login navigation/animations to finish (device-paced via
-    // `InteractionManager`) so the Wallet home is painted before the onboarding
-    // slides over it. This runs in parallel with the data prefetch so the
-    // settle wait and the network fetch overlap instead of stacking latency.
-    const settled = new Promise<void>((resolve) => {
-      interactionHandle = InteractionManager.runAfterInteractions(() =>
-        resolve(),
-      );
-    });
-
-    Promise.all([prepareSocialLeaderboardOnboarding(), settled])
-      .then(([shouldShowOnboarding]) => {
-        // Bail if Wallet unmounted / lost focus while we waited, so a stale
-        // handle can't yank the user into onboarding after they navigated away.
-        if (isCancelled || !shouldShowOnboarding) {
-          return;
-        }
-        navigate(Routes.SOCIAL_LEADERBOARD.ONBOARDING);
-      })
-      .catch(() => undefined);
-
-    return () => {
-      isCancelled = true;
-      interactionHandle?.cancel();
-    };
-  }, [
-    isSocialLeaderboardFlagEnabled,
-    isSocialLeaderboardOnboardingEnabled,
-    prepareSocialLeaderboardOnboarding,
-    navigate,
-  ]);
 
   useEffect(() => {
     if (isPredictFlagEnabled && isPredictGTMModalEnabled) {

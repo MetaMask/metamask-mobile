@@ -82,7 +82,6 @@ import {
   RIVE_TRIGGERS,
   TEXT_FADE_DURATION_MS,
   NUX_STEP_BY_STEP_INDEX,
-  isSocialLeaderboardOnboardingSkipSeen,
   riveStepTextBinding,
   riveTraderBinding,
 } from './constants';
@@ -178,14 +177,10 @@ const RiveTraderCardBinding: React.FC<{
   return null;
 };
 
-const markOnboardingSeen = () => {
-  if (isSocialLeaderboardOnboardingSkipSeen) {
-    return;
-  }
-  return StorageWrapper.setItem(SOCIAL_LEADERBOARD_ONBOARDING_SHOWN, 'true', {
+const markOnboardingSeen = () =>
+  StorageWrapper.setItem(SOCIAL_LEADERBOARD_ONBOARDING_SHOWN, 'true', {
     emitEvent: false,
   });
-};
 
 /**
  * Social Leaderboard onboarding shown once on app start (Rive + RN hybrid,
