@@ -4569,7 +4569,6 @@ function __resetPositionLineStateForTests() {
 
 
 
-
 function clearPositionLines() {
     const widget = getWidget();
     if (!widget || !isChartReady()) {
@@ -4735,10 +4734,6 @@ function registerPositionLinesOverlay() {
     registerHandler('SET_POSITION_LINES', (payload) => {
         handleSetPositionLines(payload);
     });
-    // resetData drops Drawing API shapes, so clear tracking on every OHLCV reset
-    onDataLifecycle('ohlcvReset', () => {
-        clearPositionShapeIds();
-    });
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/bootstrap.ts
@@ -4892,7 +4887,10 @@ function bootstrap() {
                         attachTapDismiss(widget);
                         attachMarkerHitTest(widget, chart);
                         attachVisibleRangeListeners(chart);
-                        chart.selection().onChanged().subscribe(null, () => {
+                        chart
+                            .selection()
+                            .onChanged()
+                            .subscribe(null, () => {
                             chart.selection().clear();
                         });
                         attachLegendResizeListener(widget);

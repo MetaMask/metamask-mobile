@@ -296,8 +296,8 @@ describe('positionLines/index', () => {
       expect(getHasExplicitCurrentPriceLine()).toBe(false);
     });
 
-    it('clears shape IDs on ohlcvReset', async () => {
-      installWidget();
+    it('keeps tracked shapes on ohlcvReset so a later clear can remove persisted drawings', async () => {
+      const { createShape, removeEntity } = installWidget();
       registerPositionLinesOverlay();
 
       handleSetPositionLines({
@@ -307,6 +307,12 @@ describe('positionLines/index', () => {
       await Promise.resolve();
 
       notifyDataLifecycle('ohlcvReset');
+      expect(removeEntity).not.toHaveBeenCalled();
+      expect(createShape).toHaveBeenCalledTimes(1);
+      expect(getPositionShapeIds()).toEqual(['shape-1']);
+
+      handleSetPositionLines({ position: null });
+      expect(removeEntity).toHaveBeenCalledWith('shape-1');
       expect(getPositionShapeIds()).toEqual([]);
     });
   });
