@@ -15,6 +15,16 @@ jest.mock('./QuickBuyPercentageSlider', () => ({
   QuickBuyPercentageSlider: () => null,
 }));
 
+jest.mock('./QuickBuyQuickAmounts', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactMock.createElement(Text, { testID: 'quick-buy-quick-amounts' }),
+  };
+});
+
 jest.mock('./QuickBuyTokenIcon', () => ({
   __esModule: true,
   default: () => null,
@@ -78,5 +88,23 @@ describe('QuickBuyActionFooter', () => {
     render(<QuickBuyActionFooter />);
     expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     expect(screen.getByText('confirm-button:loading')).toBeOnTheScreen();
+  });
+
+  it('renders quick-amount pills when the feature flag is enabled', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      features: { payWithSheet: true, quickAmountPills: true },
+    });
+    render(<QuickBuyActionFooter />);
+    expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
+  });
+
+  it('hides quick-amount pills when the feature flag is disabled', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      features: { payWithSheet: true, quickAmountPills: false },
+    });
+    render(<QuickBuyActionFooter />);
+    expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
   });
 });

@@ -8,14 +8,12 @@ import {
 import { Box, TabEmptyState } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import Logger from '../../../../../util/Logger';
 import { selectAddressHasTokenBalances } from '../../../../../selectors/tokenBalancesController';
 import ActivityEmptyDarkIcon from '../../../../../images/activity-empty-dark.svg';
 import ActivityEmptyLightIcon from '../../../../../images/activity-empty-light.svg';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useMoneyAccountDeposit } from '../../../../UI/Money/hooks/useMoneyAccount';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
 import { ActivityTypeFilter } from '../../types';
 import {
@@ -41,7 +39,6 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   const designSystemTheme = useDesignSystemTheme();
   const navigation = useNavigation();
   const { goToBuy } = useRampNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
   const hasFunds = useSelector(selectAddressHasTokenBalances);
 
   const Icon =
@@ -75,21 +72,13 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
           screen: Routes.PERPS.MARKET_LIST,
         });
         return;
-      case ActivityEmptyStateAction.TransferToMoney:
-        initiateDeposit().catch((error) => {
-          Logger.error(error as Error, {
-            message:
-              '[ActivityEmptyState] Money deposit failed to initiate from empty state',
-          });
-        });
-        return;
       case ActivityEmptyStateAction.OpenMetamaskCard:
         navigation.navigate(Routes.CARD.ROOT);
         return;
       default:
         return;
     }
-  }, [emptyState.action, navigation, goToBuy, initiateDeposit]);
+  }, [emptyState.action, navigation, goToBuy]);
 
   return (
     <Box

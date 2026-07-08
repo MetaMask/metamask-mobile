@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   CustomAmountInfo,
   CustomAmountInfoProps,
+  AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
 } from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
@@ -1105,5 +1106,25 @@ describe('CustomAmountInfoSkeleton', () => {
     });
 
     expect(queryByTestId('account-selector-skeleton')).toBeNull();
+  });
+});
+
+describe('AdvancedCustomAmountInfoSkeleton', () => {
+  it('renders skeleton with AccountSelectorSkeleton', () => {
+    const { getByTestId } = renderWithProvider(
+      <AdvancedCustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(getByTestId('account-selector-skeleton')).toBeTruthy();
+    expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
+    expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
   });
 });
