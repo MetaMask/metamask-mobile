@@ -2,29 +2,30 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { useCanonicalProfileIdTrait } from './useCanonicalProfileIdTrait';
 import { UserProfileProperty } from '../../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import Engine from '../../../../core/Engine';
 import { analytics } from '../../../analytics/analytics';
 
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    AuthenticationController: {
-      getSessionProfile: jest.fn(),
-    },
-  },
-}));
 jest.mock('../../../analytics/analytics', () => ({
   analytics: {
     identify: jest.fn(),
   },
 }));
 
-const mockGetSessionProfile = Engine.context.AuthenticationController
-  .getSessionProfile as jest.MockedFunction<
-  typeof Engine.context.AuthenticationController.getSessionProfile
->;
 const mockIdentify = jest.mocked(analytics.identify);
 
-const createState = (isSignedIn: boolean) =>
+const sessionProfile = {
+  identifierId: 'identifierId',
+  profileId: 'profileId',
+  canonicalProfileId: 'canonicalProfileId',
+  metaMetricsId: 'metaMetricsId',
+};
+
+const createState = ({
+  isSignedIn,
+  canonicalProfileId,
+}: {
+  isSignedIn: boolean;
+  canonicalProfileId?: string;
+}) =>
   ({
     engine: {
       backgroundState: {
@@ -32,6 +33,15 @@ const createState = (isSignedIn: boolean) =>
         AuthenticationController: {
           ...backgroundState.AuthenticationController,
           isSignedIn,
+          ...(canonicalProfileId !== undefined
+            ? {
+                srpSessionData: {
+                  entropySourceId1: {
+                    profile: { ...sessionProfile, canonicalProfileId },
+                  },
+                },
+              }
+            : {}),
         },
       },
     },
@@ -42,65 +52,64 @@ describe('useCanonicalProfileIdTrait', () => {
     jest.clearAllMocks();
   });
 
-  it('identifies with canonical_profile_id on mount when already signed in', async () => {
-    mockGetSessionProfile.mockResolvedValue({
-      identifierId: 'identifierId',
-      profileId: 'profileId',
-      canonicalProfileId: 'canonicalProfileId',
-      metaMetricsId: 'metaMetricsId',
-    });
-
+  it('identifies with canonical_profile_id on mount when signed in', () => {
     renderHookWithProvider(() => useCanonicalProfileIdTrait(), {
-      state: createState(true),
+      state: createState({
+        isSignedIn: true,
+        canonicalProfileId: 'canonicalProfileId',
+      }),
     });
 
-    // Flush the async effect body.
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(mockGetSessionProfile).toHaveBeenCalledTimes(1);
     expect(mockIdentify).toHaveBeenCalledWith({
       [UserProfileProperty.CANONICAL_PROFILE_ID]: 'canonicalProfileId',
     });
   });
 
-  it('does not identify when signed in but canonicalProfileId is missing', async () => {
-    mockGetSessionProfile.mockResolvedValue({
-      identifierId: 'identifierId',
-      profileId: 'profileId',
-      canonicalProfileId: '',
-      metaMetricsId: 'metaMetricsId',
-    });
-
+  it('does not identify when signed in but canonicalProfileId is missing', () => {
     renderHookWithProvider(() => useCanonicalProfileIdTrait(), {
-      state: createState(true),
+      state: createState({ isSignedIn: true }),
     });
-
-    await Promise.resolve();
-    await Promise.resolve();
 
     expect(mockIdentify).not.toHaveBeenCalled();
   });
 
-  it('does not read the session profile when not signed in', () => {
+  it('does not identify when not signed in', () => {
     renderHookWithProvider(() => useCanonicalProfileIdTrait(), {
-      state: createState(false),
+      state: createState({
+        isSignedIn: false,
+        canonicalProfileId: 'canonicalProfileId',
+      }),
     });
 
-    expect(mockGetSessionProfile).not.toHaveBeenCalled();
     expect(mockIdentify).not.toHaveBeenCalled();
   });
 
-  it('swallows errors from getSessionProfile without identifying', async () => {
-    mockGetSessionProfile.mockRejectedValue(new Error('Session error'));
-
+  it('identifies with the current canonical_profile_id for each distinct value', () => {
+    // Two separate renders with different canonical ids exercise the
+    // effect's dependency on canonicalProfileId (the effect re-fires
+    // whenever the selector value changes while signed in).
     renderHookWithProvider(() => useCanonicalProfileIdTrait(), {
-      state: createState(true),
+      state: createState({
+        isSignedIn: true,
+        canonicalProfileId: 'canonicalProfileId-1',
+      }),
     });
 
-    await Promise.resolve();
-    await Promise.resolve();
+    expect(mockIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.CANONICAL_PROFILE_ID]: 'canonicalProfileId-1',
+    });
 
-    expect(mockIdentify).not.toHaveBeenCalled();
+    jest.clearAllMocks();
+
+    renderHookWithProvider(() => useCanonicalProfileIdTrait(), {
+      state: createState({
+        isSignedIn: true,
+        canonicalProfileId: 'canonicalProfileId-2',
+      }),
+    });
+
+    expect(mockIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.CANONICAL_PROFILE_ID]: 'canonicalProfileId-2',
+    });
   });
 });
