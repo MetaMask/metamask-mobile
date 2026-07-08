@@ -715,6 +715,7 @@ export type RewardsControllerGetVipRefereeDashboardAction = {
  * @param subscriptionId - The subscription ID for authentication
  * @param benefitId - The specific benefit ID that was impressed
  * @param benefitType - The type of the benefit that was impressed
+ * @param walletAddress - The wallet address that viewed the benefit (optional)
  * @returns Promise<SubscriptionBenefitsState> - The benefits data
  */
 export type RewardsControllerPostBenefitImpressionAction = {
