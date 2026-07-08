@@ -52,7 +52,7 @@ export interface V2EnterAddressParams {
   headlessSessionId?: string;
 }
 
-const V2EnterAddress = (): JSX.Element => {
+const V2EnterAddress = (): React.JSX.Element => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { quote, previousFormData, headlessSessionId } =

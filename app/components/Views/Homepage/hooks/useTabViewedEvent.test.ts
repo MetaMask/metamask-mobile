@@ -192,8 +192,8 @@ describe('useTabViewedEvent', () => {
     });
   });
 
-  describe('ref-based context reads', () => {
-    it('uses the latest context values at call time, not render time', () => {
+  describe('context value freshness', () => {
+    it('uses the latest context values at call time after rerender', () => {
       const { result, rerender } = renderHook(() => useTabViewedEvent());
 
       // Update context after initial render

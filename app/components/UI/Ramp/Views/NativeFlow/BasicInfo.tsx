@@ -75,7 +75,7 @@ export interface V2BasicInfoParams {
   headlessSessionId?: string;
 }
 
-const V2BasicInfo = (): JSX.Element => {
+const V2BasicInfo = (): React.JSX.Element => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
