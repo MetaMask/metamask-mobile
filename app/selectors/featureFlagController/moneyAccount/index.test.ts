@@ -1,6 +1,7 @@
 import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
+  selectMoneyDepositEthFallbackEnabled,
   selectMoneyAccountVaultConfig,
   selectMoneyOnboardingStepperAnimationEnabled,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
@@ -50,6 +51,28 @@ describe('Money Account feature flag selectors', () => {
     it('returns false when moneyAccountDepositEnabled is not set', () => {
       const result = selectMoneyAccountDepositEnabledFlag.resultFunc({
         moneyAccount: {},
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneyDepositEthFallbackEnabled', () => {
+    it('returns true when moneyDepositEthFallbackEnabled is true', () => {
+      const result = selectMoneyDepositEthFallbackEnabled.resultFunc({
+        moneyAccount: {
+          moneyDepositEthFallbackEnabled: true,
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when moneyDepositEthFallbackEnabled is false', () => {
+      const result = selectMoneyDepositEthFallbackEnabled.resultFunc({
+        moneyAccount: {
+          moneyDepositEthFallbackEnabled: false,
+        },
       });
 
       expect(result).toBe(false);
