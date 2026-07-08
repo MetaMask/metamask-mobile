@@ -1110,6 +1110,7 @@
       "market_cap": "Market cap",
       "price": "Price",
       "position": "Position",
+      "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
       "unsupported_market": "Unsupported market",
@@ -2544,17 +2545,17 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
-      "soccer_team_to_advance": "Team to Advance",
       "soccer_first_to_score": "First Team to Score",
-      "soccer_extra_time": "Extra Time?",
-      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
       "tennis_set_handicap": "Set Handicap",
       "tennis_match_totals": "Total Games",
       "tennis_first_set_totals": "1st Set Total Games",
       "tennis_first_set_winner": "1st Set Winner",
-      "tennis_completed_match": "Completed Match"
+      "tennis_completed_match": "Completed Match",
+      "soccer_team_to_advance": "Team to Advance",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?"
     },
     "sell_position": "Sell position",
     "odds": "Odds",
@@ -2838,15 +2839,15 @@
       "volume_display": "${{volume}} Vol",
       "read_terms": "Read the full contract terms and conditions"
     },
+    "sports": {
+      "halftime": "Halftime",
+      "final": "Final"
+    },
     "reg_time_info": {
       "tag": "Reg time",
       "accessibility_label": "Regulation time market information",
       "title": "Regulation time",
       "description": "This market refers to the outcome during the 90 minutes of regular play plus stoppage time. It excludes extra time and penalties."
-    },
-    "sports": {
-      "halftime": "Halftime",
-      "final": "Final"
     }
   },
   "rwa": {
@@ -7165,10 +7166,8 @@
     "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
-        "title": "Earn up to {{apy}}% APY",
-        "title_no_apy": "Fund your Money account",
-        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
-        "description_no_apy": "Fund your Money account and watch your balance grow.",
+        "title": "Fund your account",
+        "description": "Drop in some funds. Your Money account will handle the rest.",
         "cta": "Add funds"
       },
       "step_2": {
@@ -7377,6 +7376,9 @@
       "title": "Activity",
       "view_all": "View all",
       "empty": "No activity yet",
+      "load_error": "Couldn't load your activity",
+      "load_error_more": "Couldn't load more activity",
+      "retry": "Retry",
       "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
@@ -8363,7 +8365,7 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
-    "link_metamask_extension" : "Import accounts from MetaMask extension",
+    "link_metamask_extension": "Import accounts from MetaMask extension",
     "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",
