@@ -4,6 +4,7 @@ import type { Hex } from '@metamask/utils';
 
 import Engine from '../../../../../core/Engine';
 import type { AdvancedGasFeePreferences } from '../../../../../core/Engine/controllers/preferences-controller-types';
+import { hexWEIToDecGWEI } from '../../../../../util/conversions';
 
 export function usePersistGasFeePreference() {
   return useCallback(
@@ -21,9 +22,30 @@ export function usePersistGasFeePreference() {
       Engine.context.PreferencesController.setAdvancedGasFee({
         account,
         chainId,
-        gasFeePreferences,
+        gasFeePreferences: normalizeGasFeePreferences(gasFeePreferences),
       });
     },
     [],
   );
+}
+
+function normalizeGasFeePreferences(
+  gasFeePreferences: AdvancedGasFeePreferences,
+): AdvancedGasFeePreferences {
+  return {
+    ...gasFeePreferences,
+    ...(gasFeePreferences.maxBaseFee && {
+      maxBaseFee: hexWEIToDecGWEI(
+        gasFeePreferences.maxBaseFee as Hex,
+      ).toString(),
+    }),
+    ...(gasFeePreferences.priorityFee && {
+      priorityFee: hexWEIToDecGWEI(
+        gasFeePreferences.priorityFee as Hex,
+      ).toString(),
+    }),
+    ...(gasFeePreferences.gasPrice && {
+      gasPrice: hexWEIToDecGWEI(gasFeePreferences.gasPrice as Hex).toString(),
+    }),
+  };
 }

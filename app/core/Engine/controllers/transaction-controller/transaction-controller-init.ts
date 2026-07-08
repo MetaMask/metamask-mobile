@@ -1,4 +1,5 @@
 import {
+  GasFeeEstimateLevel,
   TransactionController,
   TransactionType,
   UserFeeLevel,
@@ -96,7 +97,8 @@ export const TransactionControllerInit: MessengerClientInitFunction<
         isSimulationEnabled: () =>
           initMessenger.call('PreferencesController:getState')
             .useTransactionSimulations,
-        getSavedGasFees: (chainId) => getSavedGasFees(chainId, initMessenger),
+        getSavedGasFees: (chainIdOrTransactionMeta) =>
+          getSavedGasFees(chainIdOrTransactionMeta, initMessenger),
         messenger: controllerMessenger,
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
         state: persistedState.TransactionController,
@@ -121,20 +123,25 @@ function isFirstTimeInteractionEnabled(
 }
 
 /**
- * `TransactionController` only exposes this hook as `(chainId) => SavedGasFees`,
- * with no account context, so the selected account is used as the best
- * available proxy for "the account this transaction is from". Only a custom
- * EIP-1559 fee override (both `maxBaseFee` and `priorityFee` present) can be
- * expressed by `SavedGasFees` — estimate-level preferences (Low/Medium/High)
- * and legacy `gasPrice` overrides aren't restored through this hook.
+ * Retrieve saved gas fee preferences for the transaction account and chain.
  */
 function getSavedGasFees(
-  chainId: Hex,
+  chainIdOrTransactionMeta: Hex | TransactionMeta,
   initMessenger: TransactionControllerInitMessenger,
 ): SavedGasFees | undefined {
-  const account = initMessenger
-    .call('AccountsController:getSelectedAccount')
-    .address.toLowerCase();
+  const selectedAccount = initMessenger.call(
+    'AccountsController:getSelectedAccount',
+  ).address;
+  const isTransactionMeta = typeof chainIdOrTransactionMeta !== 'string';
+  const transactionMeta = isTransactionMeta
+    ? chainIdOrTransactionMeta
+    : undefined;
+  const account = (
+    transactionMeta?.txParams.from ?? selectedAccount
+  ).toLowerCase();
+  const chainId = isTransactionMeta
+    ? chainIdOrTransactionMeta.chainId
+    : chainIdOrTransactionMeta;
 
   const preferencesState = initMessenger.call(
     'PreferencesController:getState',
@@ -143,17 +150,32 @@ function getSavedGasFees(
   const savedGasFeePreference =
     preferencesState.advancedGasFee?.[chainId]?.[account];
 
-  if (savedGasFeePreference?.userFeeLevel !== UserFeeLevel.CUSTOM) {
+  if (!savedGasFeePreference) {
     return undefined;
   }
 
-  const { maxBaseFee, priorityFee } = savedGasFeePreference;
+  const { gasPrice, maxBaseFee, priorityFee, userFeeLevel } =
+    savedGasFeePreference;
+
+  if (userFeeLevel !== UserFeeLevel.CUSTOM) {
+    return {
+      level: userFeeLevel as UserFeeLevel | GasFeeEstimateLevel,
+    } as unknown as SavedGasFees;
+  }
+
+  if (gasPrice) {
+    return { gasPrice, level: UserFeeLevel.CUSTOM } as unknown as SavedGasFees;
+  }
 
   if (!maxBaseFee || !priorityFee) {
     return undefined;
   }
 
-  return { maxBaseFee, priorityFee };
+  return {
+    maxBaseFee,
+    priorityFee,
+    level: UserFeeLevel.CUSTOM,
+  } as unknown as SavedGasFees;
 }
 
 function getKeyringController(messenger: TransactionControllerInitMessenger) {

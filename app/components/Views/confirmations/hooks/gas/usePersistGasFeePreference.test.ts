@@ -34,8 +34,8 @@ describe('usePersistGasFeePreference', () => {
       chainId: '0x1',
       gasFeePreferences: {
         userFeeLevel: 'custom',
-        maxBaseFee: '0x1',
-        priorityFee: '0x2',
+        maxBaseFee: '0.000000001',
+        priorityFee: '0.000000002',
       },
     });
   });
