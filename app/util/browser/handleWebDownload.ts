@@ -156,6 +156,10 @@ export async function handleWebDownload(
   try {
     if (Platform.OS === 'android') {
       await runAfterInteractionsOrTimeout();
+    } else {
+      // Defer presenting the document picker until after the WebView message
+      // handler returns (same race as Android share/download sheets).
+      await runAfterInteractionsOrTimeout(300);
     }
 
     const { base64, mimeType: dataUrlMime } = parseFileData(payload.data);
