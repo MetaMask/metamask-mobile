@@ -312,7 +312,7 @@ export function handlePerpsCufPositionsDelivered(
     TraceName.PerpsUpdateTPSLToConfirmation,
   ]) {
     const meta = pendingCufMeta.get(name);
-    if (!meta || meta[CUF_META.WATCH] !== PERPS_CUF_WATCH.POSITION_CHANGED) {
+    if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.POSITION_CHANGED) {
       continue;
     }
     const symbol = meta[CUF_META.SYMBOL];
@@ -346,7 +346,7 @@ export function handlePerpsCufOrdersDelivered(
     return;
   }
   const meta = pendingCufMeta.get(TraceName.PerpsCancelOrderToConfirmation);
-  if (!meta || meta[CUF_META.WATCH] !== PERPS_CUF_WATCH.ORDER_ABSENT) {
+  if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.ORDER_ABSENT) {
     return;
   }
   const orderId = meta[CUF_META.ORDER_ID];
