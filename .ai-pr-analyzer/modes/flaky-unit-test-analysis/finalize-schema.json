@@ -35,7 +35,10 @@
           },
           "snippet": { "type": "string" },
           "explanation": { "type": "string" },
-          "suggestedFix": { "type": "string" },
+          "suggestedFix": {
+            "type": "string",
+            "description": "The corrected code snippet ONLY, formatted as real TypeScript with line breaks (use \\n between lines and preserve indentation). Do NOT write prose sentences here — keep all explanation in the `explanation` field."
+          },
           "historicalHintUsed": { "type": "boolean" }
         },
         "required": [

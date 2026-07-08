@@ -18,6 +18,7 @@ For each file:
 3. Check .ai-pr-analyzer/flaky-history.json (read_file) for a historical hint on this file.
 4. Match against the J1-J10 patterns from the loaded skill.
 5. For every match, record: file, line, patternId, patternName, severity, snippet, explanation, suggestedFix, and whether the historical hint was used.
+   - `suggestedFix` MUST be the corrected code snippet ONLY, formatted as real TypeScript with actual line breaks (`\n`) and indentation — never a single-line prose paragraph. Keep all reasoning and instructions in `explanation`.
 
 If a file has no matches, do not invent findings — omit it from findings.
 

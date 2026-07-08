@@ -118,8 +118,14 @@ function buildFindingsSection(findings: Finding[]): string {
       const hint = f.historicalHintUsed ? ' _(matches historical failure signal)_' : '';
       out += `- **${f.patternId} — ${f.patternName}** (${f.severity})${hint}${f.line ? ` — line ${f.line}` : ''}\n`;
       out += `  - ${f.explanation}\n`;
-      // Fenced block so multi-line fixes render correctly in GitHub Markdown.
-      out += `  - Suggested fix:\n    \`\`\`ts\n    ${f.suggestedFix}\n    \`\`\`\n`;
+      // Every line of the fix must carry the 4-space indent that keeps the
+      // fenced block nested inside this list item; indenting only the first
+      // line would push the rest out of the list and collapse the code block.
+      const indentedFix = f.suggestedFix
+        .split('\n')
+        .map((line) => `    ${line}`)
+        .join('\n');
+      out += `  - Suggested fix:\n    \`\`\`ts\n${indentedFix}\n    \`\`\`\n`;
     }
     out += '\n';
   }
