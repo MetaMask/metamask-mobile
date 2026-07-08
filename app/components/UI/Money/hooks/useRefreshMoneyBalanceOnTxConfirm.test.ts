@@ -10,7 +10,7 @@ import { waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
+import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
 
 jest.mock('../../../../core/Engine');
@@ -90,9 +90,27 @@ beforeEach(() => {
     readCount += 1;
 
     return {
-      musdBalance: phase === 'baseline' ? '1000000' : '1100000',
-      vmusdValueInMusd: phase === 'baseline' ? '2000000' : '2100000',
-      totalBalance: phase === 'baseline' ? '3000000' : '3200000',
+      address: MOCK_ADDRESS,
+      as_of_block: 0,
+      as_of_timestamp: '2026-01-01T00:00:00Z',
+      data_freshness: 'live' as const,
+      indexer_lag_seconds: 0,
+      positions: [
+        {
+          vault_address: '0x0',
+          shares_held: '0',
+          current_rate: '1',
+          current_value_assets: phase === 'baseline' ? '3000000' : '3200000',
+          current_value_usd: phase === 'baseline' ? '3.00' : '3.20',
+          cost_basis_assets: '0',
+          cost_basis_usd: '0',
+          realized_interest_usd: '0',
+          unrealised_interest_usd: '0',
+          lifetime_interest_usd: '0',
+          current_apy: '0.05',
+          effective_apy: '0.05',
+        },
+      ],
     };
   });
 
@@ -130,7 +148,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: [
-        MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+        MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
         MOCK_ADDRESS,
       ],
       refetchType: 'all',
