@@ -60,6 +60,7 @@ import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../c
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 
 // QR Scanner params
@@ -100,6 +101,7 @@ import type {
   UnstakeParams,
   ClaimParams,
 } from '../../components/UI/Stake/Views/StakeInputView/StakeInputView.types';
+import type { TokenI } from '../../components/UI/Tokens/types';
 
 // Send flow params
 import type {
@@ -214,6 +216,8 @@ import type {
   LendingWithdrawalConfirmationParams,
   LendingMaxWithdrawalModalParams,
 } from '../../components/UI/Earn/Earn.types';
+import type { EarnTokenListViewRouteParams } from '../../components/UI/Earn/components/EarnTokenList';
+import type { EarnMusdConversionEducationViewRouteParams } from '../../components/UI/Earn/Views/EarnMusdConversionEducationView';
 
 // Modal params
 import type {
@@ -611,8 +615,29 @@ export type RootStackParamList = {
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
-  MoneyScreens: undefined;
+
+  // Money routes — `MoneyScreens`/`MoneyModals`/`MoneyConfirmations` are nested
+  // navigators; their screens are enumerated in `MoneyNavigationParamList`.
+  MoneyScreens: NestedNavigationParams | undefined;
   MoneyModals: NestedNavigationParams | undefined;
+  MoneyConfirmations: NestedNavigationParams | undefined;
+  MoneyHome: MoneyNavigationParamList['MoneyHome'];
+  MoneyActivity: MoneyNavigationParamList['MoneyActivity'];
+  MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
+  MoneyOnboarding: MoneyNavigationParamList['MoneyOnboarding'];
+  MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
+  MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
+  MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
+  MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
+  MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
+  MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
+  MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
+  MoneyApyInfoSheet: MoneyNavigationParamList['MoneyApyInfoSheet'];
+  MoneyEarningsInfoSheet: MoneyNavigationParamList['MoneyEarningsInfoSheet'];
+  MoneyBalanceInfoSheet: MoneyNavigationParamList['MoneyBalanceInfoSheet'];
+  MoneyLinkCardSheet: MoneyNavigationParamList['MoneyLinkCardSheet'];
+  MoneyEarnCryptoInfoSheet: MoneyNavigationParamList['MoneyEarnCryptoInfoSheet'];
+  MoneyGeoBlockSheet: MoneyNavigationParamList['MoneyGeoBlockSheet'];
   TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;
 
@@ -742,13 +767,13 @@ export type RootStackParamList = {
   StakeConfirmation: StakeConfirmationParams | undefined;
   Unstake: UnstakeParams | undefined;
   UnstakeConfirmation: UnstakeConfirmationParams | undefined;
-  EarningsHistory: undefined;
+  EarningsHistory: { asset: TokenI };
   Claim: ClaimParams | undefined;
   LearnMore: LearnMoreModalParams | undefined;
   TrxLearnMore: undefined;
   MaxInput: MaxInputModalParams;
   GasImpact: GasImpactModalParams;
-  EarnTokenList: undefined;
+  EarnTokenList: EarnTokenListViewRouteParams | undefined;
 
   // Earn routes
   EarnScreens: EarnScreensParams | undefined;
@@ -756,7 +781,9 @@ export type RootStackParamList = {
   EarnLendingWithdrawalConfirmation:
     | LendingWithdrawalConfirmationParams
     | undefined;
-  EarnMusdConversionEducation: undefined;
+  EarnMusdConversionEducation:
+    | EarnMusdConversionEducationViewRouteParams
+    | undefined;
   EarnModals: NestedNavigationParams | undefined;
   EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
   EarnLendingLearnMoreModal: undefined;
@@ -834,6 +861,15 @@ export type RootStackParamList = {
   CardPasswordModal: undefined;
   CardRecurringFeeModal: undefined;
   CardDaimoPayModal: undefined;
+  CardViewPinModal: { imageUrl: string };
+  CardSpendingLimitOptionsModal: {
+    currentLimitType: 'full' | 'restricted';
+    currentCustomLimit: string;
+    callerRoute: string;
+    callerParams?: Record<string, unknown>;
+  };
+  CardWaitlistFormModal: { url: string };
+  CardForgotPasswordModal: { location?: 'us' | 'international' } | undefined;
 
   // Send routes
   Recipient: SendRecipientParams | undefined;

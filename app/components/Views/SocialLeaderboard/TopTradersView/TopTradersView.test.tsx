@@ -20,11 +20,13 @@ jest.mock('../../../../util/Logger', () => ({
 
 const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
 const mockPlayImpact = jest.fn();
+const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playErrorNotification: () => mockPlayErrorNotification(),
   playImpact: (...args: unknown[]) => mockPlayImpact(...args),
+  playSelection: (...args: unknown[]) => mockPlaySelection(...args),
   fireSwitchHaptic: jest.fn(),
 }));
 
@@ -828,6 +830,19 @@ describe('TopTradersView', () => {
           previous_chain_filter: 'all',
         }),
       );
+    });
+
+    it('triggers a selection haptic when a different pill is tapped', () => {
+      renderWithProvider(<TopTradersView />);
+
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+      );
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+      );
+
+      expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     });
 
     it('fires Trader Leaderboard Trader Clicked with rank and chain filter on row press', () => {

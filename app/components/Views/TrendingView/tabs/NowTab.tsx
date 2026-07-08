@@ -65,11 +65,6 @@ import {
   useWhatsHappening,
 } from '../../../UI/WhatsHappening/hooks';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
-import { useABTest } from '../../../../hooks';
-import {
-  WHATS_HAPPENING_EXPLORE_AB_KEY,
-  WHATS_HAPPENING_EXPLORE_VARIANTS,
-} from '../abTestConfig';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -158,7 +153,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         tabName="Now"
         sectionName="perps_movers"
       />
-      <Box twClassName="mb-3">
+      <Box twClassName="px-4 mb-3">
         <SegmentedControl
           value={activeMoverDirection}
           onChange={handleMoverPillSelect}
@@ -215,10 +210,6 @@ const NowTabContent: React.FC<TabProps> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
-  const { variant: whatsHappeningExploreVariant } = useABTest(
-    WHATS_HAPPENING_EXPLORE_AB_KEY,
-    WHATS_HAPPENING_EXPLORE_VARIANTS,
-  );
 
   const whatsHappening = useWhatsHappening(MAX_ITEMS_DISPLAYED);
   const refreshWhatsHappening = whatsHappening.refresh;
@@ -290,50 +281,31 @@ const NowTabContent: React.FC<TabProps> = ({
 
   const sections = useMemo((): ExploreSectionItem[] => {
     const items: ExploreSectionItem[] = [];
-    const whFirst = whatsHappeningExploreVariant.whatsHappeningBeforePredict;
 
-    const whatsHappeningSection: ExploreSectionItem = {
-      key: 'wh',
-      content: (
-        <WhatsHappeningSection
-          source={WhatsHappeningSource.Explore}
-          feed={whatsHappening}
-          tabName="Now"
-          sectionName="whats_happening"
-        />
-      ),
-    };
-
-    const predictionsSection: ExploreSectionItem = {
-      key: 'predict',
-      content: (
-        <PredictionsCarouselSection
-          feed={displayedPredictions}
-          tabName="Now"
-          sectionName="predictions_trending"
-          title={
-            worldCupPredictions.isEnabled
-              ? strings('predict.world_cup.predictions_title')
-              : strings('wallet.predict')
-          }
-          testIdPrefix="predict-market-row-item"
-          idPrefix="predictions"
-          onViewAll={() =>
-            worldCupPredictions.isEnabled
-              ? navigateToExploreWorldCupPredictions(navigation)
-              : navigateToExplorePredictionsList(navigation, 'trending')
-          }
-          isEnabled={isPredictEnabled}
-        />
-      ),
-    };
-
-    if (whFirst) {
-      if (showWhatsHappening) items.push(whatsHappeningSection);
-      if (showPredictions) items.push(predictionsSection);
-    } else {
-      if (showPredictions) items.push(predictionsSection);
-      if (showWhatsHappening) items.push(whatsHappeningSection);
+    if (showPredictions) {
+      items.push({
+        key: 'predict',
+        content: (
+          <PredictionsCarouselSection
+            feed={displayedPredictions}
+            tabName="Now"
+            sectionName="predictions_trending"
+            title={
+              worldCupPredictions.isEnabled
+                ? strings('predict.world_cup.predictions_title')
+                : strings('wallet.predict')
+            }
+            testIdPrefix="predict-market-row-item"
+            idPrefix="predictions"
+            onViewAll={() =>
+              worldCupPredictions.isEnabled
+                ? navigateToExploreWorldCupPredictions(navigation)
+                : navigateToExplorePredictionsList(navigation, 'trending')
+            }
+            isEnabled={isPredictEnabled}
+          />
+        ),
+      });
     }
 
     if (showCryptoMovers) {
@@ -394,6 +366,20 @@ const NowTabContent: React.FC<TabProps> = ({
       });
     }
 
+    if (showWhatsHappening) {
+      items.push({
+        key: 'wh',
+        content: (
+          <WhatsHappeningSection
+            source={WhatsHappeningSource.Explore}
+            feed={whatsHappening}
+            tabName="Now"
+            sectionName="whats_happening"
+          />
+        ),
+      });
+    }
+
     if (showStocks) {
       items.push({
         key: 'stocks',
@@ -423,7 +409,6 @@ const NowTabContent: React.FC<TabProps> = ({
 
     return items;
   }, [
-    whatsHappeningExploreVariant.whatsHappeningBeforePredict,
     showWhatsHappening,
     showPredictions,
     showCryptoMovers,

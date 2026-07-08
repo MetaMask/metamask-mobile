@@ -150,24 +150,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  prediction-market-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokePredictions')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: prediction-market-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokePredictions'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   money-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMoney')
     strategy:
@@ -262,7 +244,6 @@ jobs:
       - wallet-platform-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
-      - prediction-market-ios-smoke
       - money-ios-smoke
       - multichain-api-ios-smoke
       - browser-ios-smoke

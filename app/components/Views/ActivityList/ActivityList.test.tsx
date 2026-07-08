@@ -809,6 +809,64 @@ describe('ActivityList', () => {
     );
   });
 
+  it('keeps the quote-enriched local swap row over a bare confirmed contractInteraction copy', () => {
+    const swapHash = '0xswap';
+    const localSwap = {
+      type: 'swap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: swapHash,
+      data: {
+        sourceToken: { direction: 'out', symbol: 'POL', decimals: 18 },
+        destinationToken: { direction: 'in', symbol: 'USDT', decimals: 6 },
+      },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: {
+            chainId: '0x1',
+            hash: swapHash,
+            id: 'swap-id',
+            txParams: { from: '0xevm', nonce: '0xb' },
+          },
+        },
+      },
+    };
+    // Indexer hasn't classified the swap yet — the confirmed copy is a bare
+    // contract call with the same hash.
+    const confirmedSwapContractCall = {
+      type: 'contractInteraction',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: swapHash,
+      data: { from: '0xevm', to: '0xrouter' },
+      raw: {
+        type: 'apiEvmTransaction',
+        data: { chainId: 1, from: '0xevm', hash: swapHash, nonce: 11 },
+      },
+    };
+    (useLocalActivityItems as jest.Mock).mockReturnValue([localSwap]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedSwapContractCall] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // One row, and it's the typed swap (with both tokens) — the bare confirmed
+    // "contractInteraction" copy is deduped away, not the reverse.
+    expect(screen.getAllByTestId(`row-${swapHash}`)).toHaveLength(1);
+    expect(screen.getByTestId(`row-kind-${swapHash}`)).toHaveTextContent(
+      'swap',
+    );
+  });
+
   it('navigates to transaction details when a confirmed row is pressed', async () => {
     render(<ActivityList header={<></>} />);
 

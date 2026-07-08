@@ -18,6 +18,8 @@ export const QuickBuyEventProperties = {
   LATENCY_MS: 'latency_ms',
   MARKET_CAP: 'market_cap',
   PAY_WITH_TOKEN: 'pay_with_token',
+  PRESET_VALUE: 'preset_value',
+  SLIDER_PERCENT: 'slider_percent',
   PREVIOUS_PAY_WITH_TOKEN: 'previous_pay_with_token',
   PREVIOUS_RECEIVE_TOKEN: 'previous_receive_token',
   PREVIOUS_SLIPPAGE: 'previous_slippage',
