@@ -435,6 +435,24 @@ describe('TraderPositionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('fires Follow Trading Token CTA Clicked with cta_type buy when the Buy button is pressed', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+      expect.objectContaining({
+        trader_address: '0xabc',
+        asset_name: 'PEPE',
+        caip19: expect.stringContaining('eip155:8453/erc20:'),
+        cta_type: 'buy',
+      }),
+    );
+  });
+
   describe('perp positions', () => {
     beforeEach(() => {
       mockRouteParams.position = {
@@ -490,7 +508,7 @@ describe('TraderPositionView', () => {
       );
     });
 
-    it('fires Follow Trading Token Trade Clicked when the Trade button is pressed', () => {
+    it('fires Follow Trading Token CTA Clicked with cta_type trade when the Trade button is pressed', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
@@ -498,11 +516,12 @@ describe('TraderPositionView', () => {
       );
 
       expect(mockTrack).toHaveBeenCalledWith(
-        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
         expect.objectContaining({
           trader_address: '0xabc',
           asset_name: 'ETH',
           perps_market: 'ETH',
+          cta_type: 'trade',
         }),
       );
     });
@@ -646,9 +665,10 @@ describe('TraderPositionView', () => {
           },
         });
         expect(mockTrack).toHaveBeenCalledWith(
-          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
           expect.objectContaining({
             perps_market: 'xyz:SPCX',
+            cta_type: 'trade',
           }),
         );
       });
@@ -679,9 +699,10 @@ describe('TraderPositionView', () => {
           },
         });
         expect(mockTrack).toHaveBeenCalledWith(
-          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
           expect.objectContaining({
             perps_market: 'xyz:SPCX',
+            cta_type: 'trade',
           }),
         );
       });
@@ -739,9 +760,10 @@ describe('TraderPositionView', () => {
           },
         });
         expect(mockTrack).toHaveBeenCalledWith(
-          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
           expect.objectContaining({
             perps_market: 'xyz:SPCX',
+            cta_type: 'trade',
           }),
         );
       });
@@ -776,9 +798,10 @@ describe('TraderPositionView', () => {
           },
         });
         expect(mockTrack).toHaveBeenCalledWith(
-          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_TRADE_CLICKED,
+          MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
           expect.objectContaining({
             perps_market: 'xyz:SPCX',
+            cta_type: 'trade',
           }),
         );
       });
@@ -1077,7 +1100,7 @@ describe('TraderPositionView', () => {
   });
 
   describe('followTradingTokenContext', () => {
-    it('does not track buy when traderAddress is empty', () => {
+    it('does not track cta when traderAddress is empty', () => {
       mockRouteParams = { ...mockRouteParams, traderAddress: undefined };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
@@ -1086,6 +1109,10 @@ describe('TraderPositionView', () => {
       );
 
       expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED,
+        expect.anything(),
+      );
     });
 
     it('does not track when chain is unsupported (caip19 empty)', () => {
