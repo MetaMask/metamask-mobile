@@ -1,8 +1,17 @@
 import switchNetwork from './switchNetwork';
-import { showAlert } from '../../actions/alert';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../locales/i18n';
 import { handleNetworkSwitch } from './handleNetworkSwitch';
 import { store } from '../../store';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../../store', () => ({
   store: {
@@ -13,10 +22,6 @@ jest.mock('../../store', () => ({
 
 jest.mock('./handleNetworkSwitch', () => ({
   handleNetworkSwitch: jest.fn(),
-}));
-
-jest.mock('../../actions/alert', () => ({
-  showAlert: jest.fn(),
 }));
 
 describe('switchNetwork', () => {
@@ -31,19 +36,15 @@ describe('switchNetwork', () => {
     mockHandleNetworkSwitch.mockReturnValue('Ethereum Mainnet');
   });
 
-  it('should dispatch an alert for a valid switchToChainId', () => {
+  it('should show a warning toast for a valid switchToChainId', () => {
     const switchToChainId = '1'; // Assuming '1' is a valid chain ID
 
     switchNetwork({ switchToChainId });
 
-    expect(store.dispatch).toHaveBeenCalledWith(
-      showAlert({
-        isVisible: true,
-        autodismiss: 5000,
-        content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + 'Ethereum Mainnet' },
-      }),
-    );
+    expect(toast).toHaveBeenCalledWith({
+      description: strings('send.warn_network_change') + 'Ethereum Mainnet',
+      severity: ToastSeverity.Warning,
+    });
   });
 
   it('should throw an error for an invalid switchToChainId', () => {
@@ -55,12 +56,12 @@ describe('switchNetwork', () => {
     );
   });
 
-  it('should not dispatch an alert when switchNetwork returns undefined', () => {
+  it('should not show a toast when switchNetwork returns undefined', () => {
     const switchToChainId = '1'; // Assuming '1' is a valid chain ID
     mockHandleNetworkSwitch.mockReturnValue(undefined);
 
     switchNetwork({ switchToChainId });
 
-    expect(store.dispatch).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 });

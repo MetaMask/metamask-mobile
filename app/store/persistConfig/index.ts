@@ -208,7 +208,6 @@ const persistConfig = {
     'rpcEvents',
     'accounts',
     'confirmationMetrics',
-    'alert',
     'engine',
     'qrKeyringScanner',
     'securityAlerts',

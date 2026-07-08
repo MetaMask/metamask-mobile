@@ -12,8 +12,8 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { fontStyles } from '../../../styles/common';
@@ -163,10 +163,6 @@ class AccountOverview extends PureComponent {
      */
     account: PropTypes.object,
     /**
-    /* Triggers global alert
-    */
-    showAlert: PropTypes.func,
-    /**
      * Used to get child ref
      */
     onRef: PropTypes.func,
@@ -278,11 +274,9 @@ class AccountOverview extends PureComponent {
   copyAccountToClipboard = async () => {
     const { selectedAddress } = this.props;
     await ClipboardManager.setString(selectedAddress);
-    this.props.showAlert({
-      isVisible: true,
-      autodismiss: 1500,
-      content: 'clipboard-alert',
-      data: { msg: strings('account_details.account_copied_to_clipboard') },
+    toast({
+      description: strings('account_details.account_copied_to_clipboard'),
+      severity: ToastSeverity.Success,
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
 
@@ -458,7 +452,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  showAlert: (config) => dispatch(showAlert(config)),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
 

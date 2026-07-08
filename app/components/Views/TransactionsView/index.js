@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { KnownCaipNamespace } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
 import {
   TX_UNAPPROVED,
@@ -305,8 +304,4 @@ const mapStateToProps = (state) => {
   };
 };
 
-const mapDispatchToProps = (dispatch) => ({
-  showAlert: (config) => dispatch(showAlert(config)),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(TransactionsView);
+export default connect(mapStateToProps)(TransactionsView);

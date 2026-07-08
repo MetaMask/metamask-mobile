@@ -14,7 +14,6 @@ import {
 import { connect } from 'react-redux';
 import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
-import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
@@ -1053,10 +1052,6 @@ const mapStateToProps = (state) => ({
 
 Transactions.contextType = ThemeContext;
 
-const mapDispatchToProps = (dispatch) => ({
-  showAlert: (config) => dispatch(showAlert(config)),
-});
-
 export { Transactions as UnconnectedTransactions };
 
 const TransactionsWithHardwareWallet = (props) => {
@@ -1065,7 +1060,6 @@ const TransactionsWithHardwareWallet = (props) => {
   return <Transactions {...props} hardwareWallet={hardwareWallet} />;
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withQRHardwareAwareness(TransactionsWithHardwareWallet));
+export default connect(mapStateToProps)(
+  withQRHardwareAwareness(TransactionsWithHardwareWallet),
+);

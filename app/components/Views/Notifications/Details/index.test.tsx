@@ -34,10 +34,6 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../../actions/alert', () => ({
-  showAlert: jest.fn(),
-}));
-
 jest.mock('@react-navigation/native');
 describe('NotificationsDetails', () => {
   const mockStore = configureMockStore();

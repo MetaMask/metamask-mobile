@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Provider as ReduxProvider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store';
@@ -28,6 +28,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
 import { HardwareWalletProvider } from '../../../core/HardwareWallet';
 import { UIMessengerProvider } from '../../../contexts/ui-messenger';
+import { Toaster } from '@metamask/design-system-react-native';
 import {
   createUIMessenger,
   UIMessenger,
@@ -36,6 +37,12 @@ import {
 const styles = StyleSheet.create({
   gestureRoot: {
     flex: 1,
+  },
+  appRoot: {
+    flex: 1,
+  },
+  toasterOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
 });
 
@@ -111,20 +118,28 @@ const Root = ({ foxCode }: RootProps) => {
                 <QueryClientProvider client={reactQueryService.queryClient}>
                   <FeatureFlagOverrideProvider>
                     <ThemeProvider>
-                      <NavigationProvider>
-                        <ControllersGate>
-                          <UIMessengerProvider value={uiMessenger}>
-                            <ToastContextWrapper>
-                              <HardwareWalletProvider>
-                                <ReducedMotionConfig
-                                  mode={ReduceMotion.Never}
-                                />
-                                <App />
-                              </HardwareWalletProvider>
-                            </ToastContextWrapper>
-                          </UIMessengerProvider>
-                        </ControllersGate>
-                      </NavigationProvider>
+                      <View style={styles.appRoot}>
+                        <NavigationProvider>
+                          <ControllersGate>
+                            <UIMessengerProvider value={uiMessenger}>
+                              <ToastContextWrapper>
+                                <HardwareWalletProvider>
+                                  <ReducedMotionConfig
+                                    mode={ReduceMotion.Never}
+                                  />
+                                  <App />
+                                </HardwareWalletProvider>
+                              </ToastContextWrapper>
+                            </UIMessengerProvider>
+                          </ControllersGate>
+                        </NavigationProvider>
+                        <View
+                          style={styles.toasterOverlay}
+                          pointerEvents="box-none"
+                        >
+                          <Toaster />
+                        </View>
+                      </View>
                     </ThemeProvider>
                   </FeatureFlagOverrideProvider>
                 </QueryClientProvider>

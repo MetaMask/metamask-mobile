@@ -16,7 +16,6 @@ import {
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
-import GlobalAlert from '../../UI/GlobalAlert';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -401,7 +400,6 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
-        <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
         <RampOrders />

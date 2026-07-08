@@ -19,6 +19,8 @@ import {
   ButtonVariant,
   HeaderStandard,
   IconName as DSIconName,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import NftDetailsBox from './NftDetailsBox';
 import NftDetailsInformationRow from './NftDetailsInformationRow';
@@ -28,8 +30,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { useDispatch, useSelector } from 'react-redux';
-import { showAlert } from '../../../actions/alert';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
   selectChainId,
@@ -61,7 +62,6 @@ const NftDetails = () => {
   const navigation = useNavigation();
   const { collectible, source } = useParams<NftDetailsParams>();
   const chainId = useSelector(selectChainId);
-  const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectEvmTicker);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -135,14 +135,10 @@ const NftDetails = () => {
       return;
     }
     await ClipboardManager.setString(address);
-    dispatch(
-      showAlert({
-        isVisible: true,
-        autodismiss: 1500,
-        content: 'clipboard-alert',
-        data: { msg: strings('detected_tokens.address_copied_to_clipboard') },
-      }),
-    );
+    toast({
+      description: strings('detected_tokens.address_copied_to_clipboard'),
+      severity: ToastSeverity.Success,
+    });
   };
 
   const blockExplorerTokenLink = () =>

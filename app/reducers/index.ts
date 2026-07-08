@@ -4,7 +4,6 @@ import engineReducer from '../core/redux/slices/engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
-import alertReducer from './alert';
 import securityAlertsReducer, { SecurityAlertsState } from './security-alerts';
 import legalNoticesReducer, { LegalNoticesState } from './legalNotices';
 import userReducer, { UserState } from './user';
@@ -86,9 +85,6 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  alert: any;
   securityAlerts: SecurityAlertsState;
   user: UserState;
   // TODO: Replace "any" with type
@@ -149,7 +145,6 @@ const baseReducers = {
   browser: browserReducer,
   modals: modalsReducer,
   settings: settingsReducer,
-  alert: alertReducer,
   securityAlerts: securityAlertsReducer,
   user: userReducer,
   onboarding: onboardingReducer,

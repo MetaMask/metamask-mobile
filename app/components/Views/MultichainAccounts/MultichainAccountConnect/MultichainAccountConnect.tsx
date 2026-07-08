@@ -17,7 +17,6 @@ import {
   AvatarFavicon,
   AvatarFaviconSize,
   Box,
-  Toaster,
   toast,
 } from '@metamask/design-system-react-native';
 import { USER_INTENT } from '../../../../constants/permissions.ts';
@@ -1002,7 +1001,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         </ScreenContainer>
       )}
       {renderPhishingModal()}
-      <Toaster />
     </Box>
   );
 };

@@ -1,5 +1,5 @@
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../locales/i18n';
-import { showAlert } from '../../actions/alert';
 import { handleNetworkSwitch } from './handleNetworkSwitch';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 
@@ -27,14 +27,10 @@ function switchNetwork({
       throw new Error(`Unable to find network with chain id ${newChainId}`);
     }
 
-    store.dispatch(
-      showAlert({
-        isVisible: true,
-        autodismiss: 5000,
-        content: 'clipboard-alert',
-        data: { msg: strings('send.warn_network_change') + networkName },
-      }),
-    );
+    toast({
+      description: strings('send.warn_network_change') + networkName,
+      severity: ToastSeverity.Warning,
+    });
   } else {
     DevLogger.log(
       'Invalid Type: switchToChainId must be a string or number but was ' +

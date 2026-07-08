@@ -290,7 +290,6 @@ const defaultTestProps = {
   collectibleContracts: [],
   tokens: {},
   navigation: mockNavigation,
-  showAlert: jest.fn(),
   gasFeeEstimates: {
     medium: { suggestedMaxFeePerGas: '20' },
   },

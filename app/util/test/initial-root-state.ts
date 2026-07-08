@@ -39,7 +39,6 @@ const initialRootState: RootState = {
   browser: undefined,
   modals: undefined,
   settings: undefined,
-  alert: undefined,
   securityAlerts: {
     alerts: {},
   },

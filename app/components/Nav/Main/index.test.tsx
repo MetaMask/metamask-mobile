@@ -33,11 +33,6 @@ jest.mock('./MainNavigator', () => {
 });
 
 jest.mock(
-  '../../UI/GlobalAlert',
-  () => () => mockReact.createElement('GlobalAlertMock'),
-);
-
-jest.mock(
   '../../UI/FadeOutOverlay',
   () => () => mockReact.createElement('FadeOutOverlayMock'),
 );
