@@ -216,14 +216,6 @@ const perpsSectionTestId = 'section-header-view-all-perps';
 const whatsHappeningSectionTestId = 'whats-happening-carousel';
 const stocksSectionTestId = 'section-header-view-all-stocks';
 
-const NOW_TAB_SECTION_ORDER_TEST_IDS = [
-  predictSectionTestId,
-  cryptoMoversSectionTestId,
-  perpsSectionTestId,
-  whatsHappeningSectionTestId,
-  stocksSectionTestId,
-] as const;
-
 const createWhatsHappeningCarousel = () =>
   React.createElement('View', { testID: whatsHappeningSectionTestId });
 
@@ -263,7 +255,7 @@ const arrangeMocks = () => {
   );
 
   mockUsePredictionsFeed.mockReturnValue({
-    data: [],
+    data: [{ id: 'market-1' }] as never,
     isLoading: false,
     refetch: jest.fn(),
   });
@@ -274,28 +266,44 @@ const arrangeMocks = () => {
     refetch: jest.fn(),
   });
   mockUsePerpsFeed.mockReturnValue({
-    data: [],
+    data: [{ market: { symbol: 'BTC', change24hPercent: '5' } }] as never,
     isLoading: false,
     refetch: jest.fn(),
     defaultSortOptionId: 'priceChange',
   });
   mockUseTokensFeed.mockReturnValue({
-    data: [],
+    data: [
+      {
+        assetId: 'eip155:1/erc20:0x1',
+        symbol: 'ONE',
+        priceChangePct: { h1: '1.23' },
+      },
+      {
+        assetId: 'eip155:1/erc20:0x2',
+        symbol: 'TWO',
+        priceChangePct: { h1: '2.34' },
+      },
+      {
+        assetId: 'eip155:1/erc20:0x3',
+        symbol: 'THREE',
+        priceChangePct: { h1: '3.45' },
+      },
+    ] as never,
     isLoading: false,
     refetch: jest.fn(),
   });
   mockUseStocksFeed.mockReturnValue({
     data: [],
-    isLoading: false,
+    isLoading: true,
     refetch: jest.fn(),
   });
   mockUseWhatsHappening.mockReturnValue({
-    items: [],
+    items: [{ id: 'trend-0' }],
     isLoading: false,
     error: null,
     refresh: mockWhatsHappeningRefresh,
   });
-  mockWhatsHappeningImpl.mockReturnValue(null);
+  mockWhatsHappeningImpl.mockReturnValue(createWhatsHappeningCarousel());
 
   return {
     useSelector: mockUseSelector,
@@ -319,57 +327,6 @@ const renderNowTab = (props = defaultTabProps) =>
     </NavigationContainer>,
   );
 
-interface RenderNode {
-  props?: {
-    testID?: string;
-  };
-  children?: unknown[] | null;
-}
-
-const isRenderNode = (node: unknown): node is RenderNode =>
-  Boolean(node) && typeof node === 'object';
-
-const collectTestIds = (node: unknown): string[] => {
-  if (Array.isArray(node)) {
-    return node.flatMap(collectTestIds);
-  }
-
-  if (!isRenderNode(node)) {
-    return [];
-  }
-
-  const ownTestIds =
-    typeof node.props?.testID === 'string' ? [node.props.testID] : [];
-  const childTestIds = node.children?.flatMap(collectTestIds) ?? [];
-
-  return [...ownTestIds, ...childTestIds];
-};
-
-const getNowTabSectionOrder = (tree: unknown) =>
-  collectTestIds(tree).filter((testId) =>
-    NOW_TAB_SECTION_ORDER_TEST_IDS.includes(
-      testId as (typeof NOW_TAB_SECTION_ORDER_TEST_IDS)[number],
-    ),
-  );
-
-const defaultCryptoMoversTokens = [
-  {
-    assetId: 'eip155:1/erc20:0x1',
-    symbol: 'ONE',
-    priceChangePct: { h1: '1.23' },
-  },
-  {
-    assetId: 'eip155:1/erc20:0x2',
-    symbol: 'TWO',
-    priceChangePct: { h1: '2.34' },
-  },
-  {
-    assetId: 'eip155:1/erc20:0x3',
-    symbol: 'THREE',
-    priceChangePct: { h1: '3.45' },
-  },
-];
-
 describe('NowTab — WhatsHappeningSection integration', () => {
   const arrangeWhatsHappeningMocks = () => {
     const mocks = arrangeMocks();
@@ -378,13 +335,6 @@ describe('NowTab — WhatsHappeningSection integration', () => {
         whatsHappeningEnabled: true,
       }),
     );
-    mocks.useWhatsHappening.mockReturnValue({
-      items: [{ id: 'trend-0' }],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
-    mocks.whatsHappeningImpl.mockReturnValue(createWhatsHappeningCarousel());
 
     return mocks;
   };
@@ -432,7 +382,9 @@ describe('NowTab — WhatsHappeningSection integration', () => {
 
 describe('NowTab — Perps Movers "View All" navigation', () => {
   const arrangePerpsMoversMocks = (
-    marketData?: { market: { symbol: string; change24hPercent: string } }[],
+    marketDataOverride?: {
+      market: { symbol: string; change24hPercent: string };
+    }[],
   ) => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
@@ -441,16 +393,14 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
       }),
     );
 
-    const mockMarketData = marketData ?? [
-      { market: { symbol: 'BTC', change24hPercent: '5' } },
-    ];
-
-    mocks.usePerpsFeed.mockReturnValue({
-      data: mockMarketData as never,
-      isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange',
-    });
+    if (marketDataOverride) {
+      mocks.usePerpsFeed.mockReturnValue({
+        data: marketDataOverride as never,
+        isLoading: false,
+        refetch: jest.fn(),
+        defaultSortOptionId: 'priceChange',
+      });
+    }
 
     return mocks;
   };
@@ -575,11 +525,7 @@ describe('NowTab — Predictions navigation', () => {
         predictEnabled: true,
       }),
     );
-    mocks.usePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-    });
+
     return mocks;
   };
 
@@ -628,11 +574,6 @@ describe('NowTab — Crypto Movers', () => {
   const arrangeCryptoMoversMocks = () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(createMockSelectorImpl({}));
-    mocks.useTokensFeed.mockReturnValue({
-      data: defaultCryptoMoversTokens as never,
-      isLoading: false,
-      refetch: jest.fn(),
-    });
     return mocks;
   };
 
@@ -704,45 +645,57 @@ describe('NowTab — section ordering', () => {
         whatsHappeningEnabled: true,
       }),
     );
-    mocks.usePerpsFeed.mockReturnValue({
-      data: [{ market: { symbol: 'BTC', change24hPercent: '5' } }] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-      defaultSortOptionId: 'priceChange',
-    });
-    mocks.usePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }] as never,
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-    mocks.useTokensFeed.mockReturnValue({
-      data: defaultCryptoMoversTokens as never,
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-    mocks.useWhatsHappening.mockReturnValue({
-      items: [{ id: 'trend-0' }],
-      isLoading: false,
-      error: null,
-      refresh: mockWhatsHappeningRefresh,
-    });
-    mocks.whatsHappeningImpl.mockReturnValue(createWhatsHappeningCarousel());
-    mocks.useStocksFeed.mockReturnValue({
-      data: [],
-      isLoading: true,
-      refetch: jest.fn(),
-    });
 
     return mocks;
   };
 
+  const NOW_TAB_SECTION_ORDER_TEST_IDS = [
+    'explore-section-predict',
+    'explore-section-crypto_movers',
+    'explore-section-perps',
+    'explore-section-wh',
+    'explore-section-stocks',
+  ] as const;
+
+  type RootType = ReturnType<typeof render>['root'];
+
+  const NOW_TAB_SECTION_ORDER_TEST_IDS_SET = new Set<string>(
+    NOW_TAB_SECTION_ORDER_TEST_IDS,
+  );
+
+  const getNowTabSectionOrder = (tree: RootType): string[] => {
+    if (!tree) {
+      return [];
+    }
+
+    const processSections = (sectionTree: RootType): string[] => {
+      if (Array.isArray(sectionTree)) {
+        return sectionTree.flatMap(processSections);
+      }
+
+      const testID = sectionTree.props?.testID;
+      const ownTestIds =
+        typeof testID === 'string' &&
+        NOW_TAB_SECTION_ORDER_TEST_IDS_SET.has(testID)
+          ? [testID]
+          : [];
+
+      const childTestIds = (sectionTree.children ?? []).flatMap((child) =>
+        typeof child === 'string' ? [] : processSections(child),
+      );
+
+      return [...ownTestIds, ...childTestIds];
+    };
+
+    const results = processSections(tree);
+    return [...new Set(results)];
+  };
+
   it('renders all sections in fixed order when every section is visible', () => {
     arrangeAllSectionsVisibleMocks();
-    const { toJSON } = renderNowTab();
+    const { root } = renderNowTab();
 
-    expect(getNowTabSectionOrder(toJSON())).toEqual([
-      ...NOW_TAB_SECTION_ORDER_TEST_IDS,
-    ]);
+    expect(getNowTabSectionOrder(root)).toEqual(NOW_TAB_SECTION_ORDER_TEST_IDS);
   });
 
   it('keeps relative order when middle sections are hidden', () => {
@@ -755,12 +708,12 @@ describe('NowTab — section ordering', () => {
       }),
     );
 
-    const { toJSON } = renderNowTab();
+    const { root } = renderNowTab();
 
-    expect(getNowTabSectionOrder(toJSON())).toEqual([
-      predictSectionTestId,
-      cryptoMoversSectionTestId,
-      stocksSectionTestId,
+    expect(getNowTabSectionOrder(root)).toEqual([
+      'explore-section-predict',
+      'explore-section-crypto_movers',
+      'explore-section-stocks',
     ]);
   });
 });
