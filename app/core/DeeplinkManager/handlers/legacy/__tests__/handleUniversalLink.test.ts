@@ -1308,7 +1308,32 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({ id: undefined });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('forwards the id query param to _handleWhatsHappening', async () => {
+      const id = 'a3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}?id=${id}`;
+      const whatsHappeningUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: whatsHappeningUrl,
+        pathname: `/${ACTIONS.WHATS_HAPPENING}`,
+        search: `?id=${id}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: whatsHappeningUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: whatsHappeningUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({ id });
       expect(handled).toHaveBeenCalled();
     });
   });
