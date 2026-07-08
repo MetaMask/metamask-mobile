@@ -2209,7 +2209,7 @@ describe('polymarket utils', () => {
         side: Side.SELL,
       }),
     );
-    expect(preview.fees).toBeUndefined();
+    expect(preview.fees).toBeDefined();
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,

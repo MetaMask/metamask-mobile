@@ -14,6 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import TextShimmer from '../TextShimmer';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
@@ -46,13 +47,20 @@ const MoneyBalanceSummary = ({
     }
     return (
       <>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
           testID={MoneyBalanceSummaryTestIds.APY}
         >
-          {strings('money.apy_label', { percentage: apy })}
+          <TextShimmer>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+            >
+              {strings('money.apy_label', { percentage: apy })}
+            </Text>
+          </TextShimmer>
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -60,7 +68,7 @@ const MoneyBalanceSummary = ({
           >
             {strings('money.apy_currency_suffix')}
           </Text>
-        </Text>
+        </Box>
         {onApyInfoPress && (
           <ButtonIcon
             iconName={IconName.Info}
