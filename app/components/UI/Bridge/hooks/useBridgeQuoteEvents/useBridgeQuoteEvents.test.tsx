@@ -4,6 +4,10 @@ import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  selectBridgeQuotes,
+  selectControllerFields,
+} from '../../../../../core/redux/slices/bridge';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -38,6 +42,10 @@ describe('useBridgeQuoteEvents', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    selectControllerFields.clearCache();
+    selectControllerFields.memoizedResultFunc.clearCache();
+    selectBridgeQuotes.clearCache();
+    selectBridgeQuotes.memoizedResultFunc.clearCache();
   });
 
   it.each([
