@@ -23,7 +23,7 @@ import {
 } from '../../../selectors/smartTransactionsController';
 import { selectMetaMaskPayFlags } from '../../../selectors/featureFlagController/confirmations';
 import { store } from '../../../store';
-import type { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
+import type { TransactionControllerInitMessenger } from '../../../core/Engine/wallet-init/messengers/transaction-controller-messenger';
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
 import {
   submitBatchSmartTransactionHook,
