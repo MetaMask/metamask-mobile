@@ -8,6 +8,8 @@ import Toast, {
   hasTrailingTextButton,
   shouldTopAlignToastContent,
 } from './Toast';
+import { ButtonVariants } from '../Buttons/Button/Button.types';
+import { IconName } from '../Icons/Icon';
 import {
   ButtonIconVariant,
   ToastRef,
@@ -271,6 +273,7 @@ describe('Toast', () => {
     it('returns true for label-based close buttons', () => {
       expect(
         hasTrailingTextButton({
+          variant: ButtonVariants.Secondary,
           label: 'Track',
           onPress: jest.fn(),
         }),
@@ -281,7 +284,7 @@ describe('Toast', () => {
       expect(
         hasTrailingTextButton({
           variant: ButtonIconVariant.Icon,
-          iconName: 'Close',
+          iconName: IconName.Close,
           onPress: jest.fn(),
         }),
       ).toBe(false);
