@@ -127,6 +127,7 @@ import type {
 
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
+import type { WalletCreationErrorParams } from '../../components/Views/WalletCreationError';
 import type { TraceContext } from '../../util/trace';
 
 // Add asset params
@@ -528,6 +529,9 @@ export type RootStackParamList = {
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
   OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
   Rehydrate: RehydrateParams | undefined;
+  WalletCreationError: WalletCreationErrorParams | undefined;
+  AddDeviceToWallet: undefined;
+  AddDeviceVerificationCode: undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
