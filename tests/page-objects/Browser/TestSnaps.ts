@@ -207,6 +207,7 @@ class TestSnaps {
         }
 
         if (
+          FrameworkDetector.isAppium() &&
           typeof expectedJson === 'object' &&
           expectedJson !== null &&
           !Array.isArray(expectedJson)

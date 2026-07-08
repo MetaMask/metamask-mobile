@@ -107,6 +107,7 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
         await PlaywrightContextHelpers.switchToNativeContext().catch(
           () => undefined,
         );
+        await BrowserView.navigateToURL(TEST_SNAPS_URL);
         await sleep(2_000);
       }
 
@@ -143,7 +144,7 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
  * If the "Opened tabs" grid view is shown (e.g. after tapping the browser tab icon),
  * selects the first/most recent tab so we land on the single-tab browser view.
  */
-const ensureSingleBrowserTabView = async (): Promise<void> => {
+export const ensureSingleBrowserTabView = async (): Promise<void> => {
   const openedTabsHeader = Matchers.getElementByID(
     BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
   );

@@ -1,6 +1,6 @@
 import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import { navigateToBrowserView } from '../../flows/browser.flow';
+import { navigateToBrowserView, ensureSingleBrowserTabView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
@@ -18,6 +18,8 @@ import WalletView from '../../page-objects/wallet/WalletView';
  * after closing the browser, so we navigate step-by-step with explicit waits.
  */
 async function navigateFromBrowserToSnapSettings() {
+  await ensureSingleBrowserTabView();
+  await BrowserView.dismissUrlEditorIfOpen();
   await BrowserView.tapCloseBrowserButton();
   await TabBarComponent.tapWallet();
   await WalletView.tapHamburgerMenu();
@@ -31,6 +33,17 @@ async function navigateFromBrowserToSnapSettings() {
     description: 'Settings view title should be visible',
   });
   await SettingsView.tapSnaps();
+}
+
+async function navigateBackFromSettingsToWallet() {
+  await SnapSettingsView.tapBackButton();
+  await SnapSettingsView.tapListBackButton();
+  await SettingsView.tapBackButton();
+  await Assertions.expectElementToBeVisible(AccountMenu.backButton, {
+    timeout: 10_000,
+    description: 'Account menu back button should be visible',
+  });
+  await AccountMenu.tapBack();
 }
 
 jest.setTimeout(150_000);
@@ -67,11 +80,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
 
-        await SnapSettingsView.tapBackButton();
-        await SnapSettingsView.tapListBackButton();
-        // Settings → AccountsMenu → close SettingsFlow
-        await SettingsView.tapBackButton();
-        await AccountMenu.tapBack();
+        await navigateBackFromSettingsToWallet();
 
         await navigateToBrowserView();
 
@@ -98,11 +107,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
 
-        await SnapSettingsView.tapBackButton();
-        await SnapSettingsView.tapListBackButton();
-        // Settings → AccountsMenu → close SettingsFlow
-        await SettingsView.tapBackButton();
-        await AccountMenu.tapBack();
+        await navigateBackFromSettingsToWallet();
 
         await navigateToBrowserView();
 
