@@ -85,7 +85,11 @@ describe('activity list helpers', () => {
     it('is false for a non-spending-cap kind even with an amount', () => {
       const item = makeItem({
         type: 'send',
-        data: { token: { amount: '100000', direction: 'out' } },
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          token: { amount: '100000', direction: 'out' },
+        },
       });
       expect(isSpendingCapWithAmount(item)).toBe(false);
     });
