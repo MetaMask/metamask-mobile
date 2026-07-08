@@ -146,6 +146,7 @@ export const TestSnapResultSelectorWebIDS = {
   multichainProviderResultSpan: 'multichainProviderResult',
   personalSignResultSpan: 'personalSignResult',
   preferencesResultSpan: 'preferencesResult',
+  preinstalledResultSpan: 'preinstalledResult',
   retrieveManageStateResultSpan: 'retrieveManageStateResult',
   retrieveManageStateUnencryptedResultSpan:
     'retrieveManageStateUnencryptedResult',

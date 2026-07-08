@@ -54,7 +54,7 @@ describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
       async () => {
         await TestSnaps.tapButton('messengerCallButton');
 
-        await TestSnaps.checkResultSpan('rpcResultSpan', 'false');
+        await TestSnaps.checkResultSpan('preinstalledResultSpan', 'false');
       },
     );
   });
