@@ -176,8 +176,8 @@ import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
-import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
+import { configRegistryControllerInit } from './controllers/config-registry-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -195,6 +195,7 @@ import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
 import { complianceControllerInit } from './controllers/compliance/compliance-controller-init';
+import { configRegistryApiServiceInit } from './controllers/config-registry-api-service-init.ts';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
@@ -384,14 +385,13 @@ export class Engine {
         // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
         ClientController: clientControllerInit,
-        // PhishingController hydrates known recipients from AddressBookController
-        // during construction for address poisoning checks.
-        AddressBookController: addressBookControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
+        ConfigRegistryController: configRegistryControllerInit,
+        ConfigRegistryApiService: configRegistryApiServiceInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
@@ -446,7 +446,9 @@ export class Engine {
       messengerClientsByName.SelectedNetworkController;
     const preferencesController = messengerClientsByName.PreferencesController;
     const delegationController = messengerClientsByName.DelegationController;
-    const addressBookController = messengerClientsByName.AddressBookController;
+    const addressBookController = this.#wallet.getInstance(
+      'AddressBookController',
+    );
     const connectivityController = this.#wallet.getInstance(
       'ConnectivityController',
     );
@@ -580,6 +582,8 @@ export class Engine {
       AddressBookController: addressBookController,
       AppMetadataController: messengerClientsByName.AppMetadataController,
       ConnectivityController: connectivityController,
+      ConfigRegistryController: messengerClientsByName.ConfigRegistryController,
+      ConfigRegistryApiService: messengerClientsByName.ConfigRegistryApiService,
       AssetsContractController: assetsContractController,
       AssetsController: messengerClientsByName.AssetsController,
       NftController: nftController,
@@ -1488,6 +1492,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       CardController,
+      ConfigRegistryController,
       ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
@@ -1561,6 +1566,7 @@ export default {
       AssetsController: instance.context.AssetsController.state,
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
+      ConfigRegistryController: ConfigRegistryController.state,
       ConnectivityController: ConnectivityController.state,
       CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,

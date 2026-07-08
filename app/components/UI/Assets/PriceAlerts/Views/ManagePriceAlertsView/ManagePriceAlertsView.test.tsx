@@ -6,6 +6,8 @@ import ManagePriceAlertsView from './ManagePriceAlertsView';
 import { ManagePriceAlertsTestIds, type PriceAlert } from '../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../../component-library/components/Toast';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 // Prevents act() warnings caused by useQuery's internal batched updates
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -856,6 +858,145 @@ describe('ManagePriceAlertsView', () => {
             hasNoTimeout: false,
           }),
         ),
+      );
+    });
+  });
+
+  describe('analytics', () => {
+    const mockAnalytics = jest.mocked(useAnalytics)();
+
+    const builderForEvent = (event: unknown) => {
+      const calls = jest.mocked(mockAnalytics.createEventBuilder).mock.calls;
+      const idx = calls.findIndex((c) => c[0] === event);
+      return jest.mocked(mockAnalytics.createEventBuilder).mock.results[idx]
+        .value;
+    };
+
+    it('tracks Price Alert Creation Interaction (deleted) on success', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-1', threshold: 3000 }),
+          makeAlert({ id: 'alert-2', threshold: 1500 }),
+        ]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+        );
+      });
+      expect(
+        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+          .addProperties,
+      ).toHaveBeenCalledWith({
+        interaction_type: 'deleted',
+        asset_id: 'eip155:1/slip44:60',
+        token_symbol: 'ETH',
+        alert_type: 'threshold',
+        alert_value: 3000,
+        alert_recurring: true,
+        alert_active: true,
+      });
+    });
+
+    it('does not track Price Alert Creation Interaction when delete fails', async () => {
+      mockDeleteAlert.mockResolvedValueOnce(makeErrorResponse(500));
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-1', threshold: 3000 }),
+          makeAlert({ id: 'alert-2', threshold: 1500 }),
+        ]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalled();
+      });
+      expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+      );
+    });
+
+    it('tracks Price Alert Creation Interaction (updated) when toggling active', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({
+            id: 'alert-1',
+            threshold: 3000,
+            recurring: true,
+            active: true,
+          }),
+        ]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+        );
+      });
+      expect(
+        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+          .addProperties,
+      ).toHaveBeenCalledWith({
+        interaction_type: 'updated',
+        asset_id: 'eip155:1/slip44:60',
+        token_symbol: 'ETH',
+        alert_type: 'threshold',
+        alert_value: 3000,
+        alert_recurring: true,
+        alert_active: false,
+        prev_alert_value: 3000,
+        prev_alert_recurring: true,
+        prev_alert_active: true,
+      });
+    });
+
+    it('does not track Price Alert Creation Interaction when toggle fails', async () => {
+      mockUpdateAlert.mockResolvedValueOnce(makeErrorResponse(500));
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([makeAlert({ id: 'alert-1', active: true })]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalled();
+      });
+      expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
       );
     });
   });

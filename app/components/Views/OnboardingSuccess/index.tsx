@@ -1,5 +1,4 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import { Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -14,24 +13,10 @@ import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
-import {
-  saveOnboardingEvent as saveEvent,
-  setWalletHomeOnboardingStepsEligible,
-} from '../../../actions/onboarding';
-import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboarding/walletHomeOnboardingStepsEligibility';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../../../util/analytics/onboardingCompletedAnalytics';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
-import { clearAttribution } from '../../../core/redux/slices/attribution';
-
-import Engine from '../../../core/Engine/Engine';
-import { discoverAccounts } from '../../../multichain-accounts/discovery';
-import Logger from '../../../util/Logger';
-import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 import {
   Box,
   BoxAlignItems,
@@ -78,7 +63,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const walletSetupAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
-  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   const tw = useTailwind();
 
@@ -92,74 +76,16 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     navigation.navigate(Routes.ONBOARDING.DEFAULT_SETTINGS);
   };
 
-  const runDiscoverAccounts = useCallback(async () => {
-    try {
-      await discoverAccounts(
-        Engine.context.KeyringController.state.keyrings[0].metadata.id,
-      );
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'OnboardingSuccess: discoverAccounts failed',
-      );
-    }
-  }, []);
-
-  const runQrProvisioning = useCallback(async () => {
-    const { QrSyncProvisioningService } = Engine.context;
-
-    if (!QrSyncProvisioningService) {
-      Logger.error(
-        new Error('QR sync provisioning service is unavailable'),
-        'OnboardingSuccess: provisionFromMetadata failed',
-      );
-      return;
-    }
-
-    try {
-      await QrSyncProvisioningService.provisionFromMetadata();
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'OnboardingSuccess: provisionFromMetadata failed',
-      );
-    }
-  }, []);
-
   const handleOnDone = useCallback(() => {
-    if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
-      const onboardingCompletedProperties =
-        getOnboardingCompletedAnalyticsPropsFromSuccessFlow(successFlow, {
-          accountType,
-          isBasicFunctionalityEnabled,
-        });
+    finalizeOnboardingCompletion({
+      successFlow,
+      accountType,
+      isBasicFunctionalityEnabled,
+      walletSetupAttributionProps,
+      dispatch,
+      discoverAccountsLogContext: 'OnboardingSuccess',
+    });
 
-      trackOnboarding(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.ONBOARDING_COMPLETED,
-        )
-          .addProperties({
-            ...onboardingCompletedProperties,
-            ...walletSetupAttributionProps,
-          })
-          .build(),
-        (event) => dispatch(saveEvent([event])),
-      );
-
-      dispatch(
-        setWalletHomeOnboardingStepsEligible(true, {
-          skipInitialBalanceWait: true,
-        }),
-      );
-    }
-
-    dispatch(clearAttribution());
-
-    if (needsQrProvisioning) {
-      void runQrProvisioning();
-    } else {
-      void runDiscoverAccounts();
-    }
     queueMicrotask(() => {
       onDone();
     });
@@ -167,12 +93,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     accountType,
     dispatch,
     isBasicFunctionalityEnabled,
-    needsQrProvisioning,
     onDone,
     successFlow,
     walletSetupAttributionProps,
-    runDiscoverAccounts,
-    runQrProvisioning,
   ]);
 
   const getTitleString = () => {

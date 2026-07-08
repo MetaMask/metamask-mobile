@@ -1,4 +1,4 @@
-import { BASE_DEFAULTS, sleep } from './Utilities.ts';
+import Utilities, { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
@@ -14,6 +14,11 @@ const logger = createPlaywrightLogger('PlaywrightAssertions');
 
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
+}
+
+export interface TextDisplayedOptions extends AssertionOptions {
+  /** When set, asserts text on this element instead of searching the screen. */
+  within?: PlaywrightElement | Promise<PlaywrightElement>;
 }
 
 /**
@@ -241,6 +246,13 @@ export default class PlaywrightAssertions {
   ): Promise<void> {
     try {
       const el = await targetElement;
+      try {
+        if (!(await el.unwrap().isExisting())) {
+          return;
+        }
+      } catch {
+        // Fall through to waitForDisplayed when existence cannot be determined.
+      }
       await el.waitForDisplayed({
         reverse: true,
         timeout: this.getTimeout(options),
@@ -254,16 +266,36 @@ export default class PlaywrightAssertions {
       ) {
         return;
       }
+      if (
+        error instanceof TypeError &&
+        error.message.includes('waitForDisplayed')
+      ) {
+        return;
+      }
       throw error;
     }
   }
 
   static async expectTextDisplayed(
     text: string,
-    options: AssertionOptions = {},
+    options: TextDisplayedOptions = {},
   ): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText(text);
-    await el.waitForDisplayed({ timeout: this.getTimeout(options) });
+    const { within, ...assertionOptions } = options;
+    if (within) {
+      await this.expectElementText(within, text, assertionOptions);
+      return;
+    }
+    const timeout = this.getTimeout(assertionOptions);
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = await PlaywrightMatchers.getElementByText(text);
+        await el.waitForDisplayed({ timeout: 100 });
+      },
+      {
+        timeout,
+        description: `Assert text "${text}" is displayed`,
+      },
+    );
   }
 
   static async expectTextNotDisplayed(

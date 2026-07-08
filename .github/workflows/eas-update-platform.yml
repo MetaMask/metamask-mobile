@@ -39,7 +39,7 @@ on:
 jobs:
   push-update:
     name: Push EAS Update (${{ inputs.platform }})
-    runs-on: ubuntu-latest
+    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
     environment: ${{ inputs.github_environment }}
     env:
       # OTA-specific vars only — build config + secrets come from builds.yml via steps below
@@ -161,11 +161,49 @@ jobs:
           echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
           echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
 
+      - name: Diagnose - expo export in isolation
+        env:
+          SKIP_TRANSFORM_LINT: 'true'
+          NODE_OPTIONS: '--max_old_space_size=8192'
+          EXPO_DEBUG: '1'
+        run: |
+          echo "🔬 Running expo export in isolation (platform: ${{ inputs.platform }}) ..."
+          echo "   METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-<not set>}"
+          echo "   METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-<not set>}"
+          echo "   EXPO_PROJECT_ID is set: $([[ -n "${EXPO_PROJECT_ID}" ]] && echo yes || echo NO)"
+          echo "   EXPO_TOKEN is set:      $([[ -n "${EXPO_TOKEN}" ]] && echo yes || echo NO)"
+          yarn expo export \
+            --platform "${{ inputs.platform }}" \
+            --dump-sourcemap \
+            --dump-assetmap \
+            --output-dir /tmp/expo-export-diag 2>&1
+          echo "✅ expo export exit code: $?"
+
       - name: Build & Push EAS Update via build.sh
         env:
           SKIP_TRANSFORM_LINT: 'true'
           NODE_OPTIONS: '--max_old_space_size=8192'
+          # Verbose Expo/EAS logging so a stalled asset upload shows where it hangs.
+          EXPO_DEBUG: '1'
         run: |
+          # --- Resource monitor ---------------------------------------------------
+          # GitHub-hosted runners expose no live machine metrics, so log memory,
+          # CPU load and disk every 15s. This makes CPU/Memory starvation visible
+          # during the EAS publish (the phase where the runner lost communication).
+          monitor_resources() {
+            while true; do
+              mem=$(free -m 2>/dev/null | awk '/Mem:/{printf "mem=%sMB/%sMB", $3, $2}')
+              load=$(cut -d' ' -f1-3 /proc/loadavg 2>/dev/null)
+              disk=$(df -h / 2>/dev/null | awk 'NR==2{print $4" free"}')
+              echo "🩺 [resmon $(date -u +%H:%M:%S)] ${mem} load=${load} disk=${disk}"
+              sleep 15
+            done
+          }
+          monitor_resources &
+          MONITOR_PID=$!
+          # Always stop the monitor when the step exits, however it exits.
+          trap 'kill "${MONITOR_PID}" 2>/dev/null || true' EXIT
+
           echo "📦 Configuring EXPO key..."
           if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
             echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
