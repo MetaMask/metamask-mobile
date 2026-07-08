@@ -146,6 +146,20 @@ jest.mock('@metamask/perps-controller', () => {
   };
 });
 
+/**
+ * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
+ * react-native-worklets, and requiring the real package eagerly initializes its
+ * native part (absent under Jest), throwing "Native part of Worklets doesn't
+ * seem to be initialized" the moment Reanimated is imported (transitively, e.g.
+ * via @metamask/design-system-react-native). The mock also installs
+ * `globalThis._getAnimationTimestamp` and a timestamp-correct
+ * `requestAnimationFrame` that animation tests rely on.
+ * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
+ */
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/lib/module/mock'),
+);
+
 // ActionSheetIOS is unavailable in Jest; use the custom sheet so CV tests can confirm options.
 jest.mock('@metamask/react-native-actionsheet', () => {
   const React = jest.requireActual('react');
@@ -769,6 +783,72 @@ jest.mock('../../components/Base/RemoteImage', () => {
   const React = require('react');
   const { View } = require('react-native');
   return (props) => <View {...props} testID="mock-remote-image" />;
+});
+
+// Mock MMDS BottomSheet so open/close callbacks run synchronously in view tests.
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = require('react');
+  const PropTypes = require('prop-types');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = React.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        onOpen,
+        goBack,
+        style,
+        twClassName: _twClassName,
+        testID,
+        accessibilityLabel,
+      },
+      ref,
+    ) => {
+      React.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: (callback) => {
+          onOpen?.();
+          callback?.();
+        },
+        onCloseBottomSheet: (callback) => {
+          const hasCallback = Boolean(callback);
+          onClose?.(hasCallback);
+          goBack?.();
+          callback?.();
+        },
+      }));
+      return React.createElement(
+        View,
+        {
+          testID: testID || 'design-system-bottom-sheet-mock',
+          style,
+          accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  BottomSheet.propTypes = {
+    children: PropTypes.node,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    goBack: PropTypes.func,
+    style: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.array,
+      PropTypes.number,
+    ]),
+    twClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    testID: PropTypes.string,
+    accessibilityLabel: PropTypes.string,
+  };
+
+  return {
+    ...actual,
+    BottomSheet,
+  };
 });
 
 // Mock Braze SDK (ESM-only package; must be transformed via transformIgnorePatterns)

@@ -49,7 +49,11 @@ import {
 } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
-import { ImpactMoment, playImpact } from '../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
@@ -201,10 +205,12 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
 
   const handleTabPress = useCallback(
     (next: TabFilter) => {
+      if (optimisticSelectedTab === next) return;
+      playSelection().catch(() => undefined);
       setOptimisticSelectedTab(next);
       onTabPress(next);
     },
-    [onTabPress],
+    [onTabPress, optimisticSelectedTab],
   );
 
   return (

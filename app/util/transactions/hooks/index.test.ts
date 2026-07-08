@@ -6,6 +6,7 @@ import {
   type TransactionController,
   type TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 
 import {
@@ -318,5 +319,76 @@ describe('getTransactionControllerHooks', () => {
         ] as PublishBatchHookTransaction[],
       }),
     ).rejects.toThrow('Could not find transaction with id missing-tx');
+  });
+
+  describe('quote-required transaction types', () => {
+    it('throws when moneyAccountDeposit has no quotes', async () => {
+      const request = buildRequest({
+        initMessenger: {
+          call: jest.fn((action: string) => {
+            if (action === 'PredictController:publish') {
+              return { transactionHash: undefined };
+            }
+
+            if (action === 'TransactionPayController:getState') {
+              return {
+                transactionData: {
+                  '123': {
+                    quotes: [],
+                  },
+                },
+              };
+            }
+
+            return undefined;
+          }),
+        } as unknown as TransactionControllerHookRequest['initMessenger'],
+      });
+
+      const hooks = getTransactionControllerHooks(request);
+      const moneyAccountTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.moneyAccountDeposit,
+      };
+
+      await expect(hooks.publish?.(moneyAccountTx)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
+    });
+
+    it('does not throw for moneyAccountDeposit when quotes are present', async () => {
+      payHookMock.mockResolvedValue({
+        transactionHash: '0xpay-with-quote',
+      });
+
+      const hooks = getTransactionControllerHooks(buildRequest());
+      const moneyAccountTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.moneyAccountDeposit,
+      };
+
+      const result = await hooks.publish?.(moneyAccountTx);
+
+      expect(result).toStrictEqual({
+        transactionHash: '0xpay-with-quote',
+      });
+    });
+
+    it('does not throw when non-quote-required transaction has no quotes', async () => {
+      jest.mocked(accountSupports7702).mockResolvedValue(false);
+      jest.mocked(submitSmartTransactionHook).mockResolvedValue({
+        transactionHash: undefined,
+      });
+
+      const hooks = getTransactionControllerHooks(buildRequest());
+      const simpleSendTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.simpleSend,
+      };
+
+      const result = await hooks.publish?.(simpleSendTx);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
   });
 });
