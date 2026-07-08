@@ -106,6 +106,18 @@ Object.defineProperty(Engine, 'controllerMessenger', {
   configurable: true,
 });
 
+const mockControllerTransactions: TransactionMeta[] = [];
+
+Object.defineProperty(Engine, 'context', {
+  value: {
+    TransactionController: {
+      state: { transactions: mockControllerTransactions },
+    },
+  },
+  writable: true,
+  configurable: true,
+});
+
 const mockUseMoneyToasts = jest.mocked(useMoneyToasts);
 
 const TELLER_INTERFACE = new ethers.utils.Interface([
@@ -238,6 +250,7 @@ describe('useMoneyTransactionStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockControllerTransactions.length = 0;
 
     mockUseMoneyToasts.mockReturnValue({
       showToast: mockShowToast,
@@ -480,6 +493,29 @@ describe('useMoneyTransactionStatus', () => {
         jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
         expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'convert' });
+      });
+
+      it('re-reads metamaskPay populated after approval instead of the stale snapshot', () => {
+        const { statusUpdatedHandler } = renderAndGetHandlers();
+
+        // `approved` fires with no payment data yet.
+        const approvedMeta = buildTxMeta({
+          id: 'tx-late-metamaskpay',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        });
+        statusUpdatedHandler({ transactionMeta: approvedMeta });
+
+        // Controller fills in `metamaskPay` before the deferred toast fires,
+        // without another status event re-delivering the meta.
+        mockControllerTransactions.push({
+          ...approvedMeta,
+          metamaskPay: { fiat: true },
+        } as unknown as TransactionMeta);
+
+        jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+        expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'card' });
       });
     });
 
