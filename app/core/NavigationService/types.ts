@@ -88,6 +88,12 @@ import type {
   AssetLoaderParams,
   AssetViewParams,
 } from '../../components/Views/Asset/Asset.types';
+import type { NftDetailsParams } from '../../components/Views/NftDetails/NftDetails.types';
+import type { TokenDetailsRouteParams } from '../../components/UI/TokenDetails/constants/constants';
+import type {
+  PriceAlertRouteParams,
+  CreatePriceAlertRouteParams,
+} from '../../components/UI/Assets/PriceAlerts/constants';
 
 // Stake params
 import type {
@@ -873,6 +879,19 @@ export type RootStackParamList = {
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
+
+  // Asset detail stack routes (nested under the `Asset` navigator)
+  AssetStackFlow: NestedNavigationParams | undefined;
+  SecurityTrust: TokenDetailsRouteParams & {
+    isPricePositive?: boolean;
+    useAmbientColor?: boolean;
+  };
+  CreatePriceAlert: CreatePriceAlertRouteParams;
+  ManagePriceAlerts: PriceAlertRouteParams;
+
+  // NFT detail routes
+  NftDetails: NftDetailsParams;
+  NftDetailsFullImage: NftDetailsParams;
 
   // SDK routes
   ReturnToDappToast: ReturnToDappNotificationParams | undefined;
