@@ -1,5 +1,4 @@
 import React from 'react';
-import { Animated } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import WalletHomeOnboardingSteps from './WalletHomeOnboardingSteps';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -18,11 +17,35 @@ import {
   WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
 } from './walletHomeOnboardingChecklistRive';
-import { WALLET_HOME_ONBOARDING_VISIBLE_STEPS } from './walletHomeOnboardingStepsModel';
+import {
+  WALLET_HOME_ONBOARDING_VISIBLE_STEPS,
+  walletHomeOnboardingProgressRatioForStep,
+} from './walletHomeOnboardingStepsModel';
 import { ONBOARDING_CHECKLIST_STEPPER_AB_KEY } from './abTestConfig';
 import { strings } from '../../../../locales/i18n';
+import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
+
+jest.mock('./walletHomeOnboardingProgressAnimation', () => {
+  const actual = jest.requireActual('./walletHomeOnboardingProgressAnimation');
+  return {
+    ...actual,
+    animateWalletHomeOnboardingProgressRatio: jest.fn(
+      actual.animateWalletHomeOnboardingProgressRatio,
+    ),
+  };
+});
 
 const mockUseIsFocused = jest.fn(() => true);
+const animateProgressRatioSpy =
+  animateWalletHomeOnboardingProgressRatio as jest.MockedFunction<
+    typeof animateWalletHomeOnboardingProgressRatio
+  >;
+
+function progressAnimationCalls(target: number) {
+  return animateProgressRatioSpy.mock.calls.filter(
+    ([, toValue]) => toValue === target,
+  );
+}
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -46,6 +69,11 @@ describe('WalletHomeOnboardingSteps', () => {
     __clearLastMockedMethods();
     __mockRiveFireState.mockClear();
     mockUseIsFocused.mockReturnValue(true);
+    animateProgressRatioSpy.mockClear();
+    animateProgressRatioSpy.mockImplementation(
+      jest.requireActual('./walletHomeOnboardingProgressAnimation')
+        .animateWalletHomeOnboardingProgressRatio,
+    );
   });
 
   afterEach(() => {
@@ -670,35 +698,47 @@ describe('WalletHomeOnboardingSteps', () => {
     });
 
     it('does not animate continuous progress to 100% on last-step complete for treatment', () => {
-      const timingSpy = jest.spyOn(Animated, 'timing');
       const { getByTestId } = renderWithStepperArm('treatment', {
         walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
       });
 
+      animateProgressRatioSpy.mockClear();
       fireEvent.press(getByTestId(primaryTestId));
 
-      const progressFillToCompleteCalls = timingSpy.mock.calls.filter(
-        ([, config]) => config?.toValue === 1,
-      );
-      expect(progressFillToCompleteCalls).toHaveLength(0);
-
-      timingSpy.mockRestore();
+      expect(progressAnimationCalls(1)).toHaveLength(0);
     });
 
     it('animates continuous progress to 100% on last-step complete for control', () => {
-      const timingSpy = jest.spyOn(Animated, 'timing');
       const { getByTestId } = renderWithStepperArm('control', {
         walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
       });
 
+      animateProgressRatioSpy.mockClear();
       fireEvent.press(getByTestId(primaryTestId));
 
-      const progressFillToCompleteCalls = timingSpy.mock.calls.filter(
-        ([, config]) => config?.toValue === 1,
-      );
-      expect(progressFillToCompleteCalls.length).toBeGreaterThan(0);
+      expect(progressAnimationCalls(1).length).toBeGreaterThan(0);
+    });
 
-      timingSpy.mockRestore();
+    it('animates continuous progress on step change for control', async () => {
+      const { getByTestId, store } = renderWithStepperArm('control', {
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 0 },
+      });
+
+      animateProgressRatioSpy.mockClear();
+      fireEvent.press(getByTestId(primaryTestId));
+
+      await flushWalletHomeStepTransition();
+
+      await waitFor(() => {
+        expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
+          expect.objectContaining({ stepIndex: 1 }),
+        );
+      });
+
+      expect(
+        progressAnimationCalls(walletHomeOnboardingProgressRatioForStep(1))
+          .length,
+      ).toBeGreaterThan(0);
     });
   });
 });

@@ -36,13 +36,13 @@ const fixtureFollowing = {
     {
       profileId: 'trader-1',
       address: '0x1',
-      name: 'dutchiono',
+      name: 'trader1',
       imageUrl: 'https://example.com/a1.png',
     },
     {
       profileId: 'trader-2',
       address: '0x2',
-      name: 'Kien',
+      name: 'trader2',
       imageUrl: null,
     },
   ],
@@ -99,10 +99,16 @@ describe('useFollowedTraders', () => {
       expect(result.current.traders).toEqual([
         {
           id: 'trader-1',
-          username: 'dutchiono',
+          username: 'trader1',
+          address: '0x1',
           avatarUri: 'https://example.com/a1.png',
         },
-        { id: 'trader-2', username: 'Kien', avatarUri: undefined },
+        {
+          id: 'trader-2',
+          username: 'trader2',
+          address: '0x2',
+          avatarUri: undefined,
+        },
       ]);
     });
   });

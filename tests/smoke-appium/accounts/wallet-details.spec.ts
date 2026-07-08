@@ -1,6 +1,6 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
 import { completeSrpQuiz } from '../../flows/accounts.flow.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import Assertions from '../../framework/Assertions.js';
@@ -26,13 +26,7 @@ appiumTest.describe(SmokeAccounts('Wallet details'), () => {
           currentDeviceDetails,
         },
         async () => {
-          await loginToAppPlaywright({ scenarioType: 'e2e' });
-          await WalletView.tapIdenticon();
-
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.accountList,
-            { description: 'Account list should be visible' },
-          );
+          await loginAndOpenAccountList({ scenarioType: 'e2e' });
           await AccountListBottomSheet.tapAccountEllipsisButtonV2(FIRST);
           await AccountDetails.tapEditWalletName();
           await Assertions.expectTextDisplayed('Wallet 1', {

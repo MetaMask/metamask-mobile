@@ -22,6 +22,8 @@ import {
 } from '../../../../../component-library/components/Toast';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow';
 import useCashbackWallet from '../../hooks/useCashbackWallet';
+import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
+import { CASHBACK_MONEY_ACCOUNT_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
@@ -32,7 +34,10 @@ import {
   selectCardHasApprovedLineaFunding,
   selectCardHomeDataStatus,
   selectCardLineaUsdcToken,
+  selectIsCardResidencyBlocked,
+  selectIsMoneyAccountDelegatedForCard,
 } from '../../../../../selectors/cardController';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { CardMessageBoxType } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -52,8 +57,15 @@ const Cashback: React.FC = () => {
   const hasApprovedLineaFunding = useSelector(
     selectCardHasApprovedLineaFunding,
   );
+  const isMoneyAccountDelegated = useSelector(
+    selectIsMoneyAccountDelegatedForCard,
+  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isResidencyBlocked = useSelector(selectIsCardResidencyBlocked);
   const lineaUsdcToken = useSelector(selectCardLineaUsdcToken);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const { startLinkFlow, canLink: canLinkMoneyAccount } =
+    useMoneyAccountCardLinkage();
 
   const {
     cashbackWallet,
@@ -81,11 +93,16 @@ const Cashback: React.FC = () => {
     cardHomeDataStatus === 'idle' || cardHomeDataStatus === 'loading';
   const hasFundingStatusError = cardHomeDataStatus === 'error';
   const isFundingStatusLoaded = cardHomeDataStatus === 'success';
-  const requiresLineaFunding =
-    isFundingStatusLoaded && !hasApprovedLineaFunding;
+  const useMoneyAccountFlow = isMoneyAccountEnabled && !isResidencyBlocked;
+  const hasApprovedRedemptionDestination = useMoneyAccountFlow
+    ? isMoneyAccountDelegated
+    : hasApprovedLineaFunding || isMoneyAccountDelegated;
+  const needsSetup = isFundingStatusLoaded && !hasApprovedRedemptionDestination;
   const isFundingStatusUnavailable =
     isFundingStatusLoading || hasFundingStatusError;
   const showLoadingError = !!error || hasFundingStatusError;
+  const showSetupBanner =
+    needsSetup && (!useMoneyAccountFlow || canLinkMoneyAccount);
 
   useEffect(() => {
     if (cashbackWallet) {
@@ -150,7 +167,7 @@ const Cashback: React.FC = () => {
   );
 
   const handleWithdraw = useCallback(() => {
-    if (requiresLineaFunding || isFundingStatusUnavailable) return;
+    if (needsSetup || isFundingStatusUnavailable) return;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -166,7 +183,7 @@ const Cashback: React.FC = () => {
     withdraw,
     trackEvent,
     createEventBuilder,
-    requiresLineaFunding,
+    needsSetup,
     isFundingStatusUnavailable,
   ]);
 
@@ -177,13 +194,22 @@ const Cashback: React.FC = () => {
     });
   }, [navigation, lineaUsdcToken]);
 
+  const handleSetupPress = useCallback(() => {
+    if (useMoneyAccountFlow) {
+      startLinkFlow(CASHBACK_MONEY_ACCOUNT_ORIGIN);
+      return;
+    }
+
+    handleNavigateToSpendingLimit();
+  }, [useMoneyAccountFlow, startLinkFlow, handleNavigateToSpendingLimit]);
+
   const isProcessing = isWithdrawing || monitoringStatus === 'monitoring';
 
   const buttonLabel = useMemo(() => {
     if (
       !isWithdrawable ||
       hasInsufficientBalance ||
-      requiresLineaFunding ||
+      needsSetup ||
       isFundingStatusUnavailable
     ) {
       return strings('card.cashback_screen.withdraw_unavailable');
@@ -192,9 +218,13 @@ const Cashback: React.FC = () => {
   }, [
     isWithdrawable,
     hasInsufficientBalance,
-    requiresLineaFunding,
+    needsSetup,
     isFundingStatusUnavailable,
   ]);
+
+  const fundingWarningMessageType = useMoneyAccountFlow
+    ? CardMessageBoxType.CashbackMoneyAccountRequired
+    : CardMessageBoxType.CashbackFundingRequired;
 
   const isButtonDisabled =
     isLoading ||
@@ -203,7 +233,7 @@ const Cashback: React.FC = () => {
     isEstimating ||
     hasInsufficientBalance ||
     isFundingStatusUnavailable ||
-    requiresLineaFunding;
+    needsSetup;
 
   return (
     <SafeAreaView
@@ -217,11 +247,11 @@ const Cashback: React.FC = () => {
         {...headerHandlers}
       />
       <Box twClassName="flex-1 px-4">
-        {requiresLineaFunding ? (
+        {showSetupBanner ? (
           <Box twClassName="pt-4" testID={CashbackSelectors.FUNDING_WARNING}>
             <CardMessageBox
-              messageType={CardMessageBoxType.CashbackFundingRequired}
-              onConfirm={handleNavigateToSpendingLimit}
+              messageType={fundingWarningMessageType}
+              onConfirm={handleSetupPress}
             />
           </Box>
         ) : null}

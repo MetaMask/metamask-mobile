@@ -8,7 +8,6 @@ const DEFAULT_MAX_ITEMS = 3;
 const styles = StyleSheet.create({
   cardContainer: {
     padding: 0,
-    marginBottom: 28,
     borderWidth: 0,
   },
 });

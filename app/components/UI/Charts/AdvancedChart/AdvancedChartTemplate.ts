@@ -2,9 +2,11 @@ import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type LineChromeOptions,
+  type LegendOverlayConfig,
   resolveLineChromeOptions,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
+import { getIndicatorColorsForWebview } from './indicatorColors';
 
 /**
  * CDN base URL for the TradingView charting library assets.
@@ -56,6 +58,8 @@ interface ChartFeatures {
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
+  currentPriceLineColorOverride?: string;
+  legendOverlay?: LegendOverlayConfig;
 }
 
 const createConfigScript = (
@@ -75,10 +79,12 @@ window.CONFIG = {
     backgroundColor: '${theme.colors.background.default}',
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
     textColor: '${stripHexAlpha(theme.colors.text.muted)}',
+    textAlternativeColor: '${stripHexAlpha(theme.colors.text.alternative)}',
     successColor: '${successColor}',
     lineColor: '${lineColor}',
     errorColor: '${errorColor}',
-    primaryColor: '${theme.colors.primary.default}'
+    primaryColor: '${theme.colors.primary.default}',
+    currentPriceColor: '${features.currentPriceLineColorOverride ?? ''}'
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
@@ -89,7 +95,9 @@ window.CONFIG = {
     useCustomLineEndMarker: ${lc.useCustomLineEndMarker ? 'true' : 'false'},
     useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
-  }
+  },
+  legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
+  indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };
 `;
 };
@@ -130,6 +138,7 @@ export const createAdvancedChartTemplate = (
             height: 100%;
             overflow: hidden;
             background: ${theme.colors.background.default};
+            --chart-background: ${stripHexAlpha(theme.colors.background.default)};
             position: relative;
         }
         /*
@@ -242,6 +251,21 @@ export const createAdvancedChartTemplate = (
          */
         #crosshair-price-label {
             z-index: 60;
+        }
+        /*
+         * Study legend pills (chartLogic.js): semi-transparent background via color-mix.
+         */
+        .legend-pill {
+            display: inline-flex;
+            align-items: center;
+            box-sizing: border-box;
+            font-family: Geist, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 10px;
+            font-weight: 500;
+            line-height: 1;
+            padding: 1px 6px;
+            border-radius: 2px;
+            background: color-mix(in srgb, var(--chart-background) 75%, transparent);
         }
         /*
          * Full-screen loading state until the chart is ready; centered message, above all chart UI.

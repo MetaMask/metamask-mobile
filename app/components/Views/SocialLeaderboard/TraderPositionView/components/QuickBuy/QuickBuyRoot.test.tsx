@@ -13,6 +13,8 @@ import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { positionToQuickBuyTarget } from './types';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import type { Position } from '@metamask/social-controllers';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { SocialLeaderboardEventProperties } from '../../../analytics';
 
 jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
@@ -21,6 +23,16 @@ jest.mock('./hooks/useQuickBuyController', () => ({
 jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
+
+const mockTrack = jest.fn();
+
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 let storedOnOpenCallback: (() => void) | undefined;
 const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
@@ -284,6 +296,78 @@ describe('QuickBuyRoot', () => {
     expect(screen.getByTestId('mock-action-footer')).toBeOnTheScreen();
   });
 
+  it('fires SOCIAL_QUICK_BUY_SHEET_VIEWED when the sheet opens with a source', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={{ source: 'market_insights' }}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
+      expect.objectContaining({
+        [SocialLeaderboardEventProperties.ASSET_NAME]: 'PEPE',
+        [SocialLeaderboardEventProperties.SOURCE]: 'market_insights',
+        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: 'buy',
+      }),
+    );
+  });
+
+  it('does not fire SOCIAL_QUICK_BUY_SHEET_VIEWED when analytics source is absent', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('includes market_cap and trader_trade_type from analyticsContext when provided', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={{
+          source: 'profile_position',
+          marketCap: 1_500_000,
+          traderTradeType: 'sell',
+        }}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
+      {
+        [SocialLeaderboardEventProperties.ASSET_NAME]: 'PEPE',
+        [SocialLeaderboardEventProperties.MARKET_CAP]: 1_500_000,
+        [SocialLeaderboardEventProperties.SOURCE]: 'profile_position',
+        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: 'sell',
+      },
+    );
+  });
+
   it('renders the price impact confirm screen via the children override', () => {
     const MockPriceImpactConfirmScreen = () => {
       const React2 = jest.requireActual('react');
@@ -362,7 +446,7 @@ describe('QuickBuyRoot', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('locks the content container height after the first layout', () => {
+  it('applies the measured locked height after the first layout', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
@@ -387,7 +471,7 @@ describe('QuickBuyRoot', () => {
     });
   });
 
-  it('keeps the locked height when a later layout reports a different height', () => {
+  it('keeps the initial locked height when a later layout reports a different height', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible

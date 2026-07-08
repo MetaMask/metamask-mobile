@@ -39,6 +39,12 @@ const inlineHeaderStyles = (params: {
       gap: 10,
       flexShrink: 0,
     },
+    endButtons: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 0,
+      flexShrink: 0,
+    },
     endButtonHitArea: {
       width: 40,
       height: 40,
@@ -53,11 +59,13 @@ const inlineHeaderStyles = (params: {
 export const TokenDetailsInlineHeader = ({
   onBackPress,
   onPriceAlertPress,
+  onSharePress,
   iconColor,
   useAmbientColor = false,
 }: {
   onBackPress: () => void;
   onPriceAlertPress?: () => void;
+  onSharePress?: () => void;
   /** Hex color string for the back button icon (A/B test). */
   iconColor?: string;
   useAmbientColor?: boolean;
@@ -84,15 +92,28 @@ export const TokenDetailsInlineHeader = ({
           />
         )}
       </View>
-      <View style={styles.endButtonHitArea}>
+      <View style={styles.endButtons}>
         {shouldShowButton && onPriceAlertPress ? (
-          <ButtonIcon
-            onPress={onPriceAlertPress}
-            size={ButtonIconSize.Md}
-            iconName={IconName.Notification}
-            testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
-            accessibilityLabel="Create price alert"
-          />
+          <View style={styles.endButtonHitArea}>
+            <ButtonIcon
+              onPress={onPriceAlertPress}
+              size={ButtonIconSize.Md}
+              iconName={IconName.Notification}
+              testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
+              accessibilityLabel="Create price alert"
+            />
+          </View>
+        ) : null}
+        {shouldShowButton && onSharePress ? (
+          <View style={styles.endButtonHitArea}>
+            <ButtonIcon
+              onPress={onSharePress}
+              size={ButtonIconSize.Md}
+              iconName={IconName.Share}
+              testID="share-button"
+              accessibilityLabel="Share token"
+            />
+          </View>
         ) : null}
       </View>
     </View>

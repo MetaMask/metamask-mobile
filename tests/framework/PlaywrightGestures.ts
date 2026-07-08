@@ -503,4 +503,59 @@ export default class PlaywrightGestures {
       }
     }
   }
+
+  /**
+   * Press a return key on the soft keyboard (e.g. 'Next', 'Done', 'Go').
+   * Use when tapOutside cannot dismiss the keyboard (keyboardDismissMode="none")
+   * or when onSubmitEditing must fire to advance the flow.
+   */
+  @boxedStep
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    logger.debug(`Tapping keyboard return key: ${keyName}`);
+
+    if (PlatformDetector.isAndroid()) {
+      try {
+        await drv.execute('mobile: performEditorAction', [
+          { action: keyName.toLowerCase() },
+        ]);
+      } catch {
+        await drv.hideKeyboard();
+      }
+      return;
+    }
+
+    // iOS — tap the keyboard return key directly (separate window from app UI).
+    // e.g. Next: name="Next:" label="next" inside XCUIElementTypeKeyboard
+    const normalized = keyName.toLowerCase();
+    const titleCase = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+
+    // iOS keyboard keys commonly use "Next:" / label "next" — try those first.
+    const locators = [
+      `~${titleCase}:`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND name == '${titleCase}:'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}:']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@label='${normalized}']`,
+      `~${titleCase}`,
+      `~${normalized}`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND label == '${normalized}'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${normalized}']`,
+    ];
+
+    for (const locator of locators) {
+      const button = await drv.$(locator);
+      try {
+        await button.waitForDisplayed({ timeout: 5000 });
+        await button.click();
+        return;
+      } catch {
+        // try next locator variant
+      }
+    }
+
+    throw new Error(`Could not find iOS keyboard key "${keyName}"`);
+  }
 }

@@ -25,12 +25,14 @@ const PAY_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
   TransactionType.predictWithdraw,
 ];
 
 const USE_CASE_MAP: [TransactionType[], string][] = [
   [[TransactionType.predictWithdraw], 'predict_withdraw'],
   [[TransactionType.predictDeposit], 'predict_deposit'],
+  [[TransactionType.predictDepositAndOrder], 'predict_deposit_and_order'],
   [[TransactionType.perpsDeposit], 'perps_deposit'],
   [[TransactionType.perpsWithdraw], 'perps_withdraw'],
   [[TransactionType.moneyAccountDeposit], 'money_account_deposit'],
@@ -52,7 +54,12 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     tx.requiredTransactionIds?.includes(transactionId),
   );
 
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])
+  ) {
     properties.polymarket_account_created = (
       transactionMeta?.nestedTransactions ?? []
     ).some((t) => t.data?.startsWith(FOUR_BYTE_SAFE_PROXY_CREATE));

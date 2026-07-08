@@ -9,6 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { CardMessageBoxType, CardMessageBoxVariant } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
+import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 
 interface CardMessageBoxProps {
   messageType: CardMessageBoxType;
@@ -73,6 +74,16 @@ const CardMessageBox = ({
           'card.cashback_screen.funding_required.confirm_button_label',
         ),
       },
+      [CardMessageBoxType.CashbackMoneyAccountRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.cashback_screen.money_account_required.title'),
+        description: strings(
+          'card.cashback_screen.money_account_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.cashback_screen.money_account_required.confirm_button_label',
+        ),
+      },
     }),
     [],
   );
@@ -84,6 +95,7 @@ const CardMessageBox = ({
       severity={SEVERITY_MAP[config.variant]}
       title={config.title}
       description={config.description}
+      style={FLAT_BANNER_ALERT_STYLE}
       testID="card-message-box"
     >
       {(onConfirm || onDismiss) && (

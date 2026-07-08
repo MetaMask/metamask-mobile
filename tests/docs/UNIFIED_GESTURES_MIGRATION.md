@@ -33,6 +33,8 @@ All methods accept optional `UnifiedGestureOptions`:
 interface UnifiedGestureOptions {
   timeout?: number; // Max wait time in ms
   description?: string; // For logging / error messages
+  hideKeyboard?: boolean; // Dismiss keyboard after typing (default: true)
+  clearFirst?: boolean; // Clear field before typing — Detox only (default: true)
 }
 ```
 
@@ -76,14 +78,15 @@ import { UnifiedGestures } from '../../framework';
 async enterPassword(password: string) {
   await UnifiedGestures.typeText(this.passwordInput, password, {
     description: 'password field',
+    hideKeyboard: true,
   });
 }
 ```
 
-Framework-specific options like `hideKeyboard`, `checkStability`, and `clearFirst` are handled internally by each strategy with sensible defaults:
+Framework-specific options like `checkStability` are still handled per strategy. `hideKeyboard` and `clearFirst` are unified:
 
-- **Detox**: `hideKeyboard: true`, `clearFirst: true`, retry + stability checks
-- **Appium**: Direct `PlaywrightElement` / `PlaywrightGestures` calls (e.g. `fill()`, `click()`)
+- **Detox**: forwarded to `Gestures.typeText` (`hideKeyboard` appends `\n`; default both `true`)
+- **Appium**: `fill()` then `PlaywrightGestures.hideKeyboard()` when `hideKeyboard` is true (default `true`)
 
 ### 3. Handle edge cases with `encapsulatedAction()`
 

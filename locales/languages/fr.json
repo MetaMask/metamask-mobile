@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Disponible dès maintenant",
       "categories_placeholder": "Catégories",
-      "popular_today_placeholder": "Populaires aujourd’hui",
       "trending_placeholder": "Tendance"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Points de parrainages",
       "referrals_label": "Parrainages VIP",
       "tier_benefits_title": "Avantages par niveau",
-      "splash_title": "BIENVENUE\nDANS GOLD\nFOX VIP",
+      "splash_title": "BIENVENUE\nDANS GOLD FOX\nCOLLECTIVE",
       "splash_description": "Bénéficiez d’avantages exclusifs, de fonctionnalités en avant-première et de récompenses privilégiées. Sur invitation uniquement.",
       "splash_accept_invite": "Accepter l’invite",
       "splash_not_now": "Pas maintenant",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Niveaux",
       "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} points de base",
-      "referee_splash_title": "BIENVENUE\nDANS GOLD\nFOX VIP",
-      "referee_splash_description": "Bénéficiez d’avantages exclusifs, de fonctionnalités en avant-première et de récompenses privilégiées. Sur invitation uniquement.",
       "referee_splash_continue": "Continuer",
-      "referee_splash_not_now": "Pas maintenant",
       "referee_referred_by": "Parrainé par {{code}}",
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "Statistiques",
       "referee_period_last_30d": "30 derniers jours",
-      "referee_points_label": "Points",
       "referee_swaps_volume_label": "Volume des swaps",
       "referee_perps_volume_label": "Volume des perps",
+      "referee_points_to_label": "Points pour {{code}}",
       "referee_error_title": "Nous n’avons pas pu charger les informations de votre parrain VIP",
       "referee_error_description": "Vérifiez votre connexion et réessayez.",
       "last_updated": "Dernière mise à jour : {{time}}"

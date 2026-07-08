@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Đang diễn ra",
       "categories_placeholder": "Danh mục",
-      "popular_today_placeholder": "Phổ biến hôm nay",
       "trending_placeholder": "Xu hướng"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Điểm từ giới thiệu",
       "referrals_label": "Giới thiệu VIP",
       "tier_benefits_title": "Quyền lợi bậc",
-      "splash_title": "CHÀO MỪNG\nĐẾN VỚI\nVIP CÁO VÀNG",
+      "splash_title": "CHÀO MỪNG\nĐẾN VỚI\nGOLD FOX COLLECTIVE",
       "splash_description": "Mở khóa các đặc quyền độc quyền, tính năng sớm và phần thưởng được tuyển chọn. Chỉ dành cho người được mời.",
       "splash_accept_invite": "Chấp nhận lời mời",
       "splash_not_now": "Không phải bây giờ",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Bậc",
       "tier_thresholds": "{{points}} điểm",
       "bps_value": "{{bps}} bps",
-      "referee_splash_title": "CHÀO MỪNG\nĐẾN VỚI\nVIP CÁO VÀNG",
-      "referee_splash_description": "Mở khóa các đặc quyền độc quyền, tính năng sớm và phần thưởng được tuyển chọn. Chỉ dành cho người được mời.",
       "referee_splash_continue": "Tiếp tục",
-      "referee_splash_not_now": "Không phải bây giờ",
       "referee_referred_by": "Được giới thiệu bởi {{code}}",
       "referee_page_title": "Chương trình thử nghiệm VIP",
       "referee_stats_title": "Thống kê",
       "referee_period_last_30d": "30 ngày gần nhất",
-      "referee_points_label": "Điểm",
       "referee_swaps_volume_label": "Khối lượng hoán đổi",
       "referee_perps_volume_label": "Khối lượng giao dịch hợp đồng vĩnh cửu",
+      "referee_points_to_label": "Điểm cho {{code}}",
       "referee_error_title": "Chúng tôi không thể tải thông tin người giới thiệu VIP của bạn",
       "referee_error_description": "Kiểm tra kết nối của bạn và thử lại.",
       "last_updated": "Cập nhật lần cuối: {{time}}"

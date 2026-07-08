@@ -9,7 +9,7 @@ const baseTrader: TopTrader = {
   address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   overallRank: 1,
-  username: 'sniperliquid',
+  username: 'alpha.eth',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
   pnlValue: 963146.8,
@@ -25,13 +25,12 @@ describe('TopTraderCard', () => {
     jest.clearAllMocks();
   });
 
-  it('renders username and 30D PnL', () => {
+  it('renders username and PnL', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
-    expect(screen.getByText(/30D/)).toBeOnTheScreen();
   });
 
   it('does not display ROI percentage on the card', () => {
@@ -119,11 +118,21 @@ describe('TopTraderCard', () => {
 
     fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      1,
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
+  });
+
+  it('calls onTraderPress when the card pressable area is tapped', () => {
+    renderWithProvider(
+      <TopTraderCard
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
     );
+
+    fireEvent.press(screen.getByText('+$963.1K'));
+
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
   });
 
   it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
@@ -142,11 +151,7 @@ describe('TopTraderCard', () => {
 
     fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      50,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 50);
   });
 
   it('does not call onTraderPress when the prop is not provided', () => {

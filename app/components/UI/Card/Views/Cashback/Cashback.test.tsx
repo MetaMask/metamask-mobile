@@ -10,6 +10,10 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({ event: 'built' }),
 };
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '99.0.0'),
+}));
+
 jest.mock('../../../../../component-library/components/Toast', () => {
   const React = jest.requireActual('react');
   const ToastContext = React.createContext({ toastRef: null });
@@ -35,6 +39,9 @@ jest.mock('../../../../../core/Analytics', () => ({
 jest.mock('../../util/metrics', () => ({
   CardActions: {
     CASHBACK_BUTTON: 'CASHBACK_BUTTON',
+  },
+  CardEntryPoint: {
+    CASHBACK: 'CASHBACK',
   },
 }));
 
@@ -78,6 +85,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You need at least one approved funding source on Linea before redeeming cashback.',
       'card.cashback_screen.funding_required.confirm_button_label':
         'Set up funding',
+      'card.cashback_screen.money_account_required.title':
+        'Set up Money Account',
+      'card.cashback_screen.money_account_required.description':
+        'You need a linked Money Account before redeeming cashback.',
+      'card.cashback_screen.money_account_required.confirm_button_label':
+        'Set up Money Account',
     };
     return translations[key] ?? key;
   },
@@ -86,6 +99,38 @@ jest.mock('../../../../../../locales/i18n', () => ({
 const mockWithdraw = jest.fn();
 const mockFetchEstimation = jest.fn().mockResolvedValue(undefined);
 const mockResetWithdraw = jest.fn();
+const mockStartLinkFlow = jest.fn();
+
+let mockLinkageReturn = {
+  startLinkFlow: mockStartLinkFlow,
+  canLink: true,
+};
+
+jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
+  useMoneyAccountCardLinkage: jest.fn(() => mockLinkageReturn),
+}));
+
+const mockSelectCardHasApprovedLineaFunding = jest.fn();
+const mockSelectCardHomeDataStatus = jest.fn();
+const mockSelectCardLineaUsdcToken = jest.fn();
+const mockSelectIsCardResidencyBlocked = jest.fn();
+const mockSelectIsMoneyAccountDelegatedForCard = jest.fn();
+const mockSelectMoneyEnableMoneyAccountFlag = jest.fn();
+
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectCardHasApprovedLineaFunding: () =>
+    mockSelectCardHasApprovedLineaFunding(),
+  selectCardHomeDataStatus: () => mockSelectCardHomeDataStatus(),
+  selectCardLineaUsdcToken: () => mockSelectCardLineaUsdcToken(),
+  selectIsCardResidencyBlocked: () => mockSelectIsCardResidencyBlocked(),
+  selectIsMoneyAccountDelegatedForCard: () =>
+    mockSelectIsMoneyAccountDelegatedForCard(),
+}));
+
+jest.mock('../../../Money/selectors/featureFlags', () => ({
+  selectMoneyEnableMoneyAccountFlag: () =>
+    mockSelectMoneyEnableMoneyAccountFlag(),
+}));
 
 let mockHookReturn = {
   cashbackWallet: null as {
@@ -124,7 +169,8 @@ import { ToastContext } from '../../../../../component-library/components/Toast'
 import Cashback from './Cashback';
 import { CashbackSelectors } from './Cashback.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import { FundingAssetStatus } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { CASHBACK_MONEY_ACCOUNT_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 
 const mockToastRef = {
   current: {
@@ -133,48 +179,12 @@ const mockToastRef = {
   },
 };
 
-const mockLineaUsdcFundingAsset = {
+const MOCK_LINEA_USDC_TOKEN = {
   symbol: 'USDC',
   name: 'USD Coin',
   address: '0xusdc000000000000000000000000000000000001',
-  walletAddress: '0xwallet000000000000000000000000000000000002',
   decimals: 6,
-  chainId: 'eip155:59144',
-  spendableBalance: '10',
-  spendingCap: '100',
-  priority: 1,
-  status: FundingAssetStatus.Active,
-};
-
-const mockLineaUsdcDelegationSettings = {
-  networks: [
-    {
-      network: 'linea',
-      environment: 'production',
-      chainId: '59144',
-      delegationContract: '0xdeleg000000000000000000000000000000000004',
-      tokens: {
-        USDC: {
-          address: '0xusdc000000000000000000000000000000000001',
-          symbol: 'USDC',
-          decimals: 6,
-        },
-      },
-    },
-  ],
-  count: 1,
-  _links: { self: '/v1/delegation/chain/config' },
-};
-
-const mockCardHomeData = {
-  primaryFundingAsset: mockLineaUsdcFundingAsset,
-  fundingAssets: [mockLineaUsdcFundingAsset],
-  availableFundingAssets: [mockLineaUsdcFundingAsset],
-  card: null,
-  account: null,
-  alerts: [],
-  actions: [],
-  delegationSettings: mockLineaUsdcDelegationSettings,
+  caipChainId: 'eip155:59144',
 };
 
 const CashbackWithToast = () => (
@@ -183,36 +193,47 @@ const CashbackWithToast = () => (
   </ToastContext.Provider>
 );
 
-function render(cardControllerOverrides = {}) {
+interface SelectorOverrides {
+  hasApprovedLineaFunding?: boolean;
+  cardHomeDataStatus?: string;
+  lineaUsdcToken?: unknown;
+  residencyBlocked?: boolean;
+  moneyAccountDelegated?: boolean;
+  moneyAccountEnabled?: boolean;
+}
+
+function render(overrides: SelectorOverrides = {}) {
+  if (overrides.hasApprovedLineaFunding !== undefined) {
+    mockSelectCardHasApprovedLineaFunding.mockReturnValue(
+      overrides.hasApprovedLineaFunding,
+    );
+  }
+  if (overrides.cardHomeDataStatus !== undefined) {
+    mockSelectCardHomeDataStatus.mockReturnValue(overrides.cardHomeDataStatus);
+  }
+  if (overrides.lineaUsdcToken !== undefined) {
+    mockSelectCardLineaUsdcToken.mockReturnValue(overrides.lineaUsdcToken);
+  }
+  if (overrides.residencyBlocked !== undefined) {
+    mockSelectIsCardResidencyBlocked.mockReturnValue(
+      overrides.residencyBlocked,
+    );
+  }
+  if (overrides.moneyAccountDelegated !== undefined) {
+    mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(
+      overrides.moneyAccountDelegated,
+    );
+  }
+  if (overrides.moneyAccountEnabled !== undefined) {
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(
+      overrides.moneyAccountEnabled,
+    );
+  }
+
   return renderScreen(
     CashbackWithToast,
-    {
-      name: 'Cashback',
-    },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            PreferencesController: {
-              isIpfsGatewayEnabled: true,
-            },
-            MoneyAccountController: {
-              moneyAccounts: {},
-            },
-            CardController: {
-              selectedCountry: null,
-              activeProviderId: 'baanx',
-              isAuthenticated: true,
-              cardholderAccounts: [],
-              providerData: {},
-              cardHomeData: mockCardHomeData,
-              cardHomeDataStatus: 'success',
-              ...cardControllerOverrides,
-            },
-          },
-        },
-      },
-    },
+    { name: 'Cashback' },
+    { state: { engine: { backgroundState } } },
   );
 }
 
@@ -220,6 +241,18 @@ describe('Cashback Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+    mockStartLinkFlow.mockReset();
+    mockLinkageReturn = {
+      startLinkFlow: mockStartLinkFlow,
+      canLink: true,
+    };
+
+    mockSelectCardHasApprovedLineaFunding.mockReturnValue(true);
+    mockSelectCardHomeDataStatus.mockReturnValue('success');
+    mockSelectCardLineaUsdcToken.mockReturnValue(MOCK_LINEA_USDC_TOKEN);
+    mockSelectIsCardResidencyBlocked.mockReturnValue(false);
+    mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(false);
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
 
     mockHookReturn = {
       cashbackWallet: null,
@@ -423,12 +456,7 @@ describe('Cashback Component', () => {
 
   describe('Linea funding requirement', () => {
     it('shows a warning when the user has no approved Linea funding', () => {
-      render({
-        cardHomeData: {
-          ...mockCardHomeData,
-          fundingAssets: [],
-        },
-      });
+      render({ hasApprovedLineaFunding: false });
 
       expect(
         screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -442,12 +470,7 @@ describe('Cashback Component', () => {
     });
 
     it('navigates to Spending Limit with USDC on Linea pre-selected', () => {
-      render({
-        cardHomeData: {
-          ...mockCardHomeData,
-          fundingAssets: [],
-        },
-      });
+      render({ hasApprovedLineaFunding: false });
 
       fireEvent.press(screen.getByText('Set up funding'));
 
@@ -474,12 +497,7 @@ describe('Cashback Component', () => {
         price: '0.50',
       };
 
-      render({
-        cardHomeData: {
-          ...mockCardHomeData,
-          fundingAssets: [],
-        },
-      });
+      render({ hasApprovedLineaFunding: false });
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
@@ -500,10 +518,7 @@ describe('Cashback Component', () => {
         price: '0.50',
       };
 
-      render({
-        cardHomeData: null,
-        cardHomeDataStatus: 'error',
-      });
+      render({ cardHomeDataStatus: 'error' });
 
       expect(
         screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -519,6 +534,208 @@ describe('Cashback Component', () => {
 
       expect(mockWithdraw).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Money Account funding requirement (supported regions)', () => {
+    const setWithdrawableWallet = () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+    };
+
+    it('shows a Money Account warning and starts link flow when no Money Account is delegated', () => {
+      setWithdrawableWallet();
+
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
+
+      expect(
+        screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getAllByText('Set up Money Account').length,
+      ).toBeGreaterThan(0);
+      expect(
+        screen.getByText(
+          'You need a linked Money Account before redeeming cashback.',
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('confirm-button'));
+
+      expect(mockStartLinkFlow).toHaveBeenCalledWith(
+        CASHBACK_MONEY_ACCOUNT_ORIGIN,
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('hides the Money Account setup CTA when the link flow cannot complete (canLink is false)', () => {
+      setWithdrawableWallet();
+      mockLinkageReturn = {
+        startLinkFlow: mockStartLinkFlow,
+        canLink: false,
+      };
+
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+      expect(mockStartLinkFlow).not.toHaveBeenCalled();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('blocks withdrawal when no Money Account is delegated in a supported region', () => {
+      setWithdrawableWallet();
+
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('allows withdrawal when Money Account is delegated in a supported region', () => {
+      setWithdrawableWallet();
+
+      render({
+        moneyAccountEnabled: true,
+        moneyAccountDelegated: true,
+        hasApprovedLineaFunding: false,
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+    });
+  });
+
+  describe('UK / restricted region funding requirement', () => {
+    const setWithdrawableWallet = () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+    };
+
+    it('allows withdrawal when only Linea funding is approved', () => {
+      setWithdrawableWallet();
+
+      render({
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: true,
+        moneyAccountDelegated: false,
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+    });
+
+    it('allows withdrawal when only Money Account is delegated', () => {
+      setWithdrawableWallet();
+
+      render({
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: false,
+        moneyAccountDelegated: true,
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+    });
+
+    it('shows Linea warning and redirects to Spending Limit when neither destination is configured', () => {
+      setWithdrawableWallet();
+
+      render({
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: false,
+        moneyAccountDelegated: false,
+      });
+
+      expect(
+        screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Set up Linea funding')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByText('Set up funding'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'enable',
+        selectedToken: expect.objectContaining({
+          symbol: 'USDC',
+          caipChainId: 'eip155:59144',
+        }),
+      });
+      expect(mockStartLinkFlow).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Money Account feature flag disabled', () => {
+    it('uses the UK-style Linea or Money Account gate when the Money Account FF is off', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render({
+        moneyAccountEnabled: false,
+        moneyAccountDelegated: true,
+        hasApprovedLineaFunding: false,
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
     });
   });
 

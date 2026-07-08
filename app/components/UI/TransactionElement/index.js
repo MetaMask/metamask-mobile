@@ -437,6 +437,7 @@ class TransactionElement extends PureComponent {
           ? transactionIconInteractionFailed
           : transactionIconInteraction;
         break;
+      case TRANSACTION_TYPES.BATCH_SELL_TRANSACTION:
       case TRANSACTION_TYPES.SWAPS_TRANSACTION:
         icon = isFailedTransaction
           ? transactionIconSwapFailed
@@ -517,7 +518,11 @@ class TransactionElement extends PureComponent {
       i,
       tx: { status, isSmartTransaction, chainId, type },
       tx,
-      bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
+      bridgeTxHistoryData: {
+        bridgeTxHistoryItem,
+        is7702Batch,
+        isBridgeComplete,
+      },
     } = this.props;
     const isBridgeTransaction =
       type === TransactionType.bridge ||
@@ -546,7 +551,8 @@ class TransactionElement extends PureComponent {
       transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
     if (bridgeTxHistoryItem) {
-      title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
+      title =
+        getSwapBridgeTxActivityTitle(bridgeTxHistoryItem, is7702Batch) ?? title;
     }
 
     return (

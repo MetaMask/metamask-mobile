@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Animated,
   StyleSheet,
@@ -51,36 +52,39 @@ import {
   CreatePriceAlertTestIds,
   CURRENCY_SYMBOLS,
   PRICE_ALERT_QUICK_PERCENTAGES,
+  PriceAlert,
   PriceAlertType,
 } from '../../constants';
-import { useSavePriceAlert } from '../../api';
+import { priceAlertsQueryKey, useSubmitPriceAlert } from '../../api';
 import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
 
 const KEYPAD_EMPTY = '0';
 const MIN_KEYPAD_DECIMALS = 2;
-/** Fractional offset that yields 6 significant figures via toFixed. */
+const MAX_KEYPAD_DECIMALS = 15;
 const SIG_FIGS_FRACTIONAL_OFFSET = 5;
 
 /**
  * Max fractional digits the keypad should allow for a given USD price.
  * Mirrors the precision used by {@link toKeypadString} so manual entry and
  * quick-percentage pills stay consistent (e.g. sub-cent SHIB prices).
+ * Capped at {@link MAX_KEYPAD_DECIMALS} to prevent excessively long inputs.
  */
 const getKeypadDecimalPlaces = (price: number): number => {
   if (!Number.isFinite(price) || price <= 0) {
     return MIN_KEYPAD_DECIMALS;
   }
-
   const exponent = Math.floor(Math.log10(price));
-  return exponent >= 0
-    ? Math.max(MIN_KEYPAD_DECIMALS, SIG_FIGS_FRACTIONAL_OFFSET - exponent)
-    : Math.abs(exponent) + SIG_FIGS_FRACTIONAL_OFFSET;
+  const places =
+    exponent >= 0
+      ? Math.max(MIN_KEYPAD_DECIMALS, SIG_FIGS_FRACTIONAL_OFFSET - exponent)
+      : Math.abs(exponent) + SIG_FIGS_FRACTIONAL_OFFSET;
+  return Math.min(places, MAX_KEYPAD_DECIMALS);
 };
 
 /**
  * Converts a computed price into a plain decimal string suitable for the keypad.
  * Always preserves 6 significant figures and never produces scientific notation.
- * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.0000000000000105".
+ * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.000000000000011".
  */
 const toKeypadString = (price: number): string => {
   if (!Number.isFinite(price) || price <= 0) return KEYPAD_EMPTY;
@@ -104,7 +108,7 @@ const viewStyles = StyleSheet.create({
 
 const CreatePriceAlertView: React.FC = () => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const { colors, brandColors } = useTheme();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
   const route =
@@ -122,14 +126,20 @@ const CreatePriceAlertView: React.FC = () => {
     assetId,
     fromManage,
     existingThresholds,
+    editingAlert,
   } = route.params;
 
+  const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
   const [alertType, setAlertType] = useState<PriceAlertType>(
     PriceAlertType.PriceReaches,
   );
-  const [targetAmount, setTargetAmount] = useState(KEYPAD_EMPTY);
-  const [isRecurring, setIsRecurring] = useState(true);
+  const [targetAmount, setTargetAmount] = useState(
+    editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
+  );
+  const [isRecurring, setIsRecurring] = useState(
+    editingAlert?.recurring ?? true,
+  );
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -163,8 +173,18 @@ const CreatePriceAlertView: React.FC = () => {
   const isDuplicateThreshold = useMemo(
     () =>
       hasValidTarget &&
-      (existingThresholds ?? []).some((t) => t === targetPrice),
-    [hasValidTarget, existingThresholds, targetPrice],
+      (existingThresholds ?? []).some(
+        (t) => t === targetPrice && t !== editingAlert?.threshold,
+      ),
+    [hasValidTarget, existingThresholds, targetPrice, editingAlert],
+  );
+
+  const isUnchanged = useMemo(
+    () =>
+      isEditing &&
+      targetPrice === editingAlert?.threshold &&
+      isRecurring === editingAlert?.recurring,
+    [isEditing, editingAlert, targetPrice, isRecurring],
   );
 
   const percentDiff = useMemo(() => {
@@ -202,7 +222,8 @@ const CreatePriceAlertView: React.FC = () => {
     [currentPrice],
   );
 
-  const { save, isSubmitting } = useSavePriceAlert();
+  const { submit, isSubmitting } = useSubmitPriceAlert(editingAlert);
+  const queryClient = useQueryClient();
   const { toastRef } = useContext(ToastContext);
 
   const handleBack = useCallback(() => {
@@ -214,11 +235,22 @@ const CreatePriceAlertView: React.FC = () => {
       return;
     }
     try {
-      await save({
+      await submit({
         asset: assetId,
         threshold: targetPrice,
         recurring: isRecurring,
       });
+      if (isEditing && editingAlert) {
+        queryClient.setQueryData<PriceAlert[]>(
+          priceAlertsQueryKey(assetId),
+          (prev) =>
+            prev?.map((a) =>
+              a.id === editingAlert.id
+                ? { ...a, threshold: targetPrice, recurring: isRecurring }
+                : a,
+            ),
+        );
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
@@ -232,22 +264,24 @@ const CreatePriceAlertView: React.FC = () => {
         ],
         hasNoTimeout: false,
       });
-      // If opened from the manage list, pop both CreatePriceAlert and ManagePriceAlerts
-      // so the user lands back on TokenDetails instead of the list.
-      if (fromManage) {
-        navigation.pop(2);
-      } else {
+      // Editing always returns to Manage. Creating from Manage pops both screens to land on TokenDetails.
+      if (isEditing || !fromManage) {
         navigation.goBack();
+      } else {
+        navigation.pop(2);
       }
     } catch {
-      // save() surfaces the error via its thrown rejection; nothing to do here
+      // submit() surfaces the error via its thrown rejection; nothing to do here
     }
   }, [
-    save,
+    submit,
     assetId,
     targetPrice,
     hasValidTarget,
     isRecurring,
+    isEditing,
+    editingAlert,
+    queryClient,
     fromManage,
     navigation,
     toastRef,
@@ -277,9 +311,10 @@ const CreatePriceAlertView: React.FC = () => {
     >
       <Box twClassName="flex-1 bg-default">
         <HeaderStandard
-          title={strings('price_alerts.create_title', {
-            ticker: displayTicker,
-          })}
+          title={strings(
+            isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
+            { ticker: displayTicker },
+          )}
           subtitle={formattedCurrentPrice}
           onBack={handleBack}
         />
@@ -386,7 +421,7 @@ const CreatePriceAlertView: React.FC = () => {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={colors.background.default}
+                  thumbColor={brandColors.white}
                   ios_backgroundColor={colors.border.muted}
                   testID={CreatePriceAlertTestIds.RECURRING_TOGGLE}
                 />
@@ -399,14 +434,21 @@ const CreatePriceAlertView: React.FC = () => {
                   onPress={handleSaveAlert}
                   isLoading={isSubmitting}
                   isDisabled={
-                    isSubmitting || !hasValidTarget || isDuplicateThreshold
+                    isSubmitting ||
+                    !hasValidTarget ||
+                    isDuplicateThreshold ||
+                    isUnchanged
                   }
                   testID={CreatePriceAlertTestIds.SET_ALERT_BUTTON}
                   twClassName="mb-3 w-full"
                 >
                   {isDuplicateThreshold
                     ? strings('price_alerts.duplicate_threshold')
-                    : strings('price_alerts.set_price_alert')}
+                    : strings(
+                        isEditing
+                          ? 'price_alerts.update_price_alert'
+                          : 'price_alerts.set_price_alert',
+                      )}
                 </Button>
               ) : (
                 <Box
@@ -427,10 +469,13 @@ const CreatePriceAlertView: React.FC = () => {
                 </Box>
               )}
 
+              {/* "price_alert" is intentionally not in the Keypad CURRENCIES map —
+                  unknown codes fall through to the decimals-aware branch in useCurrency,
+                  which is the only path that actually enforces the decimals cap. */}
               <KeypadComponent
                 value={targetAmount}
                 onChange={handleKeypadChange}
-                currency="native"
+                currency="price_alert"
                 decimals={keypadDecimals}
               />
             </View>

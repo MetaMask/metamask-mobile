@@ -42,6 +42,10 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         enabled: false,
         minimumVersion: '0.0.0',
       },
+      predictWorldCup: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
     });
 
     // Setup API mocks using centralized definition

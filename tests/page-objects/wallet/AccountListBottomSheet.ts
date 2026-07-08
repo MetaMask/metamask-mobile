@@ -70,17 +70,15 @@ class AccountListBottomSheet {
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
   get addAccountButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
+  }
+
+  get addWalletButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
   }
 
   get addEthereumAccountButton(): EncapsulatedElementType {
@@ -218,6 +216,12 @@ class AccountListBottomSheet {
   async tapAddAccountButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.addAccountButton, {
       description: 'Add Account button',
+    });
+  }
+
+  async tapAddWalletButton(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.addWalletButton, {
+      description: 'Add Wallet button',
     });
   }
 

@@ -41,11 +41,7 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
 }));
 
-// Mock homepage feature flags (BalanceEmptyState and AccountGroupBalance use these)
-jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectWalletHomeOnboardingStepsEnabled: jest.fn(() => false),
-}));
-
+// Mock onboarding selectors (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/onboarding', () => ({
   selectShouldShowWalletHomeOnboardingSteps: jest.fn(() => false),
   selectWalletHomeOnboardingStepsEligible: jest.fn(() => false),

@@ -508,11 +508,20 @@ describe('PerpsMarketDetailsView', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
           },
         },
         streamOverrides: {
           positions: [],
-          marketData: [{ symbol: 'BTC', name: 'Bitcoin', maxLeverage: '50x' }],
+          marketData: [
+            {
+              symbol: 'BTC',
+              name: 'Bitcoin',
+              maxLeverage: '50x',
+              volume: '$1M',
+              openInterest: '$500K',
+            },
+          ],
         },
         overrides: {
           engine: {

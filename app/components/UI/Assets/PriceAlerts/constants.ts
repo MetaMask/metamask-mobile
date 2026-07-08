@@ -19,6 +19,8 @@ export interface CreatePriceAlertRouteParams extends PriceAlertRouteParams {
   fromManage?: boolean;
   /** Thresholds of existing alerts for this asset, used for duplicate-threshold validation. */
   existingThresholds?: number[];
+  /** When present the screen is in edit mode; pre-populates threshold/recurring and calls PATCH on save. */
+  editingAlert?: PriceAlert;
 }
 
 /** API response shape for a single price alert. */
@@ -76,8 +78,10 @@ export const ManagePriceAlertsTestIds = {
   LOADING: 'manage-price-alerts-loading',
   ALERT_LIST: 'manage-price-alerts-list',
   ALERT_ITEM_PREFIX: 'manage-price-alerts-item',
+  ALERT_EDIT_PREFIX: 'manage-price-alerts-edit',
   ALERT_TOGGLE_PREFIX: 'manage-price-alerts-toggle',
   ALERT_DELETE_PREFIX: 'manage-price-alerts-delete',
+  ALERT_DELETE_SPINNER_PREFIX: 'manage-price-alerts-delete-spinner',
   ADD_ALERT_BUTTON: 'manage-price-alerts-add-button',
   EMPTY_STATE: 'manage-price-alerts-empty',
 } as const;

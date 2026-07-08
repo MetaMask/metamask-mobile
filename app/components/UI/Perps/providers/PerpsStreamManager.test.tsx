@@ -1588,6 +1588,225 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('PriceStreamChannel symbol-scoped dispatch', () => {
+    let priceCallback: (data: PriceUpdate[]) => void;
+
+    beforeEach(() => {
+      priceCallback = jest.fn();
+      mockSubscribeToPrices.mockImplementation((params) => {
+        priceCallback = params.callback;
+        return jest.fn();
+      });
+    });
+
+    const makePrice = (symbol: string, price: string): PriceUpdate => ({
+      symbol,
+      price,
+      timestamp: Date.now(),
+    });
+
+    it('dispatches a single-symbol tick only to subscribers registered for that symbol', () => {
+      const btcCb = jest.fn();
+      const ethCb = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: btcCb,
+        throttleMs: 0,
+      });
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH-PERP'],
+        callback: ethCb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '50000')]);
+      });
+
+      expect(btcCb).toHaveBeenCalledTimes(1);
+      expect(btcCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          price: '50000',
+        }),
+      });
+      // ETH subscriber must NOT be touched by a BTC-only tick
+      expect(ethCb).not.toHaveBeenCalled();
+
+      act(() => {
+        priceCallback([makePrice('ETH-PERP', '3000')]);
+      });
+
+      expect(ethCb).toHaveBeenCalledTimes(1);
+      expect(ethCb).toHaveBeenCalledWith({
+        'ETH-PERP': expect.objectContaining({
+          symbol: 'ETH-PERP',
+          price: '3000',
+        }),
+      });
+      // BTC subscriber unaffected by the ETH tick
+      expect(btcCb).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves first-update and throttle semantics for scoped dispatch', () => {
+      const cb = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 100,
+      });
+
+      // First update is delivered immediately (first-update semantics)
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '100')]);
+      });
+      expect(cb).toHaveBeenCalledTimes(1);
+
+      // Rapid subsequent updates are throttled (not delivered immediately)
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '101')]);
+        priceCallback([makePrice('BTC-PERP', '102')]);
+      });
+      expect(cb).toHaveBeenCalledTimes(1);
+
+      // After the throttle window the latest pending update is delivered once
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      expect(cb).toHaveBeenCalledTimes(2);
+      expect(cb.mock.calls[1][0]['BTC-PERP']).toMatchObject({ price: '102' });
+    });
+
+    it('delivers correct filtered slices to overlapping multi-symbol subscribers', () => {
+      const aCb = jest.fn(); // subscribes to BTC + ETH
+      const bCb = jest.fn(); // subscribes to ETH only
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        callback: aCb,
+        throttleMs: 0,
+      });
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH-PERP'],
+        callback: bCb,
+        throttleMs: 0,
+      });
+
+      // A tick for the shared symbol notifies both with their ETH slice
+      act(() => {
+        priceCallback([makePrice('ETH-PERP', '3000')]);
+      });
+      expect(aCb).toHaveBeenCalledWith({
+        'ETH-PERP': expect.objectContaining({ price: '3000' }),
+      });
+      expect(bCb).toHaveBeenCalledWith({
+        'ETH-PERP': expect.objectContaining({ price: '3000' }),
+      });
+
+      // A BTC-only tick reaches A (registered for BTC) but not B
+      aCb.mockClear();
+      bCb.mockClear();
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '50000')]);
+      });
+      expect(aCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({ price: '50000' }),
+      });
+      expect(bCb).not.toHaveBeenCalled();
+
+      // A tick carrying both symbols yields the full slice for A and ETH for B
+      aCb.mockClear();
+      bCb.mockClear();
+      act(() => {
+        priceCallback([
+          makePrice('BTC-PERP', '51000'),
+          makePrice('ETH-PERP', '3100'),
+        ]);
+      });
+      expect(aCb).toHaveBeenCalledTimes(1);
+      expect(aCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({ price: '51000' }),
+        'ETH-PERP': expect.objectContaining({ price: '3100' }),
+      });
+      expect(bCb).toHaveBeenCalledTimes(1);
+      expect(bCb).toHaveBeenCalledWith({
+        'ETH-PERP': expect.objectContaining({ price: '3100' }),
+      });
+    });
+
+    it('stops dispatching to a subscriber after it unsubscribes (index cleanup)', () => {
+      const btcCb = jest.fn();
+      const ethCb = jest.fn();
+
+      const unsubBtc = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: btcCb,
+        throttleMs: 0,
+      });
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH-PERP'],
+        callback: ethCb,
+        throttleMs: 0,
+      });
+
+      unsubBtc();
+
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '50000')]);
+      });
+
+      expect(btcCb).not.toHaveBeenCalled();
+      expect(ethCb).not.toHaveBeenCalled();
+    });
+
+    it('keeps symbol-scoped dispatch and clearCache semantics after an account switch', () => {
+      const btcCb = jest.fn();
+      const ethCb = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: btcCb,
+        throttleMs: 0,
+      });
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH-PERP'],
+        callback: ethCb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '50000')]);
+      });
+      expect(btcCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({ price: '50000' }),
+      });
+
+      btcCb.mockClear();
+      ethCb.mockClear();
+
+      // Account switch clears caches and notifies every subscriber with cleared data
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+      expect(btcCb).toHaveBeenCalledWith({});
+      expect(ethCb).toHaveBeenCalledWith({});
+
+      btcCb.mockClear();
+      ethCb.mockClear();
+
+      // After the switch, the symbol index still scopes dispatch correctly
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '60000')]);
+      });
+      expect(btcCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({ price: '60000' }),
+      });
+      expect(ethCb).not.toHaveBeenCalled();
+    });
+  });
+
   it('cleans up all subscriptions on provider unmount', async () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);

@@ -47,6 +47,7 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 
@@ -98,6 +99,14 @@ const V2OtpCode = () => {
     useParams<V2OtpCodeParams>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
+  // Headless deposit (TRAM-3623): tag every emit on this screen with
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when a headless session
+  // drives the flow, sourced from the per-screen `headlessSessionId`. Two
+  // variants because some events default to 'UNIFIED_BUY_2' and others (OTP_*)
+  // to 'DEPOSIT' when not headless.
+  const { headlessRampProps, headlessDepositRampProps } =
+    useHeadlessRampProps(headlessSessionId);
+
   const {
     setAuthToken,
     verifyUserOtp,
@@ -141,11 +150,11 @@ const V2OtpCode = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
         .addProperties({
           location: 'OTP Code',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder, headlessRampProps]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -155,11 +164,11 @@ const V2OtpCode = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
         .addProperties({
           location: 'OTP Code',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
   const [value, setValue] = useState('');
 
@@ -211,7 +220,7 @@ const V2OtpCode = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_OTP_RESENT)
           .addProperties({
-            ramp_type: 'DEPOSIT',
+            ...headlessDepositRampProps,
             region: userRegion?.regionCode || '',
           })
           .build(),
@@ -230,6 +239,7 @@ const V2OtpCode = () => {
     userRegion?.regionCode,
     trackEvent,
     createEventBuilder,
+    headlessDepositRampProps,
   ]);
 
   const handleContactSupport = useCallback(() => {
@@ -261,7 +271,7 @@ const V2OtpCode = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_OTP_CONFIRMED)
             .addProperties({
-              ramp_type: 'DEPOSIT',
+              ...headlessDepositRampProps,
               region: userRegion?.regionCode || '',
             })
             .build(),
@@ -310,8 +320,12 @@ const V2OtpCode = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_OTP_FAILED)
             .addProperties({
-              ramp_type: 'DEPOSIT',
+              ...headlessDepositRampProps,
               region: userRegion?.regionCode || '',
+              error_message: parseUserFacingError(
+                e,
+                strings('deposit.otp_code.error'),
+              ),
             })
             .build(),
         );
@@ -340,6 +354,7 @@ const V2OtpCode = () => {
     selectedPaymentMethod?.id,
     routeAfterAuthentication,
     headlessSessionId,
+    headlessDepositRampProps,
   ]);
 
   const handleValueChange = useCallback(

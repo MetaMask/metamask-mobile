@@ -51,7 +51,7 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
   ]),
   [ActivityTypeFilter.Perps]: new Set<ActivityKind>([
     'perpsAddFunds',
-    'perpsWithdrawFunds',
+    'perpsWithdraw',
     'perpsOpenLong',
     'perpsCloseLong',
     'perpsCloseLongLiquidated',

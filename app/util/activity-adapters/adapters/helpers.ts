@@ -24,6 +24,65 @@ export type ValueTransfer = NonNullable<
   V1TransactionByHashResponse['valueTransfers']
 >[number];
 
+export const normalizeTransferType = (transferType?: string) =>
+  transferType?.toLowerCase();
+
+export const isNftTransferType = (transferType?: string) => {
+  const normalizedTransferType = normalizeTransferType(transferType);
+  return (
+    normalizedTransferType === 'erc721' || normalizedTransferType === 'erc1155'
+  );
+};
+
+export const isNativeTransferType = (transferType?: string) => {
+  const normalizedTransferType = normalizeTransferType(transferType);
+  return (
+    normalizedTransferType === 'normal' ||
+    normalizedTransferType === 'native' ||
+    normalizedTransferType === 'internal'
+  );
+};
+
+function stringifyParsedTokenAmount(value: unknown): string | undefined {
+  if (typeof value === 'string' || typeof value === 'number') {
+    return String(value);
+  }
+
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+
+  if (
+    value &&
+    typeof value === 'object' &&
+    'toString' in value &&
+    typeof value.toString === 'function'
+  ) {
+    const stringValue = value.toString();
+    return stringValue === '[object Object]' ? undefined : stringValue;
+  }
+
+  return undefined;
+}
+
+export function getTokenApprovalAmountFromData(
+  data: string | undefined,
+  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
+): string | undefined {
+  const parsedTransactionData = data
+    ? environment.parseStandardTokenTransactionData(data)
+    : undefined;
+  const args = parsedTransactionData?.args;
+
+  if (!args) {
+    return undefined;
+  }
+
+  return stringifyParsedTokenAmount(
+    args._value ?? args.value ?? args.amount ?? args[1],
+  );
+}
+
 const resolveAssetId = (
   chainId: CaipChainId,
   {
@@ -39,7 +98,7 @@ const resolveAssetId = (
     return environment.toAssetId(contractAddress, chainId);
   }
 
-  if (transferType === 'normal' || transferType === 'internal') {
+  if (isNativeTransferType(transferType)) {
     return environment.toAssetId(environment.nativeTokenAddress, chainId);
   }
 
@@ -183,8 +242,7 @@ export function getTokenAmountFromTransfer(
     return undefined;
   }
 
-  const isNftTransfer =
-    transfer?.transferType === 'erc721' || transfer?.transferType === 'erc1155';
+  const isNftTransfer = isNftTransferType(transfer?.transferType);
 
   const assetId =
     transfer && !isNftTransfer
@@ -228,7 +286,7 @@ export function withFallbackTokenAssetId(
   if (
     !token ||
     token.assetId ||
-    transferType === 'normal' ||
+    isNativeTransferType(transferType) ||
     !fallbackContractAddress
   ) {
     return token;

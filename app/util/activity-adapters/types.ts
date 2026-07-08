@@ -38,7 +38,7 @@ export type ActivityKind =
   | 'predictionCashedOut'
   | 'predictionPlaced'
   | 'perpsAddFunds'
-  | 'perpsWithdrawFunds'
+  | 'perpsWithdraw'
   | 'perpsOpenLong'
   | 'perpsCloseLong'
   | 'perpsCloseLongLiquidated'
@@ -70,15 +70,14 @@ interface ActivityData<Type extends ActivityKind, Data> {
   chainId: CaipChainId;
   status: Status;
   timestamp: number;
+  hash?: string;
   isEarliestNonce?: boolean;
   /* Used by legacy details modals. Interim until redesigned details are implemented */
   raw?:
     | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
     | { type: 'keyringTransaction'; data: Transaction }
     | { type: 'localTransaction'; data: TransactionGroup };
-  data: Data & {
-    hash?: string;
-  };
+  data: Data;
 }
 
 export type ActivityListItem =
@@ -118,6 +117,8 @@ export type ActivityListItem =
   | ActivityData<
       'buy' | 'claim' | 'deposit',
       {
+        from?: string;
+        to?: string;
         token?: TokenAmount;
       }
     >
@@ -163,7 +164,7 @@ export type ActivityListItem =
       | 'predictionCashedOut'
       | 'predictionPlaced'
       | 'perpsAddFunds'
-      | 'perpsWithdrawFunds'
+      | 'perpsWithdraw'
       | 'perpsOpenLong'
       | 'perpsCloseLong'
       | 'perpsCloseLongLiquidated'

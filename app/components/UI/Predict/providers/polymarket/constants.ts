@@ -117,6 +117,12 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   tennis_first_set_totals: 'first_set',
 };
 
+export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
+  'moneyline',
+  'spreads',
+  'totals',
+]);
+
 export const GROUP_ORDER: string[] = [
   'game_lines',
   'first_half',

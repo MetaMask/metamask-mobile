@@ -1,17 +1,18 @@
 import React, { useMemo } from 'react';
 import { Pressable } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { styleSheet } from './PerpsMarketSortDropdowns.styles';
 import type { PerpsMarketSortDropdownsProps } from './PerpsMarketSortDropdowns.types';
 import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller';
@@ -67,7 +68,7 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
         <Icon
           name={IconName.SwapVertical}
           size={IconSize.Sm}
-          color={IconColor.Alternative}
+          color={IconColor.IconAlternative}
         />
       </Pressable>
     </Box>

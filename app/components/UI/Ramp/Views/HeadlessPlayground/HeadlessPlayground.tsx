@@ -39,6 +39,7 @@ import {
   type QuotesResponse,
 } from '../../headless';
 import type { Quote } from '../../types';
+import { RAMP_SURFACE } from '../../Deposit/types/analytics';
 
 import styleSheet from './HeadlessPlayground.styles';
 
@@ -499,6 +500,9 @@ function HeadlessPlayground() {
         assetId: effectiveAssetId,
         amount: headlessAmountAsNumber,
         currency: fiatCurrency,
+        // Sandbox default: the playground simulates the Money "Add funds"
+        // consumer, so tag the headless analytics surface accordingly.
+        rampSurface: RAMP_SURFACE.MONEY_ACCOUNT,
       };
       const session = startHeadlessBuy(params, {
         onOrderCreated: (orderId) => {

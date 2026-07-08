@@ -224,11 +224,23 @@ export default class PlaywrightAssertions {
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await targetElement;
-    await el.waitForDisplayed({
-      reverse: true,
-      timeout: this.getTimeout(options),
-    });
+    try {
+      const el = await targetElement;
+      await el.waitForDisplayed({
+        reverse: true,
+        timeout: this.getTimeout(options),
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('No elements found for XPath') ||
+          error.message.includes('An element could not be located') ||
+          error.message.includes('no such element'))
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   static async expectTextDisplayed(
@@ -243,11 +255,21 @@ export default class PlaywrightAssertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText(text);
-    await el.waitForDisplayed({
-      reverse: true,
-      timeout: this.getTimeout(options),
-    });
+    try {
+      const el = await PlaywrightMatchers.getElementByText(text);
+      await el.waitForDisplayed({
+        reverse: true,
+        timeout: this.getTimeout(options),
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes('No elements found for XPath')
+      ) {
+        return;
+      }
+      throw error;
+    }
   }
 
   /**

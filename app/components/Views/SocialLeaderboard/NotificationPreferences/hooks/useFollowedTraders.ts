@@ -12,6 +12,8 @@ export interface FollowedTrader {
   id: string;
   /** Display name or truncated address. */
   username: string;
+  /** Wallet address used for the Maskicon fallback. */
+  address: string;
   /** Profile avatar URL, if any. */
   avatarUri?: string;
 }
@@ -73,6 +75,7 @@ export const useFollowedTraders = (
     return data.following.map((profile) => ({
       id: profile.profileId,
       username: profile.name,
+      address: profile.address,
       avatarUri: profile.imageUrl ?? undefined,
     }));
   }, [data]);

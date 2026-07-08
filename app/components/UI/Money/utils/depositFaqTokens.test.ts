@@ -1,31 +1,20 @@
 import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
-  resolveNoFeeTokens,
   formatNoFeeTokenBullets,
   formatBaseStablecoins,
 } from './depositFaqTokens';
 
 describe('depositFaqTokens', () => {
-  describe('resolveNoFeeTokens', () => {
-    it('returns the remote list when it is populated', () => {
-      const remote = { '0x1': ['USDC'] };
-
-      expect(resolveNoFeeTokens(remote)).toBe(remote);
-    });
-
-    it('falls back to the bundled list when remote is empty', () => {
-      expect(resolveNoFeeTokens({})).toBe(MONEY_NO_FEE_TOKENS_FALLBACK);
-    });
-  });
-
   describe('formatNoFeeTokenBullets', () => {
     it('formats each chain as a bullet line with a friendly network name', () => {
       expect(formatNoFeeTokenBullets(MONEY_NO_FEE_TOKENS_FALLBACK)).toBe(
         [
-          '• Ethereum: USDC, USDT, DAI, aUSDC, aUSDT, aDAI',
-          '• Arbitrum: USDC',
-          '• Base: USDC',
-          '• BNB Chain: USDC, USDT',
+          '• Ethereum: USDC, aUSDC, USDT, aUSDT, DAI, aDAI, MUSD',
+          '• Linea: MUSD',
+          '• Arbitrum: USDC, aUSDCN',
+          '• Base: USDC, aUSDC',
+          '• BNB Chain: USDC, aUSDC, aUSDT, USDT',
+          '• Monad: USDC',
         ].join('\n'),
       );
     });

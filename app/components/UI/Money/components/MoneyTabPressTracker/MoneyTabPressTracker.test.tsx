@@ -9,6 +9,7 @@ import {
 } from '../../constants/moneyEvents';
 import MoneyTabPressTracker from './MoneyTabPressTracker';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 
 jest.mock('../../../../../core/AppConstants', () => ({
   __esModule: true,
@@ -35,6 +36,13 @@ jest.mock('../../../../../reducers/user', () => ({
   selectMoneyOnboardingSeen: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyAccount',
+  () => ({
+    selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
+  }),
+);
+
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
@@ -47,6 +55,8 @@ describe('MoneyTabPressTracker', () => {
     });
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectMoneyOnboardingSeen) return true;
+      if (selector === selectMoneyOnboardingStepperAnimationEnabled)
+        return true;
       return undefined;
     });
   });
@@ -102,6 +112,8 @@ describe('MoneyTabPressTracker', () => {
     beforeEach(() => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectMoneyOnboardingSeen) return false;
+        if (selector === selectMoneyOnboardingStepperAnimationEnabled)
+          return true;
         return undefined;
       });
     });
@@ -120,6 +132,34 @@ describe('MoneyTabPressTracker', () => {
         button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
         label_key: 'bottom_nav.money',
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+    });
+  });
+
+  describe('when onboarding flag is disabled', () => {
+    beforeEach(() => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectMoneyOnboardingSeen) return false;
+        if (selector === selectMoneyOnboardingStepperAnimationEnabled)
+          return false;
+        return undefined;
+      });
+    });
+
+    it('registered function calls trackButtonClicked with GO_TO_MONEY_HOME intent even when onboarding not seen', () => {
+      const onRegister = jest.fn();
+      render(<MoneyTabPressTracker onRegister={onRegister} />);
+
+      const registeredFn = onRegister.mock.calls[0][0] as () => void;
+      act(() => {
+        registeredFn();
+      });
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+        label_key: 'bottom_nav.money',
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
     });
   });

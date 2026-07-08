@@ -31,6 +31,15 @@ const mockWithdrawCashback = Engine.context.CardController
   .withdrawCashback as jest.Mock;
 const mockGetNetworkClientById = Engine.context.NetworkController
   .getNetworkClientById as jest.Mock;
+const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
+  .findNetworkClientIdByChainId as jest.Mock;
+
+const defaultEstimationData = {
+  wei: '4648201084656',
+  eth: '0.000004648201084656',
+  price: '0.00892136699188968037536',
+  network: 'linea',
+};
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -252,9 +261,7 @@ describe('useCashbackWallet', () => {
       type: 'reward',
     };
     const estimationData = {
-      wei: '4648201084656',
-      eth: '0.000004648201084656',
-      price: '0.00892136699188968037536',
+      ...defaultEstimationData,
     };
     mockGetCashbackWallet.mockResolvedValue(walletData);
     mockGetCashbackWithdrawEstimation.mockResolvedValue(estimationData);
@@ -302,5 +309,143 @@ describe('useCashbackWallet', () => {
     await waitFor(() => {
       expect(result.current.withdrawError).toBeTruthy();
     });
+  });
+
+  it('polls Linea chain when estimation network is linea', async () => {
+    jest.useFakeTimers();
+    const walletData = {
+      id: 'w1',
+      balance: '5.00',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'reward',
+    };
+    mockGetCashbackWallet.mockResolvedValue(walletData);
+    mockGetCashbackWithdrawEstimation.mockResolvedValue({
+      ...defaultEstimationData,
+      network: 'linea',
+    });
+    mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
+    mockRequest.mockResolvedValue(null);
+
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useCashbackWallet(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.fetchEstimation();
+    });
+
+    await waitFor(() => {
+      expect(result.current.estimation?.network).toBe('linea');
+    });
+
+    act(() => {
+      result.current.withdraw('5.00');
+    });
+
+    await waitFor(() => {
+      expect(result.current.monitoringStatus).toBe('monitoring');
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0xe708');
+    jest.useRealTimers();
+  });
+
+  it('polls Monad chain when estimation network is monad', async () => {
+    jest.useFakeTimers();
+    const walletData = {
+      id: 'w1',
+      balance: '5.00',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'reward',
+    };
+    mockGetCashbackWallet.mockResolvedValue(walletData);
+    mockGetCashbackWithdrawEstimation.mockResolvedValue({
+      ...defaultEstimationData,
+      network: 'monad',
+    });
+    mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
+    mockRequest.mockResolvedValue(null);
+
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useCashbackWallet(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.fetchEstimation();
+    });
+
+    await waitFor(() => {
+      expect(result.current.estimation?.network).toBe('monad');
+    });
+
+    act(() => {
+      result.current.withdraw('5.00');
+    });
+
+    await waitFor(() => {
+      expect(result.current.monitoringStatus).toBe('monitoring');
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0x8f');
+    jest.useRealTimers();
+  });
+
+  it('defaults to Linea chain when estimation network is missing', async () => {
+    jest.useFakeTimers();
+    const walletData = {
+      id: 'w1',
+      balance: '5.00',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'reward',
+    };
+    mockGetCashbackWallet.mockResolvedValue(walletData);
+    mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
+    mockRequest.mockResolvedValue(null);
+
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useCashbackWallet(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    act(() => {
+      result.current.withdraw('5.00');
+    });
+
+    await waitFor(() => {
+      expect(result.current.monitoringStatus).toBe('monitoring');
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0xe708');
+    jest.useRealTimers();
   });
 });

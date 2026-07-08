@@ -3555,13 +3555,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 8.0.0
+      VERSION_NAME: 8.1.0
     - opts:
         is_expand: false
       VERSION_NUMBER: 4823
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 8.0.0
+      FLASK_VERSION_NAME: 8.1.0
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 4823
@@ -3582,7 +3582,7 @@ app:
       NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
-      NODE_VERSION: 20.18.0
+      NODE_VERSION: 24.16.0
     - opts:
         is_expand: false
       YARN_VERSION: 4.14.1

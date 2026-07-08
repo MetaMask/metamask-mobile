@@ -13,9 +13,9 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import {
   MetaMaskPayTokensFlags,
   selectMetaMaskPayTokensFlags,
+  selectRelayFixedSpread,
 } from '../../../../../selectors/featureFlagController/confirmations';
-import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
-import { WildcardTokenList } from '../../../../UI/Earn/utils/wildcardTokenList';
+import { RelayFixedSpreadConfig } from '../../utils/relayFixedSpread';
 import {
   isHardwareAccount,
   isQRHardwareAccount,
@@ -64,11 +64,9 @@ jest.mock(
       '../../../../../selectors/featureFlagController/confirmations',
     ),
     selectMetaMaskPayTokensFlags: jest.fn(),
+    selectRelayFixedSpread: jest.fn(),
   }),
 );
-jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyNoFeeTokens: jest.fn(),
-}));
 
 const TOKEN_ADDRESS_1_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const TOKEN_ADDRESS_2_MOCK = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
@@ -129,7 +127,7 @@ describe('useAutomaticTransactionPayToken', () => {
   const selectMetaMaskPayTokensFlagsMock = jest.mocked(
     selectMetaMaskPayTokensFlags,
   );
-  const selectMoneyNoFeeTokensMock = jest.mocked(selectMoneyNoFeeTokens);
+  const selectRelayFixedSpreadMock = jest.mocked(selectRelayFixedSpread);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -171,7 +169,7 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     } as MetaMaskPayTokensFlags);
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({});
+    selectRelayFixedSpreadMock.mockReturnValue({ routes: [] });
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -1325,9 +1323,16 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       } as MetaMaskPayTokensFlags);
 
-      selectMoneyNoFeeTokensMock.mockReturnValue({
-        '*': ['USDC'],
-      } as WildcardTokenList);
+      selectRelayFixedSpreadMock.mockReturnValue({
+        routes: [
+          {
+            sourceChain: CHAIN_ID_2_MOCK,
+            sourceToken: TOKEN_ADDRESS_2_MOCK,
+            targetChain: CHAIN_ID_2_MOCK,
+            targetToken: TOKEN_ADDRESS_2_MOCK,
+          },
+        ],
+      } as RelayFixedSpreadConfig);
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -1368,9 +1373,16 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       } as MetaMaskPayTokensFlags);
 
-      selectMoneyNoFeeTokensMock.mockReturnValue({
-        '*': ['USDC'],
-      } as WildcardTokenList);
+      selectRelayFixedSpreadMock.mockReturnValue({
+        routes: [
+          {
+            sourceChain: CHAIN_ID_2_MOCK,
+            sourceToken: TOKEN_ADDRESS_2_MOCK,
+            targetChain: CHAIN_ID_2_MOCK,
+            targetToken: TOKEN_ADDRESS_2_MOCK,
+          },
+        ],
+      } as RelayFixedSpreadConfig);
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -1422,9 +1434,16 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       } as MetaMaskPayTokensFlags);
 
-      selectMoneyNoFeeTokensMock.mockReturnValue({
-        '*': ['USDC'],
-      } as WildcardTokenList);
+      selectRelayFixedSpreadMock.mockReturnValue({
+        routes: [
+          {
+            sourceChain: CHAIN_ID_2_MOCK,
+            sourceToken: TOKEN_ADDRESS_2_MOCK,
+            targetChain: CHAIN_ID_2_MOCK,
+            targetToken: TOKEN_ADDRESS_2_MOCK,
+          },
+        ],
+      } as RelayFixedSpreadConfig);
 
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [
@@ -1465,9 +1484,16 @@ describe('useAutomaticTransactionPayToken', () => {
         },
       } as MetaMaskPayTokensFlags);
 
-      selectMoneyNoFeeTokensMock.mockReturnValue({
-        '*': ['USDC'],
-      } as WildcardTokenList);
+      selectRelayFixedSpreadMock.mockReturnValue({
+        routes: [
+          {
+            sourceChain: CHAIN_ID_2_MOCK,
+            sourceToken: TOKEN_ADDRESS_2_MOCK,
+            targetChain: CHAIN_ID_2_MOCK,
+            targetToken: TOKEN_ADDRESS_2_MOCK,
+          },
+        ],
+      } as RelayFixedSpreadConfig);
 
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,

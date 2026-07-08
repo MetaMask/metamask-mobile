@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
@@ -16,6 +15,9 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -72,21 +74,88 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showFavorites = favorites.isLoading || favorites.data.length > 0;
   const showSites = sites.isLoading || sites.data.length > 0;
 
-  return (
-    <ExploreScroll
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.EXPLORE_DAPPS_SCROLL_VIEW}
-    >
-      {showRecents && (
-        <Box>
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
+
+    if (showRecents) {
+      items.push({
+        key: 'recents',
+        content: (
+          <>
+            <SectionHeader
+              title={strings('autocomplete.recents')}
+              testID="section-header-view-all-dapps_recents"
+            />
+            <TileCarousel<SiteData>
+              data={recents.data}
+              isLoading={recents.isLoading}
+              renderItem={(site, index) => (
+                <SiteTileRowItem
+                  site={site}
+                  onCardPress={() =>
+                    trackExploreInteracted({
+                      interaction_type: 'section_item_tapped',
+                      tab_name: 'Sites',
+                      section_name: 'sites_recents',
+                      asset_type: 'dapp',
+                      position: index,
+                      item_clicked: site.url,
+                    })
+                  }
+                />
+              )}
+              keyExtractor={(site) => site.url}
+              Skeleton={SiteTileSkeleton}
+              testID="explore-dapps_recents-carousel"
+            />
+          </>
+        ),
+      });
+    }
+
+    if (showFavorites) {
+      items.push({
+        key: 'favorites',
+        isVerticalList: true,
+        content: (
+          <>
+            <SectionHeader
+              title={strings('autocomplete.favorites')}
+              onViewAll={() =>
+                navigation.navigate(Routes.SITES_FULL_VIEW, {
+                  mode: 'favorites',
+                })
+              }
+              testID="section-header-view-all-dapps_favorites"
+              tabName="Sites"
+              sectionName="sites_favorites"
+            />
+            <CardList<SiteData>
+              data={favorites.data}
+              isLoading={favorites.isLoading}
+              renderItem={renderFavorite}
+              Skeleton={SiteSkeleton}
+              idPrefix="dapps_favorites"
+            />
+          </>
+        ),
+      });
+    }
+
+    items.push({
+      key: 'networks',
+      content: (
+        <>
           <SectionHeader
-            title={strings('autocomplete.recents')}
-            testID="section-header-view-all-dapps_recents"
+            title={strings('trending.ecosystems')}
+            subtitle={strings('trending.ecosystems_subtitle')}
+            testID="section-header-view-all-dapps_networks"
+            titleTwClassName="pb-1"
+            subtitleTwClassName="mb-3"
           />
           <TileCarousel<SiteData>
-            data={recents.data}
-            isLoading={recents.isLoading}
+            data={networks.data}
+            isLoading={false}
             renderItem={(site, index) => (
               <SiteTileRowItem
                 site={site}
@@ -94,7 +163,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
                   trackExploreInteracted({
                     interaction_type: 'section_item_tapped',
                     tab_name: 'Sites',
-                    section_name: 'sites_recents',
+                    section_name: 'sites_ecosystems',
                     asset_type: 'dapp',
                     position: index,
                     item_clicked: site.url,
@@ -104,81 +173,61 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             )}
             keyExtractor={(site) => site.url}
             Skeleton={SiteTileSkeleton}
-            compactSectionTail
-            testID="explore-dapps_recents-carousel"
+            testID="explore-dapps_networks-carousel"
           />
-        </Box>
-      )}
+        </>
+      ),
+    });
 
-      {showFavorites && (
-        <Box>
-          <SectionHeader
-            title={strings('autocomplete.favorites')}
-            onViewAll={() =>
-              navigation.navigate(Routes.SITES_FULL_VIEW, { mode: 'favorites' })
-            }
-            testID="section-header-view-all-dapps_favorites"
-            tabName="Sites"
-            sectionName="sites_favorites"
-          />
-          <CardList<SiteData>
-            data={favorites.data}
-            isLoading={favorites.isLoading}
-            renderItem={renderFavorite}
-            Skeleton={SiteSkeleton}
-            idPrefix="dapps_favorites"
-          />
-        </Box>
-      )}
-
-      <Box>
-        <SectionHeader
-          title={strings('trending.ecosystems')}
-          subtitle={strings('trending.ecosystems_subtitle')}
-          testID="section-header-view-all-dapps_networks"
-        />
-        <TileCarousel<SiteData>
-          data={networks.data}
-          isLoading={false}
-          renderItem={(site, index) => (
-            <SiteTileRowItem
-              site={site}
-              onCardPress={() =>
-                trackExploreInteracted({
-                  interaction_type: 'section_item_tapped',
-                  tab_name: 'Sites',
-                  section_name: 'sites_ecosystems',
-                  asset_type: 'dapp',
-                  position: index,
-                  item_clicked: site.url,
-                })
-              }
+    if (showSites) {
+      items.push({
+        key: 'sites',
+        isVerticalList: true,
+        content: (
+          <>
+            <SectionHeader
+              title={strings('trending.popular')}
+              onViewAll={() => navigation.navigate(Routes.SITES_FULL_VIEW)}
+              testID="section-header-view-all-sites"
+              tabName="Sites"
+              sectionName="sites_popular"
             />
-          )}
-          keyExtractor={(site) => site.url}
-          Skeleton={SiteTileSkeleton}
-          testID="explore-dapps_networks-carousel"
-        />
-      </Box>
+            <CardList<SiteData>
+              data={sites.data}
+              isLoading={sites.isLoading}
+              renderItem={renderSite}
+              Skeleton={SiteSkeleton}
+              idPrefix="sites"
+            />
+          </>
+        ),
+      });
+    }
 
-      {showSites && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.popular')}
-            onViewAll={() => navigation.navigate(Routes.SITES_FULL_VIEW)}
-            testID="section-header-view-all-sites"
-            tabName="Sites"
-            sectionName="sites_popular"
-          />
-          <CardList<SiteData>
-            data={sites.data}
-            isLoading={sites.isLoading}
-            renderItem={renderSite}
-            Skeleton={SiteSkeleton}
-            idPrefix="sites"
-          />
-        </Box>
-      )}
+    return items;
+  }, [
+    showRecents,
+    showFavorites,
+    showSites,
+    recents.data,
+    recents.isLoading,
+    favorites.data,
+    favorites.isLoading,
+    networks.data,
+    navigation,
+    renderFavorite,
+    sites.data,
+    sites.isLoading,
+    renderSite,
+  ]);
+
+  return (
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_DAPPS_SCROLL_VIEW}
+    >
+      <ExploreSectionList sections={sections} />
     </ExploreScroll>
   );
 };

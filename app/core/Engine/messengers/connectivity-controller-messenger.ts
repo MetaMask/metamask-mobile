@@ -13,15 +13,14 @@ import { RootMessenger } from '../types';
  * @returns The ConnectivityControllerMessenger.
  */
 export function getConnectivityControllerMessenger(
-  rootMessenger: RootMessenger,
-): ConnectivityControllerMessenger {
-  return new Messenger<
-    'ConnectivityController',
+  rootMessenger: RootMessenger<
     MessengerActions<ConnectivityControllerMessenger>,
-    MessengerEvents<ConnectivityControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<ConnectivityControllerMessenger>
+  >,
+): ConnectivityControllerMessenger {
+  const messenger: ConnectivityControllerMessenger = new Messenger({
     namespace: 'ConnectivityController',
     parent: rootMessenger,
   });
+  return messenger;
 }

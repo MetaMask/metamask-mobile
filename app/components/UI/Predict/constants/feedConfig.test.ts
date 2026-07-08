@@ -5,6 +5,7 @@ import {
   resolvePredictFeedConfig,
   resolvePredictFeedDefaultFilter,
   resolvePredictFeedDefaultTab,
+  resolvePredictFeedDynamicFilterConfig,
   type PredictDynamicFilterConfig,
   type PredictFeedFilterConfig,
 } from './feedConfig';
@@ -124,6 +125,23 @@ describe('feedConfig', () => {
     expect(baseTagSlugs).toEqual(
       new Set(['sports', 'politics', 'crypto', 'all']),
     );
+  });
+
+  it('resolves the dynamic filter config for a feed from the registry', () => {
+    expect(resolvePredictFeedDynamicFilterConfig('popular-today')).toBe(
+      PREDICT_FEED_REGISTRY['popular-today'].tabs[0].filters.dynamic,
+    );
+    expect(resolvePredictFeedDynamicFilterConfig('trending')).toBe(
+      PREDICT_FEED_REGISTRY.trending.tabs[0].filters.dynamic,
+    );
+  });
+
+  it('returns undefined dynamic config for feeds without one, unknown feeds, or unknown tabs', () => {
+    expect(resolvePredictFeedDynamicFilterConfig('live')).toBeUndefined();
+    expect(resolvePredictFeedDynamicFilterConfig('unknown')).toBeUndefined();
+    expect(
+      resolvePredictFeedDynamicFilterConfig('sports', 'unknown-tab'),
+    ).toBeUndefined();
   });
 
   it('keeps static market params category-free', () => {

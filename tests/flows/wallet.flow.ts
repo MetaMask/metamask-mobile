@@ -541,6 +541,40 @@ export const loginToAppPlaywright = async (
 };
 
 /**
+ * Logs in (Appium), waits for the wallet, and opens the account list bottom sheet.
+ */
+export const loginAndOpenAccountList = async (
+  options: {
+    scenarioType?: string;
+    dismissModals?: boolean;
+    walletTimeout?: number;
+    accountListDescription?: string;
+  } = {},
+): Promise<void> => {
+  const {
+    walletTimeout = 15_000,
+    accountListDescription = 'Account list should be visible',
+    ...loginOptions
+  } = options;
+
+  await loginToAppPlaywright(loginOptions);
+
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    description: 'Wallet should be visible after login',
+    timeout: walletTimeout,
+  });
+
+  await WalletView.tapIdenticon();
+
+  await Assertions.expectElementToBeVisible(
+    AccountListBottomSheet.accountList,
+    {
+      description: accountListDescription,
+    },
+  );
+};
+
+/**
  * Selects the account for the device based on the device-matrix.json file.
  * @param deviceName - The name of the device the test is running on to map
  * against the device-matrix.json file

@@ -6,8 +6,10 @@ import PlaywrightMatchers from './PlaywrightMatchers.ts';
 
 export type Selector =
   | { testID: string; index?: number }
+  | { testIDPattern: RegExp; index?: number }
   | { label: string; index?: number }
   | { text: string; index?: number }
+  | { textPattern: RegExp; index?: number }
   | { detoxTestID: string; appiumTestID: string }
   | {
       detoxTestID: string;
@@ -130,6 +132,35 @@ export function resolve(selector: Selector): EncapsulatedElementType {
     });
   }
 
+  if ('textPattern' in selector) {
+    return encapsulated({
+      detox: () =>
+        element(by.text(selector.textPattern)).atIndex(
+          selector.index ?? 0,
+        ) as unknown as DetoxElement,
+      appium: () =>
+        PlaywrightMatchers.getElementByText(selector.textPattern, false, {
+          index: selector.index ?? 0,
+        }),
+    });
+  }
+
+  if ('testIDPattern' in selector) {
+    const detoxEl = () => {
+      const el = element(by.id(selector.testIDPattern));
+      return (selector.index !== undefined
+        ? el.atIndex(selector.index)
+        : el) as unknown as DetoxElement;
+    };
+    return encapsulated({
+      detox: detoxEl,
+      appium: () =>
+        PlaywrightMatchers.getElementById(selector.testIDPattern, {
+          index: selector.index,
+        }),
+    });
+  }
+
   // { testID } — the most common case
   const detoxEl = () => {
     const el = element(by.id(selector.testID));
@@ -165,8 +196,10 @@ export function isSelector(value: unknown): value is Selector {
   const v = value as Record<string, unknown>;
   return (
     'testID' in v ||
+    'testIDPattern' in v ||
     'label' in v ||
     'text' in v ||
+    'textPattern' in v ||
     'detoxTestID' in v ||
     'androidAppiumTestID' in v ||
     'iosAppiumTestID' in v ||

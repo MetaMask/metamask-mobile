@@ -5,5 +5,11 @@ export const ActivityListSelectorsIDs = {
 export const activityListRowItemTestId = (index: number): string =>
   `transaction-item-${index}`;
 
-export const activityListRowStatusTestId = (index: number): string =>
-  `transaction-status-${index}`;
+export const activityListRowTitleTestId = (hash: string): string =>
+  `activity-title-${hash}`;
+
+export const activityListRowSubtitleTestId = (hash: string): string =>
+  `activity-subtitle-${hash}`;
+
+export const activityListRowPendingSpinnerTestId = (hash: string): string =>
+  `activity-pending-spinner-${hash}`;

@@ -11,7 +11,8 @@ const makeItem = (
     chainId: 'eip155:1',
     status: 'success',
     timestamp,
-    data: { hash },
+    hash,
+    data: {},
     raw: { type: source, data: {} },
   }) as unknown as ActivityListItem;
 

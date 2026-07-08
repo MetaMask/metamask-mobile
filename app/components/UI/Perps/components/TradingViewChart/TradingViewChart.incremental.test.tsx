@@ -13,6 +13,7 @@ import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 import TradingViewChart from './TradingViewChart';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
@@ -203,6 +204,75 @@ describe('TradingViewChart — incremental update routing', () => {
 
     expect(typesAfterTick).toContain('UPDATE_LAST_CANDLE');
     expect(typesAfterTick).not.toContain('SET_CANDLESTICK_DATA');
+  });
+
+  // -----------------------------------------------------------------------
+  // Perf: incremental ticks must NOT re-format the full candle array
+  // -----------------------------------------------------------------------
+
+  it('does not format the full candle array on an incremental tick', () => {
+    const testID = 'incremental-no-full-format';
+    const INVALID_LOG = '🚨 Invalid candle data:';
+
+    // Dataset with an INVALID candle at the FRONT (close = 0 fails validation).
+    // formatCandleData logs an invalid-candle entry for every invalid candle it
+    // processes. If the full array were formatted on a live tick, this leading
+    // invalid candle would be logged again — which is exactly the O(N)-per-tick
+    // work the fix eliminates.
+    const dataWithInvalidHead: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.FourHours,
+      candles: [
+        makeCandle(0, '0'), // INVALID: close = 0
+        makeCandle(4),
+        makeCandle(8),
+      ],
+    };
+
+    const { getByTestId, rerender } = render(
+      <TradingViewChart
+        candleData={dataWithInvalidHead}
+        symbol="BTC"
+        testID={testID}
+      />,
+    );
+    triggerChartReady(getByTestId, testID);
+
+    // Initial full load formats everything, so the invalid head candle is logged
+    // once here. Reset the spies so we only observe the live-tick behavior.
+    mockPostMessage.mockClear();
+    (DevLogger.log as jest.Mock).mockClear();
+
+    // Live tick: same symbol/interval/firstTime/count, only the last close moves.
+    const liveTick: CandleData = {
+      ...dataWithInvalidHead,
+      candles: [
+        makeCandle(0, '0'), // same invalid head
+        makeCandle(4),
+        makeCandle(8, '46000'), // only the last candle changed
+      ],
+    };
+
+    act(() => {
+      rerender(
+        <TradingViewChart candleData={liveTick} symbol="BTC" testID={testID} />,
+      );
+    });
+
+    // Routing is unchanged: a live tick still emits a single UPDATE_LAST_CANDLE
+    // carrying only the last 1-2 candles.
+    expect(mockPostMessage).toHaveBeenCalledTimes(1);
+    const msg = JSON.parse(mockPostMessage.mock.calls[0][0]);
+    expect(msg.type).toBe('UPDATE_LAST_CANDLE');
+    expect(msg.candles.length).toBeGreaterThanOrEqual(1);
+    expect(msg.candles.length).toBeLessThanOrEqual(2);
+
+    // The leading invalid candle must NOT be re-processed on the tick — proving
+    // formatCandleData ran only on the sliced tail, not the full array.
+    const invalidLogs = (DevLogger.log as jest.Mock).mock.calls.filter(
+      (call) => call[0] === INVALID_LOG,
+    );
+    expect(invalidLogs).toHaveLength(0);
   });
 
   it('sends UPDATE_LAST_CANDLE payload with only the last 1-2 candles', () => {

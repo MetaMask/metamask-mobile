@@ -5,13 +5,14 @@ import { CreatePriceAlertTestIds } from '../../constants';
 
 const mockGoBack = jest.fn();
 const mockPop = jest.fn();
-const mockSave = jest.fn();
+const mockSubmit = jest.fn();
 const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
-const mockUseSavePriceAlert = jest.fn(() => ({
-  save: mockSave,
+const mockUseSubmitPriceAlert = jest.fn((_editingAlert?: unknown) => ({
+  submit: mockSubmit,
   isSubmitting: false,
 }));
+const mockSetQueryData = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -27,8 +28,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({ setQueryData: mockSetQueryData }),
+}));
+
 jest.mock('../../api', () => ({
-  useSavePriceAlert: () => mockUseSavePriceAlert(),
+  priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
+  useSubmitPriceAlert: (editingAlert?: unknown) =>
+    mockUseSubmitPriceAlert(editingAlert),
 }));
 
 import { ToastContext } from '../../../../../../component-library/components/Toast';
@@ -60,9 +68,9 @@ const setRoute = (params: object) =>
 describe('CreatePriceAlertView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSave.mockResolvedValue(undefined);
-    mockUseSavePriceAlert.mockImplementation(() => ({
-      save: mockSave,
+    mockSubmit.mockResolvedValue(undefined);
+    mockUseSubmitPriceAlert.mockImplementation(() => ({
+      submit: mockSubmit,
       isSubmitting: false,
     }));
   });
@@ -199,7 +207,7 @@ describe('CreatePriceAlertView', () => {
   });
 
   describe('Set price alert button', () => {
-    it('calls save with the correct asset, threshold, and recurring values', async () => {
+    it('calls submit with the correct asset, threshold, and recurring values', async () => {
       const { getByTestId } = renderWithToast();
 
       fireEvent.press(getByTestId('keypad-key-1'));
@@ -211,7 +219,7 @@ describe('CreatePriceAlertView', () => {
         fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
       });
 
-      expect(mockSave).toHaveBeenCalledWith({
+      expect(mockSubmit).toHaveBeenCalledWith({
         asset: 'eip155:1/slip44:60',
         threshold: 1500,
         recurring: true,
@@ -232,7 +240,7 @@ describe('CreatePriceAlertView', () => {
         fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
       });
 
-      expect(mockSave).toHaveBeenCalledWith(
+      expect(mockSubmit).toHaveBeenCalledWith(
         expect.objectContaining({ recurring: false }),
       );
     });
@@ -278,8 +286,8 @@ describe('CreatePriceAlertView', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('does not navigate or show toast when save throws', async () => {
-      mockSave.mockRejectedValueOnce(new Error('HTTP 500'));
+    it('does not navigate or show toast when submit throws', async () => {
+      mockSubmit.mockRejectedValueOnce(new Error('HTTP 500'));
       const { getByTestId } = renderWithToast();
 
       fireEvent.press(getByTestId('keypad-key-1'));
@@ -292,12 +300,9 @@ describe('CreatePriceAlertView', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('does not call save a second time when the button is pressed while already submitting', async () => {
-      // The real hook sets isSubmitting=true and the Button becomes disabled+loading,
-      // preventing re-presses. Here we verify the component only calls save once
-      // even if the underlying hook guard is bypassed in tests.
+    it('does not call submit a second time when the button is pressed while already submitting', async () => {
       let resolveFirst!: () => void;
-      mockSave.mockReturnValueOnce(
+      mockSubmit.mockReturnValueOnce(
         new Promise<void>((res) => {
           resolveFirst = res;
         }),
@@ -311,7 +316,7 @@ describe('CreatePriceAlertView', () => {
         resolveFirst();
       });
 
-      expect(mockSave).toHaveBeenCalledTimes(1);
+      expect(mockSubmit).toHaveBeenCalledTimes(1);
     });
   });
 });
@@ -319,9 +324,9 @@ describe('CreatePriceAlertView', () => {
 describe('CreatePriceAlertView — duplicate threshold validation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSave.mockResolvedValue(undefined);
-    mockUseSavePriceAlert.mockImplementation(() => ({
-      save: mockSave,
+    mockSubmit.mockResolvedValue(undefined);
+    mockUseSubmitPriceAlert.mockImplementation(() => ({
+      submit: mockSubmit,
       isSubmitting: false,
     }));
     // Route has an existing alert at $1500
@@ -368,7 +373,7 @@ describe('CreatePriceAlertView — duplicate threshold validation', () => {
     ).not.toBeDisabled();
   });
 
-  it('does not call save when Set button is pressed on a duplicate threshold', async () => {
+  it('does not call submit when Set button is pressed on a duplicate threshold', async () => {
     const { getByTestId } = renderWithToast();
 
     fireEvent.press(getByTestId('keypad-key-1'));
@@ -380,14 +385,14 @@ describe('CreatePriceAlertView — duplicate threshold validation', () => {
       fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
     });
 
-    expect(mockSave).not.toHaveBeenCalled();
+    expect(mockSubmit).not.toHaveBeenCalled();
   });
 });
 
 describe('CreatePriceAlertView — tiny price token', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSave.mockResolvedValue(undefined);
+    mockSubmit.mockResolvedValue(undefined);
     setRoute({
       symbol: 'SHIB',
       ticker: 'SHIB',
@@ -404,8 +409,8 @@ describe('CreatePriceAlertView — tiny price token', () => {
       getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
     );
 
-    // 0.00000000000001 * 1.05 = 1.05e-14 → must render as plain decimal
-    expect(getByText('$0.0000000000000105')).toBeOnTheScreen();
+    // 0.00000000000001 * 1.05 = 1.05e-14 → capped at 15 decimal places → rounded to "0.000000000000011"
+    expect(getByText('$0.000000000000011')).toBeOnTheScreen();
   });
 
   it('quick-percentage pill produces a non-zero value and reveals the Set button', () => {
@@ -448,5 +453,206 @@ describe('CreatePriceAlertView — tiny price token', () => {
     expect(
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('enforces the 15-decimal cap — typing a 16th decimal digit is blocked', () => {
+    // currentPrice ~1e-10 → dynamic decimal calc would exceed 15 without the cap
+    setRoute({
+      symbol: 'SHIB',
+      ticker: 'SHIB',
+      currentPrice: 0.0000000001,
+      currentCurrency: 'USD',
+      assetId: 'eip155:1/erc20:0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE',
+    });
+
+    const { getByTestId, getByText } = render(<CreatePriceAlertView />);
+
+    // Enter "0." then 15 digits
+    fireEvent.press(getByTestId('keypad-key-dot'));
+    for (let i = 0; i < 15; i++) {
+      fireEvent.press(getByTestId('keypad-key-1'));
+    }
+    // The 16th digit must be blocked
+    fireEvent.press(getByTestId('keypad-key-2'));
+
+    expect(getByText('$0.111111111111111')).toBeOnTheScreen();
+  });
+});
+
+describe('CreatePriceAlertView — edit mode', () => {
+  const editingAlert = {
+    id: 'alert-42',
+    userId: 'user-1',
+    asset: 'eip155:1/slip44:60',
+    threshold: 1500,
+    recurring: true,
+    active: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSubmit.mockResolvedValue(undefined);
+    mockUseSubmitPriceAlert.mockImplementation(() => ({
+      submit: mockSubmit,
+      isSubmitting: false,
+    }));
+    setRoute({
+      symbol: 'ETH',
+      ticker: 'ETH',
+      currentPrice: 1201.98,
+      currentCurrency: 'USD',
+      assetId: 'eip155:1/slip44:60',
+      fromManage: true,
+      existingThresholds: [1500],
+      editingAlert,
+    });
+  });
+
+  it('renders the edit title instead of the create title', () => {
+    const { getByText } = renderWithToast();
+    expect(getByText('Edit ETH price alert')).toBeOnTheScreen();
+  });
+
+  it('pre-populates the keypad with the existing threshold', () => {
+    const { getByText } = renderWithToast();
+    expect(getByText('$1500')).toBeOnTheScreen();
+  });
+
+  it('shows the Set button immediately because threshold is pre-populated', () => {
+    const { getByTestId } = renderWithToast();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows "Update price alert" as the button label', () => {
+    const { getByText } = renderWithToast();
+    expect(getByText('Update price alert')).toBeOnTheScreen();
+  });
+
+  it('pre-sets the recurring toggle from the existing alert', () => {
+    const { getByTestId } = renderWithToast();
+    expect(getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE)).toHaveProp(
+      'value',
+      true,
+    );
+  });
+
+  it('disables the button when threshold and recurring are unchanged', () => {
+    const { getByTestId } = renderWithToast();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('enables the button after the threshold is changed', () => {
+    const { getByTestId } = renderWithToast();
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    fireEvent.press(getByTestId('keypad-key-2'));
+
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
+  });
+
+  it('enables the button when only the recurring toggle changes', () => {
+    const { getByTestId } = renderWithToast();
+
+    fireEvent(
+      getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toBeDisabled();
+  });
+
+  it('does not treat the own threshold as a duplicate', () => {
+    const { getByTestId, queryByText } = renderWithToast();
+
+    expect(queryByText('An alert at this price already exists.')).toBeNull();
+    expect(
+      getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).not.toHaveTextContent('An alert at this price already exists.');
+  });
+
+  it('calls submit with threshold and recurring on update', async () => {
+    const { getByTestId } = renderWithToast();
+
+    fireEvent(
+      getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    expect(mockSubmit).toHaveBeenCalledWith({
+      asset: 'eip155:1/slip44:60',
+      threshold: 1500,
+      recurring: false,
+    });
+  });
+
+  it('updates the query cache with the new threshold and recurring after a successful update', async () => {
+    const { getByTestId } = renderWithToast();
+
+    fireEvent(
+      getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    expect(mockSetQueryData).toHaveBeenCalledWith(
+      ['priceAlerts', 'eip155:1/slip44:60'],
+      expect.any(Function),
+    );
+
+    const updater = mockSetQueryData.mock.calls[0][1] as (
+      prev: (typeof editingAlert)[] | undefined,
+    ) => (typeof editingAlert)[] | undefined;
+
+    // Cache miss → leave it undefined so ManagePriceAlertsView can refetch
+    expect(updater(undefined)).toBeUndefined();
+
+    // Cache hit → update only the matching alert
+    const updated = updater([editingAlert]);
+    expect(updated).toEqual([
+      { ...editingAlert, threshold: 1500, recurring: false },
+    ]);
+  });
+
+  it('calls goBack (not pop) after a successful update', async () => {
+    const { getByTestId } = renderWithToast();
+
+    fireEvent(
+      getByTestId(CreatePriceAlertTestIds.RECURRING_TOGGLE),
+      'valueChange',
+      false,
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
+    });
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockPop).not.toHaveBeenCalled();
+  });
+
+  it('passes editingAlert to useSubmitPriceAlert', () => {
+    renderWithToast();
+    expect(mockUseSubmitPriceAlert).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'alert-42' }),
+    );
   });
 });

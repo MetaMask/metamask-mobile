@@ -15,7 +15,7 @@ import {
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
-import Utilities from '../Utilities';
+import Utilities, { sleep } from '../Utilities';
 import {
   dismissDevScreens,
   dismissDeveloperMenuPlaywright,
@@ -118,6 +118,17 @@ async function handleDapps(
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          }),
+        );
+        break;
+      case DappVariants.BITCOIN_TEST_DAPP:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BITCOIN_TEST_DAPP].dappPath,
+            dappVariant: DappVariants.BITCOIN_TEST_DAPP,
           }),
         );
         break;
@@ -692,10 +703,25 @@ export async function withFixtures(
             launchArgs: testArgs,
           });
           if (process.env.CI !== 'true') {
-            await dismissDevelopmentServerPickerPlaywright();
             didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
+            await Promise.all([
+              appStateRequest,
+              (async () => {
+                for (;;) {
+                  await dismissDevelopmentServerPickerPlaywright();
+                  const bootstrapped = await Promise.race([
+                    appStateRequest.then(() => true),
+                    sleep(1500).then(() => false),
+                  ]);
+                  if (bootstrapped) {
+                    return;
+                  }
+                }
+              })(),
+            ]);
+          } else {
+            await appStateRequest;
           }
-          await appStateRequest;
         } catch (error) {
           appStateRequest.catch(() => undefined);
           throw error;

@@ -21,6 +21,7 @@ import {
 import SrpInput from '../../Views/SrpInput';
 import { useAppTheme } from '../../../util/theme';
 import { SrpInputGridProps } from './SrpInputGrid.types';
+import { applySeedPhraseChangeAtIndex } from './srpInputGridLogic';
 import { strings } from '../../../../locales/i18n';
 import {
   getTrimmedSeedPhraseLength,
@@ -30,9 +31,7 @@ import {
   SPACE_CHAR,
   checkValidSeedWord,
 } from '../../../util/srp/srpInputUtils';
-import { isValidMnemonic } from '../../../util/validators';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
-import Logger from '../../../util/Logger';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 export interface SrpInputGridRef {
@@ -135,85 +134,15 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
     // Handle seed phrase change at a specific index (for grid mode)
     const handleSeedPhraseChangeAtIndex = useCallback(
       (seedPhraseText: string, index: number) => {
-        try {
-          const text = formatSeedPhraseToSingleLine(seedPhraseText);
-
-          if (text.includes(SPACE_CHAR)) {
-            const isEndWithSpace = text.at(-1) === SPACE_CHAR;
-            const splitArray = text
-              .trim()
-              .split(SPACE_CHAR)
-              .filter((word) => word.trim() !== '');
-
-            if (splitArray.length === 0) {
-              onSeedPhraseChange((prev) => {
-                const newSeedPhrase = [...prev];
-                newSeedPhrase[index] = '';
-                return newSeedPhrase;
-              });
-              return;
-            }
-
-            const mergedSeedPhrase = [
-              ...seedPhrase.slice(0, index),
-              ...splitArray,
-              ...seedPhrase.slice(index + 1),
-            ];
-
-            const normalizedWords = mergedSeedPhrase
-              .map((w) => w.trim())
-              .filter((w) => w !== '');
-            const maxAllowed = Math.max(...SRP_LENGTHS);
-            const hasReachedMax = normalizedWords.length >= maxAllowed;
-            const isCompleteAndValid =
-              SRP_LENGTHS.includes(normalizedWords.length) &&
-              isValidMnemonic(normalizedWords.join(SPACE_CHAR));
-
-            let nextSeedPhraseState = normalizedWords;
-            if (
-              isEndWithSpace &&
-              index === seedPhrase.length - 1 &&
-              !isCompleteAndValid &&
-              !hasReachedMax
-            ) {
-              nextSeedPhraseState = [...normalizedWords, ''];
-            }
-
-            onSeedPhraseChange(nextSeedPhraseState);
-
-            if (isCompleteAndValid || hasReachedMax) {
-              Keyboard.dismiss();
-              setNextSeedPhraseInputFocusedIndex(null);
-              return;
-            }
-
-            const targetIndex = Math.min(
-              nextSeedPhraseState.length - 1,
-              index + splitArray.length,
-            );
-            setNextSeedPhraseInputFocusedIndex(targetIndex);
-            return;
-          }
-
-          if (seedPhrase[index] !== text) {
-            onSeedPhraseChange((prev) => {
-              const newSeedPhrase = [...prev];
-              newSeedPhrase[index] = text;
-              return newSeedPhrase;
-            });
-
-            if (text.trim() === '') {
-              setErrorWordIndexes((prev) => ({
-                ...prev,
-                [index]: false,
-              }));
-            }
-
-            onCurrentWordChange?.(!text.includes(' ') ? text : '');
-          }
-        } catch (err) {
-          Logger.error(err as Error, 'Error handling seed phrase change');
-        }
+        applySeedPhraseChangeAtIndex({
+          seedPhrase,
+          seedPhraseText,
+          index,
+          onSeedPhraseChange,
+          onCurrentWordChange,
+          setErrorWordIndexes,
+          setNextSeedPhraseInputFocusedIndex,
+        });
       },
       [seedPhrase, onSeedPhraseChange, onCurrentWordChange],
     );

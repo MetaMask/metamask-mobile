@@ -356,7 +356,7 @@ jobs:
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
         uses: actions/setup-node@v6
         with:
-          node-version: '20.18.0'
+          node-version: '24.16.0'
 
       - name: Enable corepack (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}

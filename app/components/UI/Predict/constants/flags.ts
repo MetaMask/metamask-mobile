@@ -30,6 +30,7 @@ export const DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG: PredictExtendedSportsMarketsF
     enabled: false,
     minimumVersion: '',
     leagues: [],
+    enabledSportsMarketTypes: [],
   };
 
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {

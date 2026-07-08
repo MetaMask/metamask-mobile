@@ -4,7 +4,6 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import type { SnapAccountServiceMessenger as ServiceMessenger } from '@metamask/snap-account-service';
-import type { RootMessenger } from '../../types';
 
 type Actions = MessengerActions<ServiceMessenger>;
 type Events = MessengerEvents<ServiceMessenger>;
@@ -19,14 +18,9 @@ export type SnapAccountServiceMessenger = ServiceMessenger;
  * @returns The SnapAccountServiceMessenger.
  */
 export function getSnapAccountServiceMessenger(
-  rootMessenger: RootMessenger,
+  rootMessenger: Messenger<'Root', Actions, Events>,
 ): SnapAccountServiceMessenger {
-  const messenger = new Messenger<
-    'SnapAccountService',
-    Actions,
-    Events,
-    RootMessenger
-  >({
+  const messenger: SnapAccountServiceMessenger = new Messenger({
     namespace: 'SnapAccountService',
     parent: rootMessenger,
   });

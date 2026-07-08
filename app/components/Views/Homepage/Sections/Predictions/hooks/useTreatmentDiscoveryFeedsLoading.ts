@@ -8,11 +8,9 @@ import { useLayoutEffect, useRef, useState } from 'react';
 export function useTreatmentDiscoveryFeedsLoading({
   isTreatmentDiscovery,
   isWorldCupFetching,
-  isNbaChampionFetching,
 }: {
   isTreatmentDiscovery: boolean;
   isWorldCupFetching: boolean;
-  isNbaChampionFetching: boolean;
 }): boolean {
   const [hasDiscoveryFeedsSettled, setHasDiscoveryFeedsSettled] =
     useState(false);
@@ -30,10 +28,10 @@ export function useTreatmentDiscoveryFeedsLoading({
       wasTreatmentDiscoveryRef.current = true;
     }
 
-    if (!isWorldCupFetching && !isNbaChampionFetching) {
+    if (!isWorldCupFetching) {
       setHasDiscoveryFeedsSettled(true);
     }
-  }, [isTreatmentDiscovery, isWorldCupFetching, isNbaChampionFetching]);
+  }, [isTreatmentDiscovery, isWorldCupFetching]);
 
   return isTreatmentDiscovery && !hasDiscoveryFeedsSettled;
 }

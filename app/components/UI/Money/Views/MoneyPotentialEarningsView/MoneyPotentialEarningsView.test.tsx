@@ -80,12 +80,10 @@ const mockDepositTokens = [
   },
 ];
 
-jest.mock('../../hooks/useMoneyDepositTokens', () => ({
-  useMoneyDepositTokens: () => ({
+jest.mock('../../hooks/useMoneyEarnableTokens', () => ({
+  useMoneyEarnableTokens: () => ({
     tokens: mockTokens,
     isNoFeeToken: jest.fn(() => false),
-    isEligibleToken: jest.fn(() => false),
-    filterAllowedTokens: jest.fn((t) => t),
   }),
 }));
 

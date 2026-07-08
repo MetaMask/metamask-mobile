@@ -21,6 +21,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
     Box: View,
   };
 });

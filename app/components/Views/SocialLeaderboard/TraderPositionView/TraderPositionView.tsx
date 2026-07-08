@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import {
   useNavigation,
   useRoute,
@@ -23,6 +23,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -35,6 +36,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
 import TraderPositionQuickBuy from './components/QuickBuy';
+import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
 import TraderPositionChartSection from './components/TraderPositionChartSection';
@@ -48,12 +50,17 @@ import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import {
   SocialLeaderboardEventProperties,
-  SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
   type FollowTradingTokenSource,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { chainNameToId } from '../utils/chainMapping';
+import { isPerpPosition } from '../utils/perp';
+import PerpsTradeButton from './components/PerpsTradeButton';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 const TraderPositionView = () => {
@@ -72,6 +79,7 @@ const TraderPositionView = () => {
     position: positionParam,
     positionId,
     source: sourceParam,
+    isClosed: isClosedParam,
     notificationSubtype,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
@@ -106,10 +114,15 @@ const TraderPositionView = () => {
   const traderAddress =
     traderAddressParam ?? fetchedProfile?.profile?.address ?? '';
 
-  const positionData = useTraderPositionData(resolvedPosition, tokenSymbol);
+  const positionData = useTraderPositionData(
+    resolvedPosition,
+    tokenSymbol,
+    isClosedParam,
+  );
   const {
     symbol,
     marketCap,
+    currentPrice,
     historicalPrices,
     priceDiff,
     isPricesLoading,
@@ -271,24 +284,8 @@ const TraderPositionView = () => {
         MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_BUY_CLICKED,
         followTradingTokenContext,
       );
-      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
-        ...followTradingTokenContext,
-        [SocialLeaderboardEventProperties.MARKET_CAP]:
-          typeof marketCap === 'number' ? marketCap : undefined,
-        [SocialLeaderboardEventProperties.SOURCE]: quickBuySource,
-        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: isClosed
-          ? SocialLeaderboardEventValues.TRADER_TRADE_TYPE.SELL
-          : SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
-      });
     }
-  }, [
-    resolvedPosition,
-    followTradingTokenContext,
-    marketCap,
-    quickBuySource,
-    isClosed,
-    track,
-  ]);
+  }, [resolvedPosition, followTradingTokenContext, track]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -298,103 +295,188 @@ const TraderPositionView = () => {
     // TODO: update displayed price on scrub.
   }, []);
 
+  // Perp positions surface Long/Short CTAs instead of Buy. Hyperliquid has no
+  // long/short preselect param on the market page (direction only exists on the
+  // funded trade-entry flow), so both CTAs land the user on that market's Perps
+  // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
+  // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
+  const isPerp = resolvedPosition ? isPerpPosition(resolvedPosition) : false;
+
+  // The xyz/HIP-3 resolution + existence check lives in PerpsTradeButton (it
+  // owns the market-data subscription); here we just navigate to whichever
+  // `xyz` market it resolved. A minimal { symbol, name } market is enough —
+  // PerpsMarketDetailsView enriches it from usePerpsMarkets (same pattern as
+  // PerpsPositionTransactionView).
+  const handlePerpTrade = useCallback(
+    (targetSymbol: string) => {
+      playImpact(ImpactMoment.PrimaryCTA);
+      const market = {
+        symbol: targetSymbol,
+        name: getPerpsDisplaySymbol(targetSymbol),
+      } as PerpsMarketData;
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: { market, source: 'social_leaderboard' },
+      });
+    },
+    [navigation],
+  );
+
   const isInitialLoading =
     !resolvedPosition && (isPositionLoading || isProfileLoading);
   const hasFailed =
     !resolvedPosition && !isPositionLoading && !isProfileLoading;
+
+  const {
+    scrollY: scrollYShared,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
 
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
-      <TraderPositionHeader
-        traderName={traderName}
-        traderImageUrl={traderImageUrl}
-        onBack={handleBack}
-        onTraderPress={handleTraderPress}
-        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-        traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-      />
-
       {isInitialLoading ? (
-        <TraderPositionSkeleton />
+        <>
+          <TraderPositionHeader
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+          />
+          <TraderPositionSkeleton />
+        </>
       ) : hasFailed ? (
-        <TraderPositionFallback traderId={traderId} traderName={traderName} />
+        <>
+          <TraderPositionHeader
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+          />
+          <TraderPositionFallback traderId={traderId} traderName={traderName} />
+        </>
       ) : (
         <>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6')}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
-              />
-            }
-          >
-            <TraderTokenInfoRow
-              symbol={symbol}
-              position={resolvedPosition}
-              marketCap={marketCap}
-              pricePercentChange={pricePercentChange}
-              activeTimePeriodLabel={activeTimePeriod}
-              onCopyTokenAddress={handleCopyTokenAddress}
-              copyTokenAddressTestID={
-                TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+          <TraderPositionAnimatedHeader
+            scrollY={scrollYShared}
+            titleSectionHeight={titleSectionHeightSv}
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            symbol={symbol}
+            pricePercentChange={pricePercentChange}
+            activeTimePeriodLabel={activeTimePeriod}
+            onBack={handleBack}
+            onTraderPress={handleTraderPress}
+          />
+
+          <Box twClassName="flex-1">
+            <Animated.ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={tw.style('pb-6')}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                  testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+                />
               }
-            />
-
-            <TraderPositionChartSection
-              historicalPrices={historicalPrices}
-              priceDiff={priceDiff}
-              isPricesLoading={isPricesLoading}
-              onChartIndexChange={handleChartIndexChange}
-              trades={chartTrades}
-            />
-
-            <TraderTimePeriodSelector
-              timePeriods={timePeriods}
-              activeTimePeriod={activeTimePeriod}
-              onSelectPeriod={setActiveTimePeriod}
-            />
-
-            <TraderPositionPnLCard
-              isClosed={isClosed}
-              positionValue={positionValue}
-              pnlValue={pnlValue}
-              pnlPercent={pnlPercent}
-              isPnlPositive={isPnlPositive}
-            />
-
-            <TraderTradesSection
-              trades={allTrades}
-              traderName={traderName}
-              traderImageUrl={traderImageUrl}
-            />
-          </ScrollView>
-
-          <Box twClassName="px-4 py-3">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleBuyPress}
-              testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
             >
-              {strings('social_leaderboard.trader_position.buy')}
-            </Button>
+              <Box
+                testID={TraderPositionViewSelectorsIDs.TITLE_SECTION_WRAPPER}
+                onLayout={(e) =>
+                  setTitleSectionHeight(e.nativeEvent.layout.height)
+                }
+              >
+                <TraderTokenInfoRow
+                  symbol={symbol}
+                  position={resolvedPosition}
+                  marketCap={marketCap}
+                  currentPrice={currentPrice}
+                  pricePercentChange={pricePercentChange}
+                  activeTimePeriodLabel={activeTimePeriod}
+                  onCopyTokenAddress={handleCopyTokenAddress}
+                  copyTokenAddressTestID={
+                    TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+                  }
+                />
+              </Box>
+
+              <TraderPositionChartSection
+                historicalPrices={historicalPrices}
+                priceDiff={priceDiff}
+                isPricesLoading={isPricesLoading}
+                onChartIndexChange={handleChartIndexChange}
+                trades={chartTrades}
+              />
+
+              <TraderTimePeriodSelector
+                timePeriods={timePeriods}
+                activeTimePeriod={activeTimePeriod}
+                onSelectPeriod={setActiveTimePeriod}
+              />
+
+              <TraderPositionPnLCard
+                isClosed={isClosed}
+                positionValue={positionValue}
+                pnlValue={pnlValue}
+                pnlPercent={pnlPercent}
+                isPnlPositive={isPnlPositive}
+              />
+
+              <TraderTradesSection
+                trades={allTrades}
+                traderImageUrl={traderImageUrl}
+                traderAddress={traderAddress}
+              />
+            </Animated.ScrollView>
           </Box>
 
-          <TraderPositionQuickBuy
-            isVisible={isQuickBuyVisible}
-            position={resolvedPosition ?? null}
-            onClose={handleQuickBuyClose}
-            traderAddress={traderAddress}
-            marketCap={typeof marketCap === 'number' ? marketCap : undefined}
-            source={quickBuySource}
-          />
+          {isPerp && resolvedPosition ? (
+            <PerpsTradeButton
+              symbol={resolvedPosition.tokenSymbol}
+              onTrade={handlePerpTrade}
+              testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
+            />
+          ) : (
+            <>
+              <Box twClassName="px-4 py-3">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleBuyPress}
+                  testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+                >
+                  {strings('social_leaderboard.trader_position.buy')}
+                </Button>
+              </Box>
+
+              <TraderPositionQuickBuy
+                isVisible={isQuickBuyVisible}
+                position={resolvedPosition ?? null}
+                onClose={handleQuickBuyClose}
+                traderAddress={traderAddress}
+                marketCap={
+                  typeof marketCap === 'number' ? marketCap : undefined
+                }
+                source={quickBuySource}
+                isTraderPositionClosed={isClosed}
+              />
+            </>
+          )}
         </>
       )}
     </SafeAreaView>

@@ -21,8 +21,6 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 
-const FALLBACK_APY = 4;
-
 type MoneyEarnCryptoInfoSheetVariant = 'default' | 'deposit';
 
 interface MoneyEarnCryptoInfoSheetParams {
@@ -79,7 +77,7 @@ const MoneyEarnCryptoInfoSheet = () => {
           testID={MoneyEarnCryptoInfoSheetTestIds.BODY}
         >
           {strings('money.earn_crypto_info_sheet.body', {
-            percentage: apyPercent ?? FALLBACK_APY,
+            percentage: apyPercent ?? '-',
           })}
         </Text>
       </View>

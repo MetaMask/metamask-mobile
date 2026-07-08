@@ -1,9 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
 import {
-  goToAccountActions,
   completeSrpQuiz,
+  openAccountActionsFromAccountList,
 } from '../../flows/accounts.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
@@ -31,8 +31,10 @@ appiumTest.describe(
             currentDeviceDetails,
           },
           async () => {
-            await loginToAppPlaywright({ scenarioType: 'e2e' });
-            await goToAccountActions(FIRST_DEFAULT_HD_KEYRING_ACCOUNT);
+            await loginAndOpenAccountList({ scenarioType: 'e2e' });
+            await openAccountActionsFromAccountList(
+              FIRST_DEFAULT_HD_KEYRING_ACCOUNT,
+            );
             await completeSrpQuiz(DEFAULT_SRP);
           },
         );
@@ -51,8 +53,10 @@ appiumTest.describe(
             currentDeviceDetails,
           },
           async () => {
-            await loginToAppPlaywright({ scenarioType: 'e2e' });
-            await goToAccountActions(FIRST_IMPORTED_HD_KEYRING_ACCOUNT);
+            await loginAndOpenAccountList({ scenarioType: 'e2e' });
+            await openAccountActionsFromAccountList(
+              FIRST_IMPORTED_HD_KEYRING_ACCOUNT,
+            );
             await completeSrpQuiz(IMPORTED_SRP);
           },
         );

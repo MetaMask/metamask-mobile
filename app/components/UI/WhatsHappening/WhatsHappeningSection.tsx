@@ -8,17 +8,15 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
+  StyleSheet,
   View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, TextVariant } from '@metamask/design-system-react-native';
+import SectionHeader from '../../Views/TrendingView/components/SectionHeader';
+import TempSectionHeader from '../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../Views/Homepage/components/ErrorState';
 import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../Views/Homepage/types';
@@ -30,9 +28,14 @@ import {
   MAX_ITEMS_DISPLAYED,
   WhatsHappeningInteractionType,
   WhatsHappeningView,
+  WhatsHappeningSource,
   type WhatsHappeningSourceValue,
 } from './constants';
-import { useWhatsHappening } from './hooks';
+import {
+  useWhatsHappening,
+  isWhatsHappeningSectionVisible,
+  type UseWhatsHappeningResult,
+} from './hooks';
 import type { WhatsHappeningItem } from './types';
 import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
@@ -54,14 +57,24 @@ const SKELETON_KEYS = Array.from(
   (__, i) => `skeleton-${i}`,
 );
 
+const styles = StyleSheet.create({
+  sectionGap: { gap: 12 },
+});
+
 interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
+  /** Optional callback fired when the section header is pressed, before navigation. */
+  onHeaderPress?: () => void;
+  /** When true, the parent Explore feed supplies the section header. */
+  hideHeader?: boolean;
+  /** Optional pre-fetched feed state (avoids duplicate requests in Explore). */
+  feed?: UseWhatsHappeningResult;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ source }, ref) => {
+>(({ source, onHeaderPress, hideHeader = false, feed }, ref) => {
   const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -69,8 +82,10 @@ const WhatsHappeningSection = forwardRef<
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('whats_happening.title');
 
-  const { items, isLoading, error, refresh } =
-    useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const internalFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED, {
+    enabled: feed === undefined,
+  });
+  const { items, isLoading, error, refresh } = feed ?? internalFeed;
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -87,8 +102,9 @@ const WhatsHappeningSection = forwardRef<
   );
 
   const handleViewAll = useCallback(() => {
+    onHeaderPress?.();
     navigateToDetail(0);
-  }, [navigateToDetail]);
+  }, [onHeaderPress, navigateToDetail]);
 
   const handleCardPress = useCallback(
     (index: number) => {
@@ -123,6 +139,17 @@ const WhatsHappeningSection = forwardRef<
   if (!isEnabled) {
     return null;
   }
+
+  const useExploreLayout =
+    hideHeader && source === WhatsHappeningSource.Explore;
+
+  const header = hideHeader ? null : (
+    <TempSectionHeader
+      title={title}
+      onPress={handleViewAll}
+      testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+    />
+  );
 
   const carouselContent = hasError ? (
     <ErrorState
@@ -166,36 +193,28 @@ const WhatsHappeningSection = forwardRef<
     </PerpsStreamProvider>
   );
 
-  if (hasError) {
+  if (!isWhatsHappeningSectionVisible({ isLoading, items, error })) {
+    return null;
+  }
+
+  if (useExploreLayout) {
     return (
-      <Box paddingBottom={3}>
-        <SectionDivider />
+      <Box>
         <SectionHeader
           title={title}
-          isInteractive
-          onPress={handleViewAll}
+          onViewAll={handleViewAll}
           testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
         />
-        {carouselContent}
+        <Box twClassName="-mx-4">{carouselContent}</Box>
       </Box>
     );
   }
 
-  if (!isLoading && items.length === 0) {
-    return null;
-  }
-
   return (
-    <Box paddingBottom={3}>
-      <SectionDivider />
-      <SectionHeader
-        title={title}
-        isInteractive
-        onPress={handleViewAll}
-        testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-      />
+    <View style={styles.sectionGap}>
+      {header}
       {carouselContent}
-    </Box>
+    </View>
   );
 });
 

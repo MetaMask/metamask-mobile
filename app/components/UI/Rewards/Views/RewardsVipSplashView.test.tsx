@@ -8,7 +8,7 @@ import {
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
-import { VIP_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreen';
+import { VIP_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreenLayout';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsVipSplashView from './RewardsVipSplashView';
 

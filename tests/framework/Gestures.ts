@@ -8,6 +8,7 @@ import {
   ScrollOptions,
   GestureOptions,
   TypeTextOptions,
+  type ScrollContainer,
 } from './types.ts';
 import { createLogger } from './logger.ts';
 import { sleep } from '../../app/util/testUtils';
@@ -383,6 +384,8 @@ export default class Gestures {
       return UnifiedGestures.typeText(elem as EncapsulatedElementType, text, {
         timeout: options.timeout,
         description: options.elemDescription,
+        hideKeyboard: options.hideKeyboard,
+        clearFirst: options.clearFirst,
       });
     }
 
@@ -585,7 +588,7 @@ export default class Gestures {
    */
   static async scrollToElement(
     targetElement: DetoxElement | EncapsulatedElementType,
-    scrollableContainer: Promise<Detox.NativeMatcher>,
+    scrollableContainer: ScrollContainer,
     options: ScrollOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
@@ -617,7 +620,16 @@ export default class Gestures {
         await new Promise((resolve) => setTimeout(resolve, delay));
 
         const target = (await targetElement) as Detox.IndexableNativeElement;
-        const scrollable = await scrollableContainer;
+        const scrollable =
+          typeof scrollableContainer === 'string'
+            ? by.id(scrollableContainer)
+            : await scrollableContainer;
+
+        if (!scrollable) {
+          throw new Error(
+            'Gestures.scrollToElement requires a scroll container matcher on Detox.',
+          );
+        }
 
         if (device.getPlatform() === 'android') {
           const scrollableElement = element(scrollable);

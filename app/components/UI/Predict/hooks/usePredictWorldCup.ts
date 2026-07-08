@@ -27,6 +27,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import type { PredictMarket } from '../types';
 import type { PredictWorldCupConfig } from '../types/flags';
+import { filterStandaloneMarkets } from '../utils/feed';
 import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import type { UsePredictMarketDataResult } from './usePredictMarketData';
 
@@ -237,11 +238,12 @@ export const usePredictWorldCupMarkets = ({
     [infiniteQuery.data],
   );
   const visibleInfiniteMarketData = useMemo(
-    () => getVisiblePredictMarkets(infiniteMarketData),
+    () => getVisiblePredictMarkets(filterStandaloneMarkets(infiniteMarketData)),
     [infiniteMarketData],
   );
   const visibleSingleMarketData = useMemo(
-    () => getVisiblePredictMarkets(singleQuery.data ?? []),
+    () =>
+      getVisiblePredictMarkets(filterStandaloneMarkets(singleQuery.data ?? [])),
     [singleQuery.data],
   );
 

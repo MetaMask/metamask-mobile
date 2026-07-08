@@ -123,7 +123,7 @@ interface OpenedSheetProps {
 
 const OpenedSheet: React.FC<OpenedSheetProps> = ({
   traderId = 'trader-1',
-  traderName = 'dutchiono',
+  traderName = 'trader1',
   onDismiss,
 }) => {
   const ref = useRef<TraderNotificationsBottomSheetRef>(null);
@@ -175,7 +175,7 @@ describe('TraderNotificationsBottomSheet', () => {
         <TraderNotificationsBottomSheet
           ref={ref}
           traderId="trader-1"
-          traderName="dutchiono"
+          traderName="trader1"
         />,
       );
 
@@ -197,25 +197,25 @@ describe('TraderNotificationsBottomSheet', () => {
     });
 
     it('renders the title interpolated with trader name', () => {
-      renderOpenedSheet({ traderName: 'dutchiono' });
+      renderOpenedSheet({ traderName: 'trader1' });
 
       expect(
         screen.getByText(
           strings('social_leaderboard.trader_notifications.title', {
-            traderName: 'dutchiono',
+            traderName: 'trader1',
           }),
         ),
       ).toBeOnTheScreen();
     });
 
     it('renders the notification description with trader name', () => {
-      renderOpenedSheet({ traderName: 'dutchiono' });
+      renderOpenedSheet({ traderName: 'trader1' });
 
       expect(
         screen.getByText(
           strings(
             'social_leaderboard.trader_notifications.allow_push_notifications_desc',
-            { traderName: 'dutchiono' },
+            { traderName: 'trader1' },
           ),
         ),
       ).toBeOnTheScreen();
@@ -288,7 +288,7 @@ describe('TraderNotificationsBottomSheet', () => {
             <TraderNotificationsBottomSheet
               ref={ref}
               traderId="trader-1"
-              traderName="dutchiono"
+              traderName="trader1"
             />
             <Pressable
               testID="reopen"

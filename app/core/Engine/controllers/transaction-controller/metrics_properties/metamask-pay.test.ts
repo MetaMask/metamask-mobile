@@ -482,6 +482,38 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it('sets polymarket_account_created as true for PWAT deposit-and-order with matching nested transaction', () => {
+    request.transactionMeta.nestedTransactions = [
+      { type: TransactionType.predictDepositAndOrder },
+      { data: '0xa1884d2c1234' },
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        polymarket_account_created: true,
+      },
+      sensitiveProperties: {},
+    });
+  });
+
+  it('sets polymarket_account_created as false for PWAT deposit-and-order with no matching nested transaction', () => {
+    request.transactionMeta.nestedTransactions = [
+      { type: TransactionType.predictDepositAndOrder },
+      { data: '0xa1884d2d' },
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {
+        polymarket_account_created: false,
+      },
+      sensitiveProperties: {},
+    });
+  });
+
   it('derives base properties from metamaskPay metadata', () => {
     request.transactionMeta.metamaskPay = {
       chainId: '0x3',
@@ -638,6 +670,35 @@ describe('Metamask Pay Metrics', () => {
     expect(result).toStrictEqual({
       properties: expect.objectContaining({
         mm_pay_use_case: 'predict_withdraw',
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('derives mm_pay and mm_pay_use_case for PWAT batch with nested predictDepositAndOrder', () => {
+    request.transactionMeta.type = TransactionType.batch;
+    request.transactionMeta.nestedTransactions = [
+      { type: TransactionType.predictDepositAndOrder },
+    ];
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x89',
+      tokenAddress: '0x123',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: { allTokens: {} },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_use_case: 'predict_deposit_and_order',
       }),
       sensitiveProperties: {},
     });

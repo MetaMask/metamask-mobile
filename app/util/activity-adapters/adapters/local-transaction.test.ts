@@ -20,6 +20,12 @@ const lineaMusd = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const wethContractAddress = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
 const erc20TransferTopic =
   '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+const approveFunctionSignature = '0x095ea7b3';
+
+const buildApproveData = (spender: string, amount: bigint) =>
+  `${approveFunctionSignature}${spender
+    .replace('0x', '')
+    .padStart(64, '0')}${amount.toString(16).padStart(64, '0')}`;
 
 const withoutRaw = (item: ReturnType<typeof mapLocalTransaction>) => {
   const activity = { ...item };
@@ -64,8 +70,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:1',
       status: 'pending',
       timestamp: 1716367781000,
+      hash: '0xsend',
       data: {
-        hash: '0xsend',
         from,
         to,
         token: {
@@ -104,8 +110,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:1',
       status: 'success',
       timestamp: 1779392463306,
+      hash: '0x41f675c4a384e5064b1d9620934b0ff5e8a84f5c84530a25d025e27fb784d303',
       data: {
-        hash: '0x41f675c4a384e5064b1d9620934b0ff5e8a84f5c84530a25d025e27fb784d303',
         from,
         to: recipient,
         token: {
@@ -150,8 +156,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:1338',
       status: 'success',
       timestamp: 1779392463306,
+      hash: '0xcustomsend',
       data: {
-        hash: '0xcustomsend',
         from,
         to,
         token: {
@@ -194,8 +200,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:1',
       status: 'pending',
       timestamp: 1716367781000,
+      hash: '0xtokensend',
       data: {
-        hash: '0xtokensend',
         from,
         to: recipient,
         token: {
@@ -287,8 +293,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:59144',
       status: 'pending',
       timestamp: 1716367881000,
+      hash: '0xretry',
       data: {
-        hash: '0xretry',
         token: {
           assetId: toAssetId(
             '0x239fd4b0c4db49fa8660e65b97619d43d0e0a79d',
@@ -296,6 +302,46 @@ describe('mapLocalTransaction', () => {
           ),
           direction: 'out',
           symbol: 'TDN',
+        },
+      },
+    });
+  });
+
+  it('maps an approval amount from transaction calldata', () => {
+    const transaction = {
+      chainId: base,
+      id: 'approve-id',
+      hash: '0xapprove',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, 100000000n),
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'approveSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xapprove',
+      data: {
+        token: {
+          amount: '100000000',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
         },
       },
     });
@@ -343,8 +389,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:8453',
       status: 'success',
       timestamp: 1779392463306,
+      hash: '0xbridgeswap',
       data: {
-        hash: '0xbridgeswap',
         sourceToken: {
           amount: '10000000000000',
           assetId: 'eip155:8453/slip44:60',
@@ -398,8 +444,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:59144',
       status: 'success',
       timestamp: 1779805800000,
+      hash: '0xmusdconversion',
       data: {
-        hash: '0xmusdconversion',
         sourceToken: {
           assetId: toAssetId(lineaDai, 'eip155:59144'),
           decimals: 18,
@@ -452,8 +498,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:59144',
       status: 'success',
       timestamp: 1779805800000,
+      hash: '0xmusdclaim',
       data: {
-        hash: '0xmusdclaim',
         token: {
           amount: '1000000',
           assetId: toAssetId(lineaMusd, 'eip155:59144'),
@@ -498,8 +544,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:8453',
       status: 'success',
       timestamp: 1779892154611,
+      hash: '0x093844dd6200984f0e27d3c3a76b7a63b360bfb2136213237d693afd2cd69740',
       data: {
-        hash: '0x093844dd6200984f0e27d3c3a76b7a63b360bfb2136213237d693afd2cd69740',
         sourceToken: {
           amount: '100000',
           assetId: toAssetId(baseUsdc, 'eip155:8453'),
@@ -545,8 +591,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:8453',
       status: 'success',
       timestamp: 1779912434153,
+      hash: '0x26f4911467b538702c0945e4ec5e303de44c0c1c174897141d1b548ea3161795',
       data: {
-        hash: '0x26f4911467b538702c0945e4ec5e303de44c0c1c174897141d1b548ea3161795',
         destinationToken: {
           amount: '200000',
           assetId: toAssetId(baseUsdc, 'eip155:8453'),
@@ -608,8 +654,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:8453',
       status: 'success',
       timestamp: 1716367781000,
+      hash: '0xswap',
       data: {
-        hash: '0xswap',
         sourceToken: {
           assetId: 'eip155:8453/slip44:60',
           direction: 'out',
@@ -646,8 +692,55 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:1',
       status: 'success',
       timestamp: 1716367781000,
+      hash: '0xwrap',
       data: {
-        hash: '0xwrap',
+        sourceToken: {
+          amount: '0x3782dace9d900000',
+          assetId: 'eip155:1/slip44:60',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'ETH',
+        },
+        destinationToken: {
+          amount: '0x3782dace9d900000',
+          assetId: toAssetId(wethContractAddress, 'eip155:1'),
+          decimals: 18,
+          direction: 'in',
+          symbol: 'WETH',
+        },
+      },
+    });
+  });
+
+  it('maps a WETH9 deposit tagged as a swap to a Wrap activity', () => {
+    const transaction = {
+      chainId: mainnet,
+      id: 'swap-wrap-id',
+      hash: '0xswapwrap',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.swap,
+      swapMetaData: {
+        token_from: 'ETH',
+        token_to: 'WETH',
+      },
+      txParams: {
+        from,
+        to: wethContractAddress,
+        value: '0x3782dace9d900000',
+        data: '0xd0e30db0',
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'wrap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xswapwrap',
+      data: {
         sourceToken: {
           amount: '0x3782dace9d900000',
           assetId: 'eip155:1/slip44:60',
@@ -691,8 +784,57 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:1',
       status: 'success',
       timestamp: 1716367781000,
+      hash: '0xunwrap',
       data: {
-        hash: '0xunwrap',
+        sourceToken: {
+          amount: unwrapAmount,
+          assetId: toAssetId(wethContractAddress, 'eip155:1'),
+          decimals: 18,
+          direction: 'out',
+          symbol: 'WETH',
+        },
+        destinationToken: {
+          amount: unwrapAmount,
+          assetId: 'eip155:1/slip44:60',
+          decimals: 18,
+          direction: 'in',
+          symbol: 'ETH',
+        },
+      },
+    });
+  });
+
+  it('maps a WETH9 withdraw tagged as a swap to an Unwrap activity', () => {
+    const unwrapAmount = '1000000000000000000';
+    const unwrapAmountHex = BigInt(unwrapAmount).toString(16).padStart(64, '0');
+    const transaction = {
+      chainId: mainnet,
+      id: 'swap-unwrap-id',
+      hash: '0xswapunwrap',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.swap,
+      swapMetaData: {
+        token_from: 'WETH',
+        token_to: 'ETH',
+      },
+      txParams: {
+        from,
+        to: wethContractAddress,
+        value: '0x0',
+        data: `0x2e1a7d4d${unwrapAmountHex}`,
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'unwrap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xswapunwrap',
+      data: {
         sourceToken: {
           amount: unwrapAmount,
           assetId: toAssetId(wethContractAddress, 'eip155:1'),
@@ -734,8 +876,8 @@ describe('mapLocalTransaction', () => {
       chainId: 'eip155:1',
       status: 'success',
       timestamp: 1716367781000,
+      hash: '0xcontract',
       data: {
-        hash: '0xcontract',
         from,
         to,
         token: {

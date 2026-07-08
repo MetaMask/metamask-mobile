@@ -285,6 +285,95 @@ describe('PredictThePitchCampaignStatsView', () => {
         PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME,
       ),
     ).toBeDefined();
+    expect(
+      getByTestId(
+        PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARKETS_TRADED,
+      ),
+    ).toBeDefined();
+  });
+
+  it('shows x/y markets when below minimum', () => {
+    mockUseGetPosition.mockReturnValue({
+      position: {
+        ...basePosition,
+        marketsTraded: 2,
+        minimumMarketsTraded: 3,
+      },
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId } = render(<PredictThePitchCampaignStatsView />);
+
+    expect(
+      getByTestId(
+        PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARKETS_TRADED,
+      ).props.children,
+    ).toBe('2/3');
+  });
+
+  it('shows count only when markets traded meets minimum', () => {
+    mockUseGetPosition.mockReturnValue({
+      position: {
+        ...basePosition,
+        marketsTraded: 5,
+        minimumMarketsTraded: 3,
+      },
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId } = render(<PredictThePitchCampaignStatsView />);
+
+    expect(
+      getByTestId(
+        PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARKETS_TRADED,
+      ).props.children,
+    ).toBe('5');
+  });
+
+  it('hides the markets traded cell when marketsTraded is null', () => {
+    mockUseGetPosition.mockReturnValue({
+      position: {
+        ...basePosition,
+        marketsTraded: null,
+        minimumMarketsTraded: 3,
+      } as unknown as PredictThePitchLeaderboardPositionDto,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    const { queryByTestId } = render(<PredictThePitchCampaignStatsView />);
+
+    expect(
+      queryByTestId(
+        PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARKETS_TRADED,
+      ),
+    ).toBeNull();
+  });
+
+  it('hides the markets traded cell when position is null', () => {
+    mockUseGetPosition.mockReturnValue({
+      position: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    const { queryByTestId } = render(<PredictThePitchCampaignStatsView />);
+
+    expect(
+      queryByTestId(
+        PREDICT_THE_PITCH_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARKETS_TRADED,
+      ),
+    ).toBeNull();
   });
 
   it('shows fallback performance values when position numeric fields are invalid', () => {

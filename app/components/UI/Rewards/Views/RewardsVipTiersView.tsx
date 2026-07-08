@@ -71,7 +71,7 @@ const RewardsVipTiersViewContent: React.FC = () => {
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipTiersView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={{ top: 'additive', bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT}
       >

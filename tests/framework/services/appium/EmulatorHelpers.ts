@@ -8,11 +8,15 @@ const logger = createLogger({ name: 'EmulatorHelpers' });
 
 const ANDROID_BOOT_TIMEOUT_MS = 3 * 60 * 1000;
 const ANDROID_BOOT_POLL_INTERVAL_MS = 2000;
-const ANDROID_CI_INITIAL_SETTLE_MS = 15_000;
+const ANDROID_CI_INITIAL_SETTLE_MS = 30_000;
 const ANDROID_ANR_DISMISS_INTERVAL_MS = 3000;
 const ANDROID_ANR_CLEAR_STREAK_REQUIRED = 3;
 const ANDROID_ANR_STABILIZE_TIMEOUT_MS = 90_000;
+const ANDROID_NETWORK_READY_POLL_MS = 2_000;
+const ANDROID_NETWORK_READY_CONSECUTIVE_PINGS = 3;
+const ANDROID_NETWORK_READY_TIMEOUT_MS = 60_000;
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
+const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
 
 /** Play Store / GMS packages disabled after cold boot — not needed for Appium E2E. */
@@ -297,6 +301,77 @@ async function waitForAndroidSystemReady(serial: string): Promise<void> {
   );
 }
 
+/** True when `adb shell ping -c 1` output indicates a successful reply. */
+export function isAndroidPingSuccessful(stdout: string): boolean {
+  if (/100% packet loss|0 received/i.test(stdout)) {
+    return false;
+  }
+  return /1 received|1 packets transmitted, 1 received|0% packet loss/i.test(
+    stdout,
+  );
+}
+
+async function ensureAndroidNetworkEnabled(serial: string): Promise<void> {
+  await runAdbShell(serial, 'svc wifi enable');
+  await runAdbShell(serial, 'svc data enable');
+  await runAdbShell(serial, 'settings put global airplane_mode_on 0');
+}
+
+/**
+ * Waits until the emulator has stable outbound network before E2E tests start.
+ * Reduces NetInfo false-offline flips during cold boot on CI.
+ */
+async function waitForAndroidNetworkReady(serial: string): Promise<void> {
+  if (process.env.CI !== 'true') {
+    return;
+  }
+
+  const timeoutMs = Number.parseInt(
+    process.env.ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS ??
+      String(ANDROID_NETWORK_READY_TIMEOUT_MS),
+    10,
+  );
+  const requiredSuccesses = Number.parseInt(
+    process.env.ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS ??
+      String(ANDROID_NETWORK_READY_CONSECUTIVE_PINGS),
+    10,
+  );
+
+  logger.info(
+    `Waiting for Android emulator network (${requiredSuccesses} consecutive pings)...`,
+  );
+  await ensureAndroidNetworkEnabled(serial);
+
+  const deadline = Date.now() + timeoutMs;
+  let consecutiveSuccesses = 0;
+
+  while (Date.now() < deadline) {
+    try {
+      const { stdout } = await execAsync(
+        `adb -s ${serial} shell ping -c 1 -W 3 ${ANDROID_EMULATOR_CI_DNS_SERVER}`,
+      );
+      if (isAndroidPingSuccessful(stdout)) {
+        consecutiveSuccesses += 1;
+        if (consecutiveSuccesses >= requiredSuccesses) {
+          logger.info(
+            `Android emulator network ready (${consecutiveSuccesses} consecutive pings to ${ANDROID_EMULATOR_CI_DNS_SERVER}).`,
+          );
+          return;
+        }
+      } else {
+        consecutiveSuccesses = 0;
+      }
+    } catch {
+      consecutiveSuccesses = 0;
+    }
+    await sleep(ANDROID_NETWORK_READY_POLL_MS);
+  }
+
+  logger.warn(
+    `Android emulator network not stable within ${timeoutMs / 1000}s — continuing.`,
+  );
+}
+
 /**
  * After cold `-wipe-data` boot, system apps can ANR while indexing.
  * Trim bloat, wait for ANR-free window, then force-stop the launcher.
@@ -358,6 +433,7 @@ async function waitForEmulatorBoot(serial: string): Promise<void> {
   });
 
   await stabilizeAndroidEmulatorAfterBoot(serial);
+  await waitForAndroidNetworkReady(serial);
 }
 
 /**
@@ -448,6 +524,8 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
       '12288',
       '-cores',
       cores,
+      '-dns-server',
+      ANDROID_EMULATOR_CI_DNS_SERVER,
       '-gpu',
       'swiftshader_indirect',
       '-no-audio',

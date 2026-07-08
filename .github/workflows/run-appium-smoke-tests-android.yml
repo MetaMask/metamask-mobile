@@ -65,13 +65,36 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3, 4]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: appium-accounts-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: SmokeAccounts
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-perps-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokePerps'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-perps-android-smoke
+      platform: android
+      test_suite_tag: SmokePerps
       split_number: ${{ matrix.split }}
       total_splits: 2
       build_type: ${{ inputs.build_type }}

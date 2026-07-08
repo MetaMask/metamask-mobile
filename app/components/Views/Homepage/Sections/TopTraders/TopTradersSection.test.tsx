@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import { screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TopTradersSection from './TopTradersSection';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -33,7 +33,11 @@ const mockUseTopTraders = jest.fn((_options?: unknown) => ({
 
 jest.mock('./hooks', () => ({
   useTopTraders: (args: unknown) => mockUseTopTraders(args),
+  usePrefetchTraderProfiles: jest.fn(),
 }));
+
+const mockUsePrefetchTraderProfiles = jest.requireMock('./hooks')
+  .usePrefetchTraderProfiles as jest.Mock;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -65,6 +69,11 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
   },
 }));
 
+jest.mock('../../hooks/useSectionViewportVisible', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ isVisible: true, onLayout: jest.fn() })),
+}));
+
 const mockSelectSocialLeaderboardEnabled = jest.requireMock(
   '../../../../../selectors/featureFlagController/socialLeaderboard',
 ).selectSocialLeaderboardEnabled;
@@ -85,11 +94,11 @@ describe('TopTradersSection', () => {
     });
   });
 
-  it('queries with the spot chains so the cache key aligns with TopTradersView "All" and the prewarm saga', () => {
+  it('queries with all chains so the cache key aligns with TopTradersView "All"', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
         limit: 50,
       }),
     );
@@ -288,5 +297,33 @@ describe('TopTradersSection', () => {
     });
 
     expect(mockOnLayout).toHaveBeenCalled();
+  });
+
+  it('wires visible trader ids into the prefetch hook from FlatList viewability', () => {
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    const carousel = screen.getByTestId('homepage-top-traders-carousel');
+    const onViewableItemsChanged = carousel.props.onViewableItemsChanged;
+
+    act(() => {
+      onViewableItemsChanged({
+        viewableItems: [
+          {
+            item: { kind: 'trader', trader: mockTraders[0] },
+            key: 'trader-1',
+            index: 0,
+          },
+        ],
+        changed: [],
+      });
+    });
+
+    expect(mockUsePrefetchTraderProfiles).toHaveBeenLastCalledWith(
+      ['trader-1'],
+      expect.objectContaining({
+        enabled: true,
+        isSectionVisible: true,
+      }),
+    );
   });
 });

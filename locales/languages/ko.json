@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "지금 진행 중",
       "categories_placeholder": "카테고리",
-      "popular_today_placeholder": "오늘 인기 항목",
       "trending_placeholder": "인기"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "추천으로 얻은 포인트",
       "referrals_label": "VIP 추천",
       "tier_benefits_title": "티어 혜택",
-      "splash_title": "골드 폭스 VIP에\n오신 것을\n환영합니다",
+      "splash_title": "골드 폭스 COLLECTIVE에\n오신 것을\n환영합니다",
       "splash_description": "독점적 혜택, 우선 이용 가능한 기능, 엄선된 보상을 만나보세요. 초대받은 사용자만 이용할 수 있습니다.",
       "splash_accept_invite": "초대 수락",
       "splash_not_now": "나중에",
@@ -8843,17 +8842,14 @@
       "tiers_title": "티어",
       "tier_thresholds": "{{points}}포인트",
       "bps_value": "{{bps}} bps",
-      "referee_splash_title": "골드 폭스 VIP에\n오신 것을\n환영합니다",
-      "referee_splash_description": "독점적 혜택, 우선 이용 가능한 기능, 엄선된 보상을 만나보세요. 초대받은 사용자만 이용할 수 있습니다.",
       "referee_splash_continue": "계속",
-      "referee_splash_not_now": "나중에",
       "referee_referred_by": "추천 코드: {{code}}",
       "referee_page_title": "VIP 파일럿",
       "referee_stats_title": "통계",
       "referee_period_last_30d": "최근 30일",
-      "referee_points_label": "포인트",
       "referee_swaps_volume_label": "스왑 거래량",
       "referee_perps_volume_label": "무기한 선물 거래량",
+      "referee_points_to_label": "{{code}}에 대한 포인트",
       "referee_error_title": "추천받은 VIP 사용자 정보를 불러올 수 없습니다",
       "referee_error_description": "연결 상태를 확인하고 다시 시도하세요.",
       "last_updated": "마지막 업데이트: {{time}}"

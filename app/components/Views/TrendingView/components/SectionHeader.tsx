@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
 import {
+  SectionHeader as MMDSSectionHeader,
   Text,
   TextVariant,
   TextColor,
+  Box,
 } from '@metamask/design-system-react-native';
-import BaseSectionHeader from '../../../../component-library/components-temp/SectionHeader';
 import {
   trackExploreSectionSeeAll,
   type ExploreTabName,
@@ -21,6 +22,10 @@ export interface SectionHeaderProps {
   tabName?: ExploreTabName;
   /** Section context for analytics — required when onViewAll is set. */
   sectionName?: ExploreSectionName;
+  /** Extra Tailwind classes for the title row (e.g. bottom padding overrides). */
+  titleTwClassName?: string;
+  /** Extra Tailwind classes for the optional subtitle. */
+  subtitleTwClassName?: string;
 }
 
 const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -30,6 +35,8 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   testID,
   tabName,
   sectionName,
+  titleTwClassName,
+  subtitleTwClassName,
 }) => {
   const handleViewAll = useCallback(() => {
     if (tabName && sectionName) {
@@ -39,23 +46,24 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   }, [onViewAll, tabName, sectionName]);
 
   return (
-    <>
-      <BaseSectionHeader
+    <Box>
+      <MMDSSectionHeader
         testID={testID}
         title={title}
+        isInteractive={Boolean(onViewAll)}
         onPress={onViewAll ? handleViewAll : undefined}
-        twClassName={`px-0 ${subtitle ? 'mb-0.5' : 'mb-2'}`}
+        twClassName={`px-0 ${titleTwClassName ?? ''}`.trim()}
       />
-      {subtitle && (
+      {subtitle ? (
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mt-1"
+          twClassName={subtitleTwClassName}
         >
           {subtitle}
         </Text>
-      )}
-    </>
+      ) : null}
+    </Box>
   );
 };
 

@@ -30,13 +30,12 @@ import {
   selectMetaMaskPayTokensFlags,
   PreferredToken,
   getPreferredTokensForTransactionType,
+  selectRelayFixedSpread,
 } from '../../../../../selectors/featureFlagController/confirmations';
-import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
 import {
-  isTokenInWildcardList,
-  WildcardTokenList,
-} from '../../../../UI/Earn/utils/wildcardTokenList';
-import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChainIdToHex';
+  isSubsidizedSource,
+  RelayFixedSpreadConfig,
+} from '../../utils/relayFixedSpread';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { RootState } from '../../../../../reducers';
@@ -70,7 +69,7 @@ export function useAutomaticTransactionPayToken({
   const requiredTokens = useTransactionPayRequiredTokens();
   const { availableTokens } = useTransactionPayAvailableTokens();
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
-  const noFeeTokenList = useSelector(selectMoneyNoFeeTokens);
+  const relayFixedSpread = useSelector(selectRelayFixedSpread);
 
   const transactionMetaRequest = useTransactionMetadataRequest();
   const transactionMeta = useMemo(
@@ -142,7 +141,7 @@ export function useAutomaticTransactionPayToken({
         isWithdraw,
         lastWithdrawToken,
         minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
-        noFeeTokenList,
+        relayFixedSpread,
         preferredToken,
         preferredTokensFromFlags,
         targetToken,
@@ -156,7 +155,7 @@ export function useAutomaticTransactionPayToken({
       isQRWallet,
       isWithdraw,
       lastWithdrawToken,
-      noFeeTokenList,
+      relayFixedSpread,
       payTokensFlags.minimumRequiredTokenBalance,
       preferredToken,
       preferredTokensFromFlags,
@@ -313,7 +312,7 @@ function getBestToken({
   isWithdraw,
   lastWithdrawToken,
   minimumRequiredTokenBalance,
-  noFeeTokenList,
+  relayFixedSpread,
   preferredToken,
   preferredTokensFromFlags,
   targetToken,
@@ -327,7 +326,7 @@ function getBestToken({
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
   minimumRequiredTokenBalance: number;
-  noFeeTokenList: WildcardTokenList;
+  relayFixedSpread: RelayFixedSpreadConfig;
   preferredToken?: SetPayTokenRequest;
   preferredTokensFromFlags: PreferredToken[];
   targetToken?: { address: Hex; chainId: Hex };
@@ -431,11 +430,10 @@ function getBestToken({
         if (!token.chainId) return false;
         const fiatBalance = token.fiat?.balance ?? 0;
         if (fiatBalance < minimumRequiredTokenBalance) return false;
-        return isTokenInWildcardList(
-          token.symbol,
-          noFeeTokenList,
-          safeFormatChainIdToHex(token.chainId),
-        );
+        return isSubsidizedSource(relayFixedSpread, {
+          chainId: token.chainId,
+          address: token.address,
+        });
       })
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 

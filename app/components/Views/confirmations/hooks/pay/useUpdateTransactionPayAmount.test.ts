@@ -17,6 +17,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import Logger from '../../../../../util/Logger';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
@@ -25,6 +26,7 @@ import { Hex } from '@metamask/utils';
 jest.mock('../../../../../util/transaction-controller');
 jest.mock('../../../../UI/Money/utils/moneyAccountTransactions');
 jest.mock('../transactions/useUpdateTokenAmount');
+jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('../../../../../util/Logger');
 jest.mock('./useTransactionPayData');
 
@@ -72,6 +74,9 @@ describe('useUpdateTransactionPayAmount', () => {
     updateMoneyAccountWithdrawTokenAmount,
   );
   const useUpdateTokenAmountMock = jest.mocked(useUpdateTokenAmount);
+  const useTransactionAccountOverrideMock = jest.mocked(
+    useTransactionAccountOverride,
+  );
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
@@ -84,6 +89,7 @@ describe('useUpdateTransactionPayAmount', () => {
     useUpdateTokenAmountMock.mockReturnValue({
       updateTokenAmount: updateTokenAmountMock,
     });
+    useTransactionAccountOverrideMock.mockReturnValue(undefined);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
   });
 
@@ -108,6 +114,7 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(updateMoneyAccountDepositTokenAmountMock).toHaveBeenCalledWith(
       expect.any(Object),
       '1.23',
+      undefined,
     );
     expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(2);
     expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(1, {
@@ -226,6 +233,7 @@ describe('useUpdateTransactionPayAmount', () => {
     expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledWith(
       expect.any(Object),
       '4.56',
+      undefined,
     );
     expect(updateAtomicBatchDataMock).toHaveBeenCalledTimes(2);
     expect(updateAtomicBatchDataMock).toHaveBeenNthCalledWith(1, {
@@ -253,6 +261,24 @@ describe('useUpdateTransactionPayAmount', () => {
 
     expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledTimes(1);
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
+  });
+
+  it('passes accountOverride to updateMoneyAccountWithdrawTokenAmount', async () => {
+    const overrideAddress = '0x1111111111111111111111111111111111111111' as Hex;
+    useTransactionAccountOverrideMock.mockReturnValue(overrideAddress);
+    updateMoneyAccountWithdrawTokenAmountMock.mockResolvedValue([]);
+
+    const { result } = runHook({ transactionMeta: moneyAccountWithdrawMeta });
+
+    result.current.updateTransactionPayAmount('4.56');
+
+    await flushPromises();
+
+    expect(updateMoneyAccountWithdrawTokenAmountMock).toHaveBeenCalledWith(
+      expect.any(Object),
+      '4.56',
+      overrideAddress,
+    );
   });
 
   it('logs an error when updateMoneyAccountWithdrawTokenAmount rejects', async () => {

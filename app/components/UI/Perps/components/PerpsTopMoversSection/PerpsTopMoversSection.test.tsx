@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import {
   PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import PerpsTopMoversSection, {
@@ -13,6 +14,7 @@ import { usePerpsNavigation } from '../../hooks';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
 const mockNavigateToMarketList = jest.fn();
+const mockTrack = jest.fn();
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -25,6 +27,10 @@ jest.mock('../../hooks/usePerpsTopMovers', () => ({
 
 jest.mock('../../hooks', () => ({
   usePerpsNavigation: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 
 jest.mock('../../../Trending/components/PillScrollList', () => ({
@@ -63,10 +69,12 @@ jest.mock('../PerpsPillItem', () => ({
   PerpsPillItem: ({
     item,
     marketDetailsSource,
+    marketDetailsSourceSection,
     transactionActiveAbTests,
   }: {
     item: { market: { symbol: string } };
     marketDetailsSource: string;
+    marketDetailsSourceSection?: string;
     transactionActiveAbTests?: unknown[];
   }) => {
     const ReactModule = jest.requireActual('react');
@@ -78,6 +86,11 @@ jest.mock('../PerpsPillItem', () => ({
         Text,
         { testID: `mock-pill-source-${item.market.symbol}` },
         marketDetailsSource,
+      ),
+      ReactModule.createElement(
+        Text,
+        { testID: `mock-pill-source-section-${item.market.symbol}` },
+        marketDetailsSourceSection ?? '',
       ),
       ReactModule.createElement(
         Text,
@@ -103,6 +116,7 @@ const renderSection = (props: Partial<PerpsTopMoversSectionProps> = {}) =>
 describe('PerpsTopMoversSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTrack.mockReset();
     mockUseSelector.mockReturnValue(true);
     mockUsePerpsTopMovers.mockReturnValue({
       data: [buildMarket('ETH'), buildMarket('BTC')],
@@ -210,6 +224,26 @@ describe('PerpsTopMoversSection', () => {
     });
   });
 
+  it('fires PERPS_UI_INTERACTION with button_clicked=top_movers when the header is pressed', () => {
+    renderSection();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.TOP_MOVERS,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      }),
+    );
+  });
+
   it('navigates with the asc direction after selecting losers', () => {
     renderSection();
 
@@ -227,15 +261,44 @@ describe('PerpsTopMoversSection', () => {
     });
   });
 
-  it('passes the section source to each rendered pill', () => {
-    renderSection({ source: PERPS_EVENT_VALUE.SOURCE.EXPLORE });
+  it('passes source=perps_home and source_section=top_gainers to each pill when gainers toggle is active (default)', () => {
+    renderSection();
 
+    // source is perps_home (unified model)
     expect(screen.getByTestId('mock-pill-source-ETH')).toHaveTextContent(
-      PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+      PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     );
     expect(screen.getByTestId('mock-pill-source-BTC')).toHaveTextContent(
-      PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+      PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     );
+    // source_section distinguishes gainers from losers
+    expect(
+      screen.getByTestId('mock-pill-source-section-ETH'),
+    ).toHaveTextContent(PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_GAINERS);
+    expect(
+      screen.getByTestId('mock-pill-source-section-BTC'),
+    ).toHaveTextContent(PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_GAINERS);
+  });
+
+  it('passes source=perps_home and source_section=top_losers to each pill after switching to losers toggle', () => {
+    renderSection();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_LOSERS_PILL),
+    );
+
+    expect(screen.getByTestId('mock-pill-source-ETH')).toHaveTextContent(
+      PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    );
+    expect(screen.getByTestId('mock-pill-source-BTC')).toHaveTextContent(
+      PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    );
+    expect(
+      screen.getByTestId('mock-pill-source-section-ETH'),
+    ).toHaveTextContent(PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_LOSERS);
+    expect(
+      screen.getByTestId('mock-pill-source-section-BTC'),
+    ).toHaveTextContent(PERPS_EVENT_VALUE.SOURCE_SECTION.TOP_LOSERS);
   });
 
   it('forwards transactionActiveAbTests to each pill', () => {

@@ -6,6 +6,14 @@ import React, {
   useState,
 } from 'react';
 import { ActivityIndicator, Keyboard, Platform } from 'react-native';
+import type { TrendingAsset } from '@metamask/assets-controllers';
+import TrendingQuickBuy from '../../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../../search/abTestConfig';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -64,6 +72,15 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<unknown>>(null);
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
 
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
@@ -82,6 +99,12 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     resetScrollTracking();
   }, [searchQuery, resetScrollTracking]);
 
+  const handleQuickTrade =
+    (feedId === 'tokens' || feedId === 'stocks') &&
+    quickBuyVariant.showQuickTradeButton
+      ? setQuickTradeToken
+      : undefined;
+
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
       <SearchFeedRow
@@ -91,9 +114,10 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         searchQuery={searchQuery}
         tabName={tabName}
         resultCount={resultCount}
+        onQuickTrade={handleQuickTrade}
       />
     ),
-    [feedId, searchQuery, tabName, resultCount],
+    [feedId, searchQuery, tabName, resultCount, handleQuickTrade],
   );
 
   const keyExtractor = useCallback(
@@ -134,20 +158,26 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   }
 
   return (
-    <FlashList
-      ref={flashListRef}
-      data={data}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      contentContainerStyle={tw.style('px-4')}
-      showsVerticalScrollIndicator={false}
-      keyboardDismissMode="on-drag"
-      keyboardShouldPersistTaps="handled"
-      onScrollBeginDrag={onScrollBeginDrag}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.3}
-      ListFooterComponent={footer}
-    />
+    <>
+      <FlashList
+        ref={flashListRef}
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={tw.style('px-4')}
+        showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        onScrollBeginDrag={onScrollBeginDrag}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={footer}
+      />
+      <TrendingQuickBuy
+        token={quickTradeToken}
+        onClose={() => setQuickTradeToken(null)}
+      />
+    </>
   );
 };
 

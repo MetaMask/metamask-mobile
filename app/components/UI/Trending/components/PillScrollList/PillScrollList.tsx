@@ -63,7 +63,7 @@ export interface PillScrollListProps<T> {
  * Multi-row horizontal scroll of pill-shaped items. Used for compact movers sections.
  * Splits incoming data evenly between rows.
  */
-const DEFAULT_WRAPPER_TW = '-mx-4 bg-transparent mt-3 mb-9' as const;
+const DEFAULT_WRAPPER_TW = '-mx-4 bg-transparent' as const;
 
 function PillScrollList<T>({
   data,

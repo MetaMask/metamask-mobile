@@ -46,11 +46,13 @@ import {
   getClientVersionForTransactionMetadata,
   sanitizeOrigin,
 } from '../../../constants/smartTransactions';
+import { prefixError } from '../error-prefix';
 
 // Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
 const SEPOLIA_CHAIN_ID = '0xaa36a7';
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
+const ERROR_PREFIX = 'Gas Station 7702: ';
 
 const EMPTY_RESULT = {
   transactionHash: undefined,
@@ -101,7 +103,7 @@ export class Delegation7702PublishHook {
       return await this.#hook(transactionMeta, _signedTx);
     } catch (error) {
       log('Error', error);
-      throw error;
+      throw prefixError(error, ERROR_PREFIX);
     }
   }
 

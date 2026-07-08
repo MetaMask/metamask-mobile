@@ -14,12 +14,13 @@ import { TransactionDetailsHero } from '../transaction-details-hero';
 import { TransactionDetailsTotalRow } from '../transaction-details-total-row';
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { strings } from '../../../../../../../locales/i18n';
-import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
-import { TransactionDetailsBridgeFeeRow } from '../transaction-details-bridge-fee-row';
+import { TransactionDetailsFeeSection } from '../transaction-details-fee-section';
 import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
@@ -32,6 +33,7 @@ export const SUMMARY_SECTION_TYPES = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
@@ -40,7 +42,8 @@ export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { transactionMeta } = useTransactionDetails();
-  const title = getTitle(transactionMeta);
+  const isMoneyContext = useIsMoneyAccountContext();
+  const title = getTitle(transactionMeta, isMoneyContext);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -71,8 +74,7 @@ export function TransactionDetails() {
             <TransactionDetailsToRow />
             <TransactionDetailsFiatOrderIdRow />
             <TransactionDetailsPaidWithRow />
-            <TransactionDetailsNetworkFeeRow />
-            <TransactionDetailsBridgeFeeRow />
+            <TransactionDetailsFeeSection />
             <TransactionDetailsTotalRow />
             {showSummarySection && (
               <>
@@ -88,7 +90,10 @@ export function TransactionDetails() {
   );
 }
 
-function getTitle(transactionMeta: TransactionMeta | undefined) {
+function getTitle(
+  transactionMeta: TransactionMeta | undefined,
+  isMoneyContext: boolean,
+) {
   if (!transactionMeta) {
     return strings('transaction_details.title.default');
   }
@@ -96,6 +101,20 @@ function getTitle(transactionMeta: TransactionMeta | undefined) {
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
   ) {
+    if (isMoneyContext) {
+      const isFiatDeposit = Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
+      return isFiatDeposit
+        ? statusTitle(transactionMeta.status, {
+            confirmed: 'transaction_details.title.deposited_musd',
+            failed: 'transaction_details.title.deposit_failed',
+            pending: 'transaction_details.title.depositing_musd',
+          })
+        : statusTitle(transactionMeta.status, {
+            confirmed: 'transaction_details.title.converted_to_musd',
+            failed: 'transaction_details.title.conversion_failed',
+            pending: 'transaction_details.title.converting_to_musd',
+          });
+    }
     return strings('transaction_details.title.money_account_deposit');
   }
 
@@ -110,25 +129,68 @@ function getTitle(transactionMeta: TransactionMeta | undefined) {
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
+    if (isMoneyContext) {
+      return statusTitle(transactionMeta.status, {
+        confirmed: 'transaction_details.title.sent',
+        failed: 'transaction_details.title.send_failed',
+        pending: 'transaction_details.title.sending_musd',
+      });
+    }
     return strings('transaction_details.title.predict_deposit');
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    if (isMoneyContext) {
+      return strings('transaction_details.title.deposited_musd');
+    }
     return strings('transaction_details.title.predict_withdraw');
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    if (isMoneyContext) {
+      return strings('transaction_details.title.deposited_musd');
+    }
     return strings('transaction_details.title.perps_withdraw');
   }
 
   switch (transactionMeta.type) {
     case TransactionType.musdConversion:
+      if (isMoneyContext) {
+        return statusTitle(transactionMeta.status, {
+          confirmed: 'transaction_details.title.converted_to_musd',
+          failed: 'transaction_details.title.conversion_failed',
+          pending: 'transaction_details.title.converting_to_musd',
+        });
+      }
       return strings('transaction_details.title.musd_conversion');
     case TransactionType.musdClaim:
       return strings('transaction_details.title.musd_claim');
     case TransactionType.perpsDeposit:
+      if (isMoneyContext) {
+        return statusTitle(transactionMeta.status, {
+          confirmed: 'transaction_details.title.sent',
+          failed: 'transaction_details.title.send_failed',
+          pending: 'transaction_details.title.sending_musd',
+        });
+      }
       return strings('transaction_details.title.perps_deposit');
     default:
       return strings('transaction_details.title.default');
   }
+}
+
+function statusTitle(
+  status: TransactionStatus,
+  keys: { confirmed: string; failed: string; pending: string },
+): string {
+  if (status === TransactionStatus.confirmed) {
+    return strings(keys.confirmed);
+  }
+  if (
+    status === TransactionStatus.failed ||
+    status === TransactionStatus.dropped
+  ) {
+    return strings(keys.failed);
+  }
+  return strings(keys.pending);
 }

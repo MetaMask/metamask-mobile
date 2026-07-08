@@ -43,8 +43,8 @@ describe('mapKeyringTransaction', () => {
         chainId: SOLANA_CHAIN_ID,
         status: 'success',
         timestamp: 1716367781000,
+        hash: 'send-id',
         data: {
-          hash: 'send-id',
           from: 'from-address',
           to: 'to-address',
           token: {
@@ -100,8 +100,8 @@ describe('mapKeyringTransaction', () => {
         chainId: SOLANA_CHAIN_ID,
         status: 'pending',
         timestamp: 1716367781000,
+        hash: 'swap-id',
         data: {
-          hash: 'swap-id',
           sourceToken: {
             amount: '1',
             assetId: `${SOLANA_CHAIN_ID}/slip44:501`,
@@ -151,8 +151,8 @@ describe('mapKeyringTransaction', () => {
         chainId: BITCOIN_CHAIN_ID,
         status: 'success',
         timestamp: 1716367781000,
+        hash: 'btc-send-output-id',
         data: {
-          hash: 'btc-send-output-id',
           from: 'bc1from',
           to: 'bc1to',
           token: {

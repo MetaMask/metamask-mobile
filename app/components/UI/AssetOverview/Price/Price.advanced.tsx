@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { View, Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -17,7 +17,8 @@ import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
-  TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT,
+  isTokenOverviewChartInterval,
+  TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
@@ -36,10 +37,17 @@ import {
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
+  type OHLCVTimePeriod,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
+import IndicatorBar from '../../Charts/AdvancedChart/IndicatorBar';
+import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
+
+import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
+import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   FontWeight,
@@ -49,11 +57,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
+import { SUB_PANE_INDICATORS } from '../../TokenDetails/constants/constants';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
-import { setTokenOverviewChartType } from '../../../../actions/user';
+import { useTokenChartPreferences } from './hooks/useTokenChartPreferences';
 import type {
   TimePeriod,
   TokenPrice,
@@ -66,8 +74,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
-
-const EMPTY_INDICATORS: IndicatorType[] = [];
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
@@ -80,6 +87,18 @@ const WS_INTERVAL_BY_TIME_RANGE: Record<TimeRange, string> = {
   '1W': '1h',
   '1M': '1d',
   '1Y': '1d',
+};
+
+/**
+ * Maps each candle interval to the API timePeriod that returns enough history.
+ * Without this, e.g. interval=1d + timePeriod=1d returns only ~1 bar.
+ */
+const INTERVAL_TO_TIME_PERIOD: Record<string, OHLCVTimePeriod> = {
+  '1m': '1d',
+  '5m': '1d',
+  '15m': '1d',
+  '1h': '1w',
+  '1d': '1m',
 };
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
@@ -129,6 +148,7 @@ export interface PriceAdvancedProps {
   /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
   comparePrice: number;
   isLoading: boolean;
+  /** From parent (`Price`); forwarded to {@link PriceLegacy} on fallback only — AdvancedChart uses OHLCV. */
   prices?: TokenPrice[];
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
@@ -153,14 +173,32 @@ const PriceAdvanced = ({
   useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
-  const dispatch = useDispatch();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
-  const chartType = useSelector(selectTokenOverviewChartType);
+  const {
+    chartType,
+    chartInterval: persistedChartInterval,
+    indicators: persistedIndicators,
+    setChartType,
+    setChartInterval,
+    setIndicators,
+  } = useTokenChartPreferences();
   const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
+  const isTechnicalIndicatorsEnabled = useSelector(
+    selectTokenDetailsTechnicalIndicatorsEnabled,
+  );
+  /** `null` = WebView init pending; `false` = chart ready; `true` = init failed → legacy fallback. */
+  const [chartInitFailed, setChartInitFailed] = useState<boolean | null>(null);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
+
+  // Define activeIndicators early so it's available in all callbacks
+  const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
+    () => new Set(persistedIndicators),
+  );
+
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
@@ -168,46 +206,114 @@ const PriceAdvanced = ({
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
+      const properties: Record<string, unknown> = {
+        interaction_type: payload.interaction_type,
+        chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
+      };
+
+      // Add indicators_active when feature flag is enabled
+      if (isTechnicalIndicatorsEnabled) {
+        properties.indicators_active = [...activeIndicators];
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-          .addProperties({
-            interaction_type: payload.interaction_type,
-            chart_type:
-              chartType === ChartType.Candles ? 'candlestick' : 'line',
-          })
+          .addProperties(properties)
           .build(),
       );
     },
-    [createEventBuilder, trackEvent, chartType],
+    [
+      createEventBuilder,
+      trackEvent,
+      chartType,
+      isTechnicalIndicatorsEnabled,
+      activeIndicators,
+    ],
   );
 
   const handleChartTradingViewClicked = useCallback(() => {
+    const properties: Record<string, unknown> = {
+      interaction_type: 'tradingview_clicked',
+      chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
+    };
+
+    // Add indicators_active when feature flag is enabled
+    if (isTechnicalIndicatorsEnabled) {
+      properties.indicators_active = [...activeIndicators];
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-        .addProperties({
-          interaction_type: 'tradingview_clicked',
-          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
-        })
+        .addProperties(properties)
         .build(),
     );
-  }, [createEventBuilder, trackEvent, chartType]);
+  }, [
+    createEventBuilder,
+    trackEvent,
+    chartType,
+    isTechnicalIndicatorsEnabled,
+    activeIndicators,
+  ]);
+
+  // Sync activeIndicators to Redux for persistence
+  useEffect(() => {
+    setIndicators([...activeIndicators]);
+  }, [activeIndicators, setIndicators]);
+
+  const isMAIndicator = useCallback((name: string) => /^MA\d+$/.test(name), []);
+
+  const indicatorsArray = useMemo(
+    () =>
+      ([...activeIndicators] as IndicatorType[]).filter(
+        (i) => i !== 'Volume' && !isMAIndicator(i),
+      ),
+    [activeIndicators, isMAIndicator],
+  );
+
+  const selectedMAs = useMemo(
+    () => [...activeIndicators].filter((name) => isMAIndicator(name)),
+    [activeIndicators, isMAIndicator],
+  );
+
+  const handleChartTypeSelect = useCallback(
+    (next: ChartType) => {
+      if (next === chartType) return;
+      if (next !== ChartType.Candles) {
+        setCrosshairData(null);
+      }
+
+      const properties: Record<string, unknown> = {
+        interaction_type: 'chart_type_changed',
+        chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
+      };
+
+      // Add indicators_active when feature flag is enabled
+      if (isTechnicalIndicatorsEnabled) {
+        properties.indicators_active = [...activeIndicators];
+      }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties(properties)
+          .build(),
+      );
+      setChartType(next);
+    },
+    [
+      chartType,
+      createEventBuilder,
+      trackEvent,
+      setChartType,
+      isTechnicalIndicatorsEnabled,
+      activeIndicators,
+    ],
+  );
 
   const toggleChartType = useCallback(() => {
     const next =
       chartType === ChartType.Candles ? ChartType.Line : ChartType.Candles;
-    if (next !== ChartType.Candles) {
-      setCrosshairData(null);
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
-        .addProperties({
-          interaction_type: 'chart_type_changed',
-          chart_type: next === ChartType.Candles ? 'candlestick' : 'line',
-        })
-        .build(),
-    );
-    dispatch(setTokenOverviewChartType(next));
-  }, [chartType, createEventBuilder, trackEvent, dispatch]);
+    handleChartTypeSelect(next);
+  }, [chartType, handleChartTypeSelect]);
 
   const handleTimeRangeSelect = useCallback(
     (range: TimeRange) => {
@@ -251,14 +357,55 @@ const PriceAdvanced = ({
     }
   }, [asset.address, asset.chainId]);
   const config = TIME_RANGE_CONFIGS[timeRange];
+  const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+
+  const resolveDisplayInterval = useCallback(
+    (interval: string | undefined | null) => {
+      const normalised = interval?.toLowerCase();
+      if (isTokenOverviewChartInterval(normalised)) {
+        return normalised.toUpperCase();
+      }
+      return wsInterval.toUpperCase();
+    },
+    [wsInterval],
+  );
+
+  const [displayInterval, setDisplayInterval] = useState(() =>
+    isTechnicalIndicatorsEnabled
+      ? resolveDisplayInterval(persistedChartInterval)
+      : wsInterval.toUpperCase(),
+  );
+
+  useEffect(() => {
+    if (isTechnicalIndicatorsEnabled) {
+      setDisplayInterval(resolveDisplayInterval(persistedChartInterval));
+      return;
+    }
+    setDisplayInterval(wsInterval.toUpperCase());
+  }, [
+    isTechnicalIndicatorsEnabled,
+    persistedChartInterval,
+    resolveDisplayInterval,
+    wsInterval,
+  ]);
+
+  const chartInterval = displayInterval.toLowerCase();
+
+  const effectiveTimePeriod = isTechnicalIndicatorsEnabled
+    ? INTERVAL_TO_TIME_PERIOD[chartInterval]
+    : config.timePeriod;
+
+  const effectiveInterval = isTechnicalIndicatorsEnabled
+    ? chartInterval
+    : config.interval;
 
   /**
    * Used to make sure changing time range always sends a full SET_OHLCV_DATA
    */
   const ohlcvSeriesKey = useMemo(
     () =>
-      `${assetId}|${config.timePeriod}|${config.interval}|${currentCurrency}`,
-    [assetId, config.timePeriod, config.interval, currentCurrency],
+      `${assetId}|${effectiveTimePeriod}|${effectiveInterval}|${currentCurrency}`,
+    [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
   const assetIdRef = useRef(assetId);
@@ -272,6 +419,7 @@ const PriceAdvanced = ({
   } | null>(null);
 
   const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    setChartInitFailed(false);
     const open = activeVisibilityTraceRef.current;
     if (!open) {
       return;
@@ -298,6 +446,27 @@ const PriceAdvanced = ({
     activeVisibilityTraceRef.current = null;
   }, []);
 
+  const handleAdvancedChartInitFailed = useCallback((error: string) => {
+    setChartInitFailed(true);
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+      data: {
+        errorMessage: error.slice(0, 200),
+        chartInitFailed: true,
+      },
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    setChartInitFailed(null);
+  }, [ohlcvSeriesKey]);
+
   const {
     ohlcvData,
     isLoading: chartLoading,
@@ -307,12 +476,120 @@ const PriceAdvanced = ({
     hasEmptyData,
   } = useOHLCVChart({
     assetId,
-    timePeriod: config.timePeriod,
-    interval: config.interval,
+    timePeriod: effectiveTimePeriod,
+    interval: effectiveInterval,
     vsCurrency: currentCurrency,
   });
 
-  const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+  const maLabel = useMemo(() => {
+    if (selectedMAs.length === 0) return 'MA';
+    if (selectedMAs.length === 1) return selectedMAs[0];
+    return `MA x${selectedMAs.length}`;
+  }, [selectedMAs]);
+
+  const handleMAPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+        .addProperties({
+          interaction_type: 'indicator_selector_opened',
+          selector_type: 'moving_averages',
+          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
+          indicators_active: [...activeIndicators],
+        })
+        .build(),
+    );
+
+    navigation.navigate(
+      ...createMAPickerNavDetails({
+        selectedMAs,
+        onDone: (selected: string[]) => {
+          setActiveIndicators((prev) => {
+            const next = new Set([...prev].filter((i) => !/^MA\d+$/.test(i)));
+            const previousMAs = [...prev].filter((i) => /^MA\d+$/.test(i));
+            const selectedSet = new Set(selected);
+
+            selected.forEach((ma) => next.add(ma));
+
+            // Track individual MA state changes
+            const allMAs = new Set([...previousMAs, ...selected]);
+
+            allMAs.forEach((ma) => {
+              const wasActive = previousMAs.includes(ma);
+              const isActive = selectedSet.has(ma);
+
+              // Only emit event if state changed
+              if (wasActive !== isActive) {
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+                    .addProperties({
+                      interaction_type: 'indicator_toggled',
+                      indicator_type: ma,
+                      indicator_action: isActive ? 'on' : 'off',
+                      indicators_active: [...next],
+                      chart_type:
+                        chartType === ChartType.Candles
+                          ? 'candlestick'
+                          : 'line',
+                    })
+                    .build(),
+                );
+              }
+            });
+
+            return next;
+          });
+        },
+      }),
+    );
+  }, [
+    navigation,
+    selectedMAs,
+    trackEvent,
+    createEventBuilder,
+    chartType,
+    activeIndicators,
+  ]);
+
+  const chartHeight = BASE_CHART_HEIGHT;
+
+  const handleIndicatorToggle = useCallback(
+    (name: string) => {
+      setActiveIndicators((prev) => {
+        const next = new Set(prev);
+        const wasActive = next.has(name);
+
+        if (wasActive) {
+          next.delete(name);
+        } else {
+          if ((SUB_PANE_INDICATORS as readonly string[]).includes(name)) {
+            SUB_PANE_INDICATORS.forEach((i) => {
+              if (i !== name) next.delete(i);
+            });
+          }
+          next.add(name);
+        }
+
+        // Track immediately with the new state
+        const updatedIndicators = [...next];
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+            .addProperties({
+              interaction_type: 'indicator_toggled',
+              indicator_type: name,
+              indicator_action: wasActive ? 'off' : 'on',
+              indicators_active: updatedIndicators,
+              chart_type:
+                chartType === ChartType.Candles ? 'candlestick' : 'line',
+            })
+            .build(),
+        );
+
+        return next;
+      });
+    },
+    [trackEvent, createEventBuilder, chartType],
+  );
+
   const wsEnabled =
     isOhlcvWsEnabled &&
     !chartLoading &&
@@ -320,13 +597,60 @@ const PriceAdvanced = ({
     !hasEmptyData &&
     !chartError;
 
+  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
+  const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
+
+  /**
+   * Only show technical indicators UI when we're certain the advanced chart is being used.
+   * This prevents a confusing flash where interval/indicator bars appear then disappear
+   * when falling back to legacy chart or while WebView init is still pending.
+   */
+  const shouldShowTechnicalIndicators =
+    isTechnicalIndicatorsEnabled &&
+    !isAdvancedChartUiPending &&
+    ohlcvData.length >= CHART_DATA_THRESHOLD &&
+    !hasEmptyData &&
+    !chartError;
+
+  /** Candlestick-only: keep selections in state/Redux but hide studies on line chart. */
+  const showChartIndicators =
+    isTechnicalIndicatorsEnabled && chartType === ChartType.Candles;
+
   const { latestBar } = useOHLCVRealtime({
     assetId,
-    interval: wsInterval,
+    interval: isTechnicalIndicatorsEnabled ? chartInterval : wsInterval,
     currency: currentCurrency,
-    timePeriod: timeRange.toLowerCase(),
+    timePeriod: isTechnicalIndicatorsEnabled
+      ? effectiveTimePeriod
+      : timeRange.toLowerCase(),
     enabled: wsEnabled,
   });
+
+  const handleInlineIntervalSelect = useCallback(
+    (interval: string) => {
+      setDisplayInterval(interval);
+      setChartInterval(interval);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
+          .addProperties({
+            interaction_type: 'granularity_changed',
+            chart_granularity: interval.toLowerCase(),
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
+            indicators_active: [...activeIndicators],
+          })
+          .build(),
+      );
+    },
+    [
+      trackEvent,
+      createEventBuilder,
+      chartType,
+      activeIndicators,
+      setChartInterval,
+    ],
+  );
 
   // TradingView Advanced Charts Bar.time expects milliseconds
   // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
@@ -352,27 +676,41 @@ const PriceAdvanced = ({
     }),
     [nextCursor, hasMore, assetId, currentCurrency],
   );
-  // Anchor the visible window to the last candle so the timeframe constructor
-  // spans exactly durationMs (e.g. 24 h) and the leftmost rendered bar matches
-  // the reference price used for the header percentage.
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
 
+  // Flag ON: let TradingView auto-fit all returned data.
+  // Flag OFF: anchor visible window to lastBarTime - durationMs so the
+  //           leftmost bar matches the reference price for the header percentage.
   const visibleFromMs = useMemo(() => {
+    if (isTechnicalIndicatorsEnabled) return undefined;
     if (lastBarTime == null) return undefined;
     return lastBarTime - config.durationMs;
-  }, [lastBarTime, config.durationMs]);
+  }, [isTechnicalIndicatorsEnabled, lastBarTime, config.durationMs]);
 
-  const visibleToMs = lastBarTime;
+  const visibleToMs = isTechnicalIndicatorsEnabled ? undefined : lastBarTime;
 
-  const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
+  const dateLabel = isTechnicalIndicatorsEnabled
+    ? strings('asset_overview.chart_time_period.1d')
+    : strings(TIME_RANGE_LABELS[timeRange]);
 
-  // Calculate the current compare price from OHLCV data
+  // Calculate the current compare price from OHLCV data.
+  // Flag ON: find the bar closest to exactly 24 h before the last bar so the
+  // percentage always represents 24H change regardless of selected interval.
+  // Flag OFF: find the first bar within the visible window so the percentage
+  // resets to 0% at the leftmost visible bar.
   const currentComparePrice = useMemo(() => {
-    if (ohlcvData.length === 0 || visibleFromMs == null) return null;
+    if (ohlcvData.length === 0) return null;
+    if (isTechnicalIndicatorsEnabled) {
+      if (lastBarTime == null) return null;
+      const target24h = lastBarTime - 24 * 60 * 60 * 1000;
+      const bar24h = ohlcvData.find((c) => c.time >= target24h) ?? ohlcvData[0];
+      return bar24h.close;
+    }
+    if (visibleFromMs == null) return null;
     const firstVisible =
       ohlcvData.find((c) => c.time >= visibleFromMs) ?? ohlcvData[0];
     return firstVisible.close;
-  }, [ohlcvData, visibleFromMs]);
+  }, [ohlcvData, visibleFromMs, isTechnicalIndicatorsEnabled, lastBarTime]);
 
   // Store last good compare price to show during loading
   const stableComparePriceRef = useRef<number | null>(null);
@@ -447,6 +785,14 @@ const PriceAdvanced = ({
     return initialPriceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
   }, [useAmbientColor, initialPriceDiff, ambientSuccessGreen]);
 
+  const tokenDetailsLegendOverlay = useMemo(
+    () =>
+      isTechnicalIndicatorsEnabled
+        ? getTokenDetailsLegendOverlay(themeAppearance)
+        : undefined,
+    [isTechnicalIndicatorsEnabled, themeAppearance],
+  );
+
   // Dynamic ambient color for price diff text only - changes during crosshair hover
   const ambientColor = useMemo(() => {
     if (!useAmbientColor) return undefined;
@@ -456,7 +802,10 @@ const PriceAdvanced = ({
 
   const shouldFallbackToLegacy =
     !chartLoading &&
-    (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
+    (ohlcvData.length < CHART_DATA_THRESHOLD ||
+      hasEmptyData ||
+      chartError ||
+      chartInitFailed === true);
 
   useLayoutEffect(() => {
     if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
@@ -593,7 +942,7 @@ const PriceAdvanced = ({
           </Text>
         )}
         <Text allowFontScaling={false}>
-          {isLoading ? (
+          {(isTechnicalIndicatorsEnabled ? chartLoading : isLoading) ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder
                 backgroundColor={theme.colors.background.section}
@@ -647,29 +996,62 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName="mt-3 w-full">
+      {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
+      {isTechnicalIndicatorsEnabled && isAdvancedChartUiPending && (
+        <View style={styles.intervalBarContainer}>
+          <View style={styles.timeRangeSelectorWrap}>
+            <Box twClassName="w-full px-4">
+              <Skeleton height={29} width="100%" />
+            </Box>
+          </View>
+        </View>
+      )}
+      {/* IntervalBar appears once OHLCV and WebView init have completed */}
+      {isTechnicalIndicatorsEnabled && shouldShowTechnicalIndicators && (
+        <View style={styles.intervalBarContainer}>
+          <View style={styles.timeRangeSelectorWrap}>
+            <Box twClassName="w-full">
+              <IntervalBar
+                selectedInterval={displayInterval}
+                onIntervalSelect={handleInlineIntervalSelect}
+                chartType={chartType}
+                onChartTypeSelect={handleChartTypeSelect}
+              />
+            </Box>
+          </View>
+        </View>
+      )}
+      <Box
+        twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
+      >
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
         <View
           testID="advanced-chart-touch-container"
-          style={[styles.chartContainer, { height: CHART_HEIGHT }]}
+          style={[styles.chartContainer, { height: chartHeight }]}
         >
           {Platform.OS === 'ios' && (
             <View style={styles.edgeOverlay} pointerEvents="box-only" />
           )}
           {useAmbientColor && initialAmbientColor === undefined ? (
-            <Skeleton height={CHART_HEIGHT} width="100%" />
+            <Skeleton height={chartHeight} width="100%" />
           ) : (
             <AdvancedChart
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
               realtimeBar={realtimeBar}
-              height={CHART_HEIGHT}
-              showVolume={chartType === ChartType.Candles}
+              height={chartHeight}
+              showVolume={
+                isTechnicalIndicatorsEnabled
+                  ? chartType === ChartType.Candles &&
+                    activeIndicators.has('Volume')
+                  : chartType === ChartType.Candles
+              }
               volumeOverlay
               chartType={chartType}
-              indicators={EMPTY_INDICATORS}
+              indicators={showChartIndicators ? indicatorsArray : []}
+              selectedMAs={showChartIndicators ? selectedMAs : []}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               ohlcvPagination={ohlcvPagination}
@@ -680,6 +1062,7 @@ const PriceAdvanced = ({
               onChartTradingViewClicked={handleChartTradingViewClicked}
               onSkeletonHidden={handleAdvancedChartSkeletonHidden}
               onError={handleAdvancedChartError}
+              onInitFailed={handleAdvancedChartInitFailed}
               lineColorOverride={initialAmbientColor}
               successColorOverride={
                 initialAmbientColor ? ambientSuccessGreen : undefined
@@ -687,23 +1070,43 @@ const PriceAdvanced = ({
               errorColorOverride={
                 initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
               }
+              legendOverlay={tokenDetailsLegendOverlay}
             />
           )}
         </View>
       </Box>
-
-      <View style={styles.timeRangeContainer}>
-        <View style={styles.timeRangeSelectorWrap}>
-          <TimeRangeSelector
-            isChartLoading={chartLoading}
-            selected={timeRange}
-            onSelect={handleTimeRangeSelect}
-            chartType={chartType}
-            onChartTypeToggle={toggleChartType}
-            selectedColor={initialAmbientColor}
+      {/* IndicatorBar appears when not loading */}
+      {shouldShowTechnicalIndicators && chartType === ChartType.Candles ? (
+        <Box twClassName="w-full mt-4 mb-6">
+          <IndicatorBar
+            maLabel={maLabel}
+            onMAPress={handleMAPress}
+            activeIndicators={activeIndicators}
+            onIndicatorToggle={handleIndicatorToggle}
           />
+        </Box>
+      ) : isTechnicalIndicatorsEnabled &&
+        chartType === ChartType.Candles &&
+        !shouldShowTechnicalIndicators ? (
+        <Box twClassName="w-full px-4 mt-4 mb-6">
+          <Skeleton height={37} width="100%" />
+        </Box>
+      ) : !shouldShowTechnicalIndicators && !isTechnicalIndicatorsEnabled ? (
+        <View style={styles.timeRangeContainer}>
+          <View style={styles.timeRangeSelectorWrap}>
+            <TimeRangeSelector
+              isChartLoading={isAdvancedChartUiPending}
+              selected={timeRange}
+              onSelect={handleTimeRangeSelect}
+              chartType={chartType}
+              onChartTypeToggle={toggleChartType}
+              selectedColor={initialAmbientColor}
+            />
+          </View>
         </View>
-      </View>
+      ) : (
+        <Box twClassName="pb-4" />
+      )}
     </>
   );
 };

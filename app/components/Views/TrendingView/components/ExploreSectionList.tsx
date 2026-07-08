@@ -1,0 +1,44 @@
+import React, { Fragment } from 'react';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
+
+export interface ExploreSectionItem {
+  key: string;
+  content: React.ReactNode;
+  /** Vertical card lists omit pb-3 before the next section. */
+  isVerticalList?: boolean;
+}
+
+interface ExploreSectionListProps {
+  sections: ExploreSectionItem[];
+}
+
+/**
+ * Renders Explore tab sections with dividers between visible blocks.
+ * The tab owns section order and visibility; sections render content only.
+ */
+const ExploreSectionList: React.FC<ExploreSectionListProps> = ({
+  sections,
+}) => (
+  <>
+    {sections.map((section, index) => (
+      <Fragment key={section.key}>
+        {index > 0 ? (
+          <Box testID="explore-section-divider">
+            <SectionDivider twClassName="-mx-4" />
+          </Box>
+        ) : null}
+        <Box
+          twClassName={
+            index < sections.length - 1 && !section.isVerticalList
+              ? 'pb-3'
+              : undefined
+          }
+        >
+          {section.content}
+        </Box>
+      </Fragment>
+    ))}
+  </>
+);
+
+export default ExploreSectionList;

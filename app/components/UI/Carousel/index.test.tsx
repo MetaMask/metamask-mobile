@@ -12,16 +12,11 @@ import AppConstants from '../../../core/AppConstants';
 import Carousel, { useFetchCarouselSlides } from './';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import Engine from '../../../core/Engine';
 import { fetchCarouselSlidesFromContentful } from './fetchCarouselSlidesFromContentful';
 import { CarouselSlide } from './types';
 // eslint-disable-next-line import-x/no-namespace
 import * as FeatureFlagSelectorsModule from './selectors/featureFlags';
 import { RootState } from '../../../reducers';
-import { selectLastSelectedSolanaAccount } from '../../../selectors/accountsController';
-import Routes from '../../../constants/navigation/Routes';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { SolScope } from '@metamask/keyring-api';
 import { setContentPreviewToken } from '../../../actions/notification/helpers';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -37,14 +32,6 @@ const makeMockState = () =>
     engine: {
       backgroundState: {
         ...backgroundState,
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: '1',
-            accounts: {
-              '1': { address: '0xSomeAddress' },
-            },
-          },
-        },
       },
     },
     settings: { showFiatOnTestnets: false },
@@ -60,11 +47,6 @@ jest.mock('react-redux', () => ({
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
-}));
-
-jest.mock('../../../core/Engine', () => ({
-  setSelectedAddress: jest.fn(),
-  context: { PreferencesController: { state: {} } },
 }));
 
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
@@ -442,56 +424,6 @@ describe('Carousel Slide Dismissal', () => {
 
     expect(slide).toBeOnTheScreen();
     expect(closeButton).toBeOnTheScreen();
-  });
-});
-
-describe('Carousel Solana Integration', () => {
-  const setupSolanaTests = (hasSolanaAccount: boolean = false) => {
-    const mockState = makeMockState();
-    jest.mocked(useSelector).mockImplementation((selector) => {
-      if (selector === selectLastSelectedSolanaAccount) {
-        return hasSolanaAccount ? { address: 'SolanaAddress123' } : null;
-      }
-      return selector(mockState);
-    });
-  };
-
-  const arrangeActTestSolanaCarouselClick = async (
-    props = { hasSolanaAccount: true },
-  ) => {
-    setupSolanaTests(props.hasSolanaAccount);
-    const solanaSlide = createMockSlide({
-      id: 'solana',
-      variableName: 'solana',
-    });
-    mockFetchCarouselSlides.mockResolvedValue({
-      prioritySlides: [],
-      regularSlides: [solanaSlide],
-    });
-
-    const { findByTestId } = render(<Carousel />);
-    const slide = await findByTestId('carousel-slide-solana');
-    expect(slide).toBeVisible();
-    fireEvent.press(slide);
-  };
-
-  it('switches to existing Solana account when clicked', async () => {
-    await arrangeActTestSolanaCarouselClick({ hasSolanaAccount: true });
-    expect(Engine.setSelectedAddress).toHaveBeenCalledWith('SolanaAddress123');
-  });
-
-  it('navigates to add account flow when no existing Solana account', async () => {
-    await arrangeActTestSolanaCarouselClick({ hasSolanaAccount: false }); // no solana account
-
-    // Should navigate to add account flow instead of switching accounts
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ADD_ACCOUNT,
-      params: {
-        clientType: WalletClientType.Solana,
-        scope: SolScope.Mainnet,
-      },
-    });
-    expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
   });
 });
 

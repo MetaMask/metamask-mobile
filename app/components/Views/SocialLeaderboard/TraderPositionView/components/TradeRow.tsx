@@ -1,6 +1,4 @@
 import React from 'react';
-import { Image } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
@@ -9,26 +7,41 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
-  AvatarBase,
-  AvatarBaseSize,
 } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { formatUsd, formatTradeDate } from '../../utils/formatters';
+import PerpBadges from '../../components/PerpBadges';
+import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+
+const AVATAR_SIZE = 32;
 
 export interface TradeRowProps {
   trade: Trade;
-  traderName: string;
   traderImageUrl?: string;
+  traderAddress?: string;
 }
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
-  traderName,
   traderImageUrl,
+  traderAddress,
 }) => {
-  const tw = useTailwind();
   const isEntry = trade.intent === 'enter';
+  const isPerp = isPerpTrade(trade);
+  const perpDirection = getPerpTradeDirection(trade);
+
+  // Perp fills read as "opened"/"closed" (vs spot "bought"/"sold").
+  const actionLabel = isPerp
+    ? isEntry
+      ? strings('social_leaderboard.trader_position.opened')
+      : strings('social_leaderboard.trader_position.closed_action')
+    : isEntry
+      ? strings('social_leaderboard.trader_position.bought')
+      : strings('social_leaderboard.trader_position.sold');
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -42,33 +55,34 @@ const TradeRow: React.FC<TradeRowProps> = ({
         gap={4}
         twClassName="flex-1 min-w-0 mr-3"
       >
-        {traderImageUrl ? (
-          <Image
-            source={{ uri: traderImageUrl }}
-            style={tw.style('w-[32px] h-[32px] rounded-full bg-muted')}
-            resizeMode="cover"
-          />
-        ) : (
-          <AvatarBase
-            size={AvatarBaseSize.Md}
-            fallbackText={traderName.charAt(0).toUpperCase()}
-          />
-        )}
+        <TraderAvatar
+          imageUrl={traderImageUrl}
+          address={traderAddress}
+          size={AVATAR_SIZE}
+        />
         <Box twClassName="flex-1 min-w-0">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
           >
-            {isEntry
-              ? strings('social_leaderboard.trader_position.bought', {
-                  name: traderName,
-                })
-              : strings('social_leaderboard.trader_position.sold', {
-                  name: traderName,
-                })}
-          </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+              twClassName="shrink"
+            >
+              {actionLabel}
+            </Text>
+            {perpDirection ? (
+              <PerpBadges
+                direction={perpDirection}
+                leverage={trade.perpLeverage}
+                testID={`trade-row-perp-badges-${trade.transactionHash}`}
+              />
+            ) : null}
+          </Box>
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}

@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
@@ -15,7 +14,7 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../../selector
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import {
-  hasTransactionType,
+  getTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
 import {
@@ -31,26 +30,14 @@ const styles = StyleSheet.create({
   moneyIcon: { width: 24, height: 24 },
 });
 
-const PERPS_TRANSACTION_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.perpsWithdraw,
-] as const;
-
-const PREDICT_TRANSACTION_TYPES = [
-  TransactionType.predictDeposit,
-  TransactionType.predictDepositAndOrder,
-  TransactionType.predictWithdraw,
-] as const;
-
 export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const navigation = useNavigation();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const {
-    enablePerpsMoneyAccountTransactions,
-    enablePredictMoneyAccountTransactions,
-  } = useSelector(selectMetaMaskPayFlags);
+  const { enableMoneyAccountTransactions } = useSelector(
+    selectMetaMaskPayFlags,
+  );
   const { totalFiatFormatted } = useMoneyAccountBalance();
 
   const paymentOverride = useSelector((state: RootState) =>
@@ -59,17 +46,10 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const isMoneyAccountSelected =
     paymentOverride === PaymentOverride.MoneyAccount;
 
-  const isPerps = hasTransactionType(
-    transactionMeta,
-    PERPS_TRANSACTION_TYPES as unknown as TransactionType[],
+  const transactionType = getTransactionType(transactionMeta);
+  const isEnabled = Boolean(
+    transactionType && enableMoneyAccountTransactions[transactionType],
   );
-  const isPredict = hasTransactionType(
-    transactionMeta,
-    PREDICT_TRANSACTION_TYPES as unknown as TransactionType[],
-  );
-  const isEnabled =
-    (isPerps && enablePerpsMoneyAccountTransactions) ||
-    (isPredict && enablePredictMoneyAccountTransactions);
 
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
@@ -109,7 +89,6 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      isLastUsed: false,
       trailingElement: isMoneyAccountSelected ? 'checkmark' : 'none',
       onPress: handlePress,
       testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,

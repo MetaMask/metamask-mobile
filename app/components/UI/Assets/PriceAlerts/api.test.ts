@@ -7,8 +7,11 @@ import {
   createAlert,
   deleteAlert,
   updateAlert,
-  useSavePriceAlert,
+  fetchSupportedChains,
+  priceAlertsQueryKey,
+  useSubmitPriceAlert,
 } from './api';
+import type { PriceAlert } from './constants';
 
 // Prevents teardown crashes with unstable_batchedUpdates in Jest
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
@@ -91,6 +94,27 @@ describe('authenticatedFetch', () => {
     await fetchAlerts('eip155:1/slip44:60');
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(init.credentials).toBe('omit');
+  });
+});
+
+describe('fetchSupportedChains', () => {
+  it('calls /alerts/supported-chains', async () => {
+    await fetchSupportedChains();
+    expect(mockGetBearerToken).not.toHaveBeenCalled();
+    const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(
+      (init.headers as Record<string, string>).Authorization,
+    ).toBeUndefined();
+    expect((init.headers as Record<string, string>).Accept).toBe(
+      'application/json',
+    );
+    expect(init.credentials).toBe('omit');
+  });
+
+  it('returns the raw Response from fetch', async () => {
+    const response = makeOkResponse({ chains: ['eip155:1'] });
+    mockFetch.mockResolvedValue(response);
+    expect(await fetchSupportedChains()).toBe(response);
   });
 });
 
@@ -201,10 +225,36 @@ describe('updateAlert', () => {
   });
 });
 
-describe('useSavePriceAlert', () => {
+describe('priceAlertsQueryKey', () => {
+  it('returns a stable tuple with the assetId', () => {
+    expect(priceAlertsQueryKey('eip155:1/slip44:60')).toEqual([
+      'priceAlerts',
+      'eip155:1/slip44:60',
+    ]);
+  });
+
+  it('produces different keys for different assets', () => {
+    const a = priceAlertsQueryKey('eip155:1/slip44:60');
+    const b = priceAlertsQueryKey('eip155:1/erc20:0xABC');
+    expect(a).not.toEqual(b);
+  });
+});
+
+const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
+  id: 'alert-1',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  threshold: 2000,
+  recurring: true,
+  active: true,
+  createdAt: '2025-01-01T00:00:00.000Z',
+  ...overrides,
+});
+
+describe('useSubmitPriceAlert — create mode (no editingAlert)', () => {
   it('starts with isSubmitting = false', () => {
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
     expect(result.current.isSubmitting).toBe(false);
@@ -219,12 +269,12 @@ describe('useSavePriceAlert', () => {
     );
 
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     act(() => {
-      result.current.save({
+      result.current.submit({
         asset: 'eip155:1/slip44:60',
         threshold: 1000,
         recurring: true,
@@ -244,36 +294,37 @@ describe('useSavePriceAlert', () => {
     });
   });
 
-  it('resets isSubmitting = false even when the request fails', async () => {
-    mockFetch.mockResolvedValueOnce(makeErrorResponse(500, 'Server Error'));
+  it('POSTs to createAlert with the full params', async () => {
+    const params = {
+      asset: 'eip155:1/erc20:0xABC',
+      threshold: 3500,
+      recurring: false,
+    };
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
-      await expect(
-        result.current.save({
-          asset: 'eip155:1/slip44:60',
-          threshold: 1000,
-          recurring: true,
-        }),
-      ).rejects.toThrow();
+      await result.current.submit(params);
     });
 
-    expect(result.current.isSubmitting).toBe(false);
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(ALERTS_URL);
+    expect(init.method).toBe('POST');
+    expect(init.body).toBe(JSON.stringify(params));
   });
 
   it('throws with the HTTP status and body text on a non-ok response', async () => {
     mockFetch.mockResolvedValueOnce(makeErrorResponse(409, 'Conflict'));
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
       await expect(
-        result.current.save({
+        result.current.submit({
           asset: 'eip155:1/slip44:60',
           threshold: 1000,
           recurring: true,
@@ -290,13 +341,13 @@ describe('useSavePriceAlert', () => {
     } as unknown as Response;
     mockFetch.mockResolvedValueOnce(response);
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
       await expect(
-        result.current.save({
+        result.current.submit({
           asset: 'eip155:1/slip44:60',
           threshold: 1000,
           recurring: true,
@@ -305,22 +356,92 @@ describe('useSavePriceAlert', () => {
     });
   });
 
-  it('forwards the exact params to createAlert', async () => {
-    const params = {
-      asset: 'eip155:1/erc20:0xABC',
-      threshold: 3500,
-      recurring: false,
-    };
+  it('resets isSubmitting = false even when the request fails', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(500, 'Server Error'));
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useSavePriceAlert(), {
+    const { result } = renderHook(() => useSubmitPriceAlert(), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
-      await result.current.save(params);
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 1000,
+          recurring: true,
+        }),
+      ).rejects.toThrow();
+    });
+
+    expect(result.current.isSubmitting).toBe(false);
+  });
+});
+
+describe('useSubmitPriceAlert — edit mode (with editingAlert)', () => {
+  it('PATCHes the correct alert id with threshold and recurring', async () => {
+    const alert = makeAlert({
+      id: 'alert-42',
+      threshold: 2000,
+      recurring: true,
+    });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPriceAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit({
+        asset: 'eip155:1/slip44:60',
+        threshold: 2500,
+        recurring: false,
+      });
+    });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${ALERTS_URL}/alert-42`);
+    expect(init.method).toBe('PATCH');
+    expect(JSON.parse(init.body as string)).toEqual({
+      threshold: 2500,
+      recurring: false,
+    });
+  });
+
+  it('does not include asset in the PATCH body', async () => {
+    const alert = makeAlert({ id: 'alert-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPriceAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await result.current.submit({
+        asset: 'eip155:1/slip44:60',
+        threshold: 2500,
+        recurring: true,
+      });
     });
 
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
-    expect(init.body).toBe(JSON.stringify(params));
+    const body = JSON.parse(init.body as string);
+    expect(body.asset).toBeUndefined();
+  });
+
+  it('throws with HTTP status on a non-ok PATCH response', async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(404, 'Not Found'));
+    const alert = makeAlert({ id: 'alert-42' });
+    const { Wrapper } = createWrapper();
+    const { result } = renderHook(() => useSubmitPriceAlert(alert), {
+      wrapper: Wrapper,
+    });
+
+    await act(async () => {
+      await expect(
+        result.current.submit({
+          asset: 'eip155:1/slip44:60',
+          threshold: 2500,
+          recurring: true,
+        }),
+      ).rejects.toThrow('HTTP 404: Not Found');
+    });
   });
 });

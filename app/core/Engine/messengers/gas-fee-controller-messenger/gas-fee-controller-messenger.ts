@@ -9,14 +9,12 @@ import { RootMessenger } from '../../types';
 const name = 'GasFeeController';
 
 export function getGasFeeControllerMessenger(
-  rootMessenger: RootMessenger,
-): GasFeeMessenger {
-  const messenger = new Messenger<
-    typeof name,
+  rootMessenger: RootMessenger<
     MessengerActions<GasFeeMessenger>,
-    MessengerEvents<GasFeeMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<GasFeeMessenger>
+  >,
+): GasFeeMessenger {
+  const messenger: GasFeeMessenger = new Messenger({
     namespace: name,
     parent: rootMessenger,
   });

@@ -2,6 +2,7 @@ import {
   ANDROID_E2E_PACKAGES_TO_DISABLE,
   findAnrDialogRecoveryTapPoint,
   findAnrDialogWaitTapPoint,
+  isAndroidPingSuccessful,
   shouldWaitForOfflineEmulator,
 } from './EmulatorHelpers.ts';
 
@@ -70,6 +71,24 @@ describe('EmulatorHelpers', () => {
       expect(ANDROID_E2E_PACKAGES_TO_DISABLE).toContain(
         'com.google.android.gms',
       );
+    });
+  });
+
+  describe('isAndroidPingSuccessful', () => {
+    it('returns true for common successful ping outputs', () => {
+      expect(
+        isAndroidPingSuccessful(
+          'PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.\n64 bytes from 8.8.8.8: icmp_seq=1 ttl=118 time=12.3 ms\n\n--- 8.8.8.8 ping statistics ---\n1 packets transmitted, 1 received, 0% packet loss',
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when ping did not receive a reply', () => {
+      expect(
+        isAndroidPingSuccessful(
+          '1 packets transmitted, 0 received, 100% packet loss',
+        ),
+      ).toBe(false);
     });
   });
 });

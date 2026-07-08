@@ -1,8 +1,16 @@
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  FlatListProps,
+  Linking,
+  View,
+} from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import AppConstants from '../../../../core/AppConstants';
+import SharedDeeplinkManager from '../../../../core/DeeplinkManager/DeeplinkManager';
 import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/NotificationsView.testIds';
 import {
   hasNotificationComponents,
@@ -87,31 +95,39 @@ export function useNotificationOnClick(
     [createEventBuilder, markNotificationAsRead, trackEvent],
   );
 
-  const onNavigation = useCallback(
-    (item: INotification) => {
-      if (hasNotificationModal(item?.type)) {
+  const onNotificationPress = useCallback(
+    (item: INotification, ctaLink?: string) => {
+      handleNotificationClickMetricsAndUpdates(item);
+
+      if (ctaLink) {
+        try {
+          if (ctaLink.includes(AppConstants.MM_IO_UNIVERSAL_LINK_HOST)) {
+            SharedDeeplinkManager.parse(ctaLink, {
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            });
+          } else {
+            Linking.openURL(ctaLink);
+          }
+        } catch (e) {
+          console.warn(`Failed to open NotificationCTA link ${ctaLink}`, e);
+        }
+      } else if (hasNotificationModal(item?.type)) {
         props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
           notification: item,
         });
       }
     },
-    [props.navigation],
+    [handleNotificationClickMetricsAndUpdates, props.navigation],
   );
 
-  const onNotificationClick = useCallback(
-    (item: INotification) => {
-      handleNotificationClickMetricsAndUpdates(item);
-      onNavigation(item);
-    },
-    [handleNotificationClickMetricsAndUpdates, onNavigation],
-  );
-
-  return { onNotificationClick, handleNotificationClickMetricsAndUpdates };
+  return {
+    onNotificationPress,
+    handleNotificationClickMetricsAndUpdates,
+  };
 }
 
 export function NotificationsListItem(props: NotificationsListItemProps) {
-  const { onNotificationClick, handleNotificationClickMetricsAndUpdates } =
-    useNotificationOnClick(props);
+  const { onNotificationPress } = useNotificationOnClick(props);
   const tw = useTailwind();
 
   const menuItemState = useMemo(() => {
@@ -125,13 +141,17 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
     return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
 
+  const handlePress = useCallback(() => {
+    onNotificationPress(props.notification, menuItemState?.cta?.link);
+  }, [onNotificationPress, props.notification, menuItemState?.cta?.link]);
+
   if (!isValidNotificationComponent(props.notification) || !menuItemState) {
     return null;
   }
 
   return (
     <NotificationMenuItem.Root
-      handleOnPress={() => onNotificationClick(props.notification)}
+      handleOnPress={handlePress}
       isRead={props.notification.isRead}
       testID={NotificationMenuViewSelectorsIDs.ITEM(props.notification.id)}
       style={tw`gap-2`}
@@ -143,12 +163,6 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
         />
         <NotificationMenuItem.Content {...menuItemState} />
       </Box>
-      <NotificationMenuItem.Cta
-        cta={menuItemState.cta}
-        onClick={() =>
-          handleNotificationClickMetricsAndUpdates(props.notification)
-        }
-      />
     </NotificationMenuItem.Root>
   );
 }

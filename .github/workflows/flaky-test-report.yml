@@ -4,7 +4,23 @@ on:
   schedule:
     # Once every day from Monday-Friday at 08:00 UTC
     - cron: 0 8 * * 1-5
+    # 10:00 UTC (Europe morning), Monday–Friday — Playwright test health report
+    - cron: '0 10 * * 1-5'
+    # 15:00 UTC (US morning), Monday–Friday — Playwright test health report
+    - cron: '0 15 * * 1-5'
   workflow_dispatch:
+    inputs:
+      job:
+        description: Which test report to generate
+        type: choice
+        options:
+          - detox
+          - appium
+        default: detox
+      lookback_days:
+        description: Number of days of main CI runs to scan (Appium report only)
+        type: string
+        default: '1'
 
 permissions:
   contents: read
@@ -12,6 +28,9 @@ permissions:
 
 jobs:
   flaky-test-report:
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '0 8 * * 1-5') ||
+      (github.event_name == 'workflow_dispatch' && inputs.job == 'detox')
     runs-on: ubuntu-latest
     steps:
       - name: Generate flaky test report
@@ -21,3 +40,19 @@ jobs:
           workflow-id: ci.yml
           github-token: ${{ secrets.GITHUB_TOKEN }}
           slack-webhook-flaky-tests: ${{ secrets.SLACK_WEBHOOK_FLAKY_TESTS }}
+
+  playwright-test-health-report:
+    if: >-
+      (github.event_name == 'schedule' && (github.event.schedule == '0 10 * * 1-5' || github.event.schedule == '0 15 * * 1-5')) ||
+      (github.event_name == 'workflow_dispatch' && inputs.job == 'appium')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Playwright test health report
+        uses: MetaMask/github-tools/.github/actions/playwright-test-health-report@4a2ddd75e9a8182261f0f07fbfc332cc856c89a0
+        with:
+          repository: ${{ github.event.repository.name }}
+          workflow-ids: ci.yml
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          slack-webhook: ${{ secrets.SLACK_WEBHOOK_PLAYWRIGHT_HEALTH_REPORT }}
+          lookback-days: ${{ github.event_name == 'workflow_dispatch' && inputs.lookback_days || '1' }}
+          report-title: Playwright Test Health Report (Mobile Appium)

@@ -44,6 +44,7 @@ import {
   selectPendingMoneyAccountCardLink,
   setPendingMoneyAccountCardLink,
 } from '../../../../core/redux/slices/card';
+import { selectIsMoneyAccountGeoEligible } from '../../Money/selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
 import {
   hasMoneyAccountCardRequirements,
@@ -80,6 +81,7 @@ export interface LinkFlowOrigin {
 
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
+  hasMoneyAccountBaseRequirements: boolean;
   isCardAuthenticated: boolean;
   isCardVerified: boolean;
   isCardLinkedToMoneyAccount: boolean;
@@ -122,6 +124,11 @@ export const useMoneyAccountCardLinkage =
     const isMoneyAccountEnabled = useSelector(
       selectMoneyEnableMoneyAccountFlag,
     );
+    const isMoneyAccountGeoEligible = useSelector(
+      selectIsMoneyAccountGeoEligible,
+    );
+    const isMoneyAccountVisible =
+      isMoneyAccountEnabled && isMoneyAccountGeoEligible;
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const isCardVerified = useSelector(selectIsCardVerified);
     const isCardholder = useSelector(selectIsCardholder);
@@ -159,12 +166,14 @@ export const useMoneyAccountCardLinkage =
       ? rawMoneyAccountCardToken
       : null;
 
+    const hasMoneyAccountBaseRequirements = hasMoneyAccountCardRequirements({
+      isMoneyAccountEnabled: isMoneyAccountVisible,
+      vaultConfig,
+      moneyAccountAddress: primaryMoneyAccount?.address,
+    });
+
     const hasRequirements =
-      hasMoneyAccountCardRequirements({
-        isMoneyAccountEnabled,
-        vaultConfig,
-        moneyAccountAddress: primaryMoneyAccount?.address,
-      }) && isMoneyAccountCardSupported;
+      hasMoneyAccountBaseRequirements && isMoneyAccountCardSupported;
 
     const canSubmitDelegation = Boolean(
       hasRequirements &&
@@ -323,7 +332,7 @@ export const useMoneyAccountCardLinkage =
         if (linkInProgress) {
           return;
         }
-        if (!hasRequirements || !primaryMoneyAccount?.address) {
+        if (!hasMoneyAccountBaseRequirements || !primaryMoneyAccount?.address) {
           showErrorToast();
           return;
         }
@@ -384,7 +393,7 @@ export const useMoneyAccountCardLinkage =
       },
       [
         linkInProgress,
-        hasRequirements,
+        hasMoneyAccountBaseRequirements,
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
         isCardAuthenticated,
@@ -414,8 +423,18 @@ export const useMoneyAccountCardLinkage =
         return;
       }
 
-      if (!hasRequirements || !primaryMoneyAccount?.address) {
+      if (!hasMoneyAccountBaseRequirements || !primaryMoneyAccount?.address) {
         dispatch(setPendingMoneyAccountCardLink(null));
+        return;
+      }
+
+      if (!isMoneyAccountCardSupported) {
+        if (
+          cardHomeDataStatus === 'success' ||
+          cardHomeDataStatus === 'error'
+        ) {
+          dispatch(setPendingMoneyAccountCardLink(null));
+        }
         return;
       }
 
@@ -454,7 +473,8 @@ export const useMoneyAccountCardLinkage =
       pendingMoneyAccountCardLinkEntryPoint,
       isCardAuthenticated,
       isCardVerified,
-      hasRequirements,
+      hasMoneyAccountBaseRequirements,
+      isMoneyAccountCardSupported,
       moneyAccountCardToken,
       primaryMoneyAccount?.address,
       isAlreadyDelegated,
@@ -598,6 +618,7 @@ export const useMoneyAccountCardLinkage =
 
     return {
       hasMoneyAccountRequirements: hasRequirements,
+      hasMoneyAccountBaseRequirements,
       isCardAuthenticated,
       isCardVerified,
       isCardLinkedToMoneyAccount: isAlreadyDelegated,

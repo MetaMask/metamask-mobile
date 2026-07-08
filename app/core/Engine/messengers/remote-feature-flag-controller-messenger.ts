@@ -7,14 +7,12 @@ import { RootMessenger } from '../types';
 import { RemoteFeatureFlagControllerMessenger } from '@metamask/remote-feature-flag-controller';
 
 export function getRemoteFeatureFlagControllerMessenger(
-  rootMessenger: RootMessenger,
-): RemoteFeatureFlagControllerMessenger {
-  const messenger = new Messenger<
-    'RemoteFeatureFlagController',
+  rootMessenger: RootMessenger<
     MessengerActions<RemoteFeatureFlagControllerMessenger>,
-    MessengerEvents<RemoteFeatureFlagControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<RemoteFeatureFlagControllerMessenger>
+  >,
+): RemoteFeatureFlagControllerMessenger {
+  const messenger: RemoteFeatureFlagControllerMessenger = new Messenger({
     namespace: 'RemoteFeatureFlagController',
     parent: rootMessenger,
   });

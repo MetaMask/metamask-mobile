@@ -19,6 +19,10 @@ class AddAccountBottomSheet {
     );
   }
 
+  get backButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('add-wallet-back-button');
+  }
+
   get importSrpButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -42,6 +46,12 @@ class AddAccountBottomSheet {
   async tapImportSrp(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.importSrpButton, {
       description: 'Import SRP button',
+    });
+  }
+
+  async tapBackToWalletView(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back button',
     });
   }
 }

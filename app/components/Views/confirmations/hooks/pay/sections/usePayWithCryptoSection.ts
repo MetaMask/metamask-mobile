@@ -4,6 +4,8 @@ import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { Hex } from '@metamask/utils';
+
 import {
   Icon,
   IconColor,
@@ -86,8 +88,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     onPaymentTokenChange: onPredictPaymentTokenChange,
     isPredictBalanceSelected,
   } = usePredictPaymentToken();
-  const { isLastUsed } = useLastUsedPaymentMethod();
-  const { noFeeToken, isNoFeeToken } = usePayWithNoFeeToken({
+  const { renderLastUsedTag } = useLastUsedPaymentMethod();
+  const { noFeeToken, renderNoFeeTagForToken } = usePayWithNoFeeToken({
     excludeToken: preferredToken
       ? { address: preferredToken.address, chainId: preferredToken.chainId }
       : undefined,
@@ -124,7 +126,14 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     TransactionType.predictDeposit,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const isMoneyWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const shouldShowNoFeeTokens = !isWithdraw;
+  // Per-row no-fee tags also show for Money withdrawals (the dedicated no-fee
+  // suggestion row stays gated on shouldShowNoFeeTokens — it suggests a token
+  // to pay with, which has no meaning when choosing a token to receive).
+  const showNoFeeRowTags = shouldShowNoFeeTokens || isMoneyWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
     clearPaymentOverride();
@@ -228,9 +237,8 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         !isDedicatedSectionOwningSelection &&
         isMatchingPayToken(selectedToken, preferredToken);
 
-      const preferredIsNoFee =
-        shouldShowNoFeeTokens &&
-        isNoFeeToken(preferredToken.address, preferredToken.chainId);
+      const preferredAddress = preferredToken.address as Hex;
+      const preferredChainId = preferredToken.chainId as Hex;
 
       tokenRows.push({
         _balanceUsd: parseFloat(preferredToken.balanceUsd) || 0,
@@ -247,8 +255,18 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
             })
           : preferredTokenBalance,
         isSelected: isPreferredTokenSelected,
-        isLastUsed: isLastUsed(preferredToken.address, preferredToken.chainId),
-        isNoFee: preferredIsNoFee,
+        tagRenderers: [
+          () =>
+            showNoFeeRowTags
+              ? renderNoFeeTagForToken(preferredAddress, preferredChainId, {
+                  testID: `${PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID}-no-fee-tag`,
+                })
+              : null,
+          () =>
+            renderLastUsedTag(preferredAddress, preferredChainId, {
+              testID: `${PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID}-last-used-tag`,
+            }),
+        ],
         trailingElement: isPreferredTokenSelected ? 'checkmark' : 'none',
         onPress: handlePreferredTokenPress,
         testID: PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID,
@@ -260,6 +278,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       selectedTokenDisplay &&
       !isDedicatedSectionOwningSelection
     ) {
+      const selectedAddress = selectedTokenDisplay.address as Hex;
+      const selectedChainId = selectedTokenDisplay.chainId as Hex;
+
       tokenRows.push({
         _balanceUsd: parseFloat(selectedTokenDisplay.balanceUsd) || 0,
         id: 'crypto-selected-token',
@@ -275,16 +296,18 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
             })
           : selectedTokenBalance,
         isSelected: true,
-        isLastUsed: isLastUsed(
-          selectedTokenDisplay.address,
-          selectedTokenDisplay.chainId,
-        ),
-        isNoFee:
-          shouldShowNoFeeTokens &&
-          isNoFeeToken(
-            selectedTokenDisplay.address,
-            selectedTokenDisplay.chainId,
-          ),
+        tagRenderers: [
+          () =>
+            showNoFeeRowTags
+              ? renderNoFeeTagForToken(selectedAddress, selectedChainId, {
+                  testID: `${PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID}-no-fee-tag`,
+                })
+              : null,
+          () =>
+            renderLastUsedTag(selectedAddress, selectedChainId, {
+              testID: `${PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID}-last-used-tag`,
+            }),
+        ],
         trailingElement: 'checkmark',
         testID: PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID,
       });
@@ -306,6 +329,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         noFeeToken,
       );
 
+      const noFeeAddress = noFeeToken.address;
+      const noFeeChainId = noFeeToken.chainId;
+
       tokenRows.push({
         _balanceUsd: parseFloat(noFeeToken.balanceUsd) || 0,
         id: 'crypto-no-fee-token',
@@ -321,7 +347,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
             })
           : noFeeTokenBalance,
         isSelected: isNoFeeTokenSelected,
-        isNoFee: true,
+        tagRenderers: [
+          () =>
+            renderNoFeeTagForToken(noFeeAddress, noFeeChainId, {
+              testID: `${PAY_WITH_CRYPTO_NO_FEE_TOKEN_ROW_TEST_ID}-no-fee-tag`,
+            }),
+        ],
         trailingElement: isNoFeeTokenSelected ? 'checkmark' : 'none',
         onPress: handleNoFeeTokenPress,
         testID: PAY_WITH_CRYPTO_NO_FEE_TOKEN_ROW_TEST_ID,
@@ -365,18 +396,19 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     hasTokens,
     isDedicatedSectionOwningSelection,
     isDeposit,
-    isLastUsed,
     isMoneyAccountSelected,
-    isNoFeeToken,
     isSelectedDistinctFromAutomatic,
     isWithdraw,
     noFeeToken,
     noFeeTokenBalance,
     preferredToken,
     preferredTokenBalance,
+    renderLastUsedTag,
+    renderNoFeeTagForToken,
     selectedToken,
     selectedTokenBalance,
     selectedTokenDisplay,
     shouldShowNoFeeTokens,
+    showNoFeeRowTags,
   ]);
 }

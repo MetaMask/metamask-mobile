@@ -397,8 +397,25 @@ class TransactionPayConfirmation {
   }
 
   async tapKeyboardContinueButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.keyboardContinueButton, {
-      description: 'Keyboard Continue Button',
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(this.keyboardContinueButton, {
+          description: 'Keyboard Continue Button',
+          timeout: 30_000,
+          checkStability: true,
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.waitAndTap(this.keyboardContinueButton, {
+          description: 'Keyboard Continue Button',
+          timeout: 30_000,
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          waitForInteractive: true,
+          enabledStableReads: 4,
+          postEnabledSettleMs: 400,
+        });
+      },
     });
   }
 

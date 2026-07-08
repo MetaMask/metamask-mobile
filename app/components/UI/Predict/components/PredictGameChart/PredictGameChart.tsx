@@ -8,6 +8,7 @@ import React, {
 import { PredictGameStatus, PredictPriceHistoryInterval } from '../../types';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import {
   getPrimaryMoneylineOutcomes,
   isDrawCapableLeague,
@@ -70,7 +71,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   market,
   testID,
 }) => {
-  const game = market.game;
+  const { game } = usePredictGame(market, { live: false });
   const { colors } = useTheme();
   const gameStatus = game?.status;
   const isGameEnded = gameStatus === 'ended';

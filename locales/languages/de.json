@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Jetzt live",
       "categories_placeholder": "Kategorien",
-      "popular_today_placeholder": "Heute beliebt",
       "trending_placeholder": "Angesagt"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Punkte aus Empfehlungen",
       "referrals_label": "VIP-Empfehlungen",
       "tier_benefits_title": "Vorteile der Stufe",
-      "splash_title": "WILLKOMMEN\nBEIM GOLD-\nFOX-VIP",
+      "splash_title": "WILLKOMMEN\nBEIM GOLD FOX\nCOLLECTIVE",
       "splash_description": "Schalten Sie exklusive Vorteile, frühe Funktionen und besondere Belohnungen frei. Nur auf Einladung.",
       "splash_accept_invite": "Einladung annehmen",
       "splash_not_now": "Nicht jetzt",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Stufen",
       "tier_thresholds": "{{points}} Punkte",
       "bps_value": "{{bps}} Basispunkte",
-      "referee_splash_title": "WILLKOMMEN\nBEIM GOLD-\nFOX-VIP",
-      "referee_splash_description": "Schalten Sie exklusive Vorteile, frühe Funktionen und besondere Belohnungen frei. Nur auf Einladung.",
       "referee_splash_continue": "Fortfahren",
-      "referee_splash_not_now": "Nicht jetzt",
       "referee_referred_by": "Empfohlen von {{code}}",
       "referee_page_title": "VIP-Pilot",
       "referee_stats_title": "Statistiken",
       "referee_period_last_30d": "Letzten 30 Tage",
-      "referee_points_label": "Punkte",
       "referee_swaps_volume_label": "Swap-Volumen",
       "referee_perps_volume_label": "Perps-Volumen",
+      "referee_points_to_label": "Punkte für {{code}}",
       "referee_error_title": "Wir konnten Ihre Daten zur VIP-Referenzperson nicht laden",
       "referee_error_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "last_updated": "Zuletzt aktualisiert: {{time}}"

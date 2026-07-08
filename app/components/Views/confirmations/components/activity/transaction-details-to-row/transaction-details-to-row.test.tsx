@@ -11,6 +11,9 @@ import { getTokenTransferData } from '../../../utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../utils/transaction';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
+  useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
 jest.mock('../../../utils/transaction-pay', () => ({
   ...jest.requireActual('../../../utils/transaction-pay'),
   getTokenTransferData: jest.fn(),
@@ -19,6 +22,10 @@ jest.mock('../../../utils/transaction', () => ({
   ...jest.requireActual('../../../utils/transaction'),
   parseStandardTokenTransactionData: jest.fn(),
 }));
+jest.mock(
+  '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
+  () => () => null,
+);
 jest.mock('../../../../../UI/Name/Name', () => {
   const { Text } = jest.requireActual('react-native');
   return {
@@ -131,5 +138,31 @@ describe('TransactionDetailsToRow', () => {
 
     const { getByText } = render();
     expect(getByText('To')).toBeDefined();
+  });
+
+  it('renders "Money account" label for perpsWithdraw in money context', () => {
+    const { useIsMoneyAccountContext: useIsMoneyAccountContextMock } =
+      jest.requireMock('../../../hooks/activity/useIsMoneyAccountContext');
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: createTransactionMeta(TransactionType.perpsWithdraw),
+    });
+
+    const { getByText } = render();
+    expect(getByText('Money account')).toBeDefined();
+  });
+
+  it('renders "Money account" label for predictWithdraw in money context', () => {
+    const { useIsMoneyAccountContext: useIsMoneyAccountContextMock } =
+      jest.requireMock('../../../hooks/activity/useIsMoneyAccountContext');
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: createTransactionMeta(TransactionType.predictWithdraw),
+    });
+
+    const { getByText } = render();
+    expect(getByText('Money account')).toBeDefined();
   });
 });

@@ -1,9 +1,16 @@
 import { useMutation } from '@tanstack/react-query';
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
-import type { SaveAlertParams, UpdateAlertParams } from './constants';
+import type {
+  PriceAlert,
+  SaveAlertParams,
+  UpdateAlertParams,
+} from './constants';
 
 const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/alerts`;
+
+export const priceAlertsQueryKey = (assetId: string) =>
+  ['priceAlerts', assetId] as const;
 
 async function authenticatedFetch(
   url: string,
@@ -23,6 +30,12 @@ async function authenticatedFetch(
 
 export const fetchAlerts = (assetId: string): Promise<Response> =>
   authenticatedFetch(`${ALERTS_URL}?asset=${encodeURIComponent(assetId)}`);
+
+export const fetchSupportedChains = (): Promise<Response> =>
+  fetch(`${ALERTS_URL}/supported-chains`, {
+    headers: { Accept: 'application/json' },
+    credentials: 'omit',
+  });
 
 export const createAlert = (params: SaveAlertParams): Promise<Response> =>
   authenticatedFetch(ALERTS_URL, {
@@ -44,15 +57,17 @@ export const updateAlert = (
     body: JSON.stringify(params),
   });
 
-export const useSavePriceAlert = () => {
+export const useSubmitPriceAlert = (editingAlert?: PriceAlert) => {
   const { mutateAsync, isPending } = useMutation<void, Error, SaveAlertParams>({
-    mutationFn: async (params) => {
-      const response = await createAlert(params);
+    mutationFn: async ({ asset, threshold, recurring }) => {
+      const response = editingAlert
+        ? await updateAlert(editingAlert.id, { threshold, recurring })
+        : await createAlert({ asset, threshold, recurring });
       if (!response.ok) {
         const body = await response.text().catch(() => '(no body)');
         throw new Error(`HTTP ${response.status}: ${body}`);
       }
     },
   });
-  return { save: mutateAsync, isSubmitting: isPending };
+  return { submit: mutateAsync, isSubmitting: isPending };
 };

@@ -95,7 +95,7 @@ const BasicFunctionalityModal = () => {
           .build(),
       );
     });
-    if (route.params.caller === Routes.SETTINGS.NOTIFICATIONS) {
+    if (route.params?.caller === Routes.SETTINGS.NOTIFICATIONS) {
       await enableNotificationsFromModal();
     }
   };

@@ -1,11 +1,15 @@
 import Gestures from './Gestures.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
+import Matchers from './Matchers.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
 import {
   EncapsulatedElementType,
   asDetoxElement,
   asPlaywrightElement,
 } from './EncapsulatedElement.ts';
+import type { ScrollContainer } from './types.ts';
+
+export type { ScrollContainer, ScrollViewMatcher } from './types.ts';
 
 /**
  * Unified options for gesture methods.
@@ -28,6 +32,8 @@ export interface UnifiedGestureOptions {
   scrollAmount?: number;
   /** Delay before tapping (ms) */
   delay?: number;
+  /** Wait for element position to stabilize before tapping — Detox only */
+  checkStability?: boolean;
   /** Check if the element is displayed — Appium only; Detox ignores this */
   checkForDisplayed?: boolean;
   /** Check if the element is enabled — Appium only; Detox ignores this */
@@ -40,6 +46,10 @@ export interface UnifiedGestureOptions {
   postEnabledSettleMs?: number;
   /** Long press duration in ms — passed through to PlaywrightGestures.longPress */
   duration?: number;
+  /** Dismiss the keyboard after typing. Default: true */
+  hideKeyboard?: boolean;
+  /** Clear the field before typing — Detox only; Appium fill() replaces by default */
+  clearFirst?: boolean;
 }
 
 /**
@@ -47,10 +57,6 @@ export interface UnifiedGestureOptions {
  * or an array of elements (Appium selects by array index).
  */
 export type TapAtIndexElement = EncapsulatedElementType | PlaywrightElement[];
-export type ScrollViewMatcher = Promise<Detox.NativeMatcher>;
-
-/** Detox scroll container: matcher promise, or testID resolved inside UnifiedGestures. */
-export type ScrollContainer = ScrollViewMatcher | string;
 
 /**
  * Strategy interface for framework-agnostic gesture execution.
@@ -154,6 +160,8 @@ export class DetoxGestureStrategy implements GestureStrategy {
     await Gestures.waitAndTap(asDetoxElement(elem), {
       timeout: opts?.timeout,
       elemDescription: opts?.description,
+      delay: opts?.delay,
+      checkStability: opts?.checkStability,
     });
   }
 
@@ -170,7 +178,8 @@ export class DetoxGestureStrategy implements GestureStrategy {
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await Gestures.typeText(asDetoxElement(elem), text, {
-      hideKeyboard: true,
+      hideKeyboard: opts?.hideKeyboard ?? true,
+      clearFirst: opts?.clearFirst ?? true,
       timeout: opts?.timeout,
       elemDescription: opts?.description,
     });
@@ -345,6 +354,36 @@ export class DetoxGestureStrategy implements GestureStrategy {
  */
 export class AppiumGestureStrategy implements GestureStrategy {
   /**
+   * Detox scroll direction is inverted relative to Appium scrollIntoView swipe
+   * direction for vertical scrolling (scroll down → swipe up).
+   */
+  private static toScrollIntoViewDirection(
+    direction?: UnifiedGestureOptions['direction'],
+  ): 'up' | 'down' | 'left' | 'right' {
+    if (direction === 'down') {
+      return 'up';
+    }
+    if (direction === 'up') {
+      return 'down';
+    }
+    return direction ?? 'up';
+  }
+
+  private static async resolveScrollableElement(
+    scrollView?: ScrollContainer,
+  ): Promise<PlaywrightElement | undefined> {
+    if (scrollView === undefined || scrollView instanceof Promise) {
+      return undefined;
+    }
+
+    if (typeof scrollView === 'string') {
+      return asPlaywrightElement(Matchers.getElementByID(scrollView));
+    }
+
+    return undefined;
+  }
+
+  /**
    * Tap an element
    * @param elem - The element to tap
    * @returns A promise that resolves when the tap is complete
@@ -390,9 +429,17 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param text - The text to type
    * @returns A promise that resolves when the type text is complete
    */
-  async typeText(elem: EncapsulatedElementType, text: string): Promise<void> {
+  async typeText(
+    elem: EncapsulatedElementType,
+    text: string,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
     await el.fill(text);
+
+    if (opts?.hideKeyboard ?? true) {
+      await PlaywrightGestures.hideKeyboard();
+    }
   }
 
   /**
@@ -434,12 +481,20 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    _scrollView?: ScrollContainer,
+    scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await asPlaywrightElement(target);
+    const scrollableElement =
+      await AppiumGestureStrategy.resolveScrollableElement(scrollView);
+
     await PlaywrightGestures.scrollIntoView(el, {
-      scrollParams: { direction: opts?.direction ?? 'down' },
+      scrollParams: {
+        direction: AppiumGestureStrategy.toScrollIntoViewDirection(
+          opts?.direction,
+        ),
+      },
+      scrollableElement,
     });
   }
 

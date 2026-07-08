@@ -576,6 +576,7 @@ export class PerpsE2EMockService {
         change24h: '+$1,125.00',
         change24hPercent: '+2.5%',
         volume: '$1.2B',
+        openInterest: '$500M',
         nextFundingTime: Date.now() + 8 * 60 * 60 * 1000, // 8 hours from now
         fundingIntervalHours: 8,
       },
@@ -587,6 +588,7 @@ export class PerpsE2EMockService {
         change24h: '+$45.00',
         change24hPercent: '+1.8%',
         volume: '$850M',
+        openInterest: '$250M',
         nextFundingTime: Date.now() + 8 * 60 * 60 * 1000, // 8 hours from now
         fundingIntervalHours: 8,
       },
@@ -598,6 +600,7 @@ export class PerpsE2EMockService {
         change24h: '-$2.30',
         change24hPercent: '-2.3%',
         volume: '$425M',
+        openInterest: '$120M',
         nextFundingTime: Date.now() + 8 * 60 * 60 * 1000, // 8 hours from now
         fundingIntervalHours: 8,
       },

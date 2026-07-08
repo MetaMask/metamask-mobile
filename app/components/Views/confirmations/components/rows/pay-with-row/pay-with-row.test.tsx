@@ -22,9 +22,11 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
+import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../../util/navigation/navUtils');
+jest.mock('../../../hooks/pay/useIsMoneyAccountFlagDefault');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -147,6 +149,7 @@ describe('PayWithRow', () => {
     isHardwareAccountMock.mockReturnValue(false);
 
     jest.mocked(useAccountNoFundsAlert).mockReturnValue([]);
+    jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(false);
   });
 
   it('renders selected pay token', async () => {
@@ -364,6 +367,40 @@ describe('PayWithRow', () => {
       const { getByTestId } = renderMoneyAccount({ isResultReady: true });
 
       expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('renders money account row on review page when paymentOverride is MoneyAccount even with flag default', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByTestId } = renderMoneyAccount({ isResultReady: true });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('renders money account row on initial page when money account is flag-defaulted', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+
+      const { getByTestId } = renderMoneyAccount();
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('renders interactive row on review page when only flag-defaulted (no explicit override)', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-no-override',
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByTestId } = renderWithProvider(<PayWithRow isResultReady />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
     });
 
     it('renders money account row for perps deposit', () => {

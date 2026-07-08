@@ -100,6 +100,8 @@ export interface ExploreInteractedProperties {
   token_symbol?: string;
   chain_id?: string;
   item_clicked?: string;
+  /** Entry surface when the user arrived on Explore (e.g. `homescreen_pill`). */
+  source?: string;
 }
 
 export const trackExploreInteracted = (

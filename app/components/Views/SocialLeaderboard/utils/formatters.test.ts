@@ -2,6 +2,7 @@ import {
   formatUsd,
   formatSignedUsd,
   formatSignedAbbreviatedUsd,
+  formatSignedFullUsdNoDecimals,
   formatTokenAmount,
   formatPercent,
   formatTradeDate,
@@ -90,6 +91,29 @@ describe('formatSignedAbbreviatedUsd', () => {
   });
 });
 
+describe('formatSignedFullUsdNoDecimals', () => {
+  it('formats the full number with commas and no decimals, signed', () => {
+    expect(formatSignedFullUsdNoDecimals(82610666)).toBe('+$82,610,666');
+  });
+
+  it('rounds away fractional digits', () => {
+    expect(formatSignedFullUsdNoDecimals(782360.66)).toBe('+$782,361');
+  });
+
+  it('prefixes negative values with -', () => {
+    expect(formatSignedFullUsdNoDecimals(-1234)).toBe('-$1,234');
+  });
+
+  it('renders zero without a sign', () => {
+    expect(formatSignedFullUsdNoDecimals(0)).toBe('$0');
+  });
+
+  it('returns an em dash for null and undefined', () => {
+    expect(formatSignedFullUsdNoDecimals(null)).toBe('\u2014');
+    expect(formatSignedFullUsdNoDecimals(undefined)).toBe('\u2014');
+  });
+});
+
 describe('formatTokenAmount', () => {
   it('abbreviates billions (e.g. 1.5B)', () => {
     expect(formatTokenAmount(1500000000)).toBe('1.50B');
@@ -167,16 +191,34 @@ describe('formatPercent', () => {
 });
 
 describe('formatTradeDate', () => {
-  it('formats a millisecond timestamp', () => {
-    const ms = 1744732800000; // a known fixed date
-    const result = formatTradeDate(ms);
-    expect(typeof result).toBe('string');
-    expect(result.length).toBeGreaterThan(0);
+  it('formats a millisecond timestamp as "MMM D at h:mm am/pm"', () => {
+    const result = formatTradeDate(1744732800000);
+    expect(result).toMatch(
+      /^[A-Z][a-z]{2,3} \d{1,2} at \d{1,2}:\d{2} (am|pm)$/,
+    );
   });
 
   it('converts a seconds timestamp to milliseconds before formatting', () => {
-    const seconds = 1744732800; // same date in seconds
+    const seconds = 1744732800;
     const ms = 1744732800000;
     expect(formatTradeDate(seconds)).toBe(formatTradeDate(ms));
+  });
+
+  it('renders am/pm in lowercase', () => {
+    const result = formatTradeDate(1744732800000);
+    expect(result).not.toMatch(/AM|PM/);
+    expect(result).toMatch(/am|pm/);
+  });
+
+  it('uses a short (3-letter) month abbreviation, not the full name', () => {
+    const result = formatTradeDate(1744732800000);
+    expect(result).not.toMatch(
+      /January|February|March|April|May|June|July|August|September|October|November|December/,
+    );
+  });
+
+  it('omits the year', () => {
+    const result = formatTradeDate(1744732800000);
+    expect(result).not.toMatch(/20\d{2}/);
   });
 });

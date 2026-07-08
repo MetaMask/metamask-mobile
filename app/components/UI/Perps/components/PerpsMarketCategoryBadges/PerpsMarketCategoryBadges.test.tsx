@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { type ReactTestInstance } from 'react-test-renderer';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import PerpsMarketCategoryBadges from './PerpsMarketCategoryBadges';
 import type { PerpsCategory } from '../../hooks/usePerpsCategories';
 
@@ -139,6 +140,52 @@ describe('PerpsMarketCategoryBadges', () => {
       expect(getByTestId('badges-stock')).toBeOnTheScreen();
       expect(getByTestId('badges-commodity')).toBeOnTheScreen();
       expect(getByTestId('badges-forex')).toBeOnTheScreen();
+    });
+  });
+
+  describe('auto-scroll to selected category', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('does not scroll when selectedCategory is "all"', () => {
+      const { getByTestId } = render(
+        <PerpsMarketCategoryBadges {...defaultProps} testID="badges" />,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(400);
+      });
+
+      // Component renders without triggering scroll when no category is active
+      expect(getByTestId('badges')).toBeTruthy();
+    });
+
+    it('scrolls to the selected category badge after layout', () => {
+      const { getByTestId } = render(
+        <PerpsMarketCategoryBadges
+          {...defaultProps}
+          selectedCategory="forex"
+          testID="badges"
+        />,
+      );
+
+      const forexBadge = getByTestId('badges-forex');
+      const parentView = forexBadge.parent;
+      expect(parentView).toBeTruthy();
+      fireEvent(parentView as ReactTestInstance, 'layout', {
+        nativeEvent: { layout: { x: 300, width: 60, y: 0, height: 32 } },
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(400);
+      });
+
+      expect(getByTestId('badges')).toBeTruthy();
     });
   });
 });

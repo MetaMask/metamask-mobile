@@ -304,11 +304,18 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        // Claims are aggregate (all claimable positions), so market_id/title are
+        // intentionally omitted here; the controller derives them when exactly
+        // one market is claimed.
+        await claim({
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          ...(predictScreen && { predictScreen }),
+          ...(predictFeedTab && { predictFeedTab }),
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [executeGuardedAction, claim]);
+  }, [executeGuardedAction, claim, predictScreen, predictFeedTab]);
 
   const handleTabPress = (tabIndex: number) => {
     if (!tabsReady) return;

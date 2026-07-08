@@ -2333,7 +2333,6 @@
     "home": {
       "live_now_title": "Şimdi canlı",
       "categories_placeholder": "Kategoriler",
-      "popular_today_placeholder": "Bugün popüler",
       "trending_placeholder": "Trend"
     },
     "homepage_discovery": {
@@ -8828,7 +8827,7 @@
       "points_from_referrals_label": "Referanslardan gelen puanlar",
       "referrals_label": "VIP Referanslar",
       "tier_benefits_title": "Aşama faydaları",
-      "splash_title": "GOLD\nFOX VIP'YE\nHOŞ GELDİNİZ",
+      "splash_title": "GOLD FOX\nCOLLECTIVE'YE\nHOŞ GELDİNİZ",
       "splash_description": "Özel avantajların, erken erişim özelliklerinin ve seçkin ödüllerin kilidini açın. Yalnızca davet yoluyla.",
       "splash_accept_invite": "Daveti kabul et",
       "splash_not_now": "Şimdi değil",
@@ -8843,17 +8842,14 @@
       "tiers_title": "Aşamalar",
       "tier_thresholds": "{{points}} puan",
       "bps_value": "{{bps}} bps",
-      "referee_splash_title": "GOLD\nFOX VIP'YE\nHOŞ GELDİNİZ",
-      "referee_splash_description": "Özel avantajların, erken erişim özelliklerinin ve seçkin ödüllerin kilidini açın. Yalnızca davet yoluyla.",
       "referee_splash_continue": "Devam et",
-      "referee_splash_not_now": "Şimdi değil",
       "referee_referred_by": "Öneren {{code}}",
       "referee_page_title": "VIP Pilot",
       "referee_stats_title": "İstatistikler",
       "referee_period_last_30d": "Son 30g",
-      "referee_points_label": "Puan",
       "referee_swaps_volume_label": "Takas hacmi",
       "referee_perps_volume_label": "Perps hacmi",
+      "referee_points_to_label": "{{code}} için puan",
       "referee_error_title": "VIP referans bilgilerinizi yükleyemedik",
       "referee_error_description": "Bağlantınızı kontrol edin ve tekrar deneyin.",
       "last_updated": "Son güncelleme: {{time}}"

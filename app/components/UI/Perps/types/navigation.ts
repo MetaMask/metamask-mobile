@@ -101,6 +101,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
+    source_section?: string;
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];

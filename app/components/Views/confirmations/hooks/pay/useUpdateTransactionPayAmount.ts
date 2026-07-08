@@ -7,6 +7,7 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
 import {
   updateAtomicBatchData,
@@ -24,25 +25,32 @@ import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 type MoneyAccountAmountUpdater = (
   transactionMeta: TransactionMeta,
   amountHuman: string,
+  recipientOverride?: Hex,
 ) => Promise<UpdateTransactionPayAmountCall[]>;
 
 export function useUpdateTransactionPayAmount() {
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount } = useUpdateTokenAmount();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const accountOverride = useTransactionAccountOverride();
 
   const applyMoneyAccountAmountUpdates = useCallback(
     async (
       amountHuman: string,
       updater: MoneyAccountAmountUpdater,
       preparationErrorMessage: string,
+      recipientOverride?: Hex,
     ) => {
       if (!transactionMeta) {
         return;
       }
 
       try {
-        const updates = await updater(transactionMeta, amountHuman);
+        const updates = await updater(
+          transactionMeta,
+          amountHuman,
+          recipientOverride,
+        );
 
         const results = await Promise.allSettled(
           updates.map(({ nestedTransactionIndex, transactionData }) =>
@@ -102,6 +110,7 @@ export function useUpdateTransactionPayAmount() {
           amountHuman,
           updateMoneyAccountWithdrawTokenAmount,
           'Failed to prepare Money Account withdraw amount update',
+          accountOverride,
         );
         return;
       }
@@ -113,6 +122,7 @@ export function useUpdateTransactionPayAmount() {
       applyMoneyAccountAmountUpdates,
       updateTokenAmount,
       requiredTokens,
+      accountOverride,
     ],
   );
 

@@ -106,6 +106,9 @@ jest.mock('../components/MoneyEarnCryptoInfoSheet', () => () => (
 jest.mock('../../../Views/confirmations/components/confirm', () => ({
   Confirm: () => <MockView testID="mock-confirm" />,
 }));
+jest.mock('../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet', () => () => (
+  <MockView testID="mock-money-geo-block-sheet" />
+));
 
 describe('MoneyTabScreenStack', () => {
   beforeEach(() => {
@@ -261,5 +264,13 @@ describe('MoneyModalStack', () => {
     expect(
       getByTestId('money-screen-MoneyEarnCryptoInfoSheet'),
     ).toBeOnTheScreen();
+  });
+
+  it('registers the Geo block sheet as a modal screen', () => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId('money-screen-MoneyGeoBlockSheet')).toBeOnTheScreen();
   });
 });

@@ -221,6 +221,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDefaultRewardsEnvUrl',
       'RewardsDataService:getBenefits',
       'RewardsDataService:getVIPDashboard',
+      'RewardsDataService:getVipRefereeDashboard',
       'RewardsDataService:getVipFees',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',

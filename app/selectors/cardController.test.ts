@@ -1498,8 +1498,8 @@ describe('selectCardResidencyRegion', () => {
 });
 
 describe('selectIsCardResidencyBlocked', () => {
-  const musdBlockedFlags = (blockedRegions: string[]) => ({
-    earnMusdConversionGeoBlockedCountries: { blockedRegions },
+  const moneyBlockedFlags = (blockedRegions: string[]) => ({
+    moneyAccountGeoBlockedCountries: { blockedRegions },
   });
 
   it('returns false when countryOfResidence is null (fail-open)', () => {
@@ -1526,7 +1526,7 @@ describe('selectIsCardResidencyBlocked', () => {
         } as unknown as CardControllerState['cardHomeData'],
       },
       undefined,
-      musdBlockedFlags(['GB']),
+      moneyBlockedFlags(['GB']),
     );
     expect(selectIsCardResidencyBlocked(state)).toBe(true);
   });
@@ -1547,7 +1547,7 @@ describe('selectIsCardResidencyBlocked', () => {
         } as unknown as CardControllerState['cardHomeData'],
       },
       undefined,
-      musdBlockedFlags(['GB']),
+      moneyBlockedFlags(['GB']),
     );
     expect(selectIsCardResidencyBlocked(state)).toBe(false);
   });
@@ -1568,7 +1568,7 @@ describe('selectIsCardResidencyBlocked', () => {
         } as unknown as CardControllerState['cardHomeData'],
       },
       undefined,
-      musdBlockedFlags(['US-CA']),
+      moneyBlockedFlags(['US-CA']),
     );
     expect(selectIsCardResidencyBlocked(state)).toBe(true);
   });
@@ -1589,7 +1589,7 @@ describe('selectIsCardResidencyBlocked', () => {
         } as unknown as CardControllerState['cardHomeData'],
       },
       undefined,
-      musdBlockedFlags(['US-CA']),
+      moneyBlockedFlags(['US-CA']),
     );
     expect(selectIsCardResidencyBlocked(state)).toBe(false);
   });
@@ -1610,7 +1610,7 @@ describe('selectIsCardResidencyBlocked', () => {
         } as unknown as CardControllerState['cardHomeData'],
       },
       undefined,
-      musdBlockedFlags(['US']),
+      moneyBlockedFlags(['US']),
     );
     expect(selectIsCardResidencyBlocked(state)).toBe(true);
   });
@@ -1618,8 +1618,8 @@ describe('selectIsCardResidencyBlocked', () => {
 
 describe('selectCardAvailableTokens residency blocking', () => {
   const WALLET_A = '0xwalletA000000000000000000000000000000001';
-  const musdBlockedFlags = (blockedRegions: string[]) => ({
-    earnMusdConversionGeoBlockedCountries: { blockedRegions },
+  const moneyBlockedFlags = (blockedRegions: string[]) => ({
+    moneyAccountGeoBlockedCountries: { blockedRegions },
   });
 
   it('suppresses Money Account placeholder entries when residency is blocked', () => {
@@ -1645,7 +1645,7 @@ describe('selectCardAvailableTokens residency blocking', () => {
           homeData as unknown as CardControllerState['cardHomeData'],
       },
       MONAD_VEDA_FEATURE_FLAG,
-      musdBlockedFlags(['GB']),
+      moneyBlockedFlags(['GB']),
     );
     expect(selectCardAvailableTokens(state)).toStrictEqual([]);
   });
@@ -1687,7 +1687,7 @@ describe('selectCardAvailableTokens residency blocking', () => {
           homeData as unknown as CardControllerState['cardHomeData'],
       },
       MONAD_VEDA_FEATURE_FLAG,
-      musdBlockedFlags(['GB']),
+      moneyBlockedFlags(['GB']),
     );
     const tokens = selectCardAvailableTokens(state);
     expect(tokens).toHaveLength(1);
