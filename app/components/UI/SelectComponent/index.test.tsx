@@ -66,6 +66,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 jest.mock('../../../util/theme/themeUtils', () => ({
+  ...jest.requireActual('../../../util/theme/themeUtils'),
   useElevatedSurface: () => 'bg-default',
 }));
 
