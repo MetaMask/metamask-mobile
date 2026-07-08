@@ -23,7 +23,8 @@ describe('selectMoneyHeadlessProviderScope', () => {
   );
 
   it('defaults to off when the flag is absent (safe default)', () => {
-    expect(selectMoneyHeadlessProviderScope.resultFunc({})).toBe('off');
+    // TEMP: RC test for ETH -> mUSD deposit, revert before merge (was 'off')
+    expect(selectMoneyHeadlessProviderScope.resultFunc({})).toBe('all');
   });
 
   it('defaults to off for an unrecognized string value', () => {
@@ -31,7 +32,8 @@ describe('selectMoneyHeadlessProviderScope', () => {
       [MONEY_HEADLESS_PROVIDER_SCOPE_FLAG_KEY]: 'everything',
     });
 
-    expect(result).toBe('off');
+    // TEMP: RC test for ETH -> mUSD deposit, revert before merge (was 'off')
+    expect(result).toBe('all');
   });
 
   it('defaults to off for a non-string value', () => {
@@ -39,6 +41,7 @@ describe('selectMoneyHeadlessProviderScope', () => {
       [MONEY_HEADLESS_PROVIDER_SCOPE_FLAG_KEY]: true,
     });
 
-    expect(result).toBe('off');
+    // TEMP: RC test for ETH -> mUSD deposit, revert before merge (was 'off')
+    expect(result).toBe('all');
   });
 });

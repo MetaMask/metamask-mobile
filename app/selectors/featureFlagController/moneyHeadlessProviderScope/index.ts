@@ -37,6 +37,7 @@ export const selectMoneyHeadlessProviderScope = createSelector(
     const value = remoteFeatureFlags?.[MONEY_HEADLESS_PROVIDER_SCOPE_FLAG_KEY];
     return VALID_SCOPES.includes(value as FiatProviderScope)
       ? (value as FiatProviderScope)
-      : 'off';
+      : // TEMP: RC test for ETH -> mUSD deposit, revert before merge (default was 'off')
+        'all';
   },
 );

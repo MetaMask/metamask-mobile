@@ -12,7 +12,10 @@ export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
 export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
-export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [];
+// TEMP: RC test for ETH -> mUSD deposit, revert before merge (default was [])
+export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
+];
 export const PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS = 10;
 export const PAY_HARDWARE_ENABLED_DEFAULT = false;
 export const PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT = false;

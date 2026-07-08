@@ -45,7 +45,8 @@ describe('Money Account feature flag selectors', () => {
     it('returns false when moneyAccount flag is undefined', () => {
       const result = selectMoneyAccountDepositEnabledFlag.resultFunc({});
 
-      expect(result).toBe(false);
+      // TEMP: RC test for ETH -> mUSD deposit, revert before merge (was false)
+      expect(result).toBe(true);
     });
 
     it('returns false when moneyAccountDepositEnabled is not set', () => {
@@ -53,7 +54,8 @@ describe('Money Account feature flag selectors', () => {
         moneyAccount: {},
       });
 
-      expect(result).toBe(false);
+      // TEMP: RC test for ETH -> mUSD deposit, revert before merge (was false)
+      expect(result).toBe(true);
     });
   });
 

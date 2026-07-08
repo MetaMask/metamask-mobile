@@ -13,7 +13,8 @@ export const selectMoneyAccountDepositEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const flag =
       remoteFeatureFlags?.moneyAccount as unknown as MoneyAccountFeatureFlag;
-    return flag?.moneyAccountDepositEnabled ?? false;
+    // TEMP: RC test for ETH -> mUSD deposit, revert before merge (default was false)
+    return flag?.moneyAccountDepositEnabled ?? true;
   },
 );
 
@@ -28,7 +29,8 @@ export const selectMoneyDepositEthFallbackEnabled = createSelector(
   (remoteFeatureFlags) => {
     const flag =
       remoteFeatureFlags?.moneyAccount as unknown as MoneyAccountFeatureFlag;
-    return flag?.moneyDepositEthFallbackEnabled ?? false;
+    // TEMP: RC test for ETH -> mUSD deposit, revert before merge (default was false)
+    return flag?.moneyDepositEthFallbackEnabled ?? true;
   },
 );
 
