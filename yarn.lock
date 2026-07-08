@@ -8252,7 +8252,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^77.3.0, @metamask/bridge-controller@npm:^77.3.1":
+"@metamask/bridge-controller@npm:^77.3.0, @metamask/bridge-controller@npm:^77.3.2":
   version: 77.3.2
   resolution: "@metamask/bridge-controller@npm:77.3.2"
   dependencies:
@@ -8285,17 +8285,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^74.0.2":
-  version: 74.0.2
-  resolution: "@metamask/bridge-status-controller@npm:74.0.2"
+"@metamask/bridge-status-controller@npm:^74.1.0":
+  version: 74.1.0
+  resolution: "@metamask/bridge-status-controller@npm:74.1.0"
   dependencies:
     "@metamask/accounts-controller": "npm:^39.0.4"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/bridge-controller": "npm:^77.3.1"
+    "@metamask/bridge-controller": "npm:^77.3.2"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/gas-fee-controller": "npm:^26.2.4"
     "@metamask/keyring-controller": "npm:^27.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/messenger": "npm:^2.0.0"
     "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/polling-controller": "npm:^16.0.8"
     "@metamask/profile-sync-controller": "npm:^28.2.0"
@@ -8305,7 +8305,7 @@ __metadata:
     "@metamask/utils": "npm:^11.11.0"
     bignumber.js: "npm:^9.1.2"
     uuid: "npm:^8.3.2"
-  checksum: 10/c46de927a55d4dbf5c373cdfbf72ac72310b63b7004a2ca44b5bf0c8889d1d4689890864df9663c6d41c4096a4e4ac0480343282fae6342da0cf6429acd3967f
+  checksum: 10/6ae22af73b204c4f12a2256f8de5d6d200910b9c21b687ebb9375f82d3f728f73d5de5018fe84f4f233caf8f92c84ecbecc0d44843704569a06e82ce6c37ca30
   languageName: node
   linkType: hard
 
@@ -35517,7 +35517,7 @@ __metadata:
     "@metamask/bitcoin-wallet-snap": "npm:^1.14.2"
     "@metamask/bitcoin-wallet-standard": "npm:^1.0.0"
     "@metamask/bridge-controller": "npm:^77.3.0"
-    "@metamask/bridge-status-controller": "npm:^74.0.2"
+    "@metamask/bridge-status-controller": "npm:^74.1.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/browser-playground": "npm:0.3.0"
     "@metamask/build-utils": "npm:^3.0.0"
