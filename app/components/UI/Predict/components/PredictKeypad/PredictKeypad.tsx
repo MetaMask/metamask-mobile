@@ -145,7 +145,7 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
            See: app/components/UI/Predict/views/PredictBuyWithAnyToken/components/PredictQuickAmounts/ */}
         {!hideHeader && (
           <View style={tw.style('px-4 mb-3')}>
-            <View style={tw.style('flex-row justify-between gap-2')}>
+            <View style={tw.style('flex-row space-between gap-2')}>
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Md}

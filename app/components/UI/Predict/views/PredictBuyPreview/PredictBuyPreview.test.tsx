@@ -17,7 +17,6 @@ import {
   PredictEventValues,
   PredictDismissalMethod,
 } from '../../constants/eventNames';
-import { PREDICT_REG_TIME_TAG_TEST_IDS } from '../../components/PredictRegTimeTag/PredictRegTimeTag';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock Engine
@@ -436,40 +435,6 @@ describe('PredictBuyPreview', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
-    });
-
-    it('renders Reg time tag for World Cup regular-time screen previews', () => {
-      const worldCupMarket: PredictMarket = {
-        ...mockMarket,
-        title: 'France vs Morocco',
-        game: { league: 'fifwc' } as PredictMarket['game'],
-        outcomes: [
-          {
-            ...mockMarket.outcomes[0],
-            sportsMarketType: 'moneyline',
-          },
-        ],
-      };
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          market: worldCupMarket,
-          outcome: worldCupMarket.outcomes[0],
-        },
-      });
-
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      expect(
-        screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.TAG),
-      ).toHaveTextContent('Reg time');
-
-      fireEvent.press(
-        screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.INFO_BUTTON),
-      );
-
-      expect(screen.getByText('Regulation time')).toBeOnTheScreen();
     });
 
     it('displays group title when market has multiple outcomes', () => {

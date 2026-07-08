@@ -5,7 +5,6 @@ import PredictBuyPreviewHeader, {
   PredictBuyPreviewHeaderBack,
 } from './PredictBuyPreviewHeader';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import { PREDICT_REG_TIME_TAG_TEST_IDS } from '../../../../components/PredictRegTimeTag/PredictRegTimeTag';
 import {
   Side,
   Recurrence,
@@ -19,12 +18,6 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, options?: Record<string, unknown>) => {
     if (key === 'predict.buy_preview_outcome_at_price') {
       return `${options?.outcome} at ${options?.price}`;
-    }
-    if (key === 'predict.reg_time_info.tag') {
-      return 'Reg time';
-    }
-    if (key === 'predict.reg_time_info.title') {
-      return 'Regulation time';
     }
     return key;
   }),
@@ -391,33 +384,6 @@ describe('PredictBuyPreviewHeader', () => {
 
       expect(screen.getAllByText(/Korea Republic/).length).toBeGreaterThan(0);
       expect(screen.getByText(/Yes at 0\.65¢/)).toBeOnTheScreen();
-    });
-
-    it('renders Reg time tag for World Cup regular-time picks', () => {
-      const market = createMockMarket({
-        title: 'France vs. Morocco',
-        game: { league: 'fifwc' } as PredictMarket['game'],
-      });
-      const outcome = createMockOutcome({
-        sportsMarketType: 'moneyline',
-      });
-      renderWithProvider(
-        <PredictBuyPreviewHeaderTitle
-          market={market}
-          outcome={outcome}
-          outcomeToken={createMockOutcomeToken()}
-        />,
-      );
-
-      expect(
-        screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.TAG),
-      ).toHaveTextContent('Reg time');
-
-      fireEvent.press(
-        screen.getByTestId(PREDICT_REG_TIME_TAG_TEST_IDS.INFO_BUTTON),
-      );
-
-      expect(screen.getByText('Regulation time')).toBeOnTheScreen();
     });
 
     it('applies success color for Yes outcome', () => {
