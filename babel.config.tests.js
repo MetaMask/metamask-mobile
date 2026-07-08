@@ -2,9 +2,15 @@
 
 const baseConfig = require('./babel.config');
 
-const newPlugins = baseConfig.plugins.filter(
-  (plugin) => plugin !== 'transform-inline-environment-variables',
-);
+// `transform-inline-environment-variables` is configured in the base config as
+// an array (`[name, options]`) so it can exclude `JEST_WORKER_ID`. Match on the
+// plugin name for both string and `[name, options]` forms — otherwise the global
+// inliner survives here and bakes env vars into every file at transform time,
+// defeating the per-file `exclude` list below (e.g. app/util/environment.ts).
+const newPlugins = baseConfig.plugins.filter((plugin) => {
+  const name = Array.isArray(plugin) ? plugin[0] : plugin;
+  return name !== 'transform-inline-environment-variables';
+});
 
 const newOverrides = [
   ...baseConfig.overrides,
