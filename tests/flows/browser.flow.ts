@@ -7,6 +7,7 @@ import TestDApp from '../page-objects/Browser/TestDApp';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
+import { FrameworkDetector } from '../framework/FrameworkDetector';
 
 /**
  * Waits for the test dapp to load.
@@ -109,9 +110,12 @@ const ensureSingleBrowserTabView = async (): Promise<void> => {
       BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
       0,
     );
-    await Gestures.waitAndTap(firstTab, {
-      elemDescription: 'First browser tab (select to open single-tab view)',
-    });
+    const hasTabThumbnail = await Utilities.isElementVisible(firstTab, 5000);
+    if (hasTabThumbnail) {
+      await Gestures.waitAndTap(firstTab, {
+        elemDescription: 'First browser tab (select to open single-tab view)',
+      });
+    }
   }
 };
 
@@ -122,7 +126,12 @@ export const navigateToBrowserView = async (): Promise<void> => {
   // If we landed on the "Opened tabs" grid (tab list), select the first tab to get to single-tab view
   await ensureSingleBrowserTabView();
 
-  await Assertions.expectElementToBeVisible(BrowserView.urlInputBoxID, {
+  const urlBar = FrameworkDetector.isAppium()
+    ? BrowserView.addressBar
+    : BrowserView.urlInputBoxID;
+
+  await Assertions.expectElementToBeVisible(urlBar, {
     description: 'Browser URL bar should be visible after navigation',
+    timeout: FrameworkDetector.isAppium() ? 30_000 : undefined,
   });
 };

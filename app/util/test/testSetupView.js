@@ -785,6 +785,72 @@ jest.mock('../../components/Base/RemoteImage', () => {
   return (props) => <View {...props} testID="mock-remote-image" />;
 });
 
+// Mock MMDS BottomSheet so open/close callbacks run synchronously in view tests.
+jest.mock('@metamask/design-system-react-native', () => {
+  const React = require('react');
+  const PropTypes = require('prop-types');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = React.forwardRef(
+    (
+      {
+        children,
+        onClose,
+        onOpen,
+        goBack,
+        style,
+        twClassName: _twClassName,
+        testID,
+        accessibilityLabel,
+      },
+      ref,
+    ) => {
+      React.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: (callback) => {
+          onOpen?.();
+          callback?.();
+        },
+        onCloseBottomSheet: (callback) => {
+          const hasCallback = Boolean(callback);
+          onClose?.(hasCallback);
+          goBack?.();
+          callback?.();
+        },
+      }));
+      return React.createElement(
+        View,
+        {
+          testID: testID || 'design-system-bottom-sheet-mock',
+          style,
+          accessibilityLabel,
+        },
+        children,
+      );
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  BottomSheet.propTypes = {
+    children: PropTypes.node,
+    onClose: PropTypes.func,
+    onOpen: PropTypes.func,
+    goBack: PropTypes.func,
+    style: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.array,
+      PropTypes.number,
+    ]),
+    twClassName: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    testID: PropTypes.string,
+    accessibilityLabel: PropTypes.string,
+  };
+
+  return {
+    ...actual,
+    BottomSheet,
+  };
+});
+
 // Mock Braze SDK (ESM-only package; must be transformed via transformIgnorePatterns)
 jest.mock('@braze/react-native-sdk', () => ({
   __esModule: true,
