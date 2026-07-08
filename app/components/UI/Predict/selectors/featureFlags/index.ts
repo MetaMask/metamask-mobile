@@ -127,6 +127,11 @@ export const selectExtendedSportsMarketsLeagues = createSelector(
   (flags) => flags.extendedSportsMarketsLeagues,
 );
 
+export const selectNonRegTimeSportsMarketTypes = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.nonRegTimeSportsMarketTypes,
+);
+
 export const selectPredictFeeCollectionFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.feeCollection,
@@ -150,6 +155,11 @@ export const selectPredictUpDownEnabledFlag = createSelector(
 export const selectPredictWorldCupConfig = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWorldCup,
+);
+
+export const selectPredictWimbledonTabFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictWimbledonTab,
 );
 
 export const selectPredictWorldCupEnabledFlag = createSelector(

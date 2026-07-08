@@ -27,6 +27,7 @@ import {
   resolveCurrentPriceColor,
   type AdvancedChartProps,
   type AdvancedChartRef,
+  type FetchOlderBarsResponse,
   type IndicatorType,
   type OHLCVBar,
   type OHLCVPaginationConfig,
@@ -82,12 +83,18 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
       ohlcvPagination,
+      rnBackedPagination,
+      onFetchOlderBarsRequest,
       indicators = [],
       selectedMAs = [],
       positionLines,
+      tradeMarkers,
+      positionLineColors,
       chartType,
       showVolume = false,
       volumeOverlay = false,
+      hidePaneSeparator = false,
+      gridLineColorOverride,
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
@@ -96,6 +103,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onError,
       onInitFailed,
       onCrosshairMove,
+      onTradeMarkerPress,
       onChartInteracted,
       onChartTradingViewClicked,
       isLoading = false,
@@ -110,6 +118,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       legendOverlay,
       currentPriceLineColorOverride,
       labelStyleOverrides,
+      scrollPassthrough = false,
+      slbMode = false,
+      volumeSuccessColorOverride,
+      volumeErrorColorOverride,
     },
     ref,
   ) => {
@@ -142,6 +154,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
+    const prevTradeMarkersRef = useRef(tradeMarkers);
+    const prevPositionLineColorsRef = useRef(positionLineColors);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
@@ -168,6 +182,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         themeSuccessDefault: theme.colors.success.default,
       }),
     );
+    const initialVolumeSuccessColorRef = useRef(volumeSuccessColorOverride);
+    const initialVolumeErrorColorRef = useRef(volumeErrorColorOverride);
     const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(() => {
@@ -186,17 +202,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         themeSuccessDefault: theme.colors.success.default,
       });
+      initialVolumeSuccessColorRef.current = volumeSuccessColorOverride;
+      initialVolumeErrorColorRef.current = volumeErrorColorOverride;
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
         lineChrome,
         useSubscriptPriceFormat,
+        hidePaneSeparator,
+        gridLineColorOverride,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
         currentPriceLineColorOverride,
         labelStyleOverrides,
         legendOverlay,
+        volumeSuccessColorOverride,
+        volumeErrorColorOverride,
       });
       // lineColorOverride/successColorOverride/errorColorOverride/currentPriceLineColorOverride
       // intentionally excluded — color changes hot-swap via SET_THEME_COLORS without
@@ -209,6 +231,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineChrome,
       useSubscriptPriceFormat,
       labelStyleOverrides,
+      hidePaneSeparator,
+      gridLineColorOverride,
       legendOverlay,
     ]);
 
@@ -225,6 +249,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
+      prevTradeMarkersRef.current = undefined;
+      prevPositionLineColorsRef.current = undefined;
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
@@ -285,6 +311,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
+      // Mark "not loaded" synchronously: the WebView is remounting (new `key`), so
+      // the OHLCV sync effect running later in THIS same commit must not post to the
+      // fresh, not-yet-loaded WebView (the message would be dropped and the data
+      // never re-sent). `setWebViewLoaded(false)` only applies next render, so the
+      // ref is the synchronously-correct gate. Re-set true in `handleLoadEnd`.
+      webViewLoadedRef.current = false;
       setLayoutSettling(false);
       setIndicatorsSyncReady(false);
       clearLayoutSettleTimeout();
@@ -293,6 +325,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
+      prevPositionLineColorsRef.current = undefined;
       prevChartTypeRef.current = undefined;
     }, [clearLayoutSettleTimeout, clearIndicatorsSyncFallback]);
 
@@ -312,10 +345,19 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         return;
       }
       resetWebViewSessionState();
+      // Mark "not loaded" synchronously: the WebView is remounting (new `key`), so
+      // the OHLCV sync effect running later in THIS same commit must not post to the
+      // fresh, not-yet-loaded WebView (the message would be dropped and the data
+      // never re-sent). `setWebViewLoaded(false)` only applies next render, so the
+      // ref is the synchronously-correct gate. Re-set true in `handleLoadEnd`.
+      webViewLoadedRef.current = false;
       ohlcvSeriesStaleSnapshotRef.current =
         prevOhlcvSeriesKeyRef.current !== undefined
           ? prevOhlcvDataRef.current
           : null;
+      // Trade markers belong to the WebView session; clear so the fresh instance
+      // re-posts them from scratch once it loads.
+      prevTradeMarkersRef.current = undefined;
     }, [useIntervalHotReload, ohlcvSeriesKey, resetWebViewSessionState]);
 
     // Technical-indicators path: remount only when `webViewInstanceKey` changes.
@@ -353,11 +395,29 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
     paginationRef.current = ohlcvPagination;
 
+    const rnBackedPaginationRef = useRef<{ enabled: boolean } | undefined>(
+      rnBackedPagination,
+    );
+    rnBackedPaginationRef.current = rnBackedPagination;
+
+    const onFetchOlderBarsRequestRef = useRef<
+      AdvancedChartProps['onFetchOlderBarsRequest']
+    >(onFetchOlderBarsRequest);
+    onFetchOlderBarsRequestRef.current = onFetchOlderBarsRequest;
+
     const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
     visibleFromMsRef.current = visibleFromMs;
 
     const visibleToMsRef = useRef<number | undefined>(visibleToMs);
     visibleToMsRef.current = visibleToMs;
+    const prevVisibleFromMsSentRef = useRef<number | undefined>(undefined);
+    const prevVisibleToMsSentRef = useRef<number | undefined>(undefined);
+
+    // Mirror `slbMode` into a ref so `sendOHLCVData` keeps a stable identity (it
+    // rarely changes — set once per consumer). Sent on every SET_OHLCV_DATA so the
+    // WebView's `window.__slbMode` gate is correct before the post-load centering.
+    const slbModeRef = useRef(slbMode);
+    slbModeRef.current = slbMode;
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
@@ -366,10 +426,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           payload: {
             data,
             pagination: paginationRef.current,
+            rnBackedPagination: rnBackedPaginationRef.current,
             visibleFromMs: visibleFromMsRef.current,
             visibleToMs: visibleToMsRef.current,
+            // Only sent for SocialLeaderboard; omitted otherwise so other
+            // consumers' payload is unchanged (the WebView coerces a missing
+            // value to false via `!!payload.slbMode`).
+            slbMode: slbModeRef.current || undefined,
           },
         });
+        prevVisibleFromMsSentRef.current = visibleFromMsRef.current;
+        prevVisibleToMsSentRef.current = visibleToMsRef.current;
       },
       [postMessage],
     );
@@ -454,6 +521,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             setAppliedIndicatorCount(0);
             setLegendRendered(false);
             prevPositionLinesRef.current = undefined;
+            prevTradeMarkersRef.current = undefined;
+            prevPositionLineColorsRef.current = undefined;
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
@@ -489,6 +558,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             onCrosshairMove?.(message.payload.data);
             break;
 
+          case 'TRADE_MARKER_PRESSED':
+            onTradeMarkerPress?.(message.payload.id);
+            break;
+
           case 'CHART_INTERACTED':
             onChartInteracted?.(message.payload);
             break;
@@ -514,6 +587,38 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             }
             break;
 
+          case 'FETCH_OLDER_BARS_REQUEST': {
+            const handler = onFetchOlderBarsRequestRef.current;
+            const req = message.payload;
+            const respond = (response: FetchOlderBarsResponse) => {
+              postMessage({
+                type: 'FETCH_OLDER_BARS_RESPONSE',
+                payload: response,
+              });
+            };
+            if (!handler) {
+              respond({
+                requestId: req.requestId,
+                seriesGeneration: req.seriesGeneration,
+                bars: [],
+                noData: true,
+                error: 'missing_onFetchOlderBarsRequest',
+              });
+              break;
+            }
+            handler(req)
+              .then(respond)
+              .catch(() =>
+                respond({
+                  requestId: req.requestId,
+                  seriesGeneration: req.seriesGeneration,
+                  bars: [],
+                  noData: true,
+                }),
+              );
+            break;
+          }
+
           default:
             break;
         }
@@ -528,8 +633,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onError,
         onInitFailed,
         onCrosshairMove,
+        onTradeMarkerPress,
         onChartInteracted,
         handleTradingViewOpen,
+        postMessage,
       ],
     );
 
@@ -559,6 +666,21 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         addIndicator,
         removeIndicator,
         setChartType: setChartTypeInternal,
+        focusTime: (timeMs, options) => {
+          if (!Number.isFinite(timeMs)) return;
+          postMessage({
+            type: 'FOCUS_TIME',
+            payload: {
+              timeMs,
+              ...(options?.spanMs != null ? { spanMs: options.spanMs } : {}),
+              ...(options?.animate != null ? { animate: options.animate } : {}),
+            },
+          });
+        },
+        pulseTradeMarker: (id) => {
+          if (!id) return;
+          postMessage({ type: 'PULSE_TRADE_MARKER', payload: { id } });
+        },
         reset: () => {
           clearLayoutSettleTimeout();
           setLayoutSettling(false);
@@ -568,6 +690,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           setWebViewError(null);
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
+          prevTradeMarkersRef.current = undefined;
+          prevPositionLineColorsRef.current = undefined;
           prevChartTypeRef.current = undefined;
           prevOhlcvDataRef.current = [];
           prevOhlcvSeriesKeyRef.current = undefined;
@@ -580,13 +704,21 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         removeIndicator,
         setChartTypeInternal,
         clearLayoutSettleTimeout,
+        postMessage,
       ],
     );
 
     // ---- Declarative prop syncing ----
 
     useEffect(() => {
-      if (ohlcvData.length === 0 || !webViewLoaded) {
+      // `webViewLoaded` (state) is in deps so this re-runs once the new WebView
+      // loads; `webViewLoadedRef` is the synchronously-correct value that prevents
+      // posting to a WebView that is mid-remount (see the series-key reset effect).
+      if (
+        ohlcvData.length === 0 ||
+        !webViewLoaded ||
+        !webViewLoadedRef.current
+      ) {
         return;
       }
 
@@ -599,6 +731,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
 
       const prevData = prevOhlcvDataRef.current;
+      const visibleRangeChanged =
+        visibleFromMsRef.current !== prevVisibleFromMsSentRef.current ||
+        visibleToMsRef.current !== prevVisibleToMsSentRef.current;
 
       if (
         ohlcvSeriesKey !== undefined &&
@@ -616,6 +751,21 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         prevData.length === 0 ||
         Math.abs(ohlcvData.length - prevData.length) > 1
       ) {
+        beginFullOhlcvLayoutSettle();
+        sendOHLCVData(ohlcvData);
+        prevOhlcvDataRef.current = ohlcvData;
+        if (ohlcvSeriesKey !== undefined) {
+          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+        }
+        return;
+      }
+
+      // SocialLeaderboard only: when the requested viewport (visibleFromMs/To)
+      // changes without a series-key change, resend the full series so the WebView
+      // re-frames on the trades. Gated behind slbMode so other consumers (e.g.
+      // Perps) keep their stable latest-N-candle viewport + REALTIME_UPDATE path
+      // and never take a full-data resend on a visible-range-only change.
+      if (slbModeRef.current && visibleRangeChanged) {
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
@@ -651,6 +801,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       ohlcvData,
       ohlcvSeriesKey,
       webViewLoaded,
+      visibleFromMs,
+      visibleToMs,
       sendOHLCVData,
       postMessage,
       beginFullOhlcvLayoutSettle,
@@ -715,14 +867,36 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // Sync positionLines prop
     useEffect(() => {
       if (chartReadyCount === 0) return;
-      if (positionLines === prevPositionLinesRef.current) return;
+      if (
+        positionLines === prevPositionLinesRef.current &&
+        positionLineColors === prevPositionLineColorsRef.current
+      ) {
+        return;
+      }
       prevPositionLinesRef.current = positionLines;
+      prevPositionLineColorsRef.current = positionLineColors;
 
       postMessage({
         type: 'SET_POSITION_LINES',
-        payload: { position: positionLines ?? null },
+        payload: {
+          position: positionLines ?? null,
+          positionLineColors,
+        },
       });
-    }, [positionLines, chartReadyCount, postMessage]);
+    }, [positionLines, positionLineColors, chartReadyCount, postMessage]);
+
+    // Sync tradeMarkers prop (open/close circles). Compares by reference, so
+    // parents should memoize the array; a new reference re-renders all markers.
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+      if (tradeMarkers === prevTradeMarkersRef.current) return;
+      prevTradeMarkersRef.current = tradeMarkers;
+
+      postMessage({
+        type: 'SET_TRADE_MARKERS',
+        payload: { markers: tradeMarkers ?? null },
+      });
+    }, [tradeMarkers, chartReadyCount, postMessage]);
 
     // Sync chartType prop
     useEffect(() => {
@@ -779,9 +953,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           lineColorOverride === initialLineColorRef.current &&
           successColorOverride === initialSuccessColorRef.current &&
           errorColorOverride === initialErrorColorRef.current &&
-          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current;
+          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current &&
+          volumeSuccessColorOverride === initialVolumeSuccessColorRef.current &&
+          volumeErrorColorOverride === initialVolumeErrorColorRef.current;
         themeColorsSentRef.current = true;
-        if (colorsMatch) return;
+        if (
+          colorsMatch &&
+          currentPriceLineColorOverride === undefined &&
+          volumeSuccessColorOverride === undefined &&
+          volumeErrorColorOverride === undefined
+        )
+          return;
       }
       const effectiveSuccessColor =
         successColorOverride ?? theme.colors.success.default;
@@ -795,6 +977,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         themeSuccessDefault: theme.colors.success.default,
       });
+      const effectiveVolumeSuccessColor =
+        volumeSuccessColorOverride ?? effectiveSuccessColor;
+      const effectiveVolumeErrorColor =
+        volumeErrorColorOverride ?? effectiveErrorColor;
       postMessage({
         type: 'SET_THEME_COLORS',
         payload: {
@@ -802,6 +988,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           successColor: effectiveSuccessColor,
           errorColor: effectiveErrorColor,
           currentPriceColor: effectiveCurrentPriceColor,
+          volumeSuccessColor: effectiveVolumeSuccessColor,
+          volumeErrorColor: effectiveVolumeErrorColor,
         },
       });
     }, [
@@ -810,6 +998,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       errorColorOverride,
       currentPriceLineColorOverride,
       labelStyleOverrides?.lastValuePillColor,
+      volumeSuccessColorOverride,
+      volumeErrorColorOverride,
       webViewLoaded,
       postMessage,
       theme.colors.success.default,
@@ -904,7 +1094,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     return (
       <View style={styles.container}>
-        <View style={styles.chartSurface}>
+        <View
+          style={styles.chartSurface}
+          pointerEvents={scrollPassthrough ? 'none' : 'auto'}
+        >
           <WebView
             key={`advanced-chart-${resolvedWebViewKey}`}
             ref={webViewRef}

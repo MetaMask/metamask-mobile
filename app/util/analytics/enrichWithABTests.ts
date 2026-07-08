@@ -44,10 +44,13 @@ const eventMatchesPropertyRequirements = (
     return true;
   }
 
-  return Object.entries(requirements).every(
-    ([propertyKey, expectedValue]) =>
-      event.properties[propertyKey] === expectedValue,
-  );
+  return Object.entries(requirements).every(([propertyKey, expectedValue]) => {
+    const actual = event.properties[propertyKey];
+    if (Array.isArray(expectedValue)) {
+      return (expectedValue as readonly unknown[]).includes(actual);
+    }
+    return actual === expectedValue;
+  });
 };
 
 const eventMatchesInjectGate = (

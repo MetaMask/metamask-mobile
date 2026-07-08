@@ -10,16 +10,6 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
 
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: jest.fn().mockReturnValue({
-    Navigator: 'Navigator',
-    Screen: 'Screen',
-  }),
-  TransitionPresets: {
-    ModalSlideFromBottomIOS: {},
-  },
-}));
-
 jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',

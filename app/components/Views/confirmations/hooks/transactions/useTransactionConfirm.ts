@@ -27,11 +27,11 @@ import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
+import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
 
 const log = createProjectLogger('transaction-confirm');
 
 export const GO_BACK_TYPES = [
-  TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
@@ -42,6 +42,8 @@ export const GO_BACK_TYPES = [
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const navigation = useNavigation();
+  const { shouldDefer: shouldDeferHwSend, defer: deferHwSend } =
+    useHandleHwSend();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
@@ -115,18 +117,32 @@ export function useTransactionConfirm() {
 
       const updatedMetadata = cloneDeep(transactionMetadata);
 
-      // Ensure the persisted `isGasFeeSponsored` flag reflects whether gasless
-      // is actually supported (e.g. HW wallets don't support gasless, so the
-      // flag must be cleared so the activity list does not show "Paid by MetaMask").
-      updatedMetadata.isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+      // Sponsorship eligibility is account-specific (HW wallets are excluded),
+      // unlike the controller's account-agnostic simulation result.
+      const isGaslessEligible = shouldApplyGasFeeSponsorship({
         transactionMeta: transactionMetadata,
         isGaslessSupported,
       });
+      updatedMetadata.isGasFeeSponsored = isGaslessEligible;
+
+      // The controller sets `isExternalSign` from `isGasFeeSponsored` for any
+      // account. When gasless isn't eligible, revert it or signing is skipped
+      // and an empty `'0x'` reaches `eth_sendRawTransaction`.
+      const isExternalSignStale =
+        Boolean(transactionMetadata.isExternalSign) && !isGaslessEligible;
+      if (isExternalSignStale) {
+        updatedMetadata.isExternalSign = false;
+      }
 
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
       } else if (selectedGasFeeToken && !isHardwareWallet) {
         handleGasless7702(updatedMetadata);
+      }
+
+      if (shouldDeferHwSend(updatedMetadata)) {
+        deferHwSend(updatedMetadata);
+        return;
       }
 
       const effectiveWaitForResult = options?.waitForResult ?? waitForResult;
@@ -172,6 +188,15 @@ export function useTransactionConfirm() {
       } else if (type === TransactionType.musdConversion) {
         musdConversionNavigateOnConfirm();
       } else if (
+        hasTransactionType(transactionMetadata, [
+          TransactionType.moneyAccountDeposit,
+        ])
+      ) {
+        navigation.navigate(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        });
+      } else if (
         isFullScreenConfirmation &&
         !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
       ) {
@@ -185,6 +210,8 @@ export function useTransactionConfirm() {
     [
       chainId,
       handleGasless7702,
+      shouldDeferHwSend,
+      deferHwSend,
       handleSmartTransaction,
       isFiatPaymentSelected,
       isFullScreenConfirmation,

@@ -221,4 +221,47 @@ describe('mapKeyringTransaction', () => {
       }),
     );
   });
+
+  it('maps keyring contract interaction fees', () => {
+    const item = mapKeyringTransaction({
+      transaction: {
+        id: 'contract-id',
+        chain: SOLANA_CHAIN_ID,
+        account: '00000000-0000-4000-8000-000000000000',
+        status: TransactionStatus.Confirmed,
+        timestamp: 1716367781,
+        type: TransactionType.Unknown,
+        from: [{ address: 'from-address', asset: null }],
+        to: [{ address: 'to-address', asset: null }],
+        fees: [
+          {
+            type: 'base',
+            asset: {
+              fungible: true,
+              type: `${SOLANA_CHAIN_ID}/slip44:501`,
+              unit: 'SOL',
+              amount: '0.00001',
+            },
+          },
+        ],
+        events: [],
+      } as Transaction,
+    });
+
+    expect(item).toStrictEqual(
+      expect.objectContaining({
+        type: 'contractInteraction',
+        data: expect.objectContaining({
+          fees: [
+            {
+              type: 'base',
+              amount: '0.00001',
+              assetId: `${SOLANA_CHAIN_ID}/slip44:501`,
+              symbol: 'SOL',
+            },
+          ],
+        }),
+      }),
+    );
+  });
 });

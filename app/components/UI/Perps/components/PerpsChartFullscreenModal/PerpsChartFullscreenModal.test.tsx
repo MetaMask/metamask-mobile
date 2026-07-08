@@ -7,18 +7,34 @@ import {
   unlockAsync,
   OrientationLock,
 } from 'expo-screen-orientation';
-import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
-import type { TPSLLines } from '../TradingViewChart/TradingViewChart';
+import {
+  CandlePeriod,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type CandleData,
+} from '@metamask/perps-controller';
+import type { OhlcData, TPSLLines } from '../TradingViewChart/TradingViewChart';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
   PerpsOHLCVBarSelectorsIDs,
 } from '../../Perps.testIds';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 jest.mock('expo-screen-orientation');
 jest.mock('../../../../../util/Logger');
 
+const mockTrack = jest.fn();
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({
+    track: mockTrack,
+  }),
+}));
+
 const mockLockAsync = lockAsync as jest.MockedFunction<typeof lockAsync>;
 const mockUnlockAsync = unlockAsync as jest.MockedFunction<typeof unlockAsync>;
+const mockTradingViewChart = jest.fn();
+const mockPerpsAdvancedChart = jest.fn();
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -99,11 +115,43 @@ jest.mock('../TradingViewChart', () => {
       }: { testID: string; onOhlcDataChange?: (data: unknown) => void },
       ref: unknown,
     ) => {
+      mockTradingViewChart({ testID, onOhlcDataChange: _onOhlcDataChange });
       ReactMock.useImperativeHandle(ref, () => ({
         zoomToLatestCandle: jest.fn(),
         resetToDefault: jest.fn(),
       }));
       return <View testID={testID} />;
+    },
+  );
+});
+
+jest.mock('../PerpsAdvancedChart/PerpsAdvancedChart', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { TouchableOpacity } = require('react-native');
+  return jest.fn(
+    ({
+      onCrosshairDataChange,
+      ...props
+    }: {
+      onCrosshairDataChange?: (data: OhlcData | null) => void;
+      [key: string]: unknown;
+    }) => {
+      mockPerpsAdvancedChart({ onCrosshairDataChange, ...props });
+      return (
+        <TouchableOpacity
+          testID="perps-advanced-chart"
+          onPress={() =>
+            onCrosshairDataChange?.({
+              time: 1234567890,
+              open: '100',
+              high: '110',
+              low: '90',
+              close: '105',
+              volume: '1000',
+            })
+          }
+        />
+      );
     },
   );
 });
@@ -176,6 +224,7 @@ describe('PerpsChartFullscreenModal', () => {
     jest.clearAllMocks();
     mockLockAsync.mockResolvedValue();
     mockUnlockAsync.mockResolvedValue();
+    mockTrack.mockClear();
   });
 
   afterEach(() => {
@@ -399,6 +448,11 @@ describe('PerpsChartFullscreenModal', () => {
       expect(
         getByTestId(PerpsChartFullscreenModalSelectorsIDs.CHART),
       ).toBeDefined();
+      expect(mockTradingViewChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          testID: PerpsChartFullscreenModalSelectorsIDs.CHART,
+        }),
+      );
     });
 
     it('passes tpslLines to chart when provided', () => {
@@ -419,6 +473,136 @@ describe('PerpsChartFullscreenModal', () => {
       expect(
         getByTestId(PerpsChartFullscreenModalSelectorsIDs.CHART),
       ).toBeDefined();
+    });
+
+    it('renders PerpsAdvancedChart when advanced charts are enabled with a symbol', () => {
+      const mockTpslLines: TPSLLines = {
+        takeProfitPrice: '110',
+        stopLossPrice: '90',
+      };
+
+      const { getByTestId } = render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          candleData={mockCandleData}
+          isAdvancedChartEnabled
+          symbol="BTC"
+          tpslLines={mockTpslLines}
+          positionSize="0.5"
+        />,
+      );
+
+      expect(getByTestId('perps-advanced-chart')).toBeDefined();
+      expect(mockPerpsAdvancedChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          interval: CandlePeriod.OneHour,
+          visibleCandleCount: expect.any(Number),
+          tpslLines: mockTpslLines,
+          positionSize: '0.5',
+          fallbackCandleData: mockCandleData,
+        }),
+      );
+      expect(mockTradingViewChart).not.toHaveBeenCalled();
+    });
+
+    it('keeps TradingViewChart when advanced charts are enabled without a symbol', () => {
+      const { getByTestId } = render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          candleData={mockCandleData}
+          isAdvancedChartEnabled
+        />,
+      );
+
+      expect(
+        getByTestId(PerpsChartFullscreenModalSelectorsIDs.CHART),
+      ).toBeDefined();
+      expect(mockPerpsAdvancedChart).not.toHaveBeenCalled();
+      expect(mockTradingViewChart).toHaveBeenCalled();
+    });
+
+    it('wires AdvancedChart crosshair data into the fullscreen OHLCV bar', () => {
+      const { getByTestId } = render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          candleData={mockCandleData}
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      fireEvent.press(getByTestId('perps-advanced-chart'));
+
+      expect(getByTestId('ohlcv-bar')).toBeDefined();
+    });
+
+    it('tracks screen view when advanced chart skeleton hides', () => {
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      latestAdvancedChartProps.onSkeletonHidden();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        },
+      );
+    });
+
+    it('tracks error and keeps modal open when advanced chart reports an error', () => {
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      latestAdvancedChartProps.onError();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+            'Chart rendering error in fullscreen chart modal',
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        }),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        },
+      );
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
   });
 

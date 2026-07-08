@@ -13,7 +13,28 @@ import { createRampUnsupportedModalNavigationDetails } from '../components/RampU
 import { createRampsServiceDisruptionModalNavigationDetails } from '../components/RampsServiceDisruptionModal/RampsServiceDisruptionModal';
 
 const mockSetSelectedToken = jest.fn();
+const mockProvider = {
+  id: 'provider-1',
+  name: 'Provider 1',
+};
 let mockTokens: { allTokens: unknown[]; topTokens: unknown[] } | undefined;
+let mockTokensLoading = false;
+let mockTokensError: string | null = null;
+let mockProviders: unknown[] = [mockProvider];
+let mockProvidersLoading = false;
+let mockProvidersError: string | null = null;
+let mockLastProviders = mockProviders;
+let mockLastProvidersLoading = mockProvidersLoading;
+let mockLastProvidersError: string | null = mockProvidersError;
+let mockProvidersSelectorResult: {
+  data: unknown[];
+  isLoading: boolean;
+  error: string | null;
+} = {
+  data: mockProviders,
+  isLoading: mockProvidersLoading,
+  error: mockProvidersError,
+};
 let mockUserRegion: UserRegion | null;
 let mockCountries: Country[];
 
@@ -21,7 +42,29 @@ jest.mock('./useRampsTokens', () => ({
   useRampsTokens: () => ({
     setSelectedToken: mockSetSelectedToken,
     tokens: mockTokens,
+    isLoading: mockTokensLoading,
+    error: mockTokensError,
   }),
+}));
+jest.mock('../../../../selectors/rampsController', () => ({
+  selectProviders: () => {
+    if (
+      mockLastProviders !== mockProviders ||
+      mockLastProvidersLoading !== mockProvidersLoading ||
+      mockLastProvidersError !== mockProvidersError
+    ) {
+      mockLastProviders = mockProviders;
+      mockLastProvidersLoading = mockProvidersLoading;
+      mockLastProvidersError = mockProvidersError;
+      mockProvidersSelectorResult = {
+        data: mockProviders,
+        isLoading: mockProvidersLoading,
+        error: mockProvidersError,
+      };
+    }
+
+    return mockProvidersSelectorResult;
+  },
 }));
 jest.mock('./useRampsUserRegion', () => ({
   __esModule: true,
@@ -111,6 +154,19 @@ describe('useRampNavigation', () => {
     jest.clearAllMocks();
     mockSetSelectedToken.mockClear();
     mockTokens = undefined;
+    mockTokensLoading = false;
+    mockTokensError = null;
+    mockProviders = [mockProvider];
+    mockProvidersLoading = false;
+    mockProvidersError = null;
+    mockLastProviders = mockProviders;
+    mockLastProvidersLoading = mockProvidersLoading;
+    mockLastProvidersError = mockProvidersError;
+    mockProvidersSelectorResult = {
+      data: mockProviders,
+      isLoading: mockProvidersLoading,
+      error: mockProvidersError,
+    };
     // Default region/countries are indeterminate (not loaded) → never blocks.
     mockUserRegion = null;
     mockCountries = [];
@@ -307,6 +363,165 @@ describe('useRampNavigation', () => {
           assetId: intent.assetId,
           buyFlowOrigin: undefined,
         });
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+      });
+    });
+
+    describe('empty V2 catalog routing', () => {
+      it('navigates to RampUnsupportedModal when the loaded catalog has no providers', () => {
+        mockProviders = [];
+        mockTokens = {
+          allTokens: [
+            {
+              assetId: 'eip155:1/erc20:0x123',
+              chainId: 'eip155:1',
+              tokenSupported: true,
+            },
+          ],
+          topTokens: [],
+        };
+        const navDetails = createRampUnsupportedModalNavigationDetails();
+
+        const { result } = renderUseRampNavigation();
+
+        result.current.goToBuy();
+
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+        expect(
+          mockCreateTokenSelectionNavigationDetails,
+        ).not.toHaveBeenCalled();
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+      });
+
+      it('navigates to RampUnsupportedModal when the loaded catalog has no buyable tokens', () => {
+        mockTokens = {
+          allTokens: [
+            {
+              assetId: 'eip155:1/erc20:0x123',
+              chainId: 'eip155:1',
+              tokenSupported: false,
+            },
+          ],
+          topTokens: [],
+        };
+        const navDetails = createRampUnsupportedModalNavigationDetails();
+
+        const { result } = renderUseRampNavigation();
+
+        result.current.goToBuy();
+
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+        expect(
+          mockCreateTokenSelectionNavigationDetails,
+        ).not.toHaveBeenCalled();
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+      });
+
+      it('waits for the catalog before treating an empty provider list as unsupported', () => {
+        mockProviders = [];
+        mockProvidersLoading = true;
+        mockTokens = {
+          allTokens: [
+            {
+              assetId: 'eip155:1/erc20:0x123',
+              chainId: 'eip155:1',
+              tokenSupported: true,
+            },
+          ],
+          topTokens: [],
+        };
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          undefined,
+        ] as const;
+        mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+          mockNavDetails,
+        );
+
+        const { result } = renderUseRampNavigation();
+
+        result.current.goToBuy();
+
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+      });
+
+      it('does not treat an empty provider list as unsupported when providers failed to load', () => {
+        mockProviders = [];
+        mockProvidersError = 'Network error';
+        mockTokens = {
+          allTokens: [
+            {
+              assetId: 'eip155:1/erc20:0x123',
+              chainId: 'eip155:1',
+              tokenSupported: true,
+            },
+          ],
+          topTokens: [],
+        };
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          undefined,
+        ] as const;
+        mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+          mockNavDetails,
+        );
+
+        const { result } = renderUseRampNavigation();
+
+        result.current.goToBuy();
+
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+      });
+
+      it('does not treat an empty provider list as unsupported before tokens have loaded', () => {
+        mockProviders = [];
+        mockTokens = undefined;
+        const mockNavDetails = [
+          Routes.RAMP.TOKEN_SELECTION,
+          undefined,
+        ] as const;
+        mockCreateTokenSelectionNavigationDetails.mockReturnValue(
+          mockNavDetails,
+        );
+
+        const { result } = renderUseRampNavigation();
+
+        result.current.goToBuy();
+
+        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+      });
+
+      it('does not gate the override/aggregator path on catalog emptiness', () => {
+        mockProviders = [];
+        mockTokens = {
+          allTokens: [
+            {
+              assetId: 'eip155:1/erc20:0x123',
+              chainId: 'eip155:1',
+              tokenSupported: true,
+            },
+          ],
+          topTokens: [],
+        };
+        const intent = { assetId: 'eip155:1/erc20:0x123' };
+        const mockNavDetails = [Routes.RAMP.BUY] as const;
+        mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
+
+        const { result } = renderUseRampNavigation();
+
+        result.current.goToBuy(intent, { overrideUnifiedRouting: true });
+
+        expect(mockSetSelectedToken).not.toHaveBeenCalled();
+        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+        expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
+          AggregatorRampType.BUY,
+          intent,
+        );
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
       });
     });

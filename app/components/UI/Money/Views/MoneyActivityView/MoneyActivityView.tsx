@@ -1,5 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { SectionList, StyleSheet } from 'react-native';
+import {
+  ScrollView,
+  ActivityIndicator,
+  SectionList,
+  StyleSheet,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { type TransactionMeta } from '@metamask/transaction-controller';
@@ -41,12 +46,25 @@ import { partition } from 'lodash';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  filterScroll: { flexGrow: 0 },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
 });
+
+// Pull roughly a screenful into the active bucket upfront so the list is tall
+// enough for scroll-driven pagination (`onEndReached`) to take over — a
+// short, unscrollable list can never trigger `onEndReached` on its own.
+export const INITIAL_FILL_COUNT = 15;
 
 const FILTER_LABEL_KEYS = {
   all: 'money.activity.filter_all',
   deposits: 'money.activity.filter_deposits',
   transfers: 'money.activity.filter_sends',
+  purchases: 'money.activity.filter_purchases',
 } as const;
 
 interface ActivitySection {
@@ -83,7 +101,7 @@ function groupByDate(
   }
   return Array.from(groups.entries()).map(([dateKey, data]) => ({
     title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString(locale, {
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       year: 'numeric',
     }),
@@ -129,10 +147,19 @@ const MoneyActivityView = () => {
 
   const {
     buckets,
-    isLoading: showActivityLoading,
+    loadMore,
+    hasMore,
+    isLoadingMore,
+    isSettling,
+    error,
+    refetch,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyActivityItems();
+  } = useMoneyActivityItems({
+    // Auto-fill the active tab's bucket to a screenful; switching tabs
+    // re-evaluates for the new bucket.
+    fill: { bucket: filter, count: INITIAL_FILL_COUNT },
+  });
 
   const handleFilterPress = useCallback(
     (
@@ -203,6 +230,46 @@ const MoneyActivityView = () => {
     />
   );
 
+  // Pages are shared across all three tabs (one cursor stream), so reaching the
+  // end of any rendered bucket pulls the next page for all of them. The
+  // `isLoadingMore` guard stops momentum-scroll bursts from cancelling and
+  // re-issuing the in-flight fetch.
+  const handleEndReached = useCallback(() => {
+    if (hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [hasMore, isLoadingMore, loadMore]);
+
+  // A failed fetch is terminal (no automatic retries), so surface it: older
+  // pages exist but won't arrive on their own. Retry replays the query.
+  const listFooter = error ? (
+    <Box
+      paddingVertical={4}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2"
+      testID={MoneyActivityViewTestIds.LOAD_ERROR}
+    >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('money.activity.load_error_more')}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        onPress={refetch}
+        testID={MoneyActivityViewTestIds.RETRY_BUTTON}
+      >
+        {strings('money.activity.retry')}
+      </Button>
+    </Box>
+  ) : isLoadingMore ? (
+    <Box
+      paddingVertical={4}
+      testID={MoneyActivityViewTestIds.LOAD_MORE_SPINNER}
+    >
+      <ActivityIndicator color={colors.icon.alternative} />
+    </Box>
+  ) : null;
+
   const isActive = (f: MoneyActivityFilter) => f === filter;
 
   return (
@@ -239,11 +306,11 @@ const MoneyActivityView = () => {
         </Text>
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        gap={2}
-        paddingHorizontal={4}
-        paddingBottom={3}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
+        contentContainerStyle={styles.filterRow}
       >
         <Button
           variant={
@@ -252,7 +319,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.All,
@@ -271,7 +338,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Deposits,
@@ -290,7 +357,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Transfers,
@@ -302,16 +369,36 @@ const MoneyActivityView = () => {
         >
           {strings(FILTER_LABEL_KEYS.transfers)}
         </Button>
-      </Box>
+        <Button
+          variant={
+            isActive(MoneyActivityFilter.Purchases)
+              ? ButtonVariant.Primary
+              : ButtonVariant.Secondary
+          }
+          size={ButtonSize.Md}
+          twClassName="px-3"
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Purchases,
+              FILTER_LABEL_KEYS.purchases,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_PURCHASES,
+            )
+          }
+          testID={MoneyActivityViewTestIds.FILTER_PURCHASES}
+        >
+          {strings(FILTER_LABEL_KEYS.purchases)}
+        </Button>
+      </ScrollView>
 
-      {showActivityLoading ? (
+      {isSettling ? (
+        // Keep the skeleton up while the bucket is empty but the fill loop is
+        // still fetching — otherwise an in-flight fetch would flash "No
+        // activity". The hook settles the moment fetching stops, including
+        // when the page budget is spent or the query errors.
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6 pb-8"
+          twClassName="flex-1 items-center justify-center px-6 pb-32"
           testID={MoneyActivityViewTestIds.EMPTY_LIST}
         >
           <Text
@@ -319,16 +406,34 @@ const MoneyActivityView = () => {
             color={TextColor.TextAlternative}
             testID={MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE}
           >
-            {strings('money.activity.empty')}
+            {strings(
+              // "No activity" must mean verified-empty, never failed-to-load.
+              error ? 'money.activity.load_error' : 'money.activity.empty',
+            )}
           </Text>
+          {error ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="mt-4"
+              onPress={refetch}
+              testID={MoneyActivityViewTestIds.RETRY_BUTTON}
+            >
+              {strings('money.activity.retry')}
+            </Button>
+          ) : null}
         </Box>
       ) : (
         <SectionList
+          testID={MoneyActivityViewTestIds.LIST}
           sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={listFooter}
         />
       )}
     </Box>

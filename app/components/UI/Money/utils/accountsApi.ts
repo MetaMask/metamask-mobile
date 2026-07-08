@@ -143,6 +143,32 @@ function parseSettlement(
 }
 
 /**
+ * Oldest raw (pre-filter) settlement time across the fetched Accounts-API
+ * pages, in epoch ms. We use this to control pagination. Because pages are
+ * fetched newest-first, every API row newer than this has been seen,
+ * But merged activity older than the watermark must be withheld until more pages load.
+ *
+ * Computed from the raw rows because a row we don’t render still advances
+ * how far back we've looked. Returns Number.POSITIVE_INFINITY` when no rows have
+ * been fetched yet, so nothing passes the `time >= watermark` gate until the first
+ * page arrives.
+ */
+export function oldestRawActivityTime(
+  responses: readonly { data?: { timestamp: string }[] }[],
+): number {
+  let oldest = Number.POSITIVE_INFINITY;
+  for (const response of responses) {
+    for (const row of response.data ?? []) {
+      const time = new Date(row.timestamp).getTime();
+      if (!Number.isNaN(time) && time < oldest) {
+        oldest = time;
+      }
+    }
+  }
+  return oldest;
+}
+
+/**
  * Parse the latest Accounts-API page into Money activity rows.
  **/
 export function parseAccountsApiActivity(
@@ -152,12 +178,23 @@ export function parseAccountsApiActivity(
 ): AccountsApiActivity[] {
   return (response.data ?? []).flatMap((tx): AccountsApiActivity[] => {
     if (tx.transactionType === METAMASK_CARD_PAYMENT_TYPE) {
-      const transfer = outboundTransfer(tx, moneyAddress);
-      const parsed = parseSettlement(tx, transfer);
-      if (!parsed || !transfer) {
+      // A spend debits the money account (outbound leg). A refund of a spend
+      // reverses that: mUSD is credited back, so there's an inbound leg and
+      // no outbound one.
+      const outbound = outboundTransfer(tx, moneyAddress);
+      if (outbound) {
+        const parsed = parseSettlement(tx, outbound);
+        if (!parsed) {
+          return [];
+        }
+        return [{ ...parsed, kind: 'card', paidTo: outbound.to as Hex }];
+      }
+      const inbound = inboundMusdTransfer(tx, moneyAddress);
+      const parsed = parseSettlement(tx, inbound);
+      if (!parsed || !inbound) {
         return [];
       }
-      return [{ ...parsed, kind: 'card', paidTo: transfer.to as Hex }];
+      return [{ ...parsed, kind: 'refund', receivedFrom: inbound.from as Hex }];
     }
     if (isCashbackTransaction(tx, moneyAddress, cashbackMultisendContracts)) {
       const transfer = inboundMusdTransfer(tx, moneyAddress);

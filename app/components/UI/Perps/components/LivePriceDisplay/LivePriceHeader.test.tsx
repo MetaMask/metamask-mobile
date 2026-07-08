@@ -41,6 +41,7 @@ describe('LivePriceHeader', () => {
         price: '0',
         percentChange24h: '5',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
     const { getByText } = render(
@@ -73,6 +74,7 @@ describe('LivePriceHeader', () => {
         price: '3000',
         percentChange24h: '5.5',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
     const { getByText } = render(
@@ -89,6 +91,7 @@ describe('LivePriceHeader', () => {
         price: '2500',
         percentChange24h: '-3.2',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
     const { getByText } = render(
@@ -105,6 +108,7 @@ describe('LivePriceHeader', () => {
         price: '2000',
         percentChange24h: '0',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
     const { getByText } = render(
@@ -121,6 +125,7 @@ describe('LivePriceHeader', () => {
         price: '100',
         percentChange24h: '2.1',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
     const { getByText } = render(
@@ -147,6 +152,7 @@ describe('LivePriceHeader', () => {
           price: '3000',
           percentChange24h: undefined,
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
 
@@ -180,6 +186,7 @@ describe('LivePriceHeader', () => {
           price: '3000',
           percentChange24h: '5.5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
 
@@ -202,6 +209,7 @@ describe('LivePriceHeader', () => {
           price: '2500',
           percentChange24h: '-3.2',
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
 
@@ -224,6 +232,7 @@ describe('LivePriceHeader', () => {
           price: '2000',
           percentChange24h: '0',
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
 
@@ -248,6 +257,7 @@ describe('LivePriceHeader', () => {
           price: '3000',
           percentChange24h: undefined,
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
 
@@ -265,6 +275,7 @@ describe('LivePriceHeader', () => {
           symbol: 'ETH',
           price: '2500',
           timestamp: Date.now(),
+          isTradable: true,
         } as PriceUpdate,
       });
 
@@ -283,6 +294,7 @@ describe('LivePriceHeader', () => {
           price: '2000',
           percentChange24h: '0',
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
 
@@ -313,6 +325,7 @@ describe('LivePriceHeader', () => {
           price: '3100',
           percentChange24h: undefined,
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
 

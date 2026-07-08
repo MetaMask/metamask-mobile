@@ -12,8 +12,8 @@ import React from 'react';
 import I18n from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
-import { isSoccerLeague } from '../../constants/sports';
 import { PredictMarketGame, PredictSportTeam } from '../../types';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
 import { getSportLiveStatusText, isGameEnded } from '../../utils/scoreboard';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import PulsingLiveDot from '../PulsingLiveDot/PulsingLiveDot';
@@ -98,11 +98,9 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   const teamLogoSize = compact ? COMPACT_TEAM_LOGO_SIZE : TEAM_LOGO_SIZE;
   const showScores = isLive || isEnded;
 
-  // Team display order is sport-dependent: soccer (and other draw-capable
-  // leagues) show the home team on the left, while US sports (e.g. American
-  // football) follow the away-then-home convention. testIDs stay tied to the
-  // team identity (home/away), not the slot.
-  const isHomeFirst = isSoccerLeague(game.league);
+  // Keep visual order aligned with the parser's score/team normalization.
+  // testIDs stay tied to the team identity (home/away), not the slot.
+  const isHomeFirst = getLeagueTeamOrder(game.league) === 'home-away';
   const leftTeam = isHomeFirst ? game.homeTeam : game.awayTeam;
   const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
   const leftScore = isHomeFirst ? gameData.homeScore : gameData.awayScore;

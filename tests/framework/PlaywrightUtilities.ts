@@ -12,6 +12,7 @@ import {
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   FALLBACK_MOCKSERVER_PORT,
   resolveE2EWaitTimeoutMs,
+  isReleaseE2eArtifactForPlatform,
 } from './Constants';
 import Utilities from './Utilities';
 import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
@@ -19,6 +20,7 @@ import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 import { execSync } from 'child_process';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 const logger = createPlaywrightLogger('PlaywrightUtilities');
 
@@ -29,6 +31,11 @@ type AndroidIntentExtra = ['s', string, string];
 
 /** Brief pause after force-stopping Android before startActivity (CI emulators). */
 const ANDROID_PRE_LAUNCH_SETTLE_MS = 1500;
+/** Brief pause after terminating iOS before relaunch (mirrors Android pre-launch settle). */
+const IOS_PRE_LAUNCH_SETTLE_MS = Number.parseInt(
+  process.env.IOS_PRE_LAUNCH_SETTLE_MS ?? '1500',
+  10,
+);
 const IOS_PRE_LAUNCH_TERMINATE_RETRY_DELAY_MS = 1000;
 const IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS = 3;
 /** Let UiAutomator2 stabilize after Expo dev-client deep link before element queries. */
@@ -54,17 +61,6 @@ const IOS_TERMINATE_TRANSIENT_ERROR_PATTERNS = [
 const getMetroPort = (): string =>
   process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
 
-const isCiEnvironment = (): boolean => {
-  const ci = process.env.CI?.toLowerCase();
-  return ci === 'true' || ci === '1';
-};
-
-/**
- * Whether local debug builds should bypass the Expo dev server picker via deep link.
- * Mirrors Detox `TestHelpers.launchAppForDebugBuild` (non-CI configs).
- */
-const shouldUseDebugDeepLinkLaunch = (): boolean => !isCiEnvironment();
-
 /**
  * Get the driver instance.
  * @returns The driver instance.
@@ -73,6 +69,51 @@ export function getDriver(): WebdriverIO.Browser {
   const drv = globalThis.driver;
   if (!drv) throw new Error('driver is not available');
   return drv;
+}
+
+interface AppiumDeepLinkArgs {
+  url: string;
+  package?: string;
+}
+
+type AndroidSessionCapabilities = WebdriverIO.Capabilities & {
+  'appium:appPackage'?: string;
+  appPackage?: string;
+};
+
+function getAndroidSessionPackage(
+  drv: WebdriverIO.Browser,
+): string | undefined {
+  const caps = drv.capabilities as AndroidSessionCapabilities;
+  return (caps['appium:appPackage'] ?? caps.appPackage)?.trim();
+}
+
+/**
+ * Opens a deep link via Appium `mobile: deepLink`.
+ * On Android, scopes the intent to the active app package so the system
+ * "Open with" chooser is not shown (see launchAppAndroidForDebugBuild).
+ */
+export async function executeMobileDeepLink(
+  url: string,
+  options: { package?: string } = {},
+): Promise<void> {
+  const drv = getDriver();
+  const args: AppiumDeepLinkArgs = { url };
+
+  const explicitPackage = options.package?.trim();
+  if (explicitPackage) {
+    args.package = explicitPackage;
+  } else if (PlatformDetector.isAndroid()) {
+    const pkg = getAndroidSessionPackage(drv);
+    if (!pkg) {
+      throw new Error(
+        'Android mobile: deepLink requires appium:appPackage or appPackage in session capabilities.',
+      );
+    }
+    args.package = pkg;
+  }
+
+  await drv.execute('mobile: deepLink', args);
 }
 
 /**
@@ -622,10 +663,7 @@ class PlaywrightUtilities {
     });
 
     logger.debug(`Opening Android debug deep link in ${pkg}: ${deepLinkUrl}`);
-    await drv.execute('mobile: deepLink', {
-      url: deepLinkUrl,
-      package: pkg,
-    });
+    await executeMobileDeepLink(deepLinkUrl, { package: pkg });
     await new Promise((resolve) =>
       setTimeout(resolve, ANDROID_POST_DEEPLINK_SETTLE_MS),
     );
@@ -646,7 +684,7 @@ class PlaywrightUtilities {
       this.getDevLauncherPackagerUrl('ios'),
     );
     logger.debug(`Opening iOS debug deep link: ${deepLinkUrl}`);
-    await getDriver().execute('mobile: deepLink', { url: deepLinkUrl });
+    await executeMobileDeepLink(deepLinkUrl);
   }
 
   /**
@@ -723,6 +761,11 @@ class PlaywrightUtilities {
 
     logger.debug(`Launching iOS app ${bundleId}`);
     await PlaywrightUtilities.terminateIosAppBeforeLaunch(bundleId);
+    if (IOS_PRE_LAUNCH_SETTLE_MS > 0) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, IOS_PRE_LAUNCH_SETTLE_MS),
+      );
+    }
 
     await drv.execute('mobile: launchApp', {
       bundleId,
@@ -746,8 +789,11 @@ class PlaywrightUtilities {
       throw new Error('Package name or app id is not available');
     }
 
+    const platform = currentDeviceDetails.platform as 'android' | 'ios';
+    const useDebugDeepLinkLaunch = !isReleaseE2eArtifactForPlatform(platform);
+
     if (currentDeviceDetails.platform === 'android') {
-      if (shouldUseDebugDeepLinkLaunch()) {
+      if (useDebugDeepLinkLaunch) {
         await this.launchAppAndroidForDebugBuild(currentDeviceDetails, {
           launchArgs,
         });
@@ -757,7 +803,7 @@ class PlaywrightUtilities {
         });
       }
     } else if (currentDeviceDetails.platform === 'ios') {
-      if (shouldUseDebugDeepLinkLaunch()) {
+      if (useDebugDeepLinkLaunch) {
         await this.launchAppIOSForDebugBuild(currentDeviceDetails, {
           launchArgs,
         });

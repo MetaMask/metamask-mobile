@@ -8,9 +8,15 @@ import {
   TransactionStatus as KeyringTransactionStatus,
   TransactionType as KeyringTransactionType,
 } from '@metamask/keyring-api';
-import type { ActivityListItem, Status, TokenAmount } from '../types';
+import type {
+  ActivityFee,
+  ActivityListItem,
+  Status,
+  TokenAmount,
+} from '../types';
 
 type Movement = Transaction['from'][number];
+type Fee = Transaction['fees'][number];
 type FungibleAsset = Extract<
   NonNullable<Movement['asset']>,
   { fungible: true }
@@ -62,6 +68,31 @@ function getToken(
     assetId: movement.asset.type,
     direction,
   };
+}
+
+function getFee(fee: Fee): ActivityFee | undefined {
+  const { asset } = fee;
+
+  if (asset.fungible !== true) {
+    return undefined;
+  }
+
+  return {
+    type: fee.type,
+    amount: asset.amount,
+    symbol: asset.unit,
+    assetId: asset.type,
+  };
+}
+
+function getFees(transaction: Transaction): ActivityFee[] | undefined {
+  const fees = (transaction.fees ?? []).flatMap((fee) => {
+    const mappedFee = getFee(fee);
+
+    return mappedFee ? [mappedFee] : [];
+  });
+
+  return fees.length ? fees : undefined;
 }
 
 function isUnlimitedApprovalMovement(movement: Movement) {
@@ -145,6 +176,7 @@ export function mapKeyringTransaction({
   const chainId = transaction.chain;
   const from = getAddress(transaction.from);
   const to = getAddress(transaction.to);
+  const fees = getFees(transaction);
 
   if (transaction.type === KeyringTransactionType.Send) {
     const fromToken = getToken(transaction.from, 'out');
@@ -175,6 +207,7 @@ export function mapKeyringTransaction({
         from,
         to,
         token,
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -191,6 +224,7 @@ export function mapKeyringTransaction({
         from,
         to,
         token: getToken(transaction.to, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -206,6 +240,7 @@ export function mapKeyringTransaction({
       data: {
         destinationToken: getToken(transaction.to, 'in'),
         sourceToken: getToken(transaction.from, 'out'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -220,6 +255,7 @@ export function mapKeyringTransaction({
       raw: { type: 'keyringTransaction', data: transaction },
       data: {
         token: getApprovalToken(transaction),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -235,6 +271,7 @@ export function mapKeyringTransaction({
       from,
       to,
       transactionType: transaction.type,
+      ...(fees ? { fees } : {}),
     },
   };
 }

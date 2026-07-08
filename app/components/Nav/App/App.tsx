@@ -41,6 +41,7 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import AgentStepHud from '../../../dev-tools/AgenticService/AgentStepHud';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
@@ -121,6 +122,8 @@ import { endTrace, TraceName } from '../../../util/trace';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
+import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWalletsSwaps';
+import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
@@ -851,8 +854,28 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const MultichainAddressList = () => {
+  const route = useRoute();
+
+  return (
+    <NativeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    >
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={MultichainAccountAddressList}
+        initialParams={route?.params}
+      />
+    </NativeStack.Navigator>
+  );
+};
+
 const MultichainAccountGroupDetails = () => {
   const route = useRoute();
+  const { colors } = useTheme();
 
   return (
     <NativeStack.Navigator
@@ -881,6 +904,16 @@ const MultichainAccountGroupDetails = () => {
         options={{
           headerShown: false,
           animation: 'slide_from_right',
+        }}
+      />
+
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={MultichainAddressList}
+        options={{
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
+          contentStyle: { backgroundColor: colors.background.default },
         }}
       />
       <NativeStack.Screen
@@ -957,25 +990,6 @@ const MultichainAccountDetailsActions = () => {
       <NativeStack.Screen
         name={Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL}
         component={RevealSRP}
-        initialParams={route?.params}
-      />
-    </NativeStack.Navigator>
-  );
-};
-
-const MultichainAddressList = () => {
-  const route = useRoute();
-
-  return (
-    <NativeStack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animation: 'slide_from_right',
-      }}
-    >
-      <NativeStack.Screen
-        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-        component={MultichainAccountAddressList}
         initialParams={route?.params}
       />
     </NativeStack.Navigator>
@@ -1215,6 +1229,22 @@ const AppFlow = () => {
         }}
         component={Confirm}
       />
+
+      {/* HW signing progress — 2nd registration (1st is in Bridge/routes.tsx)
+          so the send origin can reach it in the main modal stack. Same route
+          constant + same component; `flow` route param selects send vs bridge
+          behavior. React Navigation resolves within the active stack, so
+          `goBack()` from send lands on send confirm; bridge is unaffected. */}
+      <NativeStack.Screen
+        name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
+        component={HardwareWalletsSwaps}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.BRIDGE.HW_QR_SCANNER}
+        component={HwQrScanner}
+        options={{ headerShown: false }}
+      />
       <NativeStack.Screen
         name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
         component={ModalSwitchAccountType}
@@ -1345,6 +1375,7 @@ const App: React.FC = () => {
         <AppFlow />
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
+        {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>

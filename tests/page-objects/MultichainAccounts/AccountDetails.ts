@@ -2,7 +2,11 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails.testIds';
 import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { EncapsulatedElementType, asPlaywrightElement } from '../../framework';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import { getDriver } from '../../framework/PlaywrightUtilities';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class AccountDetails {
   get container(): EncapsulatedElementType {
@@ -71,7 +75,53 @@ class AccountDetails {
     });
   }
 
+  /**
+   * Appium iOS: `account-details-container` can exist with `visible=false` while
+   * the details sheet is on screen (same XCTest quirk as `account-list`). Use
+   * interactive child controls to detect the screen instead.
+   */
+  private async isAccountDetailsVisibleOnAppiumIos(): Promise<boolean> {
+    try {
+      const nameLink = await asPlaywrightElement(this.editAccountName);
+      if (await nameLink.isVisible()) {
+        return true;
+      }
+    } catch {
+      // fall through
+    }
+
+    try {
+      const backEl = await asPlaywrightElement(this.backButton);
+      return await backEl.isVisible();
+    } catch {
+      return false;
+    }
+  }
+
   async tapBackButton(): Promise<void> {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      const isOnAccountDetails =
+        await this.isAccountDetailsVisibleOnAppiumIos();
+      if (!isOnAccountDetails) {
+        return;
+      }
+
+      const backEl = await asPlaywrightElement(this.backButton);
+      try {
+        await PlaywrightGestures.waitAndTap(backEl, {
+          timeout: 5_000,
+          checkForDisplayed: false,
+        });
+      } catch {
+        const drv = getDriver();
+        if (!drv) {
+          throw new Error('Driver is not available');
+        }
+        await drv.back();
+      }
+      return;
+    }
+
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back Button in Account Details',
     });

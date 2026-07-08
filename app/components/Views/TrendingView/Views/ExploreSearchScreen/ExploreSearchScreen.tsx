@@ -273,14 +273,12 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      <Box twClassName="px-4">
-        <PillRow
-          pills={pills}
-          activeKey={activePill}
-          onSelect={handlePillSelect}
-          testIdPrefix="explore-search"
-        />
-      </Box>
+      <PillRow
+        pills={pills}
+        activeKey={activePill}
+        onSelect={handlePillSelect}
+        testIdPrefix="explore-search"
+      />
       {showFeedList ? (
         <FullFeedList
           key={activePill}

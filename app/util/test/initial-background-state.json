@@ -31,6 +31,7 @@
   },
   "AnalyticsController": {
     "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+    "consentDecisionMade": false,
     "optedIn": false
   },
   "GatorPermissionsController": {
@@ -287,6 +288,10 @@
         "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": false,
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
+      },
+      "stellar": {
+        "stellar:pubnet": true,
+        "stellar:testnet": false
       },
       "tron": {
         "tron:2494104990": false,
@@ -641,6 +646,18 @@
         "name": "Solana Devnet",
         "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
       },
+      "stellar:pubnet": {
+        "chainId": "stellar:pubnet",
+        "isEvm": false,
+        "name": "Stellar",
+        "nativeCurrency": "stellar:pubnet/slip44:148"
+      },
+      "stellar:testnet": {
+        "chainId": "stellar:testnet",
+        "isEvm": false,
+        "name": "Stellar Testnet",
+        "nativeCurrency": "stellar:testnet/slip44:148"
+      },
       "tron:2494104990": {
         "chainId": "tron:2494104990",
         "isEvm": false,
@@ -687,10 +704,13 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "inputPrimaryDenomination": "token_amount",
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": []
+    "tokenWarnings": [],
+    "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
+    "quoteUpdateStatusStore": {},
     "txHistory": {}
   },
   "CardController": {
@@ -701,7 +721,14 @@
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
-    "moneyAccountCardLinkInProgress": false
+    "moneyAccountCardLinkInProgress": false,
+    "lastUnauthenticatedReason": null
+  },
+  "ConfigRegistryController": {
+    "configs": { "networks": {} },
+    "etag": null,
+    "lastFetched": null,
+    "version": null
   },
   "ClientController": {
     "isUiOpen": false
@@ -820,6 +847,13 @@
     "activeBuyOrders": {},
     "selectedPaymentToken": null,
     "accountMeta": {}
+  },
+  "QrSyncController": {
+    "phase": "idle",
+    "connectionStatus": "disconnected",
+    "otp": null,
+    "error": null,
+    "importPlan": null
   },
   "AiDigestController": {
     "marketInsights": {},

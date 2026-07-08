@@ -112,7 +112,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       .mocked(useTransactionPaySelectedFiatPaymentMethod)
       .mockReturnValue(undefined);
     jest.mocked(useMoneyAccountBalance).mockReturnValue({
-      totalFiatRaw: undefined,
+      withdrawableFiatRaw: undefined,
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     useTransactionPayTokenMock.mockReturnValue({
@@ -632,7 +632,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('uses money account balance instead of on-chain balance for input check', () => {
       jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatRaw: '0.50',
+        withdrawableFiatRaw: '0.50',
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayTokenMock.mockReturnValue({
@@ -660,7 +660,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('returns no input alert when money account balance covers the amount', () => {
       jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatRaw: '10.00',
+        withdrawableFiatRaw: '10.00',
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({}, moneyAccountState);
@@ -670,7 +670,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('skips fee insufficient balance check for money account source', () => {
       jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatRaw: '10.00',
+        withdrawableFiatRaw: '10.00',
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayTokenMock.mockReturnValue({
@@ -688,7 +688,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('skips source network fee check for money account source', () => {
       jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatRaw: '10.00',
+        withdrawableFiatRaw: '10.00',
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTokenWithBalanceMock.mockReturnValue({
@@ -703,7 +703,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('returns alert when total (amount + fees) exceeds money account balance', () => {
       jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatRaw: '3.00',
+        withdrawableFiatRaw: '3.00',
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayRequiredTokensMock.mockReturnValue([
@@ -733,7 +733,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('returns no alert when total is within money account balance', () => {
       jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatRaw: '5.00',
+        withdrawableFiatRaw: '5.00',
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayRequiredTokensMock.mockReturnValue([
@@ -752,7 +752,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     it('skips total check during pending input (keyboard visible)', () => {
       jest.mocked(useMoneyAccountBalance).mockReturnValue({
-        totalFiatRaw: '3.00',
+        withdrawableFiatRaw: '3.00',
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayTotalsMock.mockReturnValue({

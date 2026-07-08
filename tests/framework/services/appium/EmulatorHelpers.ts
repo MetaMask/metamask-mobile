@@ -17,6 +17,7 @@ const ANDROID_NETWORK_READY_CONSECUTIVE_PINGS = 3;
 const ANDROID_NETWORK_READY_TIMEOUT_MS = 60_000;
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
+const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
 
 /** Play Store / GMS packages disabled after cold boot — not needed for Appium E2E. */
@@ -804,8 +805,31 @@ export async function isIosSimulatorBooted(udid: string): Promise<boolean> {
   return false;
 }
 
+function resolveIosPostBootSettleMs(): number {
+  const raw = process.env.IOS_SIMULATOR_POST_BOOT_SETTLE_MS?.trim();
+  if (!raw) {
+    return DEFAULT_IOS_POST_BOOT_SETTLE_MS;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed >= 0
+    ? parsed
+    : DEFAULT_IOS_POST_BOOT_SETTLE_MS;
+}
+
+async function waitForIosSimulatorPostBootSettle(): Promise<void> {
+  const settleMs = resolveIosPostBootSettleMs();
+  if (settleMs <= 0) {
+    return;
+  }
+  logger.info(
+    `Waiting ${settleMs / 1000}s for iOS simulator post-boot settle (SpringBoard / system UI)…`,
+  );
+  await sleep(settleMs);
+}
+
 export async function bootIosSimulatorByUdid(udid: string): Promise<string> {
-  if (await isIosSimulatorBooted(udid)) {
+  const alreadyBooted = await isIosSimulatorBooted(udid);
+  if (alreadyBooted) {
     logger.info(`iOS simulator ${udid} is already booted — skipping boot.`);
     return udid;
   }
@@ -821,6 +845,7 @@ export async function bootIosSimulatorByUdid(udid: string): Promise<string> {
   );
 
   await execAsync(`xcrun simctl bootstatus "${udid}" -b`);
+  await waitForIosSimulatorPostBootSettle();
 
   logger.info(`iOS simulator ${udid} is booted and ready.`);
   return udid;

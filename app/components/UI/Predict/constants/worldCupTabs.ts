@@ -16,25 +16,6 @@ export interface PredictWorldCupTabAvailability {
   stages: Record<string, boolean>;
 }
 
-/**
- * Stage tab keys when remote `stages` is empty — matches i18n
- * `predict.world_cup.stages.group_*` (also used for homepage bracket pills).
- */
-export const PREDICT_WORLD_CUP_FALLBACK_STAGE_TAB_KEYS = [
-  'group_a',
-  'group_b',
-  'group_c',
-  'group_d',
-  'group_e',
-  'group_f',
-  'group_g',
-  'group_h',
-  'group_i',
-  'group_j',
-  'group_k',
-  'group_l',
-] as const;
-
 const normalizeStageTabKey = (key: string): string =>
   key.trim().toLowerCase().replace(/-/g, '_');
 
@@ -52,14 +33,10 @@ export const getPredictWorldCupAvailableTabKeys = (
   }
 
   const configuredStages = config?.stages ?? [];
-  if (configuredStages.length > 0) {
-    for (const stage of configuredStages) {
-      if (!availability || availability.stages[stage.key] === true) {
-        keys.push(stage.key);
-      }
+  for (const stage of configuredStages) {
+    if (!availability || availability.stages[stage.key] === true) {
+      keys.push(stage.key);
     }
-  } else {
-    keys.push(...PREDICT_WORLD_CUP_FALLBACK_STAGE_TAB_KEYS);
   }
 
   return keys;

@@ -25,6 +25,7 @@ describe('LivePriceDisplay', () => {
         price: '50000',
         percentChange24h: '5.5',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
 
@@ -53,6 +54,7 @@ describe('LivePriceDisplay', () => {
         price: '3000',
         percentChange24h: '-2.5',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
 
@@ -71,6 +73,7 @@ describe('LivePriceDisplay', () => {
         price: '100',
         percentChange24h: '10',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
 
@@ -90,6 +93,7 @@ describe('LivePriceDisplay', () => {
         price: '0.1',
         percentChange24h: '0',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
 
@@ -108,6 +112,7 @@ describe('LivePriceDisplay', () => {
         price: '25',
         percentChange24h: '0',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
 
@@ -133,6 +138,7 @@ describe('LivePriceDisplay', () => {
         price: '10',
         percentChange24h: '15',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
 
@@ -149,6 +155,7 @@ describe('LivePriceDisplay', () => {
         price: '15',
         percentChange24h: '-8',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
 
@@ -165,6 +172,7 @@ describe('LivePriceDisplay', () => {
         price: '1',
         percentChange24h: '0',
         timestamp: Date.now(),
+        isTradable: true,
       },
     });
 
@@ -182,6 +190,7 @@ describe('LivePriceDisplay', () => {
         symbol: 'DOT',
         price: '5',
         timestamp: Date.now(),
+        isTradable: true,
         // percentChange24h is missing
       },
     });

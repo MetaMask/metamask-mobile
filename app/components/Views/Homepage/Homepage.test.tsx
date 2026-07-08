@@ -290,6 +290,7 @@ jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
 
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
+  selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
 }));
 
 jest.mock('./Sections/TopTraders/hooks', () => ({

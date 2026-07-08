@@ -136,8 +136,8 @@ export const TokenPriceTitleHub = ({
       }
       bottomLabel={
         changeLoading ? (
-          <Box testID="loading-price-diff" twClassName="pt-0.5">
-            <Skeleton style={tw.style('h-6 w-[150px] rounded-md')} />
+          <Box testID="loading-price-diff">
+            <Skeleton style={tw.style('h-[22px] w-[150px] rounded-md')} />
           </Box>
         ) : hasChangeData ? (
           <Box flexDirection={BoxFlexDirection.Row}>

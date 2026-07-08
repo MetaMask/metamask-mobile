@@ -37,7 +37,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const { enableMoneyAccountTransactions } = useSelector(
     selectMetaMaskPayFlags,
   );
-  const { totalFiatFormatted } = useMoneyAccountBalance();
+  const { withdrawableFiatFormatted } = useMoneyAccountBalance();
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -68,9 +68,9 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       return null;
     }
 
-    const subtitle = totalFiatFormatted
+    const subtitle = withdrawableFiatFormatted
       ? strings('confirm.pay_with_bottom_sheet.available_balance', {
-          balance: totalFiatFormatted,
+          balance: withdrawableFiatFormatted,
         })
       : undefined;
 
@@ -99,6 +99,6 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     handlePress,
     isMoneyAccountSelected,
     moneyAccount,
-    totalFiatFormatted,
+    withdrawableFiatFormatted,
   ]);
 }

@@ -79,10 +79,44 @@ export const getActivityValue = (item: ActivityListItem) => {
 
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;
+  const rawFrom = (() => {
+    if (item.raw?.type === 'apiEvmTransaction') {
+      return item.raw.data.from;
+    }
+
+    if (item.raw?.type === 'localTransaction') {
+      return item.raw.data.initialTransaction.txParams.from;
+    }
+
+    if (item.raw?.type === 'keyringTransaction') {
+      return item.raw.data.from[0]?.address;
+    }
+
+    return undefined;
+  })();
+
+  const rawTo = (() => {
+    if (item.raw?.type === 'apiEvmTransaction') {
+      return item.raw.data.to;
+    }
+
+    if (item.raw?.type === 'localTransaction') {
+      return item.raw.data.initialTransaction.txParams.to;
+    }
+
+    if (item.raw?.type === 'keyringTransaction') {
+      return item.raw.data.to[0]?.address;
+    }
+
+    return undefined;
+  })();
 
   return {
-    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
-    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
+    from:
+      'from' in data && typeof data.from === 'string'
+        ? data.from
+        : (rawFrom ?? ''),
+    to: 'to' in data && typeof data.to === 'string' ? data.to : (rawTo ?? ''),
   };
 };
 
