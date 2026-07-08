@@ -3,6 +3,7 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokeSnaps } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
+import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
@@ -20,6 +21,7 @@ appiumTest.describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
             .build(),
         },
         async () => {
+          await loginAndOpenTestSnaps();
           await TestSnaps.installSnap('connectGetPreferencesButton');
           await TestSnaps.tapButton('getPreferencesButton');
           // CI emulators are en-US; locally, device locale varies so we only pin locale in CI.

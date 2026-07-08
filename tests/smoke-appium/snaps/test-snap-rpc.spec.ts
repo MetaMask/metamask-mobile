@@ -3,6 +3,7 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokeSnaps } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
+import { loginAndOpenTestSnaps } from '../../flows/snaps.flow.js';
 import { withSnapsFixtures } from './helpers/snap-smoke.helpers.js';
 
 appiumTest.describe(SmokeSnaps('Snap RPC Tests'), () => {
@@ -15,6 +16,7 @@ appiumTest.describe(SmokeSnaps('Snap RPC Tests'), () => {
           fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         },
         async () => {
+          await loginAndOpenTestSnaps();
           await TestSnaps.installSnap('connectBip32Button');
           await TestSnaps.installSnap('connectJsonRpcButton');
           await TestSnaps.tapButton('sendRpcButton');

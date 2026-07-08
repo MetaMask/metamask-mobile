@@ -9,10 +9,8 @@
  * Example:
  * ANDROID_APK_PATH=build/ci-main-e2e/app-prod-release.apk yarn appium-smoke:android tests/smoke-appium/snaps
  */
-import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
-import TestSnaps from '../../../page-objects/Browser/TestSnaps.js';
 import type { CurrentDeviceDetails } from '../../../framework/fixtures/playwright/index.js';
 
 interface SnapFixtureOptions {
@@ -32,10 +30,6 @@ export async function withSnapsFixtures(
       restartDevice: true,
       currentDeviceDetails,
     },
-    async () => {
-      await loginToAppPlaywright({ scenarioType: 'e2e' });
-      await TestSnaps.navigateToTestSnap({ skipTabCleanup: true });
-      await testFn();
-    },
+    testFn,
   );
 }
