@@ -7,12 +7,17 @@
  */
 
 // This config runs in a Node build environment (not in the React Native
-// bundle), so importing a Node.js builtin is safe here. `child_process` is
+// bundle), so importing Node.js builtins is safe here. `child_process` is
 // required to invoke the `expo-modules-autolinking` CLI synchronously — the
 // config is loaded via CommonJS `require` with no top-level `await`, so the
-// CLI's async programmatic API can't be used in its place.
+// CLI's async programmatic API can't be used in its place. `fs`/`path` are
+// used to resolve glob-style extraSources (see `globFileSources` below).
 // eslint-disable-next-line import-x/no-nodejs-modules
 const { execSync } = require('child_process');
+// eslint-disable-next-line import-x/no-nodejs-modules
+const fs = require('fs');
+// eslint-disable-next-line import-x/no-nodejs-modules
+const path = require('path');
 
 /**
  * Returns the set of package names that have native code, as resolved by Expo
@@ -48,6 +53,42 @@ function getNativePackageNames() {
 
 const nativePackages = getNativePackageNames();
 
+/**
+ * Resolves file names within `dirPath` that match a simple `*`-wildcard glob
+ * pattern into individual `type: 'file'` extraSources entries.
+ *
+ * `@expo/fingerprint`'s `extraSources` only accepts exact file/dir paths (no
+ * glob patterns), so this mirrors the glob patterns already used for the same
+ * purpose in `.github/rules/filter-rules.yml` (`e2e_relevant_workflows`)
+ * without having to hardcode and keep a file list in sync by hand.
+ *
+ * @param {string} dirPath - Directory to search, relative to the project root.
+ * @param {string} globPattern - Filename pattern, e.g. `'run-e2e-*.yml'`.
+ * @param {string} reason - Reason recorded on each generated source.
+ * @returns {{type: 'file', filePath: string, reasons: string[]}[]}
+ */
+function globFileSources(dirPath, globPattern, reason) {
+  const regex = new RegExp(
+    `^${globPattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`,
+  );
+  let names;
+  try {
+    names = fs.readdirSync(dirPath);
+  } catch {
+    // Safe fallback: if the directory can't be read, contribute no sources
+    // rather than throwing and breaking fingerprint generation entirely.
+    return [];
+  }
+  return names
+    .filter((name) => regex.test(name))
+    .sort()
+    .map((name) => ({
+      type: 'file',
+      filePath: path.posix.join(dirPath, name),
+      reasons: [reason],
+    }));
+}
+
 // Accumulates `package.json` content across streamed chunks (see fileHookTransform).
 let packageJsonBuffer = '';
 
@@ -59,18 +100,63 @@ const config = {
    * `fileHookTransform` below, where we filter it down to only patches that
    * target native packages. This prevents JS-only patches from invalidating
    * the fingerprint.
+   *
+   * Note: only the specific `.github/workflows` and `.github/scripts` files known to
+   * influence native build/test output are tracked below — the same curated set as
+   * `e2e_relevant_workflows` in `.github/rules/filter-rules.yml` — rather than the
+   * entire directories. Blanket-tracking every workflow/script (labelers, changelog
+   * automation, Crowdin sync, etc.) would invalidate the fingerprint on changes that
+   * can't possibly affect the native binary, which:
+   *   - breaks native-build cache reuse in CI (`.github/actions/find-reusable-build`),
+   *     forcing unnecessary full native rebuilds, and
+   *   - causes false-positive fingerprint mismatches in the OTA guardrail
+   *     (see `docs/nightly-ota-updates.md`), blocking otherwise-safe OTA updates.
    */
   extraSources: [
     {
-      type: 'dir',
-      filePath: '.github/workflows',
-      reasons: ['Detect Github workflow changes.'],
+      type: 'file',
+      filePath: '.github/workflows/ci.yml',
+      reasons: [
+        'Detect changes to the main CI workflow that orchestrates native builds.',
+      ],
     },
     {
-      type: 'dir',
-      filePath: '.github/scripts',
-      reasons: ['Detect Github workflow script changes.'],
+      type: 'file',
+      filePath: '.github/workflows/get-requirements.yml',
+      reasons: [
+        'Detect changes to the workflow that gates native build requirements.',
+      ],
     },
+    {
+      type: 'file',
+      filePath: '.github/workflows/build-android-e2e.yml',
+      reasons: ['Detect changes to the Android native e2e build workflow.'],
+    },
+    {
+      type: 'file',
+      filePath: '.github/workflows/build-ios-e2e.yml',
+      reasons: ['Detect changes to the iOS native e2e build workflow.'],
+    },
+    {
+      type: 'file',
+      filePath: '.github/workflows/update-e2e-fixtures.yml',
+      reasons: ['Detect changes to the e2e fixtures update workflow.'],
+    },
+    {
+      type: 'file',
+      filePath: '.github/workflows/build.yml',
+      reasons: ['Detect changes to the shared native build workflow.'],
+    },
+    ...globFileSources(
+      '.github/workflows',
+      'run-e2e-*.yml',
+      'Detect changes to e2e test-running workflows.',
+    ),
+    ...globFileSources(
+      '.github/scripts',
+      'e2e-*.mjs',
+      'Detect changes to e2e build/test helper scripts.',
+    ),
     {
       type: 'file',
       filePath: 'react-native.config.js',
