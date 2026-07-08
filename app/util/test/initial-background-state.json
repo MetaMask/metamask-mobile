@@ -528,6 +528,10 @@
     },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
