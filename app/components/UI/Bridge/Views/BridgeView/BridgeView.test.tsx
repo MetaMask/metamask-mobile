@@ -32,6 +32,12 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
+import { SwapDiscoveryFeedTestIds } from '../../components/SwapDiscoveryFeed/SwapDiscoveryFeed.testIds';
+import {
+  SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
+  SwapDiscoveryFeedRevampVariant,
+} from '../../components/SwapDiscoveryFeed/abTestConfig';
+import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 
@@ -321,6 +327,12 @@ jest.mock('react-native-fade-in-image', () => {
   };
 });
 
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: jest.fn(),
+}));
+
+const mockUseABTest = jest.mocked(useABTest);
+
 jest.mock(
   '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection',
   () => {
@@ -392,6 +404,14 @@ describe('BridgeView', () => {
     mockRoute.params = {
       sourcePage: 'test',
     } as BridgeRouteParams;
+    mockUseABTest.mockReturnValue({
+      variant:
+        SWAP_DISCOVERY_FEED_REVAMP_VARIANTS[
+          SwapDiscoveryFeedRevampVariant.Control
+        ],
+      variantName: SwapDiscoveryFeedRevampVariant.Control,
+      isActive: true,
+    });
   });
 
   it('renders source and destination token areas', async () => {
@@ -997,6 +1017,38 @@ describe('BridgeView', () => {
   });
 
   describe('Bottom Content', () => {
+    const renderZeroStateBridgeView = () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: undefined,
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: null,
+          isLoading: false,
+          quoteFetchError: null,
+          isNoQuotesAvailable: false,
+          destTokenAmount: undefined,
+        }));
+
+      return renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+    };
+
     beforeEach(() => {
       jest.clearAllMocks();
       // Reset to default mock so persistent mockImplementation from prior tests
@@ -1206,57 +1258,30 @@ describe('BridgeView', () => {
     });
 
     it('shows zero mode with trending section and without quote content', () => {
-      const testState = createBridgeTestState(
-        {
-          bridgeControllerOverrides: {
-            quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [],
-            quotesLastFetched: 12,
-          },
-          bridgeReducerOverrides: {
-            sourceAmount: undefined,
-          },
-        },
-        {
-          ...mockState,
-          engine: {
-            ...mockState.engine,
-            backgroundState: {
-              ...mockState.engine?.backgroundState,
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  swapsTrendingTokens: true,
-                },
-                cacheTimestamp: 0,
-              },
-            },
-          },
-        } as DeepPartial<RootState>,
-      );
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: null,
-          isLoading: false,
-          quoteFetchError: null,
-          isNoQuotesAvailable: false,
-          destTokenAmount: undefined,
-        }));
-
-      const { getByTestId, queryByTestId } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
+      const { getByTestId, queryByTestId } = renderZeroStateBridgeView();
 
       expect(
         getByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
       ).toBeTruthy();
       expect(queryByTestId('edit-slippage-button')).toBeNull();
+    });
+
+    it('does not render discovery content in zero mode for empty variant', () => {
+      mockUseABTest.mockReturnValue({
+        variant:
+          SWAP_DISCOVERY_FEED_REVAMP_VARIANTS[
+            SwapDiscoveryFeedRevampVariant.Empty
+          ],
+        variantName: SwapDiscoveryFeedRevampVariant.Empty,
+        isActive: true,
+      });
+
+      const { queryByTestId } = renderZeroStateBridgeView();
+
+      expect(
+        queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
+      ).toBeNull();
+      expect(queryByTestId(SwapDiscoveryFeedTestIds.ROOT)).toBeNull();
     });
 
     it('does not navigate to QuoteExpiredModal when quote expires without refresh', async () => {

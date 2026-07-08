@@ -1152,6 +1152,8 @@
       "buy_label": "Buy",
       "sell_label": "Sell",
       "receive": "Receive",
+      "max": "Max",
+      "add_funds": "Add funds",
       "toast_pending_buy": "Buying {{amount}} of {{symbol}} with {{counter}}",
       "toast_pending_sell": "Selling {{amount}} of {{symbol}} for {{counter}}",
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
@@ -3101,8 +3103,7 @@
       "buy_sell": "Buy/Sell",
       "perps": "Perps",
       "predictions": "Predictions",
-      "metamask_card": "Card",
-      "money": "Money"
+      "metamask_card": "Card"
     },
     "perps_filter": {
       "title": "Perps",
@@ -3142,14 +3143,6 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
-      },
-      "money_funded": {
-        "description": "You've got funds—put them to work in MetaMask Money.",
-        "action": "Transfer funds"
-      },
-      "money_unfunded": {
-        "description": "Transfer to MetaMask Money and unlock all it has to offer.",
-        "action": "Transfer funds"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",
@@ -3251,18 +3244,24 @@
     "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
     "pna25_blog_post_link": "blog post",
     "pna25_confirm_button": "Accept and close",
-    "pna25_open_settings_button": "Open Settings"
+    "pna25_open_settings_button": "Open Settings",
+    "settings": "You can also",
+    "settings_link": "manage other default settings."
   },
   "onboarding_interest_questionnaire": {
-    "title": "What do you want to do with MetaMask?",
+    "title": "How will you use MetaMask?",
     "description": "Select all that apply.",
-    "option_buy_and_sell_crypto": "Buy and sell crypto tokens",
-    "option_consolidate_wallets": "Consolidate your wallets",
-    "option_advanced_trades": "Trade perpetuals",
-    "option_predict_sports_events": "Predict sports and events",
-    "option_crypto_as_money": "Use crypto as money",
-    "option_connect_apps_sites": "Connect to apps or sites",
-    "continue": "Continue"
+    "option_swap_tokens": "Swap tokens",
+    "option_trade_perpetuals": "Trade perpetuals",
+    "option_prediction_markets": "Prediction markets",
+    "option_send_receive_crypto": "Send and receive crypto",
+    "option_earn_and_spend": "Earn and spend",
+    "option_use_other_crypto_apps": "Use other crypto apps",
+    "option_other": "Other",
+    "other_placeholder": "How else will you use MetaMask?",
+    "done": "Done",
+    "skip": "Skip",
+    "next": "Next"
   },
   "onboarding_crypto_experience_questionnaire": {
     "title": "What's your experience with crypto?",
@@ -9938,6 +9937,7 @@
   "trending": {
     "title": "Explore",
     "crypto_movers": "Crypto movers",
+    "hot_tokens": "Hot tokens",
     "perps_movers": "Perps movers",
     "perps_movers_pill_gainers": "Gainers",
     "perps_movers_pill_losers": "Losers",
