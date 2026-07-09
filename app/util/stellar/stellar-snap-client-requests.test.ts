@@ -6,6 +6,7 @@ import { STELLAR_WALLET_SNAP_ID } from '../../core/SnapKeyring/StellarWalletSnap
 import {
   requestStellarChangeTrustOptAdd,
   requestStellarChangeTrustOptDelete,
+  requestStellarGetAccountAssetInfo,
 } from './stellar-snap-client-requests';
 
 jest.mock('../../core/Engine', () => ({
@@ -78,6 +79,41 @@ describe('stellar-snap-client-requests', () => {
           params: expect.objectContaining({ action: 'delete' }),
         }),
       }),
+    );
+  });
+
+  it('calls getAccountAssetInfo via handleSnapRequest', async () => {
+    handleSnapRequestMock.mockResolvedValueOnce({
+      'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN':
+        { limit: '1000', authorized: true },
+    });
+
+    await requestStellarGetAccountAssetInfo({
+      accountId: 'account-id',
+      scope: 'stellar:pubnet',
+      assets: [
+        'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      ],
+    });
+
+    expect(handleSnapRequestMock).toHaveBeenCalledWith(
+      Engine.controllerMessenger,
+      {
+        snapId: STELLAR_WALLET_SNAP_ID,
+        origin: 'metamask',
+        handler: HandlerType.OnClientRequest,
+        request: {
+          jsonrpc: '2.0',
+          method: 'getAccountAssetInfo',
+          params: {
+            accountId: 'account-id',
+            scope: 'stellar:pubnet',
+            assets: [
+              'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+            ],
+          },
+        },
+      },
     );
   });
 });

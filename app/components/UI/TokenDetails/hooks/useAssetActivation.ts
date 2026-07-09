@@ -52,7 +52,7 @@ export function useAssetActivation({ asset }: { asset: TokenI | undefined }) {
     return selectAsset(state, {
       address: asset.address,
       chainId: asset.chainId,
-    })?.accountAssetInfo;
+    })?.metadata;
   });
 
   const [isDeactivating, setIsDeactivating] = useState(false);

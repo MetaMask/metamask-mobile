@@ -264,11 +264,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   const isAssetInactive = isAssetRequireActivate({
     assetId: token.address,
-    assetMetadata: token.accountAssetInfo,
+    assetMetadata: token.metadata,
   });
   const baseReserve = computeBaseReserve({
     assetId: token.address,
-    assetMetadata: token.accountAssetInfo,
+    assetMetadata: token.metadata,
   });
   ///: END:ONLY_INCLUDE_IF
 

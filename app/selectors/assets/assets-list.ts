@@ -163,6 +163,42 @@ function filterArcUsdcErc20Token(
   };
 }
 
+type BalanceRowWithMetadata = {
+  amount?: string;
+  metadata?: TokenI['metadata'];
+};
+
+/**
+ * Re-attaches Snap balance `metadata` from migrated balances onto Asset rows.
+ *
+ * `@metamask/assets-controllers` `selectAllMultichainAssets` only copies
+ * `balance.amount` into Asset, so trustline metadata would otherwise be lost
+ * before TokenList / TokenDetails read it.
+ */
+function attachAccountAssetInfoFromBalances(
+  assets: AccountGroupAssets,
+  balances: ReturnType<typeof getMultiChainBalancesControllerBalances>,
+): AccountGroupAssets {
+  const next: AccountGroupAssets = {};
+  for (const [chainId, chainAssets] of Object.entries(assets)) {
+    next[chainId] = chainAssets.map((asset) => {
+      const balanceRow = balances[asset.accountId]?.[asset.assetId] as
+        | BalanceRowWithMetadata
+        | undefined;
+      const metadata = balanceRow?.metadata;
+      if (metadata === undefined) {
+        return asset;
+      }
+      return {
+        ...asset,
+        metadata,
+      } as Asset & { metadata?: TokenI['metadata'] };
+    });
+  }
+
+  return next;
+}
+
 /**
  * Invokes the assets-controllers selector; on failure returns {} so the wallet UI
  * does not red-screen during brief AccountTree / internalAccounts mismatch (e.g. after unlock).
@@ -183,8 +219,11 @@ function callSelectAssetsBySelectedAccountGroup(
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) =>
-    filterArcUsdcErc20Token(
-      callSelectAssetsBySelectedAccountGroup(assetsState),
+    attachAccountAssetInfoFromBalances(
+      filterArcUsdcErc20Token(
+        callSelectAssetsBySelectedAccountGroup(assetsState),
+      ),
+      assetsState.balances,
     ),
 );
 
@@ -611,7 +650,7 @@ const oneHundredths = 0.01;
 function assetToToken(
   asset: Asset & {
     isStaked?: boolean;
-    accountAssetInfo?: TokenI['accountAssetInfo'];
+    metadata?: TokenI['metadata'];
   },
   aggregators?: string[],
   rwaData?: TokenI['rwaData'],
@@ -658,9 +697,7 @@ function assetToToken(
     ticker: asset.symbol,
     accountType: asset.accountType,
     rwaData,
-    ...(asset.accountAssetInfo !== undefined
-      ? { accountAssetInfo: asset.accountAssetInfo }
-      : {}),
+    ...(asset.metadata !== undefined ? { metadata: asset.metadata } : {}),
   };
 }
 

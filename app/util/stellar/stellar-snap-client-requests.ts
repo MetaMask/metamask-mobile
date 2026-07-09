@@ -48,4 +48,24 @@ export async function requestStellarChangeTrustOptDelete(params: {
     },
   });
 }
+
+/**
+ * Fetches Snap account-asset enrichment (e.g. Stellar trustline fields).
+ */
+export async function requestStellarGetAccountAssetInfo(params: {
+  accountId: string;
+  scope: CaipChainId;
+  assets: CaipAssetType[];
+}): Promise<Record<string, Record<string, unknown>> | undefined> {
+  return (await handleSnapRequest(Engine.controllerMessenger, {
+    snapId: STELLAR_WALLET_SNAP_ID,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      jsonrpc: '2.0',
+      method: 'getAccountAssetInfo',
+      params,
+    },
+  })) as Record<string, Record<string, unknown>> | undefined;
+}
 ///: END:ONLY_INCLUDE_IF
