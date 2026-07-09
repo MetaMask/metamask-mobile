@@ -1,5 +1,6 @@
+import React, { useMemo } from 'react';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useMemo } from 'react';
+import { QuoteValidationAlertContent } from './QuoteValidationAlertContent';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
@@ -120,27 +121,41 @@ export function useNoPayTokenQuotesAlert() {
     !payToken &&
     !hasSelectedFiatPaymentMethod;
 
+  // A quote may be returned but fail validation (e.g. insufficient balance).
+  // The quote still renders prices/fees, but the alert blocks confirmation and
+  // surfaces the structured reason and detail rows provided by core.
+  const shouldShowQuoteValidationAlert = Boolean(quoteValidationError);
+
   const showAlert =
     shouldShowNonFiatNoQuotesAlert ||
     shouldShowFiatNoQuotesAlert ||
     shouldShowPostQuoteNoQuotesAlert ||
     shouldShowQuoteRequiredNoQuotesAlert ||
     shouldShowWithdrawNotInitialisedAlert ||
-    shouldShowPayTokenNotSelectedAlert;
+    shouldShowPayTokenNotSelectedAlert ||
+    shouldShowQuoteValidationAlert;
 
   return useMemo(() => {
     if (!showAlert) {
       return [];
     }
 
+    const title = quoteValidationError
+      ? 'No valid quotes'
+      : strings('alert_system.no_pay_token_quotes.title');
+
     return [
       {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
-        message:
-          quoteValidationError ??
-          strings('alert_system.no_pay_token_quotes.message'),
-        title: strings('alert_system.no_pay_token_quotes.title'),
+        ...(quoteValidationError
+          ? {
+              content: (
+                <QuoteValidationAlertContent error={quoteValidationError} />
+              ),
+            }
+          : { message: strings('alert_system.no_pay_token_quotes.message') }),
+        title,
         severity: Severity.Danger,
         isBlocking: true,
       },

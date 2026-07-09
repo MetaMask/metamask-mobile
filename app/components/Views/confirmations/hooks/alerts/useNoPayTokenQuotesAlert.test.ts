@@ -104,6 +104,7 @@ describe('useNoPayTokenQuotesAlert', () => {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
         message: strings('alert_system.no_pay_token_quotes.message'),
+        alertDetails: undefined,
         title: strings('alert_system.no_pay_token_quotes.title'),
         severity: Severity.Danger,
         isBlocking: true,
@@ -111,24 +112,27 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
-  it('uses quoteValidationError as message when present', () => {
-    const validationError = 'Insufficient balance for decoded quote amount';
+  it('uses quoteValidationError message and detail when present', () => {
+    const validationError = {
+      message: 'Insufficient balance',
+      reason: 'insufficient-source-balance' as const,
+      detail: ['Required: 1.5 USDC', 'Current: 1 USDC', 'Missing: 0.5 USDC'],
+    };
     jest
       .mocked(useTransactionPayQuoteValidationError)
       .mockReturnValue(validationError);
 
     const { result } = runHook();
 
-    expect(result.current).toEqual([
-      {
-        key: AlertKeys.NoPayTokenQuotes,
-        field: RowAlertKey.PayWith,
-        message: validationError,
-        title: strings('alert_system.no_pay_token_quotes.title'),
-        severity: Severity.Danger,
-        isBlocking: true,
-      },
-    ]);
+    expect(result.current).toHaveLength(1);
+    const resultAlert = result.current[0];
+    expect(resultAlert.key).toBe(AlertKeys.NoPayTokenQuotes);
+    expect(resultAlert.field).toBe(RowAlertKey.PayWith);
+    expect(resultAlert.content).toBeDefined();
+    expect(resultAlert.message).toBeUndefined();
+    expect(resultAlert.title).toBe('No valid quotes');
+    expect(resultAlert.severity).toBe(Severity.Danger);
+    expect(resultAlert.isBlocking).toBe(true);
   });
 
   it('returns no alerts if quotes available', () => {
