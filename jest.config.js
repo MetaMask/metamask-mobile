@@ -98,17 +98,12 @@ const config = {
     '^@metamask/perps-controller/(.*)$':
       '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
-<<<<<<< HEAD
     // @metamask/perps-controller@9.1.0+ ships a broken CJS build whose
-    // bundler baked in a CI-only absolute path instead of the
-    // `@nktkas/hyperliquid` specifier (the ESM build is unaffected).
-    // Redirect it to the same mock until upstream publishes a fix.
-=======
-    // The preview build of @metamask/perps-controller bundles the hyperliquid
-    // Deno SDK via a file:// URL left over from its CI build environment.
-    // Map it to the same mock used for the npm package above so jest.requireActual
-    // can load @metamask/perps-controller without crashing.
->>>>>>> main
+    // bundler baked in a CI-only absolute path (a file:// URL left over from
+    // its CI build environment) instead of the `@nktkas/hyperliquid`
+    // specifier (the ESM build is unaffected). Map it to the same mock used
+    // for the npm package above so jest.requireActual can load
+    // @metamask/perps-controller without crashing, until upstream publishes a fix.
     '^file:///home/runner/work/hyperliquid/hyperliquid/src/mod\\.ts$':
       '<rootDir>/app/__mocks__/hyperliquidMock.js',
     '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
