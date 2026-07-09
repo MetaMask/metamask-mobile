@@ -8,6 +8,7 @@ import Logger from '../../../util/Logger';
 import { Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { mockTheme } from '../../../util/theme';
+import useIpfsGateway from '../../hooks/useIpfsGateway';
 
 // Keep image loading explicit in these tests so the mock cannot overwrite
 // dimension assertions with a timer-driven default load.
@@ -91,6 +92,16 @@ describe('RemoteImage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetFormattedIpfsUrl.mockImplementation(createPendingIpfsResolution);
+    // resetAllMocks (afterEach below) wipes implementations seeded by the
+    // jest.mock() factories above, so they must be re-seeded here.
+    jest
+      .mocked(useSelector)
+      .mockImplementation(() => 'https://dweb.link/ipfs/');
+    jest.mocked(useIpfsGateway).mockReturnValue('https://dweb.link/ipfs/');
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   // [mcwp-474-tmp 2/52]
@@ -291,10 +302,8 @@ describe('RemoteImage', () => {
         fireEvent(image, 'error', { error: 'Failed to load image' });
       });
 
-      await waitFor(async () => {
-        const identicon = await findByTestId('identicon');
-        expect(identicon).toBeOnTheScreen();
-      });
+      const identicon = await findByTestId('identicon');
+      expect(identicon).toBeOnTheScreen();
     });
 
     it('calls onError callback when image fails to load', async () => {
@@ -332,10 +341,8 @@ describe('RemoteImage', () => {
       });
 
       // After error, Identicon should be rendered
-      await waitFor(async () => {
-        const identicon = await findByTestId('identicon');
-        expect(identicon).toBeOnTheScreen();
-      });
+      const identicon = await findByTestId('identicon');
+      expect(identicon).toBeOnTheScreen();
 
       await act(async () => {
         rerender(

@@ -246,7 +246,6 @@ describe('Account Activity WebSocket Mocks', () => {
   });
 
   describe('waitForAccountActivityDisconnection()', () => {
-    // [mcwp-474-tmp]
     it('resolves immediately when no sockets have subscribed', async () => {
       await expect(
         waitForAccountActivityDisconnection(1_000),

@@ -573,7 +573,6 @@ describe('MultichainAccountSelectorList', () => {
       );
     });
 
-    // [mcwp-474-tmp 1/5]
     it('filters account groups when any account in group matches', async () => {
       const account1 = createMockAccountGroup(
         'keyring:wallet1/group1',
