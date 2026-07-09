@@ -106,10 +106,16 @@ export function usePerpsOrderExecution(
       const endCuf = (data: Record<string, PerpsOrderTrackingValue>) =>
         endPerpsCufTrace({ id: cufOpId, data });
       const endCufRendered = (renderedAt: number, toastShownAt: number) =>
-        endCuf({
-          [PERPS_CUF_TAG.SUCCESS]: true,
-          [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-          [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]: renderedAt - toastShownAt,
+        // End at the captured stream render instant, not when this code runs,
+        // so the span measures gesture -> actual position render.
+        endPerpsCufTrace({
+          id: cufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: true,
+            [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+            [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]: renderedAt - toastShownAt,
+          },
+          timestamp: renderedAt,
         });
       // Baseline lets stream matchers tell this order's fill apart from a
       // position that already existed on this market before submission. A null
@@ -136,6 +142,22 @@ export function usePerpsOrderExecution(
           positionsLoaded,
         );
       }
+
+      // Safety fallback anchored at the gesture: if the controller never
+      // returns (a hung request), none of the per-flow ends run, so this
+      // guarantees the span is always closed and never leaks in the pending
+      // registry. It is idempotent, so the real end (render or failure) no-ops
+      // it whenever that happens first.
+      endPerpsCufTraceAfter(
+        {
+          id: cufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+          },
+        },
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
 
       try {
         setIsPlacing(true);

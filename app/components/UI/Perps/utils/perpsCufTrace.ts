@@ -423,19 +423,25 @@ function pendingOpIdsForName(name: TraceName): string[] {
  * defer, so acceptPerpsCufRequest can complete it as a success only once the
  * request is accepted. This prevents an unrelated stream change during the
  * request window from recording a failed cancel/close/TP-SL as a success.
+ *
+ * Returns true when the match was deferred, so the caller still flushes
+ * throttled subscribers: the recorded DEFERRED_AT is the delivery instant, so
+ * the flush must deliver the update to throttled subscribers at that instant
+ * for the eventual span duration to be truthful.
  */
 function confirmOrDefer(
   opId: string,
   meta: Record<string, TraceValue>,
   toEnd: string[],
-): void {
+): boolean {
   if (meta[CUF_META.AWAIT_ACCEPT] === true) {
     if (meta[CUF_META.DEFERRED_AT] === undefined) {
       setPerpsCufMeta(opId, { [CUF_META.DEFERRED_AT]: Date.now() });
     }
-    return;
+    return true;
   }
   toEnd.push(opId);
+  return false;
 }
 
 /**
@@ -480,6 +486,8 @@ export function handlePerpsCufPositionsDelivered(
 
   // Collect matches first so a single flush covers the whole tick.
   const toEnd: string[] = [];
+  // A gated match that is deferred still needs the flush (see confirmOrDefer).
+  let deferred = false;
   // Close: size reduced or position absent versus the pre-close size.
   for (const opId of pendingOpIdsForName(
     TraceName.PerpsClosePositionToConfirmation,
@@ -502,7 +510,7 @@ export function handlePerpsCufPositionsDelivered(
     const closed =
       !current || Math.abs(Number.parseFloat(current.size)) < baselineSize;
     if (closed) {
-      confirmOrDefer(opId, meta, toEnd);
+      deferred = confirmOrDefer(opId, meta, toEnd) || deferred;
     }
   }
   // TP/SL: the position is still present and its TP or SL value changed.
@@ -519,7 +527,7 @@ export function handlePerpsCufPositionsDelivered(
     }
     const current = positions.find((p) => p.symbol === symbol);
     if (current && tpSlSnapshot(current) !== meta[CUF_META.SNAPSHOT]) {
-      confirmOrDefer(opId, meta, toEnd);
+      deferred = confirmOrDefer(opId, meta, toEnd) || deferred;
     }
   }
   // Limit place: a marketable limit that filled renders as a new/changed
@@ -561,9 +569,10 @@ export function handlePerpsCufPositionsDelivered(
     }
   }
 
-  // Flush once if anything is about to be confirmed, so the measured render
-  // instant reflects real subscriber delivery (not the throttle enqueue).
-  if (flushThrottled && (toEnd.length > 0 || placeRenderedNow)) {
+  // Flush once if anything is about to be confirmed (or deferred), so the
+  // measured render instant reflects real subscriber delivery (not the throttle
+  // enqueue).
+  if (flushThrottled && (toEnd.length > 0 || placeRenderedNow || deferred)) {
     flushThrottled();
   }
 
@@ -593,6 +602,7 @@ export function handlePerpsCufOrdersDelivered(
   }
 
   const toEnd: string[] = [];
+  let deferred = false;
   for (const opId of pendingOpIdsForName(
     TraceName.PerpsCancelOrderToConfirmation,
   )) {
@@ -604,7 +614,7 @@ export function handlePerpsCufOrdersDelivered(
       typeof orderId === 'string' &&
       orders.every((o) => o.orderId !== orderId)
     ) {
-      confirmOrDefer(opId, meta, toEnd);
+      deferred = confirmOrDefer(opId, meta, toEnd) || deferred;
     }
   }
   for (const opId of pendingOpIdsForName(
@@ -621,7 +631,7 @@ export function handlePerpsCufOrdersDelivered(
     }
   }
 
-  if (flushThrottled && toEnd.length > 0) {
+  if (flushThrottled && (toEnd.length > 0 || deferred)) {
     flushThrottled();
   }
   for (const opId of toEnd) {

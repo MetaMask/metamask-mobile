@@ -721,6 +721,21 @@ describe('perpsCufTrace', () => {
     );
   });
 
+  it('flushes throttled subscribers when a gated match is deferred', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsCancelOrderToConfirmation,
+    });
+    // Armed but not yet accepted: the match must defer (not end) yet still
+    // flush, so the recorded DEFERRED_AT reflects real subscriber delivery.
+    watchPerpsCufOrderAbsent(opId, 'o-1');
+    const flush = jest.fn();
+
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }], flush);
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(flush).toHaveBeenCalledTimes(1);
+  });
+
   it('does not flush when no confirmation matches the delivery', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsCancelOrderToConfirmation,

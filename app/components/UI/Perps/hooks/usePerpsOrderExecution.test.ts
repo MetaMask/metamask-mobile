@@ -12,6 +12,7 @@ import {
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
 } from '../utils/perpsCufTrace';
+import { PERPS_CUF_STREAM_TIMEOUT_MS } from '../constants/perpsCufTags';
 import { endTrace, TraceName } from '../../../../util/trace';
 
 jest.mock('./usePerpsTrading');
@@ -121,8 +122,8 @@ describe('usePerpsOrderExecution', () => {
   describe('limit orders (order-render CUF, not position-render)', () => {
     it('confirms immediately when the resting order is already rendered', async () => {
       const onSuccess = jest.fn();
-      // Order already rendered by submit time: span ends synchronously, no
-      // fallback timer is scheduled.
+      // Order already rendered by submit time: the span ends synchronously; the
+      // gesture-anchored safety fallback stays pending and no-ops.
       mockGetOrdersSnapshot.mockReturnValue([{ orderId: 'lim1' }]);
       mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'lim1' });
 
@@ -278,6 +279,70 @@ describe('usePerpsOrderExecution', () => {
         orderId: 'order123',
       });
       expect(result.current.error).toBeUndefined();
+    });
+
+    it('ends the position-render span at the captured render instant, not when the hook resumes', async () => {
+      mockPlaceOrderSuccessWithRender();
+
+      const { result } = renderHook(() => usePerpsOrderExecution());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isPlacing).toBe(false);
+      });
+
+      // endTrace receives an explicit numeric timestamp (the stream render
+      // instant) plus the toast->position delta, so the span measures
+      // gesture -> actual render rather than gesture -> toast callback.
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.stringContaining(
+            TraceName.PerpsPlaceOrderToPositionRendered,
+          ),
+          timestamp: expect.any(Number),
+          data: expect.objectContaining({
+            success: true,
+            toast_position_delta_ms: expect.any(Number),
+          }),
+        }),
+      );
+    });
+
+    it('ends the span via the gesture fallback if the controller never returns', () => {
+      jest.useFakeTimers();
+      try {
+        mockGetPositionsSnapshot.mockReturnValue([]);
+        // Controller hangs: the promise never settles, so no per-flow end runs.
+        mockPlaceOrder.mockImplementation(
+          () => new Promise<never>(() => undefined),
+        );
+
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        act(() => {
+          // Fire and forget: a hung controller means this never resolves.
+          result.current.placeOrder(mockOrderParams).catch(() => undefined);
+        });
+
+        act(() => {
+          jest.advanceTimersByTime(PERPS_CUF_STREAM_TIMEOUT_MS);
+        });
+
+        // The gesture-anchored fallback closes the span instead of leaking it.
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceOrderToPositionRendered,
+            ),
+            data: expect.objectContaining({ success: false }),
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('calls onSuccess with no args when the stream has not rendered the position yet', async () => {
