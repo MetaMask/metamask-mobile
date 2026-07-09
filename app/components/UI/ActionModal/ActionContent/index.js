@@ -15,6 +15,9 @@ export const createStyles = (theme, isPureBlack = false) =>
       alignItems: 'center',
       marginHorizontal: 24,
     },
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
+    // Drop getElevatedSurfaceColor, usePureBlack(), and the isPureBlack param.
+    // Use: backgroundColor: theme.colors.background.default, borderWidth: 0
     viewContainer: {
       width: '100%',
       backgroundColor: getElevatedSurfaceColor(theme),

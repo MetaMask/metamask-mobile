@@ -48,6 +48,9 @@ export const createStyles = (theme) => {
       width: '100%',
       padding: 60,
     },
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
+    // Drop getElevatedSurfaceColor, isPureBlackEnabled, and AppThemeKey checks.
+    // Use: backgroundColor: colors.background.default, borderWidth: 0
     modalView: {
       backgroundColor: getElevatedSurfaceColor(theme),
       justifyContent: 'center',
