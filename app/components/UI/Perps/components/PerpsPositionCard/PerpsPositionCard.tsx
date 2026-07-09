@@ -14,6 +14,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  SectionDivider,
   SectionHeader,
   Text as MDSText,
   TextColor as MDSTextColor,
@@ -602,119 +603,109 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </Button>
             )}
           </TouchableOpacity>
+        </Box>
 
-          {/* Details Section - Always expanded */}
-          <View
-            style={styles.detailsSection}
-            testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}
-          >
+        <SectionDivider />
+        <SectionHeader title={strings('perps.position.card.details_title')} />
+        <View testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}>
+          <View style={styles.detailRow}>
             <Text
-              variant={TextVariant.HeadingMD}
-              color={TextColor.Default}
-              style={styles.detailsTitle}
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
             >
-              {strings('perps.position.card.details_title')}
+              {strings('perps.position.card.direction_label')}
             </Text>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              testID={PerpsPositionCardSelectorsIDs.DIRECTION_VALUE}
+            >
+              {direction === 'long'
+                ? strings('perps.market.long')
+                : strings('perps.market.short')}{' '}
+              {position.leverage.value}x
+            </Text>
+          </View>
 
-            <View style={[styles.detailRow, styles.detailRowFirst]}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {strings('perps.position.card.direction_label')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Default}
-                testID={PerpsPositionCardSelectorsIDs.DIRECTION_VALUE}
-              >
-                {direction === 'long'
-                  ? strings('perps.market.long')
-                  : strings('perps.market.short')}{' '}
-                {position.leverage.value}x
-              </Text>
-            </View>
+          <View style={styles.detailRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.position.card.entry_label')}
+            </Text>
+            <SensitiveText
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={PerpsPositionCardSelectorsIDs.ENTRY_VALUE}
+            >
+              {formatPerpsFiat(position.entryPrice, {
+                ranges: PRICE_RANGES_UNIVERSAL,
+              })}
+            </SensitiveText>
+          </View>
 
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {strings('perps.position.card.entry_label')}
-              </Text>
+          <View style={styles.detailRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.position.card.liquidation_price_label')}
+            </Text>
+            <View style={styles.liquidationPriceValue}>
               <SensitiveText
                 variant={TextVariant.BodyMD}
                 color={TextColor.Default}
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
-                testID={PerpsPositionCardSelectorsIDs.ENTRY_VALUE}
+                testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
               >
-                {formatPerpsFiat(position.entryPrice, {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                })}
+                {position.liquidationPrice !== undefined &&
+                position.liquidationPrice !== null
+                  ? formatPerpsFiat(position.liquidationPrice, {
+                      ranges: PRICE_RANGES_UNIVERSAL,
+                    })
+                  : PERPS_CONSTANTS.FallbackPriceDisplay}
               </SensitiveText>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {strings('perps.position.card.liquidation_price_label')}
-              </Text>
-              <View style={styles.liquidationPriceValue}>
-                <SensitiveText
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Default}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Short}
-                  testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
-                >
-                  {position.liquidationPrice !== undefined &&
-                  position.liquidationPrice !== null
-                    ? formatPerpsFiat(position.liquidationPrice, {
-                        ranges: PRICE_RANGES_UNIVERSAL,
-                      })
-                    : PERPS_CONSTANTS.FallbackPriceDisplay}
-                </SensitiveText>
-                {liquidationDistance !== null && !privacyMode && (
-                  <>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
-                    >
-                      {' '}
-                      {Math.round(liquidationDistance)}%
-                    </Text>
-                    <Icon
-                      name={isLong ? IconName.TrendDown : IconName.TrendUp}
-                      size={IconSize.Sm}
-                      color={IconColor.Alternative}
-                    />
-                  </>
-                )}
-              </View>
-            </View>
-
-            <View style={[styles.detailRow, styles.detailRowLast]}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {strings('perps.position.card.funding_payments_label')}
-              </Text>
-              <SensitiveText
-                variant={TextVariant.BodyMD}
-                color={privacyMode ? TextColor.Default : fundingColor}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-                testID={PerpsPositionCardSelectorsIDs.FUNDING_PAYMENTS_VALUE}
-              >
-                {fundingDisplay}
-              </SensitiveText>
+              {liquidationDistance !== null && !privacyMode && (
+                <>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {' '}
+                    {Math.round(liquidationDistance)}%
+                  </Text>
+                  <Icon
+                    name={isLong ? IconName.TrendDown : IconName.TrendUp}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                </>
+              )}
             </View>
           </View>
-        </Box>
+
+          <View style={styles.detailRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.position.card.funding_payments_label')}
+            </Text>
+            <SensitiveText
+              variant={TextVariant.BodyMD}
+              color={privacyMode ? TextColor.Default : fundingColor}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={PerpsPositionCardSelectorsIDs.FUNDING_PAYMENTS_VALUE}
+            >
+              {fundingDisplay}
+            </SensitiveText>
+          </View>
+        </View>
       </View>
     </Box>
   );

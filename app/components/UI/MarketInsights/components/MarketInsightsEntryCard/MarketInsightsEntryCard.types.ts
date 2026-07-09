@@ -19,4 +19,6 @@ export interface MarketInsightsEntryCardProps {
   source: 'token_details' | 'perps' | 'unknown';
   /** Optional test ID */
   testID?: string;
+  /** Optional outer container Tailwind classes (defaults to perps spacing). */
+  containerTwClassName?: string;
 }

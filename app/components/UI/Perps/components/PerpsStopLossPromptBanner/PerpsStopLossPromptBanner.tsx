@@ -6,6 +6,9 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -72,19 +75,14 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
     }) => {
       const { styles } = useStyles(styleSheet, {});
 
-      // Animation value for fade-out effect
       const fadeAnim = useRef(new Animated.Value(1)).current;
 
-      // Reset opacity when isSuccess transitions to false (e.g., market change during animation)
-      // This ensures the banner is visible when shown for a new market
       useEffect(() => {
         if (!isSuccess) {
           fadeAnim.setValue(1);
         }
       }, [isSuccess, fadeAnim]);
 
-      // Trigger fade-out animation when isSuccess becomes true
-      // Wait for SUCCESS_DISPLAY_DELAY_MS first so user sees success checkmark
       useEffect(() => {
         if (isSuccess) {
           const delayTimer = setTimeout(() => {
@@ -93,7 +91,6 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
               duration: FADE_OUT_DURATION_MS,
               useNativeDriver: true,
             }).start(() => {
-              // Call callback when animation completes
               onFadeOutComplete?.();
             });
           }, SUCCESS_DISPLAY_DELAY_MS);
@@ -103,109 +100,105 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
         return undefined;
       }, [isSuccess, fadeAnim, onFadeOutComplete]);
 
-      // Safe press handlers that won't trigger if callback is not provided
       const handleAddMarginPress = useCallback(() => {
         onAddMargin?.();
       }, [onAddMargin]);
 
-      // Button press handler - directly triggers stop loss action
       const handleSetStopLossPress = useCallback(() => {
         if (!isLoading && !isSuccess) {
           onSetStopLoss?.();
         }
       }, [isLoading, isSuccess, onSetStopLoss]);
 
-      // Format the suggested stop loss price for display
       const formattedStopLossPrice = suggestedStopLossPrice
         ? formatPerpsFiat(parseFloat(suggestedStopLossPrice), {
             ranges: PRICE_RANGES_UNIVERSAL,
           })
         : '';
 
-      // Format the percentage
       const formattedPercent =
         suggestedStopLossPercent !== undefined
           ? `${suggestedStopLossPercent >= 0 ? '+' : ''}${suggestedStopLossPercent.toFixed(0)}%`
           : '';
 
-      // Round liquidation distance for display
       const roundedDistance = Math.round(liquidationDistance);
 
       if (variant === 'add_margin') {
         return (
-          <Animated.View
-            style={[styles.container, { opacity: fadeAnim }]}
-            testID={testID}
-          >
-            <View style={styles.addMarginRow}>
-              <View style={styles.addMarginTextContainer}>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {strings('perps.stop_loss_prompt.near_liquidation_title', {
+          <Animated.View style={{ opacity: fadeAnim }} testID={testID}>
+            <Box twClassName="px-4">
+              <BannerAlert
+                severity={BannerAlertSeverity.Neutral}
+                title={strings(
+                  'perps.stop_loss_prompt.near_liquidation_title',
+                  {
                     distance: roundedDistance,
-                  })}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.stop_loss_prompt.near_liquidation_subtitle')}
-                </Text>
-              </View>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Sm}
-                onPress={handleAddMarginPress}
-                isDisabled={isLoading || !onAddMargin}
-                isLoading={isLoading}
-                style={styles.button}
-                testID={PerpsStopLossPromptSelectorsIDs.ADD_MARGIN_BUTTON}
+                  },
+                )}
+                description={strings(
+                  'perps.stop_loss_prompt.near_liquidation_subtitle',
+                )}
               >
-                {strings('perps.stop_loss_prompt.add_margin_button')}
-              </Button>
-            </View>
+                <Box twClassName="mt-2">
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Md}
+                    onPress={handleAddMarginPress}
+                    isDisabled={isLoading || !onAddMargin}
+                    isLoading={isLoading}
+                    testID={PerpsStopLossPromptSelectorsIDs.ADD_MARGIN_BUTTON}
+                  >
+                    {strings('perps.stop_loss_prompt.add_margin_button')}
+                  </Button>
+                </Box>
+              </BannerAlert>
+            </Box>
           </Animated.View>
         );
       }
 
-      // Stop Loss variant
       return (
-        <Animated.View
-          style={[styles.container, { opacity: fadeAnim }]}
-          testID={testID}
-        >
-          <View style={styles.stopLossRow}>
-            <View style={styles.stopLossTextContainer}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {strings('perps.stop_loss_prompt.protect_losses_title')}
-              </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {strings('perps.stop_loss_prompt.set_stop_loss_subtitle', {
-                  price: formattedStopLossPrice,
-                  percent: formattedPercent,
-                })}
-              </Text>
+        <Animated.View style={{ opacity: fadeAnim }} testID={testID}>
+          <Box twClassName="px-4">
+            <View style={styles.stopLossCard}>
+              <View style={styles.stopLossRow}>
+                <View style={styles.stopLossTextContainer}>
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {strings('perps.stop_loss_prompt.protect_losses_title')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('perps.stop_loss_prompt.set_stop_loss_subtitle', {
+                      price: formattedStopLossPrice,
+                      percent: formattedPercent,
+                    })}
+                  </Text>
+                </View>
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Sm}
+                  onPress={handleSetStopLossPress}
+                  isDisabled={isLoading || isSuccess || !onSetStopLoss}
+                  style={styles.button}
+                  isLoading={isLoading}
+                  testID={PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON}
+                >
+                  {isSuccess ? (
+                    <Icon
+                      name={IconName.Check}
+                      size={IconSize.Sm}
+                      color={IconColor.PrimaryInverse}
+                      testID={PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON}
+                    />
+                  ) : (
+                    strings('perps.stop_loss_prompt.set_button')
+                  )}
+                </Button>
+              </View>
             </View>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Sm}
-              onPress={handleSetStopLossPress}
-              isDisabled={isLoading || isSuccess || !onSetStopLoss}
-              style={styles.button}
-              isLoading={isLoading}
-              testID={PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON}
-            >
-              {isSuccess ? (
-                <Icon
-                  name={IconName.Check}
-                  size={IconSize.Sm}
-                  color={IconColor.PrimaryInverse}
-                  testID={PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON}
-                />
-              ) : (
-                strings('perps.stop_loss_prompt.set_button')
-              )}
-            </Button>
-          </View>
+          </Box>
         </Animated.View>
       );
     },

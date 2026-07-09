@@ -166,27 +166,12 @@ const styleSheet = (params: StyleSheetParams) => {
     toggleThumbEnabled: {
       alignSelf: 'flex-end',
     },
-    detailsSection: {
-      gap: 1,
-      marginTop: 20,
-    },
-    detailsTitle: {
-      marginBottom: 16,
-    },
     detailRow: {
-      padding: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: colors.background.section,
-    },
-    detailRowFirst: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
-    },
-    detailRowLast: {
-      borderBottomLeftRadius: 12,
-      borderBottomRightRadius: 12,
     },
     liquidationPriceValue: {
       flexDirection: 'row',
