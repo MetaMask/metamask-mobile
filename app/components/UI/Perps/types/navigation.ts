@@ -47,6 +47,8 @@ export type PerpsNavigationParamList = {
     showPerpsHeader?: boolean;
     /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
     source?: string;
+    /** Analytics: market-list discovery section (search, watchlist, category, all_markets) */
+    source_section?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 

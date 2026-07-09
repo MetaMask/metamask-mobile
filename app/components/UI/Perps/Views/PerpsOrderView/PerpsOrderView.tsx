@@ -177,6 +177,8 @@ interface OrderRouteParams {
   fromTokenDetails?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
+  /** Analytics: market-list discovery section forwarded from market details */
+  source_section?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
 }
@@ -211,6 +213,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     (TrendingFeedSessionManager.getInstance().isFromTrending
       ? 'trending'
       : undefined);
+  const sourceSection = route.params?.source_section;
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -1187,7 +1190,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
-            ...toPerpsEntryAttribution({ source }),
+            ...toPerpsEntryAttribution({ source, sourceSection }),
             ...(feeResults.protocolFeeRate !== undefined
               ? { hlFeeRate: feeResults.protocolFeeRate }
               : {}),
@@ -1289,6 +1292,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       feeResults.feeDiscountPercentage,
       feeResults.estimatedPoints,
       source,
+      sourceSection,
       isButtonColorTestEnabled,
       buttonColorVariant,
       isTradeWithAnyTokenEnabled,

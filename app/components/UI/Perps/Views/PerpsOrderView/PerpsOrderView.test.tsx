@@ -1216,6 +1216,44 @@ describe('PerpsOrderView', () => {
     expect(mockSubmitted).toHaveBeenCalled();
   });
 
+  it('includes discovery attribution from route source_section in order trackingData', async () => {
+    const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        asset: 'ETH',
+        direction: 'long',
+        source: 'perp_asset_screen',
+        source_section: 'watchlist',
+      },
+    });
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+      placeOrder: mockExecuteOrder,
+      isPlacing: false,
+    }));
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(mockExecuteOrder).toHaveBeenCalled();
+    });
+    expect(mockExecuteOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trackingData: expect.objectContaining({
+          entryPoint: 'perp_asset_screen',
+          discoverySource: 'watchlist',
+          perpDiscoverySource: 'watchlist',
+        }),
+      }),
+    );
+  });
+
   it('shows standard submitted toast when using perps balance', async () => {
     mockUseIsPerpsBalanceSelected.mockReturnValue(true);
 
