@@ -136,4 +136,34 @@ describe('useRampActivityItems', () => {
       hash: '0xbuyhash',
     });
   });
+
+  it('includes v2 orders with non-EVM CAIP-2 network metadata', () => {
+    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const v2Order = createV2Order({
+      id: '/providers/transak/orders/sol-order',
+      providerOrderId: 'sol-order',
+      network: { name: 'Solana', chainId: solanaChainId },
+      cryptoCurrency: { symbol: 'SOL', chainId: solanaChainId },
+    });
+    mockedUseRampsOrders.mockReturnValue({
+      orders: [v2Order],
+    } as ReturnType<typeof useRampsOrders>);
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
+      switch (selector) {
+        case getOrders:
+          return [];
+        default:
+          return undefined;
+      }
+    });
+
+    const { result } = renderHook(() => useRampActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'buy',
+      chainId: solanaChainId,
+      hash: '0xbuyhash',
+    });
+  });
 });
