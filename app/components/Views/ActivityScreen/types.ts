@@ -123,6 +123,7 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     // Earn/Staking (ETH pooled staking deposit / claim / unstake). Lumped under
     // Transactions for now — they have no dedicated bucket yet.
     'deposit',
+    'stake',
     'claim',
     'unstake',
     'lendingDeposit',
