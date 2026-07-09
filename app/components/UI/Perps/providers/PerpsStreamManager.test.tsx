@@ -3502,6 +3502,37 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).not.toHaveBeenCalled();
     });
 
+    it('does not deliver an update for the newly-focused symbol to a subscriber still registered for the previous symbol', () => {
+      // Simulates React Navigation keeping a BTC detail screen mounted while
+      // the user navigates to an ETH order/orderbook screen: both
+      // subscribers remain registered on the same singleton channel.
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: ethCallback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      // Fire the tick on the now-active (ETH) WebSocket subscription.
+      const ethPriceCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      ethPriceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+
+      expect(ethCallback).toHaveBeenCalledTimes(1);
+      expect(ethCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH' }),
+      );
+      // The stale BTC subscriber must never receive or cache the ETH tick.
+      expect(btcCallback).not.toHaveBeenCalled();
+    });
+
     it('reconnects when a different symbol is requested', () => {
       const callback = jest.fn();
 

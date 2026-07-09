@@ -1780,7 +1780,11 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
         const update = updates.find((u) => u.symbol === this.currentSymbol);
         if (update) {
           this.cachedPriceUpdate = update;
-          this.notifySubscribers(update);
+          // Scope dispatch to subscribers registered for this update's symbol.
+          // Prevents a stale subscriber left mounted after navigating to a
+          // different symbol (e.g. React Navigation keeping a prior screen
+          // mounted) from receiving/caching another symbol's price.
+          this.notifySubscribersForSymbols(update, [update.symbol]);
         }
       },
     });
@@ -1819,6 +1823,11 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
     }
 
     return this.subscribe({
+      // Registering the symbol lets the channel scope dispatch (via
+      // notifySubscribersForSymbols) to only the subscriber(s) that
+      // requested it, even while another symbol's subscriber is still
+      // mounted and registered on this same channel.
+      symbols: [params.symbol],
       callback: params.callback,
     });
   }
