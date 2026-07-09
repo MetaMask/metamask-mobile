@@ -278,6 +278,35 @@ export function isPerpsPlaceOrderCufCurrent(opId: string): boolean {
   return opId === placeOrderOpId;
 }
 
+/**
+ * End every pending CUF span as an abandoned failure and clear the single-flight
+ * place-order state. Called at teardown boundaries — disconnect, account or
+ * network switch — where the confirming streams are reset: without this, a
+ * pending confirmation (close/cancel/TP-SL/place) from the previous session
+ * could be falsely ended as a stream success by the next session's first
+ * delivery, since the matchers key only on symbol/orderId/baseline.
+ */
+export function clearPendingPerpsCufTraces(
+  reason: string = PERPS_CUF_END_REASON.DISCONNECTED,
+): void {
+  for (const id of Array.from(pendingCufMeta.keys())) {
+    endPerpsCufTrace({
+      id,
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: reason,
+      },
+    });
+  }
+  const resolver = placeOrderResolver;
+  placeOrderOpId = null;
+  placeOrderResolver = null;
+  placeOrderRendered = null;
+  // Wake any place-order waiter so its caller unblocks; the op id is no longer
+  // current, so it resolves null.
+  resolver?.();
+}
+
 /** Test-only: drop all pending spans and place-order state between tests. */
 export function resetPerpsCufTraceForTests(): void {
   pendingCufMeta.clear();

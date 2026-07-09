@@ -34,6 +34,12 @@ export const PERPS_CUF_END_REASON = {
   STREAM_TIMEOUT: 'stream_timeout',
   /** A newer operation of the same flow replaced this one before it confirmed. */
   SUPERSEDED: 'superseded',
+  /** The stream was reset (disconnect / account or network switch) before the
+   * confirmation arrived, so the op was abandoned rather than confirmed. */
+  DISCONNECTED: 'disconnected',
+  /** The controller request never settled (hung) before the watchdog fired —
+   * distinct from a settled request whose stream render never arrived. */
+  CONTROLLER_TIMEOUT: 'controller_timeout',
 } as const;
 
 /** How long the place-order span may wait for the position stream to close it. */

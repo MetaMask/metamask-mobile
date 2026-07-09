@@ -163,9 +163,11 @@ export function usePerpsOrderExecution(
       let controllerSettled = false;
       setTimeout(() => {
         if (!controllerSettled) {
+          // Distinct from stream_timeout: the controller request itself never
+          // settled, rather than a settled request whose render never arrived.
           endCuf({
             [PERPS_CUF_TAG.SUCCESS]: false,
-            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.CONTROLLER_TIMEOUT,
           });
         }
       }, PERPS_CUF_STREAM_TIMEOUT_MS);

@@ -798,6 +798,10 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           },
         );
 
+        // End any first-price span still open from a prior connect()/prewarm
+        // before overwriting the trace id, or that span is orphaned and ships
+        // bogus first-data telemetry.
+        this.endOpenFirstDataTrace();
         // Start trace for first price measurement (prewarm is the usual
         // price subscription path; connect() covers the no-prewarm case)
         this.firstDataTraceId = uuidv4();

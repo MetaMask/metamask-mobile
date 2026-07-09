@@ -19,6 +19,7 @@ import {
   watchPerpsCufAnyPositions,
   acceptPerpsCufRequest,
   isPerpsFillRendered,
+  clearPendingPerpsCufTraces,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
   resetPerpsCufTraceForTests,
@@ -571,6 +572,33 @@ describe('perpsCufTrace', () => {
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: tpslOp }),
     );
+  });
+
+  it('clears pending confirmations on teardown so the next session cannot end them', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsClosePositionToConfirmation,
+    });
+    watchPerpsCufPositionClosed(opId, btc);
+    acceptPerpsCufRequest(opId);
+
+    clearPendingPerpsCufTraces();
+
+    // Ended exactly once as an abandoned failure...
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: opId,
+        data: expect.objectContaining({
+          success: false,
+          reason: 'disconnected',
+        }),
+      }),
+    );
+
+    // ...and a later delivery matching its old criteria cannot resurrect it.
+    mockEndTrace.mockClear();
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0' }]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
   });
 
   it('cancel span ends only once the order id is absent', () => {

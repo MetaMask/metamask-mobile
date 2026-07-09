@@ -413,13 +413,17 @@ describe('usePerpsOrderExecution', () => {
           jest.advanceTimersByTime(PERPS_CUF_STREAM_TIMEOUT_MS);
         });
 
-        // The gesture-anchored fallback closes the span instead of leaking it.
+        // The gesture-anchored fallback closes the span instead of leaking it,
+        // tagged controller_timeout (hung request) not stream_timeout.
         expect(mockEndTrace).toHaveBeenCalledWith(
           expect.objectContaining({
             id: expect.stringContaining(
               TraceName.PerpsPlaceOrderToPositionRendered,
             ),
-            data: expect.objectContaining({ success: false }),
+            data: expect.objectContaining({
+              success: false,
+              reason: 'controller_timeout',
+            }),
           }),
         );
       } finally {
