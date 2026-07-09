@@ -120,7 +120,7 @@ import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
-import { getRelatedMarketsForMarket } from '../../utils/relatedMarkets';
+import { hasRelatedMarketsCategory } from '../../utils/relatedMarkets';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import {
   MarketInsightsEntryCard,
@@ -1260,11 +1260,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { styles } = useStyles(createStyles, {});
 
   const isRelatedMarketsVisible = useMemo(
-    () =>
-      isRelatedMarketsEnabled &&
-      Boolean(market) &&
-      Boolean(getRelatedMarketsForMarket(market, markets)),
-    [isRelatedMarketsEnabled, market, markets],
+    () => isRelatedMarketsEnabled && hasRelatedMarketsCategory(market),
+    [isRelatedMarketsEnabled, market],
   );
 
   const shouldShowPerpsMarketInsightsSection = useMemo(
