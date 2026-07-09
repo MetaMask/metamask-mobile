@@ -1612,6 +1612,9 @@ describe('PerpsMarketListView', () => {
         marketTypeFilter,
         setMarketTypeFilter: setMarketTypeFilterFn,
       },
+      recentlyViewedState: {
+        recentlyViewedMarketObjects: [],
+      },
       marketCounts: {
         crypto: 0,
         stocks: 0,
