@@ -490,13 +490,14 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders header with market title', async () => {
+    it('renders header with full asset name and market pair subtitle', async () => {
       renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
-      expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(screen.getByText('ETH-USD perp')).toBeOnTheScreen();
     });
 
     it('renders header price when market has no maxLeverage', async () => {

@@ -9,12 +9,14 @@ interface PerpsMarketHeaderProps {
   onFavoritePress?: () => void;
   onFullscreenPress?: () => void;
   onCategorySearchPress?: () => void;
+  onMarketListPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
   fullscreenButtonTestID?: string;
   /** Current price from candle stream - syncs header with chart */
   currentPrice: number;
   endAccessory?: ReactNode;
+  showAssetName?: boolean;
 }
 
 const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = (props) => (

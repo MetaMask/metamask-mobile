@@ -1,9 +1,16 @@
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   Button as DSButton,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSemantic,
   ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -54,10 +61,12 @@ import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
   PerpsCompactOrderRowSelectorsIDs,
 } from '../../Perps.testIds';
+import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -1297,13 +1306,37 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         market={market}
         currentPrice={syncedChartCurrentPrice}
         onBackPress={handleBackPress}
-        onFullscreenPress={handleFullscreenChartOpen}
         onFavoritePress={handleWatchlistPress}
-        onCategorySearchPress={handleCategorySearchPress}
+        onMarketListPress={handleCategorySearchPress}
         isFavorite={isWatchlist}
+        showAssetName
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
-        fullscreenButtonTestID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`}
       />
+
+      {/* Below header: live price + 24h change and fullscreen chart button */}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="px-4 pb-2"
+        testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY}
+      >
+        <LivePriceHeader
+          symbol={market.symbol}
+          testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
+          testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
+          throttleMs={1000}
+          currentPrice={syncedChartCurrentPrice}
+          size="large"
+        />
+        <ButtonIcon
+          iconName={IconName.Expand}
+          size={ButtonIconSize.Md}
+          onPress={handleFullscreenChartOpen}
+          testID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`}
+          accessibilityLabel={strings('perps.market_details.fullscreen_chart')}
+        />
+      </Box>
 
       <View style={styles.scrollableContentContainer}>
         <ScrollView

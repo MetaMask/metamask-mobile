@@ -20,6 +20,12 @@ interface LivePriceHeaderProps {
   throttleMs?: number;
   /** Current price from candle stream - syncs header with chart */
   currentPrice: number;
+  /**
+   * Visual size of the price/change row.
+   * - `default`: compact, muted price (used inside the market header).
+   * - `large`: prominent price shown below the market header.
+   */
+  size?: 'default' | 'large';
 }
 
 const styleSheet = () =>
@@ -41,7 +47,12 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   testIDChange,
   throttleMs = 1000, // Balanced updates for header (1 update per second)
   currentPrice,
+  size = 'default',
 }) => {
+  const isLarge = size === 'large';
+  const priceVariant = isLarge ? TextVariant.HeadingLG : TextVariant.BodySM;
+  const priceColor = isLarge ? TextColor.Default : TextColor.Alternative;
+  const changeVariant = isLarge ? TextVariant.BodyMDMedium : TextVariant.BodySM;
   const { styles } = useStyles(styleSheet, {});
   // Subscribe to price stream only for 24h change percentage
   const prices = usePerpsLivePrices({
@@ -104,18 +115,10 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
-        testID={testIDPrice}
-      >
+      <Text variant={priceVariant} color={priceColor} testID={testIDPrice}>
         {formattedPrice}
       </Text>
-      <Text
-        variant={TextVariant.BodySM}
-        color={changeColor}
-        testID={testIDChange}
-      >
+      <Text variant={changeVariant} color={changeColor} testID={testIDChange}>
         {formattedChange}
       </Text>
     </View>
