@@ -43,8 +43,8 @@ const AI_ANALYSIS_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-ai-analysis
 const PRIOR_STATE_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-prior-state.json');
 
 // Failure counts bucketed by lookback window (nested: a failure in 7d also
-// counts in 30d/90d/365d). Kept as a permissive Record so a future window edit
-// in Stage 1 doesn't require a matching type change here.
+// counts in 30d). Kept as a permissive Record so a future window edit in
+// Stage 1 doesn't require a matching type change here.
 type WindowCounts = Record<string, number>;
 
 interface HistoryFile {
@@ -124,7 +124,7 @@ function readJsonOrEmpty<T>(path: string, emptyShape: T): T {
 
 // Fallback window set used only if the Stage 1 artifact predates the `windows`
 // field; the live artifact always supplies its own list.
-const DEFAULT_WINDOWS = [7, 30, 90, 365];
+const DEFAULT_WINDOWS = [7, 15, 30];
 
 // Serializes per-file state into a hidden HTML comment appended to the comment
 // body. Stage 1 reads this on the next push to decide which files need
@@ -133,16 +133,27 @@ function buildStateBlock(state: CommentState): string {
   return `${STATE_MARKER} ${JSON.stringify(state)} -->`;
 }
 
+// Builds the table (or an empty-state fallback line) for the "Run history
+// flaky detection" section. tableFiles is the union of historically-flaky
+// files and files carrying an AI finding — see buildCommentBody — so an
+// empty list here only happens if that union itself is empty, which is a
+// rare safety fallback rather than the common case.
 function buildHistoryTable(
-  flakyFiles: HistoryFile[],
+  tableFiles: HistoryFile[],
   windows: number[],
   runsSampled: WindowCounts,
 ): string {
-  if (flakyFiles.length === 0) return '';
+  if (tableFiles.length === 0) {
+    const windowKeys = windows.map((d) => `${d}d`);
+    const noRunsSampled = windowKeys.every((key) => !runsSampled[key]);
+    return noRunsSampled
+      ? 'No previous run to analyse for these tests.'
+      : 'No historical failures found for the changed tests in the sampled runs.';
+  }
   const windowKeys = windows.map((d) => `${d}d`);
   const header = `| File | ${windowKeys.join(' | ')} |`;
   const divider = `|---|${windowKeys.map(() => '---|').join('')}`;
-  const rows = flakyFiles
+  const rows = tableFiles
     .map((f) => {
       // `failures/runs` — failures for the file over the number of countable
       // runs sampled in that window.
@@ -152,7 +163,7 @@ function buildHistoryTable(
       return `| \`${f.path}\` | ${cells} |`;
     })
     .join('\n');
-  return `### Historical CI failures on main\n\nFailures / runs sampled per window (nested — a failure in 7d is also counted in 30d/90d/365d):\n\n${header}\n${divider}\n${rows}\n`;
+  return `Failures / runs sampled per window:\n\n${header}\n${divider}\n${rows}\n`;
 }
 
 function buildFindingsSection(findings: Finding[]): string {
@@ -199,19 +210,27 @@ function buildCommentBody({
   runsSampled: WindowCounts;
   stateBlock: string;
 }): string {
-  const flakyFiles = historyFiles.filter((f) => f.flaky);
-  const historyTable = buildHistoryTable(flakyFiles, windows, runsSampled);
+  // A file surfaces in the run-history table if it's historically flaky OR
+  // an AI finding calls it out — otherwise an AI-only finding (zero
+  // historical failures) would make the table disappear even though the
+  // finding itself renders.
+  const findingFiles = new Set(findings.map((f) => f.file));
+  const tableFiles = historyFiles.filter((f) => f.flaky || findingFiles.has(f.path));
+  const historyTable = buildHistoryTable(tableFiles, windows, runsSampled);
   const findingsSection = buildFindingsSection(findings);
 
   return `${MARKER}
 ## 🧪 Flaky unit test detection
 
-${historyTable}
+### Run history flaky detection
+
 [View recent run history](${runHistoryUrl})
 
-${findingsSection}
 Historical failure rate is a hint, not proof — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
 
+${historyTable}
+
+${findingsSection}
 _This check is informational only and does not block merging._
 ${stateBlock}`;
 }
