@@ -46,11 +46,12 @@ export const getFeatureFlagAppDistribution = () => {
 export const isRemoteFeatureFlagOverrideActivated =
   process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
 
-// TEMP: RC test for ETH -> mUSD deposit, revert before merge.
-// True on every non-production build. Gates the directMoneyMusdEnabled override
-// below so production continues to honour the real LaunchDarkly value.
-export const shouldForceDirectMoneyMusdOff = () =>
-  process.env.METAMASK_ENVIRONMENT !== 'production';
+// TEMP: US-NY test hardcode for ETH -> mUSD deposit, revert before merge.
+// Hardcoded to true so directMoneyMusdEnabled is forced OFF unconditionally,
+// regardless of build type or the remote LaunchDarkly value. This guarantees
+// the buy-ETH-then-convert fallback path so US-NY (no mUSD provider) can be
+// tested on an RC build.
+export const shouldForceDirectMoneyMusdOff = () => true;
 
 // TEMP: RC test for ETH -> mUSD deposit, revert before merge.
 // Core (`@metamask/transaction-pay-controller` `getDirectMoneyMusdEnabled`) reads

@@ -94,9 +94,9 @@ describe('RemoteFeatureFlagController utils', () => {
       process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
     });
 
-    it('returns false on production builds', () => {
+    it('returns true on production builds (hardcoded for US-NY test)', () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
-      expect(shouldForceDirectMoneyMusdOff()).toBe(false);
+      expect(shouldForceDirectMoneyMusdOff()).toBe(true);
     });
 
     it('returns true on rc builds', () => {
