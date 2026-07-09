@@ -3577,6 +3577,53 @@ describe('PerpsStreamManager', () => {
 
       expect(callback).toHaveBeenCalledWith(undefined);
     });
+
+    it('re-focuses to a surviving subscriber symbol on a pop-back style unsubscribe sequence', () => {
+      // BTC detail screen mounts, then the user navigates to an ETH
+      // order/orderbook screen (BTC stays mounted below it), then pops back:
+      // the ETH subscriber unsubscribes while the BTC one is still active.
+      const btcCallback = jest.fn();
+      const ethCallback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback: btcCallback,
+      });
+
+      const unsubscribeEth = testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback: ethCallback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+
+      // ETH tick reaches only the ETH subscriber while it's focused.
+      const ethPriceCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      ethPriceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+      expect(ethCallback).toHaveBeenCalledTimes(1);
+      expect(btcCallback).not.toHaveBeenCalled();
+
+      // Pop back: the ETH screen unmounts and unsubscribes. The BTC
+      // subscriber is still registered, so the channel should re-focus the
+      // WebSocket onto BTC instead of sitting disconnected.
+      unsubscribeEth();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbols: ['BTC'] }),
+      );
+
+      // A subsequent BTC tick reaches the surviving BTC subscriber but never
+      // the already-unsubscribed ETH callback.
+      const btcPriceCallback = mockSubscribeToPrices.mock.calls[2][0].callback;
+      btcPriceCallback([{ symbol: 'BTC', price: '51000', markPrice: '51050' }]);
+
+      expect(btcCallback).toHaveBeenCalledTimes(1);
+      expect(btcCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'BTC' }),
+      );
+      expect(ethCallback).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('PositionStreamChannel.updatePositionTPSLOptimistic', () => {

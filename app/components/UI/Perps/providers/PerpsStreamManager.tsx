@@ -1822,7 +1822,7 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
       this.currentSymbol = params.symbol;
     }
 
-    return this.subscribe({
+    const unsubscribe = this.subscribe({
       // Registering the symbol lets the channel scope dispatch (via
       // notifySubscribersForSymbols) to only the subscriber(s) that
       // requested it, even while another symbol's subscriber is still
@@ -1830,6 +1830,46 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
       symbols: [params.symbol],
       callback: params.callback,
     });
+
+    return () => {
+      unsubscribe();
+      // If unsubscribing left the currently-focused symbol without any
+      // subscribers (e.g. leaving an ETH screen) but another symbol's
+      // subscriber is still mounted below it (e.g. popping back to BTC),
+      // re-point the WebSocket at that surviving symbol instead of leaving
+      // it disconnected until that screen mounts a brand-new subscription.
+      this.refocusToRemainingSymbol();
+    };
+  }
+
+  /**
+   * Re-point the WebSocket subscription to a surviving subscriber's symbol
+   * after an unsubscribe leaves the currently-focused symbol with no
+   * subscribers left, while another symbol is still registered.
+   */
+  private refocusToRemainingSymbol(): void {
+    if (this.subscribers.size === 0) {
+      // No subscribers left at all — the base subscribe() teardown already
+      // called disconnect() when the last one unsubscribed.
+      return;
+    }
+    if (this.currentSymbol && this.symbolSubscribers.has(this.currentSymbol)) {
+      // The focused symbol still has at least one subscriber.
+      return;
+    }
+
+    const nextSymbol = this.symbolSubscribers.keys().next().value;
+    if (!nextSymbol) {
+      return;
+    }
+
+    DevLogger.log(
+      'FocusedPriceStreamChannel: Re-focusing to remaining subscriber symbol',
+      { nextSymbol },
+    );
+    this.disconnect();
+    this.currentSymbol = nextSymbol;
+    this.connect();
   }
 
   public disconnect() {
