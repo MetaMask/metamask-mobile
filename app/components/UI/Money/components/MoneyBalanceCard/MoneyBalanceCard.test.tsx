@@ -449,7 +449,7 @@ describe('MoneyBalanceCard', () => {
       );
     });
 
-    it('masks the balance with bullet characters when privacy mode is enabled', () => {
+    it('masks the balance when privacy mode is enabled', () => {
       mockSelectPrivacyMode.mockReturnValue(true);
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 

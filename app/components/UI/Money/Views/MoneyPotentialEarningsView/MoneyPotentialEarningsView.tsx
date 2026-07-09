@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import {
   Box,
@@ -25,6 +26,7 @@ import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -49,6 +51,7 @@ const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
     overrideToUsd: true,
@@ -261,6 +264,7 @@ const MoneyPotentialEarningsView = () => {
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
             testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}
+            privacyMode={privacyMode}
           />
         ))}
       </ScrollView>

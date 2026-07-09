@@ -697,6 +697,7 @@ const MoneyHomeView = () => {
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
             isBalanceStale={showBalanceUnavailableBanner}
+            privacyMode={privacyMode}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}
             analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
@@ -722,6 +723,7 @@ const MoneyHomeView = () => {
           yearlyEarnings={yearlyEarnings}
           isLoading={vaultApyQuery.isLoading || isBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
+          privacyMode={privacyMode}
         />
       ),
     });
@@ -750,6 +752,7 @@ const MoneyHomeView = () => {
             }
             onAddPress={handleMusdRowAddPress}
             balance={musdFiatFormatted}
+            privacyMode={privacyMode}
           />
         </>
       ),
@@ -773,6 +776,7 @@ const MoneyHomeView = () => {
           onViewAllPress={handleViewAllActivityPress}
           onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
+          privacyMode={privacyMode}
         />
       ),
     });
@@ -791,6 +795,7 @@ const MoneyHomeView = () => {
           onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
           onHeaderPress={handlePotentialEarningsHeaderPress}
           onInfoPress={handleEarnCryptoInfoPress}
+          privacyMode={privacyMode}
         />
       ),
     });

@@ -279,7 +279,7 @@ describe('MoneyBalanceSummary', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('masks the last known balance with bullet characters when privacyMode is true', () => {
+    it('masks the last known balance when privacy mode is enabled', () => {
       const { getByTestId } = render(
         <MoneyBalanceSummary
           apy={4}

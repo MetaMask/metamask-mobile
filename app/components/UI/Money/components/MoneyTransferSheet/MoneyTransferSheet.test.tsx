@@ -28,6 +28,11 @@ jest.mock('../../../../../selectors/transactionController', () => ({
   selectTransactions: jest.fn(() => []),
 }));
 
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePerpsDeposit = jest.fn().mockResolvedValue(undefined);
 const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);

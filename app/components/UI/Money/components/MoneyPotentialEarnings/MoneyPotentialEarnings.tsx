@@ -56,6 +56,8 @@ interface MoneyPotentialEarningsProps {
    * Typically navigates to the Earn-on-your-crypto info bottom sheet.
    */
   onInfoPress?: () => void;
+  /** Whether each token's balance/projected values should be masked. */
+  privacyMode?: boolean;
 }
 
 const MoneyPotentialEarnings = ({
@@ -67,6 +69,7 @@ const MoneyPotentialEarnings = ({
   onViewAllPress,
   onHeaderPress,
   onInfoPress,
+  privacyMode = false,
 }: MoneyPotentialEarningsProps) => {
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
@@ -171,6 +174,7 @@ const MoneyPotentialEarnings = ({
             apyDecimal={apyDecimal}
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
+            privacyMode={privacyMode}
           />
         ))}
 

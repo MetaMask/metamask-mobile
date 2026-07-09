@@ -7321,7 +7321,6 @@
       "convert_crypto": "Convert crypto",
       "deposit_funds": "Debit card or Apple Pay",
       "bank_account": "Bank account",
-      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
       "coming_soon": "Coming soon"
