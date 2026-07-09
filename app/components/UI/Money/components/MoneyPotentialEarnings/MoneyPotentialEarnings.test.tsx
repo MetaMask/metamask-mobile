@@ -1,10 +1,12 @@
 import React from 'react';
+import { BigNumber } from 'bignumber.js';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
 import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
+import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -28,12 +30,9 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 }));
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => 'usd'),
-}));
 
 jest.mock('../../utils/moneyFormatFiat', () => ({
+  ...jest.requireActual('../../utils/moneyFormatFiat'),
   moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
 
@@ -89,7 +88,13 @@ const MOCK_SOL = makeToken({
   fiat: { balance: 2000 },
 });
 
+const mockMoneyFormatFiat = jest.mocked(moneyFormatFiat);
+
 describe('MoneyPotentialEarnings', () => {
+  beforeEach(() => {
+    mockMoneyFormatFiat.mockClear();
+  });
+
   it('returns null when there are no tokens with balance', () => {
     const { queryByTestId } = render(
       <MoneyPotentialEarnings apyDecimal={0.04} tokens={[]} />,
@@ -124,6 +129,30 @@ describe('MoneyPotentialEarnings', () => {
 
     expect(getByTestId(MoneyPotentialEarningsTestIds.TEXT)).toHaveTextContent(
       /\+\$360\.00/,
+    );
+  });
+
+  it('formats the headline total using the token fiat currency instead of a Money default currency when defined', () => {
+    const eurToken = makeToken({
+      symbol: 'EURC',
+      address: '0x0000000000000000000000000000000000000005',
+      fiat: { balance: 5000, currency: 'eur' },
+    });
+
+    render(<MoneyPotentialEarnings apyDecimal={0.04} tokens={[eurToken]} />);
+
+    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
+      expect.any(BigNumber),
+      'eur',
+    );
+  });
+
+  it('falls back to the Money default currency when tokens have no fiat currency', () => {
+    render(<MoneyPotentialEarnings apyDecimal={0.04} tokens={[MOCK_USDC]} />);
+
+    expect(mockMoneyFormatFiat).toHaveBeenCalledWith(
+      expect.any(BigNumber),
+      'usd',
     );
   });
 
