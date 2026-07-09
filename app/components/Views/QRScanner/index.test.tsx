@@ -534,9 +534,9 @@ describe('QrScanner', () => {
         const connectionRequest = {
           sessionRequest: {
             id: '11111111-2222-3333-4444-555555555555',
-            publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
+            publicKeyB64: Buffer.alloc(33, 1).toString('base64'),
             channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
-            mode: 'trusted',
+            mode: 'untrusted',
             expiresAt: Date.now() + 600_000,
           },
         };
