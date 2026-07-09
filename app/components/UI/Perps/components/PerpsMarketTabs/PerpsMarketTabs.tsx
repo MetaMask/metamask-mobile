@@ -32,6 +32,7 @@ import styleSheet from './PerpsMarketTabs.styles';
 import {
   OrderDirection,
   PERPS_CONSTANTS,
+  PERPS_EVENT_VALUE,
   type Order,
   type Position,
   type TPSLTrackingData,
@@ -52,6 +53,7 @@ import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { getOrderDirection } from '../../utils/orderUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -553,6 +555,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         const result = await controller.cancelOrder({
           orderId: orderToCancel.orderId,
           symbol: orderToCancel.symbol,
+          trackingData: {
+            source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+            ...toPerpsEntryAttribution({
+              source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+            }),
+          },
         });
 
         // Order cancellation successful

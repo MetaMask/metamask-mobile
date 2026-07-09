@@ -129,6 +129,8 @@ const PerpsMarketListView = ({
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
 
+  const { track } = usePerpsEventTracking();
+
   // Handler for market press (defined early to avoid use-before-define)
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
@@ -140,6 +142,16 @@ const PerpsMarketListView = ({
         const trimmedQuery = searchQuery.trim();
         if (trimmedQuery) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ACTIVE_SEARCH;
+          const resultRank =
+            filteredMarkets.findIndex((m) => m.symbol === market.symbol) + 1;
+          track(MetaMetricsEvents.PERPS_SEARCH_RESULT_TAPPED, {
+            [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: trimmedQuery,
+            [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,
+            ...(resultRank > 0
+              ? { [PERPS_EVENT_PROPERTY.RESULT_RANK]: resultRank }
+              : {}),
+            [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
+          });
         } else if (showFavoritesOnly) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST;
         } else if (marketTypeFilter !== 'all') {
@@ -175,10 +187,10 @@ const PerpsMarketListView = ({
       searchQuery,
       showFavoritesOnly,
       marketTypeFilter,
+      filteredMarkets,
+      track,
     ],
   );
-
-  const { track } = usePerpsEventTracking();
 
   // Handle category badge selection — clears watchlist filter (mutual exclusivity)
   const handleCategorySelect = useCallback(
@@ -225,24 +237,36 @@ const PerpsMarketListView = ({
 
   const handleBackPressed = perpsNavigation.navigateBack;
 
-  // Debounced search result_count tracking — fires ~600ms after the query/result
+  // Debounced Search Query tracking — fires ~600ms after the query/result
   // count stabilises. Includes zero-result searches so analysts can measure failure.
+  // Uses controller contract event PERPS_SEARCH_QUERY (TAT-3463).
   const searchResultTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const lastEmittedSearchQueryRef = useRef<string>('');
   useEffect(() => {
     const trimmedQuery = searchQuery.trim();
-    if (!trimmedQuery) return;
+    if (!trimmedQuery) {
+      if (lastEmittedSearchQueryRef.current) {
+        track(MetaMetricsEvents.PERPS_SEARCH_ABANDONED, {
+          [PERPS_EVENT_PROPERTY.SEARCH_QUERY]:
+            lastEmittedSearchQueryRef.current,
+          [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,
+        });
+        lastEmittedSearchQueryRef.current = '';
+      }
+      return;
+    }
 
     if (searchResultTimerRef.current) {
       clearTimeout(searchResultTimerRef.current);
     }
 
     searchResultTimerRef.current = setTimeout(() => {
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.SEARCH_CLICKED,
-        [PERPS_EVENT_PROPERTY.RESULT_COUNT]: filteredMarkets.length,
+      lastEmittedSearchQueryRef.current = trimmedQuery;
+      track(MetaMetricsEvents.PERPS_SEARCH_QUERY, {
+        [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: trimmedQuery,
+        [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,
       });
     }, 600);
 

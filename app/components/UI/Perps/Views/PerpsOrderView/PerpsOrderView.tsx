@@ -139,6 +139,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { willFlipPosition } from '../../utils/orderUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
@@ -1175,7 +1176,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             : {}),
           ...tpParams,
           ...slParams,
-          // Add tracking data for MetaMetrics events
+          // Add tracking data for MetaMetrics events (controller owns emission)
           trackingData: {
             marginUsed: Number(marginRequired),
             totalFee: feeResults.totalFee,
@@ -1186,6 +1187,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
+            ...toPerpsEntryAttribution({ source }),
+            ...(feeResults.protocolFeeRate !== undefined
+              ? { hlFeeRate: feeResults.protocolFeeRate }
+              : {}),
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
@@ -1280,6 +1285,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       feeResults.totalFee,
       feeResults.metamaskFee,
       feeResults.metamaskFeeRate,
+      feeResults.protocolFeeRate,
       feeResults.feeDiscountPercentage,
       feeResults.estimatedPoints,
       source,

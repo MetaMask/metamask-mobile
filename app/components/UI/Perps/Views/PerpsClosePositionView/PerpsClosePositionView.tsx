@@ -65,6 +65,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import {
   calculateCloseAmountFromPercentage,
   validateCloseAmountLimits,
@@ -398,6 +399,10 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
         source: routeSource,
+        ...toPerpsEntryAttribution({ source: routeSource }),
+        ...(feeResults.protocolFeeRate !== undefined
+          ? { hlFeeRate: feeResults.protocolFeeRate }
+          : {}),
         vipTier: vipTier ?? undefined,
         vipDiscount: feeResults.feeDiscountPercentage,
       },
