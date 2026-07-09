@@ -74,12 +74,7 @@ import {
   TokenSelectorBalanceLayoutVariant,
 } from '../TokenSelectorItem.abTestConfig';
 import { BatchSellAssetPickerBanner } from './BatchSellAssetPickerBanner';
-import {
-  BATCH_SELL_ASSET_PICKER_BANNER_LOCATION,
-  useBatchSellAssetPickerBanner,
-} from './useBatchSellAssetPickerBanner';
-
-export { BATCH_SELL_ASSET_PICKER_BANNER_LOCATION };
+import { useBatchSellAssetPickerBanner } from './useBatchSellAssetPickerBanner';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;

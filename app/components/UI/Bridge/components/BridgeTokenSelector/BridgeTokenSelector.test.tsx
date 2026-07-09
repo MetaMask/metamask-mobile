@@ -8,9 +8,7 @@ import {
   createMockPopularToken,
   MOCK_CHAIN_IDS,
 } from '../../testUtils/fixtures';
-import {
-  BridgeTokenSelector,
-} from './BridgeTokenSelector';
+import { BridgeTokenSelector } from './BridgeTokenSelector';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 import {
   BATCH_SELL_ASSET_PICKER_BANNER_DISMISS_TEST_ID,
@@ -199,7 +197,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
       type: 'bridge/setTokenSelectorNetworkFilter',
       payload: chainId,
     })),
-    selectIsSwapsEnabled: jest.fn(() => true),
     setVisiblePillChainIds: jest.fn((chainIds) => ({
       type: 'bridge/setVisiblePillChainIds',
       payload: chainIds,
@@ -433,13 +430,11 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'https://network.png' })),
 }));
 
-const mockStorageGetItem = jest.fn();
 const mockStorageGetItemSync = jest.fn();
 const mockStorageSetItem = jest.fn();
 jest.mock('../../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
-    getItem: (...args: unknown[]) => mockStorageGetItem(...args),
     getItemSync: (...args: unknown[]) => mockStorageGetItemSync(...args),
     setItem: (...args: unknown[]) => mockStorageSetItem(...args),
   },
@@ -582,7 +577,6 @@ const resetMocks = () => {
   mockIsBatchSellEnabled = true;
   mockSelectedInternalAccountAddress = '0xabc';
   mockIsHardwareAccount.mockReturnValue(false);
-  mockStorageGetItem.mockResolvedValue(null);
   mockStorageGetItemSync.mockReturnValue(null);
   mockStorageSetItem.mockResolvedValue(undefined);
   mockBridgeFeatureFlags = {
