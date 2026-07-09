@@ -288,6 +288,22 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     ],
   );
 
+  // iOS FullWindowOverlay constraints (do not regress):
+  // 1) Mount the overlay ONLY when the bottom sheet has content (#32973 /
+  //    #32619). An empty RNSFullWindowOverlayContainer is still
+  //    accessibilityViewIsModal=YES and hides the entire app AX tree from
+  //    VoiceOver / XCUITest / Appium / idb.
+  // 2) Children that need RN Modal / react-native-modal with coverScreen must
+  //    use coverScreen={false} (or render outside this overlay). Nested Modals
+  //    cannot present on iOS (react-native-screens#1149 / #33022).
+  // Mirrors HardwareWalletBottomSheet `shouldShow`: Disconnected (or force-hide
+  // / missing wallet type) returns null synchronously, so unmounting the
+  // overlay in the same render is safe.
+  const isBottomSheetMounted =
+    !forceHideBottomSheet &&
+    effectiveWalletType !== null &&
+    connectionState.status !== ConnectionStatus.Disconnected;
+
   return (
     <HardwareWalletContext.Provider value={contextValue}>
       {children}
