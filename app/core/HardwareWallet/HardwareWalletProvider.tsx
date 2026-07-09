@@ -288,26 +288,39 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     ],
   );
 
+  // Mirrors the `shouldShow` logic inside HardwareWalletBottomSheet: the sheet
+  // renders null unless a wallet type is set, the sheet is not force-hidden and
+  // the connection flow is in any non-disconnected state. The FullWindowOverlay
+  // must be fully unmounted whenever the sheet is empty because an empty
+  // overlay container is accessibilityViewIsModal=YES on iOS, which hides the
+  // entire app from VoiceOver and accessibility clients (origin: PR #32619).
+  const isBottomSheetMounted =
+    !forceHideBottomSheet &&
+    effectiveWalletType !== null &&
+    connectionState.status !== ConnectionStatus.Disconnected;
+
   return (
     <HardwareWalletContext.Provider value={contextValue}>
       {children}
-      <FullWindowOverlay>
-        <HardwareWalletBottomSheet
-          connectionState={connectionState}
-          deviceSelection={deviceSelection}
-          walletType={effectiveWalletType}
-          forceHideBottomSheet={forceHideBottomSheet}
-          retryEnsureDeviceReady={handleRetryOrClose}
-          selectDevice={selectDevice}
-          rescan={rescan}
-          connect={connect}
-          onClose={handleCloseFlow}
-          onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
-          onConnectionSuccess={handleBottomSheetConnectionSuccess}
-          onCTAClicked={trackCTAClicked}
-          onRetryQrScan={handleRetryQrScan}
-        />
-      </FullWindowOverlay>
+      {isBottomSheetMounted && (
+        <FullWindowOverlay>
+          <HardwareWalletBottomSheet
+            connectionState={connectionState}
+            deviceSelection={deviceSelection}
+            walletType={effectiveWalletType}
+            forceHideBottomSheet={forceHideBottomSheet}
+            retryEnsureDeviceReady={handleRetryOrClose}
+            selectDevice={selectDevice}
+            rescan={rescan}
+            connect={connect}
+            onClose={handleCloseFlow}
+            onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
+            onConnectionSuccess={handleBottomSheetConnectionSuccess}
+            onCTAClicked={trackCTAClicked}
+            onRetryQrScan={handleRetryQrScan}
+          />
+        </FullWindowOverlay>
+      )}
     </HardwareWalletContext.Provider>
   );
 };
