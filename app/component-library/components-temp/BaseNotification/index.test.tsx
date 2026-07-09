@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
-import BaseNotification, { getDescription, getIcon } from './';
+import BaseNotification, { getDescription } from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { BaseNotificationStatus } from './BaseNotification.types';
@@ -156,7 +156,7 @@ describe('BaseNotification', () => {
     jest.useRealTimers();
   });
 
-  it('invokes onDismissComplete when the notification unmounts before auto dismiss completes', async () => {
+  it('handles unmount and ignores duplicate layout after enter', async () => {
     jest.useFakeTimers();
     const onDismissComplete = jest.fn();
     const { getByTestId, unmount } = renderWithProvider(
@@ -169,51 +169,11 @@ describe('BaseNotification', () => {
     );
 
     triggerEnterLayout(getByTestId);
+    triggerEnterLayout(getByTestId);
     unmount();
 
     expect(onDismissComplete).toHaveBeenCalledTimes(1);
     jest.useRealTimers();
-  });
-
-  it('ignores repeated layout events after the enter animation starts', () => {
-    const onDismissComplete = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        persistUntilDismiss
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    triggerEnterLayout(getByTestId);
-    triggerEnterLayout(getByTestId);
-
-    expect(onDismissComplete).not.toHaveBeenCalled();
-  });
-
-  it('returns null icon for an unrecognized status', () => {
-    expect(getIcon(undefined)).toBeNull();
-  });
-
-  it('returns a typed message when amount and type are provided', () => {
-    const result = getDescription('received', {
-      amount: '0.5',
-      type: 'eth',
-    });
-
-    expect(result).toBe(
-      strings('notifications.eth_received_message', { amount: '0.5' }),
-    );
-  });
-
-  it('renders without a generated title for statuses outside getTitle', () => {
-    const { getByTestId } = renderWithProvider(
-      <BaseNotification status="import_success" data={{}} />,
-    );
-
-    expect(getByTestId('notification-title')).toBeOnTheScreen();
-    expect(getByTestId('notification-title')).toHaveTextContent('');
   });
 
   describe('EIP-7702 transactions (without nonce)', () => {

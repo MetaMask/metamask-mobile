@@ -6,29 +6,24 @@ import configureStore from '../../../util/test/configureStore';
 import { NotificationTypes } from '../../../util/notifications';
 import { ACTIONS } from '../../../reducers/notification';
 
-jest.mock('./TransactionNotification', () => {
+function mockNotificationChild(testID) {
   const ReactMock = require('react');
   const { View } = require('react-native');
 
-  return function MockTransactionNotification(props) {
+  return function MockNotification(props) {
     return ReactMock.createElement(View, {
-      testID: 'transaction-notification',
+      testID,
       onDismissComplete: props.onDismissComplete,
     });
   };
-});
+}
 
-jest.mock('./SimpleNotification', () => {
-  const ReactMock = require('react');
-  const { View } = require('react-native');
-
-  return function MockSimpleNotification(props) {
-    return ReactMock.createElement(View, {
-      testID: 'simple-notification',
-      onDismissComplete: props.onDismissComplete,
-    });
-  };
-});
+jest.mock('./TransactionNotification', () =>
+  mockNotificationChild('transaction-notification'),
+);
+jest.mock('./SimpleNotification', () =>
+  mockNotificationChild('simple-notification'),
+);
 
 const createNotificationState = (notification) => ({
   notification: {
@@ -49,58 +44,58 @@ const renderNotification = (notification) => {
   return { ...view, dispatchSpy, store };
 };
 
+const simpleNotification = {
+  type: NotificationTypes.SIMPLE,
+  isVisible: true,
+  status: 'success',
+  title: 'Test title',
+  description: 'Test description',
+};
+
 describe('Notification', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders nothing when there is no current notification type', () => {
-    const { queryByTestId } = renderNotification({ isVisible: true });
+  it.each([
+    [
+      'transaction',
+      {
+        type: NotificationTypes.TRANSACTION,
+        isVisible: true,
+        status: 'pending',
+      },
+      'transaction-notification',
+    ],
+    [
+      'simple',
+      {
+        type: NotificationTypes.SIMPLE,
+        isVisible: true,
+        status: 'success',
+        title: 'Test title',
+        description: 'Test description',
+      },
+      'simple-notification',
+    ],
+  ])('renders %s notifications', (_, notification, testId) => {
+    const { getByTestId } = renderNotification(notification);
 
-    expect(queryByTestId('transaction-notification')).not.toBeOnTheScreen();
-    expect(queryByTestId('simple-notification')).not.toBeOnTheScreen();
+    expect(getByTestId(testId)).toBeOnTheScreen();
   });
 
-  it('renders TransactionNotification for transaction notifications', () => {
-    const { getByTestId } = renderNotification({
-      type: NotificationTypes.TRANSACTION,
-      isVisible: true,
-      status: 'pending',
-    });
-
-    expect(getByTestId('transaction-notification')).toBeOnTheScreen();
-  });
-
-  it('renders SimpleNotification for simple notifications', () => {
-    const { getByTestId } = renderNotification({
-      type: NotificationTypes.SIMPLE,
-      isVisible: true,
-      status: 'success',
-      title: 'Test title',
-      description: 'Test description',
-    });
-
-    expect(getByTestId('simple-notification')).toBeOnTheScreen();
-  });
-
-  it('renders nothing for an unsupported notification type', () => {
-    const { queryByTestId } = renderNotification({
-      type: 'unsupported',
-      isVisible: true,
-    });
+  it.each([
+    ['no notification type', { isVisible: true }],
+    ['unsupported notification type', { type: 'unsupported', isVisible: true }],
+  ])('renders nothing for %s', (_, notification) => {
+    const { queryByTestId } = renderNotification(notification);
 
     expect(queryByTestId('transaction-notification')).not.toBeOnTheScreen();
     expect(queryByTestId('simple-notification')).not.toBeOnTheScreen();
   });
 
   it('dispatches hide and remove actions when the component unmounts', () => {
-    const { unmount, dispatchSpy } = renderNotification({
-      type: NotificationTypes.SIMPLE,
-      isVisible: true,
-      status: 'success',
-      title: 'Test title',
-      description: 'Test description',
-    });
+    const { unmount, dispatchSpy } = renderNotification(simpleNotification);
 
     unmount();
 
@@ -116,11 +111,7 @@ describe('Notification', () => {
     jest.useFakeTimers();
     const { dispatchSpy } = renderNotification({
       id: 'notification-1',
-      type: NotificationTypes.SIMPLE,
-      isVisible: true,
-      status: 'success',
-      title: 'Test title',
-      description: 'Test description',
+      ...simpleNotification,
       autodismiss: 1000,
     });
 
@@ -138,19 +129,15 @@ describe('Notification', () => {
     jest.useFakeTimers();
     const { getByTestId, dispatchSpy } = renderNotification({
       id: 'notification-1',
-      type: NotificationTypes.SIMPLE,
-      isVisible: true,
-      status: 'success',
-      title: 'Test title',
-      description: 'Test description',
+      ...simpleNotification,
       autodismiss: 1000,
     });
 
-    const simpleNotification = getByTestId('simple-notification');
+    const notification = getByTestId('simple-notification');
 
     act(() => {
-      simpleNotification.props.onDismissComplete();
-      simpleNotification.props.onDismissComplete();
+      notification.props.onDismissComplete();
+      notification.props.onDismissComplete();
       jest.advanceTimersByTime(2000);
     });
 

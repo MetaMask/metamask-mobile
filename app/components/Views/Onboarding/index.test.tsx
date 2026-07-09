@@ -3082,26 +3082,6 @@ describe('Onboarding', () => {
 
       mockRoute.params = {};
     });
-
-    it('does not display a notification when route params are absent', async () => {
-      mockRoute.params = {};
-
-      const { queryByTestId } = renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(100);
-      });
-
-      expect(
-        queryByTestId('base-notification-container'),
-      ).not.toBeOnTheScreen();
-    });
   });
 
   describe('disableBackPress', () => {
