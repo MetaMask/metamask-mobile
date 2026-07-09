@@ -472,10 +472,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const tradePageCufTags = useMemo(() => buildPerpsCufStartTags(), []);
   usePerpsMeasurement({
     traceName: TraceName.PerpsTradePageRender,
+    // endConditions (not the simple `conditions` API), which would auto-reset
+    // while the first condition is false and restart the span before readiness
+    // flips — making the reported trade-page render duration falsely faster.
     // The funded/unfunded endData reads account.totalBalance, so gate on account
     // freshness (!isLoadingAccount), not just presence — a present-but-stale
     // account would otherwise misclassify a funded user as unfunded.
-    conditions: [isDataReady, !!currentPrice, !!account, !isLoadingAccount],
+    endConditions: [isDataReady, !!currentPrice, !!account, !isLoadingAccount],
     tags: tradePageCufTags,
     endData: {
       [PERPS_CUF_TAG.VARIANT]:

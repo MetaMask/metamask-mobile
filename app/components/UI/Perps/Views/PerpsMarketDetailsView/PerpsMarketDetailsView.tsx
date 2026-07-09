@@ -595,7 +595,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const marketDetailCufTags = useMemo(() => buildPerpsCufStartTags(), []);
   usePerpsMeasurement({
     traceName: TraceName.PerpsMarketDetailLive,
-    conditions: [
+    // endConditions (not the simple `conditions` API), which would auto-reset
+    // while the first condition is false and restart the span on every render
+    // during hydration — under-reporting open-to-live-detail latency.
+    endConditions: [
       !!market,
       !!marketStats,
       !isLoadingHistory,

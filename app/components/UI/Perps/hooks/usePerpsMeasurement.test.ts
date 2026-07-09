@@ -173,6 +173,46 @@ describe('usePerpsMeasurement', () => {
       );
     });
 
+    it('does not reset or restart across loading re-renders (measures mount -> ready)', () => {
+      jest.clearAllMocks();
+
+      // Simulate a CUF span: start at mount, several re-renders while the first
+      // end-condition is still false (loading), then readiness. The span must
+      // start exactly once and never end as `reset`, so its duration spans the
+      // whole mount -> ready window rather than restarting near readiness.
+      const { rerender } = renderHook(
+        ({ endConditions }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsEntryToLiveMarketList,
+            endConditions,
+            // Fresh endData ref each render (as the real views pass), which
+            // forces the effect to re-run every render.
+            endData: { variant: 'empty' },
+          }),
+        { initialProps: { endConditions: [false, false] } },
+      );
+
+      // Re-render repeatedly while still loading (new array each time).
+      rerender({ endConditions: [false, false] });
+      rerender({ endConditions: [true, false] });
+      rerender({ endConditions: [false, false] });
+
+      // Started once, never reset.
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      // Readiness: ends once as a success.
+      rerender({ endConditions: [true, true] });
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsEntryToLiveMarketList,
+          data: { success: true, variant: 'empty' },
+        }),
+      );
+    });
+
     it('should wait for start conditions before beginning measurement', () => {
       jest.clearAllMocks();
 

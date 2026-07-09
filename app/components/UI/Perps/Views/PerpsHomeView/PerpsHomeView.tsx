@@ -360,11 +360,16 @@ const PerpsHomeView = ({
   const entryCufTags = useMemo(() => buildPerpsCufStartTags(), []);
   usePerpsMeasurement({
     traceName: TraceName.PerpsEntryToLiveMarketList,
+    // endConditions (not the simple `conditions` API): this span must measure
+    // mount -> live data. The simple API auto-resets whenever its first
+    // condition is false, which for a readiness flag means the span restarts on
+    // every render during loading and under-reports the true latency. Using
+    // endConditions starts at mount and never resets.
     // The variant endData reads orders.length, so — unlike the screen-load
     // metric above, which deliberately ignores orders for speed — this span
     // must wait for the orders stream too, or a user with open orders is
     // misrecorded as empty/position.
-    conditions: [!isAnyLoading, !isLoading.orders],
+    endConditions: [!isAnyLoading, !isLoading.orders],
     tags: entryCufTags,
     endData: entryCufEndData,
   });
