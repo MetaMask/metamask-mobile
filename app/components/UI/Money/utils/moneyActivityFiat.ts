@@ -150,6 +150,43 @@ export function getUsdToFiatConversionRate(
 }
 
 /**
+ * User's selected fiat → USD rate. Converts a value already expressed in the
+ * selected currency into dollars. Derived as (USD per ETH) ÷ (currency per ETH);
+ * `undefined` when rates aren't available (caller should then omit the USD
+ * value). Returns `1` implicitly when the selected currency already is USD (the
+ * two ETH rates match). Inverse of {@link getUsdToFiatConversionRate}.
+ */
+export function getFiatToUsdConversionRate(
+  currencyRates: CurrencyRatesMap | undefined,
+): number | undefined {
+  const entry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
+  if (!entry) {
+    return undefined;
+  }
+  return entry.usdConversionRate / entry.conversionRate;
+}
+
+/**
+ * Converts a fiat value already expressed in the user's selected currency
+ * into USD, via {@link getFiatToUsdConversionRate}. Returns `undefined` when
+ * `rawFiat` is missing/NaN or rates aren't available — callers decide how to
+ * render that (e.g. fall back to a formatted zero).
+ */
+export function convertSelectedFiatToUsd(
+  rawFiat: number | undefined,
+  currencyRates: CurrencyRatesMap | undefined,
+): number | undefined {
+  if (rawFiat === undefined || Number.isNaN(rawFiat)) {
+    return undefined;
+  }
+  const fiatToUsd = getFiatToUsdConversionRate(currencyRates);
+  if (!fiatToUsd) {
+    return undefined;
+  }
+  return rawFiat * fiatToUsd;
+}
+
+/**
  * Secondary fiat line for a Money activity row: prefix (+/-) + USD (2 decimals).
  *
  * mUSD is USD-pegged 1:1, so its dollar value is the token amount directly.

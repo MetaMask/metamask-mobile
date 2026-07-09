@@ -329,6 +329,7 @@ export type PredictOutcomeToken = {
   id: string;
   title: string;
   shortTitle?: string;
+  image?: string;
   /**
    * Mid price = implied probability / quoted odds. Use this for "% chance" and
    * odds display so it matches the chart and Polymarket.

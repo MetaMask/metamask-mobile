@@ -1,7 +1,10 @@
 // Third party dependencies.
 import React, { createRef } from 'react';
 import { StyleSheet } from 'react-native';
-import { render, screen, act } from '@testing-library/react-native';
+import { render, screen, act, fireEvent } from '@testing-library/react-native';
+
+// External dependencies.
+import { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import Toast from './Toast';
@@ -184,5 +187,89 @@ describe('Toast', () => {
     const flat = StyleSheet.flatten(labelsContainer.props.style);
 
     expect(flat.justifyContent).toBe('flex-start');
+  });
+
+  it('wraps toast content in a pressable when onPress is provided', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress: jest.fn(),
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    expect(screen.getByTestId(ToastSelectorsIDs.PRESSABLE)).toBeOnTheScreen();
+  });
+
+  it('calls onPress when the toast content is pressed', async () => {
+    const onPress = jest.fn();
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    fireEvent.press(screen.getByTestId(ToastSelectorsIDs.PRESSABLE));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render a pressable wrapper when onPress is absent', async () => {
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Plain Label' }],
+      hasNoTimeout: true,
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    expect(screen.queryByTestId(ToastSelectorsIDs.PRESSABLE)).toBeNull();
+  });
+
+  it('calls the close button onPress without triggering the toast onPress', async () => {
+    const onPress = jest.fn();
+    const onCloseButtonPress = jest.fn();
+    const toastOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Pressable Label' }],
+      hasNoTimeout: true,
+      onPress,
+      closeButtonOptions: {
+        variant: ButtonVariants.Primary,
+        label: 'Close',
+        onPress: onCloseButtonPress,
+      },
+    };
+
+    render(<Toast ref={toastRef} />);
+
+    await act(async () => {
+      toastRef.current?.showToast(toastOptions);
+      jest.runAllTimers();
+    });
+
+    fireEvent.press(screen.getByText('Close'));
+
+    expect(onCloseButtonPress).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
   });
 });

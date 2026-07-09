@@ -481,6 +481,35 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a contract deployment transaction to a contractDeployment activity', () => {
+    const transaction = {
+      chainId: base,
+      id: 'deploy-id',
+      hash: '0xdeploy',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.deployContract,
+      txParams: {
+        from,
+        data: '0x60806040',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'contractDeployment',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xdeploy',
+      data: {
+        from,
+        to: '',
+      },
+    });
+  });
+
   it('adds receipt-derived network fees to local approval activities', () => {
     const transaction = {
       chainId: base,
@@ -1002,7 +1031,7 @@ describe('mapLocalTransaction', () => {
     );
   });
 
-  it('maps a staking deposit to a deposit activity with the network fee', () => {
+  it('maps a staking deposit to a stake activity with the network fee', () => {
     const transaction = {
       chainId: mainnet,
       hash: '0xstakedeposit',
@@ -1015,7 +1044,7 @@ describe('mapLocalTransaction', () => {
 
     expect(mapLocalTransaction(makeGroup(transaction))).toEqual(
       expect.objectContaining({
-        type: 'deposit',
+        type: 'stake',
         data: expect.objectContaining({ fees: expect.any(Array) }),
       }),
     );
@@ -1145,7 +1174,7 @@ describe('mapLocalTransaction', () => {
     const result = mapLocalTransaction(
       makeGroup(transaction, { nativeAssetSymbol: undefined }),
     );
-    expect(result.type).toBe('deposit');
+    expect(result.type).toBe('stake');
     const { token } = result.data as { token?: unknown };
     expect(token).toBeUndefined();
   });
