@@ -360,7 +360,11 @@ const PerpsHomeView = ({
   const entryCufTags = useMemo(() => buildPerpsCufStartTags(), []);
   usePerpsMeasurement({
     traceName: TraceName.PerpsEntryToLiveMarketList,
-    conditions: [!isAnyLoading],
+    // The variant endData reads orders.length, so — unlike the screen-load
+    // metric above, which deliberately ignores orders for speed — this span
+    // must wait for the orders stream too, or a user with open orders is
+    // misrecorded as empty/position.
+    conditions: [!isAnyLoading, !isLoading.orders],
     tags: entryCufTags,
     endData: entryCufEndData,
   });

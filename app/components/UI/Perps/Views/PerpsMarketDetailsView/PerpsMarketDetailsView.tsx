@@ -601,6 +601,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !isLoadingHistory,
       !isLoadingPosition,
       !!currentPrice,
+      // The funded/unfunded endData tag reads account.totalBalance, so the span
+      // must not end until the account stream has loaded — otherwise a funded
+      // user is misrecorded as unfunded while account is still loading.
+      !isLoadingAccount,
     ],
     tags: marketDetailCufTags,
     endData: {
