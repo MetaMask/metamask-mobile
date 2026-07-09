@@ -278,6 +278,25 @@ describe('AgenticCliMwpConnectionService', () => {
     expect(mockHostApp.showConnectionError).toHaveBeenCalled();
   });
 
+  it('cancels the MWP connected waiter when connect fails', async () => {
+    mockConnection.connect.mockRejectedValueOnce(new Error('connect failed'));
+
+    await handleAgenticCliConnectDeeplink(agenticCliDeeplink, {
+      relayURL: RELAY_URL,
+      keymanager: mockKeyManager,
+      hostapp: mockHostApp,
+      getConnection: () => undefined,
+      cleanupConnection: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(mockConnection.client.off).toHaveBeenCalledWith(
+      'connected',
+      expect.any(Function),
+    );
+    expect(mockHostApp.showConnectionError).toHaveBeenCalled();
+    expect(mockHandleAgenticCliQrLogin).not.toHaveBeenCalled();
+  });
+
   it('waits for the MWP connected event before starting QR login', async () => {
     let completeConnect: (() => void) | undefined;
     mockConnection.connect.mockImplementation(

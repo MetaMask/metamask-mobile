@@ -24,9 +24,9 @@ import {
   isAgenticCliLoginOperation,
 } from './agenticCliConnectionRequest';
 import {
+  createMwpClientConnectedWaiter,
   handleAgenticCliQrLogin,
   waitForKeyringUnlock,
-  waitForMwpClientConnected,
 } from './AgenticCliQrLoginService';
 
 export interface AgenticCliMwpConnectionDeps {
@@ -152,12 +152,19 @@ export async function handleAgenticCliConnectDeeplink(
       wireAgenticCliClientEvents(conn);
 
       agenticCliStage = 'mwp-connect';
-      const connectedPromise = waitForMwpClientConnected(conn);
-      await conn.connect({
-        ...connReq.sessionRequest,
-        mode: 'untrusted',
-      });
-      await connectedPromise;
+      const { promise: connectedPromise, cancel: cancelConnectedWait } =
+        createMwpClientConnectedWaiter(conn);
+      try {
+        await conn.connect({
+          ...connReq.sessionRequest,
+          mode: 'untrusted',
+        });
+        await connectedPromise;
+      } catch (error) {
+        cancelConnectedWait();
+        await connectedPromise.catch(() => undefined);
+        throw error;
+      }
     }
 
     if (!isAgenticCliLoginOperation(connReq.connectionType.operationType)) {

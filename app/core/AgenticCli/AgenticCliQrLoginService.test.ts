@@ -58,15 +58,21 @@ const mockSubscribe = jest.fn();
 const mockUnsubscribe = jest.fn();
 
 const applyEngineTestMocks = (): void => {
-  Engine.context.AuthenticationController = {
+  (
+    Engine.context as unknown as {
+      AuthenticationController: { getBearerToken: jest.Mock };
+    }
+  ).AuthenticationController = {
     getBearerToken: mockGetBearerToken,
   };
   Engine.context.KeyringController.isUnlocked = mockIsUnlocked;
   Engine.context.KeyringController.state = {
+    ...Engine.context.KeyringController.state,
     keyrings: [
       {
         type: 'HD Key Tree',
-        metadata: { id: 'entropy-source-id' },
+        accounts: [],
+        metadata: { id: 'entropy-source-id', name: 'HD Key Tree' },
       },
     ],
   };
@@ -322,7 +328,8 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('waits for the MWP connected event', async () => {
-    const { waitForMwpClientConnected } = loadAgenticCliQrLogin('main_prod');
+    const { createMwpClientConnectedWaiter } =
+      loadAgenticCliQrLogin('main_prod');
     const handlers: Record<string, () => void> = {};
     const conn = {
       client: {
@@ -333,7 +340,8 @@ describe('AgenticCliQrLoginService', () => {
       },
     } as unknown as import('../SDKConnectV2/services/connection').Connection;
 
-    const waitPromise = waitForMwpClientConnected(conn, 1_000);
+    const { promise } = createMwpClientConnectedWaiter(conn, 1_000);
+    const waitPromise = promise;
     handlers.connected?.();
     await expect(waitPromise).resolves.toBeUndefined();
   });

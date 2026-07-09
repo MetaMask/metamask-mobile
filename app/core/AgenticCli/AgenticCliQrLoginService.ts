@@ -54,11 +54,18 @@ const fetchCliDashboardAccessToken = async (
   return data.access_token;
 };
 
-export async function waitForMwpClientConnected(
+export interface MwpClientConnectedWaiter {
+  promise: Promise<void>;
+  cancel: () => void;
+}
+
+export function createMwpClientConnectedWaiter(
   conn: Connection,
   timeoutMs = AGENTIC_CLI_MWP_CONNECTION_WAIT_MS,
-): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
+): MwpClientConnectedWaiter {
+  let cancelWait: () => void = () => undefined;
+
+  const promise = new Promise<void>((resolve, reject) => {
     let settled = false;
 
     const timeoutId = setTimeout(() => {
@@ -81,8 +88,27 @@ export async function waitForMwpClientConnected(
       finish(resolve);
     }
 
+    cancelWait = () => {
+      finish(() => {
+        reject(new Error('Cancelled waiting for Agentic CLI MWP connection'));
+      });
+    };
+
     conn.client.on('connected', onConnected);
   });
+
+  return {
+    promise,
+    cancel: () => cancelWait(),
+  };
+}
+
+export async function waitForMwpClientConnected(
+  conn: Connection,
+  timeoutMs = AGENTIC_CLI_MWP_CONNECTION_WAIT_MS,
+): Promise<void> {
+  const { promise } = createMwpClientConnectedWaiter(conn, timeoutMs);
+  await promise;
 }
 
 export async function waitForKeyringUnlock(): Promise<void> {
