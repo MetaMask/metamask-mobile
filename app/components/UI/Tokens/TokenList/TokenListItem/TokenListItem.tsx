@@ -565,12 +565,7 @@ export const TokenListItem = React.memo(
         {'-'}
       </Text>
     );
-    if (
-      !hideFiatForScamWarning &&
-      ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-      !isAssetInactive
-      ///: END:ONLY_INCLUDE_IF
-    ) {
+    if (!hideFiatForScamWarning) {
       secondaryBalanceElement = secondaryBalanceDisplay.onPress ? (
         <TouchableOpacity
           accessible={false}
@@ -713,9 +708,7 @@ export const TokenListItem = React.memo(
                   )}
                 {
                   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-                  isAssetInactive ? (
-                    <AssetInactiveBadge />
-                  ) : null
+                  isAssetInactive ? <AssetInactiveBadge /> : null
                   ///: END:ONLY_INCLUDE_IF
                 }
               </View>
@@ -737,33 +730,27 @@ export const TokenListItem = React.memo(
                 setShowScamWarningModal={setShowScamWarningModal}
               />
             ) : (
-              ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-              !isAssetInactive && (
-                ///: END:ONLY_INCLUDE_IF
-                <SensitiveText
-                  variant={
-                    asset?.hasBalanceError ||
-                    asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
-                    hideFiatForTestnet
-                      ? TextVariant.BodySm
-                      : TextVariant.BodyMd
-                  }
-                  fontWeight={
-                    asset?.hasBalanceError ||
-                    asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
-                    hideFiatForTestnet
-                      ? undefined
-                      : FontWeight.Medium
-                  }
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Medium}
-                  testID={BALANCE_TEST_ID}
-                >
-                  {fiatBalanceDisplay}
-                </SensitiveText>
-                ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-              )
-              ///: END:ONLY_INCLUDE_IF
+              <SensitiveText
+                variant={
+                  asset?.hasBalanceError ||
+                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                  hideFiatForTestnet
+                    ? TextVariant.BodySm
+                    : TextVariant.BodyMd
+                }
+                fontWeight={
+                  asset?.hasBalanceError ||
+                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                  hideFiatForTestnet
+                    ? undefined
+                    : FontWeight.Medium
+                }
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Medium}
+                testID={BALANCE_TEST_ID}
+              >
+                {fiatBalanceDisplay}
+              </SensitiveText>
             )}
           </Box>
 
@@ -775,65 +762,38 @@ export const TokenListItem = React.memo(
           >
             {/* Token price and percentage change */}
             <View style={styles.percentageChange}>
-              {
-                ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-                isAssetInactive ? (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                    twClassName="uppercase"
-                  >
-                    {strings('asset_activation.inactive')}
-                  </Text>
-                ) : (
-                  ///: END:ONLY_INCLUDE_IF
-                  <>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="uppercase"
-                    >
-                      {tokenPriceInFiat && !hideFiatForScamWarning
-                        ? formatPriceWithSubscriptNotation(
-                            tokenPriceInFiat,
-                            currentCurrency,
-                          )
-                        : '-'}
-                      {' \u2022 '}
-                    </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="uppercase"
+              >
+                {tokenPriceInFiat && !hideFiatForScamWarning
+                  ? formatPriceWithSubscriptNotation(
+                      tokenPriceInFiat,
+                      currentCurrency,
+                    )
+                  : '-'}
+                {' \u2022 '}
+              </Text>
 
-                    {secondaryBalanceElement}
-                  </>
-                  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-                )
-                ///: END:ONLY_INCLUDE_IF
-              }
+              {secondaryBalanceElement}
             </View>
 
             {/* Token balance */}
-            {
-              ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-              !isAssetInactive && (
-                ///: END:ONLY_INCLUDE_IF
-                <Box twClassName="shrink">
-                  <SensitiveText
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    style={styles.secondaryBalance}
-                    length={SensitiveTextLength.Short}
-                    isHidden={privacyMode}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {tokenBalance}
-                  </SensitiveText>
-                </Box>
-                ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-              )
-              ///: END:ONLY_INCLUDE_IF
-            }
+            <Box twClassName="shrink">
+              <SensitiveText
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                style={styles.secondaryBalance}
+                length={SensitiveTextLength.Short}
+                isHidden={privacyMode}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {tokenBalance}
+              </SensitiveText>
+            </Box>
           </Box>
         </Box>
       </TouchableOpacity>

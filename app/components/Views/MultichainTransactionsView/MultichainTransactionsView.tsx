@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { FlashList, type FlashListRef } from '@shopify/flash-list';
+import { FlashList } from '@shopify/flash-list';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
 import { useTheme } from '../../../util/theme';
@@ -84,10 +84,6 @@ interface MultichainTransactionsViewProps {
    * Location context for analytics tracking (home or asset_details)
    */
   location?: TransactionDetailLocation;
-  /**
-   * Optional ref to the underlying FlashList (e.g. for scrolling to activity).
-   */
-  listRef?: React.RefObject<FlashListRef<Transaction> | null>;
 }
 
 const MultichainTransactionsView = ({
@@ -101,7 +97,6 @@ const MultichainTransactionsView = ({
   showDisclaimer = false,
   onScroll,
   location,
-  listRef,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
@@ -143,6 +138,7 @@ const MultichainTransactionsView = ({
   const shouldUseActivityRedesign =
     isActivityRedesignEnabled &&
     location === TransactionDetailLocation.AssetDetails;
+
   const activityListData = useMemo(
     () =>
       shouldUseActivityRedesign
@@ -175,6 +171,7 @@ const MultichainTransactionsView = ({
   );
 
   const url = getAddressUrl(address ?? '', chainId as CaipChainId);
+
   const footer = (
     <MultichainTransactionsFooter
       url={url}
@@ -312,7 +309,6 @@ const MultichainTransactionsView = ({
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlashList
-              ref={listRef}
               data={activityListData}
               renderItem={renderListItem}
               keyExtractor={keyExtractor}

@@ -682,11 +682,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ///: BEGIN:ONLY_INCLUDE_IF(stellar)
             baseReserve !== undefined ? (
               <SpendableBalanceSection
-                totalBalance={String(mainBalance)}
+                totalBalance={String(secondaryBalance)}
                 symbol={token.symbol}
                 baseReserve={baseReserve}
-                fiatValue={secondaryBalance}
-                showFiat={Boolean(secondaryBalance)}
+                fiatValue={mainBalance}
               />
             ) : null
             ///: END:ONLY_INCLUDE_IF

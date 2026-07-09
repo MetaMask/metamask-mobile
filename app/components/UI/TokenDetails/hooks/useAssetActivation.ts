@@ -9,6 +9,8 @@ import {
   isCaipAssetType,
 } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
+import { RootState } from '../../../../reducers';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import type { TokenI } from '../../Tokens/types';
 import {
@@ -42,7 +44,16 @@ export function useAssetActivation({ asset }: { asset: TokenI | undefined }) {
 
   const account = chainId ? selectAccountByScope(chainId) : undefined;
 
-  const assetMetadata = asset?.accountAssetInfo;
+  const assetMetadata = useSelector((state: RootState) => {
+    if (!asset?.address || !asset?.chainId) {
+      return undefined;
+    }
+
+    return selectAsset(state, {
+      address: asset.address,
+      chainId: asset.chainId,
+    })?.accountAssetInfo;
+  });
 
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [isActivating, setIsActivating] = useState(false);

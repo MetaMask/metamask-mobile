@@ -89,14 +89,6 @@ const MoreTokenActionsMenu = () => {
   const { handleHideToken } = useAssetVisibility(asset);
 
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  const liveAsset =
-    useSelector((state: RootState) =>
-      selectAsset(state, {
-        address: asset.address,
-        chainId: asset.chainId as string,
-        isStaked: asset.isStaked || false,
-      }),
-    ) ?? asset;
   const {
     deactivateAsset,
     canDeactivate,
@@ -104,7 +96,7 @@ const MoreTokenActionsMenu = () => {
     errorMessage,
     dismissErrorMessage,
   } = useAssetActivation({
-    asset: liveAsset,
+    asset,
   });
   ///: END:ONLY_INCLUDE_IF
 
@@ -349,17 +341,6 @@ const MoreTokenActionsMenu = () => {
     ///: END:ONLY_INCLUDE_IF
   ]);
 
-  let trustlineRemoveErrorBanner: React.ReactNode = null;
-  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  trustlineRemoveErrorBanner = (
-    <AssetActivationErrorToast
-      message={errorMessage}
-      onClose={dismissErrorMessage}
-      testID="asset-deactivation-error-toast"
-    />
-  );
-  ///: END:ONLY_INCLUDE_IF
-
   return (
     <BottomSheet ref={sheetRef}>
       <Box twClassName="py-4">
@@ -377,7 +358,15 @@ const MoreTokenActionsMenu = () => {
               />
             ),
         )}
-        {trustlineRemoveErrorBanner}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+          <AssetActivationErrorToast
+            message={errorMessage}
+            onClose={dismissErrorMessage}
+            testID="asset-deactivation-error-toast"
+          />
+          ///: END:ONLY_INCLUDE_IF
+        }
       </Box>
     </BottomSheet>
   );

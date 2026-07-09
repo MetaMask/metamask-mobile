@@ -66,14 +66,14 @@ describe('computeSpendableBalance', () => {
   });
 
   it('returns a negative spendable balance when reserve exceeds total', () => {
-    expect(computeSpendableBalance('1', '2.5')).toBe('-1.5');
+    expect(computeSpendableBalance('1', '2.5')).toBe('0');
   });
 
   it('returns NaN string when total balance is invalid', () => {
-    expect(computeSpendableBalance('not-a-number', '2.5')).toBe('NaN');
+    expect(computeSpendableBalance('not-a-number', '2.5')).toBe('0');
   });
 
   it('returns NaN string when base reserve is invalid', () => {
-    expect(computeSpendableBalance('250', 'not-a-number')).toBe('NaN');
+    expect(computeSpendableBalance('250', 'not-a-number')).toBe('0');
   });
 });

@@ -36,7 +36,6 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
-import { isTrustlineTransaction } from '../../../../util/activity-adapters/trustline';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain';
 import {
@@ -80,85 +79,11 @@ export interface UseTokenTransactionsResult {
   onRefresh: () => Promise<void>;
 }
 
-// Cache for non-EVM transactions — cleared when asset context changes.
+// Cache for non-EVM transactions
 // eslint-disable-next-line import-x/no-mutable-exports
 let cachedFilteredTransactions: Transaction[] | null = null;
 // eslint-disable-next-line import-x/no-mutable-exports
 let cacheKey: string | null = null;
-
-function buildNonEvmTransactionCacheKey(
-  txs: Transaction[],
-  assetAddress: string | undefined,
-  assetSymbol: string | undefined,
-  isNativeAsset: boolean,
-): string {
-  const statusFingerprint = txs
-    .map((tx: Transaction) => `${tx.id}:${tx.status ?? ''}`)
-    .join('|');
-
-  return JSON.stringify({
-    txCount: txs.length,
-    assetAddress,
-    assetSymbol,
-    isNativeAsset,
-    lastTxId: txs[0]?.id,
-    statusFingerprint,
-  });
-}
-
-function clearNonEvmTransactionCache(): void {
-  cachedFilteredTransactions = null;
-  cacheKey = null;
-}
-
-function transactionMatchesAsset(
-  tx: Transaction,
-  assetAddress: string | undefined,
-  assetSymbol: string | undefined,
-): boolean {
-  const txData = (tx.from || []).concat(tx.to || []);
-
-  const matchesParticipantAsset = txData.some(
-    (participant: { asset?: { type?: string; unit?: string } }) => {
-      if (!participant.asset || typeof participant.asset !== 'object') {
-        return false;
-      }
-
-      const assetType = participant.asset.type || '';
-      const assetUnit = participant.asset.unit || '';
-
-      if (assetAddress && assetType.toLowerCase().includes(assetAddress)) {
-        return true;
-      }
-
-      return Boolean(assetSymbol && assetUnit.toLowerCase() === assetSymbol);
-    },
-  );
-
-  if (matchesParticipantAsset) {
-    return true;
-  }
-
-  if (isTrustlineTransaction(tx)) {
-    return txData.some(
-      (participant: { asset?: { type?: string; unit?: string } }) => {
-        if (!participant.asset || typeof participant.asset !== 'object') {
-          return false;
-        }
-
-        const assetType = participant.asset.type || '';
-        const assetUnit = participant.asset.unit || '';
-
-        return (
-          (assetAddress && assetType.toLowerCase() === assetAddress) ||
-          (assetSymbol && assetUnit.toLowerCase() === assetSymbol)
-        );
-      },
-    );
-  }
-
-  return false;
-}
 
 /**
  * Hook that handles transaction fetching, filtering, and normalization for a token.
@@ -242,23 +167,17 @@ export const useTokenTransactions = (
       const assetSymbol = asset.symbol?.toLowerCase();
       const isNativeAsset = asset.isNative || asset.isETH;
 
-      const newCacheKey = buildNonEvmTransactionCacheKey(
-        txs,
+      const newCacheKey = JSON.stringify({
+        txCount: txs.length,
         assetAddress,
         assetSymbol,
         isNativeAsset,
-      );
+        lastTxId: txs[0]?.id,
+      });
 
       let filteredTransactions: Transaction[];
       if (cacheKey === newCacheKey && cachedFilteredTransactions) {
-        filteredTransactions = cachedFilteredTransactions.map(
-          (cachedTx: Transaction) => {
-            const latestTx = txs.find(
-              (tx: Transaction) => tx.id === cachedTx.id,
-            );
-            return latestTx ? { ...cachedTx, ...latestTx } : cachedTx;
-          },
-        );
+        filteredTransactions = cachedFilteredTransactions;
       } else {
         filteredTransactions = txs;
 
@@ -293,9 +212,35 @@ export const useTokenTransactions = (
             return allParticipantsAreNative;
           });
         } else if (assetAddress || assetSymbol) {
-          filteredTransactions = txs.filter((tx: Transaction) =>
-            transactionMatchesAsset(tx, assetAddress, assetSymbol),
-          );
+          filteredTransactions = txs.filter((tx: Transaction) => {
+            const txData = (tx.from || []).concat(tx.to || []);
+
+            const involvesToken = txData.some(
+              (participant: { asset?: { type?: string; unit?: string } }) => {
+                if (
+                  participant.asset &&
+                  typeof participant.asset === 'object'
+                ) {
+                  const assetType = participant.asset.type || '';
+                  const assetUnit = participant.asset.unit || '';
+
+                  if (
+                    assetAddress &&
+                    assetType.toLowerCase().includes(assetAddress)
+                  ) {
+                    return true;
+                  }
+
+                  if (assetSymbol && assetUnit.toLowerCase() === assetSymbol) {
+                    return true;
+                  }
+                }
+                return false;
+              },
+            );
+
+            return involvesToken;
+          });
         }
 
         // eslint-disable-next-line react-compiler/react-compiler
@@ -443,17 +388,6 @@ export const useTokenTransactions = (
     [],
   );
 
-  const didNonEvmTransactionsChange = useCallback(
-    (nextTransactions: Transaction[]) =>
-      txsRef.current.length !== nextTransactions.length ||
-      nextTransactions.some(
-        (tx, index) =>
-          tx.id !== txsRef.current[index]?.id ||
-          tx.status !== txsRef.current[index]?.status,
-      ),
-    [],
-  );
-
   // Normalize transactions
   const normalizeTransactions = useCallback(() => {
     if (isNormalizingRef.current) return;
@@ -486,7 +420,7 @@ export const useTokenTransactions = (
 
         if (
           (txsRef.current.length === 0 && !txState.transactionsUpdated) ||
-          didNonEvmTransactionsChange(filteredTransactions) ||
+          txsRef.current.length !== filteredTransactions.length ||
           chainIdRef.current !== chainId ||
           txState.loading
         ) {
@@ -608,7 +542,6 @@ export const useTokenTransactions = (
     txState.loading,
     txState.transactionsUpdated,
     didTxStatusesChange,
-    didNonEvmTransactionsChange,
   ]);
 
   // Refresh handler
@@ -630,18 +563,10 @@ export const useTokenTransactions = (
   // Update when chain or address changes
   useEffect(() => {
     if (chainIdRef.current !== chainId) {
-      clearNonEvmTransactionCache();
       setTxState((prev) => ({ ...prev, loading: true }));
     }
     normalizeTransactions();
   }, [chainId, selectedAddressForAsset, normalizeTransactions]);
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  useEffect(() => {
-    clearNonEvmTransactionCache();
-    normalizeTransactions();
-  }, [nonEvmTransactionsData, normalizeTransactions]);
-  ///: END:ONLY_INCLUDE_IF
 
   return {
     transactions: txState.transactions,

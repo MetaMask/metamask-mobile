@@ -286,8 +286,6 @@ describe('Engine', () => {
     const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
     const invalidAddress = '0xInvalidAddress';
 
-    // Deprecated API: allowed in tests for backward-compatibility
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
     );
@@ -304,8 +302,6 @@ describe('Engine', () => {
       .spyOn(engine.context.AccountsController, 'setSelectedAccount')
       .mockImplementation();
 
-    // Deprecated API: allowed in tests for backward-compatibility
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     engine.setSelectedAccount(validAddress);
 
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
