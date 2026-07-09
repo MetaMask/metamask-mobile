@@ -73,7 +73,7 @@ const styleSheet = (params: {
     },
     footerButtonSkeleton: {
       flex: 1,
-      borderRadius: 99,
+      borderRadius: 12,
     },
   });
 };
