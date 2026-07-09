@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
  * @property currentStep - The current step number in the multi-step signing flow (1-based).
  * @property totalSteps - The total number of steps in the signing flow.
  */
-interface HwQrScannerRouteParams {
+export interface HwQrScannerRouteParams {
   currentStep: number;
   totalSteps: number;
 }

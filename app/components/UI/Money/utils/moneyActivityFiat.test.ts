@@ -7,6 +7,8 @@ import type { Hex } from '@metamask/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   buildMoneyActivityFiatLine,
+  convertSelectedFiatToUsd,
+  getFiatToUsdConversionRate,
   getUsdToFiatConversionRate,
 } from './moneyActivityFiat';
 import { getMusdDisplayAmountFromTransactionMeta } from '../constants/activityStyles';
@@ -219,6 +221,67 @@ describe('moneyActivityFiat', () => {
 
     it('returns undefined when currencyRates are missing', () => {
       expect(getUsdToFiatConversionRate(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('getFiatToUsdConversionRate', () => {
+    it('returns 1 when the selected currency is USD (matching ETH rates)', () => {
+      expect(getFiatToUsdConversionRate(mockRates)).toBe(1);
+    });
+
+    it('returns the preferred→USD rate as (USD per ETH) ÷ (currency per ETH)', () => {
+      // 2500 / 2300 ≈ 1.0870
+      expect(getFiatToUsdConversionRate(mockRatesEur)).toBeCloseTo(1.087);
+    });
+
+    it('returns undefined when currencyRates are missing', () => {
+      expect(getFiatToUsdConversionRate(undefined)).toBeUndefined();
+    });
+
+    it('is the mathematical inverse of getUsdToFiatConversionRate', () => {
+      const usdToFiat = getUsdToFiatConversionRate(mockRatesEur) as number;
+      const fiatToUsd = getFiatToUsdConversionRate(mockRatesEur) as number;
+
+      expect(fiatToUsd).toBeCloseTo(1 / usdToFiat, 10);
+    });
+  });
+
+  describe('convertSelectedFiatToUsd', () => {
+    it('returns the same amount when the selected currency is USD', () => {
+      const usd = convertSelectedFiatToUsd(100, mockRates);
+
+      expect(usd).toBe(100);
+    });
+
+    it('converts a EUR-denominated amount to USD using the fiat→USD rate', () => {
+      // 100 * (2500 / 2300) ≈ 108.6957
+      const usd = convertSelectedFiatToUsd(100, mockRatesEur);
+
+      expect(usd).toBeCloseTo(108.6957, 4);
+    });
+
+    it('returns undefined when rawFiat is undefined', () => {
+      const usd = convertSelectedFiatToUsd(undefined, mockRates);
+
+      expect(usd).toBeUndefined();
+    });
+
+    it('returns undefined when rawFiat is NaN', () => {
+      const usd = convertSelectedFiatToUsd(NaN, mockRates);
+
+      expect(usd).toBeUndefined();
+    });
+
+    it('returns undefined when currencyRates are missing', () => {
+      const usd = convertSelectedFiatToUsd(100, undefined);
+
+      expect(usd).toBeUndefined();
+    });
+
+    it('returns 0 when rawFiat is 0 and rates are available', () => {
+      const usd = convertSelectedFiatToUsd(0, mockRates);
+
+      expect(usd).toBe(0);
     });
   });
 
