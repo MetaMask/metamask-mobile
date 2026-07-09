@@ -1,12 +1,12 @@
 /**
- * Core Detox test infrastructure whose changes affect virtually all E2E specs.
+ * Core E2E test infrastructure whose changes affect virtually all smoke specs.
  *
  * Files are split into two categories:
  * - Exact files: specific high-impact files imported by nearly every spec
  * - Directory prefixes: subdirectories whose entire contents are high-impact
  *
  * Excluded from the hard rule:
- * - Playwright*.ts — separate framework (system/visual tests, not Detox)
+ * - Playwright*.ts — system/visual tests, not smoke specs
  * - logger.ts, types.ts, TimerHelper.ts, TimerStore.ts — low/no runtime impact on test outcomes
  * - DappServer.ts, DeepLink.ts, PortManager.ts — targeted impact on specific test subsets
  * - *.test.ts files — test files themselves, handled by the spec-tag-extraction rule
@@ -29,7 +29,7 @@ const FRAMEWORK_INFRA_EXACT_FILES = new Set([
 /**
  * Subdirectories where all non-test files are high-impact.
  * fixtures/ is used by nearly every spec via FixtureBuilder/FixtureHelper.
- * config/ contains global Detox setup that runs before all tests.
+ * config/ contains global E2E setup that runs before all tests.
  */
 const FRAMEWORK_INFRA_DIR_PREFIXES = [
   'tests/framework/fixtures/',
@@ -53,7 +53,7 @@ function isFrameworkInfraFile(file: string): boolean {
 }
 
 /**
- * Returns changed files that are core Detox infrastructure, or an empty array if none match.
+ * Returns changed files that are core E2E framework infrastructure, or an empty array if none match.
  */
 export function getFrameworkInfraChanges(changedFiles: string[]): string[] {
   return changedFiles
@@ -62,9 +62,8 @@ export function getFrameworkInfraChanges(changedFiles: string[]): string[] {
 }
 
 /**
- * Spec file path prefixes for E2E smoke tests (Detox and Appium).
+ * Spec file path prefixes for E2E smoke tests.
  * Smart E2E selection covers smoke tags only — not regression (separate CI).
- * Both smoke frameworks share tests/tags.js — changes here map to the same CI tags.
  */
 export const SPEC_PATH_PREFIXES = [
   'tests/smoke/',
@@ -74,7 +73,7 @@ export const SPEC_PATH_PREFIXES = [
 const SPEC_FILE_PATTERN = /\.spec\./;
 
 /**
- * Returns changed files that are E2E smoke spec files (Detox or Appium).
+ * Returns changed files that are E2E smoke spec files.
  */
 export function getChangedSpecFiles(changedFiles: string[]): string[] {
   return changedFiles
@@ -115,7 +114,7 @@ export function getChangedSharedInfraFiles(changedFiles: string[]): string[] {
 }
 
 /**
- * Returns true if the file is an E2E smoke spec file (Detox or Appium).
+ * Returns true if the file is an E2E smoke spec file.
  */
 export function isSpecFile(file: string): boolean {
   return (

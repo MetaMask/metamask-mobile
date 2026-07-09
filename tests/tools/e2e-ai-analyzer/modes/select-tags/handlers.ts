@@ -208,7 +208,7 @@ const INTERMEDIATE_TEST_DIRS = [
 ] as const;
 
 /**
- * Finds E2E smoke spec files (Detox or Appium) that import a given file,
+ * Finds E2E smoke spec files that import a given file,
  * resolving up to one level of indirection through intermediate files.
  *
  * Example: wallet.flow.ts → imported by 30 spec files (direct)
@@ -285,7 +285,7 @@ function findSpecFilesImporting(
 }
 
 /**
- * Extracts E2E smoke tag names imported in a spec file (Detox or Appium).
+ * Extracts E2E smoke tag names imported in a spec file.
  * Tags are imported as named exports from the tags module.
  */
 function extractTagsFromSpecFile(

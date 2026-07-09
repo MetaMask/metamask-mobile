@@ -5,7 +5,7 @@ const BASE_DIR = process.cwd();
 
 describe('test-infrastructure-paths', () => {
   describe('getChangedSpecFiles', () => {
-    it('includes Appium smoke spec files under tests/smoke-appium/', () => {
+    it('includes smoke spec files under tests/smoke-appium/', () => {
       const changedFiles = [
         'tests/smoke-appium/accounts/create-wallet-account.spec.ts',
       ];
@@ -17,7 +17,7 @@ describe('test-infrastructure-paths', () => {
       ]);
     });
 
-    it('includes Detox smoke spec files', () => {
+    it('includes smoke spec files under tests/smoke/', () => {
       const changedFiles = ['tests/smoke/swap/swap-action-smoke.spec.ts'];
 
       const result = getChangedSpecFiles(changedFiles);
@@ -37,7 +37,7 @@ describe('test-infrastructure-paths', () => {
   });
 
   describe('isSpecFile', () => {
-    it('returns true for Appium smoke spec paths', () => {
+    it('returns true for smoke spec paths under tests/smoke-appium/', () => {
       expect(
         isSpecFile('tests/smoke-appium/accounts/create-wallet-account.spec.ts'),
       ).toBe(true);
@@ -57,7 +57,7 @@ describe('checkHardRules', () => {
     baseBranch: 'origin/main',
   };
 
-  it('selects SmokeAccounts when only an Appium accounts spec changes', () => {
+  it('selects SmokeAccounts when only an accounts smoke spec changes', () => {
     const changedFiles = [
       'tests/smoke-appium/accounts/create-wallet-account.spec.ts',
     ];
@@ -69,7 +69,7 @@ describe('checkHardRules', () => {
     expect(result?.confidence).toBeGreaterThanOrEqual(90);
   });
 
-  it('selects SmokeAccounts when shared page object and Appium accounts spec change together', () => {
+  it('selects SmokeAccounts when shared page object and accounts smoke spec change together', () => {
     const changedFiles = [
       'tests/page-objects/wallet/AccountListBottomSheet.ts',
       'tests/smoke-appium/accounts/create-wallet-account.spec.ts',
@@ -81,7 +81,7 @@ describe('checkHardRules', () => {
     expect(result?.selectedTags).toContain('SmokeAccounts');
   });
 
-  it('includes Appium spec tags when a shared page object affects Appium importers', () => {
+  it('includes smoke spec tags when a shared page object affects smoke importers', () => {
     const changedFiles = [
       'tests/page-objects/wallet/AccountListBottomSheet.ts',
     ];
