@@ -64,10 +64,7 @@ export const MissingPriceModal = () => {
   }, [confirmBridge]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{
