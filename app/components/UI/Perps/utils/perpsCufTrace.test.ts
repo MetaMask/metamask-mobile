@@ -9,6 +9,7 @@ import {
   startPerpsCufTrace,
   endPerpsCufTrace,
   endPerpsCufTraceAfter,
+  endPerpsCufRequestAfter,
   armPerpsPlaceOrderCuf,
   isPerpsPlaceOrderCufCurrent,
   waitForPerpsPlaceOrderPositionRendered,
@@ -202,6 +203,52 @@ describe('perpsCufTrace', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  describe('endPerpsCufRequestAfter (request-flow fallback reason)', () => {
+    it('records controller_timeout when the request never settled', () => {
+      jest.useFakeTimers();
+      try {
+        const opId = startPerpsCufTrace({
+          name: TraceName.PerpsCancelOrderToConfirmation,
+        });
+        endPerpsCufRequestAfter(opId, () => false, 1000);
+        jest.advanceTimersByTime(1000);
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: opId,
+            data: expect.objectContaining({
+              success: false,
+              reason: 'controller_timeout',
+            }),
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('records stream_timeout when the request settled but no render arrived', () => {
+      jest.useFakeTimers();
+      try {
+        const opId = startPerpsCufTrace({
+          name: TraceName.PerpsCancelOrderToConfirmation,
+        });
+        endPerpsCufRequestAfter(opId, () => true, 1000);
+        jest.advanceTimersByTime(1000);
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: opId,
+            data: expect.objectContaining({
+              success: false,
+              reason: 'stream_timeout',
+            }),
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 
   it('two overlapping cancels each end independently on their own order', () => {
@@ -601,7 +648,7 @@ describe('perpsCufTrace', () => {
     expect(mockEndTrace).not.toHaveBeenCalled();
   });
 
-  it('preserves the reconnect measurement span when clearing on teardown', () => {
+  it('clears stale reconnect measurement spans on session teardown', () => {
     const reconnectOp = startPerpsCufTrace({
       name: TraceName.PerpsWebSocketReconnectToFreshData,
     });
@@ -614,22 +661,21 @@ describe('perpsCufTrace', () => {
 
     clearPendingPerpsCufTraces();
 
-    // The confirmation op is abandoned; the reconnect measurement survives —
-    // clearing must not end the span that is measuring the reconnection itself.
-    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    // Both the confirmation op and any stale reconnect measurement are
+    // abandoned; the next session must start its own reconnect span after the
+    // teardown clear, not reuse this one.
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: closeOp }),
     );
-    expect(mockEndTrace).not.toHaveBeenCalledWith(
-      expect.objectContaining({ id: reconnectOp }),
-    );
-
-    // Fresh positions still close the reconnect span as a success.
-    mockEndTrace.mockClear();
-    handlePerpsCufPositionsDelivered([]);
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: reconnectOp }),
     );
+
+    // A later fresh delivery from the next session cannot resurrect either op.
+    mockEndTrace.mockClear();
+    handlePerpsCufPositionsDelivered([]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
   });
 
   it('cancel span ends only once the order id is absent', () => {

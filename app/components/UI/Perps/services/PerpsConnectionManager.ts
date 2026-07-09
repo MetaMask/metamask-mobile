@@ -195,12 +195,6 @@ class PerpsConnectionManagerClass {
         streamManager.fills.clearCache();
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
-        // Session identity changed (account/network/provider/HIP-3): abandon any
-        // pending confirmation CUF so the NEXT session's first delivery can't
-        // falsely end it against different data. Only here, not on same-account
-        // soft reconnects — there the confirming delivery legitimately arrives
-        // in the resubscribed stream, so clearing would drop a real confirmation.
-        clearPendingPerpsCufTraces();
 
         // Reset throttle so the next data arrival persists immediately
         streamManager.resetDiskCacheThrottles();
@@ -250,6 +244,22 @@ class PerpsConnectionManagerClass {
             );
           });
         }, 50);
+      }
+
+      // Abandon pending CUFs on ANY session-identity change — even while
+      // disconnected, since the tracked identity advances below regardless of
+      // isConnected. Pending close/cancel/TP-SL/place ops and stale reconnect
+      // measurements must not survive into the next session and be falsely
+      // ended by that session's first delivery. Same-account soft reconnects
+      // don't reach here, so their pending confirmations are kept; the new
+      // reconnect measurement starts later inside performReconnection.
+      if (
+        hasAccountChanged ||
+        hasPerpsNetworkChanged ||
+        hasProviderChanged ||
+        hasHip3Changed
+      ) {
+        clearPendingPerpsCufTraces();
       }
 
       // Update tracked values

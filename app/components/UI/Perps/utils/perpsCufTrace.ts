@@ -201,6 +201,31 @@ export function endPerpsCufTraceAfter(
   setTimeout(() => endPerpsCufTrace(options), delayMs);
 }
 
+/**
+ * Fallback end for a request-then-confirm flow (cancel / close / TP-SL): the
+ * single timer must classify the two distinct failure modes. On fire it records
+ * `stream_timeout` when the controller request had settled (its render just
+ * never arrived) or `controller_timeout` when it had not (the request hung).
+ * Idempotent, so a real end (render / failure) no-ops it.
+ */
+export function endPerpsCufRequestAfter(
+  id: string,
+  hasControllerSettled: () => boolean,
+  delayMs: number,
+): void {
+  setTimeout(() => {
+    endPerpsCufTrace({
+      id,
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: hasControllerSettled()
+          ? PERPS_CUF_END_REASON.STREAM_TIMEOUT
+          : PERPS_CUF_END_REASON.CONTROLLER_TIMEOUT,
+      },
+    });
+  }, delayMs);
+}
+
 /** First stream render matching an armed place-order confirmation. */
 export interface PerpsCufPositionRendered {
   position: PerpsCufPositionLike;
@@ -282,20 +307,14 @@ export function isPerpsPlaceOrderCufCurrent(opId: string): boolean {
  * End every pending CUF span as an abandoned failure and clear the single-flight
  * place-order state. Called at teardown boundaries — disconnect, account or
  * network switch — where the confirming streams are reset: without this, a
- * pending confirmation (close/cancel/TP-SL/place) from the previous session
- * could be falsely ended as a stream success by the next session's first
- * delivery, since the matchers key only on symbol/orderId/baseline.
+ * pending confirmation or reconnect measurement from the previous session could
+ * be falsely ended as a stream success by the next session's first delivery,
+ * since the matchers key only on symbol/orderId/baseline.
  */
 export function clearPendingPerpsCufTraces(
   reason: string = PERPS_CUF_END_REASON.DISCONNECTED,
 ): void {
-  for (const [id, meta] of Array.from(pendingCufMeta.entries())) {
-    // Preserve the reconnect-to-fresh-data span: it is armed to MEASURE a
-    // reconnection and is ended by the fresh delivery, so it must survive a
-    // teardown clear rather than be abandoned by it.
-    if (meta[CUF_META.NAME] === TraceName.PerpsWebSocketReconnectToFreshData) {
-      continue;
-    }
+  for (const [id] of Array.from(pendingCufMeta.entries())) {
     endPerpsCufTrace({
       id,
       data: {
