@@ -169,10 +169,13 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     [styles, handleTradePress, iconSize, renderRightContent, trades.length],
   );
 
-  // Render header section
   const renderHeader = () => (
     <View style={styles.header}>
-      {!isLoading && (
+      {isLoading ? (
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+          {strings('perps.market.recent_trades')}
+        </Text>
+      ) : (
         <TouchableOpacity
           testID="see-all-button"
           onPress={handleSeeAll}

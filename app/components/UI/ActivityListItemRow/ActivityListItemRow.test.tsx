@@ -3,6 +3,7 @@
  */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
   TransactionStatus,
   TransactionType,
@@ -730,7 +731,7 @@ describe('ActivityListItemRow — row content', () => {
       },
     }) as unknown as ActivityListItem;
 
-  const flattenColor = (node: { props: { style: unknown } }) => {
+  const flattenColor = (node: ReactTestInstance) => {
     const { StyleSheet } = jest.requireActual('react-native');
     return StyleSheet.flatten(node.props.style).color;
   };
