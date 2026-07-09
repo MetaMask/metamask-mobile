@@ -363,8 +363,6 @@ const PerpsHomeView = ({
     conditions: [!isAnyLoading],
     tags: entryCufTags,
     endData: entryCufEndData,
-    // Entry surface: settle the foreground so later flows read as warm.
-    marksForegroundSettled: true,
   });
 
   // Reset section tracking when screen comes into focus

@@ -21,6 +21,9 @@ jest.mock('../../../../util/trace', () => ({
     PerpsPositionDetailsView: 'Perps Position Details View',
     PerpsOrderView: 'Perps Order View',
     PerpsClosePositionView: 'Perps Close Position View',
+    PerpsEntryToLiveMarketList: 'Perps Entry To Live Market List',
+    PerpsMarketDetailLive: 'Perps Market Detail Live',
+    PerpsTradePageRender: 'Perps Trade Page Render',
   },
   TraceOperation: {
     PerpsOperation: 'perps.operation',
@@ -341,27 +344,29 @@ describe('usePerpsMeasurement', () => {
     });
   });
 
-  describe('marksForegroundSettled', () => {
+  describe('foreground settle on entry render', () => {
     beforeEach(() => {
       resetPerpsLifecycleContextForTests();
     });
 
-    it('settles the foreground when an entry span completes (any entry surface)', () => {
-      expect(getPerpsLifecycleContext()).toBe(
-        PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
-      );
+    it.each([
+      TraceName.PerpsEntryToLiveMarketList,
+      TraceName.PerpsMarketDetailLive,
+      TraceName.PerpsTradePageRender,
+    ])(
+      'settles the foreground when the %s entry span completes',
+      (entryTraceName) => {
+        expect(getPerpsLifecycleContext()).toBe(
+          PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+        );
 
-      // Immediate completion (no conditions) with the entry flag set.
-      renderHook(() =>
-        usePerpsMeasurement({
-          traceName: TraceName.PerpsOrderView,
-          marksForegroundSettled: true,
-        }),
-      );
+        // Immediate completion (no conditions) — any entry surface, no opt-in.
+        renderHook(() => usePerpsMeasurement({ traceName: entryTraceName }));
 
-      // Later in-session flows now read as warm — even though Home never rendered.
-      expect(getPerpsLifecycleContext()).toBe(PERPS_LIFECYCLE_CONTEXT.WARM);
-    });
+        // Later in-session flows now read as warm, regardless of entry path.
+        expect(getPerpsLifecycleContext()).toBe(PERPS_LIFECYCLE_CONTEXT.WARM);
+      },
+    );
 
     it('does not settle the foreground for non-entry spans', () => {
       renderHook(() =>

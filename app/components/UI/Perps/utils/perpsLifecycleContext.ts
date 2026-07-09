@@ -1,4 +1,5 @@
 import { AppState, type AppStateStatus } from 'react-native';
+import { TraceName } from '../../../../util/trace';
 
 /**
  * Launch context for a Perps flow, used to split CUF latency by entry path.
@@ -39,6 +40,27 @@ export function handlePerpsAppStateChange(
 /** Mark the current foreground's first flow done; later flows read as warm. */
 export function markPerpsForegroundSettled(): void {
   currentContext = PERPS_LIFECYCLE_CONTEXT.WARM;
+}
+
+/**
+ * Spans whose completion means the user has seen a live Perps screen, so the
+ * foreground is settled and later flows read as `warm`. This is the SINGLE
+ * source of truth for the cold→warm boundary across every entry path — Home,
+ * Market Details, Order, deeplinks, homepage cards. Add a new Perps entry
+ * surface's render span here and every entry path stays correctly tagged; no
+ * per-view opt-in is needed.
+ */
+const FOREGROUND_SETTLING_SPANS: ReadonlySet<TraceName> = new Set([
+  TraceName.PerpsEntryToLiveMarketList,
+  TraceName.PerpsMarketDetailLive,
+  TraceName.PerpsTradePageRender,
+]);
+
+/** Settle the foreground when an entry-surface render span completes. */
+export function settlePerpsForegroundOnSpan(name: TraceName): void {
+  if (FOREGROUND_SETTLING_SPANS.has(name)) {
+    markPerpsForegroundSettled();
+  }
 }
 
 export function getPerpsLifecycleContext(): PerpsLifecycleContext {

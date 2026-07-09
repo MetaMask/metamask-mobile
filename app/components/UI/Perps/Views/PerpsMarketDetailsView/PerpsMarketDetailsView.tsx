@@ -609,8 +609,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           ? PERPS_CUF_VARIANT.FUNDED
           : PERPS_CUF_VARIANT.UNFUNDED,
     },
-    // Direct entry (deeplink / homepage card) settles the foreground here.
-    marksForegroundSettled: true,
   });
 
   // Track asset screen viewed event - declarative (main's event name)
