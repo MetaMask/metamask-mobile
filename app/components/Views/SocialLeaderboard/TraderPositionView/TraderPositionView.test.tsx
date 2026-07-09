@@ -109,7 +109,7 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 // for design-system `BottomSheet` (see app/util/test/testSetup.js) can mount
 // QuickBuy provider/controller (bridge selectors, NetworkController, …). This
 // file intentionally uses a minimal Redux store, so we stub the sheet here.
-const mockTraderPositionQuickBuy = jest.fn(() => null);
+const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
 jest.mock('./components/QuickBuy', () => ({
   __esModule: true,
   default: (props: unknown) => mockTraderPositionQuickBuy(props),
