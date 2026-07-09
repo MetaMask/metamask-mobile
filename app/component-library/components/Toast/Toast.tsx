@@ -216,7 +216,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const scheduleAutoDismiss = (delayMs: number) => {
-    visibleAtRef.current = Date.now();
     translateYProgress.value = withDelay(
       delayMs,
       withSpring(hiddenTranslateY.value, TOAST_SPRING_CONFIG, (finished) => {
@@ -225,6 +224,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         }
       }),
     );
+  };
+
+  const beginAutoDismiss = () => {
+    visibleAtRef.current = Date.now();
+    scheduleAutoDismiss(visibilityDuration);
   };
 
   const syncDismissTargetAfterRemeasure = () => {
@@ -329,7 +333,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           TOAST_SPRING_CONFIG,
           (finished) => {
             if (finished) {
-              runOnJS(scheduleAutoDismiss)(visibilityDuration);
+              runOnJS(beginAutoDismiss)();
             }
           },
         );
