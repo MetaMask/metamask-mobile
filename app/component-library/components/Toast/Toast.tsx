@@ -11,7 +11,9 @@ import React, {
 import {
   Dimensions,
   LayoutChangeEvent,
+  NativeSyntheticEvent,
   StyleProp,
+  TextLayoutEventData,
   View,
   ViewStyle,
 } from 'react-native';
@@ -21,14 +23,20 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
-  withTiming,
+  withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../Avatars/Avatar';
+import Icon, { IconSize } from '../Icons/Icon';
 import Text, { TextColor, TextVariant } from '../Texts/Text';
-import Button, { ButtonVariants } from '../Buttons/Button';
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  IconName as DsIconName,
+} from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import {
@@ -43,14 +51,91 @@ import {
 } from './Toast.types';
 import styleSheet from './Toast.styles';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
-import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
+import {
+  TOAST_SPRING_CONFIG,
+  TOAST_TOP_PADDING,
+  visibilityDuration,
+} from './Toast.constants';
 import { useStyles } from '../../hooks';
+import { ButtonProps, ButtonVariants } from '../Buttons/Button/Button.types';
 import ButtonIcon from '../Buttons/ButtonIcon';
+import { ButtonIconSizes } from '../Buttons/ButtonIcon/ButtonIcon.types';
 
-const visibilityDuration = 2750;
-const animationDuration = 250;
-const bottomPadding = 36;
 const screenHeight = Dimensions.get('window').height;
+
+const getHiddenTranslateY = (height: number, offset: number) =>
+  -(height + offset);
+
+const hasToastDescription = (options: ToastOptions | undefined): boolean => {
+  if (!options) {
+    return false;
+  }
+
+  if (options.descriptionOptions?.description) {
+    return true;
+  }
+
+  const descriptionSplitIndex = options.labelOptions.findIndex(
+    (option, index) => index > 0 && option.label === '\n',
+  );
+
+  return (
+    descriptionSplitIndex !== -1 &&
+    options.labelOptions.slice(descriptionSplitIndex + 1).length > 0
+  );
+};
+
+const shouldTopAlignToastContent = ({
+  titleLineCount,
+  hasDescription,
+  descriptionLineCount,
+  hasActionButton,
+  hasTrailingTextButton,
+}: {
+  titleLineCount: number | null;
+  hasDescription: boolean;
+  descriptionLineCount: number | null;
+  hasActionButton: boolean;
+  hasTrailingTextButton: boolean;
+}): boolean => {
+  if (hasTrailingTextButton) {
+    return false;
+  }
+
+  if (titleLineCount !== null && titleLineCount > 1 && hasDescription) {
+    return true;
+  }
+
+  if (!hasDescription) {
+    return false;
+  }
+
+  if (descriptionLineCount === null) {
+    return hasActionButton;
+  }
+
+  if (descriptionLineCount > 1) {
+    return true;
+  }
+
+  return descriptionLineCount === 1 && hasActionButton;
+};
+
+const hasTrailingTextButton = (
+  closeButtonOptions: ToastCloseButtonOptions | undefined,
+): boolean =>
+  closeButtonOptions != null &&
+  closeButtonOptions.variant !== ButtonIconVariant.Icon;
+
+const mapLegacyButtonVariant = (variant?: ButtonVariants): ButtonVariant => {
+  if (variant === ButtonVariants.Secondary) {
+    return ButtonVariant.Secondary;
+  }
+  if (variant === ButtonVariants.Link) {
+    return ButtonVariant.Secondary;
+  }
+  return ButtonVariant.Primary;
+};
 
 /**
  * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
@@ -63,21 +148,81 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
     undefined,
   );
-  const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
-  const translateYProgress = useSharedValue(screenHeight);
+  const [descriptionLineCount, setDescriptionLineCount] = useState<
+    number | null
+  >(null);
+  const [titleLineCount, setTitleLineCount] = useState<number | null>(null);
+  const { top: topInset } = useSafeAreaInsets();
+  const toastHeight = useSharedValue(screenHeight);
+  const translateYProgress = useSharedValue(-screenHeight);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const customOffset = toastOptions?.customBottomOffset ?? 0;
+  const topOffset =
+    toastOptions?.customTopOffset ?? toastOptions?.customBottomOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateYProgress.value - TAB_BAR_HEIGHT - customOffset },
-    ],
+    transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
+  const hasCloseIconButton =
+    toastOptions?.closeButtonOptions?.variant === ButtonIconVariant.Icon;
+  const hasDescription = hasToastDescription(toastOptions);
+  const hasActionButton = Boolean(toastOptions?.linkButtonOptions);
+  const hasTrailingTextButtonOption = hasTrailingTextButton(
+    toastOptions?.closeButtonOptions,
+  );
+  const shouldTopAlign = shouldTopAlignToastContent({
+    titleLineCount,
+    hasDescription,
+    descriptionLineCount,
+    hasActionButton,
+    hasTrailingTextButton: hasTrailingTextButtonOption,
+  });
   const baseStyle: StyleProp<ViewStyle> = useMemo(
-    () => [styles.base, animatedStyle],
-    [styles.base, animatedStyle],
+    () => [
+      styles.base,
+      !hasDescription && styles.baseWithoutDescription,
+      shouldTopAlign && styles.baseTopAligned,
+      toastOptions?.linkButtonOptions && styles.baseWithActionButton,
+      hasCloseIconButton && styles.baseWithCloseIconButton,
+      animatedStyle,
+    ],
+    [
+      styles.base,
+      styles.baseWithoutDescription,
+      styles.baseTopAligned,
+      styles.baseWithActionButton,
+      styles.baseWithCloseIconButton,
+      animatedStyle,
+      hasDescription,
+      shouldTopAlign,
+      toastOptions?.linkButtonOptions,
+      hasCloseIconButton,
+    ],
   );
 
-  const resetState = () => setToastOptions(undefined);
+  const resetState = () => {
+    setDescriptionLineCount(null);
+    setTitleLineCount(null);
+    setToastOptions(undefined);
+  };
+
+  const handleTitleTextLayout = (
+    event: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setTitleLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
+
+  const handleDescriptionTextLayout = (
+    event: NativeSyntheticEvent<TextLayoutEventData>,
+  ) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setDescriptionLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
 
   const showToast = (options: ToastOptions) => {
     if (pendingTimeoutRef.current !== null) {
@@ -92,6 +237,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       }
       timeoutDuration = 100;
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
+      setDescriptionLineCount(null);
+      setTitleLineCount(null);
       setToastOptions(undefined);
     }
     pendingTimeoutRef.current = setTimeout(() => {
@@ -101,9 +248,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const closeToast = () => {
-    translateYProgress.value = withTiming(
-      screenHeight,
-      { duration: animationDuration },
+    translateYProgress.value = withSpring(
+      getHiddenTranslateY(toastHeight.value, topOffset),
+      TOAST_SPRING_CONFIG,
       () => {
         runOnJS(resetState)();
       },
@@ -118,24 +265,27 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const onAnimatedViewLayout = (e: LayoutChangeEvent) => {
     if (toastOptions) {
       const { height } = e.nativeEvent.layout;
-      const translateYToValue = -(bottomPadding + bottomNotchSpacing);
+      const hiddenTranslateY = getHiddenTranslateY(height, topOffset);
+      const visibleTranslateY = topInset + TOAST_TOP_PADDING;
 
-      translateYProgress.value = height;
+      toastHeight.value = height;
+      translateYProgress.value = hiddenTranslateY;
 
       if (toastOptions.hasNoTimeout) {
-        translateYProgress.value = withTiming(translateYToValue, {
-          duration: animationDuration,
-        });
+        translateYProgress.value = withSpring(
+          visibleTranslateY,
+          TOAST_SPRING_CONFIG,
+        );
       } else {
-        translateYProgress.value = withTiming(
-          translateYToValue,
-          { duration: animationDuration },
+        translateYProgress.value = withSpring(
+          visibleTranslateY,
+          TOAST_SPRING_CONFIG,
           () => {
             translateYProgress.value = withDelay(
               visibilityDuration,
-              withTiming(
-                height,
-                { duration: animationDuration },
+              withSpring(
+                hiddenTranslateY,
+                TOAST_SPRING_CONFIG,
                 runOnJS(resetState),
               ),
             );
@@ -145,13 +295,16 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }
   };
 
-  const renderLabel = (labelOptions: ToastLabelOptions) => (
-    <Text variant={TextVariant.BodyMD}>
-      {labelOptions.map(({ label, isBold }, index) => (
+  const renderInlineLabelSegments = (segments: ToastLabelOptions) => (
+    <Text variant={TextVariant.BodyMD} onTextLayout={handleTitleTextLayout}>
+      {segments.map(({ label, isBold }, index) => (
         <Text
           key={`toast-label-${index}`}
-          variant={isBold ? TextVariant.BodyMDBold : TextVariant.BodyMD}
-          style={styles.label}
+          variant={
+            isBold === false ? TextVariant.BodySM : TextVariant.BodyMDMedium
+          }
+          color={isBold === false ? TextColor.Alternative : undefined}
+          style={isBold === false ? undefined : styles.label}
         >
           {label}
         </Text>
@@ -159,12 +312,54 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     </Text>
   );
 
+  const renderLabel = (labelOptions: ToastLabelOptions) => {
+    const descriptionSplitIndex = labelOptions.findIndex(
+      (option, index) => index > 0 && option.label === '\n',
+    );
+
+    if (descriptionSplitIndex === -1) {
+      return renderInlineLabelSegments(labelOptions);
+    }
+
+    const titleOptions = labelOptions.slice(0, descriptionSplitIndex);
+    const descriptionLabelOptions = labelOptions.slice(
+      descriptionSplitIndex + 1,
+    );
+
+    return (
+      <>
+        {titleOptions.length > 0
+          ? renderInlineLabelSegments(titleOptions)
+          : null}
+        {descriptionLabelOptions.length > 0 ? (
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            style={styles.description}
+            onTextLayout={handleDescriptionTextLayout}
+          >
+            {descriptionLabelOptions.map(({ label }, index) => (
+              <Text
+                key={`toast-description-label-${index}`}
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+              >
+                {label}
+              </Text>
+            ))}
+          </Text>
+        ) : null}
+      </>
+    );
+  };
+
   const renderDescription = (descriptionOptions?: ToastDescriptionOptions) =>
     descriptionOptions && (
       <Text
         variant={TextVariant.BodySM}
         color={TextColor.Alternative}
         style={styles.description}
+        onTextLayout={handleDescriptionTextLayout}
       >
         {descriptionOptions.description}
       </Text>
@@ -173,12 +368,13 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const renderActionButton = (linkButtonOptions?: ToastLinkButtonOptions) =>
     linkButtonOptions && (
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Sm}
         onPress={linkButtonOptions.onPress}
-        labelTextVariant={TextVariant.BodyMD}
-        label={linkButtonOptions.label}
         style={styles.actionButton}
-      />
+      >
+        {linkButtonOptions.label}
+      </Button>
     );
 
   const renderCloseButton = (closeButtonOptions?: ToastCloseButtonOptions) => {
@@ -187,17 +383,23 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         <ButtonIcon
           onPress={() => closeButtonOptions?.onPress?.()}
           iconName={closeButtonOptions?.iconName}
+          size={ButtonIconSizes.Md}
+          style={shouldTopAlign ? styles.closeButton : undefined}
         />
       );
     }
+    const legacyCloseButton = closeButtonOptions as ButtonProps;
+
     return (
       <Button
-        variant={ButtonVariants.Primary}
-        onPress={() => closeButtonOptions?.onPress()}
-        label={closeButtonOptions?.label}
-        endIconName={closeButtonOptions?.endIconName}
-        style={closeButtonOptions?.style}
-      />
+        variant={mapLegacyButtonVariant(legacyCloseButton.variant)}
+        size={ButtonSize.Sm}
+        onPress={() => legacyCloseButton.onPress?.()}
+        endIconName={legacyCloseButton.endIconName as DsIconName | undefined}
+        style={[styles.trailingActionButton, legacyCloseButton.style]}
+      >
+        {legacyCloseButton.label}
+      </Button>
     );
   };
 
@@ -216,7 +418,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             // should receive avatar type as props
             type={accountAvatarType}
             size={AvatarSize.Md}
-            style={styles.avatar}
           />
         );
       }
@@ -227,8 +428,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             variant={AvatarVariant.Network}
             name={networkName}
             imageSource={networkImageSource}
-            size={AvatarSize.Md}
-            style={styles.avatar}
+            size={AvatarSize.Sm}
           />
         );
       }
@@ -239,21 +439,26 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             variant={AvatarVariant.Favicon}
             imageSource={appIconSource}
             size={AvatarSize.Md}
-            style={styles.avatar}
           />
         );
       }
       case ToastVariants.Icon: {
         const { iconName, iconColor, backgroundColor } = toastOptions;
-        return (
-          <Avatar
-            variant={AvatarVariant.Icon}
-            name={iconName}
-            iconColor={iconColor}
-            backgroundColor={backgroundColor}
-            style={styles.avatar}
-          />
+        const icon = (
+          <Icon name={iconName} size={IconSize.Lg} color={iconColor} />
         );
+        const hasIconBackground =
+          backgroundColor != null && backgroundColor !== 'transparent';
+
+        if (hasIconBackground) {
+          return (
+            <View style={[styles.iconBackground, { backgroundColor }]}>
+              {icon}
+            </View>
+          );
+        }
+
+        return icon;
       }
     }
   };
@@ -269,12 +474,18 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
     const isStartAccessoryValid =
       startAccessory != null && React.isValidElement(startAccessory);
+    const leadingAccessory = isStartAccessoryValid
+      ? startAccessory
+      : renderAvatar();
 
     return (
       <>
-        {isStartAccessoryValid ? startAccessory : renderAvatar()}
+        {leadingAccessory ? <View>{leadingAccessory}</View> : null}
         <View
-          style={styles.labelsContainer}
+          style={[
+            styles.labelsContainer,
+            shouldTopAlign && styles.labelsContainerTopAligned,
+          ]}
           testID={ToastSelectorsIDs.CONTAINER}
         >
           {renderLabel(labelOptions)}
@@ -297,4 +508,5 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
 });
 
+export { shouldTopAlignToastContent, hasTrailingTextButton };
 export default Toast;

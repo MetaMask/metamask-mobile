@@ -1,9 +1,21 @@
 // Third party dependencies.
 import { StyleSheet, Dimensions } from 'react-native';
-import { Theme } from '../../../util/theme/models';
+import { AppThemeKey, Theme } from '../../../util/theme/models';
+
+import {
+  TOAST_ACTION_MARGIN_TOP,
+  TOAST_CLOSE_MARGIN_TOP,
+  TOAST_DESCRIPTION_MARGIN_TOP,
+  TOAST_PADDING_BOTTOM_WITH_ACTION,
+  TOAST_PADDING_HORIZONTAL,
+  TOAST_PADDING_RIGHT_WITH_CLOSE_ICON,
+  TOAST_PADDING_TOP_WITHOUT_DESCRIPTION,
+  TOAST_PADDING_VERTICAL,
+  TOAST_ICON_BACKGROUND_SIZE,
+  TOAST_ROW_GAP,
+} from './Toast.constants';
 
 const marginWidth = 16;
-const padding = 12;
 const toastWidth = Dimensions.get('window').width - marginWidth * 2;
 
 /**
@@ -13,37 +25,69 @@ const toastWidth = Dimensions.get('window').width - marginWidth * 2;
  */
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors } = theme;
+  const { colors, shadows } = theme;
   return StyleSheet.create({
     base: {
       position: 'absolute',
       width: toastWidth,
       left: marginWidth,
-      bottom: 0,
-      backgroundColor: colors.background.section,
+      top: 0,
+      backgroundColor:
+        theme.themeAppearance === AppThemeKey.light
+          ? colors.background.default
+          : colors.background.section,
+      ...(theme.themeAppearance === AppThemeKey.light ? shadows.size.md : {}),
       borderWidth: 1,
       borderColor: colors.border.muted,
-      borderRadius: 12,
-      padding,
+      borderRadius: 16,
+      paddingTop: TOAST_PADDING_VERTICAL,
+      paddingBottom: TOAST_PADDING_VERTICAL,
+      paddingLeft: TOAST_PADDING_HORIZONTAL,
+      paddingRight: TOAST_PADDING_HORIZONTAL,
       flexDirection: 'row',
-      alignItems: 'flex-start',
-    },
-    avatar: {
-      marginTop: -4,
-      marginRight: 16,
+      alignItems: 'center',
+      gap: TOAST_ROW_GAP,
     },
     labelsContainer: {
       flex: 1,
+      justifyContent: 'center',
+    },
+    labelsContainerTopAligned: {
       justifyContent: 'flex-start',
+    },
+    iconBackground: {
+      width: TOAST_ICON_BACKGROUND_SIZE,
+      height: TOAST_ICON_BACKGROUND_SIZE,
+      borderRadius: TOAST_ICON_BACKGROUND_SIZE / 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    baseWithoutDescription: {
+      paddingTop: TOAST_PADDING_TOP_WITHOUT_DESCRIPTION,
+    },
+    baseTopAligned: {
+      alignItems: 'flex-start',
+    },
+    baseWithActionButton: {
+      paddingBottom: TOAST_PADDING_BOTTOM_WITH_ACTION,
+    },
+    baseWithCloseIconButton: {
+      paddingRight: TOAST_PADDING_RIGHT_WITH_CLOSE_ICON,
     },
     label: {
       color: colors.text.default,
     },
     description: {
-      marginTop: 4,
+      marginTop: TOAST_DESCRIPTION_MARGIN_TOP,
     },
     actionButton: {
-      marginTop: 8,
+      marginTop: TOAST_ACTION_MARGIN_TOP,
+    },
+    closeButton: {
+      marginTop: TOAST_CLOSE_MARGIN_TOP,
+    },
+    trailingActionButton: {
+      alignSelf: 'center',
     },
   });
 };
