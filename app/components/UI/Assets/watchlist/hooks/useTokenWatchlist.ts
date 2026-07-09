@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 
-import { EMPTY_BLOB, type WatchlistBlob } from '../storage';
+import { readFromTokenWatchList, type WatchlistBlob } from '../storage';
 import {
   useTokenWatchlistAddItemMutation,
   useTokenWatchlistRemoveItemMutation,
@@ -30,15 +30,12 @@ const NOOP_RESULT: UseTokenWatchlistResult = {
 export function useTokenWatchlist(
   assetId: CaipAssetType | null,
 ): UseTokenWatchlistResult {
-  const queryClient = useQueryClient();
   const addMutation = useTokenWatchlistAddItemMutation();
   const removeMutation = useTokenWatchlistRemoveItemMutation();
 
   const { data: blob } = useQuery<WatchlistBlob>({
     queryKey: tokenWatchlistQueryKeys.blob,
-    queryFn: () =>
-      queryClient.getQueryData<WatchlistBlob>(tokenWatchlistQueryKeys.blob) ??
-      EMPTY_BLOB,
+    queryFn: readFromTokenWatchList,
     staleTime: Infinity,
   });
 
