@@ -2,7 +2,7 @@
   "name": "metamask",
   "version": "8.1.1",
   "private": true,
-    "repository": {
+  "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-mobile.git"
   },
