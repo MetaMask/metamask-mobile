@@ -12,7 +12,6 @@ import type {
   TimeDuration,
 } from '@metamask/perps-controller';
 import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
-import { advancedChartLineChromePresets } from '../../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
   type CrosshairData,
@@ -413,7 +412,6 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       realtimeBar={realtimeBar}
       height={height}
       chartType={ChartType.Candles}
-      lineChrome={advancedChartLineChromePresets.perps.lineChrome}
       showVolume
       volumeOverlay={false}
       hidePaneSeparator

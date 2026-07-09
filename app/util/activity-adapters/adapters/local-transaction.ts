@@ -719,7 +719,7 @@ export function mapLocalTransaction(
 
     case TransactionType.stakingDeposit:
       return {
-        type: 'deposit',
+        type: 'stake',
         chainId,
         status,
         timestamp,
@@ -790,6 +790,22 @@ export function mapLocalTransaction(
                 },
               }
             : {}),
+          ...(fees ? { fees } : {}),
+        },
+      };
+    }
+
+    case TransactionType.deployContract: {
+      return {
+        type: 'contractDeployment',
+        chainId,
+        status,
+        timestamp,
+        hash,
+        raw: { type: 'localTransaction', data: transactionGroup },
+        data: {
+          from,
+          to,
           ...(fees ? { fees } : {}),
         },
       };

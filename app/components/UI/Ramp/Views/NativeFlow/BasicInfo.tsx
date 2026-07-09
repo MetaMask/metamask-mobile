@@ -64,7 +64,7 @@ export interface BasicInfoFormData {
   ssn?: string;
 }
 
-interface V2BasicInfoParams {
+export interface V2BasicInfoParams {
   quote: TransakBuyQuote;
   previousFormData?: BasicInfoFormData & AddressFormData;
   /**

@@ -34,6 +34,7 @@ export enum UserActionType {
   SET_TOKEN_OVERVIEW_CHART_INTERVAL = 'SET_TOKEN_OVERVIEW_CHART_INTERVAL',
   SET_TOKEN_INDICATORS = 'SET_TOKEN_INDICATORS',
   SET_ONBOARDING_STEPPER_STEP = 'SET_ONBOARDING_STEPPER_STEP',
+  SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
 }
 
 // User actions
@@ -142,6 +143,9 @@ export type SetOnboardingStepperStepAction =
     payload: { stepperId: string; step: number };
   };
 
+export type SetAppInstallEventFiredAction =
+  Action<UserActionType.SET_APP_INSTALL_EVENT_FIRED>;
+
 /**
  * User actions union type
  */
@@ -175,4 +179,5 @@ export type UserAction =
   | SetTokenOverviewChartTypeAction
   | SetTokenOverviewChartIntervalAction
   | SetTokenIndicatorsAction
-  | SetOnboardingStepperStepAction;
+  | SetOnboardingStepperStepAction
+  | SetAppInstallEventFiredAction;
