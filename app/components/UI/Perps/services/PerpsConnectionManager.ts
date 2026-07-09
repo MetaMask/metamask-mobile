@@ -654,6 +654,14 @@ class PerpsConnectionManagerClass {
               streamManager.fills.clearCache();
               streamManager.topOfBook.clearCache();
               streamManager.candles.clearCache();
+              // Hard teardown (streams torn down, caches cleared): abandon any
+              // pending confirmation CUF as `disconnected`, or a later reconnect
+              // delivery would end the stale op as a success with a duration
+              // inflated by the background/disconnect gap. Skipped for a
+              // preserveCaches soft resume above, where the stream continuity
+              // means the confirming delivery is still legitimate. The reconnect
+              // measurement span is preserved by clearPendingPerpsCufTraces.
+              clearPendingPerpsCufTraces();
             }
 
             // Reset state before disconnecting to prevent race conditions

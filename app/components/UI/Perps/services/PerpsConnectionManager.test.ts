@@ -47,6 +47,13 @@ jest.mock('../../../../store', () => ({
   },
 }));
 
+// Keep the real CUF helpers (reconnect arms a real span) but spy on the
+// teardown clear so tests can assert it fires on hard disconnect only.
+jest.mock('../utils/perpsCufTrace', () => ({
+  ...jest.requireActual('../utils/perpsCufTrace'),
+  clearPendingPerpsCufTraces: jest.fn(),
+}));
+
 // Mock selectors
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
@@ -109,6 +116,12 @@ import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
+import { clearPendingPerpsCufTraces } from '../utils/perpsCufTrace';
+
+const mockClearPendingPerpsCufTraces =
+  clearPendingPerpsCufTraces as jest.MockedFunction<
+    typeof clearPendingPerpsCufTraces
+  >;
 import { TradingReadinessCache } from '@metamask/perps-controller';
 
 // Import PerpsConnectionManager after mocks are set up
@@ -1142,6 +1155,7 @@ describe('PerpsConnectionManager', () => {
           channel.clearCache.mockClear();
         }
       });
+      mockClearPendingPerpsCufTraces.mockClear();
     });
 
     it('clears all stream channel caches when grace period fires', async () => {
@@ -1170,6 +1184,8 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.fills.clearCache).toHaveBeenCalled();
       expect(mockStreamManagerInstance.topOfBook.clearCache).toHaveBeenCalled();
       expect(mockStreamManagerInstance.candles.clearCache).toHaveBeenCalled();
+      // Hard teardown must also abandon pending confirmation CUFs.
+      expect(mockClearPendingPerpsCufTraces).toHaveBeenCalled();
     });
 
     it('resets isPreloading flag so next connect can prewarm', async () => {
@@ -1237,6 +1253,8 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).not.toHaveBeenCalled();
+      // Soft resume preserves stream continuity, so pending CUFs are kept.
+      expect(mockClearPendingPerpsCufTraces).not.toHaveBeenCalled();
     });
 
     it('skips disconnection when reference count is still positive', async () => {
