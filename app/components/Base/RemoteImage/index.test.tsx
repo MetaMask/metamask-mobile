@@ -93,7 +93,7 @@ describe('RemoteImage', () => {
     mockGetFormattedIpfsUrl.mockImplementation(createPendingIpfsResolution);
   });
 
-  // [mcwp-474-tmp]
+  // [mcwp-474-tmp 2/5]
   it('renders svg correctly', () => {
     const { UNSAFE_getByType } = render(
       <RemoteImage

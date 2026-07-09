@@ -203,7 +203,7 @@ describe('useBalanceChanges', () => {
       );
     };
 
-    // [mcwp-474-tmp]
+    // [mcwp-474-tmp 3/5]
     it('maps token balance changes correctly', async () => {
       const { result } = setupHook([
         {
