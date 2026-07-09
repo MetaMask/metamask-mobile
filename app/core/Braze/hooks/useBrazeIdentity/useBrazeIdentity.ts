@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
+import Logger from '../../../../util/Logger';
 
 /**
  * Syncs the Braze identity with the MetaMask profile sign-in state.
@@ -15,22 +16,27 @@ import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
  */
 export function useBrazeIdentity(): void {
   const isSignedIn = useSelector(selectIsSignedIn);
+  const hasBeenSignedInRef = useRef(false);
 
   useEffect(() => {
     let isCancelled = false;
 
     const syncBrazeIdentity = async () => {
       if (isSignedIn) {
+        hasBeenSignedInRef.current = true;
         await setBrazeUser();
         if (!isCancelled) {
           refreshBrazeBanners();
         }
-      } else {
+      } else if (hasBeenSignedInRef.current) {
+        hasBeenSignedInRef.current = false;
         clearBrazeUser();
       }
     };
 
-    void syncBrazeIdentity();
+    syncBrazeIdentity().catch((error) => {
+      Logger.error(error as Error, '[Braze] Failed to sync Braze identity');
+    });
 
     return () => {
       isCancelled = true;

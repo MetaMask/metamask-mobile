@@ -78,6 +78,11 @@ const mockAddress = '0x1234567890abcdef';
 const mockMnemonicPhraseToBytes = jest
   .fn()
   .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+const mockClearBrazeUser = jest.fn();
+
+jest.mock('../Braze', () => ({
+  clearBrazeUser: () => mockClearBrazeUser(),
+}));
 
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
@@ -4279,10 +4284,14 @@ describe('Authentication', () => {
       await Authentication.deleteWallet();
 
       // Assert
+      expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
       expect(resetWalletStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteUserSpy).toHaveBeenCalledTimes(1);
+      const clearBrazeCallOrder =
+        mockClearBrazeUser.mock.invocationCallOrder[0];
       const resetCallOrder = resetWalletStateSpy.mock.invocationCallOrder[0];
       const deleteCallOrder = deleteUserSpy.mock.invocationCallOrder[0];
+      expect(clearBrazeCallOrder).toBeLessThan(resetCallOrder);
       expect(resetCallOrder).toBeLessThan(deleteCallOrder);
     });
 

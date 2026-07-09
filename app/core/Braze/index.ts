@@ -65,7 +65,13 @@ export function clearBrazeUser(): void {
   }
 
   getBrazePlugin().setBrazeProfileId(undefined);
-  Logger.log('[Braze] Cleared Braze user identity');
+  try {
+    Braze.wipeData();
+    Braze.enableSDK();
+    Logger.log('[Braze] Cleared Braze user identity and local SDK data');
+  } catch (error) {
+    Logger.error(error as Error, '[Braze] Failed to clear local SDK data');
+  }
 }
 
 /**

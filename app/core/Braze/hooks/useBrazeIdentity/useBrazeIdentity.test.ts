@@ -1,8 +1,12 @@
-import { waitFor } from '@testing-library/react-native';
-import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useBrazeIdentity } from './useBrazeIdentity';
 import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
 import { backgroundState } from '../../../../util/test/initial-root-state';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 jest.mock('../..', () => ({
   setBrazeUser: jest.fn(),
@@ -13,6 +17,9 @@ jest.mock('../..', () => ({
 const mockSetBrazeUser = jest.mocked(setBrazeUser);
 const mockClearBrazeUser = jest.mocked(clearBrazeUser);
 const mockRefreshBrazeBanners = jest.mocked(refreshBrazeBanners);
+const mockUseSelector = jest.mocked(useSelector);
+
+let mockIsSignedIn = false;
 
 const createState = (isSignedIn: boolean) =>
   ({
@@ -28,26 +35,40 @@ const createState = (isSignedIn: boolean) =>
 
 describe('useBrazeIdentity', () => {
   beforeEach(() => {
+    mockIsSignedIn = false;
     jest.clearAllMocks();
     mockSetBrazeUser.mockResolvedValue(undefined);
+    mockUseSelector.mockImplementation((selector) =>
+      selector(createState(mockIsSignedIn) as never),
+    );
   });
 
   it('calls setBrazeUser on mount when already signed in', () => {
-    renderHookWithProvider(() => useBrazeIdentity(), {
-      state: createState(true),
-    });
+    mockIsSignedIn = true;
+    renderHook(() => useBrazeIdentity());
 
     expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
     expect(mockClearBrazeUser).not.toHaveBeenCalled();
   });
 
-  it('calls clearBrazeUser on mount when not signed in', () => {
-    renderHookWithProvider(() => useBrazeIdentity(), {
-      state: createState(false),
-    });
+  it('does not clear Braze on initial mount when not signed in', () => {
+    renderHook(() => useBrazeIdentity());
+
+    expect(mockClearBrazeUser).not.toHaveBeenCalled();
+    expect(mockSetBrazeUser).not.toHaveBeenCalled();
+  });
+
+  it('clears Braze after transitioning from signed in to signed out', () => {
+    mockIsSignedIn = true;
+    const { rerender } = renderHook(() => useBrazeIdentity());
+
+    expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+    expect(mockClearBrazeUser).not.toHaveBeenCalled();
+
+    mockIsSignedIn = false;
+    rerender({});
 
     expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
-    expect(mockSetBrazeUser).not.toHaveBeenCalled();
   });
 
   it('waits for setBrazeUser before refreshing banners on sign-in', async () => {
@@ -58,9 +79,8 @@ describe('useBrazeIdentity', () => {
       }),
     );
 
-    renderHookWithProvider(() => useBrazeIdentity(), {
-      state: createState(true),
-    });
+    mockIsSignedIn = true;
+    renderHook(() => useBrazeIdentity());
 
     expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
 
@@ -80,9 +100,8 @@ describe('useBrazeIdentity', () => {
       }),
     );
 
-    const { unmount } = renderHookWithProvider(() => useBrazeIdentity(), {
-      state: createState(true),
-    });
+    mockIsSignedIn = true;
+    const { unmount } = renderHook(() => useBrazeIdentity());
 
     unmount();
     resolveSetBrazeUser();
@@ -94,9 +113,7 @@ describe('useBrazeIdentity', () => {
   });
 
   it('does not call refreshBrazeBanners when not signed in', () => {
-    renderHookWithProvider(() => useBrazeIdentity(), {
-      state: createState(false),
-    });
+    renderHook(() => useBrazeIdentity());
 
     expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
   });

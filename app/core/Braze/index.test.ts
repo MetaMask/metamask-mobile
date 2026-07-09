@@ -97,6 +97,18 @@ describe('Braze service', () => {
 
       expect(mockSetBrazeProfileId).toHaveBeenCalledWith(undefined);
     });
+
+    it('wipes local Braze SDK data and re-enables the SDK', () => {
+      clearBrazeUser();
+
+      expect(Braze.wipeData).toHaveBeenCalledTimes(1);
+      expect(Braze.enableSDK).toHaveBeenCalledTimes(1);
+      expect(
+        (Braze.wipeData as jest.Mock).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        (Braze.enableSDK as jest.Mock).mock.invocationCallOrder[0],
+      );
+    });
   });
 
   describe('logBrazeBannerImpression', () => {
