@@ -283,7 +283,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({ intent: 'convert' });
   });
 
   it('hides the Deposit funds option when moneyAccountDeposit is not in enabledTransactionTypes', () => {
@@ -365,7 +365,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({ intent: 'convert' });
   });
 
   it('shows the Deposit funds option when fiat deposit is enabled', () => {
