@@ -38,6 +38,7 @@ import {
   isPerpsPredictMoneyWithdraw,
   nestedTxWithType,
   perpsPredictServiceFamily,
+  resolveMoneyDepositIntent,
 } from '../utils/moneyTransactionGuards';
 import useMoneyToasts from './useMoneyToasts';
 import {
@@ -162,6 +163,19 @@ const FAILED_KEY = 'failed';
 const CONFIRMED_KEY = 'confirmed';
 export const IN_PROGRESS_DELAY_MS = 1500;
 
+// Reads the freshest copy of a transaction from controller state. The deferred
+// in-progress toast derives deposit intent from `metamaskPay`, which can be
+// populated after the `approved` event that scheduled the toast without another
+// status change re-delivering the meta — so the captured snapshot is unsafe for
+// derivation.
+function latestTransactionMeta(
+  transactionId: string,
+): TransactionMeta | undefined {
+  return Engine.context.TransactionController.state.transactions.find(
+    (tx) => tx.id === transactionId,
+  );
+}
+
 export const useMoneyTransactionStatus = () => {
   const { showToast, MoneyToastOptions } = useMoneyToasts();
   const shownToastsRef = useRef<Set<string>>(new Set());
@@ -200,6 +214,12 @@ export const useMoneyTransactionStatus = () => {
       return toastKey;
     };
 
+    // Prefer the intent captured when the deposit was initiated; fall back to
+    // deriving it from the transaction's own payment data when it's missing.
+    const resolveDepositIntent = (transactionMeta: TransactionMeta) =>
+      getMoneyAccountDepositIntent(transactionMeta.batchId) ??
+      resolveMoneyDepositIntent(transactionMeta);
+
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
@@ -210,7 +230,9 @@ export const useMoneyTransactionStatus = () => {
         if (isSend) {
           showToast(MoneyToastOptions.send.inProgress());
         } else if (isMoneyDepositTx(transactionMeta)) {
-          const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+          const freshMeta =
+            latestTransactionMeta(transactionMeta.id) ?? transactionMeta;
+          const intent = resolveDepositIntent(freshMeta);
           showToast(MoneyToastOptions.deposit.inProgress({ intent }));
         } else {
           showToast(MoneyToastOptions.withdraw.inProgress());
@@ -227,7 +249,7 @@ export const useMoneyTransactionStatus = () => {
       if (isSend) {
         showToast(MoneyToastOptions.send.failed());
       } else if (isMoneyDepositTx(transactionMeta)) {
-        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        const intent = resolveDepositIntent(transactionMeta);
         showToast(MoneyToastOptions.deposit.failed({ intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
@@ -291,7 +313,7 @@ export const useMoneyTransactionStatus = () => {
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
-        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        const intent = resolveDepositIntent(transactionMeta);
         showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
