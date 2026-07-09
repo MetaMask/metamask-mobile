@@ -70,6 +70,58 @@ export async function fetchGeolocationCountry(): Promise<string> {
   }
   return alpha3;
 }
+
+// ---------------------------------------------------------------------------
+// Step 0 — Fetch disclaimers (delegated to the local UKYC service)
+// ---------------------------------------------------------------------------
+
+export interface Disclaimer {
+  id: string;
+  display_name: string;
+  url: string;
+  [key: string]: unknown;
+}
+
+export type DisclaimersResponse = Disclaimer[];
+
+export interface FetchDisclaimersParams {
+  // ISO 3166-1 alpha-3 country code. Required.
+  country: string;
+}
+
+/**
+ * GET /vendors/moonpay/disclaimers?country={country}
+ *
+ * Fetches the disclaimers / terms content that must be shown to the customer
+ * before they accept MoonPay's Terms of Use. The request is authenticated
+ * with the wallet's identity bearer token from the `AuthenticationController`.
+ */
+export async function fetchDisclaimers(
+  params: FetchDisclaimersParams,
+): Promise<DisclaimersResponse> {
+  const bearerToken = await getBearerToken();
+
+  const url = new URL(`${UKYC_API_BASE_URL}/vendors/moonpay/disclaimers`);
+  url.searchParams.set('country', params.country);
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${bearerToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(
+      `GET /vendors/moonpay/disclaimers failed (${response.status}): ${errorBody}`,
+    );
+  }
+
+  return (await response.json()) as DisclaimersResponse;
+}
+
 // ---------------------------------------------------------------------------
 // Step 2 — Create a session (delegated to the local UKYC service)
 // ---------------------------------------------------------------------------
@@ -79,6 +131,9 @@ export interface CreateSessionParams {
   // ISO 8601 timestamp captured from the customer's Terms-of-Use acceptance.
   // No more than 60 seconds in the future. No past limit.
   termsAcceptedAt: string;
+  // IDs of the disclaimers shown to (and accepted by) the customer. Sourced
+  // from the `id` field of each entry in the disclaimers response.
+  disclaimerIds: string[];
 }
 
 export interface CreateSessionResponse {
