@@ -1,13 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import {
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -15,6 +13,7 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import { Theme } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
+import batchSellIcon from './images/batch-sell-icon.png';
 
 export const BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID =
   'batch-sell-asset-picker-banner';
@@ -50,7 +49,8 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       marginRight: 16,
     },
     image: {
-      transform: [{ rotate: '180deg' }],
+      width: 40,
+      height: 36,
     },
     copyContainer: {
       flex: 1,
@@ -83,10 +83,9 @@ export function BatchSellAssetPickerBanner({
       testID={BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID}
     >
       <View style={styles.imageContainer}>
-        <Icon
-          name={IconName.Merge}
-          size={IconSize.Xl}
-          color={IconColor.PrimaryDefault}
+        <Image
+          source={batchSellIcon}
+          resizeMode="contain"
           style={styles.image}
         />
       </View>
