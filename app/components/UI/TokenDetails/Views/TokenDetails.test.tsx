@@ -122,7 +122,7 @@ const mockUseTokenWatchlist = jest.fn(() => ({
   toggle: mockToggleWatchlist,
 }));
 jest.mock('../../Assets/watchlist/hooks/useTokenWatchlist', () => ({
-  useTokenWatchlist: (...args: unknown[]) => mockUseTokenWatchlist(...args),
+  useTokenWatchlist: () => mockUseTokenWatchlist(),
 }));
 
 const mockUseTokenBuyability = jest.fn();
