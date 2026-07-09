@@ -15,9 +15,44 @@ import {
 import { selectMoneyDepositMinBalance } from '../selectors/featureFlags';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 
 const isEvmToken = (token: AssetType) =>
   Boolean(token.accountType?.includes('eip155'));
+
+/**
+ * Converts a token's `fiat.balance` (assumed to be in the user's preferred
+ * currency) to USD. Fails loud: drops `fiat` rather than showing a value in
+ * the wrong currency when the USD rate can't be resolved.
+ */
+const toUsdToken = (
+  token: AssetType,
+  currencyRates: ReturnType<typeof selectCurrencyRates>,
+  networkConfigurationsByChainId: ReturnType<
+    typeof selectNetworkConfigurations
+  >,
+): AssetType => {
+  if (token.fiat?.balance === undefined) {
+    return token;
+  }
+
+  const usdBalance = calcUsdAmountFromFiat({
+    tokenFiatValue: token.fiat.balance,
+    chainId: token.chainId,
+    networkConfigurationsByChainId,
+    evmMultiChainCurrencyRates: currencyRates,
+  });
+
+  return {
+    ...token,
+    fiat:
+      usdBalance === undefined
+        ? undefined
+        : { ...token.fiat, balance: usdBalance, currency: 'usd' },
+  };
+};
 
 /**
  * Money deposits ALWAYS convert TO Monad mUSD. The no-fee tag matches a
@@ -56,12 +91,21 @@ const isMonadMusd = (address: string, chainId: string) =>
  *
  * isNoFeeToken: true when the token has a subsidized route whose target is
  * Monad mUSD, or when the token IS Monad mUSD (see isMonadMusd above).
+ *
+ * @param options.overrideToUsd - When true, converts each returned token's
+ * `fiat.balance` to USD. Defaults to false.
  */
-export const useMoneyEarnableTokens = () => {
+export const useMoneyEarnableTokens = ({
+  overrideToUsd = false,
+}: { overrideToUsd?: boolean } = {}) => {
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const minBalance = useSelector(selectMoneyDepositMinBalance);
   const allTokens = useAccountTokens({ includeNoBalance: false });
+  const currencyRates = useSelector(selectCurrencyRates);
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
 
   const mmPayBlocked = useMemo(
     () =>
@@ -98,18 +142,31 @@ export const useMoneyEarnableTokens = () => {
     [minBalance],
   );
 
-  const tokens = useMemo(
-    () =>
-      allTokens
-        .filter(
-          (t) =>
-            isEvmToken(t) &&
-            !isTokenBlocked(t, mmPayBlocked) &&
-            meetsMinBalance(t),
-        )
-        .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0)),
-    [allTokens, mmPayBlocked, meetsMinBalance],
-  );
+  const tokens = useMemo(() => {
+    const filtered = allTokens
+      .filter(
+        (t) =>
+          isEvmToken(t) &&
+          !isTokenBlocked(t, mmPayBlocked) &&
+          meetsMinBalance(t),
+      )
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
+
+    if (!overrideToUsd) {
+      return filtered;
+    }
+
+    return filtered.map((token) =>
+      toUsdToken(token, currencyRates, networkConfigurationsByChainId),
+    );
+  }, [
+    allTokens,
+    mmPayBlocked,
+    meetsMinBalance,
+    overrideToUsd,
+    currencyRates,
+    networkConfigurationsByChainId,
+  ]);
 
   return { tokens, isNoFeeToken };
 };

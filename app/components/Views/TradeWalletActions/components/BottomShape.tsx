@@ -32,16 +32,20 @@ function BottomShape({
     const rightBaseX = centerX + baseBezierLength;
     const rightBaseY = height;
 
-    // strokeOnly builds an open path for the border-muted stroke along the trade-menu cutout curve.
+    // strokeOnly builds an open path for the border-muted stroke that traces the full
+    // bottom edge of the trade-menu shape: the flat shoulders on either side plus the
+    // cutout curve in the middle, so the border wraps continuously across the bottom.
     // TradeWalletActions is the only caller; this branch can be removed if that menu no longer has a border.
     if (strokeOnly) {
       return `
-        M ${rightBaseX} ${rightBaseY}
+        M ${width} ${height}
+        H ${rightBaseX}
         C ${rightBaseX - peakBezierLength} ${rightBaseY}
           ${peakX + peakBezierLength} ${peakY}
           ${peakX} ${peakY}
         S ${leftBaseX + peakBezierLength} ${leftBaseY}
           ${leftBaseX} ${leftBaseY}
+        H 0
       `
         .replace(/\s+/g, ' ')
         .trim();

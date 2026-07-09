@@ -81,16 +81,16 @@ describe('AgenticCliApprovalService', () => {
   });
 
   describe('getApprovalHost', () => {
-    it('returns the test dashboard host for development builds', () => {
+    it('returns the develop developer dashboard host for development builds', () => {
       mockGetBuildType.mockReturnValue('development');
 
-      expect(getApprovalHost()).toBe('https://test-dashboard.web3auth.io');
+      expect(getApprovalHost()).toBe('https://develop-developer.metamask.io');
     });
 
-    it('returns the dev dashboard host for UAT builds', () => {
+    it('returns the staging developer dashboard host for UAT builds', () => {
       mockGetBuildType.mockReturnValue('main_uat');
 
-      expect(getApprovalHost()).toBe('https://dev-dashboard.web3auth.io');
+      expect(getApprovalHost()).toBe('https://staging-developer.metamask.io');
     });
 
     it('returns the developer dashboard host for production builds', () => {
@@ -99,10 +99,10 @@ describe('AgenticCliApprovalService', () => {
       expect(getApprovalHost()).toBe('https://developer.metamask.io');
     });
 
-    it('returns the test dashboard host for dev channel builds', () => {
+    it('returns the develop developer dashboard host for dev channel builds', () => {
       mockGetBuildType.mockReturnValue('main_dev');
 
-      expect(getApprovalHost()).toBe('https://test-dashboard.web3auth.io');
+      expect(getApprovalHost()).toBe('https://develop-developer.metamask.io');
     });
   });
 
@@ -312,7 +312,7 @@ describe('AgenticCliApprovalService', () => {
       expect(new URL(url).searchParams.get('mimirSignature')).toBe(
         'sig/with+chars',
       );
-      expect(new URL(url).host).toBe('test-dashboard.web3auth.io');
+      expect(new URL(url).host).toBe('develop-developer.metamask.io');
     });
   });
 

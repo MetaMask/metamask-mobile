@@ -285,6 +285,92 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('ENG 62¢')).toBeOnTheScreen();
   });
 
+  it('prefers team-to-advance outcomes for World Cup games', () => {
+    const teamToAdvanceOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'outcome-team-to-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'Team to Advance',
+      tokens: [
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
+      ],
+    };
+    const marketWithTeamToAdvance: PredictMarketType = {
+      ...mockMarket,
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          id: 'outcome-moneyline',
+          sportsMarketType: 'moneyline',
+        },
+        teamToAdvanceOutcome,
+      ],
+    };
+
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <PredictMarketSportCard
+        market={marketWithTeamToAdvance}
+        testID="sport-market-card"
+      />,
+      { state: initialState },
+    );
+
+    expect(getByText('SPA 72¢')).toBeOnTheScreen();
+    expect(getByText('ENG 41¢')).toBeOnTheScreen();
+    expect(queryByText('DRAW 15¢')).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('sport-market-card-away-button'));
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcome: teamToAdvanceOutcome,
+        outcomeToken: expect.objectContaining({
+          id: 'token-england-advance',
+        }),
+      }),
+    );
+  });
+
+  it('keeps moneyline outcomes for non-World-Cup games with team-to-advance outcomes', () => {
+    const teamToAdvanceOutcome = {
+      ...mockMarket.outcomes[0],
+      id: 'outcome-team-to-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+      groupItemTitle: 'Team to Advance',
+      tokens: [
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
+      ],
+    };
+    const marketWithTeamToAdvance: PredictMarketType = {
+      ...mockMarket,
+      game: {
+        ...(mockMarket.game as PredictMarketGame),
+        league: 'ucl',
+      },
+      outcomes: [
+        {
+          ...mockMarket.outcomes[0],
+          id: 'outcome-moneyline',
+          sportsMarketType: 'moneyline',
+        },
+        teamToAdvanceOutcome,
+      ],
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictMarketSportCard market={marketWithTeamToAdvance} />,
+      { state: initialState },
+    );
+
+    expect(getByText('SPA 60¢')).toBeOnTheScreen();
+    expect(getByText('DRAW 15¢')).toBeOnTheScreen();
+    expect(getByText('ENG 62¢')).toBeOnTheScreen();
+    expect(queryByText('SPA 72¢')).not.toBeOnTheScreen();
+    expect(queryByText('ENG 41¢')).not.toBeOnTheScreen();
+  });
+
   it('renders compact carousel cards without scheduled score placeholders', () => {
     const { getByText, queryByText } = renderWithProvider(
       <PredictMarketSportCard market={mockMarket} isCarousel />,
@@ -402,6 +488,21 @@ describe('PredictMarketSportCard', () => {
     );
   });
 
+  it('does not navigate to market details when card press is disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <PredictMarketSportCard
+        market={mockMarket}
+        testID="sport-market-card"
+        cardPressDisabled
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId('sport-market-card'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('explicit entry point takes priority over trending session', () => {
     mockIsFromTrending.mockReturnValue(true);
 
@@ -439,7 +540,11 @@ describe('PredictMarketSportCard', () => {
 
     fireEvent.press(getByTestId('sport-market-card-home-button'));
 
-    expect(onBuyButtonPress).toHaveBeenCalledWith(mockMarket.id);
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+    });
     expect(mockOpenBuySheet).toHaveBeenCalledWith(
       expect.objectContaining({
         market: mockMarket,
@@ -447,6 +552,27 @@ describe('PredictMarketSportCard', () => {
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       }),
     );
+  });
+
+  it('calls buy handler instead of opening the buy sheet when it returns true', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+    const { getByTestId } = renderWithProvider(
+      <PredictMarketSportCard
+        market={mockMarket}
+        testID="sport-market-card"
+        onBuyButtonPress={onBuyButtonPress}
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId('sport-market-card-home-button'));
+
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+    });
+    expect(mockOpenBuySheet).not.toHaveBeenCalled();
   });
 
   it('renders close button and calls onDismiss without navigating', () => {
