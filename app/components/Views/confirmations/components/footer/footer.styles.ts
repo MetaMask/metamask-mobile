@@ -30,7 +30,6 @@ const styleSheet = (params: {
   };
 }) => {
   const {
-    theme: { colors },
     vars: { isStakingConfirmationBool, isFullScreenConfirmation },
   } = params;
 
@@ -42,7 +41,6 @@ const styleSheet = (params: {
       );
 
   const baseFooterStyle = {
-    backgroundColor: colors.background.default,
     paddingHorizontal: 16,
     paddingTop: 16,
   };
@@ -65,8 +63,7 @@ const styleSheet = (params: {
       justifyContent: 'center',
     },
     footerSkeletonContainer: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
+      ...baseFooterStyle,
       flexDirection: 'row',
       paddingBottom: 32,
       gap: 16,
