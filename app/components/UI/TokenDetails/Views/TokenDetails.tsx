@@ -506,7 +506,9 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         onBackPress={() => navigation.goBack()}
         onSharePress={handleShare}
-        onStarPress={isWatchlistEnabled ? handleStarToggle : undefined}
+        onStarPress={
+          isWatchlistEnabled && caip19AssetId ? handleStarToggle : undefined
+        }
         isWatched={isWatched}
         onPriceAlertPress={
           isPriceAlertsFeatureEnabled &&
