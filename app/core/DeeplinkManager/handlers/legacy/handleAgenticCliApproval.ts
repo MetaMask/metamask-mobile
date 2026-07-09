@@ -11,11 +11,10 @@ import { AgenticCliApprovalService } from '../../../../components/Views/AgenticC
  * `?approvalPagePath=/agentic/approval&projectId=<id>&approvalId=<approvalId>&mimirSignature=<sig>`
  *
  * Dashboard host is always chosen on-device from build type. `approvalPagePath`
- * may override only the path segment (default `/agentic/login`).
+ * may override only the path segment (default `/agentic/approval`).
  *
  * The pending-deeplink saga (app/store/sagas/index.ts) gates this on
- * vault-unlocked + onboarding-complete, so by the time we run we know the
- * AuthenticationController can issue a bearer.
+ * vault-unlocked + onboarding-complete.
  */
 
 export const parseAgenticCliApprovalParams =

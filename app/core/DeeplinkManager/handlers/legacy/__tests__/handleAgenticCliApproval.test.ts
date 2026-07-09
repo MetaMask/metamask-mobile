@@ -42,7 +42,7 @@ describe('handleAgenticCliApproval', () => {
     jest.useRealTimers();
   });
 
-  it('uses the default login path when agentic-cli deeplink omits approvalPagePath', () => {
+  it('uses the default approval path when agentic-cli deeplink omits approvalPagePath', () => {
     handleAgenticCliApproval({
       actionPath:
         '?projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',

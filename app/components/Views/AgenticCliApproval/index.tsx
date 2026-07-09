@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -35,9 +35,6 @@ interface WebViewLoadErrorEvent {
     url?: string;
   };
 }
-
-const getErrorDetails = (err: unknown): string | undefined =>
-  err instanceof Error ? err.message : undefined;
 
 const getLoadErrorState = (details?: string): AgenticCliApprovalErrorState => ({
   title: strings('agentic_cli_approval.error.title'),
@@ -78,9 +75,8 @@ const getLoadErrorDetails = ({
  * Flow:
  * 1. Receives hosted approval page params via navigation (set by the deeplink
  * handler).
- * 2. Pulls an SRP Hydra token from `AuthenticationController`, exchanges it
- * for a dashboard auth token, and passes the dashboard token to the login
- * page in the URL fragment.
+ * 2. Loads the hosted `/agentic/approval` page with forwarded query params
+ * (including `mimirSignature`).
  * 3. Listens for `mm-cli-mfa` postMessage events; on `approved|rejected|close`,
  * navigates back. On `error`, shows a generic error UI with secondary details.
  */
@@ -97,10 +93,29 @@ const AgenticCliApproval: React.FC = () => {
     subjectId,
   } = useParams<AgenticCliApprovalParams>();
   const [error, setError] = useState<AgenticCliApprovalErrorState | null>(null);
-  const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
   const title = strings('agentic_cli_approval.title');
+
+  const webViewUrl = useMemo(
+    () =>
+      AgenticCliApprovalService.buildWebViewUrl({
+        approvalPagePath,
+        projectId,
+        approvalId,
+        mimirSignature,
+        operationType,
+        subjectId,
+      }),
+    [
+      approvalId,
+      approvalPagePath,
+      mimirSignature,
+      projectId,
+      operationType,
+      subjectId,
+    ],
+  );
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -114,45 +129,6 @@ const AgenticCliApproval: React.FC = () => {
       endButtonIconProps={[{ iconName: IconName.Close, onPress: handleClose }]}
     />
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const token = await AgenticCliApprovalService.getAuthToken();
-        if (cancelled) return;
-        const nextWebViewUrl = AgenticCliApprovalService.buildWebViewUrl(
-          {
-            approvalPagePath,
-            projectId,
-            approvalId,
-            mimirSignature,
-            operationType,
-            subjectId,
-          },
-          token,
-        );
-        setWebViewUrl(nextWebViewUrl);
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          'AgenticCliApproval: failed to obtain auth token',
-        );
-        if (!cancelled) setError(getLoadErrorState(getErrorDetails(err)));
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    approvalId,
-    approvalPagePath,
-    mimirSignature,
-    projectId,
-    operationType,
-    retryKey,
-    subjectId,
-  ]);
 
   const handleMessage = useCallback(
     (messageEvent: WebViewMessageEvent) => {
@@ -213,7 +189,6 @@ const AgenticCliApproval: React.FC = () => {
 
   const handleRetry = useCallback(() => {
     setError(null);
-    setWebViewUrl(null);
     setRetryKey((currentRetryKey) => currentRetryKey + 1);
   }, []);
 
@@ -285,14 +260,11 @@ const AgenticCliApproval: React.FC = () => {
     );
   }
 
-  if (!webViewUrl) {
-    return <View style={tw.style('flex-1 bg-default')} />;
-  }
-
   return (
     <>
       {renderHeader()}
       <WebView
+        key={retryKey}
         source={{ uri: webViewUrl }}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}

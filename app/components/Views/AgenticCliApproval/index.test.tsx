@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => ({
-    approvalPagePath: '/agentic/login',
+    approvalPagePath: '/agentic/approval',
     projectId: 'project-1',
     approvalId: 'approval-1',
     mimirSignature: 'signature-1',
@@ -37,10 +37,9 @@ jest.mock('./AgenticCliApprovalService', () => {
     ...actual,
     AgenticCliApprovalService: {
       ...actual.AgenticCliApprovalService,
-      getAuthToken: jest.fn(),
       buildWebViewUrl: jest.fn(
         () =>
-          'https://developer.metamask.io/agentic/login?projectId=project-1&approvalId=approval-1#auth_token=token',
+          'https://developer.metamask.io/agentic/approval?projectId=project-1&approvalId=approval-1&mimirSignature=signature-1',
       ),
     },
   };
@@ -148,13 +147,10 @@ jest.mock(
   },
 );
 
-const mockGetAuthToken = AgenticCliApprovalService.getAuthToken as jest.Mock;
-
 describe('AgenticCliApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWebViewProps = {};
-    mockGetAuthToken.mockResolvedValue('dashboard-token');
   });
 
   it('renders the localized header title after the WebView loads', async () => {
@@ -246,28 +242,6 @@ describe('AgenticCliApproval', () => {
     });
 
     expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('shows load error UI when auth token resolution fails', async () => {
-    mockGetAuthToken.mockRejectedValue(new Error('Token exchange failed'));
-
-    const { getByTestId } = render(<AgenticCliApproval />);
-
-    await waitFor(() =>
-      expect(
-        getByTestId('agentic-cli-approval-error-description').props.children,
-      ).toBe(
-        "We couldn't load this approval request. Check your connection and try again.",
-      ),
-    );
-
-    expect(
-      getByTestId('agentic-cli-approval-error-details').props.children,
-    ).toBe('Token exchange failed');
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.any(Error),
-      'AgenticCliApproval: failed to obtain auth token',
-    );
   });
 
   it('shows submit failures as secondary error details', async () => {
@@ -399,7 +373,7 @@ describe('AgenticCliApproval', () => {
         nativeEvent: {
           description: 'The request timed out',
           statusCode: 0,
-          url: 'https://developer.metamask.io/agentic/login',
+          url: 'https://developer.metamask.io/agentic/approval',
         },
       });
     });
@@ -417,7 +391,6 @@ describe('AgenticCliApproval', () => {
     fireEvent.press(getByTestId('agentic-cli-approval-retry-button'));
 
     await waitFor(() => {
-      expect(mockGetAuthToken).toHaveBeenCalledTimes(2);
       expect(getByTestId('agentic-cli-approval')).toBeTruthy();
     });
   });

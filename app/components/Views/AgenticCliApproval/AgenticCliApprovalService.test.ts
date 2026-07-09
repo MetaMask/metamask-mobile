@@ -1,7 +1,3 @@
-import { SDK } from '@metamask/profile-sync-controller';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import Engine from '../../../core/Engine';
-import { authEnv } from '../../../core/devApiEnv';
 import { getBuildType } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import Logger from '../../../util/Logger';
 import {
@@ -13,29 +9,6 @@ import {
   validateApprovalPagePath,
 } from './AgenticCliApprovalService';
 
-jest.mock('@metamask/profile-sync-controller', () => ({
-  SDK: {
-    getEnvUrls: jest.fn(),
-  },
-}));
-
-jest.mock('../../../core/devApiEnv', () => ({
-  authEnv: jest.fn(),
-}));
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    AuthenticationController: {
-      getBearerToken: jest.fn(),
-    },
-    KeyringController: {
-      state: {
-        keyrings: [],
-      },
-    },
-  },
-}));
-
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   getBuildType: jest.fn(),
 }));
@@ -44,40 +17,14 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const mockGetEnvUrls = SDK.getEnvUrls as jest.MockedFunction<
-  typeof SDK.getEnvUrls
->;
-const mockAuthEnv = authEnv as jest.MockedFunction<typeof authEnv>;
-const mockGetBearerToken = Engine.context.AuthenticationController
-  .getBearerToken as jest.MockedFunction<
-  typeof Engine.context.AuthenticationController.getBearerToken
->;
 const mockGetBuildType = getBuildType as jest.MockedFunction<
   typeof getBuildType
 >;
 
 describe('AgenticCliApprovalService', () => {
-  const originalFetch = global.fetch;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetBuildType.mockReturnValue('main_prod');
-    mockAuthEnv.mockReturnValue('dev' as ReturnType<typeof authEnv>);
-    mockGetEnvUrls.mockReturnValue({
-      authApiUrl: 'https://authentication.dev-api.cx.metamask.io',
-    } as ReturnType<typeof SDK.getEnvUrls>);
-    Engine.context.KeyringController.state.keyrings = [
-      {
-        type: KeyringTypes.hd,
-        accounts: [],
-        metadata: { id: 'entropy-source-1', name: 'Secret Recovery Phrase 1' },
-      },
-    ];
-    global.fetch = jest.fn();
-  });
-
-  afterAll(() => {
-    global.fetch = originalFetch;
   });
 
   describe('getApprovalHost', () => {
@@ -177,121 +124,38 @@ describe('AgenticCliApprovalService', () => {
     });
   });
 
-  describe('getAuthToken', () => {
-    it('builds the MM Auth QR login token endpoint from the current auth env', () => {
-      expect(AgenticCliApprovalService.getCliDashboardTokenUrl()).toBe(
-        'https://authentication.dev-api.cx.metamask.io/api/v2/mm-qr-login/token',
-      );
-    });
-
-    it('exchanges the SRP Hydra token for the dashboard auth token', async () => {
-      mockGetBearerToken.mockResolvedValue('hydra-token');
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
-      });
-
-      await expect(AgenticCliApprovalService.getAuthToken()).resolves.toBe(
-        'dashboard-token',
-      );
-
-      expect(mockGetBearerToken).toHaveBeenCalledWith('entropy-source-1');
-      expect(global.fetch).toHaveBeenCalledWith(
-        'https://authentication.dev-api.cx.metamask.io/api/v2/mm-qr-login/token',
-        {
-          method: 'POST',
-          headers: { Authorization: 'Bearer hydra-token' },
-          body: '',
-        },
-      );
-    });
-
-    it('passes undefined entropy source when no HD keyring exists', async () => {
-      Engine.context.KeyringController.state.keyrings = [
-        {
-          type: 'Simple Key Pair',
-          accounts: [],
-          metadata: { id: 'imported-keyring', name: 'Imported account' },
-        },
-      ];
-      mockGetBearerToken.mockRejectedValue(
-        new Error('No bearer token available — is the user signed in?'),
-      );
-
-      await expect(AgenticCliApprovalService.getAuthToken()).rejects.toThrow(
-        'No bearer token available — is the user signed in?',
-      );
-
-      expect(mockGetBearerToken).toHaveBeenCalledWith(undefined);
-    });
-
-    it('includes the server response body when the exchange fails', async () => {
-      mockGetBearerToken.mockResolvedValue('hydra-token');
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        status: 401,
-        statusText: 'Unauthorized',
-        text: jest.fn().mockResolvedValue('invalid token'),
-      });
-
-      await expect(AgenticCliApprovalService.getAuthToken()).rejects.toThrow(
-        'Failed to get CLI dashboard token: 401 invalid token',
-      );
-    });
-
-    it('rejects an exchange response without access_token', async () => {
-      mockGetBearerToken.mockResolvedValue('hydra-token');
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue({}),
-      });
-
-      await expect(AgenticCliApprovalService.getAuthToken()).rejects.toThrow(
-        'Failed to get CLI dashboard token: missing access_token',
-      );
-    });
-  });
-
   describe('buildWebViewUrl', () => {
-    it('builds the hosted dashboard login URL with the dashboard auth token fragment', () => {
-      const url = AgenticCliApprovalService.buildWebViewUrl(
-        {
-          approvalPagePath: '/agentic/login',
-          projectId: 'project-1',
-          approvalId: 'approval-1',
-          mimirSignature: 'signature-1',
-          operationType: 'transaction_request',
-          subjectId: 'subject-1',
-        },
-        'bearer token',
-      );
+    it('builds the hosted approval URL with forwarded query params', () => {
+      const url = AgenticCliApprovalService.buildWebViewUrl({
+        approvalPagePath: '/agentic/approval',
+        projectId: 'project-1',
+        approvalId: 'approval-1',
+        mimirSignature: 'signature-1',
+        operationType: 'transaction_request',
+        subjectId: 'subject-1',
+      });
 
       expect(url).toBe(
-        'https://developer.metamask.io/agentic/login?projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=transaction_request&subjectId=subject-1#auth_token=bearer%20token',
+        'https://developer.metamask.io/agentic/approval?projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=transaction_request&subjectId=subject-1',
       );
+      expect(new URL(url).hash).toBe('');
     });
 
-    it('uses the default login path when approvalPagePath is omitted', () => {
-      const url = AgenticCliApprovalService.buildWebViewUrl(
-        {
-          projectId: 'project-1',
-          approvalId: 'approval-1',
-        },
-        'token-1',
-      );
+    it('uses the default approval path when approvalPagePath is omitted', () => {
+      const url = AgenticCliApprovalService.buildWebViewUrl({
+        projectId: 'project-1',
+        approvalId: 'approval-1',
+      });
 
-      expect(new URL(url).pathname).toBe('/agentic/login');
+      expect(new URL(url).pathname).toBe('/agentic/approval');
     });
 
     it('forwards approvalId to the hosted approval page query string', () => {
-      const url = AgenticCliApprovalService.buildWebViewUrl(
-        {
-          approvalPagePath: '/agentic/approval',
-          projectId: 'project-1',
-          approvalId: 'approval-1',
-        },
-        'token-1',
-      );
+      const url = AgenticCliApprovalService.buildWebViewUrl({
+        approvalPagePath: '/agentic/approval',
+        projectId: 'project-1',
+        approvalId: 'approval-1',
+      });
 
       expect(new URL(url).searchParams.get('approvalId')).toBe('approval-1');
     });
@@ -299,15 +163,12 @@ describe('AgenticCliApprovalService', () => {
     it('forwards the Mimir signature using the dashboard query param name', () => {
       mockGetBuildType.mockReturnValue('development');
 
-      const url = AgenticCliApprovalService.buildWebViewUrl(
-        {
-          approvalPagePath: '/agentic/login',
-          approvalId: 'approval-1',
-          projectId: 'project-1',
-          mimirSignature: 'sig/with+chars',
-        },
-        'token-1',
-      );
+      const url = AgenticCliApprovalService.buildWebViewUrl({
+        approvalPagePath: '/agentic/approval',
+        approvalId: 'approval-1',
+        projectId: 'project-1',
+        mimirSignature: 'sig/with+chars',
+      });
 
       expect(new URL(url).searchParams.get('mimirSignature')).toBe(
         'sig/with+chars',
