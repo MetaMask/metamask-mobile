@@ -68,7 +68,7 @@ import ARC_NATIVE from './arc-native-token-logo.png';
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
 /// BEGIN:ONLY_INCLUDE_IF(stellar)
-import STELLAR from './xlm.svg';
+import STELLAR from './xlm.png';
 /// END:ONLY_INCLUDE_IF
 
 export default {
