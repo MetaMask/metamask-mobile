@@ -9353,6 +9353,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/messenger@npm:^1.0.0":
+  version: 1.2.0
+  resolution: "@metamask/messenger@npm:1.2.0"
+  dependencies:
+    "@metamask/utils": "npm:^11.9.0"
+    yargs: "npm:^17.7.2"
+  peerDependencies:
+    typescript: ">=5.0.0"
+  bin:
+    messenger-generate-action-types: ./dist/generate-action-types/cli.mjs
+  checksum: 10/6818e4609d6162a436cc07955905f9e57ff6dbef841e9066a5fb9cc0538e981526fbcb5eef1fa1968d79212d57ddda2fce4dda5f87eb64d8d98f7db1216a6a98
+  languageName: node
+  linkType: hard
+
 "@metamask/messenger@npm:^2.0.0":
   version: 2.0.0
   resolution: "@metamask/messenger@npm:2.0.0"
