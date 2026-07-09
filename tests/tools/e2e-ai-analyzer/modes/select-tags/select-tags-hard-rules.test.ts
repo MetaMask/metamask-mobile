@@ -20,15 +20,22 @@ describe('test-infrastructure-paths', () => {
       ]);
     });
 
-    it('includes Detox smoke and regression spec files', () => {
+    it('includes Detox smoke spec files', () => {
+      const changedFiles = ['tests/smoke/swap/swap-action-smoke.spec.ts'];
+
+      const result = getChangedSpecFiles(changedFiles);
+
+      expect(result).toEqual(changedFiles);
+    });
+
+    it('excludes regression spec files from smoke tag selection scope', () => {
       const changedFiles = [
-        'tests/smoke/swap/swap-action-smoke.spec.ts',
         'tests/regression/accounts/change-account-name.spec.ts',
       ];
 
       const result = getChangedSpecFiles(changedFiles);
 
-      expect(result).toEqual(changedFiles);
+      expect(result).toEqual([]);
     });
   });
 

@@ -62,19 +62,19 @@ export function getFrameworkInfraChanges(changedFiles: string[]): string[] {
 }
 
 /**
- * Spec file path prefixes for E2E smoke and regression tests (Detox and Appium).
- * Both frameworks share tests/tags.js — changes here map to the same CI tags.
+ * Spec file path prefixes for E2E smoke tests (Detox and Appium).
+ * Smart E2E selection covers smoke tags only — not regression (separate CI).
+ * Both smoke frameworks share tests/tags.js — changes here map to the same CI tags.
  */
 export const SPEC_PATH_PREFIXES = [
   'tests/smoke/',
   'tests/smoke-appium/',
-  'tests/regression/',
 ] as const;
 
 const SPEC_FILE_PATTERN = /\.spec\./;
 
 /**
- * Returns changed files that are E2E spec files (Detox or Appium).
+ * Returns changed files that are E2E smoke spec files (Detox or Appium).
  */
 export function getChangedSpecFiles(changedFiles: string[]): string[] {
   return changedFiles
@@ -87,7 +87,7 @@ export function getChangedSpecFiles(changedFiles: string[]): string[] {
 }
 
 /**
- * Shared test infrastructure whose changes can affect any smoke/regression spec
+ * Shared test infrastructure whose changes can affect any smoke spec
  * that imports them — directly or through one intermediate utility file.
  *
  * Unlike tests/framework/ (hard "run all"), these files have targeted impact:
@@ -115,7 +115,7 @@ export function getChangedSharedInfraFiles(changedFiles: string[]): string[] {
 }
 
 /**
- * Returns true if the file is an E2E spec file (Detox or Appium).
+ * Returns true if the file is an E2E smoke spec file (Detox or Appium).
  */
 export function isSpecFile(file: string): boolean {
   return (
