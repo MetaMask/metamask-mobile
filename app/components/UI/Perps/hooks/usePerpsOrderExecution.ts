@@ -50,6 +50,19 @@ interface UsePerpsOrderExecutionReturn {
 }
 
 type PerpsOrderTrackingValue = string | number | boolean;
+type PerpsOrderPositionSnapshot = Pick<
+  Position,
+  'size' | 'takeProfitPrice' | 'stopLossPrice'
+>;
+
+const getPerpsOrderPositionSnapshot = (
+  position?: PerpsOrderPositionSnapshot | null,
+) =>
+  position
+    ? `${position.size}|${position.takeProfitPrice ?? ''}|${
+        position.stopLossPrice ?? ''
+      }`
+    : undefined;
 
 /**
  * Hook to handle order execution flow
@@ -104,14 +117,16 @@ export function usePerpsOrderExecution(
           [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
           [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]: renderedAt - toastShownAt,
         });
+      // Baseline lets stream matchers tell this order's fill apart from a
+      // position that already existed on this market before submission.
+      const positionBaseline =
+        stream.positions
+          .getSnapshot()
+          ?.find((p) => p.symbol === orderParams.symbol) ?? null;
+      const positionBaselineSnapshot =
+        getPerpsOrderPositionSnapshot(positionBaseline);
       if (isMarketOrder) {
-        // Baseline lets the stream matcher tell the order's fill apart from a
-        // position that already existed on this market before the order.
-        const baseline =
-          stream.positions
-            .getSnapshot()
-            ?.find((p) => p.symbol === orderParams.symbol) ?? null;
-        armPerpsPlaceOrderCuf(cufOpId, orderParams.symbol, baseline);
+        armPerpsPlaceOrderCuf(cufOpId, orderParams.symbol, positionBaseline);
       }
 
       try {
@@ -202,26 +217,38 @@ export function usePerpsOrderExecution(
               // End when the order rests in the orders stream, or — for a
               // marketable limit that fills immediately — when it renders as a
               // new/changed position (baseline tells a fill from a prior hold).
-              const positionBaseline =
-                stream.positions
-                  .getSnapshot()
-                  ?.find((p) => p.symbol === orderParams.symbol) ?? null;
-              watchPerpsCufLimitRendered(
-                cufOpId,
-                orderId,
-                orderParams.symbol,
-                positionBaseline,
-              );
-              endPerpsCufTraceAfter(
-                {
-                  id: cufOpId,
-                  data: {
-                    [PERPS_CUF_TAG.SUCCESS]: false,
-                    [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+              const renderedPosition = stream.positions
+                .getSnapshot()
+                ?.find((p) => p.symbol === orderParams.symbol);
+              const renderedPositionSnapshot =
+                getPerpsOrderPositionSnapshot(renderedPosition);
+              if (
+                renderedPosition &&
+                renderedPositionSnapshot !== positionBaselineSnapshot
+              ) {
+                endCuf({
+                  [PERPS_CUF_TAG.SUCCESS]: true,
+                  [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+                });
+              } else {
+                watchPerpsCufLimitRendered(
+                  cufOpId,
+                  orderId,
+                  orderParams.symbol,
+                  positionBaseline,
+                );
+                endPerpsCufTraceAfter(
+                  {
+                    id: cufOpId,
+                    data: {
+                      [PERPS_CUF_TAG.SUCCESS]: false,
+                      [PERPS_CUF_TAG.REASON]:
+                        PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+                    },
                   },
-                },
-                PERPS_CUF_STREAM_TIMEOUT_MS,
-              );
+                  PERPS_CUF_STREAM_TIMEOUT_MS,
+                );
+              }
             }
           } else {
             // Wait briefly for the stream to render the new/changed position so

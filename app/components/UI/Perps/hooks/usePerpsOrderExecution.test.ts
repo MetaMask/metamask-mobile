@@ -119,7 +119,7 @@ describe('usePerpsOrderExecution', () => {
   };
 
   describe('limit orders (order-render CUF, not position-render)', () => {
-    it('confirms immediately and never touches the position matcher', async () => {
+    it('confirms immediately when the resting order is already rendered', async () => {
       const onSuccess = jest.fn();
       // Order already rendered by submit time: span ends synchronously, no
       // fallback timer is scheduled.
@@ -142,10 +142,40 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      // Resting limit orders confirm on API success; the position baseline
-      // snapshot is never read because the position-render CUF is not armed.
+      // Limit orders capture a pre-submit position baseline so marketable
+      // limits that fill before watcher registration are still detected.
       expect(onSuccess).toHaveBeenCalledWith();
-      expect(mockGetPositionsSnapshot).not.toHaveBeenCalled();
+      expect(mockGetPositionsSnapshot).toHaveBeenCalledTimes(1);
+    });
+
+    it('ends immediately when a marketable limit fill rendered before watcher registration', async () => {
+      mockGetPositionsSnapshot
+        .mockReturnValueOnce(null) // pre-submit baseline
+        .mockReturnValue([mockPosition]); // post-submit fill already rendered
+      mockGetOrdersSnapshot.mockReturnValue([]);
+      mockPlaceOrder.mockImplementation(async () => {
+        handlePerpsCufPositionsDelivered([mockPosition]);
+        return { success: true, orderId: 'lim1' };
+      });
+
+      const { result } = renderHook(() => usePerpsOrderExecution());
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'limit',
+          price: '10000',
+        });
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.stringContaining(
+            TraceName.PerpsPlaceLimitOrderToOrderRendered,
+          ),
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
     });
 
     it('ends the order-render span when the resting order renders in the stream', async () => {
