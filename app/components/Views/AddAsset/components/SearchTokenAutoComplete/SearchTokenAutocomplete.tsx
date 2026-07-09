@@ -276,10 +276,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       }
 
       const { MultichainAssetsController } = Engine.context;
-      await MultichainAssetsController.addAssets(
-        addresses as CaipAssetType[],
-        selectedNonEvmAccount.id,
-      );
 
       if (isAssetsUnifyStateEnabled) {
         try {
@@ -307,6 +303,11 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         }
       }
     } else {
+      await MultichainAssetsController.addAssets(
+        addresses as CaipAssetType[],
+        selectedNonEvmAccount.id,
+      );
+
       const caipChainId = formatChainIdToCaip(
         selectedChainId as SupportedCaipChainId,
       );

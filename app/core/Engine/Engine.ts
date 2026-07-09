@@ -96,6 +96,10 @@ import { multichainAccountServiceInit } from './controllers/multichain-account-s
 import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(stellar)
+import { startStellarAccountAssetInfoEnrichmentBridge } from './utils/stellar-account-asset-info-enrichment-bridge';
+import { selectIsStellarAccountsEnabled } from '../../selectors/featureFlagController/stellarAccountsEnabled';
+///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   cronjobControllerInit,
@@ -673,6 +677,16 @@ export class Engine {
         delete childControllers[name];
       }
     });
+
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    startStellarAccountAssetInfoEnrichmentBridge({
+      messenger: this.controllerMessenger,
+      accountsController,
+      isEnabled: () =>
+        selectIsAssetsUnifyStateEnabled(store.getState()) &&
+        selectIsStellarAccountsEnabled(store.getState()),
+    });
+    ///: END:ONLY_INCLUDE_IF
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,

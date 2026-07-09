@@ -1,8 +1,24 @@
 diff --git a/dist/AssetsController.cjs b/dist/AssetsController.cjs
-index 480338e18fc5d1b9a1dc247318ebac15c90f3015..d0336478a03cf52d1a5cdc21c377bd4d78097ee9 100644
+index 480338e18fc5d1b9a1dc247318ebac15c90f3015..89728499841ddfdf82e3e79306d99d9e9e45d5e9 100644
 --- a/dist/AssetsController.cjs
 +++ b/dist/AssetsController.cjs
-@@ -1237,17 +1237,18 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+@@ -210,7 +210,14 @@ function normalizeResponse(response) {
+  */
+ function mergeAccountBalances(previousBalances, accountBalances, customAssetIds, replaceCoveredChains) {
+     if (!replaceCoveredChains) {
+-        return { ...previousBalances, ...accountBalances };
++        const next = { ...previousBalances };
++        for (const [assetId, balance] of Object.entries(accountBalances)) {
++            next[assetId] = {
++                ...(previousBalances[assetId] ?? { amount: '0' }),
++                ...balance,
++            };
++        }
++        return next;
+     }
+     const coveredChains = new Set(Object.keys(accountBalances).map((assetId) => assetId.split('/')[0]));
+     const next = {};
+@@ -1237,17 +1244,18 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
              previousCount: __classPrivateFieldGet(this, _AssetsController_lastKnownAccountIds, "f").size,
              currentCount: currentIds.size,
          });
@@ -23,7 +39,7 @@ index 480338e18fc5d1b9a1dc247318ebac15c90f3015..d0336478a03cf52d1a5cdc21c377bd4d
      const releaseLock = await __classPrivateFieldGet(this, _AssetsController_accountRefreshMutex, "f").acquire();
      try {
          await this.getAssets(accounts, {
-@@ -1255,6 +1256,12 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+@@ -1255,6 +1263,12 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
              forceUpdate: true,
          });
          __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_subscribeAssets).call(this);
@@ -36,7 +52,7 @@ index 480338e18fc5d1b9a1dc247318ebac15c90f3015..d0336478a03cf52d1a5cdc21c377bd4d
      }
      catch (error) {
          log('Failed to fetch assets after tree change', error);
-@@ -2141,8 +2148,9 @@ async function _AssetsController_handleAccountGroupChanged() {
+@@ -2141,8 +2155,9 @@ async function _AssetsController_handleAccountGroupChanged() {
      // Refresh subscriptions for new chain set
      __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_subscribeAssets).call(this);
      // Do one-time fetch for newly enabled chains; merge so we keep existing chain balances
@@ -49,10 +65,26 @@ index 480338e18fc5d1b9a1dc247318ebac15c90f3015..d0336478a03cf52d1a5cdc21c377bd4d
              forceUpdate: true,
              updateMode: 'merge',
 diff --git a/dist/AssetsController.mjs b/dist/AssetsController.mjs
-index b2bec5f3ac0e3ee5aa2e4b4438c18899cce6f1d5..7dea54b53eff656dc70de340e1c50c4ea6e36260 100644
+index b2bec5f3ac0e3ee5aa2e4b4438c18899cce6f1d5..3a5bca79e9e501008d178e42c54925bb023e3ee9 100644
 --- a/dist/AssetsController.mjs
 +++ b/dist/AssetsController.mjs
-@@ -1230,17 +1230,18 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+@@ -204,7 +204,14 @@ function normalizeResponse(response) {
+  */
+ function mergeAccountBalances(previousBalances, accountBalances, customAssetIds, replaceCoveredChains) {
+     if (!replaceCoveredChains) {
+-        return { ...previousBalances, ...accountBalances };
++        const next = { ...previousBalances };
++        for (const [assetId, balance] of Object.entries(accountBalances)) {
++            next[assetId] = {
++                ...(previousBalances[assetId] ?? { amount: '0' }),
++                ...balance,
++            };
++        }
++        return next;
+     }
+     const coveredChains = new Set(Object.keys(accountBalances).map((assetId) => assetId.split('/')[0]));
+     const next = {};
+@@ -1230,17 +1237,18 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
              previousCount: __classPrivateFieldGet(this, _AssetsController_lastKnownAccountIds, "f").size,
              currentCount: currentIds.size,
          });
@@ -73,7 +105,7 @@ index b2bec5f3ac0e3ee5aa2e4b4438c18899cce6f1d5..7dea54b53eff656dc70de340e1c50c4e
      const releaseLock = await __classPrivateFieldGet(this, _AssetsController_accountRefreshMutex, "f").acquire();
      try {
          await this.getAssets(accounts, {
-@@ -1248,6 +1249,12 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+@@ -1248,6 +1256,12 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
              forceUpdate: true,
          });
          __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_subscribeAssets).call(this);
@@ -86,7 +118,7 @@ index b2bec5f3ac0e3ee5aa2e4b4438c18899cce6f1d5..7dea54b53eff656dc70de340e1c50c4e
      }
      catch (error) {
          log('Failed to fetch assets after tree change', error);
-@@ -2134,8 +2141,9 @@ async function _AssetsController_handleAccountGroupChanged() {
+@@ -2134,8 +2148,9 @@ async function _AssetsController_handleAccountGroupChanged() {
      // Refresh subscriptions for new chain set
      __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_subscribeAssets).call(this);
      // Do one-time fetch for newly enabled chains; merge so we keep existing chain balances
