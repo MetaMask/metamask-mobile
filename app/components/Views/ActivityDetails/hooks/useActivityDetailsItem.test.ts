@@ -279,4 +279,29 @@ describe('useActivityDetailsItem', () => {
 
     expect(result.current).toBe(preloaded);
   });
+
+  it('resolves a local item by its internal tx id after a freshly-submitted tx gets its hash', () => {
+    // The row captured the tx's internal id while it was still hashless; once the
+    // tx is broadcast the item is re-keyed by its real hash (0xnewhash), so a
+    // hash-only lookup would orphan the captured id. Indexing by id keeps it
+    // resolving.
+    const local = makeItem({
+      type: 'send',
+      hash: '0xnewhash',
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: { id: 'tx-internal-id' },
+          initialTransaction: { id: 'tx-internal-id' },
+          transactions: [{ id: 'tx-internal-id' }],
+        },
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    setSources({ local: [local] });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('tx-internal-id'),
+    );
+    expect(result.current).toBe(local);
+  });
 });

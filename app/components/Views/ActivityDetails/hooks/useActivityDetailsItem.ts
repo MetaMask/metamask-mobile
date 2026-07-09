@@ -30,9 +30,12 @@ import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformation
  * When a `chainId` is provided, candidates are restricted to that chain first,
  * so a hash that collides across chains resolves to the correct transaction.
  *
- * NOTE: resolution is keyed on `hash`, so a pending local transaction that does
- * not yet have a hash cannot be addressed here — this matches the extension and
- * is acceptable for the foundation pass.
+ * Local items are additionally indexed by their underlying TransactionController
+ * ids (see {@link buildLocalItemsById}), so a details screen opened with a
+ * transaction's internal id — the value the row falls back to before a freshly
+ * submitted tx has an on-chain hash — keeps resolving once the tx is broadcast
+ * and the local item is re-keyed by its hash. API / non-EVM items are always
+ * hash-addressed.
  */
 function buildItemsByHash(
   items: ActivityListItem[],
@@ -64,6 +67,39 @@ function buildItemsByIdentifier(
     }
   }
   return byIdentifier;
+}
+
+/**
+ * Indexes local EVM items by their underlying TransactionController ids (the
+ * primary/initial attempt and every attempt in the group). A freshly-submitted
+ * tx has no on-chain hash for a brief window, so the row's `hash` falls back to
+ * the internal tx id and navigation captures that id; once the tx is broadcast
+ * the item is re-keyed by its real hash, orphaning the captured id. Indexing by
+ * id too keeps the captured id resolving across that flip.
+ */
+function buildLocalItemsById(
+  items: ActivityListItem[],
+): Map<string, ActivityListItem> {
+  const byId = new Map<string, ActivityListItem>();
+  for (const item of items) {
+    if (item.raw?.type !== 'localTransaction') {
+      continue;
+    }
+    const { primaryTransaction, initialTransaction, transactions } =
+      item.raw.data;
+    const ids = [
+      primaryTransaction?.id,
+      initialTransaction?.id,
+      ...(transactions?.map((transaction) => transaction.id) ?? []),
+    ];
+    for (const id of ids) {
+      const normalizedId = id?.toLowerCase();
+      if (normalizedId && !byId.has(normalizedId)) {
+        byId.set(normalizedId, item);
+      }
+    }
+  }
+  return byId;
 }
 
 function filterByChain(
@@ -105,6 +141,10 @@ export function useActivityDetailsItem(
     () => buildItemsByHash(filterByChain(localActivityItems, chainId)),
     [localActivityItems, chainId],
   );
+  const localById = useMemo(
+    () => buildLocalItemsById(filterByChain(localActivityItems, chainId)),
+    [localActivityItems, chainId],
+  );
   const apiByHash = useMemo(
     () => buildItemsByHash(filterByChain(confirmedEvmItems, chainId)),
     [confirmedEvmItems, chainId],
@@ -131,7 +171,7 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
-    const localItem = localByHash.get(id);
+    const localItem = localByHash.get(id) ?? localById.get(id);
     const apiItem = apiByHash.get(id);
     const nonEvmItem = nonEvmByHash.get(id);
     const preloadedResolvedItem = preloadedByIdentifier.get(id);
@@ -172,6 +212,7 @@ export function useActivityDetailsItem(
   }, [
     txIdentifier,
     localByHash,
+    localById,
     apiByHash,
     nonEvmByHash,
     preloadedByIdentifier,
