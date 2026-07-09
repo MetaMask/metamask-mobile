@@ -96,6 +96,7 @@ e2e_smoke_infra:
   - 'tests/page-objects/**'
   - 'tests/selectors/**'
   - 'tests/locators/**'
+  - 'tests/framework/**'
 
 all_changes:
   - '**'

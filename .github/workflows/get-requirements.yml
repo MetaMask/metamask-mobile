@@ -227,7 +227,7 @@ jobs:
               echo "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR"
             elif [[ "$E2E_SMOKE_INFRA_COUNT" -gt 0 ]]; then
               RUN_APPIUM_IOS=true
-              echo "-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators)"
+              echo "-> RUN_APPIUM_IOS=true due to e2e smoke infra changes (page-objects/selectors/locators/framework)"
             fi
           fi
 
