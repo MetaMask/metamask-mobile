@@ -14,6 +14,9 @@ import {
   /// BEGIN:ONLY_INCLUDE_IF(tron)
   isTronAccount,
   /// END:ONLY_INCLUDE_IF
+  /// BEGIN:ONLY_INCLUDE_IF(stellar)
+  isStellarAccount,
+  /// END:ONLY_INCLUDE_IF
 } from '../../../../../core/Multichain/utils';
 import { type RecipientType } from '../../components/UI/recipient';
 import { useSendContext } from '../../context/send-context';
@@ -31,6 +34,9 @@ export const useAccounts = (): RecipientType[] => {
     /// END:ONLY_INCLUDE_IF
     /// BEGIN:ONLY_INCLUDE_IF(tron)
     isTronSendType,
+    /// END:ONLY_INCLUDE_IF
+    /// BEGIN:ONLY_INCLUDE_IF(stellar)
+    isStellarSendType,
     /// END:ONLY_INCLUDE_IF
   } = useSendType();
 
@@ -60,6 +66,11 @@ export const useAccounts = (): RecipientType[] => {
         return isTronAccount(account);
       }
       /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(stellar)
+      if (isStellarSendType) {
+        return isStellarAccount(account);
+      }
+      /// END:ONLY_INCLUDE_IF
       return false;
     },
     [
@@ -71,6 +82,9 @@ export const useAccounts = (): RecipientType[] => {
       /// END:ONLY_INCLUDE_IF
       /// BEGIN:ONLY_INCLUDE_IF(tron)
       isTronSendType,
+      /// END:ONLY_INCLUDE_IF
+      /// BEGIN:ONLY_INCLUDE_IF(stellar)
+      isStellarSendType,
       /// END:ONLY_INCLUDE_IF
       from,
     ],

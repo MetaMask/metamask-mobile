@@ -123,6 +123,15 @@ export const TRENDING_NETWORKS_LIST: ProcessedNetwork[] = [
       chainId: NetworkToCaipChainId.ZKSYNC_ERA,
     }),
   },
+  // TODO: re-enable when Trending API is resolved to have sep41 to trustline asset ID
+  // Otherwise the icon and name is missing
+  //   {
+  //     id: NetworkToCaipChainId.STELLAR,
+  //     name: 'Stellar',
+  //     caipChainId: NetworkToCaipChainId.STELLAR,
+  //     isSelected: false,
+  //     imageSource: getNetworkImageSource({ chainId: NetworkToCaipChainId.STELLAR }),
+  //   },
 ];
 
 /**
