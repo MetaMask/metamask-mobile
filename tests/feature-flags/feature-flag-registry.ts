@@ -3334,6 +3334,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     },
     status: FeatureFlagStatus.Active,
   },
+  earnMoneyParallaxAnimationEnabled: {
+    name: 'earnMoneyParallaxAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
 
   earnMoneyVaultApyControl: {
     name: 'earnMoneyVaultApyControl',
@@ -3924,6 +3931,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsShowFullAssetNames: {
+    name: 'perpsShowFullAssetNames',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.2.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsPayWithAnyTokenAllowlistAssets: {
     name: 'perpsPayWithAnyTokenAllowlistAssets',
     type: FeatureFlagType.Remote,
@@ -4371,6 +4389,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.57.0',
       enabled: true,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  rewardsFirstPredictOnUsEnabled: {
+    name: 'rewardsFirstPredictOnUsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -5417,6 +5443,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
       search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  tradeTO880AbtestOnboardingInterestQuestion: {
+    name: 'tradeTO880AbtestOnboardingInterestQuestion',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: { type: 'percentage_rollout', value: 0.75 },
+      },
+      {
+        name: 'treatment',
+        scope: { type: 'percentage_rollout', value: 1.0 },
+      },
+    ],
     status: FeatureFlagStatus.Active,
   },
 

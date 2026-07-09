@@ -44,6 +44,8 @@ import {
 import {
   createApiKey,
   encodeErc20Transfer,
+  fetchCarouselFromPolymarketApi,
+  fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
   fetchRelatedTagsFromPolymarketApi,
@@ -83,7 +85,7 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../../util/analytics/analytics', () => ({
-  analytics: { identify: jest.fn() },
+  analytics: { identify: jest.fn(), trackEvent: jest.fn() },
 }));
 
 jest.mock('../../../../../util/transactions', () => ({
@@ -107,6 +109,7 @@ jest.mock('./utils', () => {
     createApiKey: jest.fn(),
     encodeErc20Transfer: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
+    fetchChildEventsFromGammaApi: jest.fn(),
     fetchEventsFromPolymarketApi: jest.fn(),
     fetchMarketsFromPolymarketApi: jest.fn(),
     fetchRelatedTagsFromPolymarketApi: jest.fn(),
@@ -197,6 +200,7 @@ jest.mock('./preflight/withdraw', () => ({
 }));
 
 const mockAnalyticsIdentify = jest.mocked(analytics.identify);
+const mockAnalyticsTrackEvent = jest.mocked(analytics.trackEvent);
 const mockComputeProxyAddress = jest.mocked(computeProxyAddress);
 const mockCreateApiKey = jest.mocked(createApiKey);
 const mockExecuteDepositWalletBatch = jest.mocked(executeDepositWalletBatch);
@@ -210,6 +214,12 @@ const mockEncodeErc20Transfer = jest.mocked(encodeErc20Transfer);
 const mockGenerateTransferData = jest.mocked(generateTransferData);
 const mockFetchEventsFromPolymarketApi = jest.mocked(
   fetchEventsFromPolymarketApi,
+);
+const mockFetchCarouselFromPolymarketApi = jest.mocked(
+  fetchCarouselFromPolymarketApi,
+);
+const mockFetchChildEventsFromGammaApi = jest.mocked(
+  fetchChildEventsFromGammaApi,
 );
 const mockFetchMarketsFromPolymarketApi = jest.mocked(
   fetchMarketsFromPolymarketApi,
@@ -406,6 +416,133 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
+    it('adds World Cup child markets to the original feed event before parsing', async () => {
+      const provider = createProvider({
+        extendedSportsMarketsLeagues: ['fifwc'],
+        enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
+      });
+      const moneylineMarket = {
+        id: 'moneyline-market',
+        sportsMarketType: 'moneyline',
+      };
+      const teamToAdvanceMarket = {
+        id: 'team-to-advance-market',
+        sportsMarketType: 'soccer_team_to_advance',
+      };
+      const parentEvent = {
+        id: 'parent-event',
+        title: 'Feed title to preserve',
+        slug: 'fifwc-usa-can-2026-06-12',
+        tags: [
+          { id: 'games', label: 'Games', slug: 'games' },
+          {
+            id: 'world-cup',
+            label: 'World Cup',
+            slug: 'fifa-world-cup',
+          },
+        ],
+        markets: [moneylineMarket],
+      };
+      const fetchedParentEvent = {
+        ...parentEvent,
+        title: 'Fetched parent title should not replace feed title',
+        markets: [],
+      };
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: parentEvent.id,
+        markets: [teamToAdvanceMarket],
+      };
+      const markets = [
+        {
+          id: 'market-1',
+          outcomes: [{ id: 'team-to-advance-outcome' }],
+        },
+      ];
+
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: [parentEvent],
+        category: 'trending',
+        nextCursor: null,
+      } as never);
+      mockFetchChildEventsFromGammaApi.mockResolvedValue([
+        fetchedParentEvent,
+        childEvent,
+      ] as never);
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.getMarkets({ category: 'trending' }),
+      ).resolves.toEqual({
+        markets,
+        nextCursor: null,
+      });
+      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+        parentEventId: parentEvent.id,
+      });
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            id: parentEvent.id,
+            title: parentEvent.title,
+            markets: [moneylineMarket, teamToAdvanceMarket],
+          }),
+        ],
+        expect.any(Object),
+      );
+    });
+
+    it('does not resolve World Cup child feed events into duplicate parent cards', async () => {
+      const provider = createProvider({
+        extendedSportsMarketsLeagues: ['fifwc'],
+        enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
+      });
+      const childFeedEvent = {
+        id: 'child-event',
+        parentEventId: 'parent-event',
+        slug: 'fifwc-usa-can-2026-06-12',
+        tags: [
+          { id: 'games', label: 'Games', slug: 'games' },
+          {
+            id: 'world-cup',
+            label: 'World Cup',
+            slug: 'fifa-world-cup',
+          },
+        ],
+        markets: [
+          {
+            id: 'quarterfinals-market',
+            sportsMarketType: 'soccer_team_to_reach_quarterfinals',
+          },
+        ],
+      };
+      const markets = [
+        {
+          id: 'child-market',
+          outcomes: [{ id: 'quarterfinals-outcome' }],
+        },
+      ];
+
+      mockFetchEventsFromPolymarketApi.mockResolvedValue({
+        events: [childFeedEvent],
+        category: 'trending',
+        nextCursor: null,
+      } as never);
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.getMarkets({ category: 'trending' }),
+      ).resolves.toEqual({
+        markets,
+        nextCursor: null,
+      });
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        [childFeedEvent],
+        expect.any(Object),
+      );
+    });
+
     it('lists markets from keyset events with normalized shape', async () => {
       const provider = createProvider();
       const events = [{ id: 'event-1' }];
@@ -545,6 +682,38 @@ describe('PolymarketProvider', () => {
         markets: [],
         nextCursor: null,
       });
+    });
+
+    it('prefers team-to-advance outcomes for World Cup carousel markets', async () => {
+      const provider = createProvider();
+      const moneylineOutcome = {
+        id: 'moneyline',
+        sportsMarketType: 'moneyline',
+      };
+      const teamToAdvanceOutcome = {
+        id: 'team-to-advance',
+        sportsMarketType: 'soccer_team_to_advance',
+      };
+      const markets = [
+        {
+          id: 'market-1',
+          status: 'open',
+          game: { league: 'fifwc' },
+          outcomes: [moneylineOutcome, teamToAdvanceOutcome],
+        },
+      ];
+
+      mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+        { event: { id: 'event-1', ended: false } },
+      ] as never);
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(provider.getCarouselMarkets()).resolves.toEqual([
+        {
+          ...markets[0],
+          outcomes: [teamToAdvanceOutcome],
+        },
+      ]);
     });
 
     it('fetches market series from keyset endpoint', async () => {
@@ -1359,6 +1528,16 @@ describe('PolymarketProvider', () => {
     expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
       [UserProfileProperty.CREATED_POLYMARKET_ACCOUNT_VIA_MM]: true,
     });
+    const walletCreationEvent = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .find(
+        (event) =>
+          event?.properties?.transaction_type ===
+            'mm_predict_wallet_creation' &&
+          event?.properties?.status === 'succeeded',
+      );
+    expect(walletCreationEvent).toBeDefined();
+    expect(walletCreationEvent?.properties?.entry_point).toBe('background');
     expect(
       mockSyncDepositWalletCollateralBalanceAllowance,
     ).not.toHaveBeenCalled();
@@ -1381,6 +1560,64 @@ describe('PolymarketProvider', () => {
       transactionID: 'batch-1',
       requireCompletion: true,
     });
+  });
+
+  it('tracks failed wallet creation when the relayer create request fails', async () => {
+    const provider = createProvider();
+    mockIsSmartContractAddress.mockResolvedValueOnce(false);
+    mockRequestDepositWalletCreate.mockRejectedValueOnce(
+      new Error('relayer unavailable'),
+    );
+
+    await expect(
+      provider.beforePublishDepositWalletDeposit({
+        transactionMeta: createDepositTransactionMeta({
+          recipient: depositWalletAddress,
+        }),
+        getSigner: () => signer,
+      }),
+    ).rejects.toThrow('relayer unavailable');
+
+    const walletCreationEvent = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .find(
+        (event) =>
+          event?.properties?.transaction_type ===
+            'mm_predict_wallet_creation' &&
+          event?.properties?.status === 'failed',
+      );
+    expect(walletCreationEvent).toBeDefined();
+    expect(walletCreationEvent?.properties?.failure_reason).toBe(
+      'relayer unavailable',
+    );
+  });
+
+  it('does not track failed wallet creation when waiting fails after the relayer accepted', async () => {
+    const provider = createProvider();
+    mockIsSmartContractAddress.mockResolvedValueOnce(false);
+    // The relayer accepted the create request, but local polling failed
+    // afterwards — the wallet may still have been created remotely.
+    mockWaitForDepositWalletTransaction.mockRejectedValueOnce(
+      new Error('polling timed out'),
+    );
+
+    await expect(
+      provider.beforePublishDepositWalletDeposit({
+        transactionMeta: createDepositTransactionMeta({
+          recipient: depositWalletAddress,
+        }),
+        getSigner: () => signer,
+      }),
+    ).rejects.toThrow('polling timed out');
+
+    const walletCreationEvents = mockAnalyticsTrackEvent.mock.calls
+      .map((call) => call[0])
+      .filter(
+        (event) =>
+          event?.properties?.transaction_type === 'mm_predict_wallet_creation',
+      );
+    expect(walletCreationEvents).toHaveLength(1);
+    expect(walletCreationEvents[0]?.properties?.status).toBe('succeeded');
   });
 
   it('waits for WALLET-CREATE polling before submitting allowance batch', async () => {

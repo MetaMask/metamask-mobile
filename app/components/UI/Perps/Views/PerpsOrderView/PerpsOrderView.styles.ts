@@ -40,42 +40,24 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 16,
       flex: 1,
       flexGrow: 1,
-      gap: 1,
     },
-    detailItemWrapper: {
-      paddingVertical: 12,
-    },
-    detailItem: {
+    inputGroupContainer: {
       backgroundColor: colors.background.section,
-      overflow: 'hidden',
-    },
-    detailItemFirst: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
-    },
-    detailItemOnly: {
       borderRadius: 12,
-    },
-    detailItemLast: {
-      borderBottomLeftRadius: 12,
-      borderBottomRightRadius: 12,
+      paddingHorizontal: 12,
+      overflow: 'hidden',
     },
     detailLeft: {
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
     },
-    slippageValueRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
     infoIcon: {
       marginLeft: 0,
-      padding: 10, // Increases touch target from 20x20 to 40x40 for better accessibility
-      marginRight: -6, // Compensate for padding to keep visual alignment
-      marginTop: -10, // Keep icon at same vertical position
-      marginBottom: -10, // Keep icon at same vertical position
+      padding: 10,
+      marginRight: -6,
+      marginTop: -10,
+      marginBottom: -10,
     },
     infoSection: {
       paddingHorizontal: 16,

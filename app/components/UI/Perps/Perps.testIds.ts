@@ -143,10 +143,15 @@ export const PerpsMarketListViewSelectorsIDs = {
   SEARCH_CLEAR_BUTTON: 'perps-market-list-search-bar-clear',
   SEARCH_BAR: 'perps-market-list-search-bar',
   NO_RESULTS: 'perps-market-list-no-results',
+  /** CTA button shown in the empty state (clear search or clear filter) */
+  EMPTY_STATE_CTA: 'perps-market-list-empty-state-cta',
+  /** Empty state shown when a category filter yields no results (no active search) */
+  NO_RESULTS_FILTER: 'perps-market-list-no-results-filter',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
   LIST_HEADER: 'perps-market-list-header',
   MARKET_LIST: 'perps-market-list',
   SORT_FILTERS: 'perps-market-list-sort-filters',
+  MARKET_COUNT: 'perps-market-list-market-count',
   WATCHLIST_TOGGLE: 'perps-market-list-watchlist-toggle',
   /** Star badge in the category row that filters to watchlisted markets */
   WATCHLIST_FILTER_BADGE: 'perps-market-list-sort-filters-categories-watchlist',
@@ -180,6 +185,8 @@ export const getPerpsMarketRowItemSelector = {
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}`,
   tokenLogo: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-token-logo`,
+  assetLabel: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-asset-label`,
   badge: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-badge`,
   addButton: (symbol: string) =>
@@ -263,6 +270,9 @@ export const PerpsHomeViewSelectorsIDs = {
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
   TOP_MOVERS_LOSERS_PILL: 'perps-home-top-movers-losers',
   TOP_MOVERS_LIST: 'perps-home-top-movers-list',
+  RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
+  RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
+  RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',

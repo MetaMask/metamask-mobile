@@ -15,6 +15,7 @@ import { sleep } from '../../app/util/testUtils';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
+import { PlaywrightElement } from './PlaywrightAdapter.ts';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -665,7 +666,25 @@ export default class Gestures {
    * @returns A Promise that resolves when the element has been successfully scrolled into view
    * @throws Will throw an error if the scroll operation fails after all retry attempts
    */
-  static async scrollToWebViewPort(elem: WebElement): Promise<void> {
+  static async scrollToWebViewPort(
+    elem: WebElement | Promise<PlaywrightElement>,
+  ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const el = await elem;
+      if (el instanceof PlaywrightElement) {
+        await Utilities.executeWithRetry(
+          async () => {
+            await el.scrollToView();
+          },
+          {
+            timeout: BASE_DEFAULTS.timeout,
+            description: 'scrollToWebViewPort()',
+          },
+        );
+        return;
+      }
+    }
+
     await Utilities.executeWithRetry(
       async () => {
         await (await elem).scrollToView();
