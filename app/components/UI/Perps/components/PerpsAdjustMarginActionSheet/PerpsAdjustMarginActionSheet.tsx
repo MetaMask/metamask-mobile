@@ -1,54 +1,19 @@
-import React, { useMemo, useCallback, useRef, useEffect } from 'react';
-import {
-  BottomSheet,
-  BottomSheetHeader,
-  BottomSheetRef,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  ListItem,
-} from '@metamask/design-system-react-native';
+import React, { useMemo } from 'react';
+import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type {
   PerpsAdjustMarginActionSheetProps,
   AdjustMarginAction,
 } from './PerpsAdjustMarginActionSheet.types';
 import { PerpsAdjustMarginActionSheetSelectorsIDs } from '../../Perps.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
-
-interface ActionOption {
-  action: AdjustMarginAction;
-  label: string;
-  description: string;
-  iconName: IconName;
-  testID: string;
-}
+import PerpsActionSheet, {
+  type PerpsActionSheetOption,
+} from '../PerpsActionSheet';
 
 const PerpsAdjustMarginActionSheet: React.FC<
   PerpsAdjustMarginActionSheetProps
-> = ({
-  isVisible = true,
-  onClose,
-  onSelectAction,
-  sheetRef: externalSheetRef,
-  testID,
-}) => {
-  const surfaceClass = useElevatedSurface();
-  const internalSheetRef = useRef<BottomSheetRef>(null);
-  const sheetRef = externalSheetRef || internalSheetRef;
-
-  useEffect(() => {
-    if (isVisible && !externalSheetRef) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible, externalSheetRef, sheetRef]);
-
-  const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(onClose);
-  }, [onClose, sheetRef]);
-
-  const actionOptions: ActionOption[] = useMemo(
+> = ({ isVisible = true, onClose, onSelectAction, sheetRef, testID }) => {
+  const actionOptions: PerpsActionSheetOption<AdjustMarginAction>[] = useMemo(
     () => [
       {
         action: 'add_margin',
@@ -68,42 +33,16 @@ const PerpsAdjustMarginActionSheet: React.FC<
     [],
   );
 
-  const handleActionPress = useCallback(
-    (action: AdjustMarginAction) => {
-      onSelectAction(action);
-    },
-    [onSelectAction],
-  );
-
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={!externalSheetRef ? onClose : undefined}
-      onClose={externalSheetRef ? onClose : undefined}
-      twClassName={surfaceClass}
+    <PerpsActionSheet
+      isVisible={isVisible}
+      onClose={onClose}
+      title={strings('perps.adjust_margin.title')}
+      options={actionOptions}
+      onSelectAction={onSelectAction}
+      sheetRef={sheetRef}
       testID={testID}
-    >
-      <BottomSheetHeader onClose={handleClose}>
-        {strings('perps.adjust_margin.title')}
-      </BottomSheetHeader>
-      {actionOptions.map((option) => (
-        <ListItem
-          key={option.action}
-          isInteractive
-          avatar={
-            <Icon
-              name={option.iconName}
-              size={IconSize.Md}
-              color={IconColor.IconDefault}
-            />
-          }
-          title={option.label}
-          description={option.description}
-          onPress={() => handleActionPress(option.action)}
-          testID={option.testID}
-        />
-      ))}
-    </BottomSheet>
+    />
   );
 };
 
