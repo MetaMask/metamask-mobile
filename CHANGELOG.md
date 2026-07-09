@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded `@metamask/notification-services-controller` to the v4 Notification API preview and migrated on-chain notification discriminator checks to `isOnChainNotification()`.
+
 ## [8.1.0]
 
 ### Added
