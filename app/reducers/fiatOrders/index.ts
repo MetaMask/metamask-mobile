@@ -86,6 +86,10 @@ export const setFiatProviderScope = (scope: FiatProviderScope) => ({
   type: ACTIONS.FIAT_SET_PROVIDER_SCOPE,
   payload: scope,
 });
+export const setDirectMoneyMusdForceOff = (forceOff: boolean) => ({
+  type: ACTIONS.FIAT_SET_DIRECT_MONEY_MUSD_FORCE_OFF,
+  payload: forceOff,
+});
 export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
   type: ACTIONS.FIAT_ADD_CUSTOM_ID_DATA,
   payload: customIdData,
@@ -236,6 +240,16 @@ export const selectHasAgreedTransakNativePolicy = (state: RootState): boolean =>
 export const selectFiatProviderScopeSetting = (
   state: RootState,
 ): FiatProviderScope => state.fiatOrders.providerScope ?? 'off';
+
+/**
+ * Raw non-production dev override for the core `directMoneyMusdEnabled` route
+ * decision. Defaults to `false` (use the remote LaunchDarkly value) when unset.
+ * The production hard-off guard is applied by
+ * `getEffectiveDirectMoneyMusdForceOff` in the Engine remote-feature-flag utils,
+ * not here.
+ */
+export const selectDirectMoneyMusdForceOffSetting = (state: RootState): boolean =>
+  state.fiatOrders.directMoneyMusdForceOff ?? false;
 
 export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   const providers = orders
@@ -443,6 +457,12 @@ const fiatOrderReducer: (
       return {
         ...state,
         providerScope: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_DIRECT_MONEY_MUSD_FORCE_OFF: {
+      return {
+        ...state,
+        directMoneyMusdForceOff: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_REGION_AGG: {

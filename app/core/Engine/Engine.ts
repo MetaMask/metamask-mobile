@@ -174,9 +174,8 @@ import { geolocationControllerInit } from './controllers/geolocation-controller'
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
-// TEMP: RC test for ETH -> mUSD deposit, revert before merge
 import {
-  shouldForceDirectMoneyMusdOff,
+  getEffectiveDirectMoneyMusdForceOff,
   withDirectMoneyMusdOff,
 } from './controllers/remote-feature-flag-controller/utils';
 import { loggingControllerInit } from './controllers/logging-controller-init';
@@ -904,14 +903,16 @@ export class Engine {
         .catch((error) => Logger.log('Feature flags update failed: ', error));
     }
 
-    // TEMP: RC test for ETH -> mUSD deposit, revert before merge.
-    // Force confirmations_pay_fiat.directMoneyMusdEnabled OFF on non-production
-    // builds so core routes the Money Account fiat deposit through the
-    // buy-ETH-then-convert path instead of mUSD-direct. Re-applied on every
-    // remote flag refresh; the reference-equality guard in withDirectMoneyMusdOff
-    // avoids redundant updates and re-entrant stateChange loops.
+    // Non-production dev override for the direct-mUSD vs buy-ETH fiat route.
+    // When the persisted HeadlessPlayground toggle is on (production is always
+    // hard-off; see getEffectiveDirectMoneyMusdForceOff), force
+    // confirmations_pay_fiat.directMoneyMusdEnabled OFF so core routes the Money
+    // Account fiat deposit through the buy-ETH-then-convert path instead of
+    // mUSD-direct. Re-applied on every remote flag refresh; the
+    // reference-equality guard in withDirectMoneyMusdOff avoids redundant updates
+    // and re-entrant stateChange loops.
     const applyDirectMoneyMusdRcOverride = () => {
-      if (!shouldForceDirectMoneyMusdOff()) {
+      if (!getEffectiveDirectMoneyMusdForceOff(store.getState())) {
         return;
       }
       const current = remoteFeatureFlagController.state.remoteFeatureFlags;
@@ -932,6 +933,34 @@ export class Engine {
       'RemoteFeatureFlagController:stateChange',
       applyDirectMoneyMusdRcOverride,
     );
+
+    // Re-evaluate the override when the persisted dev toggle flips at runtime.
+    // Turning it ON clobbers directMoneyMusdEnabled immediately; turning it OFF
+    // re-fetches the remote flags so the real LaunchDarkly value is restored
+    // (the override only mutates the in-memory copy).
+    let previousDirectMoneyMusdForceOff = getEffectiveDirectMoneyMusdForceOff(
+      store.getState(),
+    );
+    store.subscribe(() => {
+      const currentDirectMoneyMusdForceOff = getEffectiveDirectMoneyMusdForceOff(
+        store.getState(),
+      );
+      if (
+        currentDirectMoneyMusdForceOff === previousDirectMoneyMusdForceOff
+      ) {
+        return;
+      }
+      previousDirectMoneyMusdForceOff = currentDirectMoneyMusdForceOff;
+      if (currentDirectMoneyMusdForceOff) {
+        applyDirectMoneyMusdRcOverride();
+      } else {
+        remoteFeatureFlagController
+          .updateRemoteFeatureFlags()
+          .catch((error) =>
+            Logger.log('Feature flags refresh after toggle failed: ', error),
+          );
+      }
+    });
 
     let previousBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
     store.subscribe(() => {

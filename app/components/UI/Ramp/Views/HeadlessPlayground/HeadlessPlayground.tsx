@@ -41,7 +41,11 @@ import {
 } from '../../headless';
 import type { Quote } from '../../types';
 import { RAMP_SURFACE } from '../../types/depositAnalytics';
-import { setFiatProviderScope } from '../../../../../reducers/fiatOrders';
+import {
+  setFiatProviderScope,
+  setDirectMoneyMusdForceOff,
+  selectDirectMoneyMusdForceOffSetting,
+} from '../../../../../reducers/fiatOrders';
 import { getEffectiveProviderScope } from '../../utils/providerScope';
 import type { FiatProviderScope } from '../../../../../reducers/fiatOrders/types';
 
@@ -295,6 +299,9 @@ function HeadlessPlayground() {
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
   const providerScope = useSelector(getEffectiveProviderScope);
+  const directMoneyMusdForceOff = useSelector(
+    selectDirectMoneyMusdForceOffSetting,
+  );
 
   // Setters live in the controller hook — `useHeadlessBuy` is read-only on
   // purpose. The playground simulates an external consumer pre-seeding
@@ -762,6 +769,55 @@ function HeadlessPlayground() {
                         {scope}
                       </Button>
                     ))}
+                  </View>
+                </View>
+
+                <View style={styles.accordionItem}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {strings(
+                      'app_settings.fiat_on_ramp.headless_playground.direct_musd_label',
+                    )}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyXs}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings(
+                      'app_settings.fiat_on_ramp.headless_playground.direct_musd_hint',
+                    )}
+                  </Text>
+                  <View style={styles.actionsRow}>
+                    <Button
+                      variant={
+                        directMoneyMusdForceOff
+                          ? ButtonVariant.Secondary
+                          : ButtonVariant.Primary
+                      }
+                      onPress={() =>
+                        dispatch(setDirectMoneyMusdForceOff(false))
+                      }
+                      testID="headless-playground-direct-musd-use-remote"
+                    >
+                      {strings(
+                        'app_settings.fiat_on_ramp.headless_playground.direct_musd_use_remote',
+                      )}
+                    </Button>
+                    <Button
+                      variant={
+                        directMoneyMusdForceOff
+                          ? ButtonVariant.Primary
+                          : ButtonVariant.Secondary
+                      }
+                      onPress={() => dispatch(setDirectMoneyMusdForceOff(true))}
+                      testID="headless-playground-direct-musd-force-eth"
+                    >
+                      {strings(
+                        'app_settings.fiat_on_ramp.headless_playground.direct_musd_force_eth',
+                      )}
+                    </Button>
                   </View>
                 </View>
 

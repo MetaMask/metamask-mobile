@@ -246,6 +246,28 @@ describe('HeadlessPlayground', () => {
     });
   });
 
+  describe('direct mUSD deposit dev toggle', () => {
+    it('renders a use-remote / force-ETH-fallback control', () => {
+      render(HeadlessPlayground);
+      expect(
+        screen.getByTestId('headless-playground-direct-musd-use-remote'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('headless-playground-direct-musd-force-eth'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not crash when the force-ETH-fallback option is pressed', () => {
+      render(HeadlessPlayground);
+      fireEvent.press(
+        screen.getByTestId('headless-playground-direct-musd-force-eth'),
+      );
+      expect(
+        screen.getByTestId('headless-playground-direct-musd-force-eth'),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('Selected values section', () => {
     it('is collapsed by default — only the title is visible', () => {
       render(HeadlessPlayground);

@@ -61,6 +61,8 @@ import fiatOrderReducer, {
   selectHasAgreedTransakNativePolicy,
   setFiatProviderScope,
   selectFiatProviderScopeSetting,
+  setDirectMoneyMusdForceOff,
+  selectDirectMoneyMusdForceOffSetting,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -426,6 +428,19 @@ describe('fiatOrderReducer', () => {
     const stateOff = fiatOrderReducer(stateInApp, setFiatProviderScope('off'));
     expect(stateInApp.providerScope).toEqual('in-app');
     expect(stateOff.providerScope).toEqual('off');
+  });
+
+  it('sets the direct mUSD force-off dev override', () => {
+    const stateOn = fiatOrderReducer(
+      initialState,
+      setDirectMoneyMusdForceOff(true),
+    );
+    const stateOffAgain = fiatOrderReducer(
+      stateOn,
+      setDirectMoneyMusdForceOff(false),
+    );
+    expect(stateOn.directMoneyMusdForceOff).toBe(true);
+    expect(stateOffAgain.directMoneyMusdForceOff).toBe(false);
   });
 
   it('sets hasAgreedTransakNativePolicy to true', () => {
@@ -945,6 +960,21 @@ describe('selectors', () => {
         fiatOrders: { providerScope: 'in-app' },
       });
       expect(selectFiatProviderScopeSetting(state)).toBe('in-app');
+    });
+  });
+
+  describe('selectDirectMoneyMusdForceOffSetting', () => {
+    it('defaults to false when unset', () => {
+      expect(selectDirectMoneyMusdForceOffSetting(initialRootState)).toBe(
+        false,
+      );
+    });
+
+    it('returns the stored direct mUSD force-off setting', () => {
+      const state = merge({}, initialRootState, {
+        fiatOrders: { directMoneyMusdForceOff: true },
+      });
+      expect(selectDirectMoneyMusdForceOffSetting(state)).toBe(true);
     });
   });
 

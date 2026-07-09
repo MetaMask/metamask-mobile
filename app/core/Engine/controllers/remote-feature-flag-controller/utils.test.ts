@@ -2,10 +2,11 @@ import {
   EnvironmentType,
   DistributionType,
 } from '@metamask/remote-feature-flag-controller';
+import type { RootState } from '../../../../reducers';
 import {
   getFeatureFlagAppEnvironment,
   getFeatureFlagAppDistribution,
-  shouldForceDirectMoneyMusdOff,
+  getEffectiveDirectMoneyMusdForceOff,
   withDirectMoneyMusdOff,
 } from './utils';
 
@@ -86,31 +87,39 @@ describe('RemoteFeatureFlagController utils', () => {
     });
   });
 
-  // TEMP: RC test for ETH -> mUSD deposit, revert before merge
-  describe('shouldForceDirectMoneyMusdOff', () => {
+  describe('getEffectiveDirectMoneyMusdForceOff', () => {
     const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
 
     afterAll(() => {
       process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
     });
 
-    it('returns true on production builds (hardcoded for US-NY test)', () => {
+    const buildState = (directMoneyMusdForceOff?: boolean) =>
+      ({
+        fiatOrders: { directMoneyMusdForceOff },
+      }) as unknown as RootState;
+
+    it('returns false on production builds regardless of the persisted setting', () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
-      expect(shouldForceDirectMoneyMusdOff()).toBe(true);
+      expect(getEffectiveDirectMoneyMusdForceOff(buildState(true))).toBe(false);
     });
 
-    it('returns true on rc builds', () => {
+    it('returns the persisted setting on rc builds', () => {
       process.env.METAMASK_ENVIRONMENT = 'rc';
-      expect(shouldForceDirectMoneyMusdOff()).toBe(true);
+      expect(getEffectiveDirectMoneyMusdForceOff(buildState(true))).toBe(true);
+      expect(getEffectiveDirectMoneyMusdForceOff(buildState(false))).toBe(
+        false,
+      );
     });
 
-    it('returns true when the environment is unset', () => {
-      process.env.METAMASK_ENVIRONMENT = '';
-      expect(shouldForceDirectMoneyMusdOff()).toBe(true);
+    it('defaults to false on non-production builds when the setting is unset', () => {
+      process.env.METAMASK_ENVIRONMENT = 'dev';
+      expect(getEffectiveDirectMoneyMusdForceOff(buildState(undefined))).toBe(
+        false,
+      );
     });
   });
 
-  // TEMP: RC test for ETH -> mUSD deposit, revert before merge
   describe('withDirectMoneyMusdOff', () => {
     it('forces directMoneyMusdEnabled to false while preserving other keys', () => {
       const input = {

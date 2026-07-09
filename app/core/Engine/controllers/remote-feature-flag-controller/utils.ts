@@ -3,6 +3,8 @@ import {
   EnvironmentType,
 } from '@metamask/remote-feature-flag-controller';
 import type { Json } from '@metamask/utils';
+import type { RootState } from '../../../../reducers';
+import { selectDirectMoneyMusdForceOffSetting } from '../../../../reducers/fiatOrders';
 
 // Points to the LaunchDarkly environment based on the METAMASK_ENVIRONMENT environment variable
 export const getFeatureFlagAppEnvironment = () => {
@@ -46,14 +48,24 @@ export const getFeatureFlagAppDistribution = () => {
 export const isRemoteFeatureFlagOverrideActivated =
   process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true';
 
-// TEMP: US-NY test hardcode for ETH -> mUSD deposit, revert before merge.
-// Hardcoded to true so directMoneyMusdEnabled is forced OFF unconditionally,
-// regardless of build type or the remote LaunchDarkly value. This guarantees
-// the buy-ETH-then-convert fallback path so US-NY (no mUSD provider) can be
-// tested on an RC build.
-export const shouldForceDirectMoneyMusdOff = () => true;
+// Non-production dev override for the direct-mUSD vs buy-ETH fiat route.
+// Reads the persisted HeadlessPlayground toggle
+// (`selectDirectMoneyMusdForceOffSetting`), but production is hard-gated OFF so
+// the real LaunchDarkly value always wins there regardless of the persisted
+// setting. Mirrors the provider-scope dev-toggle pattern
+// (`getEffectiveProviderScope`). When this returns true, the Engine forces
+// `confirmations_pay_fiat.directMoneyMusdEnabled` OFF so the Money Account fiat
+// deposit takes the buy-ETH-then-convert fallback path (needed for regions
+// without an mUSD provider, e.g. New York).
+export const getEffectiveDirectMoneyMusdForceOff = (
+  state: RootState,
+): boolean => {
+  if (getFeatureFlagAppEnvironment() === EnvironmentType.Production) {
+    return false;
+  }
+  return selectDirectMoneyMusdForceOffSetting(state);
+};
 
-// TEMP: RC test for ETH -> mUSD deposit, revert before merge.
 // Core (`@metamask/transaction-pay-controller` `getDirectMoneyMusdEnabled`) reads
 // `remoteFeatureFlags.confirmations_pay_fiat.directMoneyMusdEnabled === true`.
 // On RC that flag is currently true, which routes the Money Account fiat deposit

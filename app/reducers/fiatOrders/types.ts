@@ -37,6 +37,7 @@ import {
   removeFiatSellTxHash,
   setHasAgreedTransakNativePolicy,
   setFiatProviderScope,
+  setDirectMoneyMusdForceOff,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -122,6 +123,17 @@ export interface FiatOrdersState {
    * state predating this field rehydrates to the `off` default via the selector.
    */
   providerScope?: FiatProviderScope;
+  /**
+   * Non-production dev override for the core `directMoneyMusdEnabled` route
+   * decision. When `true`, the Engine forces
+   * `remoteFeatureFlags.confirmations_pay_fiat.directMoneyMusdEnabled` OFF so the
+   * Money Account fiat deposit takes the buy-ETH-then-convert fallback path
+   * instead of mUSD-direct. Optional so persisted state predating this field
+   * rehydrates to the `false` (use-remote-value) default via the selector. The
+   * production hard-off guard is applied by `getEffectiveDirectMoneyMusdForceOff`
+   * in the Engine remote-feature-flag utils, not here.
+   */
+  directMoneyMusdForceOff?: boolean;
 }
 
 export const ACTIONS = {
@@ -153,6 +165,7 @@ export const ACTIONS = {
   FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY:
     'FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY',
   FIAT_SET_PROVIDER_SCOPE: 'FIAT_SET_PROVIDER_SCOPE',
+  FIAT_SET_DIRECT_MONEY_MUSD_FORCE_OFF: 'FIAT_SET_DIRECT_MONEY_MUSD_FORCE_OFF',
 } as const;
 
 export type Action =
@@ -180,7 +193,8 @@ export type Action =
   | ReturnType<typeof setFiatSellTxHash>
   | ReturnType<typeof removeFiatSellTxHash>
   | ReturnType<typeof setHasAgreedTransakNativePolicy>
-  | ReturnType<typeof setFiatProviderScope>;
+  | ReturnType<typeof setFiatProviderScope>
+  | ReturnType<typeof setDirectMoneyMusdForceOff>;
 
 export type Region = Country & State;
 
