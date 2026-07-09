@@ -200,6 +200,41 @@ describe('MoneyPotentialEarnings', () => {
     ).toHaveTextContent('•'.repeat(9));
   });
 
+  it('renders the real headline total and projected amounts when privacyMode is false', () => {
+    // USDC $5000 x 4% APY x 1 year = $200.00
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.04}
+        tokens={[MOCK_USDC]}
+        privacyMode={false}
+      />,
+    );
+
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TOTAL)).toHaveTextContent(
+      '$5000.00',
+    );
+    expect(
+      getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+    ).toHaveTextContent('+$200.00');
+  });
+
+  it('masks the headline total and projected amounts when privacyMode is true', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.04}
+        tokens={[MOCK_USDC]}
+        privacyMode
+      />,
+    );
+
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TOTAL)).toHaveTextContent(
+      '•'.repeat(9),
+    );
+    expect(
+      getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+    ).toHaveTextContent('•'.repeat(6));
+  });
+
   it('excludes tokens with zero balance', () => {
     const zeroBalanceToken = makeToken({
       name: 'Zero',

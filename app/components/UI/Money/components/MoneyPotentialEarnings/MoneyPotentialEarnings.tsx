@@ -10,6 +10,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -134,20 +136,30 @@ const MoneyPotentialEarnings = ({
           >
             {`${strings(
               'money.potential_earnings.description_with_amounts_prefix',
-              {
-                total: moneyFormatFiat(
-                  new BigNumber(totalAssetsFiat),
-                  currency,
-                ),
-              },
             )} `}
-            <Text
+            <SensitiveText
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              testID={MoneyPotentialEarningsTestIds.TOTAL}
+            >
+              {moneyFormatFiat(new BigNumber(totalAssetsFiat), currency)}
+            </SensitiveText>
+            {` ${strings(
+              'money.potential_earnings.description_with_amounts_middle',
+            )} `}
+            <SensitiveText
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={MoneyPotentialEarningsTestIds.PROJECTED}
             >
               {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
-            </Text>
+            </SensitiveText>
             {` ${strings(
               'money.potential_earnings.description_with_amounts_suffix',
             )}`}
