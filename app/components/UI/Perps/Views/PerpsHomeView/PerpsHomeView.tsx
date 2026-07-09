@@ -513,6 +513,14 @@ const PerpsHomeView = ({
     [perpsNavigation],
   );
 
+  const handleRecentlyAddedHeaderPress = useCallback(() => {
+    perpsNavigation.navigateToMarketList({
+      defaultMarketTypeFilter: 'new',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
+    });
+  }, [perpsNavigation, transactionActiveAbTests]);
+
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
     trackEvent(
@@ -844,6 +852,7 @@ const PerpsHomeView = ({
           <PerpsRecentlyAddedSection
             markets={recentlyAddedMarkets}
             onMarketPress={handleRecentlyAddedMarketPress}
+            onViewAllPress={handleRecentlyAddedHeaderPress}
           />
         ),
       },
@@ -886,6 +895,7 @@ const PerpsHomeView = ({
       isRecentlyAddedVisible,
       recentlyAddedMarkets,
       handleRecentlyAddedMarketPress,
+      handleRecentlyAddedHeaderPress,
       perpsMarkets,
       commoditiesMarkets,
       stocksMarkets,

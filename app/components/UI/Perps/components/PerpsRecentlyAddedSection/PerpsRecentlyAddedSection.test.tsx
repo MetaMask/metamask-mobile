@@ -9,8 +9,19 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     SectionDivider: () => <View testID="section-divider" />,
-    SectionHeader: ({ title, testID }: { title: string; testID?: string }) => (
-      <Text testID={testID}>{title}</Text>
+    SectionHeader: ({
+      title,
+      testID,
+      onPress,
+    }: {
+      title: string;
+      testID?: string;
+      isInteractive?: boolean;
+      onPress?: () => void;
+    }) => (
+      <Text testID={testID} onPress={onPress}>
+        {title}
+      </Text>
     ),
   };
 });
@@ -107,6 +118,24 @@ describe('PerpsRecentlyAddedSection', () => {
       expect(
         screen.getByTestId('perps-recently-added-tile-SOL'),
       ).toBeOnTheScreen();
+    });
+
+    it('calls onViewAllPress when the header is pressed', () => {
+      const onViewAllPress = jest.fn();
+
+      render(
+        <PerpsRecentlyAddedSection
+          markets={[createMarket()]}
+          onMarketPress={jest.fn()}
+          onViewAllPress={onViewAllPress}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER),
+      );
+
+      expect(onViewAllPress).toHaveBeenCalledTimes(1);
     });
 
     it('renders each market logo', () => {

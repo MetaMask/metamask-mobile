@@ -50,26 +50,18 @@ const PerpsRecentlyAddedTile: React.FC<{
     >
       <View style={styles.logoRow}>
         <PerpsTokenLogo symbol={market.symbol} size={32} />
-        {market.listedAt !== undefined && (
-          <Text
-            variant={TextVariant.BodyXS}
-            color={TextColor.Alternative}
-            style={styles.timeLabel}
-            numberOfLines={1}
-          >
-            {formatTimeSinceListing(market.listedAt)}
-          </Text>
-        )}
       </View>
 
+      <Text
+        variant={TextVariant.BodySMMedium}
+        color={TextColor.Default}
+        style={styles.name}
+        numberOfLines={1}
+      >
+        {assetLabel}
+      </Text>
+
       <View style={styles.priceRow}>
-        <Text
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Default}
-          numberOfLines={1}
-        >
-          {assetLabel}
-        </Text>
         <Text
           variant={TextVariant.BodyXS}
           color={TextColor.Default}
@@ -85,6 +77,17 @@ const PerpsRecentlyAddedTile: React.FC<{
           {market.change24hPercent}
         </Text>
       </View>
+
+      {market.listedAt !== undefined && (
+        <Text
+          variant={TextVariant.BodyXS}
+          color={TextColor.Alternative}
+          style={styles.timeLabel}
+          numberOfLines={1}
+        >
+          {formatTimeSinceListing(market.listedAt)}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -103,6 +106,7 @@ const PerpsRecentlyAddedTile: React.FC<{
 const PerpsRecentlyAddedSection: React.FC<PerpsRecentlyAddedSectionProps> = ({
   markets,
   onMarketPress,
+  onViewAllPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -114,6 +118,8 @@ const PerpsRecentlyAddedSection: React.FC<PerpsRecentlyAddedSectionProps> = ({
     <View testID={PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_SECTION}>
       <SectionHeader
         title={strings('perps.home.recently_added')}
+        isInteractive={Boolean(onViewAllPress)}
+        onPress={onViewAllPress}
         testID={PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER}
       />
       <ScrollView

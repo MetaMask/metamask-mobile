@@ -16,18 +16,21 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 12,
       backgroundColor: colors.background.muted,
       padding: 12,
-      gap: 8,
     },
     logoRow: {
+      marginBottom: 12,
+    },
+    name: {
+      marginBottom: 4,
+    },
+    priceRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      gap: 6,
     },
     timeLabel: {
       flexShrink: 1,
-    },
-    priceRow: {
-      gap: 2,
+      marginTop: 10,
     },
   });
 };

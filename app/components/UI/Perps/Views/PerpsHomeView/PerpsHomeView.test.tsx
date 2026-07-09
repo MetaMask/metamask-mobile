@@ -1404,4 +1404,37 @@ describe('PerpsHomeView', () => {
       expect(properties?.sections_displayed).toContain('recently_added');
     });
   });
+
+  describe('Recently Added header navigation', () => {
+    it('navigates to the market list filtered to new markets when the header is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(
+        getByTestId(PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER),
+      );
+
+      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+        defaultMarketTypeFilter: 'new',
+        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
+    });
+  });
 });
