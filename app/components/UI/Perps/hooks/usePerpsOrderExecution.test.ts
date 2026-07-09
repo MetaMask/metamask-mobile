@@ -393,6 +393,40 @@ describe('usePerpsOrderExecution', () => {
       );
     });
 
+    it('records a negative toast_position_delta_ms when the position renders before the toast', async () => {
+      // Monotonic clock: the stream render instant is captured inside placeOrder
+      // (before the await resolves) and the toast instant after it, so the
+      // signed delta is negative — a positive value would mean the position
+      // rendered AFTER the toast.
+      let clock = 1_000_000;
+      const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => {
+        clock += 10;
+        return clock;
+      });
+      try {
+        mockPlaceOrderSuccessWithRender();
+
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder(mockOrderParams);
+        });
+        await waitFor(() => {
+          expect(result.current.isPlacing).toBe(false);
+        });
+
+        const renderCall = mockEndTrace.mock.calls.find((c) =>
+          String(c[0]?.id ?? '').includes(
+            TraceName.PerpsPlaceOrderToPositionRendered,
+          ),
+        );
+        expect(renderCall).toBeDefined();
+        expect(renderCall?.[0]?.data?.toast_position_delta_ms).toBeLessThan(0);
+      } finally {
+        nowSpy.mockRestore();
+      }
+    });
+
     it('ends the span via the gesture fallback if the controller never returns', () => {
       jest.useFakeTimers();
       try {

@@ -48,10 +48,11 @@ jest.mock('../../../../store', () => ({
 }));
 
 // Keep the real CUF helpers (reconnect arms a real span) but spy on the
-// teardown clear so tests can assert it fires on hard disconnect only.
+// teardown clear and span end so tests can assert reconnect CUF lifecycle.
 jest.mock('../utils/perpsCufTrace', () => ({
   ...jest.requireActual('../utils/perpsCufTrace'),
   clearPendingPerpsCufTraces: jest.fn(),
+  endPerpsCufTrace: jest.fn(),
 }));
 
 // Mock selectors
@@ -116,12 +117,19 @@ import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
-import { clearPendingPerpsCufTraces } from '../utils/perpsCufTrace';
+import {
+  clearPendingPerpsCufTraces,
+  endPerpsCufTrace,
+} from '../utils/perpsCufTrace';
+import { TraceName } from '../../../../util/trace';
 
 const mockClearPendingPerpsCufTraces =
   clearPendingPerpsCufTraces as jest.MockedFunction<
     typeof clearPendingPerpsCufTraces
   >;
+const mockEndPerpsCufTrace = endPerpsCufTrace as jest.MockedFunction<
+  typeof endPerpsCufTrace
+>;
 import { TradingReadinessCache } from '@metamask/perps-controller';
 
 // Import PerpsConnectionManager after mocks are set up
@@ -1141,6 +1149,50 @@ describe('PerpsConnectionManager', () => {
 
       // Cleanup
       m.pendingReconnectPromise = null;
+    });
+  });
+
+  describe('performReconnection — CUF lifecycle', () => {
+    beforeEach(async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+      mockClearPendingPerpsCufTraces.mockClear();
+      mockEndPerpsCufTrace.mockClear();
+    });
+
+    it('abandons pending confirmation CUFs before arming the reconnect span', async () => {
+      const m = PerpsConnectionManager as unknown as {
+        performReconnection: () => Promise<void>;
+      };
+
+      await m.performReconnection().catch(() => undefined);
+
+      // The reconnect path (incl. NetInfo offline->online) must clear pending
+      // confirmation CUFs so a stale op can't be ended by the fresh delivery.
+      expect(mockClearPendingPerpsCufTraces).toHaveBeenCalled();
+    });
+
+    it('ends the reconnect span as a failure when reconnection throws', async () => {
+      mockPerpsController.init.mockRejectedValueOnce(
+        new Error('reconnect boom'),
+      );
+      const m = PerpsConnectionManager as unknown as {
+        performReconnection: () => Promise<void>;
+      };
+
+      await m.performReconnection().catch(() => undefined);
+
+      // A failed reconnect abandons its own span immediately (not the 30s
+      // fallback), so a retry's fresh delivery can't end both spans as success.
+      expect(mockEndPerpsCufTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.stringContaining(
+            TraceName.PerpsWebSocketReconnectToFreshData,
+          ),
+          data: expect.objectContaining({ success: false }),
+        }),
+      );
     });
   });
 
