@@ -37,15 +37,15 @@ type TransactionControllerInstanceOptions = NonNullable<
   NonNullable<WalletOptions['instanceOptions']>['transactionController']
 >;
 
-type GetTransactionControllerInstanceOptionsRequest = {
+interface GetTransactionControllerInstanceOptionsRequest {
   getState: () => RootState;
   initMessenger: TransactionControllerInitMessenger;
-};
+}
 
-type SetupTransactionControllerListenersRequest = {
+interface SetupTransactionControllerListenersRequest {
   getState: () => RootState;
   messenger: TransactionControllerInitMessenger;
-};
+}
 
 /**
  * Build the client-specific `TransactionController` options for the
