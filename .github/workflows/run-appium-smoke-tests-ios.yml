@@ -1,7 +1,7 @@
 # Appium Smoke Tests — iOS
 #
 # Fans out one reusable job per Appium smoke tag. Add a matching job below.
-# Invoked from ci.yml on main push/schedule when ios-tests-ready succeeds.
+# Invoked from ci.yml when ios-tests-ready succeeds (PR + main).
 # iOS build artifacts come from build-ios-apps in the parent ci.yml workflow.
 
 name: Appium Smoke Tests (iOS)

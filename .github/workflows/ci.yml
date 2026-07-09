@@ -1267,29 +1267,16 @@ jobs:
 
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
-    # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests to also run Appium iOS
-    # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
         !cancelled() &&
-        needs.ios-tests-ready.result == 'success' &&
-        (
-          (
-            github.ref == 'refs/heads/main' &&
-            (github.event_name == 'push' || github.event_name == 'schedule')
-          ) ||
-          (
-            github.event_name == 'pull_request' &&
-            needs.get_requirements.outputs.run_appium_ios == 'true'
-          )
-        )
+        needs.ios-tests-ready.result == 'success'
       }}
     permissions:
       contents: read
       checks: write
       id-token: write
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+    needs: [ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'

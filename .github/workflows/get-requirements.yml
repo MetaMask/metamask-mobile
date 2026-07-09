@@ -29,9 +29,6 @@ on:
       run_performance:
         description: 'Whether performance E2E tests should be forced to run via the run-performance-tests PR label'
         value: ${{ jobs.detect-changes.outputs.run_performance }}
-      run_appium_ios:
-        description: 'Whether Appium iOS smoke tests should also run on a PR via the run-appium-ios-tests label'
-        value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
 
 jobs:
   detect-changes:
@@ -47,7 +44,6 @@ jobs:
       block_merge_for_e2e_readiness: ${{ steps.set-outputs.outputs.block_merge }}
       run_smart_e2e_selection: ${{ steps.set-outputs.outputs.run_smart_e2e_selection }}
       run_performance: ${{ steps.set-outputs.outputs.run_performance }}
-      run_appium_ios: ${{ steps.set-outputs.outputs.run_appium_ios }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.
@@ -94,7 +90,6 @@ jobs:
             echo "LABEL_BLOCKS_MERGE=false"
             echo "SKIP_SMART_SELECTION=false"
             echo "RUN_PERFORMANCE=false"
-            echo "RUN_APPIUM_IOS=false"
           } >> "$GITHUB_OUTPUT"
 
           LABELS=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
@@ -122,11 +117,6 @@ jobs:
             echo "-> RUN_PERFORMANCE=true due to 'run-performance-tests' label on PR"
           fi
 
-          if echo "$LABELS" | grep -qx "run-appium-ios-tests"; then
-            echo "RUN_APPIUM_IOS=true" >> "$GITHUB_OUTPUT"
-            echo "-> RUN_APPIUM_IOS=true due to 'run-appium-ios-tests' label on PR"
-          fi
-
       - name: Filter changed files
         id: filter
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
@@ -145,7 +135,6 @@ jobs:
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}
           RUN_PERFORMANCE_LABEL: ${{ steps.check-labels.outputs.RUN_PERFORMANCE }}
-          RUN_APPIUM_IOS_LABEL: ${{ steps.check-labels.outputs.RUN_APPIUM_IOS }}
           ALL_CHANGES_COUNT: ${{ steps.filter.outputs.all_changes_count }}
           ALL_CHANGES_FILES: ${{ github.event_name == 'pull_request' && steps.filter.outputs.all_changes_files || '' }}
           IGNORABLE_COUNT: ${{ steps.filter.outputs.e2e_ignorable_count }}
@@ -219,13 +208,6 @@ jobs:
             CHANGED="$ALL_CHANGES_FILES"
           fi
 
-          RUN_APPIUM_IOS=false
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" && \
-                "$IS_FORK" != "true" && \
-                "$RUN_APPIUM_IOS_LABEL" == "true" ]]; then
-            RUN_APPIUM_IOS=true
-          fi
-
           E2E_NEEDED=false
           [[ "$ANDROID" == "true" || "$IOS" == "true" ]] && E2E_NEEDED=true
 
@@ -264,7 +246,6 @@ jobs:
             echo "run_smart_e2e_selection=$RUN_SMART"
             echo "block_merge=$BLOCK_MERGE"
             echo "run_performance=$RUN_PERF"
-            echo "run_appium_ios=$RUN_APPIUM_IOS"
           } >> "$GITHUB_OUTPUT"
 
           {
