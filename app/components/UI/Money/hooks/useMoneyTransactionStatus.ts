@@ -7,7 +7,9 @@ import {
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import { useEffect, useRef } from 'react';
+import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
@@ -157,6 +159,12 @@ function formatMetamaskPayFiat(value: unknown): string | undefined {
   );
 }
 
+function navigateToMoneyTransactionDetails(transactionId: string) {
+  NavigationService.navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+    transactionId,
+  });
+}
+
 const IN_PROGRESS_KEY = 'in-progress';
 const FAILED_KEY = 'failed';
 const CONFIRMED_KEY = 'confirmed';
@@ -205,13 +213,15 @@ export const useMoneyTransactionStatus = () => {
       if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
       if (pendingInProgress.has(transactionMeta.id)) return;
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
       const timeoutId = setTimeout(() => {
         pendingInProgress.delete(transactionMeta.id);
         if (isSend) {
-          showToast(MoneyToastOptions.send.inProgress());
+          showToast(MoneyToastOptions.send.inProgress({ onPress }));
         } else if (isMoneyDepositTx(transactionMeta)) {
           const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-          showToast(MoneyToastOptions.deposit.inProgress({ intent }));
+          showToast(MoneyToastOptions.deposit.inProgress({ intent, onPress }));
         } else {
           showToast(MoneyToastOptions.withdraw.inProgress());
         }
@@ -224,11 +234,13 @@ export const useMoneyTransactionStatus = () => {
       if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
       if (isSend) {
-        showToast(MoneyToastOptions.send.failed());
+        showToast(MoneyToastOptions.send.failed({ onPress }));
       } else if (isMoneyDepositTx(transactionMeta)) {
         const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-        showToast(MoneyToastOptions.deposit.failed({ intent }));
+        showToast(MoneyToastOptions.deposit.failed({ intent, onPress }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());
@@ -242,6 +254,8 @@ export const useMoneyTransactionStatus = () => {
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
 
       if (isSend) {
         const amountFiat = formatMetamaskPayFiat(
@@ -253,7 +267,9 @@ export const useMoneyTransactionStatus = () => {
             ? 'money.toasts.send_destination_predict'
             : 'money.toasts.send_destination_perps',
         );
-        showToast(MoneyToastOptions.send.success({ amountFiat, destination }));
+        showToast(
+          MoneyToastOptions.send.success({ amountFiat, destination, onPress }),
+        );
         scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
         return;
       }
@@ -263,7 +279,11 @@ export const useMoneyTransactionStatus = () => {
           transactionMeta.metamaskPay?.targetFiat,
         );
         showToast(
-          MoneyToastOptions.deposit.success({ amountFiat, intent: 'addMusd' }),
+          MoneyToastOptions.deposit.success({
+            amountFiat,
+            intent: 'addMusd',
+            onPress,
+          }),
         );
         scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
         return;
@@ -292,7 +312,9 @@ export const useMoneyTransactionStatus = () => {
 
       if (isMoneyDepositTx(transactionMeta)) {
         const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-        showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
+        showToast(
+          MoneyToastOptions.deposit.success({ amountFiat, intent, onPress }),
+        );
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         const destination =
