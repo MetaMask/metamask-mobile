@@ -2,16 +2,14 @@ import TransportBLE from '@ledgerhq/react-native-hw-transport-ble';
 import { State as BleState } from 'react-native-ble-plx';
 import { Linking, Platform } from 'react-native';
 import {
+  type Observable,
   Subscription,
-  firstValueFrom,
   distinctUntilChanged,
   debounceTime,
 } from 'rxjs';
 import {
   DeviceLockedError,
   type DiscoveredDevice as DmkDiscoveredDevice,
-  type DeviceSessionState,
-  type ConnectedDevice,
 } from '@ledgerhq/device-management-kit';
 import {
   HardwareWalletType,
@@ -35,6 +33,9 @@ import {
   connectLedgerDmkHardware,
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
+  connectLedgerDmkDevice,
+  getLedgerDmkSessionState,
+  disconnectLedgerDmkSession,
 } from '../../Ledger/Ledger';
 import { DISCONNECT_ERROR_NAMES } from '../../Ledger/ledgerErrors';
 import { getDmk } from '../../Ledger/dmk';
@@ -69,6 +70,7 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   readonly requiresDeviceDiscovery = true;
 
   #sessionId: string | null = null;
+  #sessionConnected = false;
   #deviceId: string | null = null;
   get deviceId(): string | null {
     return this.#deviceId;
@@ -105,11 +107,20 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
 
     if (this.#connectInFlight) {
       await this.#connectInFlight;
-      if (this.#sessionId && this.#deviceId === deviceId) return;
+      if (
+        this.#sessionId &&
+        this.#deviceId === deviceId &&
+        this.#sessionConnected
+      )
+        return;
       if (this.#isDestroyed) throw new Error('Adapter has been destroyed');
     }
 
-    if (this.#sessionId && this.#deviceId === deviceId) {
+    if (
+      this.#sessionId &&
+      this.#deviceId === deviceId &&
+      this.#sessionConnected
+    ) {
       return;
     }
 
@@ -154,10 +165,8 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     targetDeviceId: string,
     timeoutMs: number,
   ): Promise<boolean> {
-    const dmk = getDmk();
-
     // Strategy 1: Direct connect using cached device info (no scan).
-    // DMK's connect() only uses device.id + device.transport → BleManager.connectToDevice().
+    // The bridge's connect() only uses device.id + transport.
     if (
       this.#lastConnectedDevice &&
       this.#lastConnectedDevice.id === targetDeviceId
@@ -167,12 +176,12 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         targetDeviceId,
       );
       try {
-        const sessionId = await dmk.connect({
-          device: this.#lastConnectedDevice,
-        });
+        const sessionId = await connectLedgerDmkDevice(
+          this.#lastConnectedDevice,
+        );
         if (this.#isDestroyed) {
           try {
-            await dmk.disconnect({ sessionId });
+            await disconnectLedgerDmkSession();
           } catch {
             /* ignore */
           }
@@ -180,15 +189,10 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         }
 
         this.#sessionId = sessionId;
+        this.#sessionConnected = true;
         this.#deviceId = targetDeviceId;
 
-        try {
-          dmk.disableDeviceSessionRefresher({ sessionId });
-        } catch {
-          /* ignore */
-        }
-
-        this.#startSessionMonitoring(sessionId);
+        void this.#startSessionMonitoring();
         this.#emitEvent({
           event: DeviceEvent.Connected,
           deviceId: targetDeviceId,
@@ -223,22 +227,28 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
             resolve(null);
           }, timeoutMs);
 
-          sub = dmk.listenToAvailableDevices({}).subscribe({
-            next: (devices: DmkDiscoveredDevice[]) => {
-              for (const candidate of devices) {
-                if (candidate.id === targetDeviceId) {
-                  clearTimeout(timer);
-                  sub?.unsubscribe();
-                  resolve(candidate);
-                  return;
+          // Discovery uses getDmk() (DMK #1): listenToAvailableDevices lists
+          // already-paired/known devices instantly, which startDiscovering
+          // (active scan) does not. Device IDs are stateless, so the device
+          // found here is valid for bridge.connect() on DMK #2.
+          sub = getDmk()
+            .listenToAvailableDevices({})
+            .subscribe({
+              next: (devices: DmkDiscoveredDevice[]) => {
+                for (const candidate of devices) {
+                  if (candidate.id === targetDeviceId) {
+                    clearTimeout(timer);
+                    sub?.unsubscribe();
+                    resolve(candidate);
+                    return;
+                  }
                 }
-              }
-            },
-            error: () => {
-              clearTimeout(timer);
-              resolve(null);
-            },
-          });
+              },
+              error: () => {
+                clearTimeout(timer);
+                resolve(null);
+              },
+            });
         },
       );
 
@@ -274,8 +284,6 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
       return;
     }
 
-    const dmk = getDmk();
-    await this.#cleanupStaleConnections();
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= CONNECT_RETRIES; attempt++) {
@@ -286,12 +294,12 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
           'for device:',
           deviceId,
         );
-        const sessionId = await dmk.connect({ device: discoveredDevice });
+        const sessionId = await connectLedgerDmkDevice(discoveredDevice);
         log('[LedgerDMK] #doConnect - got sessionId:', sessionId);
 
         if (this.#isDestroyed) {
           try {
-            await dmk.disconnect({ sessionId });
+            await disconnectLedgerDmkSession();
           } catch {
             // Ignore
           }
@@ -299,20 +307,11 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         }
 
         this.#sessionId = sessionId;
+        this.#sessionConnected = true;
         this.#deviceId = deviceId;
         this.#lastConnectedDevice = discoveredDevice;
 
-        try {
-          dmk.disableDeviceSessionRefresher({ sessionId });
-          log('[LedgerDMK] #doConnect - session refresher disabled');
-        } catch (e) {
-          log(
-            '[LedgerDMK] #doConnect - disableDeviceSessionRefresher error:',
-            e,
-          );
-        }
-
-        this.#startSessionMonitoring(sessionId);
+        void this.#startSessionMonitoring();
 
         this.#emitEvent({
           event: DeviceEvent.Connected,
@@ -359,35 +358,36 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     throw lastError;
   }
 
-  #startSessionMonitoring(sessionId: string): void {
+  async #startSessionMonitoring(): Promise<void> {
     this.#sessionStateSubscription?.unsubscribe();
-    log(
-      '[LedgerDMK] #startSessionMonitoring - subscribing to session state for:',
-      sessionId,
-    );
 
-    const dmk = getDmk();
-    this.#sessionStateSubscription = dmk
-      .getDeviceSessionState({ sessionId })
+    let sessionState$: Observable<{ connected: boolean }>;
+    try {
+      sessionState$ = await getLedgerDmkSessionState();
+    } catch (e) {
+      log(
+        '[LedgerDMK] #startSessionMonitoring - failed to get session state:',
+        e,
+      );
+      return;
+    }
+
+    log(
+      '[LedgerDMK] #startSessionMonitoring - subscribing to bridge session state',
+    );
+    this.#sessionStateSubscription = sessionState$
       .pipe(
         distinctUntilChanged(
-          (a: DeviceSessionState, b: DeviceSessionState) =>
-            a.deviceStatus === b.deviceStatus,
+          (a: { connected: boolean }, b: { connected: boolean }) =>
+            a.connected === b.connected,
         ),
         debounceTime(3000),
       )
       .subscribe({
-        next: (state: DeviceSessionState) => {
-          if (
-            state.deviceStatus === 'NOT CONNECTED' ||
-            state.deviceStatus === 'LOCKED'
-          ) {
-            log(
-              '[LedgerDMK] #startSessionMonitoring - deviceStatus:',
-              state.deviceStatus,
-            );
-          }
-          if (state.deviceStatus === 'NOT CONNECTED') {
+        next: (state: { connected: boolean }) => {
+          this.#sessionConnected = state.connected;
+          if (!state.connected) {
+            log('[LedgerDMK] #startSessionMonitoring - device disconnected');
             this.#handleDisconnect();
           }
         },
@@ -403,7 +403,7 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   async disconnect(): Promise<void> {
     log('[LedgerDMK] disconnect() called');
     const previousDeviceId = this.#deviceId;
-    await this.#closeSession('disconnect');
+    await this.#closeSession('disconnect', true);
     this.#clearTransportState();
 
     if (previousDeviceId && !this.#flowComplete) {
@@ -417,22 +417,18 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   /**
    * Reset the adapter for a fresh connection attempt.
    *
-   * Closes any active DMK session, clears transport state, and clears the
-   * flow-complete flag. Use this when the user dismisses the device-selection
-   * UI or starts a new flow. Does NOT emit DeviceEvent.Disconnected.
+   * Clears only the flow-complete flag — the DMK session is preserved for
+   * reuse across flows. Only a device switch (`disconnect`) or adapter
+   * teardown (`destroy`) releases the session. Does NOT emit
+   * DeviceEvent.Disconnected.
    *
-   * In contrast, {@link resetFlowState} only clears the flow-complete flag
-   * (preserving the session) — use it between two operations within the
-   * same connection (e.g., after `markFlowComplete` has suppressed errors
-   * for one operation and you want errors visible again for the next).
+   * {@link resetFlowState} is equivalent (clears the flow-complete flag,
+   * preserves the session) — use between two operations on the same
+   * connection.
    */
   reset(): void {
-    log('[LedgerDMK] Resetting adapter state');
+    log('[LedgerDMK] Resetting adapter state (session preserved)');
     this.#flowComplete = false;
-    this.#closeSession('reset').catch((error) => {
-      log('[LedgerDMK] reset - closeSession error:', error);
-    });
-    this.#clearTransportState();
   }
 
   markFlowComplete(): void {
@@ -461,7 +457,7 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   }
 
   isConnected(): boolean {
-    return this.#sessionId !== null;
+    return this.#sessionId !== null && this.#sessionConnected;
   }
 
   startDeviceDiscovery(
@@ -495,17 +491,18 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
 
     this.stopDeviceDiscovery(); // TODO: rename to stopScanning()
 
-    await this.#cleanupStaleConnections();
-
     const seenDevices = new Set<string>();
 
     log('[LedgerDMK] Starting DMK discovery');
 
     const dmk = getDmk();
-
     log(
       '[LedgerDMK] startDeviceDiscovery - calling dmk.listenToAvailableDevices()',
     );
+    // Discovery uses getDmk() (DMK #1): listenToAvailableDevices lists
+    // paired/known devices (incl. already-connected ones), which the bridge's
+    // startDiscovering (active scan) does not surface. Device IDs are
+    // stateless, so devices found here are valid for bridge.connect() (#2).
     this.#scanSubscription = dmk.listenToAvailableDevices({}).subscribe({
       next: (devices: DmkDiscoveredDevice[]) => {
         log('[LedgerDMK] DMK scan batch:', devices.length, 'devices');
@@ -551,11 +548,8 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     if (this.#scanSubscription) {
       this.#scanSubscription.unsubscribe();
       this.#scanSubscription = null;
-      getDmk()
-        .stopDiscovering()
-        .catch((e: unknown) => {
-          log('[LedgerDMK] stopDiscovering error (ignored):', e);
-        });
+      // The bridge exposes no stopDiscovering; unsubscribing the discovery
+      // stream stops event delivery. The underlying DMK scan may persist.
     }
 
     if (this.#scanTimeoutId) {
@@ -662,7 +656,13 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
           log(
             `[LedgerDMK] Transient BLE error during check (attempt ${attempt}/${MAX_DISCONNECT_RETRIES}), retrying...`,
           );
-          await this.#closeSession('disconnect');
+          if (this.#isSessionLost(error)) {
+            // Session is gone — force a fresh connect on the next attempt.
+            // No destroy: bridge.connect() replaces the prior managed session.
+            this.#sessionId = null;
+            this.#sessionConnected = false;
+          }
+          // else: transient hiccup on a still-alive session — keep it for reuse.
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
           continue;
         }
@@ -735,65 +735,19 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
    * Rethrows transient BLE errors to allow retry in ensureDeviceReady.
    */
   async #verifyEthereumAppUnlocked(): Promise<boolean> {
-    log('[LedgerDMK] Ethereum app detected, verifying unlocked...');
+    // The bridge's session-state stream only exposes `{ connected }` (no
+    // LOCKED granularity), so a locked device cannot be pre-detected here. It
+    // is instead surfaced via `DeviceLockedError` on the next operation,
+    // caught by `#isDeviceLocked` in the callers.
+    log(
+      '[LedgerDMK] Ethereum app detected; assuming unlocked (LOCKED detected via error path)',
+    );
 
-    try {
-      if (!this.#sessionId) {
-        throw new Error('No active session');
-      }
-
-      const dmk = getDmk();
-      log(
-        '[LedgerDMK] #verifyEthereumAppUnlocked - checking session state for:',
-        this.#sessionId,
-      );
-      const state = await this.#withTimeout(
-        firstValueFrom(
-          dmk.getDeviceSessionState({ sessionId: this.#sessionId }),
-        ),
-        LEDGER_OPERATION_TIMEOUT_MS,
-        'Device unresponsive during verification',
-        () => this.#closeSession('timeout'),
-      );
-
-      log(
-        '[LedgerDMK] #verifyEthereumAppUnlocked - state:',
-        JSON.stringify(state),
-      );
-
-      if (state.deviceStatus === 'LOCKED') {
-        log('[LedgerDMK] #verifyEthereumAppUnlocked - device is LOCKED');
-        log('[LedgerDMK] Device is locked');
-        this.#emitEvent({
-          event: DeviceEvent.DeviceLocked,
-          error: new Error('Device is locked'),
-        });
-        return false;
-      }
-
-      log('[LedgerDMK] Device verified unlocked!');
-
-      this.#emitEvent({
-        event: DeviceEvent.AppOpened,
-        currentAppName: 'Ethereum',
-      });
-      return true;
-    } catch (verifyError) {
-      log('[LedgerDMK] Verification failed:', verifyError);
-
-      if (this.#isTransientBleError(verifyError)) {
-        throw verifyError;
-      }
-
-      if (this.#isDeviceLocked(verifyError)) {
-        log('[LedgerDMK] Device is locked');
-        this.#emitEvent({
-          event: DeviceEvent.DeviceLocked,
-          error: this.#toError(verifyError),
-        });
-      }
-      return false;
-    }
+    this.#emitEvent({
+      event: DeviceEvent.AppOpened,
+      currentAppName: 'Ethereum',
+    });
+    return true;
   }
 
   /**
@@ -861,7 +815,7 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     this.stopDeviceDiscovery();
     this.#transportStateCallbacks.clear();
 
-    this.#closeSession('destroy').catch((error) => {
+    this.#closeSession('destroy', true).catch((error) => {
       log('[LedgerDMK] destroy - closeSession error:', error);
     });
   }
@@ -879,33 +833,68 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   #handleDisconnect(): void {
     log('[LedgerDMK] #handleDisconnect - clearing session');
     this.#sessionId = null;
+    this.#sessionConnected = false;
     this.#sessionStateSubscription?.unsubscribe();
     this.#sessionStateSubscription = null;
     log('[LedgerDMK] handleDisconnect - session cleared');
+  }
+
+  /**
+   * Whether an error indicates the DMK session is gone (vs. a transient
+   * hiccup on a still-alive session). Session-lost errors force a fresh
+   * `connect()` on the next attempt; transient hiccups reuse the session.
+   */
+  #isSessionLost(error: unknown): boolean {
+    if (error === null || typeof error !== 'object') return false;
+    const tag = (error as { _tag?: string })._tag;
+    return (
+      tag === 'DeviceSessionNotFound' ||
+      tag === 'DeviceDisconnectedWhileSendingError' ||
+      tag === 'DeviceDisconnectedBeforeSendingApdu'
+    );
   }
 
   #emitEvent(payload: DeviceEventPayload): void {
     this.#options.onDeviceEvent(payload);
   }
 
-  async #closeSession(reason?: string): Promise<void> {
+  /**
+   * Release the current session.
+   *
+   * - `hard` (`disconnect`/`destroy` only): drops the bridge session entirely
+   * via `bridge.destroy()`, clearing the signer cache and BLE connection.
+   * Reserved for genuine teardown (device switch, adapter discard).
+   * - soft (default): no-op on the session — keeps the bridge session and
+   * signer cache for reuse across operations/retries. Real BLE drops are
+   * detected by the session-state monitor (`#handleDisconnect`), the
+   * authority for clearing `#sessionId`.
+   */
+  async #closeSession(reason?: string, hard = false): Promise<void> {
     const sessionId = this.#sessionId;
     const deviceId = this.#deviceId;
-    this.#sessionId = null;
-    this.#sessionStateSubscription?.unsubscribe();
-    this.#sessionStateSubscription = null;
     log(
-      '[LedgerDMK] #closeSession - closing session:',
+      '[LedgerDMK] #closeSession - reason:',
+      reason ?? 'unknown',
+      'hard:',
+      hard,
+      'session:',
       sessionId,
       'device:',
       deviceId,
-      'reason:',
-      reason ?? 'unknown',
     );
+
+    if (!hard) {
+      return;
+    }
+
+    this.#sessionId = null;
+    this.#sessionConnected = false;
+    this.#sessionStateSubscription?.unsubscribe();
+    this.#sessionStateSubscription = null;
 
     try {
       if (sessionId) {
-        await getDmk().disconnect({ sessionId });
+        await disconnectLedgerDmkSession();
         log('[LedgerDMK] #closeSession - disconnected session:', sessionId);
       }
     } catch (error) {
@@ -919,38 +908,6 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   #clearTransportState(): void {
     this.#sessionId = null;
     this.#deviceId = null;
-  }
-
-  async #cleanupStaleConnections(): Promise<void> {
-    const dmk = getDmk();
-
-    try {
-      const connected = dmk.listConnectedDevices();
-      log(
-        '[LedgerDMK] #cleanupStaleConnections - DMK connected devices:',
-        connected.length,
-        connected.map((d: ConnectedDevice) => `${d.name}(${d.id})`),
-      );
-      for (const connectedDevice of connected) {
-        log(
-          '[LedgerDMK] #cleanupStaleConnections - disconnecting DMK session:',
-          connectedDevice.sessionId,
-        );
-        try {
-          await dmk.disconnect({ sessionId: connectedDevice.sessionId });
-        } catch (e) {
-          log(
-            '[LedgerDMK] #cleanupStaleConnections - DMK disconnect error:',
-            e,
-          );
-        }
-      }
-    } catch (e) {
-      log(
-        '[LedgerDMK] #cleanupStaleConnections - listConnectedDevices error:',
-        e,
-      );
-    }
   }
 
   /**

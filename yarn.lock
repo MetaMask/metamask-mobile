@@ -9259,8 +9259,8 @@ __metadata:
   linkType: hard
 
 "@metamask/eth-ledger-bridge-keyring@npm:^12.2.0":
-  version: 12.2.0
-  resolution: "@metamask/eth-ledger-bridge-keyring@npm:12.2.0"
+  version: 12.3.0
+  resolution: "@metamask/eth-ledger-bridge-keyring@npm:12.3.0"
   dependencies:
     "@ethereumjs/rlp": "npm:^5.0.2"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -9271,12 +9271,12 @@ __metadata:
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/hw-transport": "npm:^6.31.3"
     "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/hw-wallet-sdk": "npm:^0.8.0"
-    "@metamask/keyring-api": "npm:^23.3.0"
+    "@metamask/hw-wallet-sdk": "npm:^0.10.0"
+    "@metamask/keyring-api": "npm:^23.5.0"
     "@metamask/keyring-sdk": "npm:^2.2.0"
     hdkey: "npm:^2.1.0"
     rxjs: "npm:^7.8.2"
-  checksum: 10/965f36df3426f2305e4d4fc58780dd550fb418ad43bad3fbdd6b32425e324016832993bf5f810efbcf7296f53a7ba2633616203c979e90d9abb32f9d0a345b4d
+  checksum: 10/a8238f7276892a7d134d4c201eafd9ffb0b3510b052f363356a8536baf83a7e04bf1df8cd7afb64abcdc5e2ab2152d39fa36f7106b403f9da12eccdf50e70581
   languageName: node
   linkType: hard
 
@@ -9556,6 +9556,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/hw-wallet-sdk@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "@metamask/hw-wallet-sdk@npm:0.10.0"
+  checksum: 10/9efd28a65193f7a9ce2a9e3d5f2709139c9106669ffe9012f7a667492d1ced7a20fd02265ef341c62b78d378fbfc18139a81715d5241e6bcdee762a1aecaa69d
+  languageName: node
+  linkType: hard
+
 "@metamask/hw-wallet-sdk@npm:^0.8.0":
   version: 0.8.0
   resolution: "@metamask/hw-wallet-sdk@npm:0.8.0"
@@ -9637,6 +9644,18 @@ __metadata:
     "@metamask/utils": "npm:^11.11.0"
     bitcoin-address-validation: "npm:^2.2.3"
   checksum: 10/31c3d14da1d24e7b0e1d1a73f22dc265a8223e3bccda546f4069f7ae6e6ac54e063640bed04a2934413cc85b8d5e914a4492d5f8a094a5d6ddf706182967dfa0
+  languageName: node
+  linkType: hard
+
+"@metamask/keyring-api@npm:^23.5.0":
+  version: 23.5.0
+  resolution: "@metamask/keyring-api@npm:23.5.0"
+  dependencies:
+    "@metamask/keyring-utils": "npm:^3.3.1"
+    "@metamask/superstruct": "npm:^3.3.0"
+    "@metamask/utils": "npm:^11.11.0"
+    bitcoin-address-validation: "npm:^2.2.3"
+  checksum: 10/2d8a4b378f5bad77284feb58bc7f3b64d541751527c693e43f7e4d860333bc55593e27fc5264fc908d719912b374f77dabec3f5e491bb49f72501fd2f5c43e68
   languageName: node
   linkType: hard
 
@@ -10898,6 +10917,13 @@ __metadata:
   version: 3.2.1
   resolution: "@metamask/superstruct@npm:3.2.1"
   checksum: 10/9e29380f2cf8b129283ccb2b568296d92682b705109ba62dbd7739ffd6a1982fe38c7228cdcf3cbee94dbcdd5fcc1c846ab9d1dd3582167154f914422fcff547
+  languageName: node
+  linkType: hard
+
+"@metamask/superstruct@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "@metamask/superstruct@npm:3.3.0"
+  checksum: 10/664d5e330484a86420bc004b1c7f8301e1501cce712f611fe657176b2979edbd7cc6f4c77c8b1610486a685ebbd0b72dacf4bd6cf143d6b52038069d2f4e84ab
   languageName: node
   linkType: hard
 

@@ -7,7 +7,12 @@ import { HardwareWalletProvider } from './HardwareWalletProvider';
 import { useHardwareWallet } from './contexts';
 import { getHardwareWalletTypeForAddress } from './helpers';
 import { createAdapter } from './adapters';
-import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import {
+  HardwareWalletType,
+  ConnectionStatus,
+  DeviceEvent,
+  DeviceEventPayload,
+} from '@metamask/hw-wallet-sdk';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -257,6 +262,110 @@ describe('HardwareWalletProvider', () => {
 
         const adapter = mockCreateAdapter.mock.results[0]?.value;
         expect(adapter?.connect).toHaveBeenCalledWith('device-123');
+      });
+    });
+
+    describe('adapter lifecycle (regression: deviceId change must not destroy adapter)', () => {
+      it('does not destroy the adapter when a Connected event sets deviceId mid-flow', async () => {
+        renderWithActions();
+
+        // The Ledger adapter is created on mount (walletType=ledger). Grab the
+        // onDeviceEvent callback the provider registered with createAdapter.
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+        expect(onDeviceEvent).toBeDefined();
+
+        // A Connected event is exactly what fires setters.setDeviceId(<mac>)
+        // in useDeviceEventHandlers during a real connect. Before the fix,
+        // deviceId was a dependency of the adapter-lifecycle effect, so this
+        // state change tore the adapter down (destroy) while an operation such
+        // as getAppNameAndNumber was still in flight, surfacing as
+        // "Adapter has been destroyed".
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+        });
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
+      });
+
+      it('keeps the adapter across an effectiveWalletType ledger→null→ledger blip (send account-context switch)', async () => {
+        const { result } = renderWithActions();
+
+        // Ledger adapter created on mount; simulate the device connecting so
+        // deviceId is set (precondition for the transient-null keep).
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+        });
+
+        // Prime pendingOperationWalletType=Ledger so the next steps are real
+        // state changes (setPendingOperationAddress with a mock yielding null
+        // when pending is already null would be a no-op re-render-wise).
+        await act(async () => {
+          mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        const initialCreateCalls = mockCreateAdapter.mock.calls.length;
+
+        // Account-context switch: walletType → null. pendingOperationWalletType
+        // Ledger → null forces a re-render; effectiveWalletType → null with
+        // deviceId set → isTransientNull keeps the adapter.
+        await act(async () => {
+          mockGetHardwareWalletType.mockReturnValue(undefined);
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        // setPendingOperationAddress then restores the type (pending null →
+        // ledger, walletType → ledger), swinging effectiveWalletType null →
+        // ledger. Before Fix D this re-ran the effect and destroyed the Ledger
+        // adapter mid-operation.
+        await act(async () => {
+          mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
+        // Factory must not churn — the same adapter instance is retained.
+        expect(mockCreateAdapter.mock.calls.length).toBe(initialCreateCalls);
+      });
+
+      it('still destroys + recreates on a genuine wallet-type change (ledger → qr)', async () => {
+        const { result } = renderWithActions();
+
+        // Wait for the Ledger adapter to be created on mount.
+        await waitFor(() => {
+          expect(mockCreateAdapter).toHaveBeenCalledWith(
+            HardwareWalletType.Ledger,
+            expect.any(Object),
+            expect.any(Boolean),
+          );
+        });
+
+        // Switch to a QR account: effectiveWalletType ledger → qr. This is a
+        // real type change, so the Ledger adapter MUST be destroyed. (The
+        // shared mock keeps walletType='Ledger', so isSameAdapterType is false.)
+        await act(async () => {
+          mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Qr);
+          result.current.actions.setPendingOperationAddress('0xqr');
+        });
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalled();
       });
     });
 

@@ -66,6 +66,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     initializeAdapter,
   } = useAdapterLifecycle({
     walletType: effectiveWalletType,
+    deviceId,
     adapterRef: refs.adapterRef,
     handleDeviceEvent,
     handleError,

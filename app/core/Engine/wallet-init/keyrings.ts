@@ -33,7 +33,6 @@ import {
   scanCompleted,
   scanRequested,
 } from '../../redux/slices/qrKeyringScanner';
-import { isDmkEnabled } from '../../Ledger/dmk';
 import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
 import {
   snapKeyringV2AdaptedAsV1Builder,
@@ -57,10 +56,17 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
 /**
  * Build the list of keyring builders.
  *
+ * @param messenger - Needed by some builders that interact with the shared bus.
+ * TODO: Remove this parameter when we remove the DMK feature flag.
+ * @param useDmk - Whether to use the DMK Ledger bridge for Ledger keyrings.
+ * Read fresh from feature-flag state via `isDmkEnabled(flags)` (the `ledgerDmk`
+ * flag) at engine init; the adapter factory reads the same flag in
+ * `useAdapterLifecycle`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
 export function getKeyringBuilders(
   messenger: RootMessenger,
+  useDmk: boolean,
 ): KeyringControllerOptions['keyringBuilders'] {
   // Required by the HD keyring and money keyring to use native crypto functions.
   const cryptographicFunctions: CryptographicFunctions = {
@@ -82,7 +88,6 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  const useDmk = isDmkEnabled();
   const bridge = useDmk
     ? new LedgerDmkBridge({ transportFactory: RNBleTransportFactory })
     : new LedgerMobileBridge(new LedgerTransportMiddleware());

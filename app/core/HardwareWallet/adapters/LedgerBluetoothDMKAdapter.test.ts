@@ -2,7 +2,6 @@ import { Subject } from 'rxjs';
 import {
   DeviceLockedError,
   type DiscoveredDevice as DmkDiscoveredDevice,
-  type DeviceSessionState,
 } from '@ledgerhq/device-management-kit';
 import { DeviceEvent, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import type { HardwareWalletAdapterOptions } from '../types';
@@ -14,8 +13,9 @@ import type { HardwareWalletAdapterOptions } from '../types';
  *
  * NOTE: `@ledgerhq/device-management-kit` is intentionally NOT mocked — the
  * real `DeviceLockedError` class must be available so `instanceof` checks in
- * `#isDeviceLocked` (and in the tests below) work end-to-end. Only the local
- * `getDmk` wrapper and Ledger internals are mocked.
+ * `#isDeviceLocked` (and in the tests below) work end-to-end. The adapter now
+ * routes its DMK session lifecycle through Ledger.ts helpers (which wrap the
+ * keyring's bridge), so those helpers are mocked here.
  */
 
 const mockBleStateSubscription = { unsubscribe: jest.fn() };
@@ -37,24 +37,29 @@ jest.mock('react-native-ble-plx', () => ({
   State: { PoweredOn: 'PoweredOn' },
 }));
 
+// Discovery uses getDmk() directly (listenToAvailableDevices), so mock the
+// dmk module. Connect/monitor/disconnect still route through the Ledger.ts
+// bridge helpers (mocked below).
 const mockDmk = {
-  connect: jest.fn(),
-  disconnect: jest.fn(),
-  getDeviceSessionState: jest.fn(),
   listenToAvailableDevices: jest.fn(),
-  disableDeviceSessionRefresher: jest.fn(),
-  listConnectedDevices: jest.fn(),
-  stopDiscovering: jest.fn(),
 };
-
 jest.mock('../../Ledger/dmk', () => ({
   getDmk: () => mockDmk,
 }));
 
 const mockConnectLedgerHardware = jest.fn();
+const mockConnectLedgerDmkDevice = jest.fn();
+const mockGetLedgerDmkSessionState = jest.fn();
+const mockDisconnectLedgerDmkSession = jest.fn();
 jest.mock('../../Ledger/Ledger', () => ({
   connectLedgerDmkHardware: (...args: unknown[]) =>
     mockConnectLedgerHardware(...args),
+  connectLedgerDmkDevice: (...args: unknown[]) =>
+    mockConnectLedgerDmkDevice(...args),
+  getLedgerDmkSessionState: (...args: unknown[]) =>
+    mockGetLedgerDmkSessionState(...args),
+  disconnectLedgerDmkSession: (...args: unknown[]) =>
+    mockDisconnectLedgerDmkSession(...args),
   openEthereumAppOnLedger: jest.fn(),
   closeRunningAppOnLedger: jest.fn(),
 }));
@@ -97,25 +102,23 @@ describe('LedgerBluetoothDMKAdapter', () => {
       onDisconnect,
     };
 
-    // RxJS Subjects give the tests synchronous control over DMK observables.
+    // RxJS Subject gives the test synchronous control over the discovery
+    // observable (getDmk().listenToAvailableDevices emits device arrays).
     scanSubject = new Subject<DmkDiscoveredDevice[]>();
 
     mockDmk.listenToAvailableDevices.mockReturnValue(
       scanSubject.asObservable(),
     );
-    mockDmk.connect.mockResolvedValue('session-1');
-    mockDmk.disconnect.mockResolvedValue(undefined);
-    mockDmk.disableDeviceSessionRefresher.mockReturnValue(undefined);
-    mockDmk.listConnectedDevices.mockReturnValue([]);
-    mockDmk.stopDiscovering.mockResolvedValue(undefined);
-    // Session-state observable that never completes: the real DMK stream stays
-    // open for the life of the session. Using `of(...)` here would complete
-    // synchronously and trigger #startSessionMonitoring's `complete` handler
-    // (#handleDisconnect → clears #sessionId) before the app check runs.
-    // A silent Subject keeps #sessionId set so ensureDeviceReady proceeds to
-    // connectLedgerHardware.
-    mockDmk.getDeviceSessionState.mockReturnValue(
-      new Subject<DeviceSessionState>().asObservable(),
+    mockConnectLedgerDmkDevice.mockResolvedValue('session-1');
+    mockDisconnectLedgerDmkSession.mockResolvedValue(undefined);
+    // Session-state observable that never completes: the bridge's
+    // onSessionStateChange stream stays open for the life of the session.
+    // Using `of(...)` would complete synchronously and trigger
+    // #startSessionMonitoring's `complete` handler (#handleDisconnect → clears
+    // #sessionId) before the app check runs. A silent Subject keeps
+    // #sessionId set so ensureDeviceReady proceeds to connectLedgerHardware.
+    mockGetLedgerDmkSessionState.mockReturnValue(
+      new Subject<{ connected: boolean }>().asObservable(),
     );
 
     adapter = new LedgerBluetoothDMKAdapter(options);
@@ -127,9 +130,7 @@ describe('LedgerBluetoothDMKAdapter', () => {
 
   /**
    * Drive the public discovery flow so that `connect()` finds the device in
-   * the discovered-devices cache. `#startDiscoveryInner` awaits
-   * `#cleanupStaleConnections` before subscribing to the scan observable, so
-   * we flush pending microtasks (via a macrotask) before emitting.
+   * the discovered-devices cache (listenToAvailableDevices emits arrays).
    */
   async function discoverDevice(
     id: string = DEVICE_ID,

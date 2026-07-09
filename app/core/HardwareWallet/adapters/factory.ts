@@ -12,14 +12,13 @@ import { NonHardwareAdapter } from './NonHardwareAdapter';
  * This function always returns an adapter. For null or
  * unknown wallet types, it returns a NonHardwareAdapter (passthrough).
  *
- * For Ledger wallets, the adapter choice is driven by the `enableDmk`
- * flag, which the caller resolves once via `isDmkEnabled` (reading
- * `Engine.controllerMessenger`) before invoking this factory.
+ * For Ledger wallets, the adapter choice is driven by `enableDmk`, read fresh
+ * from feature-flag state via `isDmkEnabled(flags)` (the `ledgerDmk` flag;
+ * LEDGER_FORCE_DMK env var overrides). See app/core/Ledger/dmk.ts.
  *
  * @param walletType - The type of hardware wallet (null for non-hardware accounts)
  * @param options - Adapter options including event callbacks
  * @param enableDmk - Whether the DMK adapter should be selected for Ledger wallets.
- * Resolved by the caller via `isDmkEnabled(Engine.controllerMessenger)`.
  * @returns An adapter instance that implements HardwareWalletAdapter
  */
 export function createAdapter(
