@@ -1,7 +1,4 @@
-import {
-  getChangedSpecFiles,
-  isSpecFile,
-} from './test-infrastructure-paths';
+import { getChangedSpecFiles, isSpecFile } from './test-infrastructure-paths';
 import { checkHardRules } from './handlers';
 
 const BASE_DIR = process.cwd();
@@ -47,9 +44,9 @@ describe('test-infrastructure-paths', () => {
     });
 
     it('returns false for non-spec test utilities', () => {
-      expect(isSpecFile('tests/page-objects/wallet/AccountListBottomSheet.ts')).toBe(
-        false,
-      );
+      expect(
+        isSpecFile('tests/page-objects/wallet/AccountListBottomSheet.ts'),
+      ).toBe(false);
     });
   });
 });
@@ -85,7 +82,9 @@ describe('checkHardRules', () => {
   });
 
   it('includes Appium spec tags when a shared page object affects Appium importers', () => {
-    const changedFiles = ['tests/page-objects/wallet/AccountListBottomSheet.ts'];
+    const changedFiles = [
+      'tests/page-objects/wallet/AccountListBottomSheet.ts',
+    ];
 
     const result = checkHardRules(changedFiles, context);
 
