@@ -19,6 +19,7 @@ import {
 } from './Toast.types';
 import { ToastSelectorsIDs } from './ToastModal.testIds';
 import { lightTheme } from '@metamask/design-tokens';
+import { visibilityDuration } from './Toast.constants';
 
 const TEST_ACCOUNT_ADDRESS = '0x2990079bcdEe240329a520d2444386FC119da21a';
 const TEST_NETWORK_NAME = 'Ethereum Mainnet';
@@ -412,7 +413,7 @@ describe('Toast', () => {
         variant: ToastVariants.Plain,
         labelOptions: [{ label: 'Persistent toast' }],
         hasNoTimeout: true,
-        customBottomOffset: 12,
+        customTopOffset: 12,
       };
 
       await showToast(toastRef, options);
@@ -479,6 +480,48 @@ describe('Toast', () => {
       const closeButtonStyle = StyleSheet.flatten(closeButton.props.style);
 
       expect(closeButtonStyle.marginTop).toBeDefined();
+    });
+
+    it('does not restart auto-dismiss when text layout triggers a remeasure', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Wrapped title', isBold: true },
+          { label: '\n' },
+          { label: 'Wrapped description' },
+        ],
+        descriptionOptions: { description: 'Extra description' },
+        linkButtonOptions: { label: 'Retry', onPress: jest.fn() },
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.advanceTimersByTime(visibilityDuration - 500);
+      });
+
+      expect(screen.getByText('Wrapped title')).toBeOnTheScreen();
+
+      fireEvent(screen.getByText('Wrapped title'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
+      });
+      fireEvent(screen.getByText('Wrapped description'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'description line' }] },
+      });
+      fireEvent(screen.getByText('Extra description'), 'onTextLayout', {
+        nativeEvent: { lines: [{ text: 'extra description line' }] },
+      });
+
+      await act(async () => {
+        triggerToastLayout(view);
+        jest.advanceTimersByTime(500);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Wrapped title')).toBeNull();
     });
   });
 });

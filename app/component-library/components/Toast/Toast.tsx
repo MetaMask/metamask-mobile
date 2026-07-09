@@ -152,8 +152,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const toastHeight = useSharedValue(screenHeight);
   const translateYProgress = useSharedValue(-screenHeight);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const topOffset =
-    toastOptions?.customTopOffset ?? toastOptions?.customBottomOffset ?? 0;
+  const animationStartedRef = useRef(false);
+  const topOffset = toastOptions?.customTopOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
   }));
@@ -195,6 +195,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
 
   const resetState = () => {
+    animationStartedRef.current = false;
     setDescriptionLineCount(null);
     setTitleLineCount(null);
     setToastOptions(undefined);
@@ -233,6 +234,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       }
       timeoutDuration = 100;
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
+      animationStartedRef.current = false;
       setDescriptionLineCount(null);
       setTitleLineCount(null);
       setToastOptions(undefined);
@@ -265,6 +267,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       const visibleTranslateY = topInset + 8;
 
       toastHeight.value = height;
+
+      // Text layout can change top-alignment styles and trigger another layout
+      // pass. Only run the entrance/dismiss animation on the first layout.
+      if (animationStartedRef.current) {
+        return;
+      }
+
+      animationStartedRef.current = true;
       translateYProgress.value = hiddenTranslateY;
 
       if (toastOptions.hasNoTimeout) {
