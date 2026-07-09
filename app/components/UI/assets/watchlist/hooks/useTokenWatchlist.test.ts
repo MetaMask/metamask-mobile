@@ -7,7 +7,7 @@ import {
   useTokenWatchlistAddItemMutation,
   useTokenWatchlistRemoveItemMutation,
 } from './useTokenWatchlistMutations';
-import { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
+import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
 jest.mock('@tanstack/react-query', () => ({
   ...jest.requireActual('@tanstack/react-query'),

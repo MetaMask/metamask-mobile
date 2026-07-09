@@ -457,7 +457,7 @@ const TokenDetails: React.FC<{
 
     ToastService.showToast({
       variant: ToastVariants.Icon,
-      iconName: wasWatched ? IconName.Star : IconName.Confirmation,
+      iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
       backgroundColor: theme.colors.background.section,
       labelOptions: [

@@ -7,7 +7,7 @@ import {
   useTokenWatchlistAddItemMutation,
   useTokenWatchlistRemoveItemMutation,
 } from './useTokenWatchlistMutations';
-import { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
+import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
 export interface UseTokenWatchlistResult {
   isWatched: boolean;
@@ -26,9 +26,6 @@ const NOOP_RESULT: UseTokenWatchlistResult = {
  * single asset. Combines the add/remove mutation hooks with a reactive
  * cache subscription via useQuery so optimistic updates are reflected
  * immediately.
- *
- * NOTE: Once PR #30338 merges, refactor to use `useTokenWatchlistQuery`
- * for full hydration instead of the raw blob query.
  */
 export function useTokenWatchlist(
   assetId: CaipAssetType | null,
