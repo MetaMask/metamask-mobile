@@ -790,14 +790,13 @@ describe('Checkout', () => {
       });
 
       await waitFor(() => {
-        expect(mockEmitOrderConfirmedAnalyticsFromCallback).toHaveBeenCalledWith(
-          mockOrder,
-          {
-            rampType: 'HEADLESS',
-            rampSurface: 'money_account',
-            region: undefined,
-          },
-        );
+        expect(
+          mockEmitOrderConfirmedAnalyticsFromCallback,
+        ).toHaveBeenCalledWith(mockOrder, {
+          rampType: 'HEADLESS',
+          rampSurface: 'money_account',
+          region: undefined,
+        });
       });
       expect(mockEmitTerminalOrderAnalyticsFromCallback).not.toHaveBeenCalled();
     });
