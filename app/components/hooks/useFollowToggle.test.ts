@@ -209,13 +209,36 @@ describe('useFollowToggle', () => {
           traderAddress: '0xabc',
           traderUsername: 'alice',
           traderRank: 3,
+          traderAvatarUri: 'https://example.com/avatar.png',
         });
       });
 
       expect(mockTrack).toHaveBeenCalledTimes(1);
       expect(mockTrack).toHaveBeenCalledWith(
         expect.objectContaining({ category: expect.any(String) }),
-        expect.objectContaining({ action: 'follow', source: 'leaderboard' }),
+        expect.objectContaining({
+          action: 'follow',
+          source: 'leaderboard',
+          trader_has_profile_picture_set: true,
+        }),
+      );
+    });
+
+    it('sets trader_has_profile_picture_set to false when avatar is a known placeholder', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow({
+          source: 'trader_profile',
+          traderAddress: '0xabc',
+          traderAvatarUri:
+            'https://daylight-images.s3.us-east-1.amazonaws.com/ens-fallback.png',
+        });
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({ category: expect.any(String) }),
+        expect.objectContaining({ trader_has_profile_picture_set: false }),
       );
     });
 
