@@ -65,7 +65,7 @@ export function usePerpsOrderExecution(
   params: UsePerpsOrderExecutionParams = {},
 ): UsePerpsOrderExecutionReturn {
   const { onSubmitted, onSuccess, onError } = params;
-  const { placeOrder: controllerPlaceOrder, getPositions } = usePerpsTrading();
+  const { placeOrder: controllerPlaceOrder } = usePerpsTrading();
   const { track } = usePerpsEventTracking();
   const stream = usePerpsStream();
 
@@ -116,20 +116,16 @@ export function usePerpsOrderExecution(
       // cache means "not loaded", not "no position" — pass that through so the
       // matcher captures the baseline from the first delivery instead of
       // assuming absent (which a pre-existing position would falsely satisfy).
-      let baselinePositions = stream.positions.getSnapshot();
-      if (baselinePositions === null) {
-        // Cache not loaded (rare cold-start): fetch once so we have a real
-        // pre-order baseline instead of capturing a possibly-already-filled
-        // first stream delivery. Falls back to BASELINE_PENDING if it fails.
-        try {
-          baselinePositions = await getPositions();
-        } catch {
-          baselinePositions = null;
-        }
-      }
-      const positionsLoaded = baselinePositions !== null;
+      // We deliberately do NOT block order submission on a REST fetch to
+      // resolve an unloaded cache: the fetch would add latency to every
+      // cold-start trade. The only residual is a rare cold-start order whose
+      // fill lands in that very first delivery — it records a stream_timeout
+      // rather than a render duration, which does not corrupt data or affect
+      // the user's flow.
+      const positionsCache = stream.positions.getSnapshot();
+      const positionsLoaded = positionsCache !== null;
       const positionBaseline =
-        baselinePositions?.find((p) => p.symbol === orderParams.symbol) ?? null;
+        positionsCache?.find((p) => p.symbol === orderParams.symbol) ?? null;
       const positionBaselineSnapshot =
         getPerpsOrderPositionSnapshot(positionBaseline);
       if (isMarketOrder) {
@@ -430,15 +426,7 @@ export function usePerpsOrderExecution(
         setIsPlacing(false);
       }
     },
-    [
-      controllerPlaceOrder,
-      getPositions,
-      stream,
-      onSubmitted,
-      onSuccess,
-      onError,
-      track,
-    ],
+    [controllerPlaceOrder, stream, onSubmitted, onSuccess, onError, track],
   );
 
   return {

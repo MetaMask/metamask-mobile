@@ -160,6 +160,11 @@ export function endPerpsCufTrace({
  * Schedule a fallback end for a specific op; a no-op if the stream (or the
  * caller) closes that op first. Because ids are unique per operation, a
  * superseded op's fallback can never close a later op of the same flow.
+ *
+ * Note: the timer is intentionally not cancelled when the op ends early — the
+ * end is idempotent, so the fallback simply no-ops. This keeps each closure
+ * alive until it fires (<= the delay, typically 30s), which is negligible for
+ * the low volume of user-driven confirmations.
  */
 export function endPerpsCufTraceAfter(
   options: EndPerpsCufTraceOptions,
@@ -183,7 +188,13 @@ let placeOrderOpId: string | null = null;
  * Arm the place-order confirmation for `opId`: the stream matcher fires when a
  * position for `symbol` renders that is new or changed versus the pre-order
  * baseline, so a pre-existing position on the same market can't confirm early.
- * A newer arm supersedes any earlier place-order waiter.
+ *
+ * The market place-order confirmation is deliberately SINGLE-FLIGHT: it uses
+ * module-level waiter/resolver state (there is one order form, guarded by
+ * `isPlacing`), so a newer arm supersedes any earlier one and ends it as
+ * `superseded`. This is the one intentional exception to the otherwise
+ * op-id-per-operation registry — the render must be measured at the toast site
+ * (the hook), which needs a single awaited handle rather than a passive watch.
  */
 export function armPerpsPlaceOrderCuf(
   opId: string,

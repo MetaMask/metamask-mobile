@@ -200,6 +200,11 @@ abstract class StreamChannel<T> {
    * Immediately deliver any throttled subscriber's pending update, cancelling
    * its timer. Used to close CUF confirmations at the instant subscribers
    * actually render, instead of up to a throttle interval later.
+   *
+   * This is a deliberate throttle bypass, invoked ONLY when a CUF matcher
+   * confirms on a delivery (not on every tick), so the measured render instant
+   * reflects real subscriber delivery. The affected subscribers simply receive
+   * their already-pending update slightly early; no extra work is scheduled.
    */
   public flushThrottledDeliveries() {
     this.subscribers.forEach((subscriber) => {
@@ -853,6 +858,10 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    * Cleanup pre-warm subscription
    */
   public cleanupPrewarm(): void {
+    // Prewarm starts the first-price trace; end it here too so a soft reconnect
+    // (preserveCaches: true skips clearCache) doesn't leave it open to be
+    // overwritten by the next prewarm.
+    this.endOpenFirstDataTrace();
     if (this.actualPriceUnsubscribe) {
       this.actualPriceUnsubscribe();
       this.actualPriceUnsubscribe = undefined;

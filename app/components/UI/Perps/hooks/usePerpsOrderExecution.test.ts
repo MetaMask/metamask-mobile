@@ -58,7 +58,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 describe('usePerpsOrderExecution', () => {
   const mockPlaceOrder = jest.fn();
-  const mockGetPositions = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -66,10 +65,8 @@ describe('usePerpsOrderExecution', () => {
     mockEndTrace.mockClear();
     mockGetPositionsSnapshot.mockReturnValue([]); // Loaded, no positions by default
     mockGetOrdersSnapshot.mockReturnValue([]); // Loaded, no orders by default
-    mockGetPositions.mockResolvedValue([]); // REST fallback: no positions
     (usePerpsTrading as jest.Mock).mockReturnValue({
       placeOrder: mockPlaceOrder,
-      getPositions: mockGetPositions,
     });
   });
 
@@ -251,35 +248,6 @@ describe('usePerpsOrderExecution', () => {
       } finally {
         jest.useRealTimers();
       }
-    });
-  });
-
-  describe('baseline capture at submit', () => {
-    it('fetches positions for a baseline when the cache is not loaded', async () => {
-      mockGetPositionsSnapshot.mockReturnValue(null); // cache not loaded
-      mockGetPositions.mockResolvedValue([]); // REST baseline
-      mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'o1' });
-
-      const { result } = renderHook(() => usePerpsOrderExecution());
-      await act(async () => {
-        await result.current.placeOrder(mockOrderParams);
-      });
-      await waitFor(() => expect(result.current.isPlacing).toBe(false));
-
-      expect(mockGetPositions).toHaveBeenCalled();
-    });
-
-    it('does not fetch positions when the cache is already loaded', async () => {
-      mockGetPositionsSnapshot.mockReturnValue([]); // loaded
-      mockPlaceOrder.mockResolvedValue({ success: true });
-
-      const { result } = renderHook(() => usePerpsOrderExecution());
-      await act(async () => {
-        await result.current.placeOrder(mockOrderParams);
-      });
-      await waitFor(() => expect(result.current.isPlacing).toBe(false));
-
-      expect(mockGetPositions).not.toHaveBeenCalled();
     });
   });
 
