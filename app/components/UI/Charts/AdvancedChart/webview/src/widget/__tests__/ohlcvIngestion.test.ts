@@ -15,7 +15,6 @@ import {
   getOhlcvPagination,
   getRnBackedPagination,
   getVisibleFromMs,
-  isInHotReloadPreResetPhase,
   setChartReady,
   setWidget,
 } from '../../core/state';
@@ -150,9 +149,13 @@ describe('handleSetOHLCVData', () => {
       data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
     });
     expect(setResolution).toHaveBeenCalledWith('5', expect.any(Function));
+    // resetData is NOT called on the resolution-change path; TV handles it
+    // naturally via setResolution + getBars.
     expect(resetData).not.toHaveBeenCalled();
     setResCb();
-    expect(resetData).toHaveBeenCalled();
+    expect(resetData).not.toHaveBeenCalled();
+    // Callback runs applyVisibleRange → setRightOffset
+    expect(getTimeScale).toHaveBeenCalled();
   });
 
   it('ignores stale setResolution callback when a newer interval arrives', () => {
@@ -193,83 +196,13 @@ describe('handleSetOHLCVData', () => {
 
     expect(setResCbs).toHaveLength(2);
 
-    // Fire the stale 5m callback — should be ignored
+    // Fire the stale 5m callback — should be ignored (no side-effects)
     setResCbs[0]();
-    expect(resetData).not.toHaveBeenCalled();
+    expect(getTimeScale).not.toHaveBeenCalled();
 
     // Fire the current 15m callback — should proceed
     setResCbs[1]();
-    expect(resetData).toHaveBeenCalledTimes(1);
-  });
-
-  it('sets inHotReloadPreResetPhase during setResolution window', () => {
-    let setResCb: () => void = () => undefined;
-    const setResolution = jest
-      .fn()
-      .mockImplementation((_res: string, cb: () => void) => {
-        setResCb = cb;
-      });
-    const chart = {
-      resetData: jest.fn(),
-      setResolution,
-      onDataLoaded: jest
-        .fn()
-        .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
-      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
-    } as unknown as TVActiveChart;
-
-    handleSetOHLCVData({ data: oneMinuteApart(2) });
-    setWidget({
-      activeChart: () => chart,
-    } as unknown as TVChartingLibraryWidget);
-    setChartReady(true);
-
-    handleSetOHLCVData({
-      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
-    });
-
-    expect(isInHotReloadPreResetPhase()).toBe(true);
-    setResCb();
-    expect(isInHotReloadPreResetPhase()).toBe(false);
-  });
-
-  it('clears inHotReloadPreResetPhase when same-resolution data arrives during pending setResolution', () => {
-    let setResCb: () => void = () => undefined;
-    const setResolution = jest
-      .fn()
-      .mockImplementation((_res: string, cb: () => void) => {
-        setResCb = cb;
-      });
-    const chart = {
-      resetData: jest.fn(),
-      setResolution,
-      onDataLoaded: jest
-        .fn()
-        .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
-      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
-    } as unknown as TVActiveChart;
-
-    handleSetOHLCVData({ data: oneMinuteApart(2) });
-    setWidget({
-      activeChart: () => chart,
-    } as unknown as TVChartingLibraryWidget);
-    setChartReady(true);
-
-    // Switch 1m → 5m: sets inHotReloadPreResetPhase = true
-    handleSetOHLCVData({
-      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
-    });
-    expect(isInHotReloadPreResetPhase()).toBe(true);
-
-    // Same 5m data arrives again before the callback fires
-    handleSetOHLCVData({
-      data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
-    });
-    expect(isInHotReloadPreResetPhase()).toBe(false);
-
-    // Stale callback should be ignored
-    setResCb();
-    expect(isInHotReloadPreResetPhase()).toBe(false);
+    expect(getTimeScale).toHaveBeenCalled();
   });
 
   it('calls widget.resetCache before resetData on same-resolution reload', () => {
@@ -944,16 +877,13 @@ describe('error paths', () => {
     expect(failingCb).toHaveBeenCalledTimes(2);
   });
 
-  it('reports error when resetData throws inside setResolution callback', () => {
+  it('reports error when setRightOffset throws inside setResolution callback', () => {
     (
       window as unknown as { ReactNativeWebView: { postMessage: jest.Mock } }
     ).ReactNativeWebView = { postMessage: jest.fn() };
 
     let setResCb: () => void = () => undefined;
     const chart = {
-      resetData: jest.fn().mockImplementation(() => {
-        throw new Error('resetData inside setResolution');
-      }),
       setResolution: jest
         .fn()
         .mockImplementation((_res: string, cb: () => void) => {
@@ -962,7 +892,11 @@ describe('error paths', () => {
       onDataLoaded: jest
         .fn()
         .mockReturnValue({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
-      getTimeScale: jest.fn().mockReturnValue({ setRightOffset: jest.fn() }),
+      getTimeScale: jest.fn().mockReturnValue({
+        setRightOffset: jest.fn().mockImplementation(() => {
+          throw new Error('setRightOffset inside setResolution');
+        }),
+      }),
       getPanes: jest.fn().mockReturnValue([]),
     } as unknown as TVActiveChart;
 
@@ -978,7 +912,7 @@ describe('error paths', () => {
       data: Array.from({ length: 3 }, (_, i) => bar(i * 300_000)),
     });
 
-    // Fire the setResolution callback — resetData throws inside.
+    // Fire the setResolution callback — setRightOffset throws inside applyVisibleRange.
     expect(() => setResCb()).not.toThrow();
 
     const bridge = (
@@ -989,7 +923,7 @@ describe('error paths', () => {
         const parsed = JSON.parse(call[0]);
         return (
           parsed.type === 'ERROR' &&
-          parsed.payload.message.includes('resetData inside setResolution')
+          parsed.payload.message.includes('setRightOffset inside setResolution')
         );
       },
     );

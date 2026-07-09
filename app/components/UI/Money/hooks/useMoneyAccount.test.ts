@@ -273,7 +273,7 @@ describe('useMoneyAccountDeposit', () => {
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
-  it('defaults intent to "convert" when omitted', async () => {
+  it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {
     let observedBatchId: string | undefined;
     mockAddTransactionBatch.mockImplementationOnce(async (args) => {
       observedBatchId = (args as { batchId: string }).batchId;
@@ -286,7 +286,7 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit();
     });
 
-    expect(getMoneyAccountDepositIntent(observedBatchId)).toBe('convert');
+    expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
