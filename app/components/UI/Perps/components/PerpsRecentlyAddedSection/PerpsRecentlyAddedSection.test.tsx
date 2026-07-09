@@ -4,6 +4,31 @@ import type { PerpsMarketData } from '@metamask/perps-controller';
 import PerpsRecentlyAddedSection from './PerpsRecentlyAddedSection';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPerpsShowFullAssetNamesFlag: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const { selectPerpsShowFullAssetNamesFlag } = jest.requireMock(
+  '../../selectors/featureFlags',
+);
+const { useSelector } = jest.requireMock('react-redux');
+const mockUseSelector = useSelector as jest.MockedFunction<
+  (selector: unknown) => unknown
+>;
+
+// Helper to stub useSelector so only selectPerpsShowFullAssetNamesFlag
+// resolves to the given value, and every other selector returns false.
+const mockSelectors = (showFullAssetNames: boolean) => {
+  mockUseSelector.mockImplementation((selector) =>
+    selector === selectPerpsShowFullAssetNamesFlag ? showFullAssetNames : false,
+  );
+};
+
 // Stub design-system components that pull in native modules
 jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -41,6 +66,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
 const NOW = 1_750_000_000_000;
 beforeEach(() => {
   jest.spyOn(Date, 'now').mockReturnValue(NOW);
+  // Default to the flag being on so existing tests (written before the flag
+  // gated this label) keep exercising the "show name" behavior; the
+  // "Full Asset Name Feature Flag" block below covers both states explicitly.
+  mockSelectors(true);
 });
 afterEach(() => {
   jest.restoreAllMocks();
@@ -269,6 +298,63 @@ describe('PerpsRecentlyAddedSection', () => {
         screen.getByTestId('perps-recently-added-tile-BTC'),
       ).toBeOnTheScreen();
       expect(screen.queryByText(/ago/)).toBeNull();
+    });
+  });
+
+  describe('Full Asset Name Feature Flag', () => {
+    it('shows the ticker symbol instead of the name when the flag is disabled', () => {
+      mockSelectors(false);
+
+      render(
+        <PerpsRecentlyAddedSection
+          markets={[createMarket({ symbol: 'BTC', name: 'Bitcoin' })]}
+          onMarketPress={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.queryByText('Bitcoin')).toBeNull();
+    });
+
+    it('shows the full name when the flag is enabled', () => {
+      mockSelectors(true);
+
+      render(
+        <PerpsRecentlyAddedSection
+          markets={[createMarket({ symbol: 'BTC', name: 'Bitcoin' })]}
+          onMarketPress={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+      expect(screen.queryByText('BTC')).toBeNull();
+    });
+
+    it('falls back to the ticker when the flag is enabled but name is missing', () => {
+      mockSelectors(true);
+
+      render(
+        <PerpsRecentlyAddedSection
+          markets={[createMarket({ symbol: 'BTC', name: undefined })]}
+          onMarketPress={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+
+    it('strips the HIP-3 dex prefix from the ticker when the flag is disabled', () => {
+      mockSelectors(false);
+
+      render(
+        <PerpsRecentlyAddedSection
+          markets={[createMarket({ symbol: 'xyz:SKHY', name: 'Some Asset' })]}
+          onMarketPress={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByText('SKHY')).toBeOnTheScreen();
+      expect(screen.queryByText('xyz:SKHY')).toBeNull();
     });
   });
 

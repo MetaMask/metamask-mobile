@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { SectionHeader } from '@metamask/design-system-react-native';
 import {
   getPerpsDisplaySymbol,
@@ -14,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
 import { formatTimeSinceListing } from '../../utils/time';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 import styleSheet from './PerpsRecentlyAddedSection.styles';
 import type { PerpsRecentlyAddedSectionProps } from './PerpsRecentlyAddedSection.types';
 
@@ -22,6 +24,7 @@ const PerpsRecentlyAddedTile: React.FC<{
   onPress: (market: PerpsMarketData) => void;
 }> = ({ market, onPress }) => {
   const { styles } = useStyles(styleSheet, {});
+  const showFullAssetNames = useSelector(selectPerpsShowFullAssetNamesFlag);
 
   const handlePress = useCallback(() => {
     onPress(market);
@@ -30,14 +33,15 @@ const PerpsRecentlyAddedTile: React.FC<{
   const isPositiveChange = !market.change24h.startsWith('-');
   const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
 
-  // Prefer the display name (e.g. "Bitcoin"); fall back to the display symbol
-  // when no name is available. Both branches go through getPerpsDisplaySymbol
-  // so a HIP-3 `dex:SYMBOL` value (e.g. "xyz:SKHY") never renders with its raw
-  // dex prefix, whether it comes from `name` or `symbol`.
-  const assetLabel = useMemo(
-    () => getPerpsDisplaySymbol(market.name || market.symbol),
-    [market.name, market.symbol],
-  );
+  // Mirrors PerpsMarketRowItem: prefer the display name (e.g. "Bitcoin") only
+  // when the flag is on, otherwise fall back to the display symbol. Both
+  // branches go through getPerpsDisplaySymbol so a HIP-3 `dex:SYMBOL` value
+  // (e.g. "xyz:SKHY") never renders with its raw dex prefix.
+  const assetLabel = useMemo(() => {
+    const label =
+      showFullAssetNames && market.name ? market.name : market.symbol;
+    return getPerpsDisplaySymbol(label);
+  }, [showFullAssetNames, market.name, market.symbol]);
 
   return (
     <TouchableOpacity
