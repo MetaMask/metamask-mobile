@@ -23,7 +23,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { PROCESSING_INFO_MODAL_TEST_IDS } from './ProcessingInfoModal.testIds';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ProcessingInfoModalParams {
   providerName: string;
@@ -48,7 +47,6 @@ function ProcessingInfoModal() {
   const navigation = useNavigation();
   const { providerName, providerSupportUrl, statusDescription } =
     useParams<ProcessingInfoModalParams>();
-  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -101,7 +99,6 @@ function ProcessingInfoModal() {
     <BottomSheet
       ref={sheetRef}
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
     >
       <HeaderStandard
         onClose={handleClose}

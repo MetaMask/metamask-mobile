@@ -37,7 +37,6 @@ import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -113,7 +112,6 @@ function PaymentSelectionModal() {
 
   const { data: quotes, loading: quotesLoading } =
     useRampsQuotes(quoteFetchParams);
-  const surfaceClass = useElevatedSurface();
 
   const handleChangeProviderPress = useCallback(() => {
     trackEvent(
@@ -273,7 +271,6 @@ function PaymentSelectionModal() {
     <BottomSheet
       ref={sheetRef}
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
     >
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
