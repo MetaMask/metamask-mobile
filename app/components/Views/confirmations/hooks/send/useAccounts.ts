@@ -65,6 +65,7 @@ export const useAccounts = (): RecipientType[] => {
       if (isTronSendType) {
         return isTronAccount(account);
       }
+      /// END:ONLY_INCLUDE_IF
       /// BEGIN:ONLY_INCLUDE_IF(stellar)
       if (isStellarSendType) {
         return isStellarAccount(account);
