@@ -272,6 +272,8 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
   // Propagate UTM params into controller attribution context (TAT-3463).
   try {
     setPerpsUtmAttribution(parsePerpsUtmFromPath(perpsPath));
+    // Attribution is best-effort: Engine/controller may be unavailable during
+    // early deeplink handling; never block navigation if UTM write fails.
   } catch (attributionError) {
     DevLogger.log(
       '[handlePerpsUrl] Failed to set attribution context:',
