@@ -36,9 +36,7 @@ jest.mock('./instance-options/storage-service', () => ({
   getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
 }));
 jest.mock('./instance-options/transaction-controller', () => ({
-  getTransactionControllerInstanceOptions: jest.fn(
-    () => 'transaction-options',
-  ),
+  getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
   setupTransactionControllerListeners: jest.fn(),
 }));
 jest.mock('./messengers/transaction-controller-messenger', () => ({

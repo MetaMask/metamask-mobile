@@ -345,8 +345,8 @@ describe('setupTransactionControllerListeners', () => {
     );
 
     expect(handleTransactionAddedEventForMetrics).toHaveBeenCalled();
-    expect(handleUnapprovedTransactionAddedForMoneyAccount).toHaveBeenCalledWith(
-      MOCK_TRANSACTION_META,
-    );
+    expect(
+      handleUnapprovedTransactionAddedForMoneyAccount,
+    ).toHaveBeenCalledWith(MOCK_TRANSACTION_META);
   });
 });
