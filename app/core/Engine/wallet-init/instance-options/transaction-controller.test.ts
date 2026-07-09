@@ -1,4 +1,3 @@
-import { it as jestIt } from '@jest/globals';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
   MOCK_ANY_NAMESPACE,
@@ -158,7 +157,7 @@ describe('TransactionController wallet instance options', () => {
       };
     }
 
-    jestIt.each([
+    it.each([
       ['stakingDeposit', TransactionType.stakingDeposit, true],
       ['contractInteraction', TransactionType.contractInteraction, true],
       ['swap', TransactionType.swap, false],
