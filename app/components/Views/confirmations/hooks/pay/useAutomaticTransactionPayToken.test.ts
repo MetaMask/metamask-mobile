@@ -41,16 +41,6 @@ import { selectLastWithdrawTokenByType } from '../../../../../selectors/transact
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
-import Engine from '../../../../../core/Engine';
-
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TransactionPayController: {
-      state: { transactionData: {} },
-      updateFiatPayment: jest.fn(),
-    },
-  },
-}));
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -107,14 +97,21 @@ const STATE_MOCK = merge(
 );
 
 function runHook({
+  autoSelectFiatPayment = false,
   disable = false,
   preferredToken,
 }: {
+  autoSelectFiatPayment?: boolean;
   disable?: boolean;
   preferredToken?: SetPayTokenRequest;
 } = {}) {
   return renderHookWithProvider(
-    () => useAutomaticTransactionPayToken({ disable, preferredToken }),
+    () =>
+      useAutomaticTransactionPayToken({
+        autoSelectFiatPayment,
+        disable,
+        preferredToken,
+      }),
     {
       state: STATE_MOCK,
     },
@@ -151,8 +148,6 @@ describe('useAutomaticTransactionPayToken', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-
-    Engine.context.TransactionPayController.state.transactionData = {};
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -1065,7 +1060,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('does not re-select pay token on accountOverride change when controller has fiat payment selected', () => {
+  it('does not re-select pay token on accountOverride change when auto-selecting fiat payment', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
         {
@@ -1082,13 +1077,7 @@ describe('useAutomaticTransactionPayToken', () => {
       txParams: { from: '0xAddress1' },
     } as never);
 
-    Engine.context.TransactionPayController.state.transactionData = {
-      [transactionIdMock]: {
-        fiatPayment: { selectedPaymentMethodId: 'payment-method-1' },
-      },
-    } as never;
-
-    const { rerender } = runHook();
+    const { rerender } = runHook({ autoSelectFiatPayment: true });
 
     setPayTokenMock.mockClear();
 
@@ -1099,7 +1088,46 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
-  it('re-selects pay token on accountOverride change when controller has no fiat payment selected', () => {
+  it('re-selects pay token on accountOverride change in fiat flow when pay token already selected', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      },
+      setPayToken: setPayTokenMock,
+    } as never);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xAddress1' },
+    } as never);
+
+    const { rerender } = runHook({ autoSelectFiatPayment: true });
+
+    setPayTokenMock.mockClear();
+
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
+    });
+  });
+
+  it('re-selects pay token on accountOverride change when not auto-selecting fiat payment', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
         {

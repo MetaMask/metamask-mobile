@@ -1256,9 +1256,15 @@ describe('AdvancedCustomAmountInfoSkeleton', () => {
     expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
   });
 
-  it('renders skeleton without account and pay-with rows when hideAccountRows is true', () => {
+  it('renders skeleton without account and pay-with rows when autoSelectFiatPayment param is set', () => {
+    jest.mocked(useRoute).mockReturnValue({
+      key: 'mock-route',
+      name: 'MockScreen',
+      params: { autoSelectFiatPayment: true },
+    } as never);
+
     const { getByTestId, queryByTestId } = renderWithProvider(
-      <AdvancedCustomAmountInfoSkeleton hideAccountRows />,
+      <AdvancedCustomAmountInfoSkeleton />,
       {
         state: merge(
           {},
