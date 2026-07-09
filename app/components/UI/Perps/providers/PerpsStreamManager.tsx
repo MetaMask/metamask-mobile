@@ -903,9 +903,13 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
         // Orders just rendered to subscribers — close pending cancel / limit
         // order-render CUF spans, flushing throttled subscribers first so the
         // span ends when they actually render, not at throttle-enqueue time.
-        handlePerpsCufOrdersDelivered(orders, () =>
-          this.flushThrottledDeliveries(),
-        );
+        // Skip while paused: notifySubscribers delivered nothing, so nothing
+        // rendered.
+        if (this.pauseCount === 0) {
+          handlePerpsCufOrdersDelivered(orders, () =>
+            this.flushThrottledDeliveries(),
+          );
+        }
         this.triggerPersist();
       },
     });
@@ -1049,9 +1053,12 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
         // Positions just rendered to subscribers — close any pending CUF span
         // (place/close/TPSL/reconnect) at its user-perceived boundary, flushing
         // throttled subscribers first so the span ends at real render time.
-        handlePerpsCufPositionsDelivered(positions, () =>
-          this.flushThrottledDeliveries(),
-        );
+        // Skip while paused: notifySubscribers delivered nothing.
+        if (this.pauseCount === 0) {
+          handlePerpsCufPositionsDelivered(positions, () =>
+            this.flushThrottledDeliveries(),
+          );
+        }
         this.triggerPersist();
       },
     });

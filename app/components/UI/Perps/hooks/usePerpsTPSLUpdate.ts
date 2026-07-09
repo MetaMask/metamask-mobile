@@ -16,7 +16,7 @@ import {
   startPerpsCufTrace,
   endPerpsCufTrace,
   endPerpsCufTraceAfter,
-  watchPerpsCufPositionChanged,
+  watchPerpsCufTpSlChanged,
 } from '../utils/perpsCufTrace';
 import {
   PERPS_CUF_TAG,
@@ -58,7 +58,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       const tpslCufOpId = startPerpsCufTrace({
         name: TraceName.PerpsUpdateTPSLToConfirmation,
       });
-      watchPerpsCufPositionChanged(tpslCufOpId, position);
+      watchPerpsCufTpSlChanged(tpslCufOpId, position);
       endPerpsCufTraceAfter(
         {
           id: tpslCufOpId,

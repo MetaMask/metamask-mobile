@@ -23,7 +23,7 @@ import {
   armPerpsPlaceOrderCuf,
   isPerpsPlaceOrderCufCurrent,
   waitForPerpsPlaceOrderPositionRendered,
-  watchPerpsCufOrderPresent,
+  watchPerpsCufLimitRendered,
 } from '../utils/perpsCufTrace';
 import {
   PERPS_CUF_TAG,
@@ -199,7 +199,19 @@ export function usePerpsOrderExecution(
                 [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
               });
             } else {
-              watchPerpsCufOrderPresent(cufOpId, orderId);
+              // End when the order rests in the orders stream, or — for a
+              // marketable limit that fills immediately — when it renders as a
+              // new/changed position (baseline tells a fill from a prior hold).
+              const positionBaseline =
+                stream.positions
+                  .getSnapshot()
+                  ?.find((p) => p.symbol === orderParams.symbol) ?? null;
+              watchPerpsCufLimitRendered(
+                cufOpId,
+                orderId,
+                orderParams.symbol,
+                positionBaseline,
+              );
               endPerpsCufTraceAfter(
                 {
                   id: cufOpId,

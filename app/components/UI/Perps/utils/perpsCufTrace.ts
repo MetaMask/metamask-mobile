@@ -38,9 +38,13 @@ const CUF_META = {
 
 /** What a pending confirmation span is watching for in the stream. */
 const PERPS_CUF_WATCH = {
-  POSITION_CHANGED: 'position_changed',
+  /** Close: position size reduced or the position vanished. */
+  POSITION_CLOSED: 'position_closed',
+  /** TP/SL update: the position's take-profit or stop-loss value changed. */
+  TPSL_CHANGED: 'tpsl_changed',
   ORDER_ABSENT: 'order_absent',
-  ORDER_PRESENT: 'order_present',
+  /** Limit place: the order rests in the orders stream OR fills into a position. */
+  ORDER_PRESENT_OR_FILLED: 'order_present_or_filled',
   ANY_POSITIONS: 'any_positions',
 } as const;
 
@@ -52,8 +56,14 @@ export interface PerpsCufPositionLike {
   stopLossPrice?: string;
 }
 
+/** Full render snapshot (size + TP/SL) used for the place-order fill matcher. */
 function positionSnapshot(position: PerpsCufPositionLike): string {
   return `${position.size}|${position.takeProfitPrice ?? ''}|${position.stopLossPrice ?? ''}`;
+}
+
+/** TP/SL-only snapshot: a size change must not end a TP/SL confirmation. */
+function tpSlSnapshot(position: PerpsCufPositionLike): string {
+  return `${position.takeProfitPrice ?? ''}|${position.stopLossPrice ?? ''}`;
 }
 
 /** Open CUF spans: unique op id -> metadata handed from starter to ender. */
@@ -190,9 +200,13 @@ export function armPerpsPlaceOrderCuf(
       },
     });
   }
+  // Wake any waiter from the superseded op so its caller doesn't block until
+  // the old race timer fires; it resolves null because the op id no longer owns.
+  const supersededResolver = placeOrderResolver;
   placeOrderOpId = opId;
   placeOrderRendered = null;
   placeOrderResolver = null;
+  supersededResolver?.();
   setPerpsCufMeta(opId, {
     [CUF_META.SYMBOL]: symbol,
     ...(baseline ? { [CUF_META.SNAPSHOT]: positionSnapshot(baseline) } : {}),
@@ -251,9 +265,35 @@ export function waitForPerpsPlaceOrderPositionRendered(
  * throttled subscribers actually receive the data at the measured instant.
  * Returns true when it matched (so the caller can flush once for the tick).
  */
+/**
+ * Whether the armed position has rendered for `meta`: a new/changed position
+ * for its symbol, OR — when a position existed pre-order — that position now
+ * absent (the order reduced/flipped it to zero via the order form).
+ */
+function placeOrderPositionRendered(
+  meta: Record<string, TraceValue>,
+  positions: readonly PerpsCufPositionLike[],
+): PerpsCufPositionLike | null {
+  const symbol = meta[CUF_META.SYMBOL];
+  if (typeof symbol !== 'string') {
+    return null;
+  }
+  const current = positions.find((p) => p.symbol === symbol);
+  const baseline = meta[CUF_META.SNAPSHOT];
+  const baselineExisted = typeof baseline === 'string';
+  if (current) {
+    // New (no baseline) or changed versus the pre-order baseline.
+    if (!baselineExisted || positionSnapshot(current) !== baseline) {
+      return current;
+    }
+    return null;
+  }
+  // Position absent: a render only if one existed before (order closed it).
+  return baselineExisted ? { symbol, size: '0' } : null;
+}
+
 function resolvePerpsPlaceOrderCufOnPositions(
   positions: readonly PerpsCufPositionLike[],
-  flushThrottled?: () => void,
 ): void {
   if (placeOrderRendered || !placeOrderOpId) {
     return;
@@ -262,33 +302,35 @@ function resolvePerpsPlaceOrderCufOnPositions(
   if (!meta) {
     return;
   }
-  const symbol = meta[CUF_META.SYMBOL];
-  if (typeof symbol !== 'string') {
+  const rendered = placeOrderPositionRendered(meta, positions);
+  if (!rendered) {
     return;
   }
-  const current = positions.find((p) => p.symbol === symbol);
-  if (!current) {
-    return;
-  }
-  const baseline = meta[CUF_META.SNAPSHOT];
-  if (typeof baseline === 'string' && positionSnapshot(current) === baseline) {
-    // Pre-order position unchanged: the order's fill hasn't rendered yet.
-    return;
-  }
-  flushThrottled?.();
-  placeOrderRendered = { position: current, renderedAt: Date.now() };
+  placeOrderRendered = { position: rendered, renderedAt: Date.now() };
   placeOrderResolver?.();
 }
 
-/** Watch for the given position to change (or vanish) before ending `opId`. */
-export function watchPerpsCufPositionChanged(
+/** Close confirmation: end `opId` when its position's size shrinks or vanishes. */
+export function watchPerpsCufPositionClosed(
   opId: string,
   position: PerpsCufPositionLike,
 ): void {
   setPerpsCufMeta(opId, {
-    [CUF_META.WATCH]: PERPS_CUF_WATCH.POSITION_CHANGED,
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.POSITION_CLOSED,
     [CUF_META.SYMBOL]: position.symbol,
-    [CUF_META.SNAPSHOT]: positionSnapshot(position),
+    [CUF_META.SNAPSHOT]: position.size,
+  });
+}
+
+/** TP/SL confirmation: end `opId` when its position's TP or SL value changes. */
+export function watchPerpsCufTpSlChanged(
+  opId: string,
+  position: PerpsCufPositionLike,
+): void {
+  setPerpsCufMeta(opId, {
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.TPSL_CHANGED,
+    [CUF_META.SYMBOL]: position.symbol,
+    [CUF_META.SNAPSHOT]: tpSlSnapshot(position),
   });
 }
 
@@ -300,11 +342,25 @@ export function watchPerpsCufOrderAbsent(opId: string, orderId: string): void {
   });
 }
 
-/** Watch for the given order to appear (render) in the stream before ending `opId`. */
-export function watchPerpsCufOrderPresent(opId: string, orderId: string): void {
+/**
+ * Limit place confirmation: end `opId` when the order renders as resting in the
+ * orders stream OR fills into a position (a marketable limit never rests).
+ * `positionBaseline` is the symbol's pre-order position, so a fill is detected
+ * as a new/changed position rather than a pre-existing one.
+ */
+export function watchPerpsCufLimitRendered(
+  opId: string,
+  orderId: string,
+  symbol: string,
+  positionBaseline?: PerpsCufPositionLike | null,
+): void {
   setPerpsCufMeta(opId, {
-    [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_PRESENT,
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_PRESENT_OR_FILLED,
     [CUF_META.ORDER_ID]: orderId,
+    [CUF_META.SYMBOL]: symbol,
+    ...(positionBaseline
+      ? { [CUF_META.SNAPSHOT]: positionSnapshot(positionBaseline) }
+      : {}),
   });
 }
 
@@ -348,28 +404,56 @@ export function handlePerpsCufPositionsDelivered(
   }
 
   // Collect matches first so a single flush covers the whole tick.
-  const positionChangedNames = [
-    TraceName.PerpsClosePositionToConfirmation,
-    TraceName.PerpsUpdateTPSLToConfirmation,
-  ];
   const toEnd: string[] = [];
-  for (const name of positionChangedNames) {
-    for (const opId of pendingOpIdsForName(name)) {
-      const meta = pendingCufMeta.get(opId);
-      if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.POSITION_CHANGED) {
-        continue;
-      }
-      const symbol = meta[CUF_META.SYMBOL];
-      if (typeof symbol !== 'string') {
-        continue;
-      }
-      const current = positions.find((p) => p.symbol === symbol);
-      const currentSnapshot = current ? positionSnapshot(current) : undefined;
-      if (currentSnapshot !== meta[CUF_META.SNAPSHOT]) {
-        toEnd.push(opId);
-      }
+  // Close: size reduced or position absent versus the pre-close size.
+  for (const opId of pendingOpIdsForName(
+    TraceName.PerpsClosePositionToConfirmation,
+  )) {
+    const meta = pendingCufMeta.get(opId);
+    if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.POSITION_CLOSED) {
+      continue;
+    }
+    const symbol = meta[CUF_META.SYMBOL];
+    if (typeof symbol !== 'string') {
+      continue;
+    }
+    const current = positions.find((p) => p.symbol === symbol);
+    const currentSize = current ? current.size : undefined;
+    if (currentSize !== meta[CUF_META.SNAPSHOT]) {
+      toEnd.push(opId);
     }
   }
+  // TP/SL: the position is still present and its TP or SL value changed.
+  for (const opId of pendingOpIdsForName(
+    TraceName.PerpsUpdateTPSLToConfirmation,
+  )) {
+    const meta = pendingCufMeta.get(opId);
+    if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.TPSL_CHANGED) {
+      continue;
+    }
+    const symbol = meta[CUF_META.SYMBOL];
+    if (typeof symbol !== 'string') {
+      continue;
+    }
+    const current = positions.find((p) => p.symbol === symbol);
+    if (current && tpSlSnapshot(current) !== meta[CUF_META.SNAPSHOT]) {
+      toEnd.push(opId);
+    }
+  }
+  // Limit place: a marketable limit that filled renders as a new/changed
+  // position instead of a resting order.
+  for (const opId of pendingOpIdsForName(
+    TraceName.PerpsPlaceLimitOrderToOrderRendered,
+  )) {
+    const meta = pendingCufMeta.get(opId);
+    if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.ORDER_PRESENT_OR_FILLED) {
+      continue;
+    }
+    if (placeOrderPositionRendered(meta, positions)) {
+      toEnd.push(opId);
+    }
+  }
+  // Reconnect: any fresh positions delivery.
   for (const opId of pendingOpIdsForName(
     TraceName.PerpsWebSocketReconnectToFreshData,
   )) {
@@ -381,27 +465,13 @@ export function handlePerpsCufPositionsDelivered(
     }
   }
 
-  const placeWillMatch =
-    !placeOrderRendered &&
-    !!placeOrderOpId &&
-    (() => {
-      const meta = pendingCufMeta.get(placeOrderOpId);
-      if (!meta) {
-        return false;
-      }
-      const symbol = meta[CUF_META.SYMBOL];
-      if (typeof symbol !== 'string') {
-        return false;
-      }
-      const current = positions.find((p) => p.symbol === symbol);
-      if (!current) {
-        return false;
-      }
-      const baseline = meta[CUF_META.SNAPSHOT];
-      return (
-        typeof baseline !== 'string' || positionSnapshot(current) !== baseline
-      );
-    })();
+  const placeMeta =
+    !placeOrderRendered && placeOrderOpId
+      ? pendingCufMeta.get(placeOrderOpId)
+      : undefined;
+  const placeWillMatch = placeMeta
+    ? placeOrderPositionRendered(placeMeta, positions) !== null
+    : false;
 
   // Flush once if anything is about to be confirmed, so the measured render
   // instant reflects real subscriber delivery (not the throttle enqueue).
@@ -448,7 +518,7 @@ export function handlePerpsCufOrdersDelivered(
     const meta = pendingCufMeta.get(opId);
     const orderId = meta?.[CUF_META.ORDER_ID];
     if (
-      meta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_PRESENT &&
+      meta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_PRESENT_OR_FILLED &&
       typeof orderId === 'string' &&
       orders.some((o) => o.orderId === orderId)
     ) {

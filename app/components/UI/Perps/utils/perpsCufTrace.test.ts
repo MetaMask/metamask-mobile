@@ -12,9 +12,10 @@ import {
   armPerpsPlaceOrderCuf,
   isPerpsPlaceOrderCufCurrent,
   waitForPerpsPlaceOrderPositionRendered,
-  watchPerpsCufPositionChanged,
+  watchPerpsCufPositionClosed,
+  watchPerpsCufTpSlChanged,
   watchPerpsCufOrderAbsent,
-  watchPerpsCufOrderPresent,
+  watchPerpsCufLimitRendered,
   watchPerpsCufAnyPositions,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
@@ -295,6 +296,36 @@ describe('perpsCufTrace', () => {
     );
   });
 
+  it('resolves when an order-form submit reduces the baseline position to zero', async () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceOrderToPositionRendered,
+    });
+    // A position existed before the order; the order flips/closes it to zero.
+    armPerpsPlaceOrderCuf(opId, 'BTC', { symbol: 'BTC', size: '0.01' });
+
+    // BTC position now absent from the stream — a real rendered outcome.
+    handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '1' }]);
+
+    await expect(
+      waitForPerpsPlaceOrderPositionRendered(5, opId),
+    ).resolves.toEqual(
+      expect.objectContaining({ position: { symbol: 'BTC', size: '0' } }),
+    );
+  });
+
+  it('does not resolve on absence when no baseline position existed', async () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceOrderToPositionRendered,
+    });
+    armPerpsPlaceOrderCuf(opId, 'BTC'); // no pre-order position
+
+    handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '1' }]);
+
+    await expect(
+      waitForPerpsPlaceOrderPositionRendered(5, opId),
+    ).resolves.toBeNull();
+  });
+
   it('ignores deliveries that do not match the armed symbol', async () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceOrderToPositionRendered,
@@ -351,7 +382,7 @@ describe('perpsCufTrace', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsClosePositionToConfirmation,
     });
-    watchPerpsCufPositionChanged(opId, btc);
+    watchPerpsCufPositionClosed(opId, btc);
 
     handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '1' }]);
 
@@ -365,11 +396,11 @@ describe('perpsCufTrace', () => {
     );
   });
 
-  it('close span ends on a size change but not on an identical snapshot', () => {
+  it('close span ends on a size change but not on an identical size', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsClosePositionToConfirmation,
     });
-    watchPerpsCufPositionChanged(opId, btc);
+    watchPerpsCufPositionClosed(opId, btc);
 
     handlePerpsCufPositionsDelivered([btc]);
     expect(mockEndTrace).not.toHaveBeenCalled();
@@ -378,16 +409,56 @@ describe('perpsCufTrace', () => {
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
   });
 
+  it('close span is NOT ended by a TP/SL-only change (no size change)', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsClosePositionToConfirmation,
+    });
+    watchPerpsCufPositionClosed(opId, btc);
+
+    // Same size, different take-profit: not a close.
+    handlePerpsCufPositionsDelivered([{ ...btc, takeProfitPrice: '80000' }]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
   it('tpsl span ends when the TP value changes in the stream', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsUpdateTPSLToConfirmation,
     });
-    watchPerpsCufPositionChanged(opId, btc);
+    watchPerpsCufTpSlChanged(opId, btc);
 
     handlePerpsCufPositionsDelivered([{ ...btc, takeProfitPrice: '71000' }]);
 
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: opId }),
+    );
+  });
+
+  it('tpsl span is NOT ended by a size-only change (partial fill/close)', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsUpdateTPSLToConfirmation,
+    });
+    watchPerpsCufTpSlChanged(opId, btc);
+
+    // Same TP/SL, different size: not a TP/SL update.
+    handlePerpsCufPositionsDelivered([{ ...btc, size: '0.02' }]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
+  it('close and tpsl spans on the same symbol do not cross-end each other', () => {
+    const closeOp = startPerpsCufTrace({
+      name: TraceName.PerpsClosePositionToConfirmation,
+    });
+    watchPerpsCufPositionClosed(closeOp, btc);
+    const tpslOp = startPerpsCufTrace({
+      name: TraceName.PerpsUpdateTPSLToConfirmation,
+    });
+    watchPerpsCufTpSlChanged(tpslOp, btc);
+
+    // Only TP/SL changed: ends the tpsl span, not the close span.
+    handlePerpsCufPositionsDelivered([{ ...btc, takeProfitPrice: '71000' }]);
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: tpslOp }),
     );
   });
 
@@ -410,12 +481,32 @@ describe('perpsCufTrace', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
     });
-    watchPerpsCufOrderPresent(opId, 'o-9');
+    watchPerpsCufLimitRendered(opId, 'o-9', 'BTC');
 
     handlePerpsCufOrdersDelivered([{ orderId: 'o-1' }]);
     expect(mockEndTrace).not.toHaveBeenCalled();
 
     handlePerpsCufOrdersDelivered([{ orderId: 'o-1' }, { orderId: 'o-9' }]);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: opId,
+        data: expect.objectContaining({
+          [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+        }),
+      }),
+    );
+  });
+
+  it('limit-order-render span ends when a marketable limit fills into a position', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
+    });
+    // No pre-order position baseline: the fill renders a brand-new position.
+    watchPerpsCufLimitRendered(opId, 'o-9', 'BTC');
+
+    // Order never rests; instead a position for the symbol appears.
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.01' }]);
+
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         id: opId,
@@ -434,7 +525,7 @@ describe('perpsCufTrace', () => {
     const limitOpId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
     });
-    watchPerpsCufOrderPresent(limitOpId, 'o-2');
+    watchPerpsCufLimitRendered(limitOpId, 'o-2', 'ETH');
 
     // o-1 gone (cancel confirmed) and o-2 present (limit rendered) in the
     // same delivery: both spans end.

@@ -14,7 +14,7 @@ import {
   startPerpsCufTrace,
   endPerpsCufTrace,
   endPerpsCufTraceAfter,
-  watchPerpsCufPositionChanged,
+  watchPerpsCufPositionClosed,
 } from '../utils/perpsCufTrace';
 import {
   PERPS_CUF_TAG,
@@ -79,7 +79,7 @@ export const usePerpsClosePosition = (
         closeCufOpId = startPerpsCufTrace({
           name: TraceName.PerpsClosePositionToConfirmation,
         });
-        watchPerpsCufPositionChanged(closeCufOpId, position);
+        watchPerpsCufPositionClosed(closeCufOpId, position);
         endPerpsCufTraceAfter(
           {
             id: closeCufOpId,
