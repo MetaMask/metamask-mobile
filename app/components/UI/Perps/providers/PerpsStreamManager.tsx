@@ -102,6 +102,11 @@ abstract class StreamChannel<T> {
   // allowing independent callers (tab visibility, controller operations) to
   // pause/resume without clobbering each other.
   protected pauseCount = 0;
+  // Wall-clock instant of the most recent real delivery to subscribers (unset
+  // while paused, since nothing rendered). Lets a caller that reads getSnapshot()
+  // attribute an already-present value to the instant it was delivered rather
+  // than to when the caller happened to look.
+  protected lastDeliveredAt: number | null = null;
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
   // Timer handle for deferConnect so it can be cancelled on disconnect
@@ -114,9 +119,20 @@ abstract class StreamChannel<T> {
       return;
     }
 
+    this.lastDeliveredAt = Date.now();
     this.subscribers.forEach((subscriber) => {
       this.deliverToSubscriber(subscriber, updates);
     });
+  }
+
+  /**
+   * Wall-clock instant of the most recent real delivery on this channel, or null
+   * if nothing has been delivered (or the channel is paused). Used to timestamp a
+   * CUF span end at the delivery instant when the confirming value was already
+   * present by the time the caller checked getSnapshot().
+   */
+  public getLastDeliveredAt(): number | null {
+    return this.lastDeliveredAt;
   }
 
   /**
@@ -138,6 +154,7 @@ abstract class StreamChannel<T> {
       return;
     }
 
+    this.lastDeliveredAt = Date.now();
     // A subscriber registered for multiple changed symbols must be delivered to
     // exactly once per tick (not once per matching symbol).
     const notifiedIds = new Set<string>();
