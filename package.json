@@ -2,6 +2,10 @@
   "name": "metamask",
   "version": "8.1.1",
   "private": true,
+    "repository": {
+    "type": "git",
+    "url": "https://github.com/MetaMask/metamask-mobile.git"
+  },
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
