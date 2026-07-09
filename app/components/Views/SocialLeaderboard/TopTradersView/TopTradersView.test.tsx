@@ -298,7 +298,7 @@ describe('TopTradersView', () => {
 
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.TITLE),
-    ).toHaveTextContent('Weekly Top Traders');
+    ).toHaveTextContent('Top Traders');
   });
 
   it('connects the scrollable title section to the compact header', () => {
@@ -316,7 +316,7 @@ describe('TopTradersView', () => {
 
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.HEADER_TITLE),
-    ).toHaveTextContent('Weekly Top Traders');
+    ).toHaveTextContent('Top Traders');
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props.onScroll,
     ).toEqual(expect.any(Function));

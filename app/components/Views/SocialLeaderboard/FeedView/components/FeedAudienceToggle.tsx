@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    borderRadius: 8,
+    borderRadius: 12,
   },
 });
 
@@ -108,7 +108,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="border border-muted rounded-xl p-1"
+      twClassName="border border-muted rounded-2xl p-1"
       testID={testID}
     >
       <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>
@@ -117,7 +117,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
             style={[
               styles.slider,
               sliderStyle,
-              { backgroundColor: colors.background.default },
+              { backgroundColor: colors.background.muted },
             ]}
           />
         )}
@@ -134,7 +134,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           accessibilityState={{ selected: value === 'following' }}
           testID={getFeedAudienceOptionTestId('following')}
         >
-          <Box twClassName="rounded-lg px-4 py-1">
+          <Box twClassName="rounded-xl px-4 py-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={
@@ -162,7 +162,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           accessibilityState={{ selected: value === 'all' }}
           testID={getFeedAudienceOptionTestId('all')}
         >
-          <Box twClassName="rounded-lg px-4 py-1">
+          <Box twClassName="rounded-xl px-4 py-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={

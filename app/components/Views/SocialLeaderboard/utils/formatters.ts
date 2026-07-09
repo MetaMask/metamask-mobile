@@ -6,6 +6,7 @@ import {
   formatAmountWithThreshold,
   localizeLargeNumber,
 } from '../../../../util/number';
+import { DAY, HOUR, MINUTE, SECOND } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
 
@@ -182,4 +183,36 @@ export function formatTradeDayLabel(timestamp: number): string {
   const date = new Date(tradeTimestampToMs(timestamp));
   const month = strings(`date.months.${date.getMonth()}`);
   return `${month} ${date.getDate()} ${date.getFullYear()}`;
+}
+
+/**
+ * Formats a feed item timestamp.
+ *
+ * - Within the last 24 hours: compact relative time ("21s", "4m", "2h").
+ * - Older than 24 hours: absolute clock time via `formatTradeTime` (e.g. `8:27 pm`).
+ *
+ * Uses manual formatting (not `toLocaleTimeString`) so output is deterministic on
+ * Hermes, which ignores locale options and falls back to strings like
+ * "02:16:21 GMT+0100".
+ */
+export function formatFeedTimestamp(
+  timestamp: number,
+  now: number = Date.now(),
+): string {
+  const ms = tradeTimestampToMs(timestamp);
+  const diff = Math.max(0, now - ms);
+
+  if (diff >= DAY) {
+    return formatTradeTime(timestamp);
+  }
+
+  if (diff < MINUTE) {
+    return `${Math.floor(diff / SECOND)}s`;
+  }
+
+  if (diff < HOUR) {
+    return `${Math.floor(diff / MINUTE)}m`;
+  }
+
+  return `${Math.floor(diff / HOUR)}h`;
 }

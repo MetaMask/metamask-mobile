@@ -2,6 +2,9 @@ import {
   Box,
   HeaderStandard,
   IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
@@ -18,14 +21,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { playSelection } from '../../../../util/haptics';
-import {
-  TabItem,
-  TabsBar,
-} from '../../../../component-library/components-temp/Tabs';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import FeedView from '../FeedView';
 import TopTradersView from '../TopTradersView';
+import SocialTradersTabBar, {
+  type SocialTradersTab,
+} from './SocialTradersTabBar';
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
 
 const LEADERBOARD_INDEX = 0;
@@ -47,17 +49,15 @@ const SocialTradersTabsView: React.FC = () => {
     isLoading: isLoadingNotificationPreferences,
   } = useNotificationStoragePreferences();
 
-  const tabs: TabItem[] = useMemo(
+  const tabs: SocialTradersTab[] = useMemo(
     () => [
       {
         key: 'leaderboard',
         label: strings('social_leaderboard.feed.tabs.leaderboard'),
-        content: null,
       },
       {
         key: 'feed',
         label: strings('social_leaderboard.feed.tabs.feed'),
-        content: null,
       },
     ],
     [],
@@ -128,7 +128,6 @@ const SocialTradersTabsView: React.FC = () => {
       testID={SocialTradersTabsViewSelectorsIDs.CONTAINER}
     >
       <HeaderStandard
-        title={strings('social_leaderboard.top_traders_view.title')}
         onBack={handleBack}
         backButtonProps={{
           testID: SocialTradersTabsViewSelectorsIDs.BACK_BUTTON,
@@ -143,10 +142,21 @@ const SocialTradersTabsView: React.FC = () => {
         testID={SocialTradersTabsViewSelectorsIDs.HEADER}
       />
 
-      <TabsBar
+      <Box twClassName="px-4 pt-2 pb-3">
+        <Text
+          variant={TextVariant.HeadingLg}
+          color={TextColor.TextDefault}
+          testID={SocialTradersTabsViewSelectorsIDs.TITLE}
+        >
+          {strings('social_leaderboard.top_traders_view.title')}
+        </Text>
+      </Box>
+
+      <SocialTradersTabBar
         tabs={tabs}
         activeIndex={activeIndex}
         onTabPress={handleTabPress}
+        twClassName="mb-4"
         testID={SocialTradersTabsViewSelectorsIDs.TABS}
       />
 

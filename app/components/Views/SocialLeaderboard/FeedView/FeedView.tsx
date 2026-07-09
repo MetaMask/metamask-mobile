@@ -26,6 +26,7 @@ import {
 import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedTypeSelector from './components/FeedTypeSelector';
+import FeedTypeSheet from './components/FeedTypeSheet';
 import FollowingEmptyState from './components/FollowingEmptyState';
 import { useTraderFeed } from './hooks/useTraderFeed';
 import type {
@@ -51,6 +52,7 @@ const FeedView: React.FC = () => {
 
   const [audience, setAudience] = useState<FeedAudience>('all');
   const [typeFilter, setTypeFilter] = useState<FeedTypeFilter>('all');
+  const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
   const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
     null,
@@ -110,6 +112,11 @@ const FeedView: React.FC = () => {
     [],
   );
 
+  const renderItemSeparator = useCallback(
+    () => <Box twClassName="h-px bg-muted" />,
+    [],
+  );
+
   return (
     <Box
       twClassName="flex-1 bg-default"
@@ -122,7 +129,10 @@ const FeedView: React.FC = () => {
         twClassName="px-4 py-3"
         gap={3}
       >
-        <FeedTypeSelector value={typeFilter} onChange={setTypeFilter} />
+        <FeedTypeSelector
+          value={typeFilter}
+          onPress={() => setIsTypeSheetOpen(true)}
+        />
         <FeedAudienceToggle value={audience} onChange={setAudience} />
       </Box>
 
@@ -134,12 +144,20 @@ const FeedView: React.FC = () => {
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
+          ItemSeparatorComponent={renderItemSeparator}
           stickySectionHeadersEnabled={false}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           testID={FeedViewSelectorsIDs.LIST}
         />
       )}
+
+      <FeedTypeSheet
+        isOpen={isTypeSheetOpen}
+        value={typeFilter}
+        onChange={setTypeFilter}
+        onClose={() => setIsTypeSheetOpen(false)}
+      />
 
       <QuickBuy.Root
         isVisible={isQuickBuyVisible}

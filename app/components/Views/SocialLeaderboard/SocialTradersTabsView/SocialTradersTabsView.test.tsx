@@ -66,6 +66,9 @@ describe('SocialTradersTabsView', () => {
     expect(
       screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TABS),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
+    ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-top-traders')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-feed')).toBeOnTheScreen();
   });

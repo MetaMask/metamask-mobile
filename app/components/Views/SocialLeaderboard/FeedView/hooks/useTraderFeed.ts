@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { getMockTraderFeed } from '../mocks/traderFeed.mock';
 import type { FeedAudience, FeedItem, FeedSection } from '../types';
-import { formatFeedDateLabel } from '../utils/formatFeedTimestamp';
+import { formatTradeDayLabel } from '../../utils/formatters';
 
 export interface UseTraderFeedOptions {
   /**
@@ -25,7 +25,7 @@ const groupByDay = (items: FeedItem[]): FeedSection[] => {
   const sections: FeedSection[] = [];
 
   sorted.forEach((item) => {
-    const dateLabel = formatFeedDateLabel(item.timestamp);
+    const dateLabel = formatTradeDayLabel(item.timestamp);
     const last = sections[sections.length - 1];
     if (last && last.dateLabel === dateLabel) {
       last.data.push(item);

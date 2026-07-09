@@ -5,6 +5,7 @@ export const FeedViewSelectorsIDs = {
   AUDIENCE_TOGGLE: 'feed-view-audience-toggle',
   TYPE_SELECTOR: 'feed-view-type-selector',
   TYPE_SELECTOR_SHEET: 'feed-view-type-selector-sheet',
+  TYPE_SELECTOR_BACKDROP: 'feed-view-type-selector-backdrop',
   TRADE_BUTTON: 'feed-view-trade-button',
 } as const;
 

@@ -17,7 +17,7 @@ import { strings } from '../../../../../../locales/i18n';
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
 import type { FeedItem } from '../types';
-import { formatFeedTimestamp } from '../utils/formatFeedTimestamp';
+import { formatFeedTimestamp } from '../../utils/formatters';
 import {
   getFeedItemTestId,
   getFeedTradeButtonTestId,
@@ -46,7 +46,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
 
   return (
-    <Box twClassName="px-4 py-2 gap-2" testID={getFeedItemTestId(item.id)}>
+    <Box twClassName="px-4 py-2 gap-4" testID={getFeedItemTestId(item.id)}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -83,7 +83,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
         </Box>
 
         <Button
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Sm}
           onPress={handleTradePress}
           testID={getFeedTradeButtonTestId(item.id)}
