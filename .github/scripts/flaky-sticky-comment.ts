@@ -166,7 +166,43 @@ function buildHistoryTable(
   return `Failures / runs sampled per window:\n\n${header}\n${divider}\n${rows}\n`;
 }
 
-function buildFindingsSection(findings: Finding[]): string {
+// Every line of a fenced code block nested inside a list item must carry the
+// same 4-space indent, or Markdown treats it as outside the list and the
+// fence collapses.
+function indentBlock(text: string): string {
+  return text
+    .split('\n')
+    .map((line) => `    ${line}`)
+    .join('\n');
+}
+
+// Renders the fix as a ```diff fence (snippet lines as `-`, suggestedFix
+// lines as `+`) so reviewers see a before/after instead of only the new
+// code. This is a whole-block replace rather than a computed line diff:
+// the AI's `snippet` isn't guaranteed to line up 1:1 with `suggestedFix`,
+// and a mismatched line-level diff would look more broken than helpful.
+// Falls back to a plain `ts` block when no snippet was captured.
+function buildFixBlock(f: Finding): string {
+  if (!f.snippet) {
+    return `    \`\`\`ts\n${indentBlock(f.suggestedFix)}\n    \`\`\``;
+  }
+  const removed = f.snippet.split('\n').map((line) => `-${line}`);
+  const added = f.suggestedFix.split('\n').map((line) => `+${line}`);
+  const diff = [...removed, ...added].join('\n');
+  return `    \`\`\`diff\n${indentBlock(diff)}\n    \`\`\``;
+}
+
+// file#L<line> anchor pointing at the analyzed SHA so the link stays valid
+// even after later pushes move the head.
+function buildLocationLink(file: string, line: number | undefined, headSha: string): string {
+  const label = line ? `${file}:${line}` : file;
+  if (!headSha) return `\`${label}\``;
+  const anchor = line ? `#L${line}` : '';
+  const url = `${env.serverUrl}/${env.repo}/blob/${headSha}/${file}${anchor}`;
+  return `[\`${label}\`](${url})`;
+}
+
+function buildFindingsSection(findings: Finding[], headSha: string): string {
   if (findings.length === 0) return '';
   const byFile = new Map<string, Finding[]>();
   for (const finding of findings) {
@@ -179,16 +215,10 @@ function buildFindingsSection(findings: Finding[]): string {
     out += `#### \`${file}\`\n\n`;
     for (const f of fileFindings) {
       const hint = f.historicalHintUsed ? ' _(matches historical failure signal)_' : '';
-      out += `- **${f.patternId} — ${f.patternName}** (${f.severity})${hint}${f.line ? ` — line ${f.line}` : ''}\n`;
+      out += `- **${f.patternId} — ${f.patternName}** (${f.severity})${hint}\n`;
       out += `  - ${f.explanation}\n`;
-      // Every line of the fix must carry the 4-space indent that keeps the
-      // fenced block nested inside this list item; indenting only the first
-      // line would push the rest out of the list and collapse the code block.
-      const indentedFix = f.suggestedFix
-        .split('\n')
-        .map((line) => `    ${line}`)
-        .join('\n');
-      out += `  - Suggested fix:\n    \`\`\`ts\n${indentedFix}\n    \`\`\`\n`;
+      const location = buildLocationLink(f.file, f.line, headSha);
+      out += `  - Suggested fix in ${location}:\n${buildFixBlock(f)}\n`;
     }
     out += '\n';
   }
@@ -202,6 +232,7 @@ function buildCommentBody({
   windows,
   runsSampled,
   stateBlock,
+  headSha,
 }: {
   historyFiles: HistoryFile[];
   findings: Finding[];
@@ -209,6 +240,7 @@ function buildCommentBody({
   windows: number[];
   runsSampled: WindowCounts;
   stateBlock: string;
+  headSha: string;
 }): string {
   // A file surfaces in the run-history table if it's historically flaky OR
   // an AI finding calls it out — otherwise an AI-only finding (zero
@@ -217,7 +249,7 @@ function buildCommentBody({
   const findingFiles = new Set(findings.map((f) => f.file));
   const tableFiles = historyFiles.filter((f) => f.flaky || findingFiles.has(f.path));
   const historyTable = buildHistoryTable(tableFiles, windows, runsSampled);
-  const findingsSection = buildFindingsSection(findings);
+  const findingsSection = buildFindingsSection(findings, headSha);
 
   return `${MARKER}
 ## 🧪 Flaky unit test detection
@@ -356,7 +388,7 @@ async function main(): Promise<void> {
         owner,
         repo,
         issue_number: env.prNumber,
-        body: buildCommentBody({ historyFiles, findings: mergedFindings, runHistoryUrl, windows, runsSampled, stateBlock }),
+        body: buildCommentBody({ historyFiles, findings: mergedFindings, runHistoryUrl, windows, runsSampled, stateBlock, headSha }),
       });
       console.log('📝 Created sticky flaky-test-detection comment');
       return;
@@ -367,7 +399,7 @@ async function main(): Promise<void> {
         owner,
         repo,
         comment_id: existingComment.id,
-        body: buildCommentBody({ historyFiles, findings: mergedFindings, runHistoryUrl, windows, runsSampled, stateBlock }),
+        body: buildCommentBody({ historyFiles, findings: mergedFindings, runHistoryUrl, windows, runsSampled, stateBlock, headSha }),
       });
       console.log('🔄 Updated sticky flaky-test-detection comment with latest findings');
       return;

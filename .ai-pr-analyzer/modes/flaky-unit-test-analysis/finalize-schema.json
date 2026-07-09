@@ -33,7 +33,10 @@
             "type": "string",
             "enum": ["critical", "high", "medium"]
           },
-          "snippet": { "type": "string" },
+          "snippet": {
+            "type": "string",
+            "description": "The exact current code being replaced, covering the same lines/scope as `suggestedFix`, formatted as real TypeScript with line breaks (use \\n between lines and preserve indentation). Must line up with `suggestedFix` so the two can be rendered as a diff (removed vs added lines) — do not paraphrase or summarize it."
+          },
           "explanation": { "type": "string" },
           "suggestedFix": {
             "type": "string",
@@ -46,6 +49,7 @@
           "patternId",
           "patternName",
           "severity",
+          "snippet",
           "explanation",
           "suggestedFix",
           "historicalHintUsed"
