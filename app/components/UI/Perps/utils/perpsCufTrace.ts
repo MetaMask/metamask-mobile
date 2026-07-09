@@ -15,7 +15,10 @@ import {
   PERPS_CUF_BOUNDARY,
   PERPS_CUF_END_REASON,
 } from '../constants/perpsCufTags';
-import { getPerpsLifecycleContext } from './perpsLifecycleContext';
+import {
+  getPerpsLifecycleContext,
+  settlePerpsForegroundOnSpan,
+} from './perpsLifecycleContext';
 
 /**
  * Helpers for the Perps user-perceived CUF spans. These measure from the user
@@ -182,6 +185,10 @@ export function endPerpsCufTrace({
     `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsCUF: ${name} completed ${JSON.stringify(data ?? {})}`,
   );
   endTrace({ name, id, data, timestamp });
+  // A completed operation/reconnect CUF also settles the foreground to `warm`
+  // (see FOREGROUND_SETTLING_SPANS): this covers a resume where a Perps screen
+  // stayed mounted, so no entry span re-completes to draw the boundary.
+  settlePerpsForegroundOnSpan(name);
 }
 
 /**

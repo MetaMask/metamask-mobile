@@ -43,17 +43,28 @@ export function markPerpsForegroundSettled(): void {
 }
 
 /**
- * Spans whose completion means the user has seen a live Perps screen, so the
- * foreground is settled and later flows read as `warm`. This is the SINGLE
- * source of truth for the cold→warm boundary across every entry path — Home,
- * Market Details, Order, deeplinks, homepage cards. Add a new Perps entry
- * surface's render span here and every entry path stays correctly tagged; no
- * per-view opt-in is needed.
+ * Spans whose completion means the user has seen live Perps data this
+ * foreground, so it is settled and later flows read as `warm`. The SINGLE
+ * source of truth for the cold/resume→warm boundary across every path.
+ *
+ * Includes the entry-surface renders (Home, Market Details, Order — covers
+ * deeplinks and homepage cards) AND the operation/reconnect confirmations. The
+ * latter matter when the app resumes with a Perps screen already mounted: its
+ * entry span already completed and cannot settle again, so without an operation
+ * or reconnect completing the foreground, `background_resume` would stick and
+ * every later operation would be mis-tagged. The reconnect (or first operation)
+ * after a resume carries `background_resume`; everything after reads `warm`.
  */
 const FOREGROUND_SETTLING_SPANS: ReadonlySet<TraceName> = new Set([
   TraceName.PerpsEntryToLiveMarketList,
   TraceName.PerpsMarketDetailLive,
   TraceName.PerpsTradePageRender,
+  TraceName.PerpsPlaceOrderToPositionRendered,
+  TraceName.PerpsPlaceLimitOrderToOrderRendered,
+  TraceName.PerpsClosePositionToConfirmation,
+  TraceName.PerpsCancelOrderToConfirmation,
+  TraceName.PerpsUpdateTPSLToConfirmation,
+  TraceName.PerpsWebSocketReconnectToFreshData,
 ]);
 
 /** Settle the foreground when an entry-surface render span completes. */
