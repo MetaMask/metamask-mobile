@@ -27,6 +27,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
   SetPayTokenRequest,
@@ -171,6 +172,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] =
       useState(!isAddMusdIntent);
+    const keyboardEverShown = useRef(!isAddMusdIntent);
+
+    useMMPayNavigation(
+      isKeyboardVisible,
+      setIsKeyboardVisible,
+      keyboardEverShown,
+    );
+
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
@@ -192,7 +201,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { toastRef } = useContext(ToastContext);
 
     const isResultReady =
-      useIsResultReady({ isKeyboardVisible }) || isAddMusdIntent;
+      useIsResultReady({ isKeyboardVisible }) ||
+      (isAddMusdIntent && !isKeyboardVisible);
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
@@ -273,11 +283,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [isPrefillPending, handleDone]);
 
     const handleAmountPress = useCallback(() => {
+      keyboardEverShown.current = true;
       setIsKeyboardVisible(true);
     }, []);
 
     const isAccountSelectionNeeded =
       supportAccountSelection && !accountOverride;
+    const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
+    const hideBuyForNoFunds =
+      Boolean(accountOverride) && (hasAccountNoFunds || isQuotesLoading);
 
     const { headlessBuyError } = useConfirmationContext();
 
@@ -311,7 +325,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
-          {!isResultReady && (
+          {!isResultReady && !(isKeyboardVisible && isMoneyAccountDeposit) && (
             <>
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
@@ -334,25 +348,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {showPaymentDetails ? (
-                <>
-                  <BridgeFeeRow />
-                  <BridgeTimeRow />
-                  {canSelectWithdrawToken ? (
-                    <ReceiveRow inputAmountUsd={amountFiat} />
-                  ) : (
-                    <TotalRow />
-                  )}
-                </>
-              ) : (
-                isAddMusdIntent && (
+              {!hideDetailsForNoFunds &&
+                (showPaymentDetails ? (
                   <>
-                    <InfoRowSkeleton />
-                    <InfoRowSkeleton />
-                    <InfoRowSkeleton />
+                    <BridgeFeeRow />
+                    <BridgeTimeRow />
+                    {canSelectWithdrawToken ? (
+                      <ReceiveRow inputAmountUsd={amountFiat} />
+                    ) : (
+                      <TotalRow />
+                    )}
                   </>
-                )
-              )}
+                ) : (
+                  isAddMusdIntent && (
+                    <>
+                      <InfoRowSkeleton />
+                      <InfoRowSkeleton />
+                      <InfoRowSkeleton />
+                    </>
+                  )
+                ))}
               <PercentageRow />
             </Box>
           )}
@@ -383,7 +398,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               }
             />
           )}
-          {!hasPaymentOption && !hasAccountNoFunds && <BuySection />}
+          {(!hasPaymentOption || hasAccountNoFunds) && !hideBuyForNoFunds && (
+            <BuySection />
+          )}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
