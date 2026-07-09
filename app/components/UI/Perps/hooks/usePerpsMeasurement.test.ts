@@ -2,6 +2,11 @@ import { renderHook } from '@testing-library/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
+import {
+  getPerpsLifecycleContext,
+  resetPerpsLifecycleContextForTests,
+  PERPS_LIFECYCLE_CONTEXT,
+} from '../utils/perpsLifecycleContext';
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
@@ -333,6 +338,39 @@ describe('usePerpsMeasurement', () => {
 
       // Should only call trace once (no restart without reset)
       expect(mockTrace).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('marksForegroundSettled', () => {
+    beforeEach(() => {
+      resetPerpsLifecycleContextForTests();
+    });
+
+    it('settles the foreground when an entry span completes (any entry surface)', () => {
+      expect(getPerpsLifecycleContext()).toBe(
+        PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+      );
+
+      // Immediate completion (no conditions) with the entry flag set.
+      renderHook(() =>
+        usePerpsMeasurement({
+          traceName: TraceName.PerpsOrderView,
+          marksForegroundSettled: true,
+        }),
+      );
+
+      // Later in-session flows now read as warm — even though Home never rendered.
+      expect(getPerpsLifecycleContext()).toBe(PERPS_LIFECYCLE_CONTEXT.WARM);
+    });
+
+    it('does not settle the foreground for non-entry spans', () => {
+      renderHook(() =>
+        usePerpsMeasurement({ traceName: TraceName.PerpsOrderView }),
+      );
+
+      expect(getPerpsLifecycleContext()).toBe(
+        PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
+      );
     });
   });
 });

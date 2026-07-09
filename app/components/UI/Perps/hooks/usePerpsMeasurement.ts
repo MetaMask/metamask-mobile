@@ -8,6 +8,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { markPerpsForegroundSettled } from '../utils/perpsLifecycleContext';
 
 // Static helper functions - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
@@ -41,6 +42,11 @@ interface MeasurementOptions {
   // completes (e.g. the empty/position/order variant, which depends on loaded
   // data). Queryable in the Sentry spans dataset.
   endData?: Record<string, MeasurementValue>;
+
+  // Set by Perps entry surfaces (Home, Market Details, Order). When this span
+  // completes it marks the foreground settled, so later in-session flows are
+  // tagged `warm` regardless of which surface the user entered through.
+  marksForegroundSettled?: boolean;
 }
 
 /**
@@ -94,6 +100,7 @@ export const usePerpsMeasurement = ({
   debugContext = {},
   tags,
   endData,
+  marksForegroundSettled = false,
 }: MeasurementOptions) => {
   const hasCompleted = useRef(false);
   const previousStartState = useRef(false);
@@ -220,6 +227,13 @@ export const usePerpsMeasurement = ({
       traceStarted.current = false;
 
       hasCompleted.current = true;
+
+      // First entry surface to finish rendering settles the foreground so
+      // later flows in this session are tagged `warm`, regardless of whether
+      // the user entered via Home, a deeplink, or a homepage card.
+      if (marksForegroundSettled) {
+        markPerpsForegroundSettled();
+      }
     }
 
     // Update previous states for edge detection
@@ -234,6 +248,7 @@ export const usePerpsMeasurement = ({
     debugContext,
     tags,
     endData,
+    marksForegroundSettled,
     actualStartConditions,
     actualEndConditions,
   ]);

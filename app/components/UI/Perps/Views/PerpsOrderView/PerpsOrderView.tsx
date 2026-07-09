@@ -480,6 +480,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           ? PERPS_CUF_VARIANT.FUNDED
           : PERPS_CUF_VARIANT.UNFUNDED,
     },
+    // Direct entry (deeplink) settles the foreground here.
+    marksForegroundSettled: true,
   });
 
   const assetData = useMemo(() => {

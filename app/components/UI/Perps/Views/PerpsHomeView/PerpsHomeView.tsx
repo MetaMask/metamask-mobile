@@ -97,7 +97,6 @@ import Reanimated, { SharedValue } from 'react-native-reanimated';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
-import { markPerpsForegroundSettled } from '../../utils/perpsLifecycleContext';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import {
@@ -364,14 +363,9 @@ const PerpsHomeView = ({
     conditions: [!isAnyLoading],
     tags: entryCufTags,
     endData: entryCufEndData,
+    // Entry surface: settle the foreground so later flows read as warm.
+    marksForegroundSettled: true,
   });
-
-  // After the entry renders, later in-session flows are warm.
-  useEffect(() => {
-    if (!isAnyLoading) {
-      markPerpsForegroundSettled();
-    }
-  }, [isAnyLoading]);
 
   // Reset section tracking when screen comes into focus
   // This ensures sections can be tracked again when navigating back to the screen
