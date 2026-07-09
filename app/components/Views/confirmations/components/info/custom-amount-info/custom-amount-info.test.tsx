@@ -1255,4 +1255,22 @@ describe('AdvancedCustomAmountInfoSkeleton', () => {
     expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
     expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
   });
+
+  it('renders skeleton without account and pay-with rows when hideAccountRows is true', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AdvancedCustomAmountInfoSkeleton hideAccountRows />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
+    expect(queryByTestId('account-selector-skeleton')).toBeNull();
+    expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
+  });
 });

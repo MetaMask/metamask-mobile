@@ -233,6 +233,20 @@ export function useAutomaticTransactionPayToken({
     transactionId,
   ]);
 
+  // Redux lags the controller (EngineService batches state sync), so
+  // `hasFiatPaymentSelected` can be stale. Re-check the controller directly
+  // before setting a pay token, as that clears the selected fiat payment.
+  const isFiatPaymentSelectedInController = useCallback(
+    () =>
+      Boolean(
+        transactionId &&
+          Engine.context.TransactionPayController.state.transactionData[
+            transactionId
+          ]?.fiatPayment?.selectedPaymentMethodId,
+      ),
+    [transactionId],
+  );
+
   // Re-select the pay token whenever the signer address (`from`) or the
   // account selected in the PayAccountSelector (`accountOverride`) changes.
   // `accountOverride` is what switches money-account deposit/withdraw flows to
@@ -245,7 +259,8 @@ export function useAutomaticTransactionPayToken({
       hasFiatPaymentSelected ||
       !from ||
       prevAccountKeyRef.current === accountKey ||
-      postQuoteTransactionType
+      postQuoteTransactionType ||
+      isFiatPaymentSelectedInController()
     ) {
       return;
     }
@@ -264,6 +279,7 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
+    isFiatPaymentSelectedInController,
     postQuoteTransactionType,
     setPayToken,
   ]);

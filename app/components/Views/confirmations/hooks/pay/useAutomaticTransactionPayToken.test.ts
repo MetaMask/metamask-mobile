@@ -41,6 +41,16 @@ import { selectLastWithdrawTokenByType } from '../../../../../selectors/transact
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
+import Engine from '../../../../../core/Engine';
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      state: { transactionData: {} },
+      updateFiatPayment: jest.fn(),
+    },
+  },
+}));
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -141,6 +151,8 @@ describe('useAutomaticTransactionPayToken', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    Engine.context.TransactionPayController.state.transactionData = {};
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
@@ -1050,6 +1062,71 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: TOKEN_ADDRESS_2_MOCK,
       chainId: CHAIN_ID_2_MOCK,
+    });
+  });
+
+  it('does not re-select pay token on accountOverride change when controller has fiat payment selected', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xAddress1' },
+    } as never);
+
+    Engine.context.TransactionPayController.state.transactionData = {
+      [transactionIdMock]: {
+        fiatPayment: { selectedPaymentMethodId: 'payment-method-1' },
+      },
+    } as never;
+
+    const { rerender } = runHook();
+
+    setPayTokenMock.mockClear();
+
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('re-selects pay token on accountOverride change when controller has no fiat payment selected', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xAddress1' },
+    } as never);
+
+    const { rerender } = runHook();
+
+    setPayTokenMock.mockClear();
+
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
     });
   });
 

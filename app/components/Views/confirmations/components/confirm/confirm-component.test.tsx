@@ -389,6 +389,29 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-advanced-custom-amount')).toBeDefined();
   });
 
+  it('hides account and pay-with skeleton rows in AdvancedCustomAmount loader when autoSelectFiatPayment is set', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+      autoSelectFiatPayment: true,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(getByTestId('confirm-loader-advanced-custom-amount')).toBeDefined();
+    expect(queryByTestId('account-selector-skeleton')).toBeNull();
+    expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
+  });
+
   it('displays Transfer loader when specified', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.Transfer,

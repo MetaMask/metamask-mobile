@@ -223,7 +223,9 @@ function Loader() {
         testId="confirm-loader-advanced-custom-amount"
         loader={loader}
       >
-        <AdvancedCustomAmountInfoSkeleton />
+        <AdvancedCustomAmountInfoSkeleton
+          hideAccountRows={Boolean(params?.autoSelectFiatPayment)}
+        />
       </InfoLoader>
     );
   }

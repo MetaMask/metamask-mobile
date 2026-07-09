@@ -433,7 +433,9 @@ export function CustomAmountInfoSkeleton() {
   );
 }
 
-export function AdvancedCustomAmountInfoSkeleton() {
+export function AdvancedCustomAmountInfoSkeleton({
+  hideAccountRows = false,
+}: Readonly<{ hideAccountRows?: boolean }> = {}) {
   const { styles } = useStyles(styleSheet, {});
 
   return (
@@ -446,8 +448,12 @@ export function AdvancedCustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </View>
       <View>
-        <AccountSelectorSkeleton />
-        <PayWithRowSkeleton />
+        {!hideAccountRows && (
+          <>
+            <AccountSelectorSkeleton />
+            <PayWithRowSkeleton />
+          </>
+        )}
         <DepositKeyboardSkeleton />
       </View>
     </View>
