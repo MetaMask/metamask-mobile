@@ -601,6 +601,37 @@ describe('perpsCufTrace', () => {
     expect(mockEndTrace).not.toHaveBeenCalled();
   });
 
+  it('preserves the reconnect measurement span when clearing on teardown', () => {
+    const reconnectOp = startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+    watchPerpsCufAnyPositions(reconnectOp);
+    const closeOp = startPerpsCufTrace({
+      name: TraceName.PerpsClosePositionToConfirmation,
+    });
+    watchPerpsCufPositionClosed(closeOp, btc);
+    acceptPerpsCufRequest(closeOp);
+
+    clearPendingPerpsCufTraces();
+
+    // The confirmation op is abandoned; the reconnect measurement survives —
+    // clearing must not end the span that is measuring the reconnection itself.
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: closeOp }),
+    );
+    expect(mockEndTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({ id: reconnectOp }),
+    );
+
+    // Fresh positions still close the reconnect span as a success.
+    mockEndTrace.mockClear();
+    handlePerpsCufPositionsDelivered([]);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: reconnectOp }),
+    );
+  });
+
   it('cancel span ends only once the order id is absent', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsCancelOrderToConfirmation,

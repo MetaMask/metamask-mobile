@@ -289,7 +289,13 @@ export function isPerpsPlaceOrderCufCurrent(opId: string): boolean {
 export function clearPendingPerpsCufTraces(
   reason: string = PERPS_CUF_END_REASON.DISCONNECTED,
 ): void {
-  for (const id of Array.from(pendingCufMeta.keys())) {
+  for (const [id, meta] of Array.from(pendingCufMeta.entries())) {
+    // Preserve the reconnect-to-fresh-data span: it is armed to MEASURE a
+    // reconnection and is ended by the fresh delivery, so it must survive a
+    // teardown clear rather than be abandoned by it.
+    if (meta[CUF_META.NAME] === TraceName.PerpsWebSocketReconnectToFreshData) {
+      continue;
+    }
     endPerpsCufTrace({
       id,
       data: {

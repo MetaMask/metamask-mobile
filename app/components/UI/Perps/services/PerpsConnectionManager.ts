@@ -195,8 +195,11 @@ class PerpsConnectionManagerClass {
         streamManager.fills.clearCache();
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
-        // The confirming streams are reset here, so abandon any pending CUF
-        // confirmation — a stale op must not be ended by the next session.
+        // Session identity changed (account/network/provider/HIP-3): abandon any
+        // pending confirmation CUF so the NEXT session's first delivery can't
+        // falsely end it against different data. Only here, not on same-account
+        // soft reconnects — there the confirming delivery legitimately arrives
+        // in the resubscribed stream, so clearing would drop a real confirmation.
         clearPendingPerpsCufTraces();
 
         // Reset throttle so the next data arrival persists immediately
@@ -641,8 +644,6 @@ class PerpsConnectionManagerClass {
               streamManager.fills.clearCache();
               streamManager.topOfBook.clearCache();
               streamManager.candles.clearCache();
-              // Streams reset: abandon any pending CUF confirmation.
-              clearPendingPerpsCufTraces();
             }
 
             // Reset state before disconnecting to prevent race conditions
@@ -1067,9 +1068,6 @@ class PerpsConnectionManagerClass {
       streamManager.fills.clearCache();
       streamManager.topOfBook.clearCache();
       streamManager.candles.clearCache();
-      // Streams reset on account/network switch: abandon any pending CUF
-      // confirmation so the next account's first delivery can't falsely end it.
-      clearPendingPerpsCufTraces();
       setMeasurement(
         PerpsMeasurementName.PerpsReconnectionCleanup,
         performance.now() - cleanupStart,
