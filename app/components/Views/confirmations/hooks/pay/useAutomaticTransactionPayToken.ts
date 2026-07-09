@@ -233,20 +233,26 @@ export function useAutomaticTransactionPayToken({
     transactionId,
   ]);
 
+  // In fiat flows a pay token only exists once the user explicitly selects an
+  // ERC-20; the latch survives the token reset that an account change causes.
+  const payTokenEverSelectedRef = useRef(false);
+  if (payToken) {
+    payTokenEverSelectedRef.current = true;
+  }
+
   // Re-select the pay token whenever the signer address (`from`) or the
   // account selected in the PayAccountSelector (`accountOverride`) changes.
   // `accountOverride` is what switches money-account deposit/withdraw flows to
   // a different user-selected account without touching `txParams.from`.
-  // Skipped while a fiat flow has no explicit pay token: `updatePaymentToken`
-  // resets the fiat payment, so re-selecting here would clear (or block) the
-  // auto-selected fiat payment method.
+  // Skipped while a fiat flow never had an explicit pay token:
+  // `updatePaymentToken` resets the fiat payment, so re-selecting here would
+  // clear (or block) the auto-selected fiat payment method.
   const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
   useEffect(() => {
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
     if (
       disable ||
       hasFiatPaymentSelected ||
-      (autoSelectFiatPayment && !payToken) ||
       !from ||
       prevAccountKeyRef.current === accountKey ||
       postQuoteTransactionType
@@ -254,6 +260,10 @@ export function useAutomaticTransactionPayToken({
       return;
     }
     prevAccountKeyRef.current = accountKey;
+
+    if (autoSelectFiatPayment && !payTokenEverSelectedRef.current) {
+      return;
+    }
 
     if (automaticToken) {
       setPayToken({
@@ -269,7 +279,6 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
-    payToken,
     postQuoteTransactionType,
     setPayToken,
   ]);

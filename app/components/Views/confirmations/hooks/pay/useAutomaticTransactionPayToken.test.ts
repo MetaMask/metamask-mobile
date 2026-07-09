@@ -1088,7 +1088,7 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
-  it('re-selects pay token on accountOverride change in fiat flow when pay token already selected', () => {
+  it('re-selects pay token on accountOverride change in fiat flow after a pay token was selected', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
         {
@@ -1117,6 +1117,12 @@ describe('useAutomaticTransactionPayToken', () => {
 
     setPayTokenMock.mockClear();
 
+    // Changing the account clears the pay token in the controller, so the
+    // latch is what must allow the re-selection.
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+      setPayToken: setPayTokenMock,
+    });
     useTransactionAccountOverrideMock.mockReturnValue('0xOverrideA' as Hex);
 
     rerender(undefined);
