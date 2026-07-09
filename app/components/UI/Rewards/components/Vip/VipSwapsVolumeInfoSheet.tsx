@@ -28,9 +28,8 @@ interface VipSwapsVolumeInfoSheetProps {
 
 const VipSwapsVolumeInfoSheet: React.FC<VipSwapsVolumeInfoSheetProps> = ({
   onClose,
-}) => {
-  return (
-    <BottomSheet
+}) => (
+  <BottomSheet
       onClose={onClose}
       testID={VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET}
     >
@@ -77,7 +76,6 @@ const VipSwapsVolumeInfoSheet: React.FC<VipSwapsVolumeInfoSheetProps> = ({
         </Box>
       </Box>
     </BottomSheet>
-  );
-};
+);
 
 export default VipSwapsVolumeInfoSheet;

@@ -36,9 +36,8 @@ interface OndoNotEligibleSheetProps {
 const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
   onClose,
   onConfirm,
-}) => {
-  return (
-    <BottomSheet
+}) => (
+  <BottomSheet
       onClose={onClose}
       testID={ONDO_NOT_ELIGIBLE_SHEET_TEST_IDS.CONTAINER}
     >
@@ -114,7 +113,6 @@ const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
         </Box>
       </Box>
     </BottomSheet>
-  );
-};
+);
 
 export default OndoNotEligibleSheet;
