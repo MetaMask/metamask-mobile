@@ -4,8 +4,8 @@
 # on the runner (no artifact upload/download):
 #
 #   1. Deterministic history — flaky-history-analysis.ts counts how often each
-#      modified test file failed on main over the last 365 days of completed
-#      ci.yml runs, bucketed into 7d/30d/90d/365d windows.
+#      modified test file failed on main over the last 30 days of completed
+#      ci.yml runs, bucketed into 7d/30d windows.
 #      → writes .ai-pr-analyzer/flaky-history.json
 #
 #   2. AI analyzer — MetaMask/ai-analyzer's flaky-unit-test-analysis mode
@@ -72,8 +72,11 @@ jobs:
       # test files and counts their failures on main over the last 365 days of
       # completed ci.yml runs, bucketed into 7d/30d/90d/365d windows
       # (failure+success runs only; cancelled/timed_out are excluded from the
-      # denominator). Never hard-fails — writes an empty-but-valid JSON
-      # artifact when there is nothing to analyze.
+      # denominator). When no modified test file changed since its last-analyzed
+      # SHA (stored in the sticky comment), the step emits should_analyze=false
+      # and returns immediately, leaving the existing comment untouched.
+      # Never hard-fails — writes an empty-but-valid JSON artifact when there
+      # is nothing to analyze.
       - name: Detect modified unit test files and historical failure rate
         id: detect-history
         working-directory: .github/scripts
@@ -81,6 +84,8 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: yarn flaky-history-analysis
 
       # Stage 2 preflight: sync the flaky-test-detection skill from
@@ -92,7 +97,7 @@ jobs:
       # hand-duplicated pattern content in this repo).
       - name: Sync flaky-test-detection skill
         if: >-
-          steps.detect-history.outputs.has_test_files == 'true' &&
+          steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
         run: |
           curl -fsSL https://raw.githubusercontent.com/MetaMask/skills/main/tools/bootstrap \
@@ -108,7 +113,7 @@ jobs:
       # to workflows triggered from forks.
       - name: Checkout AI Analyzer
         if: >-
-          steps.detect-history.outputs.has_test_files == 'true' &&
+          steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
         uses: actions/checkout@v6
         with:
@@ -119,7 +124,7 @@ jobs:
 
       - name: Install AI Analyzer dependencies
         if: >-
-          steps.detect-history.outputs.has_test_files == 'true' &&
+          steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
         working-directory: .ai-analyzer-action
         run: npm ci
@@ -131,7 +136,7 @@ jobs:
       # comment; Stage 3 below is the only PR-visible output.
       - name: Run flaky unit test AI analysis
         if: >-
-          steps.detect-history.outputs.has_test_files == 'true' &&
+          steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
         continue-on-error: true
         env:
@@ -144,17 +149,18 @@ jobs:
             --config .ai-pr-analyzer \
             --mode flaky-unit-test-analysis \
             --base-branch "origin/${{ github.base_ref }}" \
-            --changed-files "${{ steps.detect-history.outputs.files }}"
+            --changed-files "${{ steps.detect-history.outputs.files_to_analyze }}"
 
       # Stage 3: unified sticky PR comment combining Stage 1 + Stage 2
-      # output. Always runs (even if Stage 2 was skipped/failed) so a
-      # historical-only signal can still surface, and to flip an existing
-      # sticky comment to "fixed" once findings clear. Never blocks the PR.
+      # output. Runs only when should_analyze is true — if Stage 1 determined
+      # no modified test file changed since last analysis, the existing comment
+      # is left untouched and Stage 3 is skipped entirely. Never blocks the PR.
       - name: Post unified sticky comment
-        if: always()
+        if: steps.detect-history.outputs.should_analyze == 'true'
         continue-on-error: true
         working-directory: .github/scripts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: yarn flaky-sticky-comment

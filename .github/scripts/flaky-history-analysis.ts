@@ -3,14 +3,32 @@
  *
  * Identifies Jest unit test files modified in the PR and counts how often each
  * one failed on main over the last LOOKBACK_DAYS of completed ci.yml runs,
- * bucketed into 7d/30d/90d/365d windows. Writes a machine-readable JSON
- * artifact consumed by Stage 2 (AI analyzer) and Stage 3 (sticky PR comment).
+ * bucketed into 7d/30d windows. Writes a machine-readable JSON artifact
+ * consumed by Stage 2 (AI analyzer) and Stage 3 (sticky PR comment).
  *
  * Historical failure is a HINT, not proof — a file can be flagged here with
  * zero AI findings, or have AI findings with no historical signal.
  *
  * Failure modes are always downgraded to warnings + empty results so the
  * workflow stays informational and never blocks a PR.
+ *
+ * Design note — why we rely on history + AI patterns only, and deliberately do
+ * NOT execute the PR's changed tests or inspect the PR's own ci.yml unit-test
+ * run to decide flakiness:
+ *
+ *   - New test with a flaky pattern: a single PR unit-test run almost never
+ *     reproduces the flake, so a run-based signal would usually miss it. AI
+ *     pattern detection on the diff is what actually catches this case.
+ *   - Existing test changed by the PR: AI detects the pattern AND the run
+ *     history on main provides an independent signal, so both fire.
+ *   - A modified test with an AI-detected pattern but zero historical failures
+ *     is still worth flagging: passing so far may just be luck or ordering, and
+ *     it can start failing under a different test order or in edge cases.
+ *
+ * Flagging on pattern rather than on an observed failure is intentional — the
+ * output is informational and exists to prompt the author to review, not to
+ * assert the test has already failed. Running or waiting on the PR's tests
+ * would add cost and latency without meaningfully improving these outcomes.
  */
 import * as core from '@actions/core';
 import { getOctokit } from '@actions/github';
@@ -19,6 +37,12 @@ import { mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
 type Octokit = ReturnType<typeof getOctokit>;
+
+// Prefix of the hidden state block embedded in the sticky comment body.
+// Stage 1 reads this to determine which files need re-analysis.
+const STATE_MARKER = '<!-- metamask-flaky-test-detection:state';
+// Marker used by Stage 3 to identify the sticky comment (must stay in sync).
+const COMMENT_MARKER = '<!-- metamask-flaky-test-detection -->';
 
 const WORKFLOW = 'ci.yml';
 // JOB_NAME is written into the output artifact as metadata only — it is not
@@ -56,6 +80,22 @@ const FLAKY_THRESHOLD_PERCENT = 20;
 // the script can also be run locally from any directory.
 const WORKSPACE_ROOT = process.env.GITHUB_WORKSPACE ?? process.cwd();
 const OUTPUT_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
+// Prior per-file state written here for Stage 3 to merge with fresh findings.
+const PRIOR_STATE_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-prior-state.json');
+
+// Per-file state persisted inside the sticky comment body. The findings field
+// is typed as unknown[] here because Stage 1 only passes it through — Stage 3
+// owns the Finding type and casts accordingly.
+interface PerFileState {
+  analyzedSha: string;
+  findings: unknown[];
+}
+
+interface CommentState {
+  version: number;
+  windows: number[];
+  files: Record<string, PerFileState>;
+}
 
 interface WorkflowRun {
   id: number;
@@ -81,6 +121,12 @@ interface HistoryResult {
   // countable runs happened in each window, independent of the file).
   runsSampled: WindowCounts;
   threshold: number;
+  // Files re-analyzed in this run (subset of files). Stage 3 uses this to
+  // decide which entries get fresh AI findings vs. prior findings.
+  analyzedFiles: string[];
+  // HEAD SHA at which this analysis was run. Embedded per-file so Stage 3
+  // can record when each file was last analyzed.
+  headSha: string;
   files: HistoryFile[];
 }
 
@@ -102,6 +148,8 @@ const env = {
   repo: process.env.GITHUB_REPOSITORY ?? '',
   serverUrl: process.env.GITHUB_SERVER_URL ?? 'https://github.com',
   token: process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN ?? '',
+  prNumber: Number(process.env.PR_NUMBER ?? '0'),
+  headSha: process.env.HEAD_SHA ?? '',
 };
 
 // The diff filter is TS-only because repo policy requires all new code to be
@@ -115,6 +163,103 @@ const EXCLUDE_PATTERNS = [/\.view\.test\./, /^tests\/(smoke|regression)\//];
 
 function sh(cmd: string, args: string[]): string {
   return execFileSync(cmd, args, { encoding: 'utf8' }).trim();
+}
+
+// Extracts the per-file state JSON block embedded in a sticky comment body.
+function parseStateFromComment(body: string): CommentState | null {
+  const idx = body.indexOf(STATE_MARKER);
+  if (idx === -1) return null;
+  const after = body.slice(idx + STATE_MARKER.length).trimStart();
+  const closeIdx = after.indexOf(' -->');
+  if (closeIdx === -1) return null;
+  try {
+    return JSON.parse(after.slice(0, closeIdx)) as CommentState;
+  } catch {
+    return null;
+  }
+}
+
+// Fetches the existing sticky comment and parses its embedded per-file state.
+// Returns null when there is no comment yet or the state block is missing/invalid
+// (e.g. comments created before this feature shipped).
+async function fetchPriorState(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+): Promise<CommentState | null> {
+  if (!env.prNumber) return null;
+  try {
+    const comments = await octokit.paginate(octokit.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: env.prNumber,
+      per_page: 100,
+    });
+    const sticky = comments.find((c) => c.body?.startsWith(COMMENT_MARKER));
+    if (!sticky?.body) return null;
+    return parseStateFromComment(sticky.body);
+  } catch (error) {
+    core.warning(`fetchPriorState failed: ${(error as Error).message}`);
+    return null;
+  }
+}
+
+// Returns the subset of modifiedFiles that changed since their last-analyzed SHA.
+// Files with no prior state always need analysis. Files whose prior SHA is no
+// longer reachable (force-push/rebase) are also treated as changed.
+function computeNeedsAnalysis(
+  modifiedFiles: string[],
+  priorState: CommentState | null,
+): string[] {
+  if (!priorState) return [...modifiedFiles];
+
+  // Group by prior analyzedSha to batch git diff calls per unique SHA.
+  const byAnalyzedSha = new Map<string, string[]>();
+  const nopriorFiles: string[] = [];
+
+  for (const file of modifiedFiles) {
+    const prior = priorState.files[file];
+    if (!prior?.analyzedSha) {
+      nopriorFiles.push(file);
+    } else {
+      const list = byAnalyzedSha.get(prior.analyzedSha) ?? [];
+      list.push(file);
+      byAnalyzedSha.set(prior.analyzedSha, list);
+    }
+  }
+
+  const changedFiles = new Set<string>(nopriorFiles);
+
+  for (const [analyzedSha, files] of byAnalyzedSha) {
+    let changedInDiff: Set<string>;
+    try {
+      const diffOutput = sh('git', [
+        'diff',
+        '--name-only',
+        analyzedSha,
+        env.headSha || 'HEAD',
+      ]);
+      changedInDiff = new Set(
+        diffOutput
+          .split('\n')
+          .map((f) => f.trim())
+          .filter(Boolean),
+      );
+    } catch (error) {
+      // Force-push may have orphaned the SHA; treat all files in this group as
+      // changed so we re-analyze rather than silently using stale findings.
+      core.warning(
+        `git diff ${analyzedSha}..HEAD failed — re-analyzing group: ${(error as Error).message}`,
+      );
+      files.forEach((f) => changedFiles.add(f));
+      continue;
+    }
+    for (const file of files) {
+      if (changedInDiff.has(file)) changedFiles.add(file);
+    }
+  }
+
+  return modifiedFiles.filter((f) => changedFiles.has(f));
 }
 
 function getModifiedUnitTestFiles(): string[] {
@@ -270,7 +415,12 @@ async function buildHistory(
   return { files, runsSampled };
 }
 
-function writeHistoryFile(files: HistoryFile[], runsSampled: WindowCounts): HistoryResult {
+function writeHistoryFile(
+  files: HistoryFile[],
+  runsSampled: WindowCounts,
+  analyzedFiles: string[],
+  headSha: string,
+): HistoryResult {
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   const result: HistoryResult = {
     generatedAt: new Date().toISOString(),
@@ -281,10 +431,18 @@ function writeHistoryFile(files: HistoryFile[], runsSampled: WindowCounts): Hist
     windows: [...WINDOWS_DAYS],
     runsSampled,
     threshold: FLAKY_THRESHOLD_PERCENT,
+    analyzedFiles,
+    headSha,
     files,
   };
   writeFileSync(OUTPUT_PATH, JSON.stringify(result, null, 2));
   return result;
+}
+
+function writePriorStateFile(state: CommentState | null): void {
+  mkdirSync(dirname(PRIOR_STATE_PATH), { recursive: true });
+  const empty: CommentState = { version: 1, windows: [...WINDOWS_DAYS], files: {} };
+  writeFileSync(PRIOR_STATE_PATH, JSON.stringify(state ?? empty, null, 2));
 }
 
 async function main(): Promise<void> {
@@ -302,13 +460,17 @@ async function main(): Promise<void> {
   core.setOutput('files', modifiedFiles.join(' '));
 
   if (modifiedFiles.length === 0) {
-    writeHistoryFile([], emptyWindowCounts());
+    writeHistoryFile([], emptyWindowCounts(), [], env.headSha);
+    writePriorStateFile(null);
     console.log('💡 No modified unit test files — skipping history sampling');
     return;
   }
 
   if (!env.token) {
     core.warning('No GitHub token — skipping history sampling');
+    // Cannot fetch prior state without a token; re-analyze everything.
+    core.setOutput('should_analyze', 'true');
+    core.setOutput('files_to_analyze', modifiedFiles.join(' '));
     writeHistoryFile(
       modifiedFiles.map((path) => ({
         path,
@@ -317,12 +479,39 @@ async function main(): Promise<void> {
         runHistoryUrl: `${env.serverUrl}/${env.repo}/actions/workflows/${WORKFLOW}?query=branch%3Amain`,
       })),
       emptyWindowCounts(),
+      modifiedFiles,
+      env.headSha,
     );
+    writePriorStateFile(null);
     return;
   }
 
   const [owner, repo] = env.repo.split('/');
   const octokit = getOctokit(env.token);
+
+  // Fetch the prior per-file state embedded in the existing sticky comment.
+  // This determines which modified test files actually changed since they were
+  // last analyzed — only those files trigger a re-run of history sampling and
+  // AI analysis, leaving the comment untouched for unrelated pushes.
+  const priorState = await fetchPriorState(octokit, owner, repo);
+  const needsAnalysis = computeNeedsAnalysis(modifiedFiles, priorState);
+
+  if (needsAnalysis.length === 0 && priorState !== null) {
+    // No modified test file changed since it was last analyzed.
+    // Skip all expensive work — history sampling, AI, and comment update —
+    // so an unrelated push leaves the existing sticky comment exactly as-is.
+    console.log('⏭️  No modified test files changed since last analysis — skipping');
+    core.setOutput('should_analyze', 'false');
+    core.setOutput('files_to_analyze', '');
+    return;
+  }
+
+  core.setOutput('should_analyze', 'true');
+  core.setOutput('files_to_analyze', needsAnalysis.join(' '));
+
+  // Persist prior state for Stage 3 to merge findings for untouched files.
+  writePriorStateFile(priorState);
+
   const runs = await getCompletedRunsInLookback(octokit);
   const { files, runsSampled } = await buildHistory(octokit, owner, repo, modifiedFiles, runs);
   console.log(
@@ -330,7 +519,7 @@ async function main(): Promise<void> {
       `(${runsSampled['30d']} failure/success within window)`,
   );
 
-  const result = writeHistoryFile(files, runsSampled);
+  const result = writeHistoryFile(files, runsSampled, needsAnalysis, env.headSha);
 
   const flakyCount = files.filter((f) => f.flaky).length;
   console.log(

@@ -25,6 +25,9 @@ import { join } from 'path';
 // script's own comment across runs. Any change breaks stickiness (a new
 // comment will be created and the old one will be orphaned).
 const MARKER = '<!-- metamask-flaky-test-detection -->';
+// Prefix of the hidden state block appended to the comment body. Stage 1 reads
+// this on the next push to determine which files changed since last analysis.
+const STATE_MARKER = '<!-- metamask-flaky-test-detection:state';
 // Canonical source of the flaky-test-detection skill. The synced copy at
 // .agents/skills/mms-flaky-test-detection/SKILL.md is .gitignore'd, so we link
 // to the real source repo (MetaMask/skills) instead of a 404 blob path.
@@ -36,6 +39,8 @@ const SKILL_LINK =
 const WORKSPACE_ROOT = process.env.GITHUB_WORKSPACE ?? process.cwd();
 const HISTORY_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-history.json');
 const AI_ANALYSIS_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-ai-analysis.json');
+// Written by Stage 1; contains the per-file state parsed from the prior comment.
+const PRIOR_STATE_PATH = join(WORKSPACE_ROOT, '.ai-pr-analyzer/flaky-prior-state.json');
 
 // Failure counts bucketed by lookback window (nested: a failure in 7d also
 // counts in 30d/90d/365d). Kept as a permissive Record so a future window edit
@@ -54,6 +59,10 @@ interface HistoryArtifact {
   // Denominator per window, shared across files (how many countable runs fell
   // in each window). Used to render `failures/runs` cells.
   runsSampled?: WindowCounts;
+  // Files re-analyzed in this run (subset of the full modified-file set).
+  analyzedFiles?: string[];
+  // HEAD SHA at which this analysis was run.
+  headSha?: string;
   files?: HistoryFile[];
 }
 
@@ -67,6 +76,19 @@ interface Finding {
   explanation: string;
   suggestedFix: string;
   historicalHintUsed: boolean;
+}
+
+// Per-file state embedded in the sticky comment body so Stage 1 can determine
+// which files changed since they were last analyzed.
+interface PerFileState {
+  analyzedSha: string;
+  findings: Finding[];
+}
+
+interface CommentState {
+  version: number;
+  windows: number[];
+  files: Record<string, PerFileState>;
 }
 
 interface AiAnalysisArtifact {
@@ -83,6 +105,7 @@ const env = {
   repo: process.env.GITHUB_REPOSITORY ?? '',
   prNumber: Number(process.env.PR_NUMBER ?? '0'),
   serverUrl: process.env.GITHUB_SERVER_URL ?? 'https://github.com',
+  headSha: process.env.HEAD_SHA ?? '',
 };
 
 // Missing/malformed artifacts are treated as their empty shape rather than a
@@ -102,6 +125,13 @@ function readJsonOrEmpty<T>(path: string, emptyShape: T): T {
 // Fallback window set used only if the Stage 1 artifact predates the `windows`
 // field; the live artifact always supplies its own list.
 const DEFAULT_WINDOWS = [7, 30, 90, 365];
+
+// Serializes per-file state into a hidden HTML comment appended to the comment
+// body. Stage 1 reads this on the next push to decide which files need
+// re-analysis vs. which can be preserved verbatim.
+function buildStateBlock(state: CommentState): string {
+  return `${STATE_MARKER} ${JSON.stringify(state)} -->`;
+}
 
 function buildHistoryTable(
   flakyFiles: HistoryFile[],
@@ -160,12 +190,14 @@ function buildCommentBody({
   runHistoryUrl,
   windows,
   runsSampled,
+  stateBlock,
 }: {
   historyFiles: HistoryFile[];
   findings: Finding[];
   runHistoryUrl: string;
   windows: number[];
   runsSampled: WindowCounts;
+  stateBlock: string;
 }): string {
   const flakyFiles = historyFiles.filter((f) => f.flaky);
   const historyTable = buildHistoryTable(flakyFiles, windows, runsSampled);
@@ -180,10 +212,11 @@ ${historyTable}
 ${findingsSection}
 Historical failure rate is a hint, not proof — review each suggestion in context. See the [flaky-test-detection skill](${SKILL_LINK}) for the full pattern reference and manual audit workflow.
 
-_This check is informational only and does not block merging._`;
+_This check is informational only and does not block merging._
+${stateBlock}`;
 }
 
-function buildAllClearBody(runHistoryUrl: string): string {
+function buildAllClearBody(runHistoryUrl: string, stateBlock: string): string {
   return `${MARKER}
 ## 🧪 Flaky unit test detection
 
@@ -191,7 +224,8 @@ function buildAllClearBody(runHistoryUrl: string): string {
 
 [View recent run history](${runHistoryUrl})
 
-_This check is informational only and does not block merging._`;
+_This check is informational only and does not block merging._
+${stateBlock}`;
 }
 
 async function findExistingStickyComment(
@@ -221,21 +255,23 @@ async function main(): Promise<void> {
 
   const history = readJsonOrEmpty<HistoryArtifact>(HISTORY_PATH, { files: [] });
   const aiAnalysis = readJsonOrEmpty<AiAnalysisArtifact>(AI_ANALYSIS_PATH, { findings: [] });
+  const priorState = readJsonOrEmpty<CommentState>(PRIOR_STATE_PATH, {
+    version: 1,
+    windows: DEFAULT_WINDOWS,
+    files: {},
+  });
 
   const historyFiles = Array.isArray(history.files) ? history.files : [];
   const windows = Array.isArray(history.windows) ? history.windows : DEFAULT_WINDOWS;
   const runsSampled = history.runsSampled ?? {};
   const rawFindings = Array.isArray(aiAnalysis.findings) ? aiAnalysis.findings : [];
+  const analyzedFiles = new Set<string>(Array.isArray(history.analyzedFiles) ? history.analyzedFiles : []);
+  const headSha = typeof history.headSha === 'string' ? history.headSha : env.headSha;
 
-  // Post-hoc scope enforcement: the analyzer's tools (read_file, grep_codebase,
-  // etc.) let the AI reach any file in the checkout. The task prompt tells it
-  // to stay inside the modified test files, but as a hard guarantee we drop
-  // any finding that references a file outside that allowlist here. The
-  // allowlist is exactly Stage 1's file list — it was also what we passed as
-  // --changed-files to the analyzer, so a correctly-behaving analyzer will
-  // produce zero dropped findings.
+  // Post-hoc scope enforcement applied only to fresh AI findings — prior
+  // findings were validated when they were first recorded.
   const allowedFiles = new Set(historyFiles.map((f) => f.path));
-  const findings = rawFindings.filter((finding) => {
+  const filteredFreshFindings = rawFindings.filter((finding) => {
     if (allowedFiles.has(finding.file)) return true;
     core.warning(
       `Dropping out-of-scope AI finding for ${finding.file} (not in the modified unit test file list)`,
@@ -243,10 +279,45 @@ async function main(): Promise<void> {
     return false;
   });
 
+  // Index fresh AI findings by file for O(1) lookup during merge.
+  const freshFindingsByFile = new Map<string, Finding[]>();
+  for (const finding of filteredFreshFindings) {
+    const list = freshFindingsByFile.get(finding.file) ?? [];
+    list.push(finding);
+    freshFindingsByFile.set(finding.file, list);
+  }
+
+  // Merge per file: fresh findings for re-analyzed files, prior findings for
+  // untouched files (files no longer in modifiedFiles are dropped automatically
+  // because historyFiles already represents exactly the current modified set).
+  const mergedFindings: Finding[] = [];
+  const mergedStateFiles: Record<string, PerFileState> = {};
+
+  for (const histFile of historyFiles) {
+    const { path } = histFile;
+    if (analyzedFiles.has(path)) {
+      const fresh = freshFindingsByFile.get(path) ?? [];
+      mergedFindings.push(...fresh);
+      mergedStateFiles[path] = { analyzedSha: headSha, findings: fresh };
+    } else {
+      const prior = priorState.files[path];
+      const priorFindings = (prior?.findings ?? []) as Finding[];
+      mergedFindings.push(...priorFindings);
+      mergedStateFiles[path] = {
+        analyzedSha: prior?.analyzedSha ?? headSha,
+        findings: priorFindings,
+      };
+    }
+  }
+
+  // Build the state block to embed in the comment for the next run to read.
+  const newState: CommentState = { version: 1, windows, files: mergedStateFiles };
+  const stateBlock = buildStateBlock(newState);
+
   // "Has findings" means either signal fired. History alone is enough because
   // the whole point of Stage 1 is to catch flakiness even when Stage 2 was
   // skipped (fork PR / analyzer error / no LLM key).
-  const hasFindings = historyFiles.some((f) => f.flaky) || findings.length > 0;
+  const hasFindings = historyFiles.some((f) => f.flaky) || mergedFindings.length > 0;
 
   const runHistoryUrl =
     historyFiles[0]?.runHistoryUrl ??
@@ -266,7 +337,7 @@ async function main(): Promise<void> {
         owner,
         repo,
         issue_number: env.prNumber,
-        body: buildCommentBody({ historyFiles, findings, runHistoryUrl, windows, runsSampled }),
+        body: buildCommentBody({ historyFiles, findings: mergedFindings, runHistoryUrl, windows, runsSampled, stateBlock }),
       });
       console.log('📝 Created sticky flaky-test-detection comment');
       return;
@@ -277,20 +348,20 @@ async function main(): Promise<void> {
         owner,
         repo,
         comment_id: existingComment.id,
-        body: buildCommentBody({ historyFiles, findings, runHistoryUrl, windows, runsSampled }),
+        body: buildCommentBody({ historyFiles, findings: mergedFindings, runHistoryUrl, windows, runsSampled, stateBlock }),
       });
       console.log('🔄 Updated sticky flaky-test-detection comment with latest findings');
       return;
     }
 
     // !hasFindings && existingComment — flip the sticky to "all clear" so the
-    // author gets positive feedback that their fix landed. Deleting instead
-    // would erase evidence that flakiness was ever flagged on this PR.
+    // author gets positive feedback that their fix landed. The state block is
+    // preserved so Stage 1 still knows the last-analyzed SHA on the next push.
     await octokit.rest.issues.updateComment({
       owner,
       repo,
       comment_id: existingComment!.id,
-      body: buildAllClearBody(runHistoryUrl),
+      body: buildAllClearBody(runHistoryUrl, stateBlock),
     });
     console.log('🎉 Updated sticky comment — all previously flagged issues are fixed');
   } catch (error) {
