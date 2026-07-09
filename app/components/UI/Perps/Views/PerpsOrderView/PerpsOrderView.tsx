@@ -28,6 +28,8 @@ import {
   IconName,
   IconSize,
   IconColor,
+  KeyValueRow,
+  KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
@@ -36,10 +38,6 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -1372,6 +1370,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     setSelectedTooltip(null);
   }, []);
 
+  const handleSlippageEditPress = useCallback(() => {
+    setIsSlippageVisible(true);
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(maxSlippageBps),
+      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+    });
+  }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
+
   useInitPerpsPaymentToken(orderForm.asset ?? '');
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
@@ -1494,141 +1503,67 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Order Details */}
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
-            {/* Leverage */}
-            <TouchableOpacity
-              testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
-              onPress={() => setIsLeverageVisible(true)}
-              style={[
-                styles.detailItem,
-                // If there are items below (limit price, TP/SL, or Pay with), only round top corners
-                // Otherwise, round all corners
-                orderForm.type === 'limit' || !hideTPSL || isPayRowVisible
-                  ? styles.detailItemFirst
-                  : styles.detailItemOnly,
-              ]}
-            >
-              <ListItem style={styles.detailItemWrapper}>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <View style={styles.detailLeft}>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('perps.order.leverage')}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => handleTooltipPress('leverage')}
-                      style={styles.infoIcon}
-                    >
-                      <Icon
-                        name={IconName.Info}
-                        size={IconSize.Sm}
-                        color={IconColor.IconAlternative}
-                        testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Auto}>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
-                  </Text>
-                </ListItemColumn>
-              </ListItem>
-            </TouchableOpacity>
-
-            {/* Limit price - only show for limit orders */}
-            {orderForm.type === 'limit' && (
+            <View style={styles.inputGroupContainer}>
               <TouchableOpacity
-                testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
-                onPress={() => setIsLimitPriceVisible(true)}
-                style={[
-                  styles.detailItem,
-                  // Only round bottom corners when this is the last item (no TP/SL and no Pay row below)
-                  hideTPSL && !isPayRowVisible && styles.detailItemLast,
-                ]}
+                testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
+                onPress={() => setIsLeverageVisible(true)}
               >
-                <ListItem style={styles.detailItemWrapper}>
-                  <ListItemColumn widthType={WidthType.Fill}>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('perps.order.limit_price')}
-                    </Text>
-                  </ListItemColumn>
-                  <ListItemColumn widthType={WidthType.Auto}>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                    >
-                      {orderForm.limitPrice !== undefined &&
+                <KeyValueRow
+                  variant={KeyValueRowVariant.Input}
+                  keyLabel={strings('perps.order.leverage')}
+                  keyEndButtonIconProps={{
+                    iconName: IconName.Info,
+                    onPress: () => handleTooltipPress('leverage'),
+                    testID: PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON,
+                  }}
+                  value={isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
+                />
+              </TouchableOpacity>
+
+              {orderForm.type === 'limit' && (
+                <TouchableOpacity
+                  testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
+                  onPress={() => setIsLimitPriceVisible(true)}
+                >
+                  <KeyValueRow
+                    variant={KeyValueRowVariant.Input}
+                    keyLabel={strings('perps.order.limit_price')}
+                    value={
+                      orderForm.limitPrice !== undefined &&
                       orderForm.limitPrice !== null
                         ? formatPerpsFiat(orderForm.limitPrice, {
                             ranges: PRICE_RANGES_UNIVERSAL,
                           })
-                        : 'Set price'}
-                    </Text>
-                  </ListItemColumn>
-                </ListItem>
-              </TouchableOpacity>
-            )}
+                        : 'Set price'
+                    }
+                  />
+                </TouchableOpacity>
+              )}
 
-            {/* Combined TP/SL row - Hidden when modifying existing position */}
-            {!hideTPSL && (
-              <TouchableOpacity
-                onPress={handleTPSLPress}
-                testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
-                style={[
-                  styles.detailItem,
-                  !isPayRowVisible && styles.detailItemLast,
-                ]}
-              >
-                <ListItem style={styles.detailItemWrapper}>
-                  <ListItemColumn widthType={WidthType.Fill}>
-                    <View style={styles.detailLeft}>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings('perps.order.tp_sl')}
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => handleTooltipPress('tp_sl')}
-                        style={styles.infoIcon}
-                      >
-                        <Icon
-                          name={IconName.Info}
-                          size={IconSize.Sm}
-                          color={IconColor.IconAlternative}
-                          testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </ListItemColumn>
-                  <ListItemColumn widthType={WidthType.Auto}>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                    >
-                      {tpSlDisplayText}
-                    </Text>
-                  </ListItemColumn>
-                </ListItem>
-              </TouchableOpacity>
-            )}
-            {/* Pay with row - directly below TP/SL, same stacked box styling */}
-            {isPayRowVisible && (
-              <View style={[styles.detailItem, styles.detailItemLast]}>
+              {!hideTPSL && (
+                <TouchableOpacity
+                  onPress={handleTPSLPress}
+                  testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
+                >
+                  <KeyValueRow
+                    variant={KeyValueRowVariant.Input}
+                    keyLabel={strings('perps.order.tp_sl')}
+                    keyEndButtonIconProps={{
+                      iconName: IconName.Info,
+                      onPress: () => handleTooltipPress('tp_sl'),
+                      testID: PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON,
+                    }}
+                    value={tpSlDisplayText}
+                  />
+                </TouchableOpacity>
+              )}
+
+              {isPayRowVisible && (
                 <PerpsPayRow
-                  embeddedInStack
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
-              </View>
-            )}
+              )}
+            </View>
             {hasInsufficientPayTokenBalance && (
               <View style={styles.insufficientPayTokenWarning}>
                 <Text
@@ -1704,158 +1639,98 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             { marginTop: isInputFocused ? 8 : 0 },
           ]}
         >
-          <View style={styles.infoRow}>
-            <View style={styles.detailLeft}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.order.margin')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('margin')}
-                style={styles.infoIcon}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  testID={PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON}
-                />
-              </TouchableOpacity>
-            </View>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              testID={PerpsOrderViewSelectorsIDs.MARGIN_VALUE}
-            >
-              {marginRequired !== undefined && marginRequired !== null
+          <KeyValueRow
+            variant={KeyValueRowVariant.Summary}
+            keyLabel={strings('perps.order.margin')}
+            keyEndButtonIconProps={{
+              iconName: IconName.Info,
+              onPress: () => handleTooltipPress('margin'),
+              testID: PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON,
+            }}
+            value={
+              marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : PERPS_CONSTANTS.FallbackDataDisplay}
-            </Text>
-          </View>
+                : PERPS_CONSTANTS.FallbackDataDisplay
+            }
+            valueTextProps={{
+              testID: PerpsOrderViewSelectorsIDs.MARGIN_VALUE,
+            }}
+          />
 
-          <View style={styles.infoRow}>
-            <View style={styles.detailLeft}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.order.liquidation_price')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('liquidation_price')}
-                style={styles.infoIcon}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  testID={
-                    PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON
-                  }
-                />
-              </TouchableOpacity>
-            </View>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              testID={PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
-            >
-              {hasValidAmount
+          <KeyValueRow
+            variant={KeyValueRowVariant.Summary}
+            keyLabel={strings('perps.order.liquidation_price')}
+            keyEndButtonIconProps={{
+              iconName: IconName.Info,
+              onPress: () => handleTooltipPress('liquidation_price'),
+              testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+            }}
+            value={
+              hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
-                : PERPS_CONSTANTS.FallbackDataDisplay}
-            </Text>
-          </View>
+                : PERPS_CONSTANTS.FallbackDataDisplay
+            }
+            valueTextProps={{
+              testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+            }}
+          />
+
           {isMarketOrder && (
-            <TouchableOpacity
+            <KeyValueRow
               testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_ROW}
-              onPress={() => {
-                setIsSlippageVisible(true);
-                track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-                  [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-                    PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
-                  [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-                  [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]:
-                    bpsToPercent(maxSlippageBps),
-                  [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
-                });
+              variant={KeyValueRowVariant.Summary}
+              keyLabel={strings('perps.slippage.slippage')}
+              value={
+                estimatedSlippagePctDisplay === null
+                  ? strings('perps.slippage.row_format_pending', {
+                      value: bpsToPercent(maxSlippageBps),
+                    })
+                  : strings('perps.slippage.row_format', {
+                      est: estimatedSlippagePctDisplay,
+                      value: bpsToPercent(maxSlippageBps),
+                    })
+              }
+              valueTextProps={{
+                testID: PerpsOrderViewSelectorsIDs.SLIPPAGE_VALUE,
+                ...(exceedsMaxSlippage && {
+                  color: TextColor.ErrorDefault,
+                }),
               }}
-            >
-              <View style={styles.infoRow}>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('perps.slippage.slippage')}
-                </Text>
-                <View style={styles.slippageValueRow}>
-                  <Text
-                    testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_VALUE}
-                    variant={TextVariant.BodySm}
-                    color={
-                      exceedsMaxSlippage
-                        ? TextColor.ErrorDefault
-                        : TextColor.TextDefault
-                    }
-                  >
-                    {estimatedSlippagePctDisplay === null
-                      ? strings('perps.slippage.row_format_pending', {
-                          value: bpsToPercent(maxSlippageBps),
-                        })
-                      : strings('perps.slippage.row_format', {
-                          est: estimatedSlippagePctDisplay,
-                          value: bpsToPercent(maxSlippageBps),
-                        })}
-                  </Text>
-                  <Icon
-                    name={IconName.Edit}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </View>
-              </View>
-            </TouchableOpacity>
+              valueEndButtonIconProps={{
+                iconName: IconName.Edit,
+                onPress: handleSlippageEditPress,
+              }}
+            />
           )}
-          <View style={styles.infoRow}>
-            <View style={styles.detailLeft}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.order.fees')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => handleTooltipPress('fees')}
-                style={styles.infoIcon}
-              >
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  testID={PerpsOrderViewSelectorsIDs.FEES_INFO_ICON}
+
+          <KeyValueRow
+            variant={KeyValueRowVariant.Summary}
+            keyLabel={strings('perps.order.fees')}
+            keyEndButtonIconProps={{
+              iconName: IconName.Info,
+              onPress: () => handleTooltipPress('fees'),
+              testID: PerpsOrderViewSelectorsIDs.FEES_INFO_ICON,
+            }}
+            value={
+              isFeesLoading ? (
+                <Skeleton height={16} width={60} />
+              ) : (
+                <PerpsFeesDisplay
+                  feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                  fee={hasValidAmount ? feesToDisplay : undefined}
+                  originalFee={
+                    hasValidAmount ? undiscountedFeesToDisplay : undefined
+                  }
+                  placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
+                  testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
                 />
-              </TouchableOpacity>
-            </View>
-            {isFeesLoading ? (
-              <Skeleton height={16} width={60} />
-            ) : (
-              <PerpsFeesDisplay
-                feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                fee={hasValidAmount ? feesToDisplay : undefined}
-                originalFee={
-                  hasValidAmount ? undiscountedFeesToDisplay : undefined
-                }
-                placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
-                testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
-                variant={TextVariant.BodySm}
-              />
-            )}
-          </View>
+              )
+            }
+          />
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
