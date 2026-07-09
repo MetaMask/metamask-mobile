@@ -94,7 +94,13 @@ interface CommentState {
 }
 
 interface AiAnalysisArtifact {
+  // Files the AI actually reviewed this run. Distinguishes "reviewed, no
+  // findings" (present here) from "AI did not complete for this file" (absent).
+  // The conservative fallback ships `analyzedFiles: []`, so a failed/skipped
+  // Stage 2 leaves this empty and prior findings are preserved.
+  analyzedFiles?: string[];
   findings?: Finding[];
+  confidence?: number;
 }
 
 interface Comment {
@@ -326,7 +332,14 @@ async function main(): Promise<void> {
   const windows = Array.isArray(history.windows) ? history.windows : DEFAULT_WINDOWS;
   const runsSampled = history.runsSampled ?? {};
   const rawFindings = Array.isArray(aiAnalysis.findings) ? aiAnalysis.findings : [];
+  // Files the deterministic history stage re-ran on this push.
   const analyzedFiles = new Set<string>(Array.isArray(history.analyzedFiles) ? history.analyzedFiles : []);
+  // Files the AI stage actually reviewed. Empty when Stage 2 failed, was
+  // skipped (fork PR / no LLM key), or wrote the conservative fallback — in
+  // which case we must NOT treat missing findings as "reviewed, all clear".
+  const aiAnalyzedFiles = new Set<string>(
+    Array.isArray(aiAnalysis.analyzedFiles) ? aiAnalysis.analyzedFiles : [],
+  );
   const headSha = typeof history.headSha === 'string' ? history.headSha : env.headSha;
 
   // Post-hoc scope enforcement applied only to fresh AI findings — prior
@@ -348,21 +361,28 @@ async function main(): Promise<void> {
     freshFindingsByFile.set(finding.file, list);
   }
 
-  // Merge per file: fresh findings for re-analyzed files, prior findings for
-  // untouched files (files no longer in modifiedFiles are dropped automatically
-  // because historyFiles already represents exactly the current modified set).
+  // Merge per file (files no longer in modifiedFiles are dropped automatically
+  // because historyFiles already represents exactly the current modified set):
+  //   - history re-ran AND AI reviewed the file → adopt fresh AI findings even
+  //     when empty ("reviewed, all clear" clears previous findings).
+  //   - history re-ran but AI did NOT complete for the file (Stage 2 failed /
+  //     skipped / conservative fallback) → preserve prior findings so a broken
+  //     AI run can't erase them and produce a false "all fixed" comment.
+  //   - history did not re-run the file (untouched by this push) → preserve
+  //     prior findings verbatim.
   const mergedFindings: Finding[] = [];
   const mergedStateFiles: Record<string, PerFileState> = {};
 
   for (const histFile of historyFiles) {
     const { path } = histFile;
-    if (analyzedFiles.has(path)) {
+    const prior = priorState.files[path];
+    const priorFindings = (prior?.findings ?? []) as Finding[];
+
+    if (analyzedFiles.has(path) && aiAnalyzedFiles.has(path)) {
       const fresh = freshFindingsByFile.get(path) ?? [];
       mergedFindings.push(...fresh);
       mergedStateFiles[path] = { analyzedSha: headSha, findings: fresh };
     } else {
-      const prior = priorState.files[path];
-      const priorFindings = (prior?.findings ?? []) as Finding[];
       mergedFindings.push(...priorFindings);
       mergedStateFiles[path] = {
         analyzedSha: prior?.analyzedSha ?? headSha,

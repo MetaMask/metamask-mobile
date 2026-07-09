@@ -1,3 +1,4 @@
+// [mcwp-474-tmp]
 import React from 'react';
 import RemoteImage from './';
 import { getFormattedIpfsUrl } from '@metamask/assets-controllers';

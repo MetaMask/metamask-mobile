@@ -18,7 +18,7 @@ The J1–J10 pattern reference is **not** duplicated here. It is loaded on deman
 
 ## Output artifact
 
-Written to `.ai-pr-analyzer/flaky-ai-analysis.json` (relative to the workspace, per `outputFile` in `mode.yaml`). Consumed by `.github/scripts/flaky-sticky-comment.mjs`.
+Written to `.ai-pr-analyzer/flaky-ai-analysis.json` (relative to the workspace, per `outputFile` in `mode.yaml`). Consumed by `.github/scripts/flaky-sticky-comment.ts`.
 
 Shape (matches `finalize-schema.json`):
 

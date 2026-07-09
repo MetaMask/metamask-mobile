@@ -89,26 +89,36 @@ jobs:
         run: yarn flaky-history-analysis
 
       # Stage 2 preflight: sync the flaky-test-detection skill from
-      # MetaMask/skills using the cloud-agent bootstrap path documented in
-      # https://github.com/MetaMask/skills#for-cloud-agents-cursor-cloud-codex-cloud-etc
-      # This avoids `yarn install` (multi-minute) just to run `yarn skills`.
+      # MetaMask/skills. This avoids `yarn install` (multi-minute) just to run
+      # `yarn skills`, and mirrors what the cloud-agent bootstrap does
+      # (clone + tools/install) — but fully pinned to an immutable commit.
+      #
+      # The upstream `curl | bash` bootstrap clones MetaMask/skills from a
+      # moving ref (SKILLS_REF, defaulting to `main`) and then executes its
+      # tools/install, so it would run unreviewed upstream code in the same
+      # workspace as later token-bearing steps. Instead we clone once, check
+      # out an exact SHA, and run tools/install from that reviewed tree, so
+      # both the installer and the synced skill content come from the same
+      # immutable ref. Bump SKILLS_REF deliberately after reviewing upstream.
+      #
       # The synced SKILL.md is then copied into .ai-pr-analyzer/skills/ so the
       # analyzer's load_skill tool can find it (single source of truth — no
       # hand-duplicated pattern content in this repo).
-      # Pinned to a reviewed commit SHA rather than `main`: this bootstrap runs
-      # in the same workspace as later token-bearing steps, so executing code
-      # from a moving branch would let an unreviewed upstream change affect
-      # this PR's CI run. Bump the SHA deliberately when the skill needs
-      # updating.
       - name: Sync flaky-test-detection skill
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
         env:
-          SKILLS_BOOTSTRAP_SHA: fad21fb8f6158a8f939e8b30bf8f8af755ce67cd
+          SKILLS_REF: fad21fb8f6158a8f939e8b30bf8f8af755ce67cd
         run: |
-          curl -fsSL "https://raw.githubusercontent.com/MetaMask/skills/${SKILLS_BOOTSTRAP_SHA}/tools/bootstrap" \
-            | bash -s -- --repo metamask-mobile --domain coding
+          SKILLS_DIR="$RUNNER_TEMP/metamask-skills"
+          git clone https://github.com/MetaMask/skills.git "$SKILLS_DIR"
+          git -C "$SKILLS_DIR" checkout "$SKILLS_REF"
+          "$SKILLS_DIR/tools/install" \
+            --repo metamask-mobile \
+            --target "$GITHUB_WORKSPACE" \
+            --source "$SKILLS_DIR" \
+            --domain coding
           mkdir -p .ai-pr-analyzer/skills
           cp .agents/skills/mms-flaky-test-detection/SKILL.md \
              .ai-pr-analyzer/skills/mms-flaky-test-detection.md
