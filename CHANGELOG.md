@@ -159,6 +159,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Hyperliquid HIP-3 perp markets showing their provider prefix (e.g. `cash:`) in the social leaderboard, and disabled the Trade button for assets without a supported xyz market (#32008)
 - fix: show correct decimal places when managing price alerts (#31986)
 
+## [8.1.1]
+
+### Fixed
+
+- Fixed a failed swap when smart account upgrade is required (#33000)
+- Fixed Web Share API and blob/data downloads in the in-app browser on Android, and fixed a crash when sharing images from dapps (#33001)
+
 ## [8.1.0]
 
 ### Added
@@ -12672,7 +12679,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.2.0...HEAD
-[8.2.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.0...v8.2.0
+[8.2.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.1...v8.2.0
+[8.1.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.0...v8.1.1
 [8.1.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.4...v8.1.0
 [8.0.4]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.3...v8.0.4
 [8.0.3]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.2...v8.0.3
