@@ -92,7 +92,6 @@ describe('TransactionController wallet instance options', () => {
 
     return getTransactionControllerInstanceOptions({
       getState,
-      getTransactionController: jest.fn(),
       initMessenger,
     });
   }

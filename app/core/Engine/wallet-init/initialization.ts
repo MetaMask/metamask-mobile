@@ -54,8 +54,6 @@ export function initializeWallet({
       storageService: getStorageServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         getState,
-        getTransactionController: () =>
-          wallet.getInstance('TransactionController'),
         initMessenger: transactionControllerInitMessenger,
       }),
     },

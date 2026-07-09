@@ -14,8 +14,11 @@ import {
 import {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
+  TransactionControllerApproveTransactionsWithSameNonceAction,
   TransactionControllerEstimateGasBatchAction,
+  TransactionControllerGetNonceLockAction,
   TransactionControllerGetStateAction,
+  TransactionControllerIsAtomicBatchSupportedAction,
   TransactionControllerStateChangeEvent,
   TransactionControllerTransactionApprovedEvent,
   TransactionControllerTransactionConfirmedEvent,
@@ -92,8 +95,11 @@ export type TransactionControllerInitMessengerActions =
   | SmartTransactionsControllerSubmitSignedTransactionsAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerApproveTransactionsWithSameNonceAction
   | TransactionControllerEstimateGasBatchAction
+  | TransactionControllerGetNonceLockAction
   | TransactionControllerGetStateAction
+  | TransactionControllerIsAtomicBatchSupportedAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerActions
   | AnalyticsControllerActions
@@ -162,8 +168,11 @@ export function getTransactionControllerInitMessenger(
       'SmartTransactionsController:submitSignedTransactions',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
+      'TransactionController:approveTransactionsWithSameNonce',
       'TransactionController:estimateGasBatch',
+      'TransactionController:getNonceLock',
       'TransactionController:getState',
+      'TransactionController:isAtomicBatchSupported',
       'TransactionController:updateTransaction',
       'TransactionPayController:getAmountData',
       'TransactionPayController:getDelegationTransaction',
