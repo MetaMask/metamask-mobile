@@ -14,6 +14,7 @@
 
 import { Platform } from 'react-native';
 import Engine from '../../../core/Engine';
+import { alpha2ToAlpha3 } from './countryCodes';
 
 // ---------------------------------------------------------------------------
 // Endpoint configuration
@@ -42,6 +43,33 @@ async function getBearerToken(): Promise<string> {
   return bearerToken;
 }
 
+// ---------------------------------------------------------------------------
+// Geolocation helper
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolves the customer's country from the wallet's `GeolocationController`.
+ *
+ * The controller returns an ISO 3166-2 code (e.g. "US", "US-NY", "CA-ON"); we
+ * keep the leading ISO 3166-1 alpha-2 country segment and convert it to the
+ * alpha-3 code (e.g. "USA") expected by the MoonPay Identity API.
+ */
+export async function fetchGeolocationCountry(): Promise<string> {
+  const location = await Engine.context.GeolocationController.getGeolocation();
+  const alpha2 = (location ?? '').split('-')[0].toUpperCase();
+  if (!alpha2 || alpha2 === 'UNKNOWN') {
+    throw new Error(
+      `Unable to determine country from geolocation (got "${location}").`,
+    );
+  }
+  const alpha3 = alpha2ToAlpha3(alpha2);
+  if (!alpha3) {
+    throw new Error(
+      `Unable to map country code "${alpha2}" to an ISO 3166-1 alpha-3 code.`,
+    );
+  }
+  return alpha3;
+}
 // ---------------------------------------------------------------------------
 // Step 2 — Create a session (delegated to the local UKYC service)
 // ---------------------------------------------------------------------------
