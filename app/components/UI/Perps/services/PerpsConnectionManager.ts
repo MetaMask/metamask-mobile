@@ -19,6 +19,7 @@ import {
 } from '../../../../util/trace';
 import {
   startPerpsCufTrace,
+  endPerpsCufTrace,
   endPerpsCufTraceAfter,
   watchPerpsCufAnyPositions,
   clearPendingPerpsCufTraces,
@@ -659,8 +660,9 @@ class PerpsConnectionManagerClass {
               // delivery would end the stale op as a success with a duration
               // inflated by the background/disconnect gap. Skipped for a
               // preserveCaches soft resume above, where the stream continuity
-              // means the confirming delivery is still legitimate. The reconnect
-              // measurement span is preserved by clearPendingPerpsCufTraces.
+              // means the confirming delivery is still legitimate. No reconnect
+              // measurement span is armed during disconnect (it is armed later
+              // in performReconnection, after its own clear), so none is lost.
               clearPendingPerpsCufTraces();
             }
 
@@ -1039,7 +1041,17 @@ class PerpsConnectionManagerClass {
       'PerpsConnectionManager: Reconnecting with new account/network context',
     );
 
-    // Freshness CUF: reconnect start -> first fresh positions delivery.
+    // Abandon any pending confirmation CUF (and any stale reconnect span) from
+    // the previous session BEFORE arming this reconnection's own span. The
+    // streams are being torn down and resubscribed here, so a stale op must not
+    // be ended by the new subscription's first delivery (which would record a
+    // success with a duration inflated by the offline/reconnect gap). This also
+    // covers reconnect paths that do not route through the identity-change or
+    // hard-disconnect clears — notably NetInfo offline->online.
+    clearPendingPerpsCufTraces();
+
+    // Freshness CUF: reconnect start -> first fresh positions delivery. Armed
+    // AFTER the clear above so it is never abandoned by it.
     const reconnectCufOpId = startPerpsCufTrace({
       name: TraceName.PerpsWebSocketReconnectToFreshData,
     });
@@ -1228,6 +1240,17 @@ class PerpsConnectionManagerClass {
 
       // Clear connection timeout on error
       this.clearConnectionTimeout();
+
+      // Reconnect failed: end its CUF span now as a failure rather than leaving
+      // it open for the 30s fallback — otherwise a retry's fresh positions
+      // delivery could end both this stale span and the new reconnect span.
+      endPerpsCufTrace({
+        id: reconnectCufOpId,
+        data: {
+          [PERPS_CUF_TAG.SUCCESS]: false,
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+        },
+      });
 
       traceData = {
         success: false,

@@ -322,6 +322,10 @@ export function clearPendingPerpsCufTraces(
   reason: string = PERPS_CUF_END_REASON.DISCONNECTED,
 ): void {
   for (const [id] of Array.from(pendingCufMeta.entries())) {
+    // Clears everything, including any stale reconnect measurement span: each
+    // reconnection arms its own reconnect span AFTER this teardown clear (see
+    // performReconnection), so a fresh span is never abandoned and a stale one
+    // from a prior session cannot be falsely ended by the next delivery.
     endPerpsCufTrace({
       id,
       data: {
