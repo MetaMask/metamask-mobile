@@ -1,6 +1,9 @@
 import { StyleSheet } from 'react-native';
 import { AppThemeKey, Theme } from '../../../../../util/theme/models';
-import { isPureBlackEnabled } from '../../../../../util/theme/themeUtils';
+import {
+  getElevatedSurfaceColor,
+  isPureBlackEnabled,
+} from '../../../../../util/theme/themeUtils';
 
 const isSwapsKeypadPureBlackSurface = (theme: Theme) =>
   isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
@@ -16,13 +19,14 @@ export const createSwapsKeypadStyles = (theme: Theme) =>
     keypadDialog: {
       marginHorizontal: -1,
       marginBottom: -1,
-      borderBottomColor: theme.colors.background.default,
       ...(isSwapsKeypadPureBlackSurface(theme)
         ? {
-            backgroundColor: theme.colors.background.default,
-            borderColor: theme.colors.background.default,
+            backgroundColor: getElevatedSurfaceColor(theme),
+            borderColor: theme.colors.border.muted,
           }
-        : {}),
+        : {
+            borderBottomColor: theme.colors.background.default,
+          }),
     },
   });
 export const quickPickButtonsStyles = StyleSheet.create({
