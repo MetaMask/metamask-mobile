@@ -45,6 +45,8 @@ import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyAct
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
+import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
+import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import AppConstants from '../../../../../core/AppConstants';
 import {
@@ -156,7 +158,9 @@ const MoneyHomeView = () => {
     [musdTokenBalanceAggregated],
   );
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
+    overrideToUsd: true,
+  });
   const { initiateDeposit } = useMoneyAccountDeposit();
   // Share the single merge/bucket path with the full activity view so the home
   // preview and that view never diverge (notably in mock mode). The home
@@ -649,12 +653,25 @@ const MoneyHomeView = () => {
   );
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
-  const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
+  const currencyRates = useSelector(selectCurrencyRates);
+  // The Card pipeline reports balanceFiat in the user's selected currency, but
+  // we want to show USD fiat values in this view.
+  const cardBalanceUsd = useMemo(() => {
+    const usd = convertSelectedFiatToUsd(
+      cardPrimaryToken?.rawFiatNumber,
+      currencyRates,
+    );
+    return usd === undefined
+      ? formattedZero
+      : moneyFormatUsd(new BigNumber(usd));
+  }, [cardPrimaryToken?.rawFiatNumber, currencyRates, formattedZero]);
+
   const cardState = deriveCardState({
     isCardholder,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
   });
+
   const isCardAnalyticsReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
 
@@ -670,7 +687,7 @@ const MoneyHomeView = () => {
             onManagePress={navigateToCardHome}
             showMetalCard={hasMetalCard}
             isLinkDisabled={isLinking}
-            cardBalance={cardBalance}
+            cardBalance={cardBalanceUsd}
             isBalanceStale={showBalanceUnavailableBanner}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}
