@@ -48,9 +48,9 @@ function Notification({
   useEffect(
     () => () => {
       hideCurrentNotification();
-      removeCurrentNotification();
+      handleDismissComplete();
     },
-    [hideCurrentNotification, removeCurrentNotification],
+    [hideCurrentNotification, handleDismissComplete],
   );
 
   useEffect(() => {

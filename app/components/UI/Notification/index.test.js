@@ -107,6 +107,23 @@ describe('Notification', () => {
     });
   });
 
+  it('dequeues only once when unmounting after dismiss complete', () => {
+    const { getByTestId, unmount, dispatchSpy } =
+      renderNotification(simpleNotification);
+
+    act(() => {
+      getByTestId('simple-notification').props.onDismissComplete();
+    });
+
+    unmount();
+
+    expect(
+      dispatchSpy.mock.calls.filter(
+        ([action]) => action.type === ACTIONS.REMOVE_CURRENT_NOTIFICATION,
+      ),
+    ).toHaveLength(1);
+  });
+
   it('dequeues the current notification when the fallback timer expires', () => {
     jest.useFakeTimers();
     const { dispatchSpy } = renderNotification({
