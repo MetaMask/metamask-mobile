@@ -352,7 +352,8 @@ jest.mock('@metamask/design-system-react-native', () => {
         // (e.g. Info on each row, ArrowLeft in the inline header) don't
         // collide on the same selector.
         testID:
-          testID ?? `button-icon-${String(iconName ?? 'unknown').toLowerCase()}`,
+          testID ??
+          `button-icon-${String(iconName ?? 'unknown').toLowerCase()}`,
       }),
     ButtonIconSize: { Md: 'Md', Sm: 'Sm' },
     IconColor: {
@@ -783,7 +784,9 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
 
       await waitFor(() =>
-        expect(getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID)).toBeTruthy(),
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
       );
     });
 
@@ -843,7 +846,9 @@ describe('BridgeTokenSelector', () => {
       );
 
       await waitFor(() =>
-        expect(getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID)).toBeTruthy(),
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
       );
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
 
@@ -1116,7 +1121,9 @@ describe('BridgeTokenSelector', () => {
       );
 
       await waitFor(() =>
-        expect(getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID)).toBeTruthy(),
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
       );
       fireEvent.press(
         getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_DISMISS_TEST_ID),
@@ -1134,7 +1141,9 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
 
       await waitFor(() =>
-        expect(getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID)).toBeTruthy(),
+        expect(
+          getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID),
+        ).toBeTruthy(),
       );
       fireEvent.press(getByTestId(BATCH_SELL_ASSET_PICKER_BANNER_TEST_ID));
 
