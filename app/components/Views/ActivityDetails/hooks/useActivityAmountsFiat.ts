@@ -16,6 +16,7 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { getMaybeHexChainId } from '../../../../util/bridge';
 import {
   getHumanReadableTokenAmount,
+  isFailedOrCancelledTransfer,
   toMarketRateLookupToken,
   type ActivityFee,
   type ActivityListItem,
@@ -242,11 +243,15 @@ export function useActivityAmountsFiat(
   );
   const multichainAssetRates = useSelector(selectMultichainAssetsRates);
 
-  const token =
-    totalToken ??
-    ('token' in item.data
-      ? (item.data.token as TokenAmount | undefined)
-      : undefined);
+  // A failed/cancelled send transferred nothing, so its token value must not
+  // count toward the total — only the gas that was actually spent (the fee
+  // rows) should. Drop the token so the total reflects what left the wallet.
+  const token = isFailedOrCancelledTransfer(item)
+    ? undefined
+    : (totalToken ??
+      ('token' in item.data
+        ? (item.data.token as TokenAmount | undefined)
+        : undefined));
   const fees: ActivityFee[] = 'fees' in item.data ? (item.data.fees ?? []) : [];
 
   const tokenFiat = tokenToFiatNumber(

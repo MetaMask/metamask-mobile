@@ -336,6 +336,49 @@ export const selectLocalTransactions = createDeepEqualSelector(
   },
 );
 
+/**
+ * Replaced (speed-up/cancel) local transactions for the active account — the
+ * inverse of what {@link selectNonReplacedTransactions} keeps. The activity list
+ * drops these so it shows one row per nonce, but the redesigned list re-merges
+ * them into their nonce group so the original attempt still drives the group's
+ * type and amount (its live replacement drives the status). Address/required
+ * filtering mirrors {@link selectLocalTransactions} so the two align by nonce.
+ */
+export const selectReplacedLocalTransactions = createDeepEqualSelector(
+  [
+    selectTransactionsStrict,
+    selectSelectedAccountGroupEvmInternalAccount,
+    selectEvmAddress,
+    selectRequiredTransactionIds,
+  ],
+  (
+    transactions,
+    groupEvmAccount,
+    fallbackEvmAddress,
+    requiredTransactionIds,
+  ) => {
+    const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
+
+    return transactions.filter((transaction) => {
+      const { replacedBy, replacedById, hash } = transaction;
+      if (!(replacedBy && replacedById && hash)) {
+        return false;
+      }
+
+      if (requiredTransactionIds.has(transaction.id)) {
+        return false;
+      }
+
+      const fromAddress = transaction.txParams?.from;
+      if (!fromAddress || !activeEvmAddress) {
+        return false;
+      }
+
+      return areAddressesEqual(fromAddress, activeEvmAddress);
+    });
+  },
+);
+
 export const selectSwapsTransactions = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) =>

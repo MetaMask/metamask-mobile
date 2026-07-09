@@ -488,7 +488,12 @@ export function mapLocalTransaction(
     return smartAccountUpgradeActivity;
   }
 
-  switch (initialTransaction.type) {
+  const initialTransactionType =
+    initialTransaction.type === TransactionType.retry
+      ? (initialTransaction.originalType ?? initialTransaction.type)
+      : initialTransaction.type;
+
+  switch (initialTransactionType) {
     case TransactionType.simpleSend: {
       return {
         type: 'send',

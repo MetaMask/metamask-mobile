@@ -27,6 +27,7 @@ import {
   type ActivityListItem,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
+  isFailedOrCancelledTransfer,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
   type TokenAmount,
@@ -465,6 +466,8 @@ function resolveCoreContent(
       const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
       const failedLabel =
         item.type === 'receive' ? 'Receive failed' : 'Send failed';
+      const cancelledLabel =
+        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
 
       return {
@@ -472,6 +475,7 @@ function resolveCoreContent(
           success: withOptionalSymbol(label, symbol),
           pending: withOptionalSymbol(pendingLabel, symbol),
           failed: failedLabel,
+          cancelled: cancelledLabel,
         }),
         subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
         primaryToken: token,
@@ -1177,13 +1181,22 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
-  const primaryAmount =
-    domainFiatAmount ?? resolveAmount(primaryToken, item.type);
-  const secondaryAmount = domainFiatAmount
-    ? isFundsRow
-      ? fundsTokenSecondaryAmount(primaryToken)
-      : undefined
-    : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
+  // A failed or cancelled send/receive moved nothing, so the transfer amount
+  // (surfaced from the attempted/original tx) is misleading — suppress it here
+  // so every consumer of this resolver (the list row and the details amount
+  // header) stays consistent.
+  const suppressTransferAmount = isFailedOrCancelledTransfer(item);
+
+  const primaryAmount = suppressTransferAmount
+    ? undefined
+    : (domainFiatAmount ?? resolveAmount(primaryToken, item.type));
+  const secondaryAmount = suppressTransferAmount
+    ? undefined
+    : domainFiatAmount
+      ? isFundsRow
+        ? fundsTokenSecondaryAmount(primaryToken)
+        : undefined
+      : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data
