@@ -471,6 +471,9 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
+    // End any first-data trace still open, so clearing the cache before first
+    // data doesn't leave a span running until the 5-minute auto-clean.
+    this.endOpenFirstDataTrace();
     // This ensures no timers are orphaned during the disconnect/reconnect cycle
     this.subscribers.forEach((subscriber) => {
       // Clear any pending updates and timers
@@ -1003,14 +1006,16 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   }
 
   public disconnect() {
-    this.firstDataTraceId = undefined;
+    // End (not just drop) any open first-data trace before the base teardown.
+    this.endOpenFirstDataTrace();
     super.disconnect();
   }
 
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
-    this.firstDataTraceId = undefined;
+    // End (not just drop) any open first-data trace before the base teardown.
+    this.endOpenFirstDataTrace();
     // Call parent clearCache
     super.clearCache();
   }
@@ -1153,14 +1158,16 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
   }
 
   public disconnect() {
-    this.firstDataTraceId = undefined;
+    // End (not just drop) any open first-data trace before the base teardown.
+    this.endOpenFirstDataTrace();
     super.disconnect();
   }
 
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
-    this.firstDataTraceId = undefined;
+    // End (not just drop) any open first-data trace before the base teardown.
+    this.endOpenFirstDataTrace();
     // Call parent clearCache
     super.clearCache();
   }
@@ -1418,14 +1425,16 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 
   public disconnect() {
-    this.firstDataTraceId = undefined;
+    // End (not just drop) any open first-data trace before the base teardown.
+    this.endOpenFirstDataTrace();
     super.disconnect();
   }
 
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
-    this.firstDataTraceId = undefined;
+    // End (not just drop) any open first-data trace before the base teardown.
+    this.endOpenFirstDataTrace();
     // Call parent clearCache
     super.clearCache();
   }
