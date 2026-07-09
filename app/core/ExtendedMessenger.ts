@@ -54,4 +54,37 @@ export class ExtendedMessenger<
       // Ignore
     }
   }
+
+  /**
+   * Build a child messenger scoped to a given namespace with restricted
+   * actions and events. The child messenger routes calls to the parent
+   * (this messenger) at runtime.
+   *
+   * This mirrors the old `ControllerMessenger.buildRestricted()` API from
+   * `@metamask/base-controller` and provides a typed entry-point for callers
+   * that need a narrowed messenger without re-writing the parent constraint.
+   *
+   * @param options - Options for the child messenger.
+   * @param options.namespace - Namespace for the child messenger.
+   * @param options.actions - Allowed action types for the child.
+   * @param options.events - Allowed event types for the child.
+   * @returns A new child messenger scoped to the given namespace.
+   */
+  buildChild<
+    N extends string,
+    A extends ActionConstraint,
+    E extends EventConstraint,
+  >(_options: {
+    namespace: N;
+    actions: A['type'][];
+    events: E['type'][];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }): Messenger<N, A, E, any> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new Messenger<N, A, E, any>({
+      namespace: _options.namespace,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      parent: this as any,
+    });
+  }
 }

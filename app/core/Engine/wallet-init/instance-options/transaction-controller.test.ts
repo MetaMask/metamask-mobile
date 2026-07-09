@@ -11,9 +11,9 @@ import {
 } from '@metamask/transaction-controller';
 
 import type { RootState } from '../../../../reducers';
-import * as sentinelApiModule from '../../../../util/transactions/sentinel-api';
-import * as accountSupports7702Module from '../../../../util/transactions/account-supports-7702';
-import * as smartTransactionSelectors from '../../../../selectors/smartTransactionsController';
+import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
+import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   getTransactionControllerInitMessenger,
   type TransactionControllerInitMessengerActions,
@@ -61,14 +61,10 @@ function buildRootMessenger() {
 
 describe('TransactionController wallet instance options', () => {
   const selectShouldUseSmartTransactionMock = jest.mocked(
-    smartTransactionSelectors.selectShouldUseSmartTransaction,
+    selectShouldUseSmartTransaction,
   );
-  const isSendBundleSupportedMock = jest.mocked(
-    sentinelApiModule.isSendBundleSupported,
-  );
-  const accountSupports7702Mock = jest.mocked(
-    accountSupports7702Module.accountSupports7702,
-  );
+  const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
+  const accountSupports7702Mock = jest.mocked(accountSupports7702);
 
   const getState = jest.fn(() => ({}) as RootState);
 
