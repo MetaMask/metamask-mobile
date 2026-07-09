@@ -27,7 +27,9 @@ import { join } from 'path';
 const MARKER = '<!-- metamask-flaky-test-detection -->';
 // Prefix of the hidden state block appended to the comment body. Stage 1 reads
 // this on the next push to determine which files changed since last analysis.
-const STATE_MARKER = '<!-- metamask-flaky-test-detection:state';
+// The state payload is base64-encoded (see buildStateBlock below),
+// so base64 alphabet can never contain the `-->` sequence that closes the HTML comment.
+const STATE_MARKER = '<!-- metamask-flaky-test-detection-metadata=';
 // Canonical source of the flaky-test-detection skill. The synced copy at
 // .agents/skills/mms-flaky-test-detection/SKILL.md is .gitignore'd, so we link
 // to the real source repo (MetaMask/skills) instead of a 404 blob path.
@@ -128,9 +130,12 @@ const DEFAULT_WINDOWS = [7, 15, 30];
 
 // Serializes per-file state into a hidden HTML comment appended to the comment
 // body. Stage 1 reads this on the next push to decide which files need
-// re-analysis vs. which can be preserved verbatim.
+// re-analysis vs. which can be preserved verbatim. The JSON is base64-encoded
+// so an AI finding's snippet/explanation/suggestedFix containing a literal
+// `-->` cannot truncate the payload before the real closing delimiter.
 function buildStateBlock(state: CommentState): string {
-  return `${STATE_MARKER} ${JSON.stringify(state)} -->`;
+  const encoded = Buffer.from(JSON.stringify(state), 'utf8').toString('base64');
+  return `${STATE_MARKER}${encoded} -->`;
 }
 
 // Builds the table (or an empty-state fallback line) for the "Run history
@@ -298,6 +303,11 @@ async function findExistingStickyComment(
 async function main(): Promise<void> {
   if (!env.token || !env.repo || !env.prNumber) {
     console.log('⏭️  Missing token/repo/PR number — skipping sticky comment');
+    return;
+  }
+
+  if (!existsSync(HISTORY_PATH)) {
+    console.log('⏭️  History artifact missing — Stage 1 did not complete, skipping');
     return;
   }
 

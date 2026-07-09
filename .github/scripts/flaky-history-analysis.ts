@@ -39,8 +39,11 @@ import { dirname, join } from 'path';
 type Octokit = ReturnType<typeof getOctokit>;
 
 // Prefix of the hidden state block embedded in the sticky comment body.
-// Stage 1 reads this to determine which files need re-analysis.
-const STATE_MARKER = '<!-- metamask-flaky-test-detection:state';
+// Stage 1 reads this to determine which files need re-analysis. The state
+// payload is base64-encoded (see flaky-sticky-comment.ts buildStateBlock), so
+// the marker name says so and the base64 alphabet can never contain the `-->`
+// sequence that closes the HTML comment.
+const STATE_MARKER = '<!-- metamask-flaky-test-detection-metadata=';
 // Marker used by Stage 3 to identify the sticky comment (must stay in sync).
 const COMMENT_MARKER = '<!-- metamask-flaky-test-detection -->';
 
@@ -58,7 +61,7 @@ const UNIT_TEST_JOB_PREFIX = 'Unit tests';
 // nested windows below, so a failure 5 days ago counts in both windows and
 // one 20 days ago counts only in the 30d bucket.
 const LOOKBACK_DAYS = 30;
-const WINDOWS_DAYS = [7, 30] as const;
+const WINDOWS_DAYS = [7, 15, 30] as const;
 type WindowKey = `${(typeof WINDOWS_DAYS)[number]}d`;
 const WINDOW_KEYS = WINDOWS_DAYS.map((d) => `${d}d` as WindowKey);
 type WindowCounts = Record<WindowKey, number>;
@@ -193,14 +196,19 @@ async function mapWithConcurrency<T, R>(
 }
 
 // Extracts the per-file state JSON block embedded in a sticky comment body.
+// The payload is base64-encoded, so decoding it is safe even if the AI
+// findings inside contain a literal `-->` — that sequence cannot occur inside
+// base64 output, only in the (correctly detected) closing delimiter.
 function parseStateFromComment(body: string): CommentState | null {
   const idx = body.indexOf(STATE_MARKER);
   if (idx === -1) return null;
   const after = body.slice(idx + STATE_MARKER.length).trimStart();
   const closeIdx = after.indexOf(' -->');
   if (closeIdx === -1) return null;
+  const encoded = after.slice(0, closeIdx).trim();
   try {
-    return JSON.parse(after.slice(0, closeIdx)) as CommentState;
+    const json = Buffer.from(encoded, 'base64').toString('utf8');
+    return JSON.parse(json) as CommentState;
   } catch {
     return null;
   }
@@ -582,4 +590,8 @@ async function main(): Promise<void> {
 
 main().catch((error: Error) => {
   core.warning(`Stage 1 failed: ${error.message}`);
+  // A crash after should_analyze was emitted must not let Stage 3 run against a
+  // missing history artifact and post a false all-clear.
+  core.setOutput('should_analyze', 'false');
+  core.setOutput('files_to_analyze', '');
 });

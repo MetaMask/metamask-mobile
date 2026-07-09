@@ -5,7 +5,7 @@
 #
 #   1. Deterministic history — flaky-history-analysis.ts counts how often each
 #      modified test file failed on main over the last 30 days of completed
-#      ci.yml runs, bucketed into 7d/30d windows.
+#      ci.yml runs, bucketed into 7d/15d/30d windows.
 #      → writes .ai-pr-analyzer/flaky-history.json
 #
 #   2. AI analyzer — MetaMask/ai-analyzer's flaky-unit-test-analysis mode
@@ -69,8 +69,8 @@ jobs:
           command: cd .github/scripts && yarn --immutable
 
       # Stage 1: deterministic historical analysis. Identifies modified unit
-      # test files and counts their failures on main over the last 365 days of
-      # completed ci.yml runs, bucketed into 7d/30d/90d/365d windows
+      # test files and counts their failures on main over the last 30 days of
+      # completed ci.yml runs, bucketed into 7d/15d/30d windows
       # (failure+success runs only; cancelled/timed_out are excluded from the
       # denominator). When no modified test file changed since its last-analyzed
       # SHA (stored in the sticky comment), the step emits should_analyze=false
@@ -95,12 +95,19 @@ jobs:
       # The synced SKILL.md is then copied into .ai-pr-analyzer/skills/ so the
       # analyzer's load_skill tool can find it (single source of truth — no
       # hand-duplicated pattern content in this repo).
+      # Pinned to a reviewed commit SHA rather than `main`: this bootstrap runs
+      # in the same workspace as later token-bearing steps, so executing code
+      # from a moving branch would let an unreviewed upstream change affect
+      # this PR's CI run. Bump the SHA deliberately when the skill needs
+      # updating.
       - name: Sync flaky-test-detection skill
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
           !github.event.pull_request.head.repo.fork
+        env:
+          SKILLS_BOOTSTRAP_SHA: fad21fb8f6158a8f939e8b30bf8f8af755ce67cd
         run: |
-          curl -fsSL https://raw.githubusercontent.com/MetaMask/skills/main/tools/bootstrap \
+          curl -fsSL "https://raw.githubusercontent.com/MetaMask/skills/${SKILLS_BOOTSTRAP_SHA}/tools/bootstrap" \
             | bash -s -- --repo metamask-mobile --domain coding
           mkdir -p .ai-pr-analyzer/skills
           cp .agents/skills/mms-flaky-test-detection/SKILL.md \
@@ -134,6 +141,10 @@ jobs:
       # test files — the composite action always analyzes the full PR diff.
       # This also means the analyzer never has a chance to post its own PR
       # comment; Stage 3 below is the only PR-visible output.
+      # --skip-scope bypasses the analyzer's default minimum-changed-lines
+      # gate: Stage 1 already narrowed the input to modified unit test files,
+      # so a 1-2 line edit that introduces a flaky pattern must still be
+      # analyzed instead of being skipped for being "too small".
       - name: Run flaky unit test AI analysis
         if: >-
           steps.detect-history.outputs.should_analyze == 'true' &&
@@ -149,14 +160,20 @@ jobs:
             --config .ai-pr-analyzer \
             --mode flaky-unit-test-analysis \
             --base-branch "origin/${{ github.base_ref }}" \
-            --changed-files "${{ steps.detect-history.outputs.files_to_analyze }}"
+            --changed-files "${{ steps.detect-history.outputs.files_to_analyze }}" \
+            --skip-scope
 
       # Stage 3: unified sticky PR comment combining Stage 1 + Stage 2
-      # output. Runs only when should_analyze is true — if Stage 1 determined
-      # no modified test file changed since last analysis, the existing comment
-      # is left untouched and Stage 3 is skipped entirely. Never blocks the PR.
+      # output. Runs when should_analyze is true, or when the PR no longer
+      # modifies any unit test file — the latter lets the 4-state matrix flip
+      # a stale sticky comment to "all fixed" when test changes are removed.
+      # If Stage 1 determined no modified test file changed since last
+      # analysis (should_analyze=false but has_test_files=true), the existing
+      # comment is left untouched and Stage 3 is skipped. Never blocks the PR.
       - name: Post unified sticky comment
-        if: steps.detect-history.outputs.should_analyze == 'true'
+        if: >-
+          steps.detect-history.outputs.should_analyze == 'true' ||
+          steps.detect-history.outputs.has_test_files == 'false'
         continue-on-error: true
         working-directory: .github/scripts
         env:
