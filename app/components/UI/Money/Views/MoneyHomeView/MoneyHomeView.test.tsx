@@ -2537,27 +2537,96 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('renders the card primary-token fiat balance when available', () => {
+    const linkedCardLinkage = {
+      hasMoneyAccountRequirements: false,
+      hasMoneyAccountBaseRequirements: false,
+      isCardAuthenticated: false,
+      isCardLinkedToMoneyAccount: true,
+      primaryMoneyAccount: undefined,
+      moneyAccountCardToken: null,
+      canLink: false,
+      status: 'idle',
+      isLinking: false,
+      error: null,
+      startLinkFlow: mockStartLinkFlow,
+      openLinkCardSheet: mockOpenLinkCardSheet,
+      reset: jest.fn(),
+    } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>;
+
+    // EUR/ETH = 900, USD/ETH = 1000 -> fiat->USD factor is 1000/900 = 10/9.
+    // 90 EUR raw fiat converts to exactly 100 USD, proving the conversion (not
+    // a pass-through of balanceFiat) drives the rendered value.
+    const eurCurrencyRatesState = {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: {
+            currentCurrency: 'eur',
+            currencyRates: {
+              ETH: {
+                conversionDate: 0,
+                conversionRate: 900,
+                usdConversionRate: 1000,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      mockMoneyFormatUsd.mockImplementation(
+        (value: BigNumber) => `$${value.toFixed(2)}`,
+      );
+    });
+
+    it('converts the primary token raw fiat number from the preferred currency to USD', () => {
       mockSelectIsCardholder.mockReturnValue(true);
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: false,
-        hasMoneyAccountBaseRequirements: false,
-        isCardAuthenticated: false,
-        isCardLinkedToMoneyAccount: true,
-        primaryMoneyAccount: undefined,
-        moneyAccountCardToken: null,
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
       mockUseCardHomeData.mockReturnValue({
         ...baseCardHomeData,
         primaryToken: {
-          balanceFiat: '$12.34',
+          balanceFiat: '€90.00',
+          rawFiatNumber: 90,
+          isMoneyAccountEntry: true,
+        } as unknown as ReturnType<
+          typeof useMoneyAccountCardLinkage
+        >['primaryMoneyAccount'],
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
+        state: eurCurrencyRatesState,
+      });
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$100.00');
+    });
+
+    it('falls back to formatted zero when card home data has no primary token', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$0.00');
+    });
+
+    it('falls back to formatted zero when the fiat→USD rate is unavailable', () => {
+      // rawFiatNumber is present, but currency rates haven't loaded — must not
+      // render an unconverted (wrong-currency) balance.
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: '€90.00',
+          rawFiatNumber: 90,
           isMoneyAccountEntry: true,
         } as unknown as ReturnType<
           typeof useMoneyAccountCardLinkage
@@ -2565,37 +2634,10 @@ describe('MoneyHomeView', () => {
       });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-      expect(
-        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.children,
-      ).toBe('$12.34');
-    });
 
-    it('falls back to formatted zero when card home data has no primary token', () => {
-      mockSelectIsCardholder.mockReturnValue(true);
-      mockUseMoneyAccountCardLinkage.mockReturnValue({
-        hasMoneyAccountRequirements: false,
-        hasMoneyAccountBaseRequirements: false,
-        isCardAuthenticated: false,
-        isCardLinkedToMoneyAccount: true,
-        primaryMoneyAccount: undefined,
-        moneyAccountCardToken: null,
-        canLink: false,
-        status: 'idle',
-        isLinking: false,
-        error: null,
-        startLinkFlow: mockStartLinkFlow,
-        openLinkCardSheet: mockOpenLinkCardSheet,
-        reset: jest.fn(),
-      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
-      mockUseCardHomeData.mockReturnValue({
-        ...baseCardHomeData,
-        primaryToken: null,
-      });
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
-        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.children,
-      ).toBeTruthy();
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$0.00');
     });
   });
 

@@ -1176,6 +1176,8 @@
       "buy_label": "Buy",
       "sell_label": "Sell",
       "receive": "Receive",
+      "max": "Max",
+      "add_funds": "Add funds",
       "toast_pending_buy": "Buying {{amount}} of {{symbol}} with {{counter}}",
       "toast_pending_sell": "Selling {{amount}} of {{symbol}} for {{counter}}",
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
@@ -2106,7 +2108,8 @@
       "products": "Products",
       "top_movers": "Top movers",
       "gainers": "Gainers",
-      "losers": "Losers"
+      "losers": "Losers",
+      "recently_added": "Recently added"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -2200,8 +2203,15 @@
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
     },
+    "market_count": "{{count}} market",
+    "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_markets_found": "No markets found",
+    "no_markets_found_description": "No markets match your current filter. Try a different category.",
+    "no_markets_search_description": "No markets match \"{{searchQuery}}\" in this category. Try a different search or clear the filter.",
+    "clear_search": "Clear search",
+    "clear_filter": "Clear filter",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -2516,6 +2526,7 @@
     },
     "outcome_groups": {
       "game_lines": "Game Lines",
+      "halves": "Halves",
       "first_half": "1st Half",
       "first_set": "1st Set",
       "team_totals": "Team Totals",
@@ -2544,6 +2555,7 @@
       "first_half_moneyline": "1H Moneyline",
       "first_half_spreads": "1H Spreads",
       "first_half_totals": "1H Totals",
+      "second_half_totals": "2H Totals",
       "points": "Points",
       "assists": "Assists",
       "rebounds": "Rebounds",
@@ -2551,6 +2563,7 @@
       "basketball_odd_even": "Odd/Even Score",
       "basketball_team_to_score_first": "Team to Score First",
       "goalscorers": "Goalscorers",
+      "soccer_player_goals": "Goals",
       "exact_score": "Exact Score",
       "halftime_result": "Halftime Result",
       "corners": "Corners",
@@ -2562,6 +2575,11 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
+      "soccer_first_half_team_totals": "1st Half Team Totals",
+      "both_teams_to_score_first_half": "1st Half Both Teams to Score",
+      "soccer_second_half_result": "2nd Half Result",
+      "soccer_second_half_team_totals": "2nd Half Team Totals",
+      "both_teams_to_score_second_half": "2nd Half Both Teams to Score",
       "soccer_team_to_advance": "Team to Advance",
       "soccer_first_to_score": "First Team to Score",
       "soccer_extra_time": "Extra Time?",
@@ -3125,8 +3143,7 @@
       "buy_sell": "Buy/Sell",
       "perps": "Perps",
       "predictions": "Predictions",
-      "metamask_card": "Card",
-      "money": "Money"
+      "metamask_card": "Card"
     },
     "perps_filter": {
       "title": "Perps",
@@ -3166,14 +3183,6 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
-      },
-      "money_funded": {
-        "description": "You've got funds—put them to work in MetaMask Money.",
-        "action": "Transfer funds"
-      },
-      "money_unfunded": {
-        "description": "Transfer to MetaMask Money and unlock all it has to offer.",
-        "action": "Transfer funds"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",
@@ -3275,18 +3284,24 @@
     "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
     "pna25_blog_post_link": "blog post",
     "pna25_confirm_button": "Accept and close",
-    "pna25_open_settings_button": "Open Settings"
+    "pna25_open_settings_button": "Open Settings",
+    "settings": "You can also",
+    "settings_link": "manage other default settings."
   },
   "onboarding_interest_questionnaire": {
-    "title": "What do you want to do with MetaMask?",
+    "title": "How will you use MetaMask?",
     "description": "Select all that apply.",
-    "option_buy_and_sell_crypto": "Buy and sell crypto tokens",
-    "option_consolidate_wallets": "Consolidate your wallets",
-    "option_advanced_trades": "Trade perpetuals",
-    "option_predict_sports_events": "Predict sports and events",
-    "option_crypto_as_money": "Use crypto as money",
-    "option_connect_apps_sites": "Connect to apps or sites",
-    "continue": "Continue"
+    "option_swap_tokens": "Swap tokens",
+    "option_trade_perpetuals": "Trade perpetuals",
+    "option_prediction_markets": "Prediction markets",
+    "option_send_receive_crypto": "Send and receive crypto",
+    "option_earn_and_spend": "Earn and spend",
+    "option_use_other_crypto_apps": "Use other crypto apps",
+    "option_other": "Other",
+    "other_placeholder": "How else will you use MetaMask?",
+    "done": "Done",
+    "skip": "Skip",
+    "next": "Next"
   },
   "onboarding_crypto_experience_questionnaire": {
     "title": "What's your experience with crypto?",
@@ -6691,7 +6706,12 @@
   },
   "download_files": {
     "error": "Failed to download attachment.",
-    "unknownError": "Unknown error occurred"
+    "unknownError": "Unknown error occurred",
+    "downloaded_title": "Download complete",
+    "downloaded_message": "{{filename}} was saved to your Downloads folder.",
+    "confirm_message": "Do you want to download \n{{filename}}?",
+    "confirm_action": "Download",
+    "cancel_action": "Cancel"
   },
   "remember_me": {
     "enable_remember_me": "Turn on Remember me",
@@ -9968,6 +9988,7 @@
   "trending": {
     "title": "Explore",
     "crypto_movers": "Crypto movers",
+    "hot_tokens": "Hot tokens",
     "perps_movers": "Perps movers",
     "perps_movers_pill_gainers": "Gainers",
     "perps_movers_pill_losers": "Losers",
@@ -10217,6 +10238,7 @@
   "whats_happening": {
     "title": "What's happening",
     "ai": "AI",
+    "outdated": "Outdated",
     "impact": {
       "bullish": "Bullish",
       "bearish": "Bearish",

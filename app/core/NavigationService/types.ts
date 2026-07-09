@@ -23,6 +23,13 @@ import type { BatchSellTokenSelectRouteParams } from '../../components/UI/Bridge
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import type { HardwareWalletsSwapsRouteParams } from '../../components/UI/HardwareWallet/Swaps/flowStrategy';
+import type { HwQrScannerRouteParams } from '../../components/UI/HardwareWallet/Swaps/HwQrScanner';
+import type { PriceImpactModalRouterParams } from '../../components/UI/Bridge/components/PriceImpactModal/types';
+import type { MissingPriceModalParams } from '../../components/UI/Bridge/components/MissingPriceModal';
+import type { TokenWarningModalParams } from '../../components/UI/Bridge/components/TokenWarningModal';
+import type { HighRateAlertModalParams } from '../../components/UI/Bridge/components/HighRateAlertModal';
+import type { PostTradeBottomSheetParams } from '../../components/UI/Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import type { BatchSellPriceImpactInfoModalParams } from '../../components/UI/Bridge/components/BatchSellPriceImpactInfoModal/BatchSellPriceImpactInfoModal.types';
 import type { BatchSellNetworkFeeInfoModalParams } from '../../components/UI/Bridge/components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
 import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
@@ -34,6 +41,7 @@ import type {
   BlockaidModalParams,
   BridgeTransactionDetailsParams,
 } from '../../components/UI/Bridge/Bridge.types';
+import type { SetPayTokenRequest } from '../../components/Views/confirmations/hooks/pay/useAutomaticTransactionPayToken';
 
 // Manual backup params
 import type {
@@ -75,6 +83,7 @@ import type {
   WebviewModalParams,
   KycWebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
+import type { RampNavigationParamList } from '../../components/UI/Ramp/types/navigation';
 import type { DepositNavigationParams } from '../../components/UI/Ramp/types/depositNavigationParams';
 
 // Transactions params
@@ -88,6 +97,12 @@ import type {
   AssetLoaderParams,
   AssetViewParams,
 } from '../../components/Views/Asset/Asset.types';
+import type { NftDetailsParams } from '../../components/Views/NftDetails/NftDetails.types';
+import type { TokenDetailsRouteParams } from '../../components/UI/TokenDetails/constants/constants';
+import type {
+  PriceAlertRouteParams,
+  CreatePriceAlertRouteParams,
+} from '../../components/UI/Assets/PriceAlerts/constants';
 
 // Stake params
 import type {
@@ -121,6 +136,7 @@ import type {
 
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
+import type { WalletCreationErrorParams } from '../../components/Views/WalletCreationError';
 import type { TraceContext } from '../../util/trace';
 
 // Add asset params
@@ -129,6 +145,8 @@ import type { ImportAsset } from '../../components/Views/AddAsset/utils/utils';
 
 // Contact form params
 import type { ContactFormParams } from '../../components/Views/Settings/Contacts/ContactForm.types';
+import type { NetworkDetailsViewParams } from '../../components/Views/NetworksManagement/NetworkDetailsView/NetworkDetailsView.types';
+import type { NotificationSettingsSectionProps } from '../../components/Views/Settings/NotificationsSettings/NotificationSettingsSection';
 
 // SDK params
 import type {
@@ -373,6 +391,30 @@ export type RootStackParamList = {
   RampSettingsModal: undefined;
   RampBuildQuoteSettingsModal: undefined;
 
+  // Ramp native (V2) flow screens + modals — see RampNavigationParamList.
+  RampTokenSelectionRoot: RampNavigationParamList['RampTokenSelectionRoot'];
+  RampsOrderDetails: RampNavigationParamList['RampsOrderDetails'];
+  RampHeadlessHost: RampNavigationParamList['RampHeadlessHost'];
+  RampEnterEmail: RampNavigationParamList['RampEnterEmail'];
+  RampOtpCode: RampNavigationParamList['RampOtpCode'];
+  RampBasicInfo: RampNavigationParamList['RampBasicInfo'];
+  RampEnterAddress: RampNavigationParamList['RampEnterAddress'];
+  RampVerifyIdentity: RampNavigationParamList['RampVerifyIdentity'];
+  RampBankDetails: RampNavigationParamList['RampBankDetails'];
+  RampBankDetailsStandalone: RampNavigationParamList['RampBankDetailsStandalone'];
+  RampOrderProcessing: RampNavigationParamList['RampOrderProcessing'];
+  RampKycProcessing: RampNavigationParamList['RampKycProcessing'];
+  RampAdditionalVerification: RampNavigationParamList['RampAdditionalVerification'];
+  RampKycWebview: RampNavigationParamList['RampKycWebview'];
+  RampPaymentSelectionModal: RampNavigationParamList['RampPaymentSelectionModal'];
+  RampTokenNotAvailableModal: RampNavigationParamList['RampTokenNotAvailableModal'];
+  RampProviderSelectionModal: RampNavigationParamList['RampProviderSelectionModal'];
+  RampErrorDetailsModal: RampNavigationParamList['RampErrorDetailsModal'];
+  RampProcessingInfoModal: RampNavigationParamList['RampProcessingInfoModal'];
+  RampSsnInfoModal: RampNavigationParamList['RampSsnInfoModal'];
+  RampStateSelectorModal: RampNavigationParamList['RampStateSelectorModal'];
+  RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
+
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
   DepositRoot: DepositNavigationParams | undefined;
@@ -520,6 +562,9 @@ export type RootStackParamList = {
   /** OAuth unlock screen nested in OnboardingNav (see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE). */
   OnboardingOAuthRehydrate: OnboardingOAuthRehydrateParams | undefined;
   Rehydrate: RehydrateParams | undefined;
+  WalletCreationError: WalletCreationErrorParams | undefined;
+  AddDeviceToWallet: undefined;
+  AddDeviceVerificationCode: undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
@@ -530,14 +575,20 @@ export type RootStackParamList = {
   AccountBackupStep1B: AccountBackupParams | undefined;
 
   // Settings routes
+  Settings: undefined;
+  ContactsSettings: undefined;
+  CompanySettings: undefined;
   AdvancedSettings: undefined;
   ResetPassword: undefined;
   ContactForm: ContactFormParams | undefined;
   DeveloperOptions: undefined;
   ExperimentalSettings: undefined;
   NotificationsSettings: undefined;
+  NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;
   SDKSessionsManager: undefined;
+  NetworksManagement: undefined;
+  NetworkDetails: NetworkDetailsViewParams | undefined;
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
 
@@ -545,6 +596,7 @@ export type RootStackParamList = {
   AccountSelector: AccountSelectorParams | undefined;
   AddressSelector: AddressSelectorParams | undefined;
   AddAccount: AddAccountParams | undefined;
+  AddWallet: undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: undefined;
   ConfirmTurnOnBackupAndSync: undefined;
@@ -606,6 +658,7 @@ export type RootStackParamList = {
   WalletTabHome: NestedNavigationParams | undefined;
   WalletTabStackFlow: NestedNavigationParams | undefined;
   WalletConnectSessionsView: undefined;
+  DeFiFullView: undefined;
   NftFullView: undefined;
   TokensFullView: undefined;
   CashTokensFullView: undefined;
@@ -650,7 +703,17 @@ export type RootStackParamList = {
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
   BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
   BatchSellReview: undefined;
+  QuoteSelectorView: undefined;
+  HwQrScanner: HwQrScannerRouteParams | undefined;
   BridgeModals: undefined;
+  MarketClosedModal: undefined;
+  NetworkListModal: undefined;
+  PriceImpactModal: PriceImpactModalRouterParams;
+  MissingPriceModal: MissingPriceModalParams;
+  TokenWarningModal: TokenWarningModalParams;
+  HighRateAlertModal: HighRateAlertModalParams;
+  PostTradeModal: PostTradeBottomSheetParams;
+  BatchSellPriceImpactInfoModal: BatchSellPriceImpactInfoModalParams;
   SwapDefaultSlippageModal: SwapSlippageModalParams | undefined;
   SwapCustomSlippageModal: SwapSlippageModalParams | undefined;
   BatchSellDefaultSlippageModal: BatchSellSlippageModalParams | undefined;
@@ -754,6 +817,9 @@ export type RootStackParamList = {
   ConfirmationRequestModal: undefined;
   ConfirmationSwitchAccountType: undefined;
   ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithBottomSheet:
+    | { preferredPaymentToken?: SetPayTokenRequest }
+    | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
 
@@ -878,6 +944,19 @@ export type RootStackParamList = {
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
+
+  // Asset detail stack routes (nested under the `Asset` navigator)
+  AssetStackFlow: NestedNavigationParams | undefined;
+  SecurityTrust: TokenDetailsRouteParams & {
+    isPricePositive?: boolean;
+    useAmbientColor?: boolean;
+  };
+  CreatePriceAlert: CreatePriceAlertRouteParams;
+  ManagePriceAlerts: PriceAlertRouteParams;
+
+  // NFT detail routes
+  NftDetails: NftDetailsParams;
+  NftDetailsFullImage: NftDetailsParams;
 
   // SDK routes
   ReturnToDappToast: ReturnToDappNotificationParams | undefined;
