@@ -3845,7 +3845,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'perpsTAT1937AbtestButtonColor',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: 'monochrome',
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 
