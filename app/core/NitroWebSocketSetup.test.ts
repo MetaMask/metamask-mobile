@@ -47,14 +47,121 @@ jest.mock('react-native-nitro-websockets', () => ({
   }),
 }));
 
-import './NitroWebSocketSetup';
+import {
+  installDevNitroWebSocket,
+  installProductionNitroWebSocket,
+  NitroWebSocketAdapter,
+} from './NitroWebSocketSetup';
 
 const MockNitroWebSocket = jest.mocked(NitroWebSocket);
 
+const originalGlobalWebSocket = global.WebSocket;
+
 describe('NitroWebSocketSetup', () => {
+  beforeAll(() => {
+    installProductionNitroWebSocket();
+  });
+
+  afterAll(() => {
+    global.WebSocket = originalGlobalWebSocket;
+  });
+
   describe('module-level side effects', () => {
-    it('installs NitroWebSocketAdapter as global.WebSocket', () => {
+    it('keeps ws:// sockets (Metro hot reload) on the built-in WebSocket when imported in dev (__DEV__)', () => {
+      // __DEV__ is a bare global injected by RN/Jest — not typed on globalThis.
+      const devGlobal = global as unknown as { __DEV__: boolean };
+      const originalDev = devGlobal.__DEV__;
+      const sentinel = jest.fn();
+
+      devGlobal.__DEV__ = true;
+      global.WebSocket = sentinel as unknown as typeof WebSocket;
+      try {
+        jest.isolateModules(() => {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          require('./NitroWebSocketSetup');
+        });
+
+        new global.WebSocket('ws://localhost:8081/hot');
+
+        expect(sentinel).toHaveBeenCalledWith(
+          'ws://localhost:8081/hot',
+          undefined,
+        );
+      } finally {
+        devGlobal.__DEV__ = originalDev;
+        global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
+      }
+    });
+
+    it('installs NitroWebSocketAdapter as global.WebSocket when installed explicitly', () => {
       new global.WebSocket('wss://example.com');
+
+      expect(MockNitroWebSocket).toHaveBeenCalled();
+    });
+  });
+
+  describe('installDevNitroWebSocket — scheme routing', () => {
+    let MockOriginalWebSocket: jest.Mock;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      MockOriginalWebSocket = jest.fn();
+      global.WebSocket = MockOriginalWebSocket as unknown as typeof WebSocket;
+      installDevNitroWebSocket();
+    });
+
+    afterEach(() => {
+      // Restore the adapter installed by the outer beforeAll for later suites.
+      installProductionNitroWebSocket();
+    });
+
+    it('routes ws:// sockets (Metro HMR /hot) to the built-in WebSocket', () => {
+      new global.WebSocket('ws://localhost:8081/hot');
+
+      expect(MockOriginalWebSocket).toHaveBeenCalledWith(
+        'ws://localhost:8081/hot',
+        undefined,
+      );
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('routes ws:// sockets to the built-in WebSocket regardless of host (LAN device, emulator)', () => {
+      new global.WebSocket('ws://10.0.2.2:8081/hot');
+
+      expect(MockOriginalWebSocket).toHaveBeenCalled();
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('routes wss:// application sockets through NitroWebSocket', () => {
+      new global.WebSocket('wss://example.com', 'proto1');
+
+      expect(MockNitroWebSocket).toHaveBeenCalledWith(
+        'wss://example.com',
+        'proto1',
+        undefined,
+      );
+      expect(MockOriginalWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('matches the wss scheme case-insensitively', () => {
+      new global.WebSocket('WSS://example.com');
+
+      expect(MockNitroWebSocket).toHaveBeenCalled();
+      expect(MockOriginalWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('exposes W3C ready state constants on the routing constructor', () => {
+      expect(global.WebSocket.CONNECTING).toBe(0);
+      expect(global.WebSocket.OPEN).toBe(1);
+      expect(global.WebSocket.CLOSING).toBe(2);
+      expect(global.WebSocket.CLOSED).toBe(3);
+    });
+
+    it('falls back to the Nitro adapter when no built-in WebSocket exists', () => {
+      global.WebSocket = undefined as unknown as typeof WebSocket;
+
+      installDevNitroWebSocket();
+      new global.WebSocket('ws://localhost:8081/hot');
 
       expect(MockNitroWebSocket).toHaveBeenCalled();
     });
