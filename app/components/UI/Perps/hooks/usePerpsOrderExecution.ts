@@ -261,13 +261,18 @@ export function usePerpsOrderExecution(
                 ?.find((p) => p.symbol === orderParams.symbol);
               const renderedPositionSnapshot =
                 getPerpsOrderPositionSnapshot(renderedPosition);
-              if (
-                // Only trust a synchronous fill when we had a real baseline to
-                // compare against; otherwise defer to the stream matcher.
+              const baselineExisted = positionBaselineSnapshot !== undefined;
+              // A synchronous fill is a position that appeared/changed versus the
+              // baseline, OR a pre-existing position now absent because the fill
+              // reduced it fully to zero (a marketable limit that closed the
+              // hold). Mirrors placeOrderPositionRendered so the fast path and
+              // the stream matcher agree. Only trusted with a loaded baseline.
+              const filledSynchronously =
                 positionsLoaded &&
-                renderedPosition &&
-                renderedPositionSnapshot !== positionBaselineSnapshot
-              ) {
+                (renderedPosition
+                  ? renderedPositionSnapshot !== positionBaselineSnapshot
+                  : baselineExisted);
+              if (filledSynchronously) {
                 // Fill already rendered before the watcher armed: end at the
                 // positions channel's last-delivery instant. This is channel-
                 // granular (positions re-deliver on any PnL tick), so it upper-

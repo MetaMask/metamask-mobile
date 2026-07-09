@@ -210,6 +210,57 @@ describe('usePerpsOrderExecution', () => {
       );
     });
 
+    it('ends as a success when a marketable limit fill fully closed the prior position', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetPositionsSnapshot
+          .mockReturnValueOnce([mockPosition]) // pre-submit baseline: a real hold
+          .mockReturnValue([]); // fill closed it fully -> symbol now absent
+        mockGetOrdersSnapshot.mockReturnValue([]); // filled, so no resting order
+        mockPositionsLastDeliveredAt.mockReturnValue(9999);
+        mockPlaceOrder.mockImplementation(async () => {
+          handlePerpsCufPositionsDelivered([]);
+          return { success: true, orderId: 'lim1' };
+        });
+
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'limit',
+            price: '10000',
+          });
+        });
+
+        // The close-fill is a synchronous render: ends at the delivery instant
+        // as a success, not a stream_timeout via a watcher that missed it.
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            timestamp: 9999,
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+        // Draining the safety watchdog must not overturn it into a failure.
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: false }),
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('does not end immediately when only TP/SL changed during limit submit', async () => {
       jest.useFakeTimers();
       try {
