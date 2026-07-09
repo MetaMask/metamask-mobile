@@ -746,6 +746,104 @@ describe('usePredictPlaceOrder', () => {
     });
   });
 
+  describe('duplicate submission guard', () => {
+    it('submits only one order when placeOrder is called twice while in flight', async () => {
+      // Simulate a slow balance refetch so the second tap lands mid-flight
+      let resolveBalance: (value: { data: number }) => void = () => undefined;
+      mockRefetchBalance.mockReturnValue(
+        new Promise((resolve) => {
+          resolveBalance = resolve;
+        }),
+      );
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let firstOutcome;
+      let secondOutcome;
+      await act(async () => {
+        const firstCall = result.current.placeOrder(mockOrderParams);
+        const secondCall = result.current.placeOrder(mockOrderParams);
+        resolveBalance({ data: 1000 });
+        [firstOutcome, secondOutcome] = await Promise.all([
+          firstCall,
+          secondCall,
+        ]);
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+      expect(firstOutcome).toEqual({
+        status: 'success',
+        result: mockSuccessResult,
+      });
+      expect(secondOutcome).toEqual({
+        status: 'error',
+        error: 'PREDICT_ORDER_ALREADY_IN_PROGRESS',
+      });
+    });
+
+    it('does not surface an error or invoke onError for the rejected duplicate call', async () => {
+      const onError = jest.fn();
+      let resolveBalance: (value: { data: number }) => void = () => undefined;
+      mockRefetchBalance.mockReturnValue(
+        new Promise((resolve) => {
+          resolveBalance = resolve;
+        }),
+      );
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const { result } = renderHook(() => usePredictPlaceOrder({ onError }));
+
+      await act(async () => {
+        const firstCall = result.current.placeOrder(mockOrderParams);
+        const secondCall = result.current.placeOrder(mockOrderParams);
+        resolveBalance({ data: 1000 });
+        await Promise.all([firstCall, secondCall]);
+      });
+
+      expect(onError).not.toHaveBeenCalled();
+      expect(result.current.error).toBeUndefined();
+    });
+
+    it('allows a new order after the previous one settles', async () => {
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(2);
+    });
+
+    it('sets loading state before the pre-submit balance refetch resolves', async () => {
+      let resolveBalance: (value: { data: number }) => void = () => undefined;
+      mockRefetchBalance.mockReturnValue(
+        new Promise((resolve) => {
+          resolveBalance = resolve;
+        }),
+      );
+      mockPlaceOrder.mockResolvedValue(mockSuccessResult);
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let pendingOrder: Promise<unknown> = Promise.resolve();
+      act(() => {
+        pendingOrder = result.current.placeOrder(mockOrderParams);
+      });
+
+      // Button-disabling state must be active while the refetch is in flight
+      expect(result.current.isLoading).toBe(true);
+
+      await act(async () => {
+        resolveBalance({ data: 1000 });
+        await pendingOrder;
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
+
   describe('order not filled detection', () => {
     it('sets isOrderNotFilled to true when BUY order throws BUY_ORDER_NOT_FULLY_FILLED', async () => {
       mockPlaceOrder.mockRejectedValue(
