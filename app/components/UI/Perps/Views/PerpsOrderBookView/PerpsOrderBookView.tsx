@@ -84,8 +84,8 @@ import {
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
+  FAST_ORDER_BOOK_LEVELS,
   formatGroupingLabel,
-  MAX_ORDER_BOOK_LEVELS,
   selectDefaultGrouping,
 } from '../../utils/orderBookGrouping';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
@@ -280,15 +280,16 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Subscribe to live order book data with dynamic nSigFigs and mantissa
   // These parameters match Hyperliquid's API for consistent price aggregation.
   // `fast: true` opts into Hyperliquid's fast stream (5 levels @ ~0.5s) for a
-  // snappier book on this focused screen (TAT-3333). Note: this caps depth at
-  // 5 levels per side regardless of MAX_ORDER_BOOK_LEVELS.
+  // snappier book on this focused screen (TAT-3333). `levels` is paired with
+  // FAST_ORDER_BOOK_LEVELS (not MAX_ORDER_BOOK_LEVELS) so it agrees with the
+  // 5-level cap the fast stream actually enforces per side.
   const {
     orderBook: rawOrderBook,
     isLoading,
     error,
   } = usePerpsLiveOrderBook({
     symbol: symbol || '',
-    levels: MAX_ORDER_BOOK_LEVELS,
+    levels: FAST_ORDER_BOOK_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,
     throttleMs: 100,

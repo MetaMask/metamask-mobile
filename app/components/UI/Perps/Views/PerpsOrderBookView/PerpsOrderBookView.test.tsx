@@ -1243,13 +1243,14 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
-    it('subscribes to live order book with MAX_ORDER_BOOK_LEVELS (20) for server-side aggregation', () => {
+    it('subscribes to live order book with FAST_ORDER_BOOK_LEVELS (5) to match the fast stream depth cap', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
-      // Uses MAX_ORDER_BOOK_LEVELS (20) - API returns at most ~20 levels per side with nSigFigs
+      // Uses FAST_ORDER_BOOK_LEVELS (5) since fast: true caps depth at 5
+      // levels per side regardless of a larger requested `levels` value.
       expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
         expect.objectContaining({
-          levels: 20,
+          levels: 5,
         }),
       );
     });
