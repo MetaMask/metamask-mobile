@@ -39,7 +39,6 @@ type TransactionControllerInstanceOptions = NonNullable<
 
 type GetTransactionControllerInstanceOptionsRequest = {
   getState: () => RootState;
-  getTransactionController: () => TransactionController;
   initMessenger: TransactionControllerInitMessenger;
 };
 
@@ -55,21 +54,20 @@ type SetupTransactionControllerListenersRequest = {
  *
  * @param request - The request bag.
  * @param request.getState - Returns the current Redux root state.
- * @param request.getTransactionController - Lazily returns the constructed
- * `TransactionController` instance (used by publish hooks).
  * @param request.initMessenger - The TransactionController init messenger.
  * @returns The TransactionController instance options.
  */
 export function getTransactionControllerInstanceOptions({
   getState,
-  getTransactionController,
   initMessenger,
 }: GetTransactionControllerInstanceOptionsRequest): TransactionControllerInstanceOptions {
+  const transactionController = getTransactionController(initMessenger);
+  
   return {
     disableSwaps: true,
     hooks: getTransactionControllerHooks({
       getState,
-      getTransactionController,
+      getTransactionController: () => transactionController,
       initMessenger,
     }),
     isAutomaticGasFeeUpdateEnabled,
@@ -219,6 +217,42 @@ function getSmartTransactionsController(
         ...args,
       ),
   } as unknown as SmartTransactionsController;
+}
+
+/**
+ * Creates a messenger-based mock of `TransactionController` for use inside
+ * the publish hooks.  All calls are routed through the init messenger so that
+ * no real controller instance is passed around.
+ *
+ * Follows the same pattern as `getSmartTransactionsController` above.
+ *
+ * @param messenger - The TransactionController init messenger.
+ * @returns A TransactionController-shaped object backed by messenger actions.
+ */
+function getTransactionController(
+  messenger: TransactionControllerInitMessenger,
+): TransactionController {
+  return {
+    get state() {
+      return messenger.call('TransactionController:getState');
+    },
+    getNonceLock: (
+      ...args: Parameters<TransactionController['getNonceLock']>
+    ) => messenger.call('TransactionController:getNonceLock', ...args),
+    isAtomicBatchSupported: (
+      ...args: Parameters<TransactionController['isAtomicBatchSupported']>
+    ) =>
+      messenger.call('TransactionController:isAtomicBatchSupported', ...args),
+    approveTransactionsWithSameNonce: (
+      ...args: Parameters<
+        TransactionController['approveTransactionsWithSameNonce']
+      >
+    ) =>
+      messenger.call(
+        'TransactionController:approveTransactionsWithSameNonce',
+        ...args,
+      ),
+  } as unknown as TransactionController;
 }
 
 async function isEIP7702GasFeeTokensEnabled(
