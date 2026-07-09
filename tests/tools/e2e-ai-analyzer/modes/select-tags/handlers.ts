@@ -208,8 +208,8 @@ const INTERMEDIATE_TEST_DIRS = [
 ] as const;
 
 /**
- * Finds smoke/regression spec files that import a given file, resolving up to
- * one level of indirection through intermediate utility/flow/page-object files.
+ * Finds E2E smoke/regression spec files (Detox or Appium) that import a given
+ * file, resolving up to one level of indirection through intermediate files.
  *
  * Example: wallet.flow.ts → imported by 30 spec files (direct)
  * Example: TokenSelectors.ts → imported by TokenPage.ts → imported by token specs
@@ -285,7 +285,7 @@ function findSpecFilesImporting(
 }
 
 /**
- * Extracts Detox tag names imported in a spec file.
+ * Extracts E2E smoke tag names imported in a spec file (Detox or Appium).
  * Tags are imported as named exports from the tags module.
  */
 function extractTagsFromSpecFile(
@@ -411,9 +411,9 @@ const HARD_RULES: HardRule[] = [
 
       if (selectedTags.length === 0) {
         console.log(
-          '   No Detox spec files import these files — falling through to next rule.',
+          '   No E2E spec files import these files — falling through to next rule.',
         );
-        // Bug 4 fix: return null so test-spec-tag-extraction can handle directly-changed specs
+        // Return null so test-spec-tag-extraction can handle directly-changed specs
         return null;
       }
 
@@ -433,7 +433,7 @@ const HARD_RULES: HardRule[] = [
   {
     name: 'test-spec-tag-extraction',
     description:
-      'Spec files in tests/smoke/ or tests/regression/ changed — extract their tags and run directly',
+      'Spec files in tests/smoke/, tests/smoke-appium/, or tests/regression/ changed — extract their tags and run directly',
     check: (changedFiles, context) => {
       const specFiles = getChangedSpecFiles(changedFiles);
       if (specFiles.length === 0) return null;

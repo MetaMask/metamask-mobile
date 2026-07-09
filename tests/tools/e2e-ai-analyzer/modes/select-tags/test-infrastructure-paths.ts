@@ -62,18 +62,19 @@ export function getFrameworkInfraChanges(changedFiles: string[]): string[] {
 }
 
 /**
- * Spec file path prefixes for Detox smoke and regression tests.
- * Changes to these files are directly runnable by extracting their embedded tags.
+ * Spec file path prefixes for E2E smoke and regression tests (Detox and Appium).
+ * Both frameworks share tests/tags.js — changes here map to the same CI tags.
  */
 export const SPEC_PATH_PREFIXES = [
   'tests/smoke/',
+  'tests/smoke-appium/',
   'tests/regression/',
 ] as const;
 
 const SPEC_FILE_PATTERN = /\.spec\./;
 
 /**
- * Returns changed files that are Detox spec files.
+ * Returns changed files that are E2E spec files (Detox or Appium).
  */
 export function getChangedSpecFiles(changedFiles: string[]): string[] {
   return changedFiles
@@ -114,7 +115,7 @@ export function getChangedSharedInfraFiles(changedFiles: string[]): string[] {
 }
 
 /**
- * Returns true if the file is a Detox spec file.
+ * Returns true if the file is an E2E spec file (Detox or Appium).
  */
 export function isSpecFile(file: string): boolean {
   return (
