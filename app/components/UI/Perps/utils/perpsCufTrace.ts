@@ -295,9 +295,9 @@ export function waitForPerpsPlaceOrderPositionRendered(
  * for its symbol, OR — when a position existed pre-order — that position now
  * absent (the order reduced/flipped it to zero via the order form).
  *
- * When the baseline is pending (positions cache was unloaded at submit), an
- * absent first delivery is captured as the baseline. A present symbol is counted
- * as rendered because it may be the post-fill snapshot and must not be swallowed.
+ * When the baseline is pending (positions cache was unloaded at submit), the
+ * first delivery is captured as the baseline and NOT counted as a render. This
+ * avoids falsely confirming against a pre-existing position on the first tick.
  */
 function placeOrderPositionRendered(
   opId: string,
@@ -310,11 +310,11 @@ function placeOrderPositionRendered(
   }
   const current = positions.find((p) => p.symbol === symbol);
   if (meta[CUF_META.BASELINE_PENDING] === true) {
-    setPerpsCufMeta(opId, { [CUF_META.BASELINE_PENDING]: false });
-    if (!current) {
-      return null;
-    }
-    return current;
+    setPerpsCufMeta(opId, {
+      [CUF_META.BASELINE_PENDING]: false,
+      ...(current ? { [CUF_META.SNAPSHOT]: positionSnapshot(current) } : {}),
+    });
+    return null;
   }
   const baseline = meta[CUF_META.SNAPSHOT];
   const baselineExisted = typeof baseline === 'string';

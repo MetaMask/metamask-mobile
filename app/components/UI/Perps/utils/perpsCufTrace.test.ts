@@ -332,7 +332,7 @@ describe('perpsCufTrace', () => {
     );
   });
 
-  it('resolves a pending-baseline order when the first positions tick contains the symbol', async () => {
+  it('does not resolve a pending-baseline order on the first positions tick with the symbol', async () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceOrderToPositionRendered,
     });
@@ -342,9 +342,7 @@ describe('perpsCufTrace', () => {
 
     await expect(
       waitForPerpsPlaceOrderPositionRendered(5, opId),
-    ).resolves.toEqual(
-      expect.objectContaining({ position: { symbol: 'BTC', size: '0.01' } }),
-    );
+    ).resolves.toBeNull();
   });
 
   it('does not resolve on absence when no baseline position existed', async () => {
@@ -360,18 +358,18 @@ describe('perpsCufTrace', () => {
     ).resolves.toBeNull();
   });
 
-  it('unloaded cache: a present symbol in the first delivery confirms instead of being swallowed as baseline', async () => {
+  it('unloaded cache: captures a present first delivery as baseline, then confirms on later size change', async () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceOrderToPositionRendered,
     });
     armPerpsPlaceOrderCuf(opId, 'BTC', null, false);
+    const wait = waitForPerpsPlaceOrderPositionRendered(1000, opId);
 
     handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.01' }]);
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.02' }]);
 
-    await expect(
-      waitForPerpsPlaceOrderPositionRendered(5, opId),
-    ).resolves.toEqual(
-      expect.objectContaining({ position: { symbol: 'BTC', size: '0.01' } }),
+    await expect(wait).resolves.toEqual(
+      expect.objectContaining({ position: { symbol: 'BTC', size: '0.02' } }),
     );
   });
 
