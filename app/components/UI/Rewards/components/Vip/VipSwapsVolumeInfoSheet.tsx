@@ -16,7 +16,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export const VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS = {
   SHEET: 'vip-swaps-volume-info-sheet',
@@ -30,12 +29,9 @@ interface VipSwapsVolumeInfoSheetProps {
 const VipSwapsVolumeInfoSheet: React.FC<VipSwapsVolumeInfoSheetProps> = ({
   onClose,
 }) => {
-  const surfaceClass = useElevatedSurface();
-
   return (
     <BottomSheet
       onClose={onClose}
-      twClassName={surfaceClass}
       testID={VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET}
     >
       <Box twClassName="px-4 pb-4">

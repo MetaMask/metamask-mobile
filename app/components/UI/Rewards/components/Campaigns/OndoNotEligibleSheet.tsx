@@ -19,7 +19,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../../utils/ondoCampaignConstants';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export const ONDO_NOT_ELIGIBLE_SHEET_TEST_IDS = {
   CONTAINER: 'ondo-not-eligible-sheet-container',
@@ -38,13 +37,10 @@ const OndoNotEligibleSheet: React.FC<OndoNotEligibleSheetProps> = ({
   onClose,
   onConfirm,
 }) => {
-  const surfaceClass = useElevatedSurface();
-
   return (
     <BottomSheet
       onClose={onClose}
       testID={ONDO_NOT_ELIGIBLE_SHEET_TEST_IDS.CONTAINER}
-      twClassName={surfaceClass}
     >
       <Box twClassName="px-4 pb-4">
         {/* Close button */}
