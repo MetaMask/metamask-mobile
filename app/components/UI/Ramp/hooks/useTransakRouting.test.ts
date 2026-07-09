@@ -93,7 +93,7 @@ jest.mock('./useRampsOrders', () => ({
 }));
 
 const MOCK_SELECTED_PROVIDER = {
-  id: '/providers/transak-native-staging',
+  id: 'transak-native-staging',
   name: 'Transak',
 };
 
@@ -244,7 +244,6 @@ jest.mock('@metamask/ramps-controller', () => ({
       (orderId: string, _env: string) => `transformed-${orderId}`,
     ),
   },
-  normalizeProviderCode: (code: string) => code.replace(/^\/providers\//, ''),
 }));
 
 jest.mock('../constants', () => ({

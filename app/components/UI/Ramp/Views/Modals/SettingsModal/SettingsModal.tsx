@@ -35,20 +35,16 @@ import {
 } from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
-import { canonicalizeRampId } from '../../../utils/rampIdMatch';
 
 /**
- * Transak native provider code. Matched on the canonical id so it covers both
- * the legacy path form (`/providers/transak-native`) and the canonical form
- * (`transak-native`), and the `startsWith` still matches the staging variant
+ * Transak native provider code. Provider ids are canonical (non-prefixed), so
+ * `transak-native` matches both the native provider and its staging variant
  * (`transak-native-staging`).
  */
 const TRANSAK_NATIVE_CODE = 'transak-native';
 
 const isTransakNativeProvider = (providerId?: string): boolean =>
-  providerId
-    ? canonicalizeRampId(providerId).startsWith(TRANSAK_NATIVE_CODE)
-    : false;
+  providerId?.startsWith(TRANSAK_NATIVE_CODE) ?? false;
 
 export const createSettingsModalNavDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,

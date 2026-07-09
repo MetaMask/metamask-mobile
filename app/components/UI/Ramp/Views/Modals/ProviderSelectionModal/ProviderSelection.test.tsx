@@ -483,62 +483,6 @@ describe('ProviderSelection', () => {
     });
   });
 
-  it('shows Previously used tag when a canonical provider id matches a legacy prefixed order id', async () => {
-    const canonicalTransak: Provider = { ...transakProvider, id: 'transak' };
-
-    const { getByText } = renderWithProvider([canonicalTransak], null, {
-      ordersProviders: ['/providers/transak'],
-      quotes: {
-        success: [createMockQuote('transak', 'Transak')],
-        sorted: [],
-        error: [],
-        customActions: [],
-      },
-    });
-
-    await waitFor(() => {
-      expect(getByText('Previously used')).toBeOnTheScreen();
-    });
-  });
-
-  it('shows Previously used tag when a legacy prefixed provider id matches a canonical order id', async () => {
-    const { getByText } = renderWithProvider(mockProviders, null, {
-      ordersProviders: ['transak'],
-      quotes: {
-        success: [createMockQuote('/providers/transak', 'Transak')],
-        sorted: [],
-        error: [],
-        customActions: [],
-      },
-    });
-
-    await waitFor(() => {
-      expect(getByText('Previously used')).toBeOnTheScreen();
-    });
-  });
-
-  it('does not show Previously used tag when a similar id does not canonically match', async () => {
-    const canonicalTransakNative: Provider = {
-      ...transakProvider,
-      id: 'transak-native',
-    };
-
-    const { queryByText } = renderWithProvider([canonicalTransakNative], null, {
-      ordersProviders: ['/providers/transak'],
-      quotes: {
-        success: [createMockQuote('transak-native', 'Transak')],
-        sorted: [],
-        error: [],
-        customActions: [],
-      },
-    });
-
-    await waitFor(() => {
-      expect(queryByText('Transak')).toBeOnTheScreen();
-    });
-    expect(queryByText('Previously used')).toBeNull();
-  });
-
   it('shows provider error subtitle and prevents selection when provider has no matched quote', async () => {
     const onProviderSelect = jest.fn();
     jest.mocked(useRampsController).mockReturnValue({

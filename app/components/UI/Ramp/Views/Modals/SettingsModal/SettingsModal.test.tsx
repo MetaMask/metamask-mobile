@@ -18,7 +18,7 @@ const MOCK_SUPPORT_URL = 'https://support.test-provider.com';
 const MOCK_TRANSAK_SUPPORT_URL = 'https://support.transak.com';
 
 const createMockProvider = (overrides?: Partial<Provider>): Provider => ({
-  id: '/providers/test-provider',
+  id: 'test-provider',
   name: 'Test Provider',
   environmentType: 'PRODUCTION',
   description: 'Test Provider Description',
@@ -33,8 +33,8 @@ const createMockProvider = (overrides?: Partial<Provider>): Provider => ({
   ...overrides,
 });
 
-const TRANSAK_PROVIDER_ID = '/providers/transak-native';
-const TRANSAK_STAGING_PROVIDER_ID = '/providers/transak-native-staging';
+const TRANSAK_PROVIDER_ID = 'transak-native';
+const TRANSAK_STAGING_PROVIDER_ID = 'transak-native-staging';
 
 const createMockTransakProvider = (
   overrides?: Partial<Provider>,
@@ -323,43 +323,6 @@ describe('SettingsModal', () => {
       const logoutButton = await findByText('Log out of Transak');
 
       expect(logoutButton).toBeOnTheScreen();
-    });
-
-    it('displays logout option for the canonical (non-prefixed) Transak native id', async () => {
-      mockSelectedProvider = createMockTransakProvider({
-        id: 'transak-native',
-      });
-
-      const { findByText } = renderWithProvider(SettingsModal);
-
-      const logoutButton = await findByText('Log out of Transak');
-
-      expect(logoutButton).toBeOnTheScreen();
-    });
-
-    it('displays logout option for the canonical (non-prefixed) Transak staging id', async () => {
-      mockSelectedProvider = createMockTransakStagingProvider({
-        id: 'transak-native-staging',
-      });
-
-      const { findByText } = renderWithProvider(SettingsModal);
-
-      const logoutButton = await findByText('Log out of Transak');
-
-      expect(logoutButton).toBeOnTheScreen();
-    });
-
-    it('hides logout option for a canonical non-Transak provider even when authenticated', async () => {
-      mockSelectedProvider = createMockProvider({
-        id: 'moonpay',
-        name: 'MoonPay',
-      });
-
-      const { queryByText } = renderWithProvider(SettingsModal);
-
-      await waitFor(() => {
-        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
-      });
     });
 
     it('hides logout option for non-Transak providers even when authenticated', async () => {
