@@ -165,6 +165,38 @@ describe('exchange-rates', () => {
       // No native currency found, falls back to first entry with both rates
       expect(result).toBe(125);
     });
+
+    it('falls back when chain native currency entry is missing usdConversionRate', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 100,
+        chainId: '0x1',
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: {
+          ETH: { conversionRate: 2000 },
+          POL: { conversionRate: 0.5, usdConversionRate: 1.0 },
+        },
+      });
+
+      // ETH entry exists but lacks usdConversionRate, falls back to POL
+      // 100 * (1.0 / 0.5) = 200
+      expect(result).toBe(200);
+    });
+
+    it('falls back when chain native currency entry has null conversionRate', () => {
+      const result = calcUsdAmountFromFiat({
+        tokenFiatValue: 100,
+        chainId: '0x1',
+        networkConfigurationsByChainId: mockNetworkConfigurations,
+        evmMultiChainCurrencyRates: {
+          ETH: { conversionRate: null, usdConversionRate: 2500 },
+          POL: { conversionRate: 0.5, usdConversionRate: 1.0 },
+        },
+      });
+
+      // ETH entry exists but conversionRate is null, falls back to POL
+      // 100 * (1.0 / 0.5) = 200
+      expect(result).toBe(200);
+    });
   });
 
   describe('calcTokenFiatValue', () => {

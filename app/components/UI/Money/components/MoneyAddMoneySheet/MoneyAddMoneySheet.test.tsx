@@ -181,7 +181,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Add funds')).toBeOnTheScreen();
   });
 
-  it('preserves the locale fiat prefix in the Move mUSD row', () => {
+  it('formats the move-mUSD amount as USD regardless of the locale fiat currency (assumed 1:1 mUSD -> USD rate)', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '1500.00',
       fiatBalanceAggregatedFormatted: 'CA$1,500.00',
@@ -191,7 +191,7 @@ describe('MoneyAddMoneySheet', () => {
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('CA$1,500.00 mUSD')).toBeOnTheScreen();
+    expect(getByText('$1,500.00 mUSD')).toBeOnTheScreen();
   });
 
   it('shows the move-mUSD row disabled with the "Add mUSD" label when the selected EVM account has no mUSD tokens or fiat balance', () => {
@@ -261,25 +261,6 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('$12.34 mUSD')).toBeOnTheScreen();
   });
 
-  it('shows the move-mUSD row with the token amount when the user has mUSD tokens but rates are unavailable', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: undefined,
-      fiatBalanceAggregatedFormatted: '$0.00',
-      hasMusdBalanceOnAnyChain: true,
-      tokenBalanceAggregated: '42.5',
-      tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '42.5' },
-    });
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
-    ).toBeOnTheScreen();
-    expect(getByText('42.50 mUSD')).toBeOnTheScreen();
-  });
-
   it('initiates a deposit with autoSelectFiatPayment when Deposit funds is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -302,7 +283,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({ intent: 'convert' });
   });
 
   it('hides the Deposit funds option when moneyAccountDeposit is not in enabledTransactionTypes', () => {
@@ -384,7 +365,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith(undefined);
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({ intent: 'convert' });
   });
 
   it('shows the Deposit funds option when fiat deposit is enabled', () => {

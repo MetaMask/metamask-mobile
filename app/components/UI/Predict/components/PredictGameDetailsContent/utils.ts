@@ -9,11 +9,20 @@ import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
 import { isValidPrice } from '../../utils/prices';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
+import {
+  getSportTeamColorForLabel,
+  getSportTeamDisplayOrder,
+  outcomeMatchesTeam,
+} from '../../utils/sports';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 
 const I18N_PREFIX = 'predict.sports_market_types';
 const MISSING_TRANSLATION_PREFIX = '[missing';
+const DYNAMIC_SPORTS_MARKET_TYPE_PREFIXES = [
+  'soccer_player_goals-',
+  'soccer_team_totals-',
+] as const;
 const loggedMissingTranslationKeys = new Set<string>();
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
 const FIFA_WORLD_CUP_LEAGUE = 'fifwc';
@@ -39,7 +48,14 @@ const toTitleCase = (str: string): string =>
 const isMissingTranslation = (value: string, key: string): boolean =>
   value === key || value.startsWith(MISSING_TRANSLATION_PREFIX);
 
-const logMissingSportsMarketTypeTranslation = (
+const isDynamicSportsMarketTypeKey = (type: string): boolean => {
+  const normalizedType = type.toLowerCase();
+  return DYNAMIC_SPORTS_MARKET_TYPE_PREFIXES.some((prefix) =>
+    normalizedType.startsWith(prefix),
+  );
+};
+
+const warnMissingSportsMarketTypeTranslation = (
   key: string,
   type: string,
 ): void => {
@@ -47,10 +63,8 @@ const logMissingSportsMarketTypeTranslation = (
 
   loggedMissingTranslationKeys.add(key);
   const message = `Missing Predict sports market type translation: ${key}`;
-  Logger.error(new Error(message), {
-    message,
-    context: { key, type },
-  });
+
+  Logger.log(message, { key, type });
 };
 
 export const getTranslatedSportsMarketTypeLabel = (
@@ -59,7 +73,9 @@ export const getTranslatedSportsMarketTypeLabel = (
   const key = `${I18N_PREFIX}.${type}`;
   const label = strings(key);
   if (typeof label !== 'string' || isMissingTranslation(label, key)) {
-    logMissingSportsMarketTypeTranslation(key, type);
+    if (!isDynamicSportsMarketTypeKey(type)) {
+      warnMissingSportsMarketTypeTranslation(key, type);
+    }
     return undefined;
   }
   return label;
@@ -111,33 +127,6 @@ export const formatOutcomeCardTitle = (outcome: PredictOutcome): string => {
   return raw;
 };
 
-const getTeamColor = (
-  tokenTitle: string,
-  game?: PredictMarketGame,
-): string | undefined => {
-  if (!game) return undefined;
-
-  const normalizedTokenTitle = tokenTitle.trim().toLowerCase();
-  const homeLabels = [
-    game.homeTeam.abbreviation,
-    game.homeTeam.name,
-    game.homeTeam.alias,
-  ]
-    .filter((label): label is string => Boolean(label))
-    .map((label) => label.trim().toLowerCase());
-  const awayLabels = [
-    game.awayTeam.abbreviation,
-    game.awayTeam.name,
-    game.awayTeam.alias,
-  ]
-    .filter((label): label is string => Boolean(label))
-    .map((label) => label.trim().toLowerCase());
-
-  if (homeLabels.includes(normalizedTokenTitle)) return game.homeTeam.color;
-  if (awayLabels.includes(normalizedTokenTitle)) return game.awayTeam.color;
-  return undefined;
-};
-
 const getButtonVariant = (
   index: number,
   total: number,
@@ -176,33 +165,6 @@ const isNeutralMoneylineToken = (token: PredictOutcomeToken): boolean => {
   return label.startsWith('draw') || label.startsWith('neither');
 };
 
-const getTeamOrder = (
-  token: PredictOutcomeToken,
-  game?: PredictMarketGame,
-): number => {
-  if (!game) return 1;
-
-  const label = getTokenLabel(token).trim().toLowerCase();
-  const homeLabels = [
-    game.homeTeam.abbreviation,
-    game.homeTeam.name,
-    game.homeTeam.alias,
-  ]
-    .filter((teamLabel): teamLabel is string => Boolean(teamLabel))
-    .map((teamLabel) => teamLabel.trim().toLowerCase());
-  const awayLabels = [
-    game.awayTeam.abbreviation,
-    game.awayTeam.name,
-    game.awayTeam.alias,
-  ]
-    .filter((teamLabel): teamLabel is string => Boolean(teamLabel))
-    .map((teamLabel) => teamLabel.trim().toLowerCase());
-
-  if (homeLabels.includes(label)) return 0;
-  if (awayLabels.includes(label)) return 2;
-  return 1;
-};
-
 const sortMoneylineTokensForDisplay = (
   tokens: PredictOutcomeToken[],
   game?: PredictMarketGame,
@@ -218,7 +180,11 @@ const sortMoneylineTokensForDisplay = (
 
   const teamTokens = tokens
     .filter((token) => token !== neutralToken)
-    .sort((a, b) => getTeamOrder(a, game) - getTeamOrder(b, game));
+    .sort(
+      (a, b) =>
+        getSportTeamDisplayOrder(getTokenLabel(a), game) -
+        getSportTeamDisplayOrder(getTokenLabel(b), game),
+    );
 
   return [teamTokens[0], neutralToken, teamTokens[1]];
 };
@@ -244,7 +210,7 @@ export const buildButtons = (
       variant: binaryYesNo
         ? getYesNoVariant(label)
         : getButtonVariant(index, tokens.length, moneyline),
-      teamColor: moneyline ? getTeamColor(label, game) : undefined,
+      teamColor: moneyline ? getSportTeamColorForLabel(label, game) : undefined,
     };
   });
 };
@@ -315,9 +281,13 @@ export const sortMoneylineOutcomes = (
   }
 
   if (game) {
-    const homeAbbr = game.homeTeam.abbreviation;
-    const home = nonNeutral.find((o) => o.tokens[0]?.shortTitle === homeAbbr);
-    const away = nonNeutral.find((o) => o !== home);
+    const home = nonNeutral.find((outcome) =>
+      outcomeMatchesTeam(outcome, game.homeTeam),
+    );
+    const away = nonNeutral.find(
+      (outcome) =>
+        outcome !== home && outcomeMatchesTeam(outcome, game.awayTeam),
+    );
     if (home && away) {
       return [home, neutral, away];
     }
@@ -369,7 +339,7 @@ export const buildMoneylineButtons = (
       price: Math.round(price * 100),
       onPress: () => onBuyPress(outcome, token),
       variant: getButtonVariant(i, buttonEntries.length, true),
-      teamColor: getTeamColor(label, game),
+      teamColor: getSportTeamColorForLabel(label, game),
     };
   });
 };
