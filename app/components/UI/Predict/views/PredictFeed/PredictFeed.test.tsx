@@ -97,7 +97,10 @@ jest.mock('../../hooks/usePredictSearchMarketData', () => ({
   usePredictSearchMarketData: jest.fn(),
 }));
 
-import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import {
+  usePredictMarketData,
+  type UsePredictMarketDataOptions,
+} from '../../hooks/usePredictMarketData';
 import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketData';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
@@ -1373,10 +1376,9 @@ describe('PredictFeed', () => {
     // user has already visited) should pass `enabled: true` so that just the
     // visible tab fires a getMarkets request on mount.
     const getEnabledForCategory = (category: string): boolean | undefined => {
-      const calls = mockUsePredictMarketData.mock.calls.filter(
-        (call: [{ category?: string; enabled?: boolean }]) =>
-          call[0]?.category === category,
-      );
+      const calls = (
+        mockUsePredictMarketData.mock.calls as [UsePredictMarketDataOptions][]
+      ).filter((call) => call[0]?.category === category);
       return calls[calls.length - 1]?.[0]?.enabled;
     };
 
@@ -1448,6 +1450,38 @@ describe('PredictFeed', () => {
       // "new" stays warm (enabled never flips back to false) so it never refetches.
       expect(getEnabledForCategory('new')).toBe(true);
       expect(getEnabledForCategory('trending')).toBe(true);
+    });
+
+    it('resets the fetch gate on remount for tabs inactive at that point', () => {
+      wireTabSwitchToActiveIndex();
+
+      const { getByTestId, unmount } = render(<PredictFeed />);
+
+      // Warm up "new" so it has fetched at least once.
+      fireEvent.press(getByTestId(getPredictFeedMockSelector.tabKey('new')));
+      expect(getEnabledForCategory('new')).toBe(true);
+
+      unmount();
+      mockUsePredictMarketData.mock.calls.length = 0;
+
+      // On remount "new" is inactive again, so useState(isActive) re-initializes
+      // hasEverBeenActive to false and the tab does not fetch until re-visited.
+      render(<PredictFeed />);
+
+      expect(getEnabledForCategory('trending')).toBe(true);
+      expect(getEnabledForCategory('new')).toBe(false);
+    });
+
+    it('enables only the active optional feature-flag tab on mount', () => {
+      // Hot tab is rendered first, making it the initial active tab.
+      mockHotTabFlag.enabled = true;
+      mockHotTabFlag.queryParams = 'tag_id=149';
+
+      render(<PredictFeed />);
+
+      expect(getEnabledForCategory('hot')).toBe(true);
+      expect(getEnabledForCategory('trending')).toBe(false);
+      expect(getEnabledForCategory('new')).toBe(false);
     });
   });
 });
