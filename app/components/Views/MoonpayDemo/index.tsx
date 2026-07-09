@@ -41,7 +41,11 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
-import type { IdentitySubmission, KycRequiredResponse } from './api';
+import type {
+  Disclaimer,
+  IdentitySubmission,
+  KycRequiredResponse,
+} from './api';
 import MoonpayFrame from './MoonpayFrame';
 import useMoonpayReset from './useMoonpayReset';
 import useMoonpayIdentityFlow, {
@@ -195,8 +199,19 @@ const TermsPanel: React.FC<{
   email: string;
   onEmailChange: (v: string) => void;
   onAccept: () => void;
+  disclaimers: Disclaimer[];
+  disclaimersError: string | null;
+  disclaimersLoaded: boolean;
   colors: ThemeColors;
-}> = ({ email, onEmailChange, onAccept, colors }) => {
+}> = ({
+  email,
+  onEmailChange,
+  onAccept,
+  disclaimers,
+  disclaimersError,
+  disclaimersLoaded,
+  colors,
+}) => {
   const [emailDropdownOpen, setEmailDropdownOpen] = useState(false);
 
   return (
@@ -245,6 +260,27 @@ const TermsPanel: React.FC<{
           </Text>
           .
         </Text>
+        {disclaimersError && (
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+            {disclaimersError}
+          </Text>
+        )}
+        {!disclaimersError && !disclaimersLoaded && (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            Loading disclaimers…
+          </Text>
+        )}
+        {disclaimersLoaded &&
+          disclaimers.map((disclaimer) => (
+            <Text
+              key={disclaimer.id}
+              variant={TextVariant.BodySm}
+              color={TextColor.PrimaryDefault}
+              onPress={() => Linking.openURL(disclaimer.url)}
+            >
+              {disclaimer.display_name}
+            </Text>
+          ))}
       </View>
 
       <View style={styles.profileSelector}>
@@ -338,8 +374,11 @@ const TermsPanel: React.FC<{
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={onAccept}
+        isDisabled={!disclaimersLoaded}
       >
-        Accept terms and start
+        {disclaimersLoaded
+          ? 'Accept terms and start'
+          : 'Loading disclaimers…'}
       </Button>
     </View>
   );
@@ -609,6 +648,10 @@ const MoonpayDemo: React.FC = () => {
     setEmail,
     submission,
     setSubmission,
+    geoCountry,
+    disclaimers,
+    disclaimersError,
+    disclaimersLoaded,
     debugEvents,
     clearDebug,
     showCheckFrame,
@@ -674,6 +717,10 @@ const MoonpayDemo: React.FC = () => {
         </View>
 
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          Country (geolocation): {geoCountry ?? 'Resolving…'}
+        </Text>
+
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           Phase: {phase}
           {statusMessage ? ` — ${statusMessage}` : ''}
         </Text>
@@ -694,6 +741,9 @@ const MoonpayDemo: React.FC = () => {
             email={email}
             onEmailChange={setEmail}
             onAccept={acceptTermsAndCreateSession}
+            disclaimers={disclaimers}
+            disclaimersError={disclaimersError}
+            disclaimersLoaded={disclaimersLoaded}
             colors={colors}
           />
         )}

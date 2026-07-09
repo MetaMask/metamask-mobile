@@ -11,6 +11,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createSession,
   checkKycRequired,
+  fetchDisclaimers,
+  fetchGeolocationCountry,
+  type Disclaimer,
   type IdentitySubmission,
   type KycRequiredResponse,
 } from './api';
@@ -117,6 +120,14 @@ const useMoonpayIdentityFlow = () => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [kycResult, setKycResult] = useState<KycRequiredResponse | null>(null);
 
+  // ---- Geolocation country (resolved from the GeolocationController) ----
+  const [geoCountry, setGeoCountry] = useState<string | null>(null);
+
+  // ---- Disclaimers (fetched before showing the terms of service) ----
+  const [disclaimers, setDisclaimers] = useState<Disclaimer[]>([]);
+  const [disclaimersError, setDisclaimersError] = useState<string | null>(null);
+  const [disclaimersLoaded, setDisclaimersLoaded] = useState(false);
+
   // ---- Debug surface ----
   const [debugEvents, setDebugEvents] = useState<DebugEvent[]>([]);
   const debugIdRef = useRef(0);
@@ -165,6 +176,50 @@ const useMoonpayIdentityFlow = () => {
   }
   const keypair = keypairRef.current;
 
+  // ---------- Step 0: resolve country from geolocation, then fetch
+  // disclaimers before showing the terms ----------
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let country: string;
+      try {
+        country = await fetchGeolocationCountry();
+        if (cancelled) return;
+        setGeoCountry(country);
+        pushDebug('Step 0 geolocation resolved', { country }, 'success');
+      } catch (err) {
+        if (cancelled) return;
+        setDisclaimersError(`Failed to resolve geolocation: ${err}`);
+        pushDebug(
+          'Step 0 geolocation resolve failed',
+          { error: String(err) },
+          'error',
+        );
+        return;
+      }
+
+      try {
+        const result = await fetchDisclaimers({ country });
+        if (cancelled) return;
+        setDisclaimers(result);
+        setDisclaimersError(null);
+        setDisclaimersLoaded(true);
+        pushDebug('Step 0 disclaimers fetched', result, 'success');
+      } catch (err) {
+        if (cancelled) return;
+        setDisclaimersError(`Failed to load disclaimers: ${err}`);
+        pushDebug(
+          'Step 0 disclaimers fetch failed',
+          { error: String(err) },
+          'error',
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pushDebug]);
+
   // ---------- Step 1 → Step 2: accept terms, create session ----------
   const acceptTermsAndCreateSession = useCallback(async () => {
     setErrorMessage('');
@@ -175,6 +230,7 @@ const useMoonpayIdentityFlow = () => {
       const session = await createSession({
         email,
         termsAcceptedAt: acceptedAt,
+        disclaimerIds: disclaimers.map((disclaimer) => disclaimer.id),
       });
       setSessionToken(session.sessionToken);
       setPhase('check');
@@ -183,7 +239,7 @@ const useMoonpayIdentityFlow = () => {
       setErrorMessage(`Step 2 (create session) failed: ${err}`);
       setPhase('error');
     }
-  }, [email]);
+  }, [email, disclaimers]);
 
   // ---------- Step 3a / 3b: Check + Auth frame message handler ----------
   const handleFrameMessage = useCallback(
@@ -388,6 +444,10 @@ const useMoonpayIdentityFlow = () => {
     setEmail,
     submission,
     setSubmission,
+    geoCountry,
+    disclaimers,
+    disclaimersError,
+    disclaimersLoaded,
     debugEvents,
     clearDebug,
     showCheckFrame,
