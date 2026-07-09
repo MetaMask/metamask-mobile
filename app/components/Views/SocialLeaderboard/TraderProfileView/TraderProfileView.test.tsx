@@ -959,6 +959,7 @@ describe('TraderProfileView', () => {
           source: 'trader_profile',
           traderAddress: '0xabc',
           traderUsername: 'trader1',
+          traderAvatarUri: fixtureProfile.profile.imageUrl,
         }),
       );
     });
