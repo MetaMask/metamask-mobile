@@ -339,6 +339,25 @@ describe('isValidAddressInputViaQRCode', () => {
     });
   });
 
+  describe('Stellar addresses', () => {
+    it('should be valid for Stellar mainnet address', () => {
+      const mockInput =
+        'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(true);
+    });
+
+    it('should be invalid for invalid Stellar address (wrong length)', () => {
+      const mockInput = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQ';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+
+    it('should be invalid for invalid Stellar address (does not start with G)', () => {
+      const mockInput =
+        'HBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI';
+      expect(isValidAddressInputViaQRCode(mockInput)).toBe(false);
+    });
+  });
+
   describe('Tron addresses', () => {
     it('should be valid for Tron mainnet address', () => {
       const mockInput = 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7';
