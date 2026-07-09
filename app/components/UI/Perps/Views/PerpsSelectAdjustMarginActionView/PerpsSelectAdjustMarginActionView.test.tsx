@@ -35,13 +35,28 @@ jest.mock(
     function MockPerpsAdjustMarginActionSheet({
       onClose,
       onSelectAction,
+      sheetRef,
     }: {
       onClose: () => void;
       onSelectAction: (action: string) => void;
+      sheetRef?: React.RefObject<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      } | null>;
     }) {
       const ReactModule = jest.requireActual('react');
       const { View, Text, TouchableOpacity } =
         jest.requireActual('react-native');
+
+      if (sheetRef) {
+        sheetRef.current = {
+          onOpenBottomSheet: jest.fn(),
+          onCloseBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        };
+      }
+
       return ReactModule.createElement(
         View,
         { testID: 'adjust-margin-action-sheet' },
@@ -129,6 +144,14 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     );
   });
 
+  it('calls goBack after add_margin action is selected without external sheetRef', () => {
+    render(<PerpsSelectAdjustMarginActionView position={mockPosition} />);
+
+    fireEvent.press(screen.getByTestId('add-margin'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('navigates to reduce margin when reduce_margin action is selected', () => {
     render(<PerpsSelectAdjustMarginActionView position={mockPosition} />);
 
@@ -172,6 +195,26 @@ describe('PerpsSelectAdjustMarginActionView', () => {
     );
 
     fireEvent.press(screen.getByTestId('close-button'));
+
+    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose callback after action is selected with external sheetRef', () => {
+    const mockOnClose = jest.fn();
+    const mockSheetRef = {
+      current: { onCloseBottomSheet: mockOnCloseBottomSheet },
+    };
+
+    render(
+      <PerpsSelectAdjustMarginActionView
+        position={mockPosition}
+        sheetRef={mockSheetRef as never}
+        onClose={mockOnClose}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('add-margin'));
 
     expect(mockOnClose).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
