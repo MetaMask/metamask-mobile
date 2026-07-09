@@ -567,6 +567,35 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a contract deployment transaction to a contractDeployment activity', () => {
+    const transaction = {
+      chainId: base,
+      id: 'deploy-id',
+      hash: '0xdeploy',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.deployContract,
+      txParams: {
+        from,
+        data: '0x60806040',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'contractDeployment',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xdeploy',
+      data: {
+        from,
+        to: '',
+      },
+    });
+  });
+
   it('adds receipt-derived network fees to local approval activities', () => {
     const transaction = {
       chainId: base,

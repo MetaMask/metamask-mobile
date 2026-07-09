@@ -16,12 +16,18 @@ import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAcc
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 
 jest.mock('react-redux');
 jest.mock('../../../../selectors/featureFlagController/confirmations');
 jest.mock('../selectors/featureFlags');
 jest.mock('../../../Views/confirmations/utils/transaction-pay');
 jest.mock('../../../Views/confirmations/hooks/send/useAccountTokens');
+jest.mock('../../../../selectors/currencyRateController');
+jest.mock('../../../../selectors/networkController');
+jest.mock('../../Bridge/utils/exchange-rates');
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockIsTokenBlocked = isTokenBlocked as jest.MockedFunction<
@@ -34,6 +40,22 @@ const mockGetBlockedTokensForTransactionType =
 const mockUseAccountTokens = useAccountTokens as jest.MockedFunction<
   typeof useAccountTokens
 >;
+const mockCalcUsdAmountFromFiat = calcUsdAmountFromFiat as jest.MockedFunction<
+  typeof calcUsdAmountFromFiat
+>;
+
+const DEFAULT_CURRENCY_RATES: ReturnType<typeof selectCurrencyRates> = {
+  ETH: {
+    conversionDate: 0,
+    conversionRate: 3000,
+    usdConversionRate: 3000,
+  },
+};
+const DEFAULT_NETWORK_CONFIGURATIONS: ReturnType<
+  typeof selectNetworkConfigurations
+> = {
+  '0x1': { nativeCurrency: 'ETH' },
+} as unknown as ReturnType<typeof selectNetworkConfigurations>;
 
 const DEFAULT_BLOCKED_TOKENS = { chainIds: [], tokens: [] };
 const DEFAULT_PAY_FLAGS = {
@@ -142,6 +164,9 @@ describe('useMoneyEarnableTokens', () => {
       if (selector === selectMetaMaskPayTokensFlags) return DEFAULT_PAY_FLAGS;
       if (selector === selectRelayFixedSpread) return EMPTY_RELAY_CONFIG;
       if (selector === selectMoneyDepositMinBalance) return 0.01;
+      if (selector === selectCurrencyRates) return DEFAULT_CURRENCY_RATES;
+      if (selector === selectNetworkConfigurations)
+        return DEFAULT_NETWORK_CONFIGURATIONS;
       return undefined;
     });
 
@@ -150,6 +175,7 @@ describe('useMoneyEarnableTokens', () => {
       DEFAULT_BLOCKED_TOKENS,
     );
     mockIsTokenBlocked.mockReturnValue(false);
+    mockCalcUsdAmountFromFiat.mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -456,6 +482,95 @@ describe('useMoneyEarnableTokens', () => {
       const { result } = renderHook(() => useMoneyEarnableTokens());
 
       expect(result.current.isNoFeeToken(arbitrumUsdc)).toBe(false);
+    });
+  });
+
+  describe('tokens — overrideToUsd', () => {
+    it('leaves fiat balance untouched when overrideToUsd is not passed', () => {
+      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+
+      const { result } = renderHook(() => useMoneyEarnableTokens());
+
+      expect(result.current.tokens).toContainEqual(ETH_USDC);
+      expect(mockCalcUsdAmountFromFiat).not.toHaveBeenCalled();
+    });
+
+    it('leaves fiat balance untouched when overrideToUsd is false', () => {
+      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+
+      const { result } = renderHook(() =>
+        useMoneyEarnableTokens({ overrideToUsd: false }),
+      );
+
+      expect(result.current.tokens).toContainEqual(ETH_USDC);
+      expect(mockCalcUsdAmountFromFiat).not.toHaveBeenCalled();
+    });
+
+    it('converts fiat balance to usd when overrideToUsd is true', () => {
+      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      mockCalcUsdAmountFromFiat.mockReturnValue(450);
+
+      const { result } = renderHook(() =>
+        useMoneyEarnableTokens({ overrideToUsd: true }),
+      );
+
+      expect(result.current.tokens[0].fiat).toEqual({
+        balance: 450,
+        currency: 'usd',
+        conversionRate: ETH_USDC.fiat?.conversionRate,
+      });
+    });
+
+    it('passes token chainId, network configurations, and currency rates to calcUsdAmountFromFiat', () => {
+      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      mockCalcUsdAmountFromFiat.mockReturnValue(450);
+
+      renderHook(() => useMoneyEarnableTokens({ overrideToUsd: true }));
+
+      expect(mockCalcUsdAmountFromFiat).toHaveBeenCalledWith({
+        tokenFiatValue: ETH_USDC.fiat?.balance,
+        chainId: ETH_USDC.chainId,
+        networkConfigurationsByChainId: DEFAULT_NETWORK_CONFIGURATIONS,
+        evmMultiChainCurrencyRates: DEFAULT_CURRENCY_RATES,
+      });
+    });
+
+    it('excludes tokens with no fiat balance before usd conversion runs', () => {
+      const noFiat = makeToken({ symbol: 'NOFIAT', fiat: undefined });
+      mockUseAccountTokens.mockReturnValue([noFiat]);
+
+      const { result } = renderHook(() =>
+        useMoneyEarnableTokens({ overrideToUsd: true }),
+      );
+
+      expect(result.current.tokens).toEqual([]);
+      expect(mockCalcUsdAmountFromFiat).not.toHaveBeenCalled();
+    });
+
+    it('drops fiat when calcUsdAmountFromFiat cannot resolve a usd rate', () => {
+      mockUseAccountTokens.mockReturnValue([ETH_USDC]);
+      mockCalcUsdAmountFromFiat.mockReturnValue(undefined);
+
+      const { result } = renderHook(() =>
+        useMoneyEarnableTokens({ overrideToUsd: true }),
+      );
+
+      expect(result.current.tokens[0].fiat).toBeUndefined();
+    });
+
+    it('converts fiat for every eligible token when overrideToUsd is true', () => {
+      mockUseAccountTokens.mockReturnValue([ETH_USDC, ETH_USDT]);
+      mockCalcUsdAmountFromFiat.mockImplementation(
+        ({ tokenFiatValue }) => tokenFiatValue * 2,
+      );
+
+      const { result } = renderHook(() =>
+        useMoneyEarnableTokens({ overrideToUsd: true }),
+      );
+
+      expect(result.current.tokens.map((token) => token.fiat?.balance)).toEqual(
+        [1000, 600],
+      );
     });
   });
 });

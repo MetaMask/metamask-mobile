@@ -6,11 +6,25 @@ import {
 } from './adapters/environment';
 import type { ActivityListItem, TokenAmount } from './types';
 
-const hidePlusSignActivityTypes = new Set<ActivityListItem['type']>([
+export const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
   'increaseSpendingCap',
   'revokeSpendingCap',
 ]);
+
+const hidePlusSignActivityTypes = SPENDING_CAP_KINDS;
+
+/**
+ * True when a spending-cap item carries a cap amount — an explicit `amount` or
+ * an unlimited approval.
+ */
+export function isSpendingCapWithAmount(item: ActivityListItem): boolean {
+  if (!SPENDING_CAP_KINDS.has(item.type)) {
+    return false;
+  }
+  const token = 'token' in item.data ? item.data.token : undefined;
+  return Boolean(token?.amount || token?.isUnlimitedApproval);
+}
 
 export type ActivityListFilter =
   | { assetId: CaipAssetType }

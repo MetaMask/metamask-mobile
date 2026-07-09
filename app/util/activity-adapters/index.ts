@@ -42,6 +42,7 @@ export {
   getGroupedActivityListItemKey,
   groupActivityListItems,
   isFailedOrCancelledTransfer,
+  isSpendingCapWithAmount,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';

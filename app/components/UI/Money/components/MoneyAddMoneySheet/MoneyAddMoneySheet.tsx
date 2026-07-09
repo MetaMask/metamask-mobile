@@ -51,6 +51,7 @@ import {
   COMPONENT_NAMES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 
 const log = createProjectLogger('money-add-money-sheet');
 
@@ -62,7 +63,6 @@ const MoneyAddMoneySheet: React.FC = () => {
 
   const {
     fiatBalanceAggregated,
-    fiatBalanceAggregatedFormatted,
     hasMusdBalanceOnAnyChain,
     tokenBalanceAggregated,
     tokenBalanceByChain,
@@ -149,7 +149,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    startDeposit();
+    startDeposit({ intent: 'convert' });
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
@@ -193,9 +193,10 @@ const MoneyAddMoneySheet: React.FC = () => {
     Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
   const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
 
-  const moveMusdAmount = hasParsedFiatBalance
-    ? fiatBalanceAggregatedFormatted
-    : new BigNumber(tokenBalanceAggregated).toFixed(2);
+  const moveMusdAmount = useMemo(
+    () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
+    [tokenBalanceAggregated],
+  );
   const moveMusdLabel = hasMusdBalance
     ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
     : strings('money.add_money_sheet.add_musd');
