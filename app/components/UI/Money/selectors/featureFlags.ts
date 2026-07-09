@@ -34,6 +34,23 @@ export const selectMoneyEnableActivityDetailsFlag = createSelector(
 );
 
 /**
+ * Selects whether the tilt-driven parallax animation is shown on the Money
+ * onboarding "Next Best Action" card. Defaults to off (opt-in) so the feature
+ * stays disabled unless the remote flag or MM_MONEY_PARALLAX_ANIMATION_ENABLED
+ * turns it on; the static image is used otherwise, when reduce-motion is
+ * enabled, or when Rive fails to load.
+ */
+export const selectMoneyParallaxAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyParallaxAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
+/**
  * Selects whether the block explorer link is shown in Money activity detail
  * views. When off, the "View on block explorer" button is hidden.
  */
