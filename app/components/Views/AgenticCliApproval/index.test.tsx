@@ -16,7 +16,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => ({
-    approvalPagePath: '/agentic/approval',
     projectId: 'project-1',
     approvalId: 'approval-1',
     mimirSignature: 'signature-1',

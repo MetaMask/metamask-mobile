@@ -1,5 +1,4 @@
 import Routes from '../../../../../constants/navigation/Routes';
-import { DEFAULT_APPROVAL_PAGE_PATH } from '../../../../../components/Views/AgenticCliApproval/AgenticCliApprovalService';
 import { getBuildType } from '../../../../../core/OAuthService/OAuthLoginHandlers/constants';
 import Logger from '../../../../../util/Logger';
 import NavigationService from '../../../../NavigationService';
@@ -42,7 +41,7 @@ describe('handleAgenticCliApproval', () => {
     jest.useRealTimers();
   });
 
-  it('uses the default approval path when agentic-cli deeplink omits approvalPagePath', () => {
+  it('navigates with parsed deeplink params', () => {
     handleAgenticCliApproval({
       actionPath:
         '?projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
@@ -53,7 +52,6 @@ describe('handleAgenticCliApproval', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       {
-        approvalPagePath: DEFAULT_APPROVAL_PAGE_PATH,
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: 'signature-1',
@@ -63,48 +61,10 @@ describe('handleAgenticCliApproval', () => {
     );
   });
 
-  it('forwards approvalPagePath from the deeplink when valid', () => {
-    handleAgenticCliApproval({
-      actionPath:
-        '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1&approvalId=approval-1&operationType=transaction_request',
-    });
-
-    jest.advanceTimersByTime(200);
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
-      {
-        approvalPagePath: '/agentic/approval',
-        projectId: 'project-1',
-        approvalId: 'approval-1',
-        mimirSignature: undefined,
-        operationType: 'transaction_request',
-        subjectId: undefined,
-      },
-    );
-  });
-
-  it('falls back to the default path when approvalPagePath is invalid', () => {
-    handleAgenticCliApproval({
-      actionPath: `?approvalPagePath=${encodeURIComponent(
-        'https://evil.com/agentic/approval',
-      )}&projectId=project-1&approvalId=approval-1`,
-    });
-
-    jest.advanceTimersByTime(200);
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
-      expect.objectContaining({
-        approvalPagePath: DEFAULT_APPROVAL_PAGE_PATH,
-      }),
-    );
-  });
-
   it('logs and skips navigation when approvalId is missing', () => {
     handleAgenticCliApproval({
       actionPath:
-        '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1&notificationId=notification-1&operationType=transaction_request',
+        '?projectId=project-1&notificationId=notification-1&operationType=transaction_request',
     });
 
     jest.advanceTimersByTime(200);
@@ -120,7 +80,7 @@ describe('handleAgenticCliApproval', () => {
 
   it('logs and skips navigation when required hosted params are missing', () => {
     handleAgenticCliApproval({
-      actionPath: '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1',
+      actionPath: '?projectId=project-1',
     });
 
     jest.advanceTimersByTime(200);
@@ -148,10 +108,9 @@ describe('handleAgenticCliApproval', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates with the default path when approvalId is present', () => {
+  it('navigates when approvalId is present', () => {
     handleAgenticCliApproval({
-      actionPath:
-        '?approvalPagePath=%&approvalId=approval-1&projectId=project-1',
+      actionPath: '?approvalId=approval-1&projectId=project-1',
     });
 
     jest.advanceTimersByTime(200);
@@ -159,7 +118,6 @@ describe('handleAgenticCliApproval', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       {
-        approvalPagePath: DEFAULT_APPROVAL_PAGE_PATH,
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: undefined,
@@ -183,7 +141,6 @@ describe('handleAgenticCliApproval', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       {
-        approvalPagePath: DEFAULT_APPROVAL_PAGE_PATH,
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: undefined,
@@ -217,7 +174,6 @@ describe('parseAgenticCliApprovalParams', () => {
         '?projectId=project-1&approvalId=approval-1&operationType=wallet_mode_change&subjectId=0xabc',
       ),
     ).toEqual({
-      approvalPagePath: undefined,
       projectId: 'project-1',
       approvalId: 'approval-1',
       mimirSignature: undefined,
@@ -232,7 +188,6 @@ describe('parseAgenticCliApprovalParams', () => {
         '?projectId=project-1&notificationId=request-1&operationType=transaction_request',
       ),
     ).toEqual({
-      approvalPagePath: undefined,
       projectId: 'project-1',
       approvalId: undefined,
       mimirSignature: undefined,
@@ -247,7 +202,6 @@ describe('parseAgenticCliApprovalParams', () => {
         '?projectId=project-1&approvalId=approval-1&operationType=tx_approve',
       ),
     ).toEqual({
-      approvalPagePath: undefined,
       projectId: 'project-1',
       approvalId: 'approval-1',
       mimirSignature: undefined,
@@ -262,27 +216,11 @@ describe('parseAgenticCliApprovalParams', () => {
         '?projectId=project-1&approvalId=approval-1',
       ),
     ).toEqual({
-      approvalPagePath: undefined,
       projectId: 'project-1',
       approvalId: 'approval-1',
       mimirSignature: undefined,
       operationType: undefined,
       subjectId: undefined,
-    });
-  });
-
-  it('forwards approvalPagePath from the deeplink', () => {
-    expect(
-      parseAgenticCliApprovalParams(
-        '?approvalPagePath=%2Fagentic%2Flogin&projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
-      ),
-    ).toEqual({
-      approvalPagePath: '/agentic/login',
-      projectId: 'project-1',
-      approvalId: 'approval-1',
-      mimirSignature: 'signature-1',
-      operationType: 'wallet_mode_change',
-      subjectId: '0xabc',
     });
   });
 });

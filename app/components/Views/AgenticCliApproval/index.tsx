@@ -84,14 +84,8 @@ const getLoadErrorDetails = ({
 const AgenticCliApproval: React.FC = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const {
-    approvalPagePath,
-    projectId,
-    approvalId,
-    mimirSignature,
-    operationType,
-    subjectId,
-  } = useParams<AgenticCliApprovalParams>();
+  const { projectId, approvalId, mimirSignature, operationType, subjectId } =
+    useParams<AgenticCliApprovalParams>();
   const [error, setError] = useState<AgenticCliApprovalErrorState | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
@@ -100,21 +94,13 @@ const AgenticCliApproval: React.FC = () => {
   const webViewUrl = useMemo(
     () =>
       AgenticCliApprovalService.buildWebViewUrl({
-        approvalPagePath,
         projectId,
         approvalId,
         mimirSignature,
         operationType,
         subjectId,
       }),
-    [
-      approvalId,
-      approvalPagePath,
-      mimirSignature,
-      projectId,
-      operationType,
-      subjectId,
-    ],
+    [approvalId, mimirSignature, projectId, operationType, subjectId],
   );
 
   const handleClose = useCallback(() => {

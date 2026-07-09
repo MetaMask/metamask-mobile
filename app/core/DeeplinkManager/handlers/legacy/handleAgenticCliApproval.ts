@@ -8,10 +8,10 @@ import { AgenticCliApprovalService } from '../../../../components/Views/AgenticC
  * Handles `https://link.metamask.io/agentic-cli` deeplinks.
  *
  * Preferred query string:
- * `?approvalPagePath=/agentic/approval&projectId=<id>&approvalId=<approvalId>&mimirSignature=<sig>`
+ * `?projectId=<id>&approvalId=<approvalId>&mimirSignature=<sig>`
  *
- * Dashboard host is always chosen on-device from build type. `approvalPagePath`
- * may override only the path segment (default `/agentic/approval`).
+ * Dashboard host is always chosen on-device from build type. The approval page
+ * path is always `/agentic/approval`.
  *
  * The pending-deeplink saga (app/store/sagas/index.ts) gates this on
  * vault-unlocked + onboarding-complete.
@@ -26,14 +26,8 @@ export const handleAgenticCliApproval = (params: {
   const parsed = AgenticCliApprovalService.parseDeeplinkQuery(
     params.actionPath,
   );
-  const {
-    projectId,
-    approvalId,
-    mimirSignature,
-    operationType,
-    subjectId,
-    approvalPagePath,
-  } = parsed;
+  const { projectId, approvalId, mimirSignature, operationType, subjectId } =
+    parsed;
 
   if (!projectId || !approvalId) {
     Logger.error(
@@ -45,8 +39,6 @@ export const handleAgenticCliApproval = (params: {
   }
 
   const navigationParams: AgenticCliApprovalParams = {
-    approvalPagePath:
-      AgenticCliApprovalService.validateApprovalPagePath(approvalPagePath),
     projectId,
     approvalId,
     mimirSignature:

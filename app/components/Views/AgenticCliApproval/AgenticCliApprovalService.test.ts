@@ -1,20 +1,13 @@
 import { getBuildType } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
-import Logger from '../../../util/Logger';
 import {
   AgenticCliApprovalService,
-  DEFAULT_APPROVAL_PAGE_PATH,
   getApprovalHost,
   MAX_MESSAGE_LENGTH,
   resolveApprovalPageUrl,
-  validateApprovalPagePath,
 } from './AgenticCliApprovalService';
 
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   getBuildType: jest.fn(),
-}));
-
-jest.mock('../../../util/Logger', () => ({
-  error: jest.fn(),
 }));
 
 const mockGetBuildType = getBuildType as jest.MockedFunction<
@@ -53,50 +46,23 @@ describe('AgenticCliApprovalService', () => {
     });
   });
 
-  describe('validateApprovalPagePath', () => {
-    it('returns the default path when omitted', () => {
-      expect(validateApprovalPagePath()).toBe(DEFAULT_APPROVAL_PAGE_PATH);
-      expect(validateApprovalPagePath('')).toBe(DEFAULT_APPROVAL_PAGE_PATH);
-    });
-
-    it('accepts allowed agentic paths', () => {
-      expect(validateApprovalPagePath('/agentic/approval')).toBe(
-        '/agentic/approval',
-      );
-    });
-
-    it('falls back to default for unsafe paths', () => {
-      expect(validateApprovalPagePath('https://evil.com/agentic/login')).toBe(
-        DEFAULT_APPROVAL_PAGE_PATH,
-      );
-      expect(validateApprovalPagePath('//evil/agentic/login')).toBe(
-        DEFAULT_APPROVAL_PAGE_PATH,
-      );
-      expect(validateApprovalPagePath('../agentic/login')).toBe(
-        DEFAULT_APPROVAL_PAGE_PATH,
-      );
-      expect(Logger.error).toHaveBeenCalled();
-    });
-  });
-
   describe('resolveApprovalPageUrl', () => {
-    it('combines mobile host with the validated path', () => {
+    it('combines mobile host with the default approval path', () => {
       mockGetBuildType.mockReturnValue('main_prod');
 
-      expect(resolveApprovalPageUrl('/agentic/approval').toString()).toBe(
+      expect(resolveApprovalPageUrl().toString()).toBe(
         'https://developer.metamask.io/agentic/approval',
       );
     });
   });
 
   describe('parseDeeplinkQuery', () => {
-    it('parses approvalPagePath and other query params', () => {
+    it('parses query params', () => {
       expect(
         AgenticCliApprovalService.parseDeeplinkQuery(
-          '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
+          '?projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
         ),
       ).toEqual({
-        approvalPagePath: '/agentic/approval',
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: 'signature-1',
@@ -127,7 +93,6 @@ describe('AgenticCliApprovalService', () => {
   describe('buildWebViewUrl', () => {
     it('builds the hosted approval URL with forwarded query params', () => {
       const url = AgenticCliApprovalService.buildWebViewUrl({
-        approvalPagePath: '/agentic/approval',
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: 'signature-1',
@@ -141,7 +106,7 @@ describe('AgenticCliApprovalService', () => {
       expect(new URL(url).hash).toBe('');
     });
 
-    it('uses the default approval path when approvalPagePath is omitted', () => {
+    it('uses the default approval path', () => {
       const url = AgenticCliApprovalService.buildWebViewUrl({
         projectId: 'project-1',
         approvalId: 'approval-1',
@@ -152,7 +117,6 @@ describe('AgenticCliApprovalService', () => {
 
     it('forwards approvalId to the hosted approval page query string', () => {
       const url = AgenticCliApprovalService.buildWebViewUrl({
-        approvalPagePath: '/agentic/approval',
         projectId: 'project-1',
         approvalId: 'approval-1',
       });
@@ -164,7 +128,6 @@ describe('AgenticCliApprovalService', () => {
       mockGetBuildType.mockReturnValue('development');
 
       const url = AgenticCliApprovalService.buildWebViewUrl({
-        approvalPagePath: '/agentic/approval',
         approvalId: 'approval-1',
         projectId: 'project-1',
         mimirSignature: 'sig/with+chars',

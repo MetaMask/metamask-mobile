@@ -16,8 +16,6 @@ export const MAX_MESSAGE_LENGTH = 16 * 1024;
 
 export const DEFAULT_APPROVAL_PAGE_PATH = '/agentic/approval';
 
-const APPROVAL_PAGE_PATH_PATTERN = /^\/agentic\/[a-zA-Z0-9/_-]+$/;
-
 const AGENTIC_CLI_APPROVAL_HOST = {
   dev: 'https://develop-developer.metamask.io',
   uat: 'https://staging-developer.metamask.io',
@@ -88,36 +86,11 @@ export const getApprovalHost = (): string => {
   return AGENTIC_CLI_APPROVAL_HOST.dev;
 };
 
-export const validateApprovalPagePath = (path?: string): string => {
-  if (!path || path.trim() === '') {
-    return DEFAULT_APPROVAL_PAGE_PATH;
-  }
-
-  const trimmed = path.trim();
-  if (
-    trimmed.includes('://') ||
-    trimmed.includes('..') ||
-    !trimmed.startsWith('/') ||
-    !APPROVAL_PAGE_PATH_PATTERN.test(trimmed)
-  ) {
-    Logger.error(
-      new Error(`Invalid approval page path: ${path}`),
-      'AgenticCliApprovalService: invalid approvalPagePath',
-    );
-    return DEFAULT_APPROVAL_PAGE_PATH;
-  }
-
-  return trimmed;
-};
-
-export const resolveApprovalPageUrl = (path?: string): URL => {
-  const validatedPath = validateApprovalPagePath(path);
-  return new URL(validatedPath, getApprovalHost());
-};
+export const resolveApprovalPageUrl = (): URL =>
+  new URL(DEFAULT_APPROVAL_PAGE_PATH, getApprovalHost());
 
 export const AgenticCliApprovalService = {
   getApprovalHost,
-  validateApprovalPagePath,
   resolveApprovalPageUrl,
 
   /**
@@ -135,7 +108,6 @@ export const AgenticCliApprovalService = {
     const searchParams = new URLSearchParams(queryString);
 
     return {
-      approvalPagePath: getQueryParam(searchParams, 'approvalPagePath'),
       projectId: getQueryParam(searchParams, 'projectId'),
       approvalId: getQueryParam(searchParams, 'approvalId'),
       subjectId: getQueryParam(searchParams, 'subjectId'),
@@ -161,19 +133,13 @@ export const AgenticCliApprovalService = {
   },
 
   /**
-   * `${mobileHost}${approvalPagePath}?projectId=...&approvalId=...`
+   * `${mobileHost}/agentic/approval?projectId=...&approvalId=...`
    */
   buildWebViewUrl(params: AgenticCliApprovalParams): string {
-    const {
-      approvalPagePath,
-      projectId,
-      approvalId,
-      mimirSignature,
-      operationType,
-      subjectId,
-    } = params;
+    const { projectId, approvalId, mimirSignature, operationType, subjectId } =
+      params;
 
-    const url = resolveApprovalPageUrl(approvalPagePath);
+    const url = resolveApprovalPageUrl();
     const origin = `${url.protocol}//${url.host}`;
     const expectedOrigin = getApprovalHost();
 
