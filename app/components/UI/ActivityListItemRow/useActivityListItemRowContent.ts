@@ -1181,22 +1181,29 @@ export function useActivityListItemRowContent(
       })
     : undefined;
 
+  const rawPrimaryAmount =
+    domainFiatAmount ?? resolveAmount(primaryToken, item.type);
+
+  const resolveRawSecondaryAmount = (): string | undefined => {
+    // USD-denominated (perps/predict) rows: the token line only makes sense for
+    // funds movements; other domain rows have no secondary line.
+    if (domainFiatAmount) {
+      return isFundsRow ? fundsTokenSecondaryAmount(primaryToken) : undefined;
+    }
+    // Non-domain rows: prefer the secondary token amount, then its fiat, then a
+    // primary fiat fallback.
+    return resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount;
+  };
+
   // A failed or cancelled send/receive moved nothing, so the transfer amount
   // (surfaced from the attempted/original tx) is misleading — suppress it here
   // so every consumer of this resolver (the list row and the details amount
   // header) stays consistent.
   const suppressTransferAmount = isFailedOrCancelledTransfer(item);
-
-  const primaryAmount = suppressTransferAmount
-    ? undefined
-    : (domainFiatAmount ?? resolveAmount(primaryToken, item.type));
+  const primaryAmount = suppressTransferAmount ? undefined : rawPrimaryAmount;
   const secondaryAmount = suppressTransferAmount
     ? undefined
-    : domainFiatAmount
-      ? isFundsRow
-        ? fundsTokenSecondaryAmount(primaryToken)
-        : undefined
-      : (resolvedSecondaryAmount ?? secondaryFiatAmount ?? primaryFiatAmount);
+    : resolveRawSecondaryAmount();
 
   const perpsMarketSymbol = isPerpsMarketAvatarKind(item.type)
     ? 'sourceToken' in item.data

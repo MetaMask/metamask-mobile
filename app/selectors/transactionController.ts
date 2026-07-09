@@ -201,13 +201,34 @@ export const selectTransactions = createDeepEqualSelector(
   },
 );
 
+/**
+ * A transaction is "replaced" once its speed-up/cancel replacement has fully
+ * committed: the controller sets `replacedBy` (replacement hash) and
+ * `replacedById` (replacement id) while the original keeps its own `hash`.
+ */
+function isReplacedTransaction(
+  transaction: Pick<TransactionMeta, 'replacedBy' | 'replacedById' | 'hash'>,
+): boolean {
+  const { replacedBy, replacedById, hash } = transaction;
+  return Boolean(replacedBy && replacedById && hash);
+}
+
+/** Whether a transaction was sent from the active account's EVM address. */
+function belongsToActiveAccount(
+  transaction: LocalTransaction,
+  activeEvmAddress: string | undefined,
+): boolean {
+  const fromAddress = transaction.txParams?.from;
+  if (!fromAddress || !activeEvmAddress) {
+    return false;
+  }
+  return areAddressesEqual(fromAddress, activeEvmAddress);
+}
+
 export const selectNonReplacedTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) =>
-    transactions.filter(
-      ({ replacedBy, replacedById, hash }) =>
-        !(replacedBy && replacedById && hash),
-    ),
+    transactions.filter((transaction) => !isReplacedTransaction(transaction)),
 );
 
 export const selectSortedTransactions = createDeepEqualSelector(
@@ -306,28 +327,16 @@ export const selectLocalTransactions = createDeepEqualSelector(
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
-    const transactions = nonReplacedTransactions.filter((transaction) => {
-      if (requiredTransactionIds.has(transaction.id)) {
-        return false;
-      }
-
-      const fromAddress = transaction.txParams?.from;
-      if (!fromAddress || !activeEvmAddress) {
-        return false;
-      }
-
-      return areAddressesEqual(fromAddress, activeEvmAddress);
-    });
+    const transactions = nonReplacedTransactions.filter(
+      (transaction) =>
+        !requiredTransactionIds.has(transaction.id) &&
+        belongsToActiveAccount(transaction, activeEvmAddress),
+    );
 
     const pendingSmartTransactionsForActiveAddress =
-      pendingSmartTransactions.filter((transaction) => {
-        const fromAddress = transaction.txParams?.from;
-        if (!fromAddress || !activeEvmAddress) {
-          return false;
-        }
-
-        return areAddressesEqual(fromAddress, activeEvmAddress);
-      });
+      pendingSmartTransactions.filter((transaction) =>
+        belongsToActiveAccount(transaction, activeEvmAddress),
+      );
 
     return dedupeTransactions([
       ...transactions,
@@ -359,23 +368,12 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
-    return transactions.filter((transaction) => {
-      const { replacedBy, replacedById, hash } = transaction;
-      if (!(replacedBy && replacedById && hash)) {
-        return false;
-      }
-
-      if (requiredTransactionIds.has(transaction.id)) {
-        return false;
-      }
-
-      const fromAddress = transaction.txParams?.from;
-      if (!fromAddress || !activeEvmAddress) {
-        return false;
-      }
-
-      return areAddressesEqual(fromAddress, activeEvmAddress);
-    });
+    return transactions.filter(
+      (transaction) =>
+        isReplacedTransaction(transaction) &&
+        !requiredTransactionIds.has(transaction.id) &&
+        belongsToActiveAccount(transaction, activeEvmAddress),
+    );
   },
 );
 

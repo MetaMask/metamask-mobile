@@ -111,13 +111,16 @@ const ActivityDetails = () => {
 
   useEffect(() => {
     const isResolved = Boolean(item);
-    if (
-      wasResolvedRef.current &&
-      !isResolved &&
-      actionInitiatedRef.current &&
-      !isQRHardwareAccount &&
-      isFocused
-    ) {
+    // The viewed tx disappeared right after the user confirmed a speed-up/cancel
+    // on this screen — i.e. its replacement committed and dropped the original.
+    const viewedTxWasReplaced =
+      wasResolvedRef.current && !isResolved && actionInitiatedRef.current;
+    // Only dismiss while this screen is on top: a background re-render (the user
+    // pushed another screen after confirming) must not pop the wrong screen, and
+    // `isFocused` also excludes disappearances from navigating away (e.g. an
+    // account switch) that would otherwise fire the stale arm.
+    if (viewedTxWasReplaced && !isQRHardwareAccount && isFocused) {
+      // Disarm so a later resolved→unresolved transition can't dismiss again.
       actionInitiatedRef.current = false;
       navigation.goBack();
     }
