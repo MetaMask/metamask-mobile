@@ -8,15 +8,15 @@ import {
   IconName,
   IconSize,
   SectionHeader,
-  Text as MDSText,
-  TextColor as MDSTextColor,
-  TextVariant as MDSTextVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
+import LegacyText, {
+  TextColor as LegacyTextColor,
+  TextVariant as LegacyTextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -84,7 +84,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     }
 
     // Determine color based on value
-    const color = fundingValue >= 0 ? TextColor.Success : TextColor.Error;
+    const color =
+      fundingValue >= 0 ? LegacyTextColor.Success : LegacyTextColor.Error;
 
     return {
       value: fundingValue,
@@ -97,12 +98,15 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   const fundingValueContent = useMemo(
     () => (
       <View style={styles.fundingRateContainer}>
-        <Text variant={TextVariant.BodyMD} color={fundingRateData.color}>
+        <LegacyText
+          variant={LegacyTextVariant.BodyMD}
+          color={fundingRateData.color}
+        >
           {fundingRateData.displayText}
-        </Text>
+        </LegacyText>
         <FundingCountdown
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
+          variant={LegacyTextVariant.BodySM}
+          color={LegacyTextColor.Alternative}
           style={styles.fundingCountdown}
           nextFundingTime={nextFundingTime}
           fundingIntervalHours={fundingIntervalHours}
@@ -128,12 +132,9 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
       >
-        <MDSText
-          variant={MDSTextVariant.HeadingMd}
-          color={MDSTextColor.TextDefault}
-        >
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
           {strings('perps.market.stats')}
-        </MDSText>
+        </Text>
         {dexName ? (
           <Tag label={dexName.toUpperCase()} style={styles.dexTag} />
         ) : null}
@@ -156,12 +157,12 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
             >
               <View style={styles.orderBookRowContent}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                <LegacyText
+                  variant={LegacyTextVariant.BodyMD}
+                  color={LegacyTextColor.Alternative}
                 >
                   {strings('perps.market.order_book')}
-                </Text>
+                </LegacyText>
               </View>
               <Icon
                 name={IconName.ArrowRight}
@@ -176,15 +177,15 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             field={{
               label: {
                 text: strings('perps.market.24h_volume'),
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                variant: LegacyTextVariant.BodyMD,
+                color: LegacyTextColor.Alternative,
               },
             }}
             value={{
               label: {
                 text: marketStats.volume24h,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Default,
+                variant: LegacyTextVariant.BodyMD,
+                color: LegacyTextColor.Default,
               },
             }}
             style={[styles.statsRow, !onOrderBookPress && styles.statsRowFirst]}
@@ -195,12 +196,12 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             field={{
               label: (
                 <View style={styles.labelWithIcon}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                  <LegacyText
+                    variant={LegacyTextVariant.BodyMD}
+                    color={LegacyTextColor.Alternative}
                   >
                     {strings('perps.market.open_interest')}
-                  </Text>
+                  </LegacyText>
                   <TouchableOpacity
                     onPress={() => onTooltipPress('open_interest')}
                     testID="perps-market-details-open-interest-info-icon"
@@ -217,8 +218,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             value={{
               label: {
                 text: marketStats.openInterest,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Default,
+                variant: LegacyTextVariant.BodyMD,
+                color: LegacyTextColor.Default,
               },
             }}
             style={styles.statsRow}
@@ -229,12 +230,12 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             field={{
               label: (
                 <View style={styles.labelWithIcon}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                  <LegacyText
+                    variant={LegacyTextVariant.BodyMD}
+                    color={LegacyTextColor.Alternative}
                   >
                     {strings('perps.market.funding_rate')}
-                  </Text>
+                  </LegacyText>
                   <TouchableOpacity
                     onPress={() => onTooltipPress('funding_rate')}
                     testID="perps-market-details-funding-rate-info-icon"
@@ -259,12 +260,12 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             field={{
               label: (
                 <View style={styles.labelWithIcon}>
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                  <LegacyText
+                    variant={LegacyTextVariant.BodyMD}
+                    color={LegacyTextColor.Alternative}
                   >
                     {strings('perps.market.oracle_price')}
-                  </Text>
+                  </LegacyText>
                   <TouchableOpacity
                     onPress={() => onTooltipPress('oracle_price')}
                     testID="perps-market-details-oracle-price-info-icon"
@@ -280,9 +281,9 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             }}
             value={{
               label: (
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Default}
+                <LegacyText
+                  variant={LegacyTextVariant.BodyMD}
+                  color={LegacyTextColor.Default}
                   testID={
                     PerpsMarketDetailsViewSelectorsIDs.STATISTICS_ORACLE_PRICE
                   }
@@ -292,7 +293,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                         ranges: PRICE_RANGES_UNIVERSAL,
                       })
                     : '-'}
-                </Text>
+                </LegacyText>
               ),
             }}
             style={styles.statsRowLast}
