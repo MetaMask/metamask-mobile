@@ -77,7 +77,7 @@ describe('buildRampsTransactionConfirmedPayload', () => {
     });
 
     expect(payload.ramp_type).toBe('HEADLESS');
-    expect(payload.ramp_surface).toBe('MONEY_ACCOUNT');
+    expect(payload.ramp_surface).toBe('money_account');
     expect(payload.country).toBe('GB');
   });
 });
