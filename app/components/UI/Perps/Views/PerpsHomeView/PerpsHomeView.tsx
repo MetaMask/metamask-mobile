@@ -97,9 +97,12 @@ import Reanimated, { SharedValue } from 'react-native-reanimated';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
+import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
@@ -116,6 +119,7 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
+import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
 import {
   isPerpsTopMoversSectionVisible,
   usePerpsTopMovers,
@@ -290,6 +294,8 @@ const PerpsHomeView = ({
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
+    recentlyAddedMarkets,
+    hasMarkets,
     recentActivity,
     sortBy,
     isLoading,
@@ -344,6 +350,34 @@ const PerpsHomeView = ({
     conditions: [!isAnyLoading],
   });
 
+  const entryCufVariant = hasPositions
+    ? PERPS_CUF_VARIANT.POSITION
+    : PERPS_CUF_VARIANT.EMPTY;
+  const entryCufEndData = {
+    [PERPS_CUF_TAG.VARIANT]:
+      orders.length > 0 ? PERPS_CUF_VARIANT.ORDER : entryCufVariant,
+  };
+
+  // Entry CUF: enter Perps -> live market list. Starts at mount; launch-context
+  // tag splits cold from warm p75. Captured at mount so the tag is the launch
+  // context, not the post-settle value.
+  const entryCufTags = useMemo(() => buildPerpsCufStartTags(), []);
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsEntryToLiveMarketList,
+    // endConditions (not the simple `conditions` API): this span must measure
+    // mount -> live data. The simple API auto-resets whenever its first
+    // condition is false, which for a readiness flag means the span restarts on
+    // every render during loading and under-reports the true latency. Using
+    // endConditions starts at mount and never resets.
+    // The variant endData reads orders.length, so — unlike the screen-load
+    // metric above, which deliberately ignores orders for speed — this span
+    // must wait for the orders stream too, or a user with open orders is
+    // misrecorded as empty/position.
+    endConditions: [!isAnyLoading, !isLoading.orders],
+    tags: entryCufTags,
+    endData: entryCufEndData,
+  });
+
   // Reset section tracking when screen comes into focus
   // This ensures sections can be tracked again when navigating back to the screen
   useFocusEffect(
@@ -392,6 +426,9 @@ const PerpsHomeView = ({
     // PerpsHomeSectionList does not render an orphan divider.
     if (isTopMoversVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
+    // Recently Added self-hides when there are no markets listed in the last
+    // 30 days; no loading skeleton, so gate purely on data length.
+    if (recentlyAddedMarkets.length > 0) sections.push('recently_added');
     // Explore category lists render a skeleton while markets load, then self-hide
     // when their own market array is empty.
     if (isLoading.markets || perpsMarkets.length > 0)
@@ -415,6 +452,7 @@ const PerpsHomeView = ({
     isProductsEnabled,
     productCategories,
     isTopMoversVisible,
+    recentlyAddedMarkets,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,
@@ -485,6 +523,16 @@ const PerpsHomeView = ({
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
   }, [track]);
+
+  const handleRecentlyAddedMarketPress = useCallback(
+    (market: PerpsMarketData) => {
+      perpsNavigation.navigateToMarketDetails(
+        market,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      );
+    },
+    [perpsNavigation],
+  );
 
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
@@ -732,6 +780,20 @@ const PerpsHomeView = ({
         ),
       },
       {
+        key: 'recently-added',
+        // Mirrors PerpsRecentlyAddedSection's own render gate (markets.length
+        // === 0 -> null) so PerpsHomeSectionList does not render an orphan
+        // divider for an empty rail.
+        visible: recentlyAddedMarkets.length > 0,
+        onLayout: handleSectionLayout('recently_added'),
+        content: (
+          <PerpsRecentlyAddedSection
+            markets={recentlyAddedMarkets}
+            onMarketPress={handleRecentlyAddedMarketPress}
+          />
+        ),
+      },
+      {
         key: 'crypto',
         visible: isLoading.markets || perpsMarkets.length > 0,
         onLayout: handleSectionLayout(
@@ -842,6 +904,8 @@ const PerpsHomeView = ({
       isProductsEnabled,
       productCategories.length,
       isTopMoversVisible,
+      recentlyAddedMarkets,
+      handleRecentlyAddedMarketPress,
       perpsMarkets,
       commoditiesMarkets,
       stocksMarkets,

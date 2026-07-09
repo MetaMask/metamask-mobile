@@ -320,6 +320,7 @@ describe('TopTradersSection', () => {
       expect.objectContaining({
         source: 'home_carousel',
         traderAddress: '0x0000000000000000000000000000000000000001',
+        traderAvatarUri: undefined,
       }),
     );
   });
