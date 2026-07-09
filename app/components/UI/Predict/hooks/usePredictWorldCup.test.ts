@@ -229,7 +229,10 @@ describe('usePredictWorldCupMarkets', () => {
 
   it('requests stage markets with all configured event IDs and no pagination', async () => {
     const { Wrapper } = createWrapper();
-    const stageMarket = createMarket({ id: 'stage-market' });
+    const stageMarket = createMarket({
+      id: 'stage-market',
+      outcomes: [createOutcome({ sportsMarketType: 'soccer_team_to_advance' })],
+    });
     const config = {
       ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
       stages: [{ key: 'group-stage', eventIds: ['123', '456'] }],
