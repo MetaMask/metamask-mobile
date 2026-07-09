@@ -418,8 +418,15 @@ export function handlePerpsCufPositionsDelivered(
       continue;
     }
     const current = positions.find((p) => p.symbol === symbol);
-    const currentSize = current ? current.size : undefined;
-    if (currentSize !== meta[CUF_META.SNAPSHOT]) {
+    // A close confirms on the position vanishing or its magnitude shrinking —
+    // not on a size increase (an overlapping add must not confirm a close).
+    // Compared by absolute value so shorts (negative size) work too.
+    const baselineSize = Math.abs(
+      Number.parseFloat(String(meta[CUF_META.SNAPSHOT])),
+    );
+    const closed =
+      !current || Math.abs(Number.parseFloat(current.size)) < baselineSize;
+    if (closed) {
       toEnd.push(opId);
     }
   }

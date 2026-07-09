@@ -409,6 +409,17 @@ describe('perpsCufTrace', () => {
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
   });
 
+  it('close span is NOT ended by a size increase (overlapping add-to-position)', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsClosePositionToConfirmation,
+    });
+    watchPerpsCufPositionClosed(opId, btc);
+
+    // Size grew instead of shrinking: an add, not a close.
+    handlePerpsCufPositionsDelivered([{ ...btc, size: '0.02' }]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
   it('close span is NOT ended by a TP/SL-only change (no size change)', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsClosePositionToConfirmation,
