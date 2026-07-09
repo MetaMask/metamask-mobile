@@ -48,6 +48,12 @@ jest.mock('../../utils/v2OrderToast', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
+const mockTrackRampEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => ({
+  __esModule: true,
+  default: () => mockTrackRampEvent,
+  trackEvent: mockTrackRampEvent,
+}));
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
@@ -252,7 +258,8 @@ describe('OrderDetails', () => {
     render();
 
     await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect(mockTrackRampEvent).toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
         expect.objectContaining({
           ramp_type: 'UNIFIED_BUY_2',
           amount_source: 50,
@@ -282,10 +289,8 @@ describe('OrderDetails', () => {
       expect(mockAddOrder).toHaveBeenCalled();
     });
 
-    const confirmedCalls = mockTrackEvent.mock.calls.filter(
-      (call) =>
-        call[0]?.ramp_type === 'UNIFIED_BUY_2' &&
-        call[0]?.amount_source !== undefined,
+    const confirmedCalls = mockTrackRampEvent.mock.calls.filter(
+      (call) => call[0] === 'RAMPS_TRANSACTION_CONFIRMED',
     );
     expect(confirmedCalls).toHaveLength(0);
   });

@@ -1,30 +1,32 @@
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import {
   buildRampsTransactionConfirmedPayload,
   shouldEmitRampsTransactionConfirmed,
 } from './buildRampsTransactionConfirmedPayload';
 
-const baseOrder = {
-  providerOrderId: 'ord-1',
-  status: RampsOrderStatus.Pending,
-  fiatAmount: 100,
-  cryptoAmount: 0.05,
-  exchangeRate: 2000,
-  networkFees: 1,
-  partnerFees: 2,
-  totalFeesFiat: 3,
-  paymentMethod: { id: 'card' },
-  network: { chainId: 'eip155:1', name: 'Ethereum' },
-  cryptoCurrency: { assetId: 'eth', symbol: 'ETH' },
-  fiatCurrency: { symbol: 'USD' },
-  region: 'US',
-};
+const makeRampsOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder =>
+  ({
+    providerOrderId: 'ord-1',
+    status: RampsOrderStatus.Pending,
+    fiatAmount: 100,
+    cryptoAmount: 0.05,
+    exchangeRate: 2000,
+    networkFees: 1,
+    partnerFees: 2,
+    totalFeesFiat: 3,
+    paymentMethod: { id: 'card' },
+    network: { chainId: 'eip155:1', name: 'Ethereum' },
+    cryptoCurrency: { assetId: 'eth', symbol: 'ETH' },
+    fiatCurrency: { symbol: 'USD' },
+    region: 'US',
+    ...overrides,
+  }) as RampsOrder;
 
 describe('shouldEmitRampsTransactionConfirmed', () => {
   it('returns true for non-terminal failure statuses', () => {
-    expect(
-      shouldEmitRampsTransactionConfirmed(RampsOrderStatus.Pending),
-    ).toBe(true);
+    expect(shouldEmitRampsTransactionConfirmed(RampsOrderStatus.Pending)).toBe(
+      true,
+    );
     expect(
       shouldEmitRampsTransactionConfirmed(RampsOrderStatus.Completed),
     ).toBe(true);
@@ -42,7 +44,7 @@ describe('shouldEmitRampsTransactionConfirmed', () => {
 
 describe('buildRampsTransactionConfirmedPayload', () => {
   it('builds the unified buy payload with ramp_type UNIFIED_BUY_2', () => {
-    const payload = buildRampsTransactionConfirmedPayload(baseOrder, {
+    const payload = buildRampsTransactionConfirmedPayload(makeRampsOrder(), {
       rampType: 'UNIFIED_BUY_2',
       region: 'US',
     });
@@ -68,10 +70,10 @@ describe('buildRampsTransactionConfirmedPayload', () => {
   });
 
   it('includes ramp_surface for headless flows', () => {
-    const payload = buildRampsTransactionConfirmedPayload(baseOrder, {
+    const payload = buildRampsTransactionConfirmedPayload(makeRampsOrder(), {
       rampType: 'HEADLESS',
       region: 'GB',
-      rampSurface: 'MONEY_ACCOUNT',
+      rampSurface: 'money_account',
     });
 
     expect(payload.ramp_type).toBe('HEADLESS');

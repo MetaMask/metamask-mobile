@@ -42,6 +42,7 @@ import {
   buildRampsTransactionConfirmedPayload,
   shouldEmitRampsTransactionConfirmed,
 } from '../../utils/buildRampsTransactionConfirmedPayload';
+import useRampAnalytics from '../../hooks/useAnalytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
@@ -89,6 +90,7 @@ const OrderDetails = () => {
   const { colors } = theme;
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackRampEvent = useRampAnalytics();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasFetchedFromCallback = useRef(false);
@@ -119,15 +121,12 @@ const OrderDetails = () => {
         addOrder(fetchedOrder);
 
         if (shouldEmitRampsTransactionConfirmed(fetchedOrder.status)) {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_TRANSACTION_CONFIRMED)
-              .addProperties(
-                buildRampsTransactionConfirmedPayload(fetchedOrder, {
-                  rampType: 'UNIFIED_BUY_2',
-                  region: fetchedOrder.region ?? '',
-                }),
-              )
-              .build(),
+          trackRampEvent(
+            'RAMPS_TRANSACTION_CONFIRMED',
+            buildRampsTransactionConfirmedPayload(fetchedOrder, {
+              rampType: 'UNIFIED_BUY_2',
+              region: fetchedOrder.region ?? '',
+            }),
           );
         }
 
@@ -168,7 +167,13 @@ const OrderDetails = () => {
         setIsLoading(false);
       }
     },
-    [getOrderFromCallback, addOrder, navigation, params.cryptocurrency, trackEvent, createEventBuilder],
+    [
+      getOrderFromCallback,
+      addOrder,
+      navigation,
+      params.cryptocurrency,
+      trackRampEvent,
+    ],
   );
 
   const handleHeaderBack = useCallback(() => {

@@ -1,11 +1,5 @@
-import {
-  type RampsOrder,
-  RampsOrderStatus,
-} from '@metamask/ramps-controller';
-import type {
-  AnalyticsEvents,
-  RampSurface,
-} from '../types/depositAnalytics';
+import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
+import type { AnalyticsEvents, RampSurface } from '../types/depositAnalytics';
 
 type RampsTransactionConfirmedRampType =
   AnalyticsEvents['RAMPS_TRANSACTION_CONFIRMED']['ramp_type'];
@@ -18,8 +12,7 @@ export function shouldEmitRampsTransactionConfirmed(
   status: RampsOrder['status'],
 ): boolean {
   return (
-    status !== RampsOrderStatus.Failed &&
-    status !== RampsOrderStatus.IdExpired
+    status !== RampsOrderStatus.Failed && status !== RampsOrderStatus.IdExpired
   );
 }
 

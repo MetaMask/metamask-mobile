@@ -13,7 +13,10 @@ import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
-import { normalizeProviderCode, RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  normalizeProviderCode,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -32,6 +35,7 @@ import {
   buildRampsTransactionConfirmedPayload,
   shouldEmitRampsTransactionConfirmed,
 } from '../../utils/buildRampsTransactionConfirmedPayload';
+import useRampAnalytics from '../../hooks/useAnalytics';
 import {
   BottomSheet,
   HeaderStandard,
@@ -108,6 +112,7 @@ const Checkout = () => {
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackRampEvent = useRampAnalytics();
   const { userRegion } = useRampsUserRegion();
   const {
     url: uri,
@@ -442,16 +447,13 @@ const Checkout = () => {
           ) {
             emitTerminalOrderAnalyticsFromCallback(rampsOrder);
           } else if (shouldEmitRampsTransactionConfirmed(rampsOrder.status)) {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.RAMPS_TRANSACTION_CONFIRMED)
-                .addProperties(
-                  buildRampsTransactionConfirmedPayload(rampsOrder, {
-                    rampType: 'HEADLESS',
-                    region: regionCode ?? '',
-                    rampSurface: headlessRampSurface,
-                  }),
-                )
-                .build(),
+            trackRampEvent(
+              'RAMPS_TRANSACTION_CONFIRMED',
+              buildRampsTransactionConfirmedPayload(rampsOrder, {
+                rampType: 'HEADLESS',
+                region: regionCode ?? '',
+                rampSurface: headlessRampSurface,
+              }),
             );
             emitTerminalOrderAnalyticsFromCallback(rampsOrder);
           }
@@ -525,6 +527,7 @@ const Checkout = () => {
       headlessBaseOverrides,
       headlessRampSurface,
       regionCode,
+      trackRampEvent,
     ],
   );
 

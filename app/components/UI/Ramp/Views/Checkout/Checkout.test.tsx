@@ -33,6 +33,13 @@ jest.mock('../../hooks/useRampsOrders', () => ({
   useRampsOrders: jest.fn(),
 }));
 
+const mockTrackRampEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => ({
+  __esModule: true,
+  default: () => mockTrackRampEvent,
+  trackEvent: mockTrackRampEvent,
+}));
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
@@ -748,16 +755,14 @@ describe('Checkout', () => {
       });
 
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.RAMPS_TRANSACTION_CONFIRMED,
+        expect(mockTrackRampEvent).toHaveBeenCalledWith(
+          'RAMPS_TRANSACTION_CONFIRMED',
+          expect.objectContaining({
+            ramp_type: 'HEADLESS',
+            ramp_surface: 'money_account',
+          }),
         );
       });
-      expect(mockAddProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-        }),
-      );
     });
 
     it('still adds the order to Redux and dispatches protect-wallet when headless', async () => {
