@@ -7,7 +7,12 @@ export const completeExistingUserQrSyncImport = async (
   navigation: AppNavigationProp,
   mnemonic: string,
 ): Promise<void> => {
-  await importNewSecretRecoveryPhrase(mnemonic);
-  Engine.context.QrSyncController.resetState();
-  navigation.navigate(Routes.WALLET_VIEW);
+  try {
+    await importNewSecretRecoveryPhrase(mnemonic);
+    Engine.context.QrSyncController.resetState();
+    navigation.navigate(Routes.WALLET_VIEW);
+  } catch (error) {
+    Engine.context.QrSyncController.resetState();
+    throw error;
+  }
 };

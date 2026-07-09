@@ -1,8 +1,8 @@
 import SDKConnectV2 from '../../../core/SDKConnectV2';
+import { parseQrSyncConnectionRequest } from '../../../core/QrSync/services/qr-sync-validation';
 import {
   extractAddDeviceQrSessionExpiresAt,
   tryDecodeAddDeviceQrPayloadFromMwpDeeplink,
-  tryParseAddDeviceQrMwpDeeplink,
 } from '../../../core/ExtensionAccountSync/parseAddDeviceQrMwpDeeplink';
 
 export enum AddDeviceScannerUiState {
@@ -29,17 +29,18 @@ export function classifyAddDeviceScanContent(
     return 'invalid';
   }
 
-  if (tryParseAddDeviceQrMwpDeeplink(content)) {
+  try {
+    parseQrSyncConnectionRequest(content);
     return 'valid';
-  }
-
-  const payload = tryDecodeAddDeviceQrPayloadFromMwpDeeplink(content);
-  if (payload) {
-    const expiresAt = extractAddDeviceQrSessionExpiresAt(payload);
-    if (typeof expiresAt === 'number' && expiresAt <= Date.now()) {
-      return 'expired';
+  } catch {
+    const payload = tryDecodeAddDeviceQrPayloadFromMwpDeeplink(content);
+    if (payload) {
+      const expiresAt = extractAddDeviceQrSessionExpiresAt(payload);
+      if (typeof expiresAt === 'number' && expiresAt <= Date.now()) {
+        return 'expired';
+      }
     }
-  }
 
-  return 'invalid';
+    return 'invalid';
+  }
 }

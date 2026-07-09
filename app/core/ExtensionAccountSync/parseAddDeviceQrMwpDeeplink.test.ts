@@ -58,4 +58,13 @@ describe('parseAddDeviceQrMwpDeeplink', () => {
   it('returns null when p is missing', () => {
     expect(tryParseAddDeviceQrMwpDeeplink('metamask://connect/mwp')).toBeNull();
   });
+
+  it('rejects trusted mode session requests', () => {
+    const deeplink = buildAddDeviceQrDeeplink({
+      ...validSessionRequest(),
+      mode: 'trusted',
+    });
+
+    expect(tryParseAddDeviceQrMwpDeeplink(deeplink)).toBeNull();
+  });
 });

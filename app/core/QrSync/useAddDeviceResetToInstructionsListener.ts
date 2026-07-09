@@ -10,6 +10,8 @@ interface UseAddDeviceResetToInstructionsListenerOptions {
   navigation?: AppNavigationProp;
   shouldGoBack?: boolean;
   onReset?: () => void;
+  /** Used when `shouldGoBack` is true but the stack cannot go back. */
+  onNavigateBack?: () => void;
 }
 
 /**
@@ -21,6 +23,7 @@ export const useAddDeviceResetToInstructionsListener = ({
   navigation,
   shouldGoBack = false,
   onReset,
+  onNavigateBack,
 }: UseAddDeviceResetToInstructionsListenerOptions = {}): void => {
   useEffect(() => {
     if (!enabled) {
@@ -33,12 +36,19 @@ export const useAddDeviceResetToInstructionsListener = ({
         onReset?.();
         Engine.context.QrSyncController.resetState();
 
-        if (shouldGoBack && navigation?.canGoBack()) {
-          navigation.goBack();
+        if (!shouldGoBack) {
+          return;
         }
+
+        if (navigation?.canGoBack()) {
+          navigation.goBack();
+          return;
+        }
+
+        onNavigateBack?.();
       },
     );
 
     return () => subscription.remove();
-  }, [enabled, navigation, onReset, shouldGoBack]);
+  }, [enabled, navigation, onNavigateBack, onReset, shouldGoBack]);
 };

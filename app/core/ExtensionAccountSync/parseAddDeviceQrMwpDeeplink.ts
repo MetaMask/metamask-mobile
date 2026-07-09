@@ -1,12 +1,6 @@
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 
-import { isUUID } from '../SDKConnect/utils/isUUID';
-
-const HANDSHAKE_CHANNEL_REGEX =
-  /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const isRecord = (data: unknown): data is Record<string, unknown> =>
-  typeof data === 'object' && data !== null && !Array.isArray(data);
+import { isQrSyncSessionRequest } from '../QrSync/services/qr-sync-validation';
 
 /**
  * Add Device QR format (aligned with extension QR sync):
@@ -15,66 +9,7 @@ const isRecord = (data: unknown): data is Record<string, unknown> =>
  * The `p` query param is base64(JSON), where JSON is either a bare
  * `SessionRequest` or `{ sessionRequest: SessionRequest }`.
  */
-export const isAddDeviceQrSessionRequest = (
-  data: unknown,
-): data is SessionRequest => {
-  if (!isRecord(data)) {
-    return false;
-  }
-
-  const sessionRequest = data as Partial<SessionRequest>;
-
-  if (
-    !sessionRequest.id ||
-    typeof sessionRequest.id !== 'string' ||
-    !isUUID(sessionRequest.id)
-  ) {
-    return false;
-  }
-
-  if (
-    !sessionRequest.publicKeyB64 ||
-    typeof sessionRequest.publicKeyB64 !== 'string' ||
-    sessionRequest.publicKeyB64.length > 200
-  ) {
-    return false;
-  }
-
-  try {
-    const decoded = Buffer.from(sessionRequest.publicKeyB64, 'base64');
-    if (decoded.length !== 33) {
-      return false;
-    }
-  } catch {
-    return false;
-  }
-
-  if (
-    !sessionRequest.channel ||
-    typeof sessionRequest.channel !== 'string' ||
-    !HANDSHAKE_CHANNEL_REGEX.test(sessionRequest.channel)
-  ) {
-    return false;
-  }
-
-  if (
-    !sessionRequest.mode ||
-    typeof sessionRequest.mode !== 'string' ||
-    !['trusted', 'untrusted'].includes(sessionRequest.mode)
-  ) {
-    return false;
-  }
-
-  if (
-    typeof sessionRequest.expiresAt !== 'number' ||
-    Number.isNaN(sessionRequest.expiresAt) ||
-    sessionRequest.expiresAt < Date.now()
-  ) {
-    return false;
-  }
-
-  return true;
-};
+export const isAddDeviceQrSessionRequest = isQrSyncSessionRequest;
 
 export const extractAddDeviceQrSessionRequest = (
   data: unknown,
@@ -83,12 +18,19 @@ export const extractAddDeviceQrSessionRequest = (
     return data;
   }
 
-  if (!isRecord(data) || !('sessionRequest' in data)) {
+  if (
+    !data ||
+    typeof data !== 'object' ||
+    Array.isArray(data) ||
+    !('sessionRequest' in data)
+  ) {
     return null;
   }
 
-  return isAddDeviceQrSessionRequest(data.sessionRequest)
-    ? data.sessionRequest
+  return isAddDeviceQrSessionRequest(
+    (data as { sessionRequest: unknown }).sessionRequest,
+  )
+    ? (data as { sessionRequest: SessionRequest }).sessionRequest
     : null;
 };
 
@@ -100,16 +42,25 @@ export const extractAddDeviceQrSessionExpiresAt = (
     return sessionRequest.expiresAt;
   }
 
-  if (!isRecord(data)) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return null;
   }
 
-  if (typeof data.expiresAt === 'number' && !Number.isNaN(data.expiresAt)) {
-    return data.expiresAt;
+  if (typeof (data as { expiresAt?: unknown }).expiresAt === 'number') {
+    const expiresAt = (data as { expiresAt: number }).expiresAt;
+    if (!Number.isNaN(expiresAt)) {
+      return expiresAt;
+    }
   }
 
-  if (isRecord(data.sessionRequest)) {
-    const expiresAt = data.sessionRequest.expiresAt;
+  if (
+    'sessionRequest' in data &&
+    data.sessionRequest &&
+    typeof data.sessionRequest === 'object' &&
+    !Array.isArray(data.sessionRequest)
+  ) {
+    const expiresAt = (data.sessionRequest as { expiresAt?: unknown })
+      .expiresAt;
     if (typeof expiresAt === 'number' && !Number.isNaN(expiresAt)) {
       return expiresAt;
     }

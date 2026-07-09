@@ -98,6 +98,7 @@ import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 import Routes from '../../../constants/navigation/Routes';
 import {
   clearNativeStackNavigatorOptions,
+  addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
   fadeNativeOptions,
@@ -1131,7 +1132,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
         component={VerificationCodeBottomSheet}
-        options={transparentModalScreenOptions}
+        options={addDeviceVerificationCodeScreenOptions}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}

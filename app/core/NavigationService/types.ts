@@ -635,7 +635,6 @@ export type RootStackParamList = {
   UnsupportedRegionModal: undefined;
   MultichainTransactionDetails: MultichainTransactionDetailsParams | undefined;
   TransactionDetailsSheet: TransactionDetailsSheetParams | undefined;
-  AddDeviceVerificationCode: undefined;
 
   // Multichain account details sheet routes
   MultichainAccountActions: MultichainAccountActionsParams | undefined;

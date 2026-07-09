@@ -173,6 +173,9 @@ const QRTabSwitcher = () => {
     navigation,
     shouldGoBack: true,
     onReset: resetExtensionCancelSheetState,
+    onNavigateBack: () => {
+      navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+    },
   });
 
   // QR scanner displays camera view for scanning codes

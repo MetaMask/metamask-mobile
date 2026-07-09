@@ -8,6 +8,7 @@ import {
   selectQrSyncShouldNavigateToImport,
 } from '../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../NavigationService/types';
+import Engine from '../Engine';
 import { completeExistingUserQrSyncImport } from './completeExistingUserQrSyncImport';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import Logger from '../../util/Logger';
@@ -54,6 +55,7 @@ export const useQrSyncImportNavigation = ({
       completeExistingUserQrSyncImport(navigation, qrSyncMnemonic).catch(
         (error: unknown) => {
           hasHandledImportNavigationRef.current = false;
+          Engine.context.QrSyncController.resetState();
           Logger.error(
             error as Error,
             'useQrSyncImportNavigation: existing-user import failed',

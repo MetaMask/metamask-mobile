@@ -173,14 +173,14 @@ describe('AddDeviceToWallet', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('cancels the QR sync session when back is pressed during an active session', () => {
+    it('resets QR sync state when back is pressed during an active session', () => {
       const { getByTestId } = renderComponent({
         phase: QrSyncPhases.DISPLAYING_OTP,
       });
 
       fireEvent.press(getByTestId('button-icon'));
 
-      expect(mockCancelSession).toHaveBeenCalledTimes(1);
+      expect(mockResetState).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });

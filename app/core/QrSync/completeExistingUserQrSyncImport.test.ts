@@ -42,4 +42,17 @@ describe('completeExistingUserQrSyncImport', () => {
     expect(mockResetState).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
+
+  it('resets QR sync state when import fails', async () => {
+    mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(
+      new Error('import failed'),
+    );
+
+    await expect(
+      completeExistingUserQrSyncImport(mockNavigation, 'test mnemonic'),
+    ).rejects.toThrow('import failed');
+
+    expect(mockResetState).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
 });

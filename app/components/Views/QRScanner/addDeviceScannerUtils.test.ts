@@ -59,9 +59,12 @@ describe('classifyAddDeviceScanContent', () => {
     ).toBe('invalid');
   });
 
-  it('returns invalid when MWP payload parsing throws', () => {
-    expect(classifyAddDeviceScanContent('metamask://connect/mwp')).toBe(
-      'invalid',
-    );
+  it('returns invalid for trusted-mode session requests', () => {
+    const deeplink = buildAddDeviceQrDeeplink({
+      ...validSessionRequest(),
+      mode: 'trusted',
+    });
+
+    expect(classifyAddDeviceScanContent(deeplink)).toBe('invalid');
   });
 });

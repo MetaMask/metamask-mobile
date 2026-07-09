@@ -106,7 +106,6 @@ import {
   selectQrSyncImportMnemonic,
   selectQrSyncPrimaryMnemonic,
 } from '../../../selectors/qrSyncController';
-import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -127,8 +126,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
   const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
   const qrSyncImportMnemonic = useSelector(selectQrSyncImportMnemonic);
-  const completedOnboarding = useSelector(selectCompletedOnboarding);
-  const isExistingUserQrSyncImport = isQrSyncImport && completedOnboarding;
   const qrSyncMnemonic = qrSyncImportMnemonic ?? qrSyncPrimaryMnemonic;
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
@@ -374,37 +371,6 @@ const ImportFromSecretRecoveryPhrase = ({
       }
       return [...prev, index];
     });
-  };
-
-  const onPressExistingUserQrSyncImport = async () => {
-    if (!validateSeedPhrase()) {
-      return;
-    }
-
-    const phrase = seedPhrase
-      .map((item) => item.trim())
-      .filter((item) => item !== '')
-      .join(SPACE_CHAR);
-
-    if (loading) {
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await importNewSecretRecoveryPhrase(phrase);
-      Engine.context.QrSyncController.resetState();
-      fetchAccountsWithActivity();
-      navigation.navigate(Routes.WALLET_VIEW);
-    } catch (importError) {
-      Alert.alert(
-        strings('import_new_secret_recovery_phrase.error_title'),
-        strings('import_new_secret_recovery_phrase.error_message'),
-      );
-    } finally {
-      setLoading(false);
-    }
   };
 
   const onPressImport = async () => {
@@ -703,56 +669,7 @@ const ImportFromSecretRecoveryPhrase = ({
             </>
           )}
 
-          {currentStep === 1 && isExistingUserQrSyncImport && (
-            <Box twClassName="gap-y-4 flex-grow">
-              <Box twClassName="gap-y-1">
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('import_from_seed.title')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings(
-                    'import_from_seed.enter_your_secret_recovery_phrase',
-                  )}
-                </Text>
-              </Box>
-
-              <SrpInputGrid
-                ref={srpInputGridRef}
-                seedPhrase={seedPhrase}
-                onSeedPhraseChange={setSeedPhrase}
-                onError={setError}
-                externalError={error}
-                testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
-              />
-
-              <SafeAreaView
-                edges={['bottom']}
-                style={tw.style(
-                  'w-full gap-y-4 mt-auto',
-                  Platform.OS === 'android' ? 'mb-6' : 'mb-4',
-                )}
-              >
-                <Button
-                  isLoading={loading}
-                  isFullWidth
-                  variant={ButtonVariant.Primary}
-                  onPress={onPressExistingUserQrSyncImport}
-                  size={ButtonSize.Lg}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                >
-                  {strings('import_from_seed.continue')}
-                </Button>
-              </SafeAreaView>
-            </Box>
-          )}
-
-          {currentStep === 1 && !isExistingUserQrSyncImport && (
+          {currentStep === 1 && (
             <Box twClassName="gap-y-4 flex-grow">
               <Box twClassName="gap-y-1">
                 <Text

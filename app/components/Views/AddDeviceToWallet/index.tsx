@@ -79,12 +79,9 @@ const AddDeviceToWallet = () => {
   const error = useSelector(selectQrSyncError);
 
   const handleBack = useCallback(() => {
-    if (isSessionActive) {
-      Engine.context.QrSyncController.cancelSession();
-    }
-
+    Engine.context.QrSyncController.resetState();
     navigation.goBack();
-  }, [isSessionActive, navigation]);
+  }, [navigation]);
 
   const showVerificationSheet = useCallback(() => {
     showAddDeviceVerificationSheet(navigation);
