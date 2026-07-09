@@ -98,9 +98,15 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   // will change the status for the rest of this app session.
   const dismissedRef = useRef(false);
 
-  // Once a banner has been accepted and shown, lock it in for this session so
-  // subsequent bannerCardsUpdated events don't swap its content.
-  const shownRef = useRef(false);
+  // Track the currently rendered tracking ID so repeated SDK events for the
+  // same banner do not trigger state updates, while a different banner can
+  // replace a warm-cache banner after Braze refreshes.
+  const currentBannerTrackingIdRef = useRef<string | null>(null);
+
+  // Avoid inserting a new banner long after the home screen has settled. The
+  // window closes with the no-response timeout; already-visible banners may
+  // still be replaced without changing the reserved layout slot.
+  const initialBannerWindowOpenRef = useRef(true);
 
   // Timeout to stop showing the loading skeleton and render nothing if no banner is available.
   const noResponseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -120,7 +126,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
    */
   const handleBanner = useCallback(
     (candidate: Banner | null) => {
-      if (dismissedRef.current || shownRef.current) return;
+      if (dismissedRef.current) return;
 
       // null means no cached/available banner — stay in loading state and
       // wait for a bannerCardsUpdated event or the skeleton timeout.
@@ -134,6 +140,15 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       }
 
       if (candidate.isControl || candidate.placementId !== placementId) {
+        if (currentBannerTrackingIdRef.current !== null) {
+          logBrazeBannerDebug(
+            'Ignoring control or mismatched placement banner while visible',
+            placementId,
+            candidate,
+          );
+          return;
+        }
+
         logBrazeBannerDebug(
           'Ignoring control or mismatched placement banner',
           placementId,
@@ -141,6 +156,8 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         );
         // Control-group assignment or no banner for this placement.
         clearNoResponseTimeout();
+        currentBannerTrackingIdRef.current = null;
+        setBanner(null);
         setStatus('empty');
         return;
       }
@@ -169,13 +186,34 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         return;
       }
 
+      if (
+        currentBannerTrackingIdRef.current === null &&
+        !initialBannerWindowOpenRef.current
+      ) {
+        logBrazeBannerDebug(
+          'Ignoring late initial banner after startup window',
+          placementId,
+          candidate,
+        );
+        return;
+      }
+
+      if (candidate.trackingId === currentBannerTrackingIdRef.current) {
+        logBrazeBannerDebug(
+          'Ignoring duplicate banner tracking ID',
+          placementId,
+          candidate,
+        );
+        return;
+      }
+
       logBrazeBannerDebug(
         'Accepting banner for display',
         placementId,
         candidate,
       );
       clearNoResponseTimeout();
-      shownRef.current = true;
+      currentBannerTrackingIdRef.current = candidate.trackingId;
 
       setBanner(candidate);
       setStatus('visible');
@@ -201,7 +239,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     const subscription = Braze.addListener(
       'bannerCardsUpdated',
       (event: { banners: Banner[] }) => {
-        if (dismissedRef.current || shownRef.current) return;
+        if (dismissedRef.current) return;
 
         const match = event.banners.find(
           (b) =>
@@ -225,7 +263,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     );
 
     // Refresh the SDK's banner cache when the app returns to the foreground so
-    // that stale cached banners are replaced without changing the visible UI.
+    // stale warm-cache content can be replaced when Braze returns a new banner.
     const appStateSubscription = AppState.addEventListener(
       'change',
       (nextState) => {
@@ -239,6 +277,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     // within the window, stop showing the loading skeleton and render nothing.
     noResponseTimeoutRef.current = setTimeout(() => {
       if (!dismissedRef.current) {
+        initialBannerWindowOpenRef.current = false;
         setStatus((prev) => (prev === 'loading' ? 'empty' : prev));
       }
     }, SKELETON_TIMEOUT_MS);
@@ -248,8 +287,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       appStateSubscription.remove();
       clearNoResponseTimeout();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placementId]);
+  }, [placementId, dispatch, handleBanner, clearNoResponseTimeout]);
 
   const bannerName = banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null;
   const deeplink = banner ? getRawStringProp(banner, PROP_DEEPLINK) : null;

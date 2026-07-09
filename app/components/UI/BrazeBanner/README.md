@@ -22,14 +22,16 @@ The Braze placement ID this banner should render for. Must match the placement c
 
 The banner moves through four states managed by `useBrazeBanner`:
 
-| State       | UI                                | Transition                                                    |
-| ----------- | --------------------------------- | ------------------------------------------------------------- |
-| `loading`   | Nothing rendered (see note below) | → `visible` when a valid banner arrives; → `empty` on timeout |
-| `visible`   | BrazeBannerCard rendered          | → `dismissed` when user taps the close button                 |
-| `empty`     | Nothing rendered                  | Terminal                                                      |
-| `dismissed` | Nothing rendered                  | Terminal for the session                                      |
+| State       | UI                                | Transition                                                                              |
+| ----------- | --------------------------------- | --------------------------------------------------------------------------------------- |
+| `loading`   | Nothing rendered (see note below) | → `visible` when a valid banner arrives during the startup window; → `empty` on timeout |
+| `visible`   | BrazeBannerCard rendered          | → `dismissed` when user taps the close button                                           |
+| `empty`     | Nothing rendered                  | Terminal                                                                                |
+| `dismissed` | Nothing rendered                  | Terminal for the session                                                                |
 
 > **Why no loading skeleton?** At mount time it is unknown whether the current user has a banner assigned. Showing a skeleton and then removing it — with nothing taking its place — is not ideal. The component renders nothing during `loading` and the banner only appears if a valid banner arrives.
+
+Late first-time banners are ignored after the startup window closes so the home screen does not jump by inserting a new block after the user has started interacting. If a banner is already visible from the warm cache or an early event, a later banner with a different `trackingId` may still replace it in the same reserved slot.
 
 ### Why a banner transitions to `empty`
 
@@ -53,7 +55,7 @@ Tapping the close button always hides the banner immediately for the current ses
 
 ## Deduplication
 
-The Braze SDK may fire multiple `bannerCardsUpdated` events for a single server update. `useBrazeBanner` deduplicates via the banner's `trackingId` — state only updates when a genuinely new banner arrives.
+The Braze SDK may fire multiple `bannerCardsUpdated` events for a single server update. `useBrazeBanner` deduplicates by the banner's `trackingId` — repeated events for the same banner are ignored, while a different banner can replace a warm-cache banner after a refresh.
 
 ## Usage
 
