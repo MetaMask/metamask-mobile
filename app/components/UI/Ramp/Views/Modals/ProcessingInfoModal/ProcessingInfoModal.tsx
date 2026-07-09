@@ -96,10 +96,7 @@ function ProcessingInfoModal() {
   ]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{

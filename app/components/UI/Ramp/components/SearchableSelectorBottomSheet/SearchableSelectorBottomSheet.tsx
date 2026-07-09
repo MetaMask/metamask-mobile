@@ -95,10 +95,7 @@ function SearchableSelectorBottomSheet<T>({
   );
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         title={title}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
