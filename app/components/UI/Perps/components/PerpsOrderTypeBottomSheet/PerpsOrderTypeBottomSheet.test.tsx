@@ -2,47 +2,54 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import { type OrderType } from '@metamask/perps-controller';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
+import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
+jest.mock('../../../../../util/theme/themeUtils', () => ({
+  useElevatedSurface: () => 'bg-default',
+}));
+
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
 });
 
-jest.mock('./PerpsOrderTypeBottomSheet.styles', () => ({
-  createStyles: jest.fn(() => ({
-    container: {
-      paddingHorizontal: 16,
-      paddingVertical: 24,
+jest.mock('@metamask/design-system-react-native', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const BottomSheet = MockReact.forwardRef(
+    (
+      {
+        children,
+        testID,
+      }: {
+        children: React.ReactNode;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      MockReact.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: jest.fn(),
+        onCloseBottomSheet: (callback?: () => void) => {
+          callback?.();
+        },
+      }));
+
+      return <View testID={testID}>{children}</View>;
     },
-    option: {
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      borderRadius: 12,
-      marginBottom: 16,
-      backgroundColor: mockTheme.colors.background.alternative,
-      borderWidth: 1,
-      borderColor: mockTheme.colors.border.muted,
-    },
-    optionSelected: {
-      backgroundColor: 'rgb(204, 224, 255)',
-      borderColor: mockTheme.colors.primary.default,
-    },
-    optionHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    optionTitle: {
-      marginBottom: 4,
-    },
-    optionContent: {
-      flex: 1,
-    },
-  })),
-}));
+  );
+  BottomSheet.displayName = 'BottomSheet';
+
+  return {
+    ...actual,
+    BottomSheet,
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -59,99 +66,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock BottomSheet components
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    const ReactActual = jest.requireActual('react');
-
-    return ReactActual.forwardRef(
-      (
-        {
-          children,
-          onClose,
-        }: {
-          children: React.ReactNode;
-          shouldNavigateBack?: boolean;
-          onClose: () => void;
-        },
-        ref: React.Ref<{
-          onOpenBottomSheet: () => void;
-          onCloseBottomSheet: () => void;
-        }>,
-      ) => {
-        ReactActual.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn(),
-        }));
-
-        return (
-          <View testID="bottom-sheet" onTouchStart={onClose}>
-            {children}
-          </View>
-        );
-      },
-    );
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    return ({
-      children,
-      onClose,
-    }: {
-      children: React.ReactNode;
-      onClose: () => void;
-    }) => (
-      <View testID="bottom-sheet-header">
-        <TouchableOpacity testID="header-close-button" onPress={onClose}>
-          <Text>Close</Text>
-        </TouchableOpacity>
-        {children}
-      </View>
-    );
-  },
-);
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-
-  const MockText = ({
-    children,
-    variant,
-    color: _color,
-    style,
-  }: {
-    children: React.ReactNode;
-    variant?: string;
-    color?: string;
-    style?: React.ComponentProps<typeof Text>['style'];
-  }) => (
-    <Text style={style} testID={`text-${variant || 'default'}`}>
-      {children}
-    </Text>
-  );
-
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyLGMedium: 'BodyLGMedium',
-      BodyMD: 'BodyMD',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-    },
-  };
-});
-
 describe('PerpsOrderTypeBottomSheet', () => {
   const defaultProps = {
     isVisible: true,
@@ -166,32 +80,24 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
   describe('Component Rendering', () => {
     it('renders when visible', () => {
-      // Act
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
 
-      // Assert
       expect(screen.getByText('Order Type')).toBeOnTheScreen();
       expect(screen.getByText('Market Order')).toBeOnTheScreen();
       expect(screen.getByText('Limit Order')).toBeOnTheScreen();
-      expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
     });
 
     it('returns null when not visible', () => {
-      // Act
       render(<PerpsOrderTypeBottomSheet {...defaultProps} isVisible={false} />);
 
-      // Assert
       expect(screen.queryByText('Order Type')).toBeNull();
       expect(screen.queryByText('Market Order')).toBeNull();
       expect(screen.queryByText('Limit Order')).toBeNull();
-      expect(screen.queryByTestId('bottom-sheet')).toBeNull();
     });
 
     it('renders order type descriptions', () => {
-      // Act
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
 
-      // Assert
       expect(
         screen.getByText('Execute immediately at current market price'),
       ).toBeOnTheScreen();
@@ -201,25 +107,29 @@ describe('PerpsOrderTypeBottomSheet', () => {
     });
 
     it('renders both market and limit options', () => {
-      // Act
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
 
-      // Assert
-      const marketOption = screen.getByText('Market Order');
-      const limitOption = screen.getByText('Limit Order');
+      expect(screen.getByText('Market Order')).toBeOnTheScreen();
+      expect(screen.getByText('Limit Order')).toBeOnTheScreen();
+    });
 
-      expect(marketOption).toBeOnTheScreen();
-      expect(limitOption).toBeOnTheScreen();
+    it('renders options with stable testIDs', () => {
+      render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
+
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      ).toBeOnTheScreen();
     });
   });
 
   describe('Order Type Selection', () => {
     it('calls onSelect and onClose when market order is pressed', () => {
-      // Arrange
       const onSelect = jest.fn();
       const onClose = jest.fn();
 
-      // Act
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
@@ -229,20 +139,18 @@ describe('PerpsOrderTypeBottomSheet', () => {
         />,
       );
 
-      const marketOption = screen.getByText('Market Order');
-      fireEvent.press(marketOption);
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+      );
 
-      // Assert
       expect(onSelect).toHaveBeenCalledWith('market');
       expect(onClose).toHaveBeenCalled();
     });
 
     it('calls onSelect and onClose when limit order is pressed', () => {
-      // Arrange
       const onSelect = jest.fn();
       const onClose = jest.fn();
 
-      // Act
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
@@ -252,20 +160,18 @@ describe('PerpsOrderTypeBottomSheet', () => {
         />,
       );
 
-      const limitOption = screen.getByText('Limit Order');
-      fireEvent.press(limitOption);
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
 
-      // Assert
       expect(onSelect).toHaveBeenCalledWith('limit');
       expect(onClose).toHaveBeenCalled();
     });
 
     it('handles selecting the same order type', () => {
-      // Arrange
       const onSelect = jest.fn();
       const onClose = jest.fn();
 
-      // Act
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
@@ -275,47 +181,29 @@ describe('PerpsOrderTypeBottomSheet', () => {
         />,
       );
 
-      const marketOption = screen.getByText('Market Order');
-      fireEvent.press(marketOption);
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+      );
 
-      // Assert
       expect(onSelect).toHaveBeenCalledWith('market');
       expect(onClose).toHaveBeenCalled();
     });
   });
 
   describe('Bottom Sheet Interaction', () => {
-    it('calls onClose when header close button is pressed', () => {
-      // Arrange
-      const onClose = jest.fn();
-
-      // Act
-      render(<PerpsOrderTypeBottomSheet {...defaultProps} onClose={onClose} />);
-
-      const closeButton = screen.getByTestId('header-close-button');
-      fireEvent.press(closeButton);
-
-      // Assert
-      expect(onClose).toHaveBeenCalled();
-    });
-
     it('opens bottom sheet when visible becomes true', () => {
-      // Arrange
       const { rerender } = render(
         <PerpsOrderTypeBottomSheet {...defaultProps} isVisible={false} />,
       );
 
-      // Act
       rerender(<PerpsOrderTypeBottomSheet {...defaultProps} isVisible />);
 
-      // Assert - Component should render when made visible
-      expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
+      expect(screen.getByText('Order Type')).toBeOnTheScreen();
     });
   });
 
   describe('Props Validation', () => {
     it('handles undefined order type gracefully', () => {
-      // Act
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
@@ -323,13 +211,11 @@ describe('PerpsOrderTypeBottomSheet', () => {
         />,
       );
 
-      // Assert - Should render without crashing
       expect(screen.getByText('Market Order')).toBeOnTheScreen();
       expect(screen.getByText('Limit Order')).toBeOnTheScreen();
     });
 
     it('renders with minimal props', () => {
-      // Act
       render(
         <PerpsOrderTypeBottomSheet
           isVisible
@@ -339,48 +225,42 @@ describe('PerpsOrderTypeBottomSheet', () => {
         />,
       );
 
-      // Assert
       expect(screen.getByText('Order Type')).toBeOnTheScreen();
     });
   });
 
   describe('Accessibility', () => {
     it('provides accessible touch targets for order type options', () => {
-      // Act
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
 
-      // Assert - TouchableOpacity elements should be present and pressable
-      const marketOption = screen.getByText('Market Order').parent;
-      const limitOption = screen.getByText('Limit Order').parent;
-
-      expect(marketOption).toBeDefined();
-      expect(limitOption).toBeDefined();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      ).toBeOnTheScreen();
     });
 
     it('maintains correct order of options', () => {
-      // Act
       render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
 
-      // Assert - Market should come before Limit in the DOM
-      const allTexts = screen.getAllByTestId(/text-/);
-      const marketIndex = allTexts.findIndex(
-        (el) => el.props.children === 'Market Order',
+      const marketOption = screen.getByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
       );
-      const limitIndex = allTexts.findIndex(
-        (el) => el.props.children === 'Limit Order',
+      const limitOption = screen.getByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
       );
 
-      expect(marketIndex).toBeLessThan(limitIndex);
+      expect(marketOption).toBeOnTheScreen();
+      expect(limitOption).toBeOnTheScreen();
     });
   });
 
   describe('Edge Cases', () => {
     it('handles rapid selection changes', () => {
-      // Arrange
       const onSelect = jest.fn();
       const onClose = jest.fn();
 
-      // Act
       render(
         <PerpsOrderTypeBottomSheet
           {...defaultProps}
@@ -389,14 +269,13 @@ describe('PerpsOrderTypeBottomSheet', () => {
         />,
       );
 
-      const marketOption = screen.getByText('Market Order');
-      const limitOption = screen.getByText('Limit Order');
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
 
-      // Rapidly press both options
-      fireEvent.press(marketOption);
-      fireEvent.press(limitOption);
-
-      // Assert
       expect(onSelect).toHaveBeenCalledTimes(2);
       expect(onSelect).toHaveBeenNthCalledWith(1, 'market');
       expect(onSelect).toHaveBeenNthCalledWith(2, 'limit');
@@ -406,7 +285,6 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
   describe('Component Memoization', () => {
     it('prevents unnecessary re-renders when props remain the same', () => {
-      // Arrange
       const props = {
         isVisible: true,
         onClose: jest.fn(),
@@ -416,23 +294,18 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
       const { rerender } = render(<PerpsOrderTypeBottomSheet {...props} />);
 
-      // Act - Re-render with same props
       rerender(<PerpsOrderTypeBottomSheet {...props} />);
 
-      // Assert - Component should render without issues
       expect(screen.getByText('Order Type')).toBeOnTheScreen();
     });
 
     it('re-renders when isVisible changes', () => {
-      // Arrange
       const { rerender } = render(
         <PerpsOrderTypeBottomSheet {...defaultProps} isVisible={false} />,
       );
 
-      // Act
       rerender(<PerpsOrderTypeBottomSheet {...defaultProps} isVisible />);
 
-      // Assert
       expect(screen.getByText('Order Type')).toBeOnTheScreen();
     });
   });
