@@ -323,6 +323,22 @@ const unstakeItem: ActivityListItem = {
   },
 } as ActivityListItem;
 
+const stakeItem: ActivityListItem = {
+  type: 'stake',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xstake',
+  data: {
+    token: {
+      amount: '1000000000000000000',
+      decimals: 18,
+      symbol: 'ETH',
+      direction: 'out',
+    },
+  },
+} as ActivityListItem;
+
 const smartAccountUpgradeItem: ActivityListItem = {
   type: 'smartAccountUpgrade',
   chainId: 'eip155:1',
@@ -433,6 +449,7 @@ describe('TemplateLoader', () => {
     ['contract interaction', contractItem],
     ['claim mUSD bonus', claimMusdBonusItem],
     ['earn/staking deposit', depositItem],
+    ['earn/staking stake', stakeItem],
     ['earn/staking claim', claimItem],
     ['earn/staking unstake', unstakeItem],
   ])('renders the %s details template', (_type, item) => {

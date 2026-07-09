@@ -487,6 +487,7 @@ describe('PerpsHomeView', () => {
     stocksMarkets: [],
     commoditiesMarkets: [],
     forexMarkets: [],
+    recentlyAddedMarkets: [],
     hasMarkets: false,
     recentActivity: [],
     sortBy: 'name',
