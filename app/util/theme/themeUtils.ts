@@ -27,17 +27,6 @@ export const getElevatedSurfaceColor = (theme: Theme): string => {
     : theme.colors.background.default;
 };
 
-export const getElevatedSurfaceBorderStyle = (theme: Theme) => {
-  if (!isPureBlackTheme(theme)) {
-    return {};
-  }
-
-  return {
-    borderWidth: 1,
-    borderColor: theme.colors.border.muted,
-  };
-};
-
 export const useElevatedSurface = () => {
   const { themeAppearance } = useTheme();
   if (!isPureBlackEnabled) return 'bg-default';

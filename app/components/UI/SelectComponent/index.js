@@ -14,8 +14,8 @@ import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
-  getElevatedSurfaceBorderStyle,
   getElevatedSurfaceColor,
+  isPureBlackTheme,
 } from '../../../util/theme/themeUtils';
 import PickerBase from '../../../component-library/components/Pickers/PickerBase';
 import {
@@ -55,7 +55,8 @@ export const createStyles = (theme) => {
       alignItems: 'center',
       borderRadius: 10,
       maxHeight: Device.getDeviceHeight() - 120, // Subtract top and bottom padding
-      ...getElevatedSurfaceBorderStyle(theme),
+      borderWidth: isPureBlackTheme(theme) ? 1 : 0,
+      borderColor: isPureBlackTheme(theme) ? colors.border.muted : undefined,
     },
     list: {
       width: '100%',

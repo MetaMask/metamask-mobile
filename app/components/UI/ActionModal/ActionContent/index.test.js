@@ -34,7 +34,7 @@ describe('ActionContent styles', () => {
     expect(styles.viewContainer.backgroundColor).toBe(
       theme.colors.background.default,
     );
-    expect(styles.viewContainer.borderWidth).toBeUndefined();
+    expect(styles.viewContainer.borderWidth).toBe(0);
     expect(styles.viewContainer.borderColor).toBeUndefined();
   });
 
@@ -58,7 +58,7 @@ describe('ActionContent styles', () => {
     expect(styles.viewContainer.backgroundColor).toBe(
       theme.colors.background.default,
     );
-    expect(styles.viewContainer.borderWidth).toBeUndefined();
+    expect(styles.viewContainer.borderWidth).toBe(0);
     expect(styles.viewContainer.borderColor).toBeUndefined();
   });
 });

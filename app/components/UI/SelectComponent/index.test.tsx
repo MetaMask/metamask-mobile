@@ -65,7 +65,7 @@ describe('SelectComponent styles', () => {
     expect(styles.modalView.backgroundColor).toBe(
       theme.colors.background.default,
     );
-    expect(styles.modalView.borderWidth).toBeUndefined();
+    expect(styles.modalView.borderWidth).toBe(0);
     expect(styles.modalView.borderColor).toBeUndefined();
   });
 
@@ -89,7 +89,7 @@ describe('SelectComponent styles', () => {
     expect(styles.modalView.backgroundColor).toBe(
       theme.colors.background.default,
     );
-    expect(styles.modalView.borderWidth).toBeUndefined();
+    expect(styles.modalView.borderWidth).toBe(0);
     expect(styles.modalView.borderColor).toBeUndefined();
   });
 });

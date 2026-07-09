@@ -5,8 +5,8 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
-  getElevatedSurfaceBorderStyle,
   getElevatedSurfaceColor,
+  isPureBlackTheme,
 } from '../../../../util/theme/themeUtils';
 
 export const createStyles = (theme) =>
@@ -21,7 +21,10 @@ export const createStyles = (theme) =>
       width: '100%',
       backgroundColor: getElevatedSurfaceColor(theme),
       borderRadius: 10,
-      ...getElevatedSurfaceBorderStyle(theme),
+      borderWidth: isPureBlackTheme(theme) ? 1 : 0,
+      borderColor: isPureBlackTheme(theme)
+        ? theme.colors.border.muted
+        : undefined,
     },
     actionHorizontalContainer: {
       flexDirection: 'row',

@@ -13,7 +13,6 @@ jest.mock('./pureBlackPreview', () => ({
 }));
 
 import {
-  getElevatedSurfaceBorderStyle,
   getElevatedSurfaceColor,
   isPureBlackEnabled,
   isPureBlackTheme,
@@ -68,35 +67,6 @@ describe('isPureBlackTheme', () => {
     const theme = createTheme(AppThemeKey.light);
 
     expect(isPureBlackTheme(theme)).toBe(false);
-  });
-});
-
-describe('getElevatedSurfaceBorderStyle', () => {
-  beforeEach(() => {
-    mockIsPureBlackEnabled = false;
-  });
-
-  it('returns an empty object when pure black preview is off', () => {
-    const theme = createTheme(AppThemeKey.dark);
-
-    expect(getElevatedSurfaceBorderStyle(theme)).toEqual({});
-  });
-
-  it('returns muted border styles for dark mode when pure black preview is on', () => {
-    mockIsPureBlackEnabled = true;
-    const theme = createTheme(AppThemeKey.dark);
-
-    expect(getElevatedSurfaceBorderStyle(theme)).toEqual({
-      borderWidth: 1,
-      borderColor: theme.colors.border.muted,
-    });
-  });
-
-  it('returns an empty object for light mode when pure black preview is on', () => {
-    mockIsPureBlackEnabled = true;
-    const theme = createTheme(AppThemeKey.light);
-
-    expect(getElevatedSurfaceBorderStyle(theme)).toEqual({});
   });
 });
 
