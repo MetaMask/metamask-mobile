@@ -178,6 +178,47 @@ describe('usePerpsOrderExecution', () => {
       );
     });
 
+    it('does not end immediately when only TP/SL changed during limit submit', async () => {
+      jest.useFakeTimers();
+      try {
+        mockGetPositionsSnapshot
+          .mockReturnValueOnce([
+            {
+              ...mockPosition,
+              takeProfitPrice: '70000',
+            },
+          ])
+          .mockReturnValue([{ ...mockPosition, takeProfitPrice: '71000' }]);
+        mockGetOrdersSnapshot.mockReturnValue([]);
+        mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'lim1' });
+
+        const { result } = renderHook(() => usePerpsOrderExecution());
+
+        await act(async () => {
+          await result.current.placeOrder({
+            ...mockOrderParams,
+            orderType: 'limit',
+            price: '10000',
+          });
+        });
+
+        expect(mockEndTrace).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceLimitOrderToOrderRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
+          }),
+        );
+
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('ends the order-render span when the resting order renders in the stream', async () => {
       jest.useFakeTimers();
       try {

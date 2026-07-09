@@ -281,6 +281,25 @@ describe('perpsCufTrace', () => {
     ).resolves.toBeNull();
   });
 
+  it('does not resolve when only TP/SL changes versus the baseline', async () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceOrderToPositionRendered,
+    });
+    armPerpsPlaceOrderCuf(opId, 'BTC', {
+      symbol: 'BTC',
+      size: '0.01',
+      takeProfitPrice: '70000',
+    });
+
+    handlePerpsCufPositionsDelivered([
+      { symbol: 'BTC', size: '0.01', takeProfitPrice: '71000' },
+    ]);
+
+    await expect(
+      waitForPerpsPlaceOrderPositionRendered(5, opId),
+    ).resolves.toBeNull();
+  });
+
   it('resolves when the armed position changes versus the baseline (add to position)', async () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceOrderToPositionRendered,
@@ -506,6 +525,23 @@ describe('perpsCufTrace', () => {
         }),
       }),
     );
+  });
+
+  it('limit-order-render span does NOT end on a TP/SL-only position update', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
+    });
+    watchPerpsCufLimitRendered(opId, 'o-9', 'BTC', {
+      symbol: 'BTC',
+      size: '0.01',
+      takeProfitPrice: '70000',
+    });
+
+    handlePerpsCufPositionsDelivered([
+      { symbol: 'BTC', size: '0.01', takeProfitPrice: '71000' },
+    ]);
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
   });
 
   it('limit-order-render span ends when a marketable limit fills into a position', () => {

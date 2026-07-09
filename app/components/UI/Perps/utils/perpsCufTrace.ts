@@ -56,9 +56,9 @@ export interface PerpsCufPositionLike {
   stopLossPrice?: string;
 }
 
-/** Full render snapshot (size + TP/SL) used for the place-order fill matcher. */
+/** Position-size snapshot used for order-fill matchers; TP/SL-only updates do not fill. */
 function positionSnapshot(position: PerpsCufPositionLike): string {
-  return `${position.size}|${position.takeProfitPrice ?? ''}|${position.stopLossPrice ?? ''}`;
+  return position.size;
 }
 
 /** TP/SL-only snapshot: a size change must not end a TP/SL confirmation. */

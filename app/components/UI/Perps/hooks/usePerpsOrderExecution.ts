@@ -50,19 +50,11 @@ interface UsePerpsOrderExecutionReturn {
 }
 
 type PerpsOrderTrackingValue = string | number | boolean;
-type PerpsOrderPositionSnapshot = Pick<
-  Position,
-  'size' | 'takeProfitPrice' | 'stopLossPrice'
->;
+type PerpsOrderPositionSnapshot = Pick<Position, 'size'>;
 
 const getPerpsOrderPositionSnapshot = (
   position?: PerpsOrderPositionSnapshot | null,
-) =>
-  position
-    ? `${position.size}|${position.takeProfitPrice ?? ''}|${
-        position.stopLossPrice ?? ''
-      }`
-    : undefined;
+) => (position ? position.size : undefined);
 
 /**
  * Hook to handle order execution flow
