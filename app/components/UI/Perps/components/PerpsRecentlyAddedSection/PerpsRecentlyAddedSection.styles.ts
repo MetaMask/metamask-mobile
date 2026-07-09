@@ -9,6 +9,7 @@ const styleSheet = (params: { theme: Theme }) => {
     scrollContent: {
       paddingHorizontal: 16,
       paddingBottom: 4,
+      paddingTop: 8,
       gap: 12,
     },
     tile: {
