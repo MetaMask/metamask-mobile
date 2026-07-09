@@ -230,6 +230,7 @@ const TraderProfileView = () => {
         source: 'trader_profile',
         traderAddress: traderAddress || profile?.profile.address || '',
         traderUsername: profile?.profile.name,
+        traderAvatarUri: profile?.profile.imageUrl,
         // Rank only meaningful when arriving from a ranked surface; omit on
         // trader_profile to keep schema clean.
       });
