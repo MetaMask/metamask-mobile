@@ -9,7 +9,6 @@ import {
 import {
   __resetStateForTests,
   getRealtimeCallbacks,
-  setInHotReloadPreResetPhase,
   setOhlcvData,
   setOhlcvPagination,
   setRnBackedPagination,
@@ -173,22 +172,6 @@ describe('customDatafeed', () => {
     expect(requestOlderBarsFromRN).toHaveBeenCalledWith(
       expect.objectContaining({ resolution: '5' }),
     );
-  });
-
-  it('getBars returns noData during hot-reload pre-reset phase on firstDataRequest', () => {
-    setOhlcvData([
-      { time: 100_000, open: 1, high: 1, low: 1, close: 1, volume: 0 },
-    ]);
-    setInHotReloadPreResetPhase(true);
-    const onResult = jest.fn();
-    customDatafeed.getBars(
-      stubSymbolInfo,
-      '5' as TVResolution,
-      periodParams({ from: 90, to: 200, firstDataRequest: true }),
-      onResult,
-      jest.fn(),
-    );
-    expect(onResult).toHaveBeenCalledWith([], { noData: true });
   });
 
   it('getBars returns noData when neither pagination source is available', () => {
