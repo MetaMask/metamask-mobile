@@ -62,6 +62,7 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
+  selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
@@ -164,6 +165,9 @@ const PerpsHomeView = ({
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isProductsEnabled = useSelector(selectPerpsProductsEnabledFlag);
   const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
+  const isRecentlyAddedEnabled = useSelector(
+    selectPerpsRecentlyAddedEnabledFlag,
+  );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   // Mirrors PerpsProducts' own visibility check (enabled + has categories).
   const productCategories = usePerpsCategories();
@@ -299,6 +303,11 @@ const PerpsHomeView = ({
     isLoading,
   } = usePerpsHomeData({});
 
+  // Independently gates the section from the Terminal backend flag that
+  // supplies `listedAt` data, so it can be hidden even when that data flows.
+  const isRecentlyAddedVisible =
+    isRecentlyAddedEnabled && recentlyAddedMarkets.length > 0;
+
   // Mirrors PerpsWatchlistMarkets V1/V2 gating: suggestions only count toward
   // section visibility when the redesigned watchlist flag is on.
   const isWatchlistVisible =
@@ -397,8 +406,8 @@ const PerpsHomeView = ({
     if (isTopMoversVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
     // Recently Added self-hides when there are no markets listed in the last
-    // 30 days; no loading skeleton, so gate purely on data length.
-    if (recentlyAddedMarkets.length > 0) sections.push('recently_added');
+    // 30 days, or when the feature flag is off.
+    if (isRecentlyAddedVisible) sections.push('recently_added');
     // Explore category lists render a skeleton while markets load, then self-hide
     // when their own market array is empty.
     if (isLoading.markets || perpsMarkets.length > 0)
@@ -422,7 +431,7 @@ const PerpsHomeView = ({
     isProductsEnabled,
     productCategories,
     isTopMoversVisible,
-    recentlyAddedMarkets,
+    isRecentlyAddedVisible,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,
@@ -752,9 +761,9 @@ const PerpsHomeView = ({
       {
         key: 'recently-added',
         // Mirrors PerpsRecentlyAddedSection's own render gate (markets.length
-        // === 0 -> null) so PerpsHomeSectionList does not render an orphan
-        // divider for an empty rail.
-        visible: recentlyAddedMarkets.length > 0,
+        // === 0 -> null) plus the feature flag, so PerpsHomeSectionList does
+        // not render an orphan divider for an empty/disabled rail.
+        visible: isRecentlyAddedVisible,
         onLayout: handleSectionLayout('recently_added'),
         content: (
           <PerpsRecentlyAddedSection
@@ -874,6 +883,7 @@ const PerpsHomeView = ({
       isProductsEnabled,
       productCategories.length,
       isTopMoversVisible,
+      isRecentlyAddedVisible,
       recentlyAddedMarkets,
       handleRecentlyAddedMarketPress,
       perpsMarkets,
