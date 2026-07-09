@@ -13,13 +13,11 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-
-/** Collateral asset shown in the market pair subtitle (e.g. ETH-USD). */
-const PERPS_COLLATERAL_SYMBOL = 'USD';
 
 export interface PerpsMarketInlineHeaderProps {
   market: PerpsMarketData;

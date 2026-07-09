@@ -751,7 +751,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
         PERPS_EVENT_VALUE.BUTTON_CLICKED.MARKET_LIST,
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS,
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
     });
 
@@ -1332,7 +1332,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           iconName={IconName.Expand}
           size={ButtonIconSize.Md}
           onPress={handleFullscreenChartOpen}
-          testID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`}
+          testID={PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON}
           accessibilityLabel={strings('perps.market_details.fullscreen_chart')}
         />
       </Box>

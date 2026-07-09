@@ -2949,7 +2949,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Press fullscreen button
       const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 
@@ -2973,7 +2973,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Open the modal first
       const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 
@@ -3006,7 +3006,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Open the modal
       const fullscreenButton = getByTestId(
-        'perps-market-header-fullscreen-button',
+        PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
       );
       fireEvent.press(fullscreenButton);
 
@@ -3071,9 +3071,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       fireEvent.press(
-        getByTestId(
-          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
-        ),
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON),
       );
 
       await waitFor(() => {
@@ -3097,7 +3095,7 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Market list shortcut', () => {
-    it('navigates to market list without filters when the market list chevron is pressed', () => {
+    it('navigates to market list without filters when the market list button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -3115,6 +3113,41 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigateToMarketList).toHaveBeenCalledWith({
         source: 'perp_asset_screen',
       });
+    });
+
+    it('tracks the market list button click with the correct analytics values', () => {
+      const mockTrack = jest.fn();
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.MARKET_LIST,
+          [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+            PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        }),
+      );
     });
   });
 

@@ -19,6 +19,12 @@ import {
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
   '0x0000000000000000000000000000000000000000' as Hex;
 
+/**
+ * Collateral asset shown in market pair labels (e.g. `ETH-USD perp`).
+ * Perps markets are USD-margined, so this is the display quote across the UI.
+ */
+export const PERPS_COLLATERAL_SYMBOL = 'USD';
+
 /** Chain id used for the "Perps balance" payment option. */
 export { ARBITRUM_MAINNET_CHAIN_ID_HEX as PERPS_BALANCE_CHAIN_ID } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import {
