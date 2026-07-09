@@ -62,7 +62,7 @@ export function getTransactionControllerInstanceOptions({
   initMessenger,
 }: GetTransactionControllerInstanceOptionsRequest): TransactionControllerInstanceOptions {
   const transactionController = getTransactionController(initMessenger);
-  
+
   return {
     disableSwaps: true,
     hooks: getTransactionControllerHooks({
