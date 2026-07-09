@@ -140,12 +140,6 @@ export const AgenticCliApprovalService = {
       params;
 
     const url = resolveApprovalPageUrl();
-    const origin = `${url.protocol}//${url.host}`;
-    const expectedOrigin = getApprovalHost();
-
-    if (origin !== expectedOrigin && !isOriginAllowed(origin)) {
-      throw new Error('Approval page origin is not allowed');
-    }
 
     if (projectId) url.searchParams.set('projectId', projectId);
     if (approvalId) url.searchParams.set('approvalId', approvalId);
