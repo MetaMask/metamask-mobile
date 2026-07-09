@@ -119,6 +119,7 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'nftMint',
     'nftSell',
     'deposit',
+    'stake',
     'claim',
     'unstake',
     'lendingDeposit',

@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -18,7 +17,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
@@ -70,13 +68,11 @@ const MoneyPotentialEarnings = ({
   onHeaderPress,
   onInfoPress,
 }: MoneyPotentialEarningsProps) => {
-  const currentCurrency = useSelector(selectCurrentCurrency);
-
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
   // the visible five would contradict that affordance.
-  const { eligibleTokens, totalAssetsFiat, projectedAmount } =
+  const { eligibleTokens, totalAssetsFiat, projectedAmount, currency } =
     useProjectedEarnings(tokens, apyDecimal);
   const visibleTokens = useMemo(
     () => eligibleTokens.slice(0, VISIBLE_TOKENS_COUNT),
@@ -102,6 +98,21 @@ const MoneyPotentialEarnings = ({
     return null;
   }
 
+  const infoIcon = onInfoPress ? (
+    <>
+      {' '}
+      <Text twClassName="align-middle">
+        <Icon
+          testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+          onPress={onInfoPress}
+        />
+      </Text>
+    </>
+  ) : null;
+
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
@@ -123,7 +134,7 @@ const MoneyPotentialEarnings = ({
               {
                 total: moneyFormatFiat(
                   new BigNumber(totalAssetsFiat),
-                  currentCurrency,
+                  currency,
                 ),
               },
             )} `}
@@ -132,24 +143,12 @@ const MoneyPotentialEarnings = ({
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
             >
-              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
             </Text>
             {` ${strings(
               'money.potential_earnings.description_with_amounts_suffix',
             )}`}
-            {onInfoPress && (
-              <>
-                {' '}
-                <Icon
-                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  style={{ transform: [{ translateY: 3 }] }}
-                  onPress={onInfoPress}
-                />
-              </>
-            )}
+            {infoIcon}
           </Text>
         ) : (
           <Text
@@ -158,19 +157,7 @@ const MoneyPotentialEarnings = ({
             color={TextColor.TextAlternative}
           >
             {strings('money.potential_earnings.description')}
-            {onInfoPress && (
-              <>
-                {' '}
-                <Icon
-                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-                  onPress={onInfoPress}
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  style={{ transform: [{ translateY: 3 }] }}
-                />
-              </>
-            )}
+            {infoIcon}
           </Text>
         )}
       </Box>
