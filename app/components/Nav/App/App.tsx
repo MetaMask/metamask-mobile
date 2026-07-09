@@ -173,6 +173,7 @@ import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDeta
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
+import DesignerModeOverlay from '../../UI/DesignerMode';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1398,6 +1399,8 @@ const App: React.FC = () => {
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
+        {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
+        <DesignerModeOverlay />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>
   );
