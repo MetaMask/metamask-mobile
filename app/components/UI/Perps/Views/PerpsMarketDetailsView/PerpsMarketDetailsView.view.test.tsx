@@ -528,7 +528,7 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders header price when market has no maxLeverage', async () => {
+    it('renders the market summary price when the market has no maxLeverage', async () => {
       renderPerpsMarketDetailsView({
         initialParams: {
           market: {
@@ -565,11 +565,16 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
+      const marketSummary = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.MARKET_SUMMARY,
+      );
       expect(
-        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+        within(marketSummary).getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
       ).toBeOnTheScreen();
       expect(
-        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE),
+        within(marketSummary).getByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE,
+        ),
       ).toBeOnTheScreen();
     });
 
