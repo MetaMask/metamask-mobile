@@ -13,7 +13,7 @@ import { TraceName } from '../../../../util/trace';
 import {
   startPerpsCufTrace,
   endPerpsCufTrace,
-  endPerpsCufTraceAfter,
+  endPerpsCufRequestAfter,
   watchPerpsCufPositionClosed,
   acceptPerpsCufRequest,
 } from '../utils/perpsCufTrace';
@@ -76,19 +76,15 @@ export const usePerpsClosePosition = (
       // position reduced or absent. Limit closes rest until filled, so their
       // confirmation is not a render-latency measurement.
       let closeCufOpId: string | undefined;
+      let controllerSettled = false;
       if (orderType === 'market') {
         closeCufOpId = startPerpsCufTrace({
           name: TraceName.PerpsClosePositionToConfirmation,
         });
         watchPerpsCufPositionClosed(closeCufOpId, position);
-        endPerpsCufTraceAfter(
-          {
-            id: closeCufOpId,
-            data: {
-              [PERPS_CUF_TAG.SUCCESS]: false,
-              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
-            },
-          },
+        endPerpsCufRequestAfter(
+          closeCufOpId,
+          () => controllerSettled,
           PERPS_CUF_STREAM_TIMEOUT_MS,
         );
       }
@@ -168,6 +164,8 @@ export const usePerpsClosePosition = (
           // Pass live position to avoid getPositions() API call (prevents 429 rate limiting)
           position,
         });
+
+        controllerSettled = true;
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 

@@ -472,7 +472,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const tradePageCufTags = useMemo(() => buildPerpsCufStartTags(), []);
   usePerpsMeasurement({
     traceName: TraceName.PerpsTradePageRender,
-    conditions: [isDataReady, !!currentPrice, !!account],
+    // The funded/unfunded endData reads account.totalBalance, so gate on account
+    // freshness (!isLoadingAccount), not just presence — a present-but-stale
+    // account would otherwise misclassify a funded user as unfunded.
+    conditions: [isDataReady, !!currentPrice, !!account, !isLoadingAccount],
     tags: tradePageCufTags,
     endData: {
       [PERPS_CUF_TAG.VARIANT]:

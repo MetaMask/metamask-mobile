@@ -15,7 +15,7 @@ import { TraceName } from '../../../../util/trace';
 import {
   startPerpsCufTrace,
   endPerpsCufTrace,
-  endPerpsCufTraceAfter,
+  endPerpsCufRequestAfter,
   watchPerpsCufTpSlChanged,
   acceptPerpsCufRequest,
 } from '../utils/perpsCufTrace';
@@ -60,14 +60,10 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         name: TraceName.PerpsUpdateTPSLToConfirmation,
       });
       watchPerpsCufTpSlChanged(tpslCufOpId, position);
-      endPerpsCufTraceAfter(
-        {
-          id: tpslCufOpId,
-          data: {
-            [PERPS_CUF_TAG.SUCCESS]: false,
-            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
-          },
-        },
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        tpslCufOpId,
+        () => controllerSettled,
         PERPS_CUF_STREAM_TIMEOUT_MS,
       );
 
@@ -79,6 +75,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           trackingData,
           position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
         });
+        controllerSettled = true;
 
         if (result.success) {
           // Controller accepted the update: open the gate before the optimistic

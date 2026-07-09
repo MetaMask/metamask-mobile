@@ -39,7 +39,7 @@ import { TraceName } from '../../../../util/trace';
 import {
   startPerpsCufTrace,
   endPerpsCufTrace,
-  endPerpsCufTraceAfter,
+  endPerpsCufRequestAfter,
   watchPerpsCufOrderAbsent,
   acceptPerpsCufRequest,
 } from '../utils/perpsCufTrace';
@@ -84,18 +84,15 @@ export function usePerpsTrading() {
         name: TraceName.PerpsCancelOrderToConfirmation,
       });
       watchPerpsCufOrderAbsent(cancelCufOpId, params.orderId);
-      endPerpsCufTraceAfter(
-        {
-          id: cancelCufOpId,
-          data: {
-            [PERPS_CUF_TAG.SUCCESS]: false,
-            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
-          },
-        },
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        cancelCufOpId,
+        () => controllerSettled,
         PERPS_CUF_STREAM_TIMEOUT_MS,
       );
       try {
         const result = await controller.cancelOrder(params);
+        controllerSettled = true;
         if (!result?.success) {
           endPerpsCufTrace({
             id: cancelCufOpId,
