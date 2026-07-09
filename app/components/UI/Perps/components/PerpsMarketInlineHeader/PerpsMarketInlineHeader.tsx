@@ -28,19 +28,16 @@ export interface PerpsMarketInlineHeaderProps {
   onBackPress?: () => void;
   onMorePress?: () => void;
   onFavoritePress?: () => void;
-  onFullscreenPress?: () => void;
-  onCategorySearchPress?: () => void;
-  /** Opens the market list from the chevron next to the market name. */
+  /** Opens the market list from the arrow next to the market name. */
   onMarketListPress?: () => void;
   isFavorite?: boolean;
   testID?: string;
-  fullscreenButtonTestID?: string;
   endAccessory?: ReactNode;
   /**
    * When true, renders the redesigned market-detail identity:
-   * full asset name + leverage pill + chevron on the first row and the
-   * `[Ticker]-[collateral] perp` pair on the second row. Price/24h change are
-   * expected to be rendered below the header by the parent.
+   * full asset name + leverage pill + market-list arrow on the first row and
+   * the `[Ticker]-[collateral] perp` pair on the second row. Price/24h change
+   * are expected to be rendered below the header by the parent.
    */
   showAssetName?: boolean;
 }
@@ -51,12 +48,9 @@ export const PerpsMarketInlineHeader = ({
   onBackPress,
   onMorePress,
   onFavoritePress,
-  onFullscreenPress,
-  onCategorySearchPress,
   onMarketListPress,
   isFavorite = false,
   testID,
-  fullscreenButtonTestID,
   endAccessory,
   showAssetName = false,
 }: PerpsMarketInlineHeaderProps) => {
@@ -69,10 +63,10 @@ export const PerpsMarketInlineHeader = ({
   const titleEndAccessory = useMemo(() => {
     const hasLeverage = Boolean(market.maxLeverage);
 
-    // Chevron is only relevant in the redesigned market-detail layout.
-    const showChevron = showAssetName && Boolean(onMarketListPress);
+    // The market-list arrow is only relevant in the redesigned layout.
+    const showMarketListButton = showAssetName && Boolean(onMarketListPress);
 
-    if (!hasLeverage && !showChevron) {
+    if (!hasLeverage && !showMarketListButton) {
       return undefined;
     }
 
@@ -85,7 +79,7 @@ export const PerpsMarketInlineHeader = ({
         {hasLeverage ? (
           <PerpsLeverage maxLeverage={market.maxLeverage} />
         ) : null}
-        {showChevron ? (
+        {showMarketListButton ? (
           <ButtonIcon
             iconName={IconName.ArrowDown}
             size={ButtonIconSize.Sm}
@@ -113,7 +107,6 @@ export const PerpsMarketInlineHeader = ({
         symbol={market.symbol}
         testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
         testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-        throttleMs={1000}
         currentPrice={currentPrice}
       />
     );
@@ -121,17 +114,6 @@ export const PerpsMarketInlineHeader = ({
 
   const endButtonIconProps = useMemo(() => {
     const buttons = [];
-
-    if (onFullscreenPress) {
-      buttons.push({
-        iconName: IconName.Expand,
-        onPress: onFullscreenPress,
-        testID:
-          fullscreenButtonTestID ??
-          `${testID ?? 'perps-market-header'}-fullscreen-button`,
-        accessibilityLabel: strings('perps.market_details.fullscreen_chart'),
-      });
-    }
 
     if (onFavoritePress) {
       buttons.push({
@@ -147,25 +129,8 @@ export const PerpsMarketInlineHeader = ({
       });
     }
 
-    if (onCategorySearchPress) {
-      buttons.push({
-        iconName: IconName.Search,
-        onPress: onCategorySearchPress,
-        testID: PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON,
-        accessibilityLabel: strings('perps.market_details.category_search'),
-      });
-    }
-
     return buttons.length > 0 ? buttons : undefined;
-  }, [
-    onFullscreenPress,
-    fullscreenButtonTestID,
-    testID,
-    onFavoritePress,
-    isFavorite,
-    onMorePress,
-    onCategorySearchPress,
-  ]);
+  }, [onFavoritePress, isFavorite, onMorePress]);
 
   return (
     <HeaderSubpage

@@ -3108,12 +3108,12 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       const marketListButton = getByTestId(
-        'perps-market-header-market-list-button',
+        PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON,
       );
       fireEvent.press(marketListButton);
 
       expect(mockNavigateToMarketList).toHaveBeenCalledWith({
-        source: 'magnifying_glass',
+        source: 'perp_asset_screen',
       });
     });
   });

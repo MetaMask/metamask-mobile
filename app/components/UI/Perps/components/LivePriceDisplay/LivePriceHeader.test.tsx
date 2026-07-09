@@ -2,7 +2,10 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import LivePriceHeader from './LivePriceHeader';
 import { PriceUpdate, usePerpsLivePrices } from '../../hooks/stream';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(),
@@ -246,6 +249,56 @@ describe('LivePriceHeader', () => {
       );
       expect(changeText).toBeDefined();
       expect(changeText?.props.color).toBe('Success');
+    });
+  });
+
+  describe('size variant', () => {
+    beforeEach(() => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: {
+          symbol: 'ETH',
+          price: '3000',
+          percentChange24h: '5.5',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+    });
+
+    it('renders the compact (default) variant', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} />,
+      );
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const priceText = textElements.find(
+        (el) => el.props.children === '$3,000',
+      );
+      const changeText = textElements.find(
+        (el) => el.props.children === '+5.50%',
+      );
+
+      expect(priceText?.props.variant).toBe(TextVariant.BodySM);
+      expect(priceText?.props.color).toBe(TextColor.Alternative);
+      expect(changeText?.props.variant).toBe(TextVariant.BodySM);
+    });
+
+    it('renders a prominent price for the large variant', () => {
+      const { UNSAFE_getAllByType } = render(
+        <LivePriceHeader symbol="ETH" currentPrice={3000} size="large" />,
+      );
+
+      const textElements = UNSAFE_getAllByType(Text);
+      const priceText = textElements.find(
+        (el) => el.props.children === '$3,000',
+      );
+      const changeText = textElements.find(
+        (el) => el.props.children === '+5.50%',
+      );
+
+      expect(priceText?.props.variant).toBe(TextVariant.HeadingLG);
+      expect(priceText?.props.color).toBe(TextColor.Default);
+      expect(changeText?.props.variant).toBe(TextVariant.BodyMDMedium);
     });
   });
 

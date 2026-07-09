@@ -742,21 +742,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   }, [market, isWatchlist, track, showToast, PerpsToastOptions]);
 
-  const handleCategorySearchPress = useCallback(() => {
+  const handleMarketListPress = useCallback(() => {
     if (!market) return;
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
       [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.MARKET_LIST,
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS,
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
     });
 
     navigateToMarketList({
-      source: PERPS_EVENT_VALUE.SOURCE.MAGNIFYING_GLASS,
+      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     });
   }, [market, track, navigateToMarketList]);
 
@@ -1307,7 +1307,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         currentPrice={syncedChartCurrentPrice}
         onBackPress={handleBackPress}
         onFavoritePress={handleWatchlistPress}
-        onMarketListPress={handleCategorySearchPress}
+        onMarketListPress={handleMarketListPress}
         isFavorite={isWatchlist}
         showAssetName
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
@@ -1325,7 +1325,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           symbol={market.symbol}
           testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
           testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-          throttleMs={1000}
           currentPrice={syncedChartCurrentPrice}
           size="large"
         />
