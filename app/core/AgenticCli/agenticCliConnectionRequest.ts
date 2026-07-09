@@ -5,9 +5,14 @@ import {
 
 export interface AgenticCliConnectionType {
   name: 'agentic-cli';
+  /** When omitted, agentic-cli MWP flows default to login. */
+  operationType?: string;
   dashboardUrl?: string;
   dashboardAuthUrl?: string;
 }
+
+export const isAgenticCliLoginOperation = (operationType?: string): boolean =>
+  !operationType || operationType === 'login';
 
 export interface AgenticCliConnectionRequest extends ConnectionRequest {
   connectionType: AgenticCliConnectionType;

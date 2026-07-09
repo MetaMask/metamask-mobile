@@ -376,7 +376,7 @@ describe('ConnectionRegistry', () => {
           relayURL: RELAY_URL,
           keymanager: mockKeyManager,
           hostapp: mockHostApp,
-          hasConnection: expect.any(Function),
+          getConnection: expect.any(Function),
           cleanupConnection: expect.any(Function),
         }),
         agenticCliRequest,

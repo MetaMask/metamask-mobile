@@ -9,6 +9,7 @@ import { Connection } from '../SDKConnectV2/services/connection';
 import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
 import { sendAuthTokenToClient } from './sendAuthToken';
 import {
+  AGENTIC_CLI_MWP_CONNECTION_WAIT_MS,
   ENGINE_READY_POLL_MS,
   getCliDashboardTokenUrl,
   getDashboardWebviewUrl,
@@ -52,6 +53,37 @@ const fetchCliDashboardAccessToken = async (
 
   return data.access_token;
 };
+
+export async function waitForMwpClientConnected(
+  conn: Connection,
+  timeoutMs = AGENTIC_CLI_MWP_CONNECTION_WAIT_MS,
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+
+    const timeoutId = setTimeout(() => {
+      finish(() => {
+        reject(new Error('Timed out waiting for Agentic CLI MWP connection'));
+      });
+    }, timeoutMs);
+
+    function finish(action: () => void): void {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      conn.client.off('connected', onConnected);
+      clearTimeout(timeoutId);
+      action();
+    }
+
+    function onConnected(): void {
+      finish(resolve);
+    }
+
+    conn.client.on('connected', onConnected);
+  });
+}
 
 export async function waitForKeyringUnlock(): Promise<void> {
   while (true) {

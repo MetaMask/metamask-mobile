@@ -6,6 +6,8 @@ export const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
 
 export const ENGINE_READY_POLL_MS = 250;
 
+export const AGENTIC_CLI_MWP_CONNECTION_WAIT_MS = 60_000;
+
 export const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<string, string> = {
   main_dev: 'https://develop-developer.metamask.io/agentic/login',
   main_uat: 'https://staging-developer.metamask.io/agentic/login',

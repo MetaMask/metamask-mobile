@@ -21,17 +21,19 @@ import {
 import {
   type AgenticCliConnectionRequest,
   isAgenticCliConnectionRequest,
+  isAgenticCliLoginOperation,
 } from './agenticCliConnectionRequest';
 import {
   handleAgenticCliQrLogin,
   waitForKeyringUnlock,
+  waitForMwpClientConnected,
 } from './AgenticCliQrLoginService';
 
 export interface AgenticCliMwpConnectionDeps {
   relayURL: string;
   keymanager: IKeyManager;
   hostapp: IHostApplicationAdapter;
-  hasConnection: (id: string) => boolean;
+  getConnection: (id: string) => Connection | undefined;
   cleanupConnection: (conn: Connection) => Promise<void>;
 }
 
@@ -127,32 +129,44 @@ export async function handleAgenticCliConnectDeeplink(
       expiresAt: Date.now() + DEFAULT_SESSION_TTL,
     };
 
-    if (deps.hasConnection(connInfo.id)) {
+    const existingConnection = deps.getConnection(connInfo.id);
+
+    if (existingConnection) {
       logger.debug(
-        'Already have a connection with this id, skipping',
+        'Already have a connection with this id, reusing for agentic CLI login',
         redactUrl(url),
+      );
+      conn = existingConnection;
+      agenticCliStage = 'mwp-connect-existing';
+    } else {
+      deps.hostapp.showConnectionLoading(connInfo, {
+        autodismissMs: AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS,
+      });
+      agenticCliStage = 'create-mwp-connection';
+      conn = await Connection.create(
+        connInfo,
+        deps.keymanager,
+        deps.relayURL,
+        deps.hostapp,
+      );
+      wireAgenticCliClientEvents(conn);
+
+      agenticCliStage = 'mwp-connect';
+      const connectedPromise = waitForMwpClientConnected(conn);
+      await conn.connect({
+        ...connReq.sessionRequest,
+        mode: 'untrusted',
+      });
+      await connectedPromise;
+    }
+
+    if (!isAgenticCliLoginOperation(connReq.connectionType.operationType)) {
+      logger.debug(
+        'Agentic CLI connection established without login flow',
+        conn.id,
       );
       return;
     }
-
-    // --- Create MWP connection and connect (untrusted) ---
-    deps.hostapp.showConnectionLoading(connInfo, {
-      autodismissMs: AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS,
-    });
-    agenticCliStage = 'create-mwp-connection';
-    conn = await Connection.create(
-      connInfo,
-      deps.keymanager,
-      deps.relayURL,
-      deps.hostapp,
-    );
-    wireAgenticCliClientEvents(conn);
-
-    agenticCliStage = 'mwp-connect';
-    await conn.connect({
-      ...connReq.sessionRequest,
-      mode: 'untrusted',
-    });
 
     // --- QR login: Hydra → dashboard → WebView → auth token ---
     try {

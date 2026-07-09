@@ -1,5 +1,6 @@
 import {
   isAgenticCliConnectionRequest,
+  isAgenticCliLoginOperation,
   type AgenticCliConnectionRequest,
 } from './agenticCliConnectionRequest';
 
@@ -71,5 +72,19 @@ describe('isAgenticCliConnectionRequest', () => {
     delete (req as unknown as Record<string, unknown>).connectionType;
 
     expect(isAgenticCliConnectionRequest(req)).toBe(false);
+  });
+});
+
+describe('isAgenticCliLoginOperation', () => {
+  it('treats missing operationType as login', () => {
+    expect(isAgenticCliLoginOperation(undefined)).toBe(true);
+  });
+
+  it('treats login operationType as login', () => {
+    expect(isAgenticCliLoginOperation('login')).toBe(true);
+  });
+
+  it('rejects non-login operation types', () => {
+    expect(isAgenticCliLoginOperation('tx_approve')).toBe(false);
   });
 });
