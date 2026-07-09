@@ -17,9 +17,6 @@ export { isPureBlackEnabled };
 // Remove these helpers once the MMDS package ships its own pure-black-aware
 // surface tokens and the flag is enabled by default.
 
-export const isPureBlackTheme = (theme: Theme): boolean =>
-  isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
-
 export const getElevatedSurfaceColor = (theme: Theme): string => {
   if (!isPureBlackEnabled) return theme.colors.background.default;
   return theme.themeAppearance === AppThemeKey.dark

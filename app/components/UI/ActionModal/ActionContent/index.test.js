@@ -29,7 +29,7 @@ describe('ActionContent styles', () => {
 
   it('uses default background without pure black border', () => {
     const theme = createTheme(AppThemeKey.dark);
-    const styles = createStyles(theme);
+    const styles = createStyles(theme, false);
 
     expect(styles.viewContainer.backgroundColor).toBe(
       theme.colors.background.default,
@@ -41,7 +41,7 @@ describe('ActionContent styles', () => {
   it('uses alternative background and muted border in pure black dark mode', () => {
     mockIsPureBlackEnabled = true;
     const theme = createTheme(AppThemeKey.dark);
-    const styles = createStyles(theme);
+    const styles = createStyles(theme, true);
 
     expect(styles.viewContainer.backgroundColor).toBe(
       theme.colors.background.alternative,
@@ -53,7 +53,7 @@ describe('ActionContent styles', () => {
   it('keeps default background in pure black light mode', () => {
     mockIsPureBlackEnabled = true;
     const theme = createTheme(AppThemeKey.light);
-    const styles = createStyles(theme);
+    const styles = createStyles(theme, false);
 
     expect(styles.viewContainer.backgroundColor).toBe(
       theme.colors.background.default,

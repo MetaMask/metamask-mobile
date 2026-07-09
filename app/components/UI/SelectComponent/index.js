@@ -13,10 +13,9 @@ import Modal from 'react-native-modal';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackTheme,
-} from '../../../util/theme/themeUtils';
+import { AppThemeKey } from '../../../util/theme/models';
+import { isPureBlackEnabled } from '../../../util/theme/pureBlackPreview';
+import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 import PickerBase from '../../../component-library/components/Pickers/PickerBase';
 import {
   HeaderStandard,
@@ -55,8 +54,14 @@ export const createStyles = (theme) => {
       alignItems: 'center',
       borderRadius: 10,
       maxHeight: Device.getDeviceHeight() - 120, // Subtract top and bottom padding
-      borderWidth: isPureBlackTheme(theme) ? 1 : 0,
-      borderColor: isPureBlackTheme(theme) ? colors.border.muted : undefined,
+      borderWidth:
+        isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
+          ? 1
+          : 0,
+      borderColor:
+        isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
+          ? colors.border.muted
+          : undefined,
     },
     list: {
       width: '100%',

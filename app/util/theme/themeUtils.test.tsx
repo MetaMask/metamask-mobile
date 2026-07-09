@@ -15,7 +15,6 @@ jest.mock('./pureBlackPreview', () => ({
 import {
   getElevatedSurfaceColor,
   isPureBlackEnabled,
-  isPureBlackTheme,
   useElevatedSurface,
 } from './themeUtils';
 
@@ -41,32 +40,6 @@ const createWrapper =
 describe('isPureBlackEnabled re-export', () => {
   it('re-exports the pure black preview flag as a boolean', () => {
     expect(typeof isPureBlackEnabled).toBe('boolean');
-  });
-});
-
-describe('isPureBlackTheme', () => {
-  beforeEach(() => {
-    mockIsPureBlackEnabled = false;
-  });
-
-  it('returns false when pure black preview is off', () => {
-    const theme = createTheme(AppThemeKey.dark);
-
-    expect(isPureBlackTheme(theme)).toBe(false);
-  });
-
-  it('returns true for dark mode when pure black preview is on', () => {
-    mockIsPureBlackEnabled = true;
-    const theme = createTheme(AppThemeKey.dark);
-
-    expect(isPureBlackTheme(theme)).toBe(true);
-  });
-
-  it('returns false for light mode when pure black preview is on', () => {
-    mockIsPureBlackEnabled = true;
-    const theme = createTheme(AppThemeKey.light);
-
-    expect(isPureBlackTheme(theme)).toBe(false);
   });
 });
 
