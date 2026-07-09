@@ -1,26 +1,19 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
-  Box,
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  ListItem,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import styleSheet from './PerpsModifyActionSheet.styles';
 import type { ModifyAction } from './PerpsModifyActionSheet.types';
 import { type Position } from '@metamask/perps-controller';
 import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface ActionOption {
   action: ModifyAction;
@@ -46,11 +39,10 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
   sheetRef: externalSheetRef,
   testID = PerpsModifyActionSheetSelectorsIDs.SHEET,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const surfaceClass = useElevatedSurface();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
 
-  // Get direction labels for the position
   const isLong = position?.size ? parseFloat(position.size) > 0 : true;
   const direction = isLong
     ? strings('perps.order.long_label')
@@ -65,6 +57,10 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
       sheetRef.current?.onOpenBottomSheet();
     }
   }, [isVisible, externalSheetRef, sheetRef]);
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(onClose);
+  }, [onClose, sheetRef]);
 
   const actionOptions: ActionOption[] = [
     {
@@ -97,50 +93,38 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
   const handleActionPress = useCallback(
     (action: ModifyAction) => {
       onActionSelect(action);
-      onClose();
     },
-    [onActionSelect, onClose],
+    [onActionSelect],
   );
 
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack={!externalSheetRef}
+      goBack={!externalSheetRef ? onClose : undefined}
       onClose={externalSheetRef ? onClose : undefined}
+      twClassName={surfaceClass}
       testID={testID}
     >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.modify.title')}
-        </Text>
+      <BottomSheetHeader onClose={handleClose}>
+        {strings('perps.modify.title')}
       </BottomSheetHeader>
-      <Box style={styles.contentContainer}>
-        {actionOptions.map((option, index) => (
-          <TouchableOpacity
-            key={option.action}
-            style={[
-              styles.actionItem,
-              index < actionOptions.length - 1 && styles.actionItemBorder,
-            ]}
-            onPress={() => handleActionPress(option.action)}
-            testID={`${testID}-${option.action}`}
-          >
-            <View style={styles.actionIconContainer}>
-              <Icon
-                name={option.iconName}
-                size={IconSize.Md}
-                color={IconColor.IconDefault}
-              />
-            </View>
-            <View style={styles.actionTextContainer}>
-              <Text variant={TextVariant.BodyMDBold}>{option.label}</Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {option.description}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </Box>
+      {actionOptions.map((option) => (
+        <ListItem
+          key={option.action}
+          isInteractive
+          avatar={
+            <Icon
+              name={option.iconName}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
+          }
+          title={option.label}
+          description={option.description}
+          onPress={() => handleActionPress(option.action)}
+          testID={`${testID}-${option.action}`}
+        />
+      ))}
     </BottomSheet>
   );
 };

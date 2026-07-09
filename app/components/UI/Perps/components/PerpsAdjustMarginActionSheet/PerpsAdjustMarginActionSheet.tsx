@@ -1,27 +1,21 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  ListItem,
 } from '@metamask/design-system-react-native';
-import { View, TouchableOpacity } from 'react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
-import styleSheet from './PerpsAdjustMarginActionSheet.styles';
 import type {
   PerpsAdjustMarginActionSheetProps,
   AdjustMarginAction,
 } from './PerpsAdjustMarginActionSheet.types';
 import { PerpsAdjustMarginActionSheetSelectorsIDs } from '../../Perps.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface ActionOption {
   action: AdjustMarginAction;
@@ -40,8 +34,7 @@ const PerpsAdjustMarginActionSheet: React.FC<
   sheetRef: externalSheetRef,
   testID,
 }) => {
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const surfaceClass = useElevatedSurface();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
 
@@ -50,6 +43,10 @@ const PerpsAdjustMarginActionSheet: React.FC<
       sheetRef.current?.onOpenBottomSheet();
     }
   }, [isVisible, externalSheetRef, sheetRef]);
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(onClose);
+  }, [onClose, sheetRef]);
 
   const actionOptions: ActionOption[] = useMemo(
     () => [
@@ -74,58 +71,38 @@ const PerpsAdjustMarginActionSheet: React.FC<
   const handleActionPress = useCallback(
     (action: AdjustMarginAction) => {
       onSelectAction(action);
-      onClose();
     },
-    [onSelectAction, onClose],
+    [onSelectAction],
   );
 
   return (
     <BottomSheet
       ref={sheetRef}
-      shouldNavigateBack={!externalSheetRef}
+      goBack={!externalSheetRef ? onClose : undefined}
       onClose={externalSheetRef ? onClose : undefined}
+      twClassName={surfaceClass}
       testID={testID}
     >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMD}>
-          {strings('perps.adjust_margin.title')}
-        </Text>
+      <BottomSheetHeader onClose={handleClose}>
+        {strings('perps.adjust_margin.title')}
       </BottomSheetHeader>
-      <View style={styles.container}>
-        {actionOptions.map((option, index) => (
-          <React.Fragment key={option.action}>
-            <TouchableOpacity
-              style={styles.actionItem}
-              testID={option.testID}
-              onPress={() => handleActionPress(option.action)}
-              activeOpacity={0.7}
-            >
-              <Icon
-                name={option.iconName}
-                size={IconSize.Lg}
-                color={IconColor.IconDefault}
-              />
-              <View style={styles.actionContent}>
-                <Text variant={TextVariant.BodyMDBold}>{option.label}</Text>
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {option.description}
-                </Text>
-              </View>
-            </TouchableOpacity>
-            {index < actionOptions.length - 1 && (
-              <View
-                style={[
-                  styles.separator,
-                  { backgroundColor: colors.border.muted },
-                ]}
-              />
-            )}
-          </React.Fragment>
-        ))}
-      </View>
+      {actionOptions.map((option) => (
+        <ListItem
+          key={option.action}
+          isInteractive
+          avatar={
+            <Icon
+              name={option.iconName}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
+          }
+          title={option.label}
+          description={option.description}
+          onPress={() => handleActionPress(option.action)}
+          testID={option.testID}
+        />
+      ))}
     </BottomSheet>
   );
 };

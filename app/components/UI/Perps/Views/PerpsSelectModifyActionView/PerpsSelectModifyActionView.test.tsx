@@ -273,7 +273,6 @@ describe('PerpsSelectModifyActionView', () => {
 
     fireEvent.press(screen.getByTestId('close-button'));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });

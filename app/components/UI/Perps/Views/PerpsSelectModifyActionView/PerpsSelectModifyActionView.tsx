@@ -14,7 +14,7 @@ import PerpsModifyActionSheet, {
   type ModifyAction,
 } from '../../components/PerpsModifyActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { type BottomSheetRef } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
@@ -147,13 +147,11 @@ const PerpsSelectModifyActionView: React.FC<
 
   const handleClose = useCallback(() => {
     if (externalSheetRef) {
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
+      onExternalClose?.();
     } else {
       navigation.goBack();
     }
-  }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
+  }, [navigation, externalSheetRef, onExternalClose]);
 
   return (
     <PerpsModifyActionSheet
