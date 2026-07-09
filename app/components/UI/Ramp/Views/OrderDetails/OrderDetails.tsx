@@ -38,6 +38,10 @@ import OrderContent from './OrderContent';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
+import {
+  buildRampsTransactionConfirmedPayload,
+  shouldEmitRampsTransactionConfirmed,
+} from '../../utils/buildRampsTransactionConfirmedPayload';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
@@ -114,6 +118,19 @@ const OrderDetails = () => {
         }
         addOrder(fetchedOrder);
 
+        if (shouldEmitRampsTransactionConfirmed(fetchedOrder.status)) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_TRANSACTION_CONFIRMED)
+              .addProperties(
+                buildRampsTransactionConfirmedPayload(fetchedOrder, {
+                  rampType: 'UNIFIED_BUY_2',
+                  region: fetchedOrder.region ?? '',
+                }),
+              )
+              .build(),
+          );
+        }
+
         // TRAM-3691: a callback-fetched order that is already terminal is never
         // polled, so `orderStatusChanged` never fires and the terminal metrics
         // event would be lost. Emit it directly (no-ops for non-terminal orders
@@ -151,7 +168,7 @@ const OrderDetails = () => {
         setIsLoading(false);
       }
     },
-    [getOrderFromCallback, addOrder, navigation, params.cryptocurrency],
+    [getOrderFromCallback, addOrder, navigation, params.cryptocurrency, trackEvent, createEventBuilder],
   );
 
   const handleHeaderBack = useCallback(() => {

@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
-import { normalizeProviderCode } from '@metamask/ramps-controller';
+import { normalizeProviderCode, RampsOrderStatus } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -28,6 +28,10 @@ import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
+import {
+  buildRampsTransactionConfirmedPayload,
+  shouldEmitRampsTransactionConfirmed,
+} from '../../utils/buildRampsTransactionConfirmedPayload';
 import {
   BottomSheet,
   HeaderStandard,
@@ -432,7 +436,25 @@ const Checkout = () => {
           // already-terminal order here is never polled and its terminal
           // metrics event would be lost. Emit it directly (no-ops for
           // non-terminal orders and dedups against the polling path).
-          emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+          if (
+            rampsOrder.status === RampsOrderStatus.Failed ||
+            rampsOrder.status === RampsOrderStatus.IdExpired
+          ) {
+            emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+          } else if (shouldEmitRampsTransactionConfirmed(rampsOrder.status)) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.RAMPS_TRANSACTION_CONFIRMED)
+                .addProperties(
+                  buildRampsTransactionConfirmedPayload(rampsOrder, {
+                    rampType: 'HEADLESS',
+                    region: regionCode ?? '',
+                    rampSurface: headlessRampSurface,
+                  }),
+                )
+                .build(),
+            );
+            emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+          }
 
           dispatch(protectWalletModalVisible());
           try {

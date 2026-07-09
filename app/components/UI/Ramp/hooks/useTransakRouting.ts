@@ -40,6 +40,10 @@ import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import {
+  buildRampsTransactionConfirmedPayload,
+  shouldEmitRampsTransactionConfirmed,
+} from '../utils/buildRampsTransactionConfirmedPayload';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -547,30 +551,15 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             rampsOrder.status === RampsOrderStatus.IdExpired
           ) {
             emitTerminalOrderAnalyticsFromCallback(rampsOrder);
-          } else {
-            trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-              ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
-              ramp_surface: rampSurface,
-              amount_source: Number(rampsOrder.fiatAmount),
-              amount_destination: Number(rampsOrder.cryptoAmount),
-              exchange_rate: Number(rampsOrder.exchangeRate),
-              gas_fee: rampsOrder.networkFees
-                ? Number(rampsOrder.networkFees)
-                : 0,
-              processing_fee: rampsOrder.partnerFees
-                ? Number(rampsOrder.partnerFees)
-                : 0,
-              total_fee: Number(rampsOrder.totalFeesFiat),
-              payment_method_id: rampsOrder.paymentMethod?.id || '',
-              country: regionIsoCode,
-              region: regionIsoCode,
-              chain_id: rampsOrder.network?.chainId || '',
-              currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
-              currency_destination_symbol:
-                rampsOrder.cryptoCurrency?.symbol || '',
-              currency_destination_network: rampsOrder.network?.name || '',
-              currency_source: rampsOrder.fiatCurrency?.symbol || '',
-            });
+          } else if (shouldEmitRampsTransactionConfirmed(rampsOrder.status)) {
+            trackEvent(
+              'RAMPS_TRANSACTION_CONFIRMED',
+              buildRampsTransactionConfirmedPayload(rampsOrder, {
+                rampType: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
+                region: regionIsoCode,
+                rampSurface,
+              }),
+            );
           }
         } catch (error) {
           processingOrderIdRef.current = null;
@@ -784,31 +773,16 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   navigateToOrderProcessingCallback({
                     orderId: rampsOrder.providerOrderId,
                   });
-                  trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-                    ramp_type: 'HEADLESS',
-                    ramp_surface: rampSurface,
-                    amount_source: Number(rampsOrder.fiatAmount),
-                    amount_destination: Number(rampsOrder.cryptoAmount),
-                    exchange_rate: Number(rampsOrder.exchangeRate),
-                    gas_fee: rampsOrder.networkFees
-                      ? Number(rampsOrder.networkFees)
-                      : 0,
-                    processing_fee: rampsOrder.partnerFees
-                      ? Number(rampsOrder.partnerFees)
-                      : 0,
-                    total_fee: Number(rampsOrder.totalFeesFiat),
-                    payment_method_id: rampsOrder.paymentMethod?.id || '',
-                    country: regionIsoCode,
-                    region: regionIsoCode,
-                    chain_id: rampsOrder.network?.chainId || '',
-                    currency_destination:
-                      rampsOrder.cryptoCurrency?.assetId || '',
-                    currency_destination_symbol:
-                      rampsOrder.cryptoCurrency?.symbol || '',
-                    currency_destination_network:
-                      rampsOrder.network?.name || '',
-                    currency_source: rampsOrder.fiatCurrency?.symbol || '',
-                  });
+                  if (shouldEmitRampsTransactionConfirmed(rampsOrder.status)) {
+                    trackEvent(
+                      'RAMPS_TRANSACTION_CONFIRMED',
+                      buildRampsTransactionConfirmedPayload(rampsOrder, {
+                        rampType: 'HEADLESS',
+                        region: regionIsoCode,
+                        rampSurface,
+                      }),
+                    );
+                  }
                   return true;
                 }
 

@@ -728,6 +728,38 @@ describe('Checkout', () => {
       expect(mockNavigation.reset).not.toHaveBeenCalled();
     });
 
+    it('fires RAMPS_TRANSACTION_CONFIRMED for a successful headless callback', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { rampSurface: 'money_account' },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.RAMPS_TRANSACTION_CONFIRMED,
+        );
+      });
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          ramp_surface: 'money_account',
+        }),
+      );
+    });
+
     it('still adds the order to Redux and dispatches protect-wallet when headless', async () => {
       mockGetSession.mockReturnValue({
         id: 'hs-1',

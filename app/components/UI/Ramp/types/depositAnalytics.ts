@@ -182,7 +182,7 @@ interface RampsAddressEntered {
 
 interface RampsTransactionConfirmed {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_type: 'DEPOSIT' | 'HEADLESS' | 'UNIFIED_BUY_2';
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;

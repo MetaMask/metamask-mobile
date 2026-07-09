@@ -225,6 +225,71 @@ describe('OrderDetails', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
+  it('tracks RAMPS_TRANSACTION_CONFIRMED when callback fetch succeeds', async () => {
+    const pendingOrder = {
+      providerOrderId: 'ord-cb-confirmed',
+      status: RampsOrderStatus.Pending,
+      fiatAmount: 50,
+      cryptoAmount: 0.01,
+      exchangeRate: 5000,
+      totalFeesFiat: 2,
+      paymentMethod: { id: 'card' },
+      network: { chainId: 'eip155:1', name: 'Ethereum' },
+      cryptoCurrency: { assetId: 'eth', symbol: 'ETH' },
+      fiatCurrency: { symbol: 'USD' },
+      region: 'US',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(pendingOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ramp_type: 'UNIFIED_BUY_2',
+          amount_source: 50,
+          country: 'US',
+        }),
+      );
+    });
+  });
+
+  it('does not track RAMPS_TRANSACTION_CONFIRMED when callback order failed', async () => {
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue({
+      providerOrderId: 'ord-failed',
+      status: RampsOrderStatus.Failed,
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockAddOrder).toHaveBeenCalled();
+    });
+
+    const confirmedCalls = mockTrackEvent.mock.calls.filter(
+      (call) =>
+        call[0]?.ramp_type === 'UNIFIED_BUY_2' &&
+        call[0]?.amount_source !== undefined,
+    );
+    expect(confirmedCalls).toHaveLength(0);
+  });
+
   it('shows V2 order toast when callback fetch succeeds', async () => {
     const { showV2OrderToast } = jest.requireMock(
       '../../utils/v2OrderToast',
