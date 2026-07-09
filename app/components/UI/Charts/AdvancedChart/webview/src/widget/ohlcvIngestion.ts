@@ -140,7 +140,7 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
             return;
           }
           resetMainPriceScaleAutoScale(chart);
-          applyVisibleRange(chart);
+          applyVisibleRange(chart, { dataAlreadyLoaded: true });
           emitLayoutSettled();
         });
       }
@@ -179,12 +179,15 @@ export function handleRealtimeUpdate(
   });
 }
 
-function applyVisibleRange(chart: TVActiveChart): void {
+function applyVisibleRange(
+  chart: TVActiveChart,
+  options?: { dataAlreadyLoaded?: boolean },
+): void {
   // Strategy C (SLB): center the viewport on the trade window using both
   // visibleFromMs and visibleToMs. Handled by the socialLeaderboard overlay
   // which subscribes to onDataLoaded and frames the exact trade window.
   if (getSlbMode()) {
-    slbCenterViewport(chart);
+    slbCenterViewport(chart, { immediate: options?.dataAlreadyLoaded });
     return;
   }
 

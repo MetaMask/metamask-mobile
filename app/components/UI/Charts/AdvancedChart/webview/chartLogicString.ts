@@ -1134,8 +1134,12 @@ function holdCenteredVisibleRange(chart, fromSec, toSec) {
  *
  * The centering flag is cleared after success so subsequent REALTIME_UPDATE
  * messages don't re-trigger the slide. Only a fresh SET_OHLCV_DATA resets it.
+ *
+ * When \`options.immediate\` is true, applies centering synchronously instead of
+ * waiting for \`onDataLoaded\`. Used after \`setResolution\` where TradingView has
+ * already completed its data cycle by the time the callback fires.
  */
-function slbCenterViewport(chart) {
+function slbCenterViewport(chart, options) {
     if (!getSlbMode() || !isSlbCenteringPending())
         return;
     const fromMs = getVisibleFromMs();
@@ -1143,9 +1147,7 @@ function slbCenterViewport(chart) {
     if (fromMs == null || toMs == null)
         return;
     const capturedGeneration = getOhlcvGeneration();
-    const subscription = chart.onDataLoaded();
-    const onLoaded = () => {
-        subscription.unsubscribe(null, onLoaded);
+    const applyCenter = () => {
         if (capturedGeneration !== getOhlcvGeneration())
             return;
         if (!isSlbCenteringPending())
@@ -1177,6 +1179,15 @@ function slbCenterViewport(chart) {
         catch (error) {
             reportErrorToRN(error);
         }
+    };
+    if (options?.immediate) {
+        applyCenter();
+        return;
+    }
+    const subscription = chart.onDataLoaded();
+    const onLoaded = () => {
+        subscription.unsubscribe(null, onLoaded);
+        applyCenter();
     };
     subscription.subscribe(null, onLoaded);
 }
@@ -1653,7 +1664,7 @@ function handleSetOHLCVData(payload) {
                         return;
                     }
                     resetMainPriceScaleAutoScale(chart);
-                    applyVisibleRange(chart);
+                    applyVisibleRange(chart, { dataAlreadyLoaded: true });
                     emitLayoutSettled();
                 });
             }
@@ -1688,12 +1699,12 @@ function handleRealtimeUpdate(payload) {
         volume: bar.volume,
     });
 }
-function applyVisibleRange(chart) {
+function applyVisibleRange(chart, options) {
     // Strategy C (SLB): center the viewport on the trade window using both
     // visibleFromMs and visibleToMs. Handled by the socialLeaderboard overlay
     // which subscribes to onDataLoaded and frames the exact trade window.
     if (getSlbMode()) {
-        slbCenterViewport(chart);
+        slbCenterViewport(chart, { immediate: options?.dataAlreadyLoaded });
         return;
     }
     const fromMs = getVisibleFromMs();
