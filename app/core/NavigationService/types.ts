@@ -70,6 +70,8 @@ import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../c
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
 import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
+import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -464,13 +466,13 @@ export type RootStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
-  TrendingView: undefined;
-  TrendingFeed: undefined;
+  TrendingView: NestedNavigationParams | undefined;
+  TrendingFeed: ExploreFeedRouteParams | undefined;
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
-  ExploreSearch: undefined;
+  ExploreSearch: ExploreSearchRouteParams | undefined;
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;

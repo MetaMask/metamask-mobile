@@ -113,6 +113,18 @@ Object.defineProperty(Engine, 'controllerMessenger', {
   configurable: true,
 });
 
+const mockControllerTransactions: TransactionMeta[] = [];
+
+Object.defineProperty(Engine, 'context', {
+  value: {
+    TransactionController: {
+      state: { transactions: mockControllerTransactions },
+    },
+  },
+  writable: true,
+  configurable: true,
+});
+
 const mockUseMoneyToasts = jest.mocked(useMoneyToasts);
 
 const TELLER_INTERFACE = new ethers.utils.Interface([
@@ -245,6 +257,7 @@ describe('useMoneyTransactionStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockControllerTransactions.length = 0;
 
     Object.assign(NavigationService.navigation, { navigate: mockNavigate });
     mockUseMoneyToasts.mockReturnValue({
@@ -444,6 +457,86 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositFailedFn).toHaveBeenCalledWith(
         expect.objectContaining({ intent: 'addMusd' }),
       );
+    });
+
+    describe('intent falls back to the transaction funding method when no batch intent is stored', () => {
+      it('derives "card" from a fiat on-ramp deposit', () => {
+        const { statusUpdatedHandler } = renderAndGetHandlers();
+
+        statusUpdatedHandler({
+          transactionMeta: buildTxMeta({
+            id: 'tx-fiat-deposit',
+            type: TransactionType.moneyAccountDeposit,
+            status: TransactionStatus.approved,
+            metamaskPay: { fiat: true },
+          } as unknown as Partial<TransactionMeta>),
+        });
+        jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+        expect(depositInProgressFn).toHaveBeenCalledWith(
+          expect.objectContaining({ intent: 'card' }),
+        );
+      });
+
+      it('derives "addMusd" from a deposit paid with mUSD', () => {
+        const { statusUpdatedHandler } = renderAndGetHandlers();
+
+        statusUpdatedHandler({
+          transactionMeta: buildTxMeta({
+            id: 'tx-musd-deposit',
+            type: TransactionType.moneyAccountDeposit,
+            status: TransactionStatus.approved,
+            metamaskPay: { tokenAddress: MUSD_ADDRESS },
+          } as unknown as Partial<TransactionMeta>),
+        });
+        jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+        expect(depositInProgressFn).toHaveBeenCalledWith(
+          expect.objectContaining({ intent: 'addMusd' }),
+        );
+      });
+
+      it('derives "convert" from a crypto deposit with no fiat/mUSD payment', () => {
+        const { statusUpdatedHandler } = renderAndGetHandlers();
+
+        statusUpdatedHandler({
+          transactionMeta: buildTxMeta({
+            id: 'tx-crypto-deposit',
+            type: TransactionType.moneyAccountDeposit,
+            status: TransactionStatus.approved,
+          }),
+        });
+        jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+        expect(depositInProgressFn).toHaveBeenCalledWith(
+          expect.objectContaining({ intent: 'convert' }),
+        );
+      });
+
+      it('re-reads metamaskPay populated after approval instead of the stale snapshot', () => {
+        const { statusUpdatedHandler } = renderAndGetHandlers();
+
+        // `approved` fires with no payment data yet.
+        const approvedMeta = buildTxMeta({
+          id: 'tx-late-metamaskpay',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        });
+        statusUpdatedHandler({ transactionMeta: approvedMeta });
+
+        // Controller fills in `metamaskPay` before the deferred toast fires,
+        // without another status event re-delivering the meta.
+        mockControllerTransactions.push({
+          ...approvedMeta,
+          metamaskPay: { fiat: true },
+        } as unknown as TransactionMeta);
+
+        jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+        expect(depositInProgressFn).toHaveBeenCalledWith(
+          expect.objectContaining({ intent: 'card' }),
+        );
+      });
     });
 
     it('confirmed → success toast with decoded fiat amount', () => {
@@ -1333,7 +1426,7 @@ describe('useMoneyTransactionStatus', () => {
       );
 
       expect(depositSuccessFn).toHaveBeenCalledWith(
-        expect.objectContaining({ amountFiat: undefined }),
+        expect.objectContaining({ amountFiat: undefined, intent: 'convert' }),
       );
     });
   });
