@@ -65,7 +65,7 @@ export function usePerpsOrderExecution(
   params: UsePerpsOrderExecutionParams = {},
 ): UsePerpsOrderExecutionReturn {
   const { onSubmitted, onSuccess, onError } = params;
-  const { placeOrder: controllerPlaceOrder } = usePerpsTrading();
+  const { placeOrder: controllerPlaceOrder, getPositions } = usePerpsTrading();
   const { track } = usePerpsEventTracking();
   const stream = usePerpsStream();
 
@@ -89,7 +89,9 @@ export function usePerpsOrderExecution(
       // measure submit -> resting order rendered in the orders stream (no
       // exchange fill-wait time) via PerpsPlaceLimitOrderToOrderRendered. Each
       // start mints a unique op id so overlapping orders never collide.
-      const isMarketOrder = orderParams.orderType === 'market';
+      // Only an explicit limit order takes the order-render path; anything else
+      // (including an omitted orderType) is treated as market.
+      const isMarketOrder = orderParams.orderType !== 'limit';
       const cufOpId = startPerpsCufTrace({
         name: isMarketOrder
           ? TraceName.PerpsPlaceOrderToPositionRendered
@@ -114,10 +116,20 @@ export function usePerpsOrderExecution(
       // cache means "not loaded", not "no position" — pass that through so the
       // matcher captures the baseline from the first delivery instead of
       // assuming absent (which a pre-existing position would falsely satisfy).
-      const positionsCache = stream.positions.getSnapshot();
-      const positionsLoaded = positionsCache !== null;
+      let baselinePositions = stream.positions.getSnapshot();
+      if (baselinePositions === null) {
+        // Cache not loaded (rare cold-start): fetch once so we have a real
+        // pre-order baseline instead of capturing a possibly-already-filled
+        // first stream delivery. Falls back to BASELINE_PENDING if it fails.
+        try {
+          baselinePositions = await getPositions();
+        } catch {
+          baselinePositions = null;
+        }
+      }
+      const positionsLoaded = baselinePositions !== null;
       const positionBaseline =
-        positionsCache?.find((p) => p.symbol === orderParams.symbol) ?? null;
+        baselinePositions?.find((p) => p.symbol === orderParams.symbol) ?? null;
       const positionBaselineSnapshot =
         getPerpsOrderPositionSnapshot(positionBaseline);
       if (isMarketOrder) {
@@ -418,7 +430,15 @@ export function usePerpsOrderExecution(
         setIsPlacing(false);
       }
     },
-    [controllerPlaceOrder, stream, onSubmitted, onSuccess, onError, track],
+    [
+      controllerPlaceOrder,
+      getPositions,
+      stream,
+      onSubmitted,
+      onSuccess,
+      onError,
+      track,
+    ],
   );
 
   return {

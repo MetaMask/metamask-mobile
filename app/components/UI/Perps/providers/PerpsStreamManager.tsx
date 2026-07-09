@@ -433,7 +433,18 @@ abstract class StreamChannel<T> {
       this.wsSubscription = null;
     }
     this.accountAddress = null;
+    // End any first-data trace still open (disconnected before first data), so
+    // it isn't left running until the 5-minute auto-clean as a bogus long span.
+    this.endOpenFirstDataTrace();
     this.wsConnectionStartTime = null;
+  }
+
+  /**
+   * End a first-data ("time to first ...") trace left open at disconnect.
+   * No-op in the base; channels that start such a trace override this.
+   */
+  protected endOpenFirstDataTrace(): void {
+    // Overridden by channels with a first-data trace.
   }
 
   /**
@@ -505,6 +516,18 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private prewarmUnsubscribe?: () => void;
   private actualPriceUnsubscribe?: () => void;
   private firstDataTraceId?: string;
+
+  protected endOpenFirstDataTrace(): void {
+    if (this.firstDataTraceId) {
+      endTrace({
+        name: TraceName.PerpsWebSocketFirstPrice,
+        id: this.firstDataTraceId,
+        data: { success: false, reason: 'disconnected' },
+      });
+      this.firstDataTraceId = undefined;
+    }
+  }
+
   private allMarketSymbols: string[] = [];
   // Unique ID per prewarm cycle to detect stale promises and prevent subscription leaks
   private prewarmCycleId: number = 0;
@@ -841,6 +864,17 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
+  protected endOpenFirstDataTrace(): void {
+    if (this.firstDataTraceId) {
+      endTrace({
+        name: TraceName.PerpsWebSocketFirstOrders,
+        id: this.firstDataTraceId,
+        data: { success: false, reason: 'disconnected' },
+      });
+      this.firstDataTraceId = undefined;
+    }
+  }
+
   protected connect() {
     if (this.wsSubscription) return;
 
@@ -986,6 +1020,17 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 class PositionStreamChannel extends StreamChannel<Position[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
+
+  protected endOpenFirstDataTrace(): void {
+    if (this.firstDataTraceId) {
+      endTrace({
+        name: TraceName.PerpsWebSocketFirstPositions,
+        id: this.firstDataTraceId,
+        data: { success: false, reason: 'disconnected' },
+      });
+      this.firstDataTraceId = undefined;
+    }
+  }
 
   protected connect() {
     if (this.wsSubscription) return;
@@ -1276,6 +1321,17 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
+  protected endOpenFirstDataTrace(): void {
+    if (this.firstDataTraceId) {
+      endTrace({
+        name: TraceName.PerpsWebSocketFirstAccount,
+        id: this.firstDataTraceId,
+        data: { success: false, reason: 'disconnected' },
+      });
+      this.firstDataTraceId = undefined;
+    }
+  }
+
   protected connect() {
     if (this.wsSubscription) return;
 
@@ -1508,6 +1564,17 @@ class TopOfBookStreamChannel extends StreamChannel<
     | { bestBid?: string; bestAsk?: string; spread?: string }
     | undefined = undefined;
   private firstDataTraceId?: string;
+
+  protected endOpenFirstDataTrace(): void {
+    if (this.firstDataTraceId) {
+      endTrace({
+        name: TraceName.PerpsWebSocketFirstOrderBook,
+        id: this.firstDataTraceId,
+        data: { success: false, reason: 'disconnected' },
+      });
+      this.firstDataTraceId = undefined;
+    }
+  }
 
   protected connect() {
     if (!this.currentSymbol || this.wsSubscription) {
