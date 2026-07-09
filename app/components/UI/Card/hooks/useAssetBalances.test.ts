@@ -2219,6 +2219,28 @@ describe('useAssetBalances', () => {
       expect(balanceInfo?.balanceFiat).toBe('$100.00');
     });
 
+    it('falls back to the raw share balance (1:1 USD) when the vault exchange rate is a raw zero', () => {
+      // A non-empty "0" rate is truthy but must not zero out the balance — it is
+      // treated as unavailable, so shares are shown 1:1 as USD.
+      setExchangeRate('0');
+      setupSelectorMock({});
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBe(100);
+      expect(balanceInfo?.balanceFiat).toBe('$100.00');
+    });
+
     it('applies the vmUSD vault exchange rate to convert shares into their mUSD (USD) value', () => {
       // 100 vmUSD shares × 1.05 share price = 105 mUSD = $105.00. No market rate
       // is applied — mUSD is valued at its USD peg.
@@ -2259,6 +2281,29 @@ describe('useAssetBalances', () => {
 
       expect(balanceInfo?.rawFiatNumber).toBe(100);
       expect(balanceInfo?.balanceFiat).toBe('$100.00');
+    });
+
+    it('polls the vault exchange rate on an interval so it does not drift from the Money balance', () => {
+      // The Money tab refreshes the balance (with an embedded vmUSD→mUSD value)
+      // on a 30s interval, so the Card must poll the vault rate on the same
+      // cadence rather than caching a stale rate.
+      setExchangeRate('1000000');
+      setupSelectorMock({});
+
+      renderHook(() => useAssetBalances([mockMoneyAccountToken]));
+
+      const exchangeRateCall = mockUseQuery.mock.calls.find(
+        ([options]: [{ queryKey?: unknown[] }]) =>
+          options?.queryKey?.[0] ===
+          'MoneyAccountBalanceService:getExchangeRate',
+      );
+
+      expect(exchangeRateCall?.[0]).toEqual(
+        expect.objectContaining({
+          enabled: true,
+          refetchInterval: 30 * 1000,
+        }),
+      );
     });
   });
 });

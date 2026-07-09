@@ -29,6 +29,11 @@ import { CARD_CHAIN_IDS } from '../constants';
 import { balanceToFiatNumber } from '../../../../util/number/bigint';
 import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 
+// Poll the vault exchange rate on the same cadence the Money tab refreshes the
+// account balance (which embeds a fresh vmUSD→mUSD value), so the Card's
+// "Avail. balance" tracks the Money balance instead of holding a stale rate.
+const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 30 * 1000; // 30 seconds
+
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);
   return match ? match[1].toUpperCase() : undefined;
@@ -203,6 +208,7 @@ export const useAssetBalances = (
   const exchangeRateQuery = useQuery({
     queryKey: [MoneyAccountBalanceServiceQueryKeys.GET_EXCHANGE_RATE],
     enabled: hasMoneyAccountEntry,
+    refetchInterval: EXCHANGE_RATE_REFETCH_INTERVAL_MS,
   }) as UseQueryResult<ExchangeRateResponse>;
 
   // Human-readable mUSD-per-vmUSD-share rate (e.g. 1.0002). The raw rate is a
@@ -213,7 +219,12 @@ export const useAssetBalances = (
       return undefined;
     }
     const parsed = new BigNumber(rawRate).shiftedBy(-MUSD_DECIMALS);
-    return parsed.isFinite() ? parsed.toNumber() : undefined;
+    // A non-positive or non-finite rate (e.g. a raw "0") is treated as
+    // unavailable so we fall back to the 1:1 share↔mUSD conversion rather than
+    // zeroing out the balance.
+    return parsed.isFinite() && parsed.isGreaterThan(0)
+      ? parsed.toNumber()
+      : undefined;
   }, [exchangeRateQuery.data]);
 
   // Helper: Determine which balance to use based on token state
