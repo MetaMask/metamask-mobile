@@ -21,7 +21,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 
-interface MoneyDeeplinkModalParams {
+export interface MoneyDeeplinkModalParams {
   title?: string;
   description?: string;
 }

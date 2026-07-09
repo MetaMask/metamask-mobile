@@ -223,6 +223,35 @@ describe('slbCenterViewport', () => {
     expect(stub.setRangeCalls).toHaveLength(0);
   });
 
+  it('immediate mode: applies the visible range synchronously without onDataLoaded', () => {
+    const stub = makeStubChart();
+    installWidget(stub.chart);
+    setVisibleFromMs(8 * HOUR_MS);
+    setVisibleToMs(LAST_BAR_MS);
+
+    slbCenterViewport(stub.chart, { immediate: true });
+    // Should fire immediately — no need to call fireDataLoaded.
+    expect(stub.setRangeCalls).toHaveLength(1);
+    expect(stub.setRangeCalls[0].options).toEqual({ percentRightMargin: 0 });
+  });
+
+  it('immediate mode: historical frame applies hold loop synchronously', () => {
+    const stub = makeStubChart();
+    installWidget(stub.chart);
+    setVisibleFromMs(1 * HOUR_MS);
+    setVisibleToMs(3 * HOUR_MS);
+
+    slbCenterViewport(stub.chart, { immediate: true });
+    // First assertion fires synchronously from the hold loop.
+    expect(stub.setRangeCalls.length).toBeGreaterThanOrEqual(1);
+    jest.advanceTimersByTime(1000);
+    expect(stub.setRangeCalls.length).toBeGreaterThan(1);
+
+    const first = stub.setRangeCalls[0].range;
+    expect(first.from).toBeLessThan(1 * 60 * 60);
+    expect(first.to).toBeGreaterThanOrEqual(3 * 60 * 60);
+  });
+
   it('clears the centering-pending flag after framing', () => {
     const stub = makeStubChart();
     installWidget(stub.chart);

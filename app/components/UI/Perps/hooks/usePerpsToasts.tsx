@@ -1026,7 +1026,7 @@ const usePerpsToasts = (): {
         limitReached: {
           ...perpsBaseToastOptions.info,
           labelOptions: getPerpsToastLabels(
-            strings('perps.watchlist.limit_reached', { limit: 10 }),
+            strings('perps.watchlist.limit_reached', { limit: 100 }),
           ),
         },
       },
