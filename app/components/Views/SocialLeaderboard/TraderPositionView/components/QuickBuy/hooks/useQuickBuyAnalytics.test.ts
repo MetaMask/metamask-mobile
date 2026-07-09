@@ -13,44 +13,49 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-jest.mock('../analytics', () => ({
-  QuickBuyEventProperties: {
-    TRADER_ADDRESS: 'trader_address',
-    CAIP19: 'caip19',
-    DISMISS_STAGE: 'dismiss_stage',
-    AMOUNT_USD: 'amount_usd',
-    AMOUNT_SELECTION_METHOD: 'amount_selection_method',
-    PAY_WITH_TOKEN: 'pay_with_token',
-    PRESET_VALUE: 'preset_value',
-    SLIDER_PERCENT: 'slider_percent',
-    RECEIVE_TOKEN: 'receive_token',
-    INTERACTION_TYPE: 'interaction_type',
-    QUOTE_INDEX: 'quote_index',
-    QUOTE_COUNT: 'quote_count',
-    PREVIOUS_PAY_WITH_TOKEN: 'previous_pay_with_token',
-    PREVIOUS_RECEIVE_TOKEN: 'previous_receive_token',
-    SLIPPAGE: 'slippage',
-    PREVIOUS_SLIPPAGE: 'previous_slippage',
-  },
-  QuickBuyEventValues: {
-    DISMISS_STAGE: {
-      TOKEN_DETAIL: 'token_detail',
-      AMOUNT_SELECTION: 'amount_selection',
-      CONFIRMATION: 'confirmation',
+jest.mock('../analytics', () => {
+  const actual = jest.requireActual('../analytics');
+  return {
+    ...actual,
+    QuickBuyEventProperties: {
+      ...actual.QuickBuyEventProperties,
+      TRADER_ADDRESS: 'trader_address',
+      CAIP19: 'caip19',
+      DISMISS_STAGE: 'dismiss_stage',
+      AMOUNT_USD: 'amount_usd',
+      AMOUNT_SELECTION_METHOD: 'amount_selection_method',
+      PAY_WITH_TOKEN: 'pay_with_token',
+      PRESET_VALUE: 'preset_value',
+      SLIDER_PERCENT: 'slider_percent',
+      RECEIVE_TOKEN: 'receive_token',
+      INTERACTION_TYPE: 'interaction_type',
+      QUOTE_INDEX: 'quote_index',
+      QUOTE_COUNT: 'quote_count',
+      PREVIOUS_PAY_WITH_TOKEN: 'previous_pay_with_token',
+      PREVIOUS_RECEIVE_TOKEN: 'previous_receive_token',
+      SLIPPAGE: 'slippage',
+      PREVIOUS_SLIPPAGE: 'previous_slippage',
     },
-    AMOUNT_SELECTION_METHOD: {
-      CUSTOM_INPUT: 'custom_input',
-      SLIDER: 'slider',
-      PRESET: 'preset',
+    QuickBuyEventValues: {
+      DISMISS_STAGE: {
+        TOKEN_DETAIL: 'token_detail',
+        AMOUNT_SELECTION: 'amount_selection',
+        CONFIRMATION: 'confirmation',
+      },
+      AMOUNT_SELECTION_METHOD: {
+        CUSTOM_INPUT: 'custom_input',
+        SLIDER: 'slider',
+        PRESET: 'preset',
+      },
+      INTERACTION_TYPE: {
+        QUOTE_SELECTED: 'quote_selected',
+        PAY_WITH_SELECTED: 'pay_with_selected',
+        RECEIVE_TOKEN_SELECTED: 'receive_token_selected',
+        SLIPPAGE_CHANGED: 'slippage_changed',
+      },
     },
-    INTERACTION_TYPE: {
-      QUOTE_SELECTED: 'quote_selected',
-      PAY_WITH_SELECTED: 'pay_with_selected',
-      RECEIVE_TOKEN_SELECTED: 'receive_token_selected',
-      SLIPPAGE_CHANGED: 'slippage_changed',
-    },
-  },
-}));
+  };
+});
 
 jest.mock('../../../../analytics', () => ({
   useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),

@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { resetBridgeState } from '../../../../../../../core/redux/slices/bridge';
 import Engine from '../../../../../../../core/Engine';
 import { useSocialLeaderboardAnalytics } from '../../../../analytics';
-import { QuickBuyEventProperties, QuickBuyEventValues } from '../analytics';
+import {
+  buildQuickBuySharedAnalyticsProperties,
+  QuickBuyEventProperties,
+  QuickBuyEventValues,
+} from '../analytics';
 import type { QuickBuyAnalyticsContext } from '../types';
 
 type QuickBuyDismissStage =
@@ -60,6 +64,11 @@ export function useQuickBuyAnalytics(
   const resolvedTraderAddress =
     analyticsContext?.traderAddress ?? traderAddress;
 
+  const sharedAnalyticsProps = useMemo(
+    () => buildQuickBuySharedAnalyticsProperties(analyticsContext),
+    [analyticsContext],
+  );
+
   useEffect(
     () => () => {
       dispatch(resetBridgeState());
@@ -69,6 +78,7 @@ export function useQuickBuyAnalytics(
       if (!tradeSubmittedRef.current && resolvedTraderAddress && caip19) {
         const numeric = Number(lastTrackedAmountRef.current);
         track(MetaMetricsEvents.SOCIAL_QUICK_BUY_DISMISSED, {
+          ...sharedAnalyticsProps,
           [QuickBuyEventProperties.TRADER_ADDRESS]: resolvedTraderAddress,
           [QuickBuyEventProperties.CAIP19]: caip19,
           [QuickBuyEventProperties.DISMISS_STAGE]: dismissStageRef.current,
@@ -77,7 +87,7 @@ export function useQuickBuyAnalytics(
         });
       }
     },
-    [dispatch, resolvedTraderAddress, caip19, track],
+    [dispatch, resolvedTraderAddress, caip19, track, sharedAnalyticsProps],
   );
 
   const trackAmountSelected = useCallback(
@@ -93,6 +103,7 @@ export function useQuickBuyAnalytics(
       lastTrackedAmountRef.current = String(amountUsd);
       lastInputMethodRef.current = method;
       track(MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED, {
+        ...sharedAnalyticsProps,
         [QuickBuyEventProperties.TRADER_ADDRESS]: resolvedTraderAddress,
         [QuickBuyEventProperties.CAIP19]: caip19,
         [QuickBuyEventProperties.AMOUNT_USD]: amountUsd,
@@ -113,32 +124,34 @@ export function useQuickBuyAnalytics(
       dismissStageRef.current =
         QuickBuyEventValues.DISMISS_STAGE.AMOUNT_SELECTION;
     },
-    [resolvedTraderAddress, caip19, track],
+    [resolvedTraderAddress, caip19, track, sharedAnalyticsProps],
   );
 
   const trackTradeModeToggled = useCallback(
     (tradeType: 'buy' | 'sell') => {
       if (!resolvedTraderAddress || !caip19) return;
       track(MetaMetricsEvents.SOCIAL_QUICK_TRADE_MODE_TOGGLED, {
+        ...sharedAnalyticsProps,
         [QuickBuyEventProperties.TRADER_ADDRESS]: resolvedTraderAddress,
         [QuickBuyEventProperties.CAIP19]: caip19,
         [QuickBuyEventProperties.TRADE_TYPE]: tradeType,
       });
     },
-    [resolvedTraderAddress, caip19, track],
+    [resolvedTraderAddress, caip19, track, sharedAnalyticsProps],
   );
 
   const trackQuickBuyInteracted = useCallback(
     (interactionType: string, props: Record<string, unknown>) => {
       if (!resolvedTraderAddress || !caip19) return;
       track(MetaMetricsEvents.SOCIAL_QUICK_BUY_INTERACTED, {
+        ...sharedAnalyticsProps,
         [QuickBuyEventProperties.TRADER_ADDRESS]: resolvedTraderAddress,
         [QuickBuyEventProperties.CAIP19]: caip19,
         [QuickBuyEventProperties.INTERACTION_TYPE]: interactionType,
         ...props,
       });
     },
-    [resolvedTraderAddress, caip19, track],
+    [resolvedTraderAddress, caip19, track, sharedAnalyticsProps],
   );
 
   const trackQuoteSelected = useCallback(
@@ -195,16 +208,22 @@ export function useQuickBuyAnalytics(
 
   const trackTradeSubmitted = useCallback(
     (props: Record<string, unknown>) => {
-      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_SUBMITTED, props);
+      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_SUBMITTED, {
+        ...sharedAnalyticsProps,
+        ...props,
+      });
     },
-    [track],
+    [track, sharedAnalyticsProps],
   );
 
   const trackTradeCompleted = useCallback(
     (props: Record<string, unknown>) => {
-      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED, props);
+      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED, {
+        ...sharedAnalyticsProps,
+        ...props,
+      });
     },
-    [track],
+    [track, sharedAnalyticsProps],
   );
 
   const markTradeSubmitted = useCallback(() => {
