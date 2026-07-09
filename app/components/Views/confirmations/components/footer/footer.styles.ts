@@ -65,7 +65,8 @@ const styleSheet = (params: {
       justifyContent: 'center',
     },
     footerSkeletonContainer: {
-      ...baseFooterStyle,
+      paddingHorizontal: 16,
+      paddingTop: 16,
       flexDirection: 'row',
       paddingBottom: 32,
       gap: 16,
