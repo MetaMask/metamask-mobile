@@ -3148,7 +3148,9 @@ function subscribeStudyDataLoaded(chart, studyId) {
     try {
         const study = chart.getStudyById(studyId);
         if (study?.onDataLoaded) {
-            study.onDataLoaded().subscribe(null, () => scheduleLegendRefresh());
+            study.onDataLoaded().subscribe(null, () => {
+                scheduleLegendRefresh();
+            });
             return;
         }
     }
