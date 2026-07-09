@@ -424,10 +424,10 @@ function pendingOpIdsForName(name: TraceName): string[] {
  * request is accepted. This prevents an unrelated stream change during the
  * request window from recording a failed cancel/close/TP-SL as a success.
  *
- * Returns true when the match was deferred, so the caller still flushes
- * throttled subscribers: the recorded DEFERRED_AT is the delivery instant, so
- * the flush must deliver the update to throttled subscribers at that instant
- * for the eventual span duration to be truthful.
+ * Returns true only on the FIRST deferral tick, so the caller flushes throttled
+ * subscribers exactly once: DEFERRED_AT captures that instant, so later ticks in
+ * the same await window need no further flush. The one flush ensures the
+ * throttled subscriber receives the update at DEFERRED_AT for a truthful span.
  */
 function confirmOrDefer(
   opId: string,
@@ -437,8 +437,9 @@ function confirmOrDefer(
   if (meta[CUF_META.AWAIT_ACCEPT] === true) {
     if (meta[CUF_META.DEFERRED_AT] === undefined) {
       setPerpsCufMeta(opId, { [CUF_META.DEFERRED_AT]: Date.now() });
+      return true;
     }
-    return true;
+    return false;
   }
   toEnd.push(opId);
   return false;

@@ -736,6 +736,23 @@ describe('perpsCufTrace', () => {
     expect(flush).toHaveBeenCalledTimes(1);
   });
 
+  it('flushes only once across repeated deferred ticks before acceptance', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsCancelOrderToConfirmation,
+    });
+    watchPerpsCufOrderAbsent(opId, 'o-1');
+    const flush = jest.fn();
+
+    // Still gated across three deliveries: DEFERRED_AT is recorded on the first,
+    // so only that tick flushes; later ticks must not re-flush.
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }], flush);
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }], flush);
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }], flush);
+
+    expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(flush).toHaveBeenCalledTimes(1);
+  });
+
   it('does not flush when no confirmation matches the delivery', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsCancelOrderToConfirmation,

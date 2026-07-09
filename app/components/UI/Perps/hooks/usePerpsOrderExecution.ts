@@ -268,7 +268,12 @@ export function usePerpsOrderExecution(
                 renderedPosition &&
                 renderedPositionSnapshot !== positionBaselineSnapshot
               ) {
-                // Fill already rendered: end at the positions delivery instant.
+                // Fill already rendered before the watcher armed: end at the
+                // positions channel's last-delivery instant. This is channel-
+                // granular (positions re-deliver on any PnL tick), so it upper-
+                // bounds this symbol's fill instant rather than pinpointing it —
+                // bounded and never optimistic. Rare branch; the normal path
+                // (watcher observes the live delivery) is exact.
                 endCufStreamRendered(stream.positions.getLastDeliveredAt());
               } else {
                 watchPerpsCufLimitRendered(

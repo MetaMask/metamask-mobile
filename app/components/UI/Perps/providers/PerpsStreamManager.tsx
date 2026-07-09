@@ -130,6 +130,15 @@ abstract class StreamChannel<T> {
    * if nothing has been delivered (or the channel is paused). Used to timestamp a
    * CUF span end at the delivery instant when the confirming value was already
    * present by the time the caller checked getSnapshot().
+   *
+   * Granularity is per-channel, not per-symbol: on a full-snapshot channel like
+   * positions (which re-delivers all symbols on any PnL tick) this is effectively
+   * "the last tick", so it upper-bounds an individual symbol's change instant
+   * rather than pinpointing it. The bound is always >= the span start and <= now,
+   * so a span end using it is bounded and never optimistic — it can only slightly
+   * over-measure, never under-measure. Callers needing the exact per-symbol change
+   * instant should observe the live delivery (as the normal watcher path does),
+   * not read this after the fact.
    */
   public getLastDeliveredAt(): number | null {
     return this.lastDeliveredAt;
