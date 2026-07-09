@@ -97,6 +97,8 @@ import Reanimated, { SharedValue } from 'react-native-reanimated';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
+import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -346,6 +348,34 @@ const PerpsHomeView = ({
   usePerpsMeasurement({
     traceName: TraceName.PerpsMarketListView, // Keep same trace name for consistency
     conditions: [!isAnyLoading],
+  });
+
+  const entryCufVariant = hasPositions
+    ? PERPS_CUF_VARIANT.POSITION
+    : PERPS_CUF_VARIANT.EMPTY;
+  const entryCufEndData = {
+    [PERPS_CUF_TAG.VARIANT]:
+      orders.length > 0 ? PERPS_CUF_VARIANT.ORDER : entryCufVariant,
+  };
+
+  // Entry CUF: enter Perps -> live market list. Starts at mount; launch-context
+  // tag splits cold from warm p75. Captured at mount so the tag is the launch
+  // context, not the post-settle value.
+  const entryCufTags = useMemo(() => buildPerpsCufStartTags(), []);
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsEntryToLiveMarketList,
+    // endConditions (not the simple `conditions` API): this span must measure
+    // mount -> live data. The simple API auto-resets whenever its first
+    // condition is false, which for a readiness flag means the span restarts on
+    // every render during loading and under-reports the true latency. Using
+    // endConditions starts at mount and never resets.
+    // The variant endData reads orders.length, so — unlike the screen-load
+    // metric above, which deliberately ignores orders for speed — this span
+    // must wait for the orders stream too, or a user with open orders is
+    // misrecorded as empty/position.
+    endConditions: [!isAnyLoading, !isLoading.orders],
+    tags: entryCufTags,
+    endData: entryCufEndData,
   });
 
   // Reset section tracking when screen comes into focus
