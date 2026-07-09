@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
-import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { BigNumber } from 'bignumber.js';
@@ -25,7 +24,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -51,19 +49,19 @@ const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
-  const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
+    overrideToUsd: true,
+  });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { apyDecimal } = useMoneyAccountBalance();
   const apyDecimalForProjection = apyDecimal ?? 0;
 
-  const { eligibleTokens, totalAssetsFiat, projectedAmount } =
+  const { eligibleTokens, totalAssetsFiat, projectedAmount, currency } =
     useProjectedEarnings(depositTokens, apyDecimal);
 
   const {
-    trackButtonClicked,
     trackScreenViewed,
     trackTokenButtonClicked,
     trackTokenSurfaceClicked,
@@ -227,7 +225,7 @@ const MoneyPotentialEarningsView = () => {
                 {
                   total: moneyFormatFiat(
                     new BigNumber(totalAssetsFiat),
-                    currentCurrency,
+                    currency,
                   ),
                 },
               )} `}
@@ -236,7 +234,7 @@ const MoneyPotentialEarningsView = () => {
                 fontWeight={FontWeight.Medium}
                 color={TextColor.SuccessDefault}
               >
-                {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+                {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
               </Text>
               {` ${strings(
                 'money.potential_earnings.description_with_amounts_suffix',

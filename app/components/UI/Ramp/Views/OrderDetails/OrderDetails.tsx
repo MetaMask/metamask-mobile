@@ -32,6 +32,7 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
 import OrderContent from './OrderContent';
+import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -109,6 +110,12 @@ const OrderDetails = () => {
           return;
         }
         addOrder(fetchedOrder);
+
+        // TRAM-3691: a callback-fetched order that is already terminal is never
+        // polled, so `orderStatusChanged` never fires and the terminal metrics
+        // event would be lost. Emit it directly (no-ops for non-terminal orders
+        // and dedups against the polling path).
+        emitTerminalOrderAnalyticsFromCallback(fetchedOrder);
 
         showV2OrderToast({
           orderId: fetchedOrder.providerOrderId,
