@@ -78,6 +78,25 @@ function tpSlSnapshot(position: PerpsCufPositionLike): string {
   return `${position.takeProfitPrice ?? ''}|${position.stopLossPrice ?? ''}`;
 }
 
+/**
+ * Whether `current` (the symbol's position now, or undefined if absent) is a
+ * render of an order versus `baselineSize` (the pre-order size, or undefined
+ * when there was no prior position). A render is a new position (no baseline),
+ * a changed position, OR a pre-existing position now absent because the order
+ * reduced it fully to zero. Shared by the stream matcher and the hook's
+ * synchronous fast path so the two cannot drift.
+ */
+export function isPerpsFillRendered(
+  current: PerpsCufPositionLike | undefined,
+  baselineSize: string | undefined,
+): boolean {
+  const baselineExisted = baselineSize !== undefined;
+  if (current) {
+    return !baselineExisted || positionSnapshot(current) !== baselineSize;
+  }
+  return baselineExisted;
+}
+
 /** Open CUF spans: unique op id -> metadata handed from starter to ender. */
 const pendingCufMeta = new Map<string, Record<string, TraceValue>>();
 let cufOpCounter = 0;
@@ -326,16 +345,13 @@ function placeOrderPositionRendered(
     return null;
   }
   const baseline = meta[CUF_META.SNAPSHOT];
-  const baselineExisted = typeof baseline === 'string';
-  if (current) {
-    // New (no baseline) or changed versus the pre-order baseline.
-    if (!baselineExisted || positionSnapshot(current) !== baseline) {
-      return current;
-    }
-    return null;
+  const baselineSize = typeof baseline === 'string' ? baseline : undefined;
+  if (isPerpsFillRendered(current, baselineSize)) {
+    // A present position renders itself; an absent one that existed before
+    // renders as a synthetic zero (the order closed it).
+    return current ?? { symbol, size: '0' };
   }
-  // Position absent: a render only if one existed before (order closed it).
-  return baselineExisted ? { symbol, size: '0' } : null;
+  return null;
 }
 
 /** Close confirmation: end `opId` when its position's size shrinks or vanishes. */

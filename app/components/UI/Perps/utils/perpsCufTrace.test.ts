@@ -18,6 +18,7 @@ import {
   watchPerpsCufLimitRendered,
   watchPerpsCufAnyPositions,
   acceptPerpsCufRequest,
+  isPerpsFillRendered,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
   resetPerpsCufTraceForTests,
@@ -47,6 +48,30 @@ describe('perpsCufTrace', () => {
     jest.clearAllMocks();
     resetPerpsLifecycleContextForTests();
     resetPerpsCufTraceForTests();
+  });
+
+  describe('isPerpsFillRendered (shared fill predicate)', () => {
+    const pos = (size: string) => ({ symbol: 'BTC', size });
+
+    it('is a render when a new position appears with no baseline', () => {
+      expect(isPerpsFillRendered(pos('0.1'), undefined)).toBe(true);
+    });
+
+    it('is a render when the position size changed versus the baseline', () => {
+      expect(isPerpsFillRendered(pos('0.2'), '0.1')).toBe(true);
+    });
+
+    it('is NOT a render when the position is unchanged from the baseline', () => {
+      expect(isPerpsFillRendered(pos('0.1'), '0.1')).toBe(false);
+    });
+
+    it('is a render when a pre-existing position is now absent (closed to zero)', () => {
+      expect(isPerpsFillRendered(undefined, '0.1')).toBe(true);
+    });
+
+    it('is NOT a render when absent and no position existed before', () => {
+      expect(isPerpsFillRendered(undefined, undefined)).toBe(false);
+    });
   });
 
   it('starts a span with a unique id and feature + lifecycle_context tags', () => {
