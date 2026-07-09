@@ -113,6 +113,7 @@ import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
+import AuthDebugging from '../../Views/Settings/AuthDebugging';
 import { isTestEnvironment } from '../../../util/test/utils';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
@@ -494,6 +495,21 @@ const SettingsFlow = () => {
           <NativeStack.Screen
             name="AesCryptoTestForm"
             component={AesCryptoTestForm}
+          />
+        )
+      }
+      {
+        /**
+         * This screen should only be accessed in local development / test mode.
+         * It exposes the current MetaMask authentication session (profile ID
+         * and mm-auth JWT) for debugging purposes.
+         *
+         * If this is in production, it is a bug.
+         */
+        isTestEnvironment && (
+          <NativeStack.Screen
+            name={Routes.SETTINGS.AUTH_DEBUGGING}
+            component={AuthDebugging}
           />
         )
       }

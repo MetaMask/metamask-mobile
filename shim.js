@@ -200,6 +200,35 @@ if (typeof global.MessageEvent === 'undefined') {
     require('react-native/src/private/webapis/html/events/MessageEvent').default;
 }
 
+// React Native / Hermes' MessageEvent does not implement the `source` and
+// `ports` getters. Libraries that read them (e.g. @nktkas/rews accessing
+// `event.source` on Hyperliquid WebSocket messages) otherwise crash with
+// "MessageEvent.prototype.source getter is not defined". Define spec-compliant,
+// non-throwing fallbacks (source defaults to null, ports to an empty list).
+if (global.MessageEvent && global.MessageEvent.prototype) {
+  [
+    ['source', null],
+    ['ports', []],
+  ].forEach(([prop, fallback]) => {
+    try {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        global.MessageEvent.prototype,
+        prop,
+      );
+      if (!descriptor || descriptor.configurable) {
+        Object.defineProperty(global.MessageEvent.prototype, prop, {
+          configurable: true,
+          get() {
+            return fallback;
+          },
+        });
+      }
+    } catch (_) {
+      // Property is non-configurable and can't be patched; leave it as-is.
+    }
+  });
+}
+
 class AbortError extends Error {
   constructor(message) {
     super(message);

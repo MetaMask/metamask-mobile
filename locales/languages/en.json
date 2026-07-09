@@ -3999,6 +3999,17 @@
     "simulation_details_learn_more": "Learn more.",
     "aes_crypto_test_form_title": "AES crypto - test form",
     "aes_crypto_test_form_description": "Section exclusively developed for E2E testing. If this is visible in your app, please report it to MetaMask support.",
+    "auth_debugging": {
+      "title": "Auth Debugging",
+      "description": "Inspect the current MetaMask authentication session. These values are sensitive — do not share them publicly.",
+      "profile_id_title": "MetaMask profile ID",
+      "jwt_title": "mm-auth JWT",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "refresh": "Refresh",
+      "not_available": "Not available",
+      "not_signed_in": "You are not signed in to a MetaMask authentication session."
+    },
     "developer_options": {
       "title": "Developer options",
       "generate_trace_test": "Generate trace test",
