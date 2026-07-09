@@ -280,20 +280,13 @@ export function waitForPerpsPlaceOrderPositionRendered(
 }
 
 /**
- * Stream-side matcher for the place-order CUF: records when the armed position
- * first renders (new, or changed versus the pre-order baseline) and wakes the
- * waiter. `flushThrottled` is invoked before the render timestamp is stamped so
- * throttled subscribers actually receive the data at the measured instant.
- * Returns true when it matched (so the caller can flush once for the tick).
- */
-/**
  * Whether the armed position has rendered for op `opId`: a new/changed position
  * for its symbol, OR — when a position existed pre-order — that position now
  * absent (the order reduced/flipped it to zero via the order form).
  *
- * When the baseline is pending (positions cache was unloaded at submit), this
- * delivery is treated as the baseline: it is captured and NOT counted as a
- * render, so a pre-existing position can't falsely confirm the order.
+ * When the baseline is pending (positions cache was unloaded at submit), an
+ * absent first delivery is captured as the baseline. A present symbol is counted
+ * as rendered because it may be the post-fill snapshot and must not be swallowed.
  */
 function placeOrderPositionRendered(
   opId: string,
@@ -306,13 +299,11 @@ function placeOrderPositionRendered(
   }
   const current = positions.find((p) => p.symbol === symbol);
   if (meta[CUF_META.BASELINE_PENDING] === true) {
-    // First delivery after an unloaded-cache submit: this is the real
-    // pre-order state. Capture it and wait for a subsequent change.
-    setPerpsCufMeta(opId, {
-      [CUF_META.BASELINE_PENDING]: false,
-      ...(current ? { [CUF_META.SNAPSHOT]: positionSnapshot(current) } : {}),
-    });
-    return null;
+    setPerpsCufMeta(opId, { [CUF_META.BASELINE_PENDING]: false });
+    if (!current) {
+      return null;
+    }
+    return current;
   }
   const baseline = meta[CUF_META.SNAPSHOT];
   const baselineExisted = typeof baseline === 'string';
