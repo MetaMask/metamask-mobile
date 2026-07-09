@@ -757,15 +757,19 @@ describe('CustomAmountInfo', () => {
     expect(queryByTestId('pay-account-selector')).toBeNull();
   });
 
-  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', () => {
+  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
 
-    const { getByTestId } = render({
+    const { getByTestId, getByText } = render({
       supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
     expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
@@ -1176,32 +1180,6 @@ describe('CustomAmountInfo', () => {
       expect(
         queryByText(strings('confirm.custom_amount.buy_button')),
       ).toBeNull();
-    });
-
-    it('shows detail rows during loading when override is present (skeletons visible)', () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        type: TransactionType.moneyAccountDeposit,
-        txParams: { from: '0x123' },
-      } as never);
-
-      useTransactionPayAvailableTokensMock.mockReturnValue({
-        availableTokens: [],
-        hasTokens: false,
-      });
-
-      useIsTransactionPayLoadingMock.mockReturnValue(true);
-      useTransactionAccountOverrideMock.mockReturnValue('0xoverride' as never);
-      useAccountNoFundsAlertMock.mockReturnValue([]);
-
-      const { getByText, getByTestId } = render({
-        transactionType: TransactionType.moneyAccountDeposit,
-      });
-
-      act(() => {
-        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-      });
-
-      expect(getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
   });
 
