@@ -1052,11 +1052,12 @@ describe('PerpsOrderView', () => {
       placeOrder: mockPlaceOrder,
     });
 
-    const { findByRole } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    // Find a button (since we don't have specific testIDs)
-    const buttons = await findByRole('button');
-    expect(buttons).toBeDefined();
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toBeDefined();
   });
 
   it('displays components when connected', async () => {
