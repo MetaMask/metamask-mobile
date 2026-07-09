@@ -16,15 +16,27 @@ import {
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
 
+function getRampsOrderId(order: RampsOrder): string {
+  return order.id ?? order.providerOrderId;
+}
+
+function findV2Order(
+  v2Orders: RampsOrder[],
+  displayId: string,
+): RampsOrder | undefined {
+  return v2Orders.find(
+    (order) =>
+      getRampsOrderId(order) === displayId ||
+      order.providerOrderId === displayId,
+  );
+}
+
 function toMergedFiatOrders(
   legacyOrders: FiatOrder[],
   v2Orders: RampsOrder[],
 ): FiatOrder[] {
   const displayOrders = mergeDisplayOrders(legacyOrders, v2Orders);
   const legacyById = new Map(legacyOrders.map((order) => [order.id, order]));
-  const v2ById = new Map(
-    v2Orders.map((order) => [order.providerOrderId, order]),
-  );
 
   const mergedOrders: FiatOrder[] = [];
 
@@ -37,7 +49,7 @@ function toMergedFiatOrders(
       continue;
     }
 
-    const v2Order = v2ById.get(displayOrder.id);
+    const v2Order = findV2Order(v2Orders, displayOrder.id);
     if (v2Order) {
       mergedOrders.push(rampsOrderToFiatOrder(v2Order));
     }
