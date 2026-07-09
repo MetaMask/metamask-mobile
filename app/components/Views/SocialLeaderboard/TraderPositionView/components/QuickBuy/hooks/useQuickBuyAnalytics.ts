@@ -64,10 +64,29 @@ export function useQuickBuyAnalytics(
   const resolvedTraderAddress =
     analyticsContext?.traderAddress ?? traderAddress;
 
+  const {
+    source: analyticsSource,
+    originalEntryPoint,
+    marketCap,
+    traderTradeType,
+  } = analyticsContext ?? {};
+
   const sharedAnalyticsProps = useMemo(
-    () => buildQuickBuySharedAnalyticsProperties(analyticsContext),
-    [analyticsContext],
+    () =>
+      buildQuickBuySharedAnalyticsProperties({
+        source: analyticsSource,
+        originalEntryPoint,
+        marketCap,
+        traderTradeType,
+      }),
+    [analyticsSource, originalEntryPoint, marketCap, traderTradeType],
   );
+
+  // Dismiss cleanup must run only on unmount. `sharedAnalyticsProps` updates when
+  // live chart data changes (e.g. marketCap) while the sheet stays open — keep the
+  // latest props in a ref so cleanup does not reset bridge state mid-session.
+  const sharedAnalyticsPropsRef = useRef(sharedAnalyticsProps);
+  sharedAnalyticsPropsRef.current = sharedAnalyticsProps;
 
   useEffect(
     () => () => {
@@ -78,7 +97,7 @@ export function useQuickBuyAnalytics(
       if (!tradeSubmittedRef.current && resolvedTraderAddress && caip19) {
         const numeric = Number(lastTrackedAmountRef.current);
         track(MetaMetricsEvents.SOCIAL_QUICK_BUY_DISMISSED, {
-          ...sharedAnalyticsProps,
+          ...sharedAnalyticsPropsRef.current,
           [QuickBuyEventProperties.TRADER_ADDRESS]: resolvedTraderAddress,
           [QuickBuyEventProperties.CAIP19]: caip19,
           [QuickBuyEventProperties.DISMISS_STAGE]: dismissStageRef.current,
@@ -87,7 +106,7 @@ export function useQuickBuyAnalytics(
         });
       }
     },
-    [dispatch, resolvedTraderAddress, caip19, track, sharedAnalyticsProps],
+    [dispatch, resolvedTraderAddress, caip19, track],
   );
 
   const trackAmountSelected = useCallback(

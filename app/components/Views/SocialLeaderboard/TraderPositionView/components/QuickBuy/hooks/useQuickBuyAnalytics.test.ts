@@ -430,5 +430,74 @@ describe('useQuickBuyAnalytics', () => {
 
       expect(mockBridgeControllerResetState).toHaveBeenCalled();
     });
+
+    it('does not fire DISMISSED or reset bridge when shared analytics props update', () => {
+      const { rerender } = renderHook(
+        ({ context }) => useQuickBuyAnalytics(TRADER, CAIP19, context),
+        {
+          initialProps: {
+            context: {
+              source: 'profile_position' as const,
+              marketCap: 1_000_000,
+              tokenPriceFiat: 1.5,
+            },
+          },
+        },
+      );
+
+      mockTrack.mockClear();
+      mockDispatch.mockClear();
+      mockResetBridgeState.mockClear();
+      mockBridgeControllerResetState.mockClear();
+
+      rerender({
+        context: {
+          source: 'profile_position',
+          marketCap: 2_000_000,
+          tokenPriceFiat: 1.75,
+        },
+      });
+
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_DISMISSED,
+        expect.anything(),
+      );
+      expect(mockResetBridgeState).not.toHaveBeenCalled();
+      expect(mockBridgeControllerResetState).not.toHaveBeenCalled();
+    });
+
+    it('includes latest shared analytics props in DISMISSED on unmount after context updates', () => {
+      const { rerender, unmount } = renderHook(
+        ({ context }) => useQuickBuyAnalytics(TRADER, CAIP19, context),
+        {
+          initialProps: {
+            context: {
+              source: 'profile_position' as const,
+              marketCap: 1_000_000,
+              originalEntryPoint: 'leaderboard' as const,
+            },
+          },
+        },
+      );
+
+      rerender({
+        context: {
+          source: 'profile_position',
+          marketCap: 2_000_000,
+          originalEntryPoint: 'leaderboard',
+        },
+      });
+
+      mockTrack.mockClear();
+      unmount();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_DISMISSED,
+        expect.objectContaining({
+          market_cap: 2_000_000,
+          original_entry_point: 'leaderboard',
+        }),
+      );
+    });
   });
 });
