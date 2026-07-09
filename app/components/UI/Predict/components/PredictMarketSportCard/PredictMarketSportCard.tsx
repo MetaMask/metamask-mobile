@@ -36,6 +36,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictSportTeam,
+  type PredictMarketBuyButtonPress,
 } from '../../types';
 import {
   PredictEntryPoint,
@@ -53,10 +54,11 @@ interface PredictMarketSportCardProps {
   entryPoint?: PredictEntryPoint;
   onDismiss?: () => void;
   isCarousel?: boolean;
+  cardPressDisabled?: boolean;
   /** Called synchronously before the card's navigation press fires. */
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
-  onBuyButtonPress?: (marketId: string) => void;
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
   predictFeedTab?: string;
   predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -201,6 +203,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   entryPoint: propEntryPoint,
   onDismiss,
   isCarousel,
+  cardPressDisabled,
   onCardPress,
   onBuyButtonPress,
   predictFeedTab,
@@ -237,6 +240,10 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   );
 
   const handleCardPress = useCallback(() => {
+    if (cardPressDisabled) {
+      return;
+    }
+
     onCardPress?.();
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_DETAILS,
@@ -254,6 +261,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     });
   }, [
     market,
+    cardPressDisabled,
     navigation,
     onCardPress,
     predictFeedTab,
@@ -264,7 +272,16 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   const handleBuy = useCallback(
     (item: SportOutcomeButtonItem) => {
-      onBuyButtonPress?.(market.id);
+      const handledExternally =
+        onBuyButtonPress?.({
+          market,
+          outcome: item.outcome,
+          outcomeToken: item.token,
+        }) === true;
+      if (handledExternally) {
+        return;
+      }
+
       executeGuardedAction(
         () => {
           openBuySheet({

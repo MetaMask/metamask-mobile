@@ -402,6 +402,21 @@ describe('PredictMarketSportCard', () => {
     );
   });
 
+  it('does not navigate to market details when card press is disabled', () => {
+    const { getByTestId } = renderWithProvider(
+      <PredictMarketSportCard
+        market={mockMarket}
+        testID="sport-market-card"
+        cardPressDisabled
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId('sport-market-card'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('explicit entry point takes priority over trending session', () => {
     mockIsFromTrending.mockReturnValue(true);
 
@@ -439,7 +454,11 @@ describe('PredictMarketSportCard', () => {
 
     fireEvent.press(getByTestId('sport-market-card-home-button'));
 
-    expect(onBuyButtonPress).toHaveBeenCalledWith(mockMarket.id);
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+    });
     expect(mockOpenBuySheet).toHaveBeenCalledWith(
       expect.objectContaining({
         market: mockMarket,
@@ -447,6 +466,27 @@ describe('PredictMarketSportCard', () => {
         entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       }),
     );
+  });
+
+  it('calls buy handler instead of opening the buy sheet when it returns true', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+    const { getByTestId } = renderWithProvider(
+      <PredictMarketSportCard
+        market={mockMarket}
+        testID="sport-market-card"
+        onBuyButtonPress={onBuyButtonPress}
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId('sport-market-card-home-button'));
+
+    expect(onBuyButtonPress).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockMarket.outcomes[0],
+      outcomeToken: mockMarket.outcomes[0].tokens[0],
+    });
+    expect(mockOpenBuySheet).not.toHaveBeenCalled();
   });
 
   it('renders close button and calls onDismiss without navigating', () => {
