@@ -41,7 +41,7 @@ import {
 } from './rampDetailsUtils';
 
 export type RampActivityListItem = ActivityListItem & {
-  type: 'buy' | 'sell' | 'deposit';
+  type: 'buy' | 'sell';
   raw: { type: 'rampOrder'; data: FiatOrder };
 };
 
