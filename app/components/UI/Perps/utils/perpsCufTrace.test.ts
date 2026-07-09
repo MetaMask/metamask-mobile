@@ -17,6 +17,7 @@ import {
   watchPerpsCufOrderAbsent,
   watchPerpsCufLimitRendered,
   watchPerpsCufAnyPositions,
+  acceptPerpsCufRequest,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
   resetPerpsCufTraceForTests,
@@ -182,10 +183,12 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsCancelOrderToConfirmation,
     });
     watchPerpsCufOrderAbsent(opA, 'o-A');
+    acceptPerpsCufRequest(opA);
     const opB = startPerpsCufTrace({
       name: TraceName.PerpsCancelOrderToConfirmation,
     });
     watchPerpsCufOrderAbsent(opB, 'o-B');
+    acceptPerpsCufRequest(opB);
 
     // o-A cancelled (absent), o-B still resting.
     handlePerpsCufOrdersDelivered([{ orderId: 'o-B' }]);
@@ -447,6 +450,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsClosePositionToConfirmation,
     });
     watchPerpsCufPositionClosed(opId, btc);
+    acceptPerpsCufRequest(opId);
 
     handlePerpsCufPositionsDelivered([{ symbol: 'ETH', size: '1' }]);
 
@@ -465,6 +469,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsClosePositionToConfirmation,
     });
     watchPerpsCufPositionClosed(opId, btc);
+    acceptPerpsCufRequest(opId);
 
     handlePerpsCufPositionsDelivered([btc]);
     expect(mockEndTrace).not.toHaveBeenCalled();
@@ -478,6 +483,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsClosePositionToConfirmation,
     });
     watchPerpsCufPositionClosed(opId, btc);
+    acceptPerpsCufRequest(opId);
 
     // Size grew instead of shrinking: an add, not a close.
     handlePerpsCufPositionsDelivered([{ ...btc, size: '0.02' }]);
@@ -489,6 +495,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsClosePositionToConfirmation,
     });
     watchPerpsCufPositionClosed(opId, btc);
+    acceptPerpsCufRequest(opId);
 
     // Same size, different take-profit: not a close.
     handlePerpsCufPositionsDelivered([{ ...btc, takeProfitPrice: '80000' }]);
@@ -500,6 +507,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsUpdateTPSLToConfirmation,
     });
     watchPerpsCufTpSlChanged(opId, btc);
+    acceptPerpsCufRequest(opId);
 
     handlePerpsCufPositionsDelivered([{ ...btc, takeProfitPrice: '71000' }]);
 
@@ -513,6 +521,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsUpdateTPSLToConfirmation,
     });
     watchPerpsCufTpSlChanged(opId, btc);
+    acceptPerpsCufRequest(opId);
 
     // Same TP/SL, different size: not a TP/SL update.
     handlePerpsCufPositionsDelivered([{ ...btc, size: '0.02' }]);
@@ -524,10 +533,12 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsClosePositionToConfirmation,
     });
     watchPerpsCufPositionClosed(closeOp, btc);
+    acceptPerpsCufRequest(closeOp);
     const tpslOp = startPerpsCufTrace({
       name: TraceName.PerpsUpdateTPSLToConfirmation,
     });
     watchPerpsCufTpSlChanged(tpslOp, btc);
+    acceptPerpsCufRequest(tpslOp);
 
     // Only TP/SL changed: ends the tpsl span, not the close span.
     handlePerpsCufPositionsDelivered([{ ...btc, takeProfitPrice: '71000' }]);
@@ -542,6 +553,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsCancelOrderToConfirmation,
     });
     watchPerpsCufOrderAbsent(opId, 'o-1');
+    acceptPerpsCufRequest(opId);
 
     handlePerpsCufOrdersDelivered([{ orderId: 'o-1' }, { orderId: 'o-2' }]);
     expect(mockEndTrace).not.toHaveBeenCalled();
@@ -549,6 +561,53 @@ describe('perpsCufTrace', () => {
     handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }]);
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: opId }),
+    );
+  });
+
+  it('gated confirmation defers a stream match until the request is accepted', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsCancelOrderToConfirmation,
+    });
+    watchPerpsCufOrderAbsent(opId, 'o-1');
+
+    // Order absent before acceptance (e.g. an unrelated fill): must NOT end.
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+
+    // Controller accepts the cancel: the recorded render now completes it.
+    acceptPerpsCufRequest(opId);
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: opId,
+        data: expect.objectContaining({
+          [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+        }),
+      }),
+    );
+  });
+
+  it('a failed request is not overridden by a gated stream match', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsCancelOrderToConfirmation,
+    });
+    watchPerpsCufOrderAbsent(opId, 'o-1');
+
+    // Order vanished while the request was in flight, but the request failed.
+    handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }]);
+    endPerpsCufTrace({
+      id: opId,
+      data: { [PERPS_CUF_TAG.SUCCESS]: false },
+    });
+    // A late acceptance can no longer resurrect the span as a success.
+    acceptPerpsCufRequest(opId);
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: opId,
+        data: expect.objectContaining({ [PERPS_CUF_TAG.SUCCESS]: false }),
+      }),
     );
   });
 
@@ -614,6 +673,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsCancelOrderToConfirmation,
     });
     watchPerpsCufOrderAbsent(cancelOpId, 'o-1');
+    acceptPerpsCufRequest(cancelOpId);
     const limitOpId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceLimitOrderToOrderRendered,
     });
@@ -649,6 +709,7 @@ describe('perpsCufTrace', () => {
       name: TraceName.PerpsCancelOrderToConfirmation,
     });
     watchPerpsCufOrderAbsent(opId, 'o-1');
+    acceptPerpsCufRequest(opId);
     const flush = jest.fn();
 
     handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }], flush);

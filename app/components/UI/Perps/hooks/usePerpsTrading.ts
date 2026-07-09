@@ -41,6 +41,7 @@ import {
   endPerpsCufTrace,
   endPerpsCufTraceAfter,
   watchPerpsCufOrderAbsent,
+  acceptPerpsCufRequest,
 } from '../utils/perpsCufTrace';
 import {
   PERPS_CUF_TAG,
@@ -103,6 +104,12 @@ export function usePerpsTrading() {
               [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
             },
           });
+        } else {
+          // Only now may a stream absence complete the span as a success — the
+          // controller accepted the cancel. If the order already vanished while
+          // the request was in flight, the render instant was recorded and the
+          // span ends at it here.
+          acceptPerpsCufRequest(cancelCufOpId);
         }
         return result;
       } catch (error) {

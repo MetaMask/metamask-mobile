@@ -37,6 +37,15 @@ const CUF_META = {
   // True when the positions cache was not loaded at submit, so the pre-order
   // baseline is unknown and must be captured from the first stream delivery.
   BASELINE_PENDING: 'baselinePending',
+  // Confirmation flows (cancel/close/TP-SL) arm their stream watcher at the
+  // gesture but must not record a stream success until the controller has
+  // accepted the request — otherwise an unrelated stream change during the
+  // request window would mislabel a failed request as a success. True until
+  // acceptPerpsCufRequest is called.
+  AWAIT_ACCEPT: 'awaitAccept',
+  // Instant a gated op's watched render was first seen while still awaiting
+  // acceptance; the span ends at this instant once the request is accepted.
+  DEFERRED_AT: 'deferredAt',
 } as const;
 
 /** What a pending confirmation span is watching for in the stream. */
@@ -338,6 +347,7 @@ export function watchPerpsCufPositionClosed(
     [CUF_META.WATCH]: PERPS_CUF_WATCH.POSITION_CLOSED,
     [CUF_META.SYMBOL]: position.symbol,
     [CUF_META.SNAPSHOT]: position.size,
+    [CUF_META.AWAIT_ACCEPT]: true,
   });
 }
 
@@ -350,6 +360,7 @@ export function watchPerpsCufTpSlChanged(
     [CUF_META.WATCH]: PERPS_CUF_WATCH.TPSL_CHANGED,
     [CUF_META.SYMBOL]: position.symbol,
     [CUF_META.SNAPSHOT]: tpSlSnapshot(position),
+    [CUF_META.AWAIT_ACCEPT]: true,
   });
 }
 
@@ -358,6 +369,7 @@ export function watchPerpsCufOrderAbsent(opId: string, orderId: string): void {
   setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_ABSENT,
     [CUF_META.ORDER_ID]: orderId,
+    [CUF_META.AWAIT_ACCEPT]: true,
   });
 }
 
@@ -406,6 +418,51 @@ function pendingOpIdsForName(name: TraceName): string[] {
 }
 
 /**
+ * A watched render matched for `opId`. End it now unless the op is still
+ * awaiting request acceptance — in that case record the render instant and
+ * defer, so acceptPerpsCufRequest can complete it as a success only once the
+ * request is accepted. This prevents an unrelated stream change during the
+ * request window from recording a failed cancel/close/TP-SL as a success.
+ */
+function confirmOrDefer(
+  opId: string,
+  meta: Record<string, TraceValue>,
+  toEnd: string[],
+): void {
+  if (meta[CUF_META.AWAIT_ACCEPT] === true) {
+    if (meta[CUF_META.DEFERRED_AT] === undefined) {
+      setPerpsCufMeta(opId, { [CUF_META.DEFERRED_AT]: Date.now() });
+    }
+    return;
+  }
+  toEnd.push(opId);
+}
+
+/**
+ * Mark a confirmation op's request as accepted by the controller. If its
+ * watched render was already seen while gated, end it now as a success at that
+ * recorded instant; otherwise clear the gate so the next matching delivery ends
+ * it. A no-op if the op already ended (e.g. request failed or the fallback
+ * timed out), so a later stream success can never override a failure.
+ */
+export function acceptPerpsCufRequest(opId: string): void {
+  const meta = pendingCufMeta.get(opId);
+  if (!meta) {
+    return;
+  }
+  const deferredAt = meta[CUF_META.DEFERRED_AT];
+  if (typeof deferredAt === 'number') {
+    endPerpsCufTrace({
+      id: opId,
+      data: { ...STREAM_END_DATA },
+      timestamp: deferredAt,
+    });
+    return;
+  }
+  setPerpsCufMeta(opId, { [CUF_META.AWAIT_ACCEPT]: false });
+}
+
+/**
  * Positions just rendered to stream subscribers: close every pending CUF span
  * whose watched condition is now visible (new position, changed/absent
  * position, or any fresh delivery after a reconnect). `flushThrottled` is
@@ -445,7 +502,7 @@ export function handlePerpsCufPositionsDelivered(
     const closed =
       !current || Math.abs(Number.parseFloat(current.size)) < baselineSize;
     if (closed) {
-      toEnd.push(opId);
+      confirmOrDefer(opId, meta, toEnd);
     }
   }
   // TP/SL: the position is still present and its TP or SL value changed.
@@ -462,7 +519,7 @@ export function handlePerpsCufPositionsDelivered(
     }
     const current = positions.find((p) => p.symbol === symbol);
     if (current && tpSlSnapshot(current) !== meta[CUF_META.SNAPSHOT]) {
-      toEnd.push(opId);
+      confirmOrDefer(opId, meta, toEnd);
     }
   }
   // Limit place: a marketable limit that filled renders as a new/changed
@@ -542,11 +599,12 @@ export function handlePerpsCufOrdersDelivered(
     const meta = pendingCufMeta.get(opId);
     const orderId = meta?.[CUF_META.ORDER_ID];
     if (
-      meta?.[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_ABSENT &&
+      meta &&
+      meta[CUF_META.WATCH] === PERPS_CUF_WATCH.ORDER_ABSENT &&
       typeof orderId === 'string' &&
       orders.every((o) => o.orderId !== orderId)
     ) {
-      toEnd.push(opId);
+      confirmOrDefer(opId, meta, toEnd);
     }
   }
   for (const opId of pendingOpIdsForName(

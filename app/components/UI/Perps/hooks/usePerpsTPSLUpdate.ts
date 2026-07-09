@@ -17,6 +17,7 @@ import {
   endPerpsCufTrace,
   endPerpsCufTraceAfter,
   watchPerpsCufTpSlChanged,
+  acceptPerpsCufRequest,
 } from '../utils/perpsCufTrace';
 import {
   PERPS_CUF_TAG,
@@ -80,6 +81,11 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         });
 
         if (result.success) {
+          // Controller accepted the update: open the gate before the optimistic
+          // render so a TP/SL change can complete the CUF as a success. A failed
+          // request never reaches here, so it can't be recorded as a success.
+          acceptPerpsCufRequest(tpslCufOpId);
+
           DevLogger.log('Position TP/SL updated successfully:', result);
 
           // Apply optimistic update immediately for better UX

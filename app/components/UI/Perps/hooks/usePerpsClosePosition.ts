@@ -15,6 +15,7 @@ import {
   endPerpsCufTrace,
   endPerpsCufTraceAfter,
   watchPerpsCufPositionClosed,
+  acceptPerpsCufRequest,
 } from '../utils/perpsCufTrace';
 import {
   PERPS_CUF_TAG,
@@ -171,6 +172,13 @@ export const usePerpsClosePosition = (
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (result.success) {
+          // Controller accepted the close: only now may a stream shrink/absence
+          // complete the CUF as a success. If the position already shrank while
+          // the request was in flight, that render instant was recorded and the
+          // span ends at it here.
+          if (closeCufOpId) {
+            acceptPerpsCufRequest(closeCufOpId);
+          }
           // Market order immediately fills or fails
           // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
           // Note: We only support market close for now but keeping check for future limit close support.
