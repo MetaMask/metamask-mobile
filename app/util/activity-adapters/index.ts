@@ -41,6 +41,7 @@ export {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isSpendingCapWithAmount,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';

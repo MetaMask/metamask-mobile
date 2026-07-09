@@ -69,7 +69,10 @@ import {
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import {
+  buildFollowTradingTokenContext,
+  pickFollowTradingDismissedProperties,
   SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
   type FollowTradingTokenSource,
 } from '../analytics';
@@ -118,7 +121,7 @@ const TraderPositionView = () => {
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const buyClickedRef = useRef(false);
+  const ctaClickedRef = useRef(false);
 
   // Position resolution: always fetch by id when we have one so pull-to-refresh
   // can swap in fresh data. The row-tap snapshot (`positionParam`) is used as
@@ -244,20 +247,10 @@ const TraderPositionView = () => {
       ? sourceParam
       : 'trader_profile';
 
-  // Derive identifiers once so screen-viewed / buy-clicked / dismissed share them.
+  // Derive identifiers once so screen-viewed / cta-clicked / dismissed share them.
   const followTradingTokenContext = useMemo(() => {
-    if (!displayPosition || !traderAddress) return null;
-    const caipChainId = chainNameToId(displayPosition.chain);
-    const caip19 = caipChainId
-      ? (toAssetId(displayPosition.tokenAddress, caipChainId) ?? '')
-      : '';
-    if (!caip19) return null;
-    return {
-      [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
-      [SocialLeaderboardEventProperties.CAIP19]: caip19,
-      [SocialLeaderboardEventProperties.ASSET_NAME]:
-        displayPosition.tokenSymbol,
-    };
+    if (!displayPosition) return null;
+    return buildFollowTradingTokenContext(displayPosition, traderAddress);
   }, [displayPosition, traderAddress]);
 
   // Ref-guarded so the event fires once per mount, not on every context refresh.
@@ -290,23 +283,36 @@ const TraderPositionView = () => {
     followTradingTokenContextRef.current = followTradingTokenContext;
   }, [followTradingTokenContext]);
 
-  // Dismissed fires only when the user backs out without ever clicking Buy.
+  // Dismissed fires only when the user backs out without ever clicking Buy or Trade.
   // Closing the QuickBuy sheet still counts as having visited the token screen.
   // Empty dep array ensures the cleanup runs ONLY on unmount, never on re-render.
   useEffect(
     () => () => {
-      if (buyClickedRef.current) return;
+      if (ctaClickedRef.current) return;
       const ctx = followTradingTokenContextRef.current;
       if (!ctx) return;
-      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED, {
-        [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
-          ctx[SocialLeaderboardEventProperties.TRADER_ADDRESS],
-        [SocialLeaderboardEventProperties.CAIP19]:
-          ctx[SocialLeaderboardEventProperties.CAIP19],
-      });
+      track(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED,
+        pickFollowTradingDismissedProperties(ctx),
+      );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
+  );
+
+  const trackFollowTradingCtaClicked = useCallback(
+    (
+      ctaType:
+        | typeof SocialLeaderboardEventValues.CTA_TYPE.BUY
+        | typeof SocialLeaderboardEventValues.CTA_TYPE.TRADE,
+    ) => {
+      if (!followTradingTokenContext) return;
+      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_CTA_CLICKED, {
+        ...followTradingTokenContext,
+        [SocialLeaderboardEventProperties.CTA_TYPE]: ctaType,
+      });
+    },
+    [followTradingTokenContext, track],
   );
 
   const handleBuyPress = useCallback(() => {
@@ -315,15 +321,9 @@ const TraderPositionView = () => {
     // Success/error notification haptics fire later in useQuickBuyBottomSheet.
     playImpact(ImpactMoment.PrimaryCTA);
     setIsQuickBuyVisible(true);
-    buyClickedRef.current = true;
-
-    if (followTradingTokenContext) {
-      track(
-        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_BUY_CLICKED,
-        followTradingTokenContext,
-      );
-    }
-  }, [displayPosition, followTradingTokenContext, track]);
+    ctaClickedRef.current = true;
+    trackFollowTradingCtaClicked(SocialLeaderboardEventValues.CTA_TYPE.BUY);
+  }, [displayPosition, trackFollowTradingCtaClicked]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -373,6 +373,9 @@ const TraderPositionView = () => {
   const handlePerpTrade = useCallback(
     (targetSymbol: string) => {
       playImpact(ImpactMoment.PrimaryCTA);
+      ctaClickedRef.current = true;
+      trackFollowTradingCtaClicked(SocialLeaderboardEventValues.CTA_TYPE.TRADE);
+
       const market = {
         symbol: targetSymbol,
         name: getPerpsDisplaySymbol(targetSymbol),
@@ -382,7 +385,7 @@ const TraderPositionView = () => {
         params: { market, source: 'social_leaderboard' },
       });
     },
-    [navigation],
+    [navigation, trackFollowTradingCtaClicked],
   );
 
   // Tapping a trade row slides the chart to center that trade. The nonce changes

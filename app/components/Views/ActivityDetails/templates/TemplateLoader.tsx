@@ -54,6 +54,7 @@ export function TemplateLoader({
     case 'claimMusdBonus':
       return <ClaimMusdBonusDetails item={item} />;
     case 'claim':
+    case 'stake':
     case 'unstake':
       return <DepositDetails item={item} />;
     case 'smartAccountUpgrade':
