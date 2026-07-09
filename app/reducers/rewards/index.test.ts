@@ -2066,6 +2066,7 @@ describe('rewardsReducer', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        firstPredictOnUsSplashShown: true,
         hideCurrentAccountNotOptedInBanner: [
           {
             accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
@@ -2201,6 +2202,7 @@ describe('rewardsReducer', () => {
         optinAllowedForGeo: true,
         optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
+        firstPredictOnUsSplashShown: true,
         hideCurrentAccountNotOptedInBanner: [
           {
             accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
@@ -2299,6 +2301,8 @@ describe('rewardsReducer', () => {
         unlockedRewards: persistedRewardsState.unlockedRewards,
         hideUnlinkedAccountsBanner:
           persistedRewardsState.hideUnlinkedAccountsBanner,
+        firstPredictOnUsSplashShown:
+          persistedRewardsState.firstPredictOnUsSplashShown,
         hideCurrentAccountNotOptedInBanner:
           persistedRewardsState.hideCurrentAccountNotOptedInBanner,
         // These fields are restored from persisted state
@@ -2484,6 +2488,7 @@ describe('rewardsReducer', () => {
           },
         ],
         hideUnlinkedAccountsBanner: true,
+        firstPredictOnUsSplashShown: true,
         hideCurrentAccountNotOptedInBanner: [
           {
             accountGroupId: 'keyring:wallet1/1' as AccountGroupId,
