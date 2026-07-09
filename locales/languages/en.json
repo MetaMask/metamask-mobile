@@ -2084,7 +2084,8 @@
       "products": "Products",
       "top_movers": "Top movers",
       "gainers": "Gainers",
-      "losers": "Losers"
+      "losers": "Losers",
+      "recently_added": "Recently added"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -2178,8 +2179,15 @@
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
     },
+    "market_count": "{{count}} market",
+    "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
+    "no_markets_found": "No markets found",
+    "no_markets_found_description": "No markets match your current filter. Try a different category.",
+    "no_markets_search_description": "No markets match \"{{searchQuery}}\" in this category. Try a different search or clear the filter.",
+    "clear_search": "Clear search",
+    "clear_filter": "Clear filter",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
