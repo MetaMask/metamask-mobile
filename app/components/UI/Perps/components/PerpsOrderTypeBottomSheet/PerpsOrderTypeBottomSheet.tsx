@@ -5,7 +5,6 @@ import {
   BottomSheetRef,
   ListItemSelect,
 } from '@metamask/design-system-react-native';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -35,7 +34,6 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   direction = 'long',
   sheetRef: externalSheetRef,
 }) => {
-  const surfaceClass = useElevatedSurface();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { track } = usePerpsEventTracking();
@@ -96,7 +94,6 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       ref={sheetRef}
       goBack={!externalSheetRef ? onClose : undefined}
       onClose={externalSheetRef ? onClose : undefined}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         {strings('perps.order.type.title')}

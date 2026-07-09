@@ -4,10 +4,6 @@ import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import { type OrderType } from '@metamask/perps-controller';
 import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));
