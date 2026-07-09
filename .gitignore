@@ -224,6 +224,9 @@ release-signoffs.json
 # Skills copied at CI time by .github/workflows/flaky-unit-test-detection.yml
 # from .agents/skills/mms-*/SKILL.md into ai-analyzer's skill lookup path.
 .ai-pr-analyzer/skills/*
+# Generated artifacts from the flaky-unit-test-detection workflow (Stage 1).
+.ai-pr-analyzer/flaky-history.json
+.ai-pr-analyzer/flaky-prior-state.json
 .cursor/rules/*
 !.cursor/rules/*.mdc
 .cursor/skills/

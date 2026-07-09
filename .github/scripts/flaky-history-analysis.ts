@@ -45,11 +45,15 @@ const STATE_MARKER = '<!-- metamask-flaky-test-detection:state';
 const COMMENT_MARKER = '<!-- metamask-flaky-test-detection -->';
 
 const WORKFLOW = 'ci.yml';
-// JOB_NAME is written into the output artifact as metadata only — it is not
-// used to filter the sampled runs. Failure-file intersection is done via FAIL
-// lines in the raw job logs, which covers all unit-test shards regardless of
-// the exact job name.
+// JOB_NAME is written into the output artifact as metadata. It also drives
+// UNIT_TEST_JOB_PREFIX: only failed jobs whose name starts with this prefix
+// have their logs downloaded, which eliminates large e2e/build/lint logs that
+// can never contain a Jest FAIL line.
 const JOB_NAME = 'Unit tests';
+// ci.yml names unit-test shards "Unit tests (1)"…"Unit tests (10)" — any
+// failed job with this prefix is a unit-test shard whose log may contain FAIL
+// lines. All other jobs (e2e, build, lint) are skipped.
+const UNIT_TEST_JOB_PREFIX = 'Unit tests';
 // How far back the historical window extends. Failures are bucketed into the
 // nested windows below, so a failure 5 days ago counts in both windows and
 // one 20 days ago counts only in the 30d bucket.
@@ -62,12 +66,14 @@ type WindowCounts = Record<WindowKey, number>;
 // the real bound. This cap is just a safety valve against an unbounded page
 // walk on an extremely busy repo.
 const MAX_RUNS_LISTED = 3000;
-// Downloading failed-step logs is the expensive part (one Octokit
-// downloadJobLogsForWorkflowRun call per failed job per failed run). Bound the
-// total and process failed runs newest-first so the short windows (7d/30d)
-// stay accurate even if an unusually red year exceeds the cap — only the
-// oldest 365d tail is then undercounted.
-const MAX_FAILED_LOG_FETCHES = 200;
+// Upper bound on failed runs whose unit-test-shard logs we download. With the
+// UNIT_TEST_JOB_PREFIX filter each download is small (one shard's Jest output),
+// so 50 is ample for a 30d window with MIN_RUNS_FOR_RATE = 5.
+const MAX_FAILED_LOG_FETCHES = 50;
+// Number of concurrent Octokit requests when fetching job lists and logs.
+// High enough to saturate the 30d window quickly; low enough to avoid hitting
+// GitHub's secondary rate limits.
+const DOWNLOAD_CONCURRENCY = 8;
 // A window needs at least this many countable runs before its failure rate is
 // trusted for the flaky flag, so a single early failure in a nearly-empty
 // window cannot flag the file on its own.
@@ -163,6 +169,27 @@ const EXCLUDE_PATTERNS = [/\.view\.test\./, /^tests\/(smoke|regression)\//];
 
 function sh(cmd: string, args: string[]): string {
   return execFileSync(cmd, args, { encoding: 'utf8' }).trim();
+}
+
+// Runs fn over each item with at most `limit` concurrent promises at a time.
+// Preserves input order in the returned results array.
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let index = 0;
+
+  async function worker(): Promise<void> {
+    while (index < items.length) {
+      const i = index++;
+      results[i] = await fn(items[i]);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
 }
 
 // Extracts the per-file state JSON block embedded in a sticky comment body.
@@ -311,7 +338,9 @@ async function getCompletedRunsInLookback(octokit: Octokit): Promise<WorkflowRun
 
 // Extracts every `FAIL <path>` line Jest emits at the top of a failed test
 // file's output. For each failed run, lists its jobs via Octokit, keeps only
-// the failed jobs, then downloads their plaintext logs one by one.
+// failed unit-test-shard jobs (by UNIT_TEST_JOB_PREFIX), then downloads their
+// plaintext logs concurrently. Skipping e2e/build/lint jobs eliminates the
+// dominant download cost — those logs can never contain a Jest FAIL line.
 // downloadJobLogsForWorkflowRun returns plaintext (not a zip archive) so no
 // extra dependency is needed and there is no spawnSync buffer cap.
 async function getFailedTestFilesForRun(
@@ -320,7 +349,7 @@ async function getFailedTestFilesForRun(
   repo: string,
   runId: number,
 ): Promise<string[]> {
-  let jobs: { id: number; conclusion: string | null }[];
+  let jobs: { id: number; name: string; conclusion: string | null }[];
   try {
     jobs = await octokit.paginate(octokit.rest.actions.listJobsForWorkflowRun, {
       owner,
@@ -334,20 +363,30 @@ async function getFailedTestFilesForRun(
     return [];
   }
 
-  const failedJobs = jobs.filter((j) => j.conclusion === 'failure');
-  const logParts: string[] = [];
-  for (const job of failedJobs) {
-    try {
-      const res = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
-        owner,
-        repo,
-        job_id: job.id,
-      });
-      logParts.push(String(res.data));
-    } catch (error) {
-      core.warning(`downloadJobLogsForWorkflowRun ${job.id} failed: ${(error as Error).message}`);
-    }
-  }
+  // Only unit-test shards ("Unit tests (N)") can contain Jest FAIL lines.
+  const failedUnitJobs = jobs.filter(
+    (j) => j.conclusion === 'failure' && j.name.startsWith(UNIT_TEST_JOB_PREFIX),
+  );
+
+  const logParts = await mapWithConcurrency(
+    failedUnitJobs,
+    DOWNLOAD_CONCURRENCY,
+    async (job) => {
+      try {
+        const res = await octokit.rest.actions.downloadJobLogsForWorkflowRun({
+          owner,
+          repo,
+          job_id: job.id,
+        });
+        return String(res.data);
+      } catch (error) {
+        core.warning(
+          `downloadJobLogsForWorkflowRun ${job.id} failed: ${(error as Error).message}`,
+        );
+        return '';
+      }
+    },
+  );
 
   const logOutput = logParts.join('\n');
   // Alternation order: try the longest extension first so "tsx" isn't
@@ -387,10 +426,23 @@ async function buildHistory(
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, MAX_FAILED_LOG_FETCHES);
 
+  // Fetch failed-file lists for all failed runs concurrently. Each run only
+  // downloads unit-test-shard logs (small), so the total download time is now
+  // bounded by the slowest batch of DOWNLOAD_CONCURRENCY runs rather than by
+  // the serial sum of all 50.
+  const failedFilesPerRun = await mapWithConcurrency(
+    failedRuns,
+    DOWNLOAD_CONCURRENCY,
+    (run) => getFailedTestFilesForRun(octokit, owner, repo, run.id),
+  );
+
+  // Reduce sequentially to keep deterministic bucketing — the order of
+  // failedRuns (newest-first) is meaningful for the log-fetch budget.
   const failuresByFile = new Map<string, WindowCounts>();
-  for (const run of failedRuns) {
+  for (let i = 0; i < failedRuns.length; i++) {
+    const run = failedRuns[i];
     const keys = windowKeysForAge(ageInDays(run.createdAt));
-    for (const file of await getFailedTestFilesForRun(octokit, owner, repo, run.id)) {
+    for (const file of failedFilesPerRun[i]) {
       if (!modifiedFiles.includes(file)) continue;
       if (!failuresByFile.has(file)) failuresByFile.set(file, emptyWindowCounts());
       const counts = failuresByFile.get(file) as WindowCounts;
