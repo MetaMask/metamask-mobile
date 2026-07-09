@@ -13,7 +13,7 @@ interface PerpsMarketHeaderProps {
   /** Current price from candle stream - syncs header with chart */
   currentPrice: number;
   endAccessory?: ReactNode;
-  showAssetName?: boolean;
+  useDetailLayout?: boolean;
 }
 
 const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = (props) => (

@@ -95,12 +95,12 @@ describe('PerpsMarketInlineHeader', () => {
     expect(onFavoritePress).toHaveBeenCalled();
   });
 
-  describe('showAssetName layout', () => {
+  describe('useDetailLayout layout', () => {
     it('renders the full asset name as title and the market pair subtitle', () => {
       const { getByTestId, getByText, queryByTestId } = renderWithProvider(
         <PerpsMarketInlineHeader
           market={mockMarket}
-          showAssetName
+          useDetailLayout
           testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
           currentPrice={45000}
         />,
@@ -128,7 +128,7 @@ describe('PerpsMarketInlineHeader', () => {
       const { getByText } = renderWithProvider(
         <PerpsMarketInlineHeader
           market={marketWithoutName}
-          showAssetName
+          useDetailLayout
           testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
           currentPrice={45000}
         />,
@@ -143,7 +143,7 @@ describe('PerpsMarketInlineHeader', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsMarketInlineHeader
           market={mockMarket}
-          showAssetName
+          useDetailLayout
           onMarketListPress={onMarketListPress}
           testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
           currentPrice={45000}
@@ -162,7 +162,7 @@ describe('PerpsMarketInlineHeader', () => {
       const { queryByTestId } = renderWithProvider(
         <PerpsMarketInlineHeader
           market={mockMarket}
-          showAssetName
+          useDetailLayout
           testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
           currentPrice={45000}
         />,

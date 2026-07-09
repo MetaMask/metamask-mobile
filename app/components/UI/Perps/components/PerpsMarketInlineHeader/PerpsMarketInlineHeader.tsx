@@ -32,12 +32,14 @@ export interface PerpsMarketInlineHeaderProps {
   testID?: string;
   endAccessory?: ReactNode;
   /**
-   * When true, renders the redesigned market-detail identity:
-   * full asset name + leverage pill + market-list arrow on the first row and
-   * the `[Ticker]-[collateral] perp` pair on the second row. Price/24h change
-   * are expected to be rendered below the header by the parent.
+   * When true, renders the redesigned market-detail layout instead of the
+   * compact one: title becomes the full asset name, a leverage pill +
+   * market-list arrow are added on the first row, the description becomes the
+   * static `[Ticker]-[collateral] perp` pair on the second row, and the live
+   * price/24h change are removed from the header (relocated below by the
+   * parent). When false, the compact layout (pair title + live price) renders.
    */
-  showAssetName?: boolean;
+  useDetailLayout?: boolean;
 }
 
 export const PerpsMarketInlineHeader = ({
@@ -50,11 +52,11 @@ export const PerpsMarketInlineHeader = ({
   isFavorite = false,
   testID,
   endAccessory,
-  showAssetName = false,
+  useDetailLayout = false,
 }: PerpsMarketInlineHeaderProps) => {
   const displaySymbol = getPerpsDisplaySymbol(market.symbol);
 
-  const displayTitle = showAssetName
+  const displayTitle = useDetailLayout
     ? market.name || displaySymbol
     : `${displaySymbol}-${PERPS_COLLATERAL_SYMBOL}`;
 
@@ -62,7 +64,7 @@ export const PerpsMarketInlineHeader = ({
     const hasLeverage = Boolean(market.maxLeverage);
 
     // The market-list arrow is only relevant in the redesigned layout.
-    const showMarketListButton = showAssetName && Boolean(onMarketListPress);
+    const showMarketListButton = useDetailLayout && Boolean(onMarketListPress);
 
     if (!hasLeverage && !showMarketListButton) {
       return undefined;
@@ -88,12 +90,12 @@ export const PerpsMarketInlineHeader = ({
         ) : null}
       </Box>
     );
-  }, [market.maxLeverage, showAssetName, onMarketListPress]);
+  }, [market.maxLeverage, useDetailLayout, onMarketListPress]);
 
   const description = useMemo(() => {
     // Redesigned layout shows the market pair as a static subtitle. Price and
     // 24h change move below the header (rendered by the parent view).
-    if (showAssetName) {
+    if (useDetailLayout) {
       return strings('perps.market_details.perp_pair', {
         ticker: displaySymbol,
         collateral: PERPS_COLLATERAL_SYMBOL,
@@ -108,7 +110,7 @@ export const PerpsMarketInlineHeader = ({
         currentPrice={currentPrice}
       />
     );
-  }, [showAssetName, displaySymbol, market.symbol, currentPrice]);
+  }, [useDetailLayout, displaySymbol, market.symbol, currentPrice]);
 
   const endButtonIconProps = useMemo(() => {
     const buttons = [];
@@ -159,7 +161,7 @@ export const PerpsMarketInlineHeader = ({
       titleEndAccessory={titleEndAccessory}
       description={description}
       descriptionProps={
-        showAssetName
+        useDetailLayout
           ? { testID: PerpsMarketHeaderSelectorsIDs.SUBTITLE }
           : undefined
       }

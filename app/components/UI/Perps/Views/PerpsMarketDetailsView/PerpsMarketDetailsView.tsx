@@ -1309,7 +1309,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         onFavoritePress={handleWatchlistPress}
         onMarketListPress={handleMarketListPress}
         isFavorite={isWatchlist}
-        showAssetName
+        useDetailLayout
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
       />
 
