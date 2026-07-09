@@ -172,6 +172,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const notificationHeight = useSharedValue(screenHeight);
   const translateYProgress = useSharedValue(-screenHeight);
   const hasEnteredRef = useRef(false);
+  const dismissCompleteCalledRef = useRef(false);
   const dismissDurationMs = dismissDuration ?? NOTIFICATION_VISIBILITY_DURATION;
 
   const hasCloseIconButton = autoDismiss;
@@ -206,6 +207,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     setDescriptionLineCount(null);
     setTitleLineCount(null);
     hasEnteredRef.current = false;
+    dismissCompleteCalledRef.current = false;
   }, [status, title, description, isVisible]);
 
   const handleTitleTextLayout = (
@@ -246,8 +248,23 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   );
 
   const handleDismissComplete = useCallback(() => {
+    if (dismissCompleteCalledRef.current) {
+      return;
+    }
+
+    dismissCompleteCalledRef.current = true;
     onDismissComplete?.();
   }, [onDismissComplete]);
+
+  useEffect(
+    () => () => {
+      if (hasEnteredRef.current && !dismissCompleteCalledRef.current) {
+        dismissCompleteCalledRef.current = true;
+        onDismissComplete?.();
+      }
+    },
+    [onDismissComplete],
+  );
 
   const handleManualDismiss = useCallback(() => {
     cancelAnimation(translateYProgress);

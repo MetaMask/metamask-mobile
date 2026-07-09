@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import Notification from './index';
 import configureStore from '../../../util/test/configureStore';
 import { NotificationTypes } from '../../../util/notifications';
@@ -10,9 +10,10 @@ jest.mock('./TransactionNotification', () => {
   const ReactMock = require('react');
   const { View } = require('react-native');
 
-  return function MockTransactionNotification() {
+  return function MockTransactionNotification(props) {
     return ReactMock.createElement(View, {
       testID: 'transaction-notification',
+      onDismissComplete: props.onDismissComplete,
     });
   };
 });
@@ -21,8 +22,11 @@ jest.mock('./SimpleNotification', () => {
   const ReactMock = require('react');
   const { View } = require('react-native');
 
-  return function MockSimpleNotification() {
-    return ReactMock.createElement(View, { testID: 'simple-notification' });
+  return function MockSimpleNotification(props) {
+    return ReactMock.createElement(View, {
+      testID: 'simple-notification',
+      onDismissComplete: props.onDismissComplete,
+    });
   };
 });
 
@@ -106,5 +110,55 @@ describe('Notification', () => {
     expect(dispatchSpy).toHaveBeenCalledWith({
       type: ACTIONS.REMOVE_CURRENT_NOTIFICATION,
     });
+  });
+
+  it('dequeues the current notification when the fallback timer expires', () => {
+    jest.useFakeTimers();
+    const { dispatchSpy } = renderNotification({
+      id: 'notification-1',
+      type: NotificationTypes.SIMPLE,
+      isVisible: true,
+      status: 'success',
+      title: 'Test title',
+      description: 'Test description',
+      autodismiss: 1000,
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledWith({
+      type: ACTIONS.REMOVE_CURRENT_NOTIFICATION,
+    });
+    jest.useRealTimers();
+  });
+
+  it('dequeues only once when dismiss complete is invoked twice', () => {
+    jest.useFakeTimers();
+    const { getByTestId, dispatchSpy } = renderNotification({
+      id: 'notification-1',
+      type: NotificationTypes.SIMPLE,
+      isVisible: true,
+      status: 'success',
+      title: 'Test title',
+      description: 'Test description',
+      autodismiss: 1000,
+    });
+
+    const simpleNotification = getByTestId('simple-notification');
+
+    act(() => {
+      simpleNotification.props.onDismissComplete();
+      simpleNotification.props.onDismissComplete();
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(
+      dispatchSpy.mock.calls.filter(
+        ([action]) => action.type === ACTIONS.REMOVE_CURRENT_NOTIFICATION,
+      ),
+    ).toHaveLength(1);
+    jest.useRealTimers();
   });
 });

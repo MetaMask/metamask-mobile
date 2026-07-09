@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import {
@@ -22,6 +22,20 @@ function Notification({
   removeCurrentNotification,
 }) {
   const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
+  const dismissCompleteRef = useRef(false);
+
+  const handleDismissComplete = useCallback(() => {
+    if (dismissCompleteRef.current) {
+      return;
+    }
+
+    dismissCompleteRef.current = true;
+    removeCurrentNotification();
+  }, [removeCurrentNotification]);
+
+  useEffect(() => {
+    dismissCompleteRef.current = false;
+  }, [currentNotification?.id]);
 
   const animatedTimingStart = useCallback((animatedRef, toValue, callback) => {
     animatedRef.value = withTiming(
@@ -49,12 +63,29 @@ function Notification({
     prevNotificationIsVisible,
   ]);
 
+  useEffect(() => {
+    if (!currentNotification?.id) {
+      return;
+    }
+
+    const dismissDuration = currentNotification.autodismiss || 5000;
+    const timeoutId = setTimeout(() => {
+      handleDismissComplete();
+    }, dismissDuration + 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    currentNotification?.id,
+    currentNotification?.autodismiss,
+    handleDismissComplete,
+  ]);
+
   if (!currentNotification?.type) return null;
   if (currentNotification.type === TRANSACTION)
     return (
       <TransactionNotification
         onClose={hideCurrentNotification}
-        onDismissComplete={removeCurrentNotification}
+        onDismissComplete={handleDismissComplete}
         dismissDuration={currentNotification.autodismiss}
         animatedTimingStart={animatedTimingStart}
         currentNotification={currentNotification}
@@ -63,7 +94,7 @@ function Notification({
   if (currentNotification.type === SIMPLE)
     return (
       <SimpleNotification
-        onDismissComplete={removeCurrentNotification}
+        onDismissComplete={handleDismissComplete}
         dismissDuration={currentNotification.autodismiss}
         hideCurrentNotification={hideCurrentNotification}
         currentNotification={currentNotification}

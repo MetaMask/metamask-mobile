@@ -156,6 +156,25 @@ describe('BaseNotification', () => {
     jest.useRealTimers();
   });
 
+  it('invokes onDismissComplete when the notification unmounts before auto dismiss completes', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId, unmount } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={5000}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+    unmount();
+
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
   it('ignores repeated layout events after the enter animation starts', () => {
     const onDismissComplete = jest.fn();
     const { getByTestId } = renderWithProvider(
