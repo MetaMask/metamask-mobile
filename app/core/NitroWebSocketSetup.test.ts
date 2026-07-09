@@ -86,6 +86,7 @@ describe('NitroWebSocketSetup', () => {
         expect(sentinel).toHaveBeenCalledWith(
           'ws://localhost:8081/hot',
           undefined,
+          undefined,
         );
       } finally {
         devGlobal.__DEV__ = originalDev;
@@ -121,6 +122,24 @@ describe('NitroWebSocketSetup', () => {
       expect(MockOriginalWebSocket).toHaveBeenCalledWith(
         'ws://localhost:8081/hot',
         undefined,
+        undefined,
+      );
+      expect(MockNitroWebSocket).not.toHaveBeenCalled();
+    });
+
+    it('forwards the third RN options argument ({ headers }) to the built-in WebSocket', () => {
+      const options = { headers: { Authorization: 'Bearer token' } };
+
+      new (global.WebSocket as unknown as new (
+        url: string,
+        protocols?: string | string[],
+        options?: unknown,
+      ) => WebSocket)('ws://localhost:8099', undefined, options);
+
+      expect(MockOriginalWebSocket).toHaveBeenCalledWith(
+        'ws://localhost:8099',
+        undefined,
+        options,
       );
       expect(MockNitroWebSocket).not.toHaveBeenCalled();
     });

@@ -284,16 +284,30 @@ export function installDevNitroWebSocket(): void {
     return;
   }
 
+  type RNWebSocketConstructor = new (
+    url: string,
+    protocols?: string | string[],
+    options?: unknown,
+  ) => WebSocket;
+
   function SchemeRoutingWebSocket(
     url: string,
     protocols?: string | string[],
-    headers?: Record<string, string>,
+    optionsOrHeaders?: unknown,
   ) {
     if (typeof url === 'string' && /^wss:/i.test(url)) {
-      return new NitroWebSocketAdapter(url, protocols, headers);
+      return new NitroWebSocketAdapter(
+        url,
+        protocols,
+        optionsOrHeaders as Record<string, string> | undefined,
+      );
     }
     // ws:// (Metro HMR, LogBox) keeps RN's built-in WebSocket.
-    return new OriginalWebSocket(url, protocols);
+    return new (OriginalWebSocket as unknown as RNWebSocketConstructor)(
+      url,
+      protocols,
+      optionsOrHeaders,
+    );
   }
   Object.assign(SchemeRoutingWebSocket, {
     CONNECTING: 0,
