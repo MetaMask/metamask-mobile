@@ -14,7 +14,7 @@ const styleSheet = (params: { theme: Theme }) => {
     tile: {
       width: 128,
       borderRadius: 12,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.muted,
       padding: 12,
       gap: 8,
     },
