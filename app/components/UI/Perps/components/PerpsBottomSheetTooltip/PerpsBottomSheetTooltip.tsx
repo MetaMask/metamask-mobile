@@ -122,11 +122,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     if (!isVisible || !title) return null;
 
     return (
-      <BottomSheet
-        ref={bottomSheetRef}
-        onClose={onClose}
-        testID={testID}
-      >
+      <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
         {!hasCustomHeader && (
           <BottomSheetHeader
             onClose={handleClose}
