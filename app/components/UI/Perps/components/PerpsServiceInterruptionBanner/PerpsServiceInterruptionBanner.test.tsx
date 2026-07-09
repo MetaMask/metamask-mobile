@@ -63,7 +63,7 @@ describe('PerpsServiceInterruptionBanner', () => {
     expect(getByText('Contact support')).toBeOnTheScreen();
   });
 
-  it('navigates to support when contact support action is pressed', () => {
+  it('navigates to support when support link pressed', () => {
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsServiceInterruptionBannerEnabledFlag) {
         return true;

@@ -1,13 +1,20 @@
 import React, { memo } from 'react';
 import {
-  BannerAlert,
-  BannerAlertSeverity,
-  Box,
-  BoxAlignItems,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
+import { View } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import type { PerpsOICapWarningProps } from './PerpsOICapWarning.types';
+import styleSheet from './PerpsOICapWarning.styles';
 
 /**
  * Reusable component that displays a warning when a market is at its open interest cap
@@ -29,8 +36,10 @@ import type { PerpsOICapWarningProps } from './PerpsOICapWarning.types';
  */
 const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
   ({ symbol, variant = 'inline', testID = 'perps-oi-cap-warning' }) => {
+    const { styles } = useStyles(styleSheet, {});
     const { isAtCap, isLoading } = usePerpsOICap(symbol);
 
+    // Early return for performance - don't render anything if not at cap
     if (!isAtCap || isLoading) {
       return null;
     }
@@ -38,16 +47,28 @@ const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
     const isBanner = variant === 'banner';
 
     return (
-      <Box testID={testID} twClassName={isBanner ? 'px-4' : undefined}>
-        <BannerAlert
-          severity={BannerAlertSeverity.Neutral}
-          alignItems={isBanner ? BoxAlignItems.Center : BoxAlignItems.Start}
-          title={strings('perps.order.validation.oi_cap_reached_title')}
-          description={strings(
-            'perps.order.validation.oi_cap_reached_description',
-          )}
+      <View
+        style={[
+          styles.container,
+          isBanner ? styles.bannerContainer : styles.inlineContainer,
+        ]}
+        testID={testID}
+      >
+        <Icon
+          name={IconName.Warning}
+          size={IconSize.Md}
+          color={IconColor.IconDefault}
+          style={styles.icon}
         />
-      </Box>
+        <View style={styles.textContainer}>
+          <Text
+            variant={isBanner ? TextVariant.BodyMD : TextVariant.BodySM}
+            color={TextColor.Default}
+          >
+            {strings('perps.order.validation.oi_cap_reached')}
+          </Text>
+        </View>
+      </View>
     );
   },
 );

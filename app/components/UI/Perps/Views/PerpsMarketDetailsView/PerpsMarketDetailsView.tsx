@@ -1511,63 +1511,60 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             )}
           </View>
 
-          <Box twClassName="mt-3" gap={3}>
-            {/* Service Interruption Banner */}
-            <PerpsServiceInterruptionBanner
+          {/* Service Interruption Banner */}
+          <PerpsServiceInterruptionBanner
+            testID={
+              PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+            }
+          />
+
+          {/* OI Cap Warning - Shows when market is at capacity */}
+          {market?.symbol && isAtOICap && (
+            <PerpsOICapWarning symbol={market.symbol} variant="banner" />
+          )}
+
+          {/* Market Hours Banner - Hidden when OI cap warning is showing */}
+          {!isAtOICap && (
+            <PerpsMarketHoursBanner
+              marketType={market?.marketType}
+              onInfoPress={handleMarketHoursInfoPress}
+              testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
+            />
+          )}
+
+          {/* Stop Loss Prompt Banner - Shows when position needs attention */}
+          {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
+          {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
+            <PerpsStopLossPromptBanner
+              variant={bannerVariant}
+              liquidationDistance={liquidationDistance ?? 0}
+              suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
+              suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
+              onSetStopLoss={handleSetStopLossFromBanner}
+              onAddMargin={handleAddMarginFromBanner}
+              isLoading={isSettingStopLoss}
+              isSuccess={isStopLossSuccess}
+              onFadeOutComplete={handleBannerFadeOutComplete}
               testID={
-                PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+                PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
               }
             />
+          )}
 
-            {/* OI Cap Warning - Shows when market is at capacity */}
-            {market?.symbol && isAtOICap && (
-              <PerpsOICapWarning symbol={market.symbol} variant="banner" />
-            )}
-
-            {/* Market Hours Banner - Hidden when OI cap warning is showing */}
-            {!isAtOICap && (
-              <PerpsMarketHoursBanner
-                marketType={market?.marketType}
-                onInfoPress={handleMarketHoursInfoPress}
-                testID={PerpsMarketDetailsViewSelectorsIDs.MARKET_HOURS_BANNER}
+          {shouldShowPerpsMarketInsightsSection ? (
+            perpsInsightsReport ? (
+              <MarketInsightsEntryCard
+                report={perpsInsightsReport}
+                timeAgo={perpsInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+                onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+                source="perps"
+                testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
               />
-            )}
-
-            {/* Stop Loss Prompt Banner - Shows when position needs attention */}
-            {/* Keep mounted while isStopLossSuccess is true to allow fade animation to complete */}
-            {(isBannerVisible || isStopLossSuccess) && bannerVariant && (
-              <PerpsStopLossPromptBanner
-                variant={bannerVariant}
-                liquidationDistance={liquidationDistance ?? 0}
-                suggestedStopLossPrice={suggestedStopLossPrice ?? undefined}
-                suggestedStopLossPercent={suggestedStopLossPercent ?? undefined}
-                onSetStopLoss={handleSetStopLossFromBanner}
-                onAddMargin={handleAddMarginFromBanner}
-                isLoading={isSettingStopLoss}
-                isSuccess={isStopLossSuccess}
-                onFadeOutComplete={handleBannerFadeOutComplete}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STOP_LOSS_PROMPT_BANNER
-                }
-              />
-            )}
-
-            {shouldShowPerpsMarketInsightsSection ? (
-              perpsInsightsReport ? (
-                <MarketInsightsEntryCard
-                  report={perpsInsightsReport}
-                  timeAgo={perpsInsightsTimeAgo}
-                  onPress={handleMarketInsightsPress}
-                  onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
-                  source="perps"
-                  testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
-                  containerTwClassName="px-4 mb-3"
-                />
-              ) : (
-                <MarketInsightsEntryCardSkeleton containerTwClassName="px-4 mb-3" />
-              )
-            ) : null}
-          </Box>
+            ) : (
+              <MarketInsightsEntryCardSkeleton />
+            )
+          ) : null}
 
           <PerpsHomeSectionList sections={preMarketInsightsSections} />
 

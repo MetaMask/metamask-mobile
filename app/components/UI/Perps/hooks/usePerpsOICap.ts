@@ -99,6 +99,6 @@ export const usePerpsOICap = (symbol?: string): UsePerpsOICapReturn => {
 
   return {
     isAtCap,
-    isLoading: __DEV__ && FORCE_OI_CAP_STATE !== null ? false : !isInitialized,
+    isLoading: !isInitialized,
   };
 };

@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketHoursBanner from './PerpsMarketHoursBanner';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
 
+// Mock the market hours utilities
 jest.mock('../../utils/marketHours');
 
 describe('PerpsMarketHoursBanner', () => {
@@ -11,6 +12,7 @@ describe('PerpsMarketHoursBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Default mock for getMarketHoursStatus
     (getMarketHoursStatus as jest.Mock).mockReturnValue({
       isOpen: true,
       nextTransition: new Date(),
@@ -130,12 +132,12 @@ describe('PerpsMarketHoursBanner', () => {
     });
   });
 
-  describe('learn more action', () => {
+  describe('info button interaction', () => {
     beforeEach(() => {
       (isEquityAsset as jest.Mock).mockReturnValue(true);
     });
 
-    it('should call onInfoPress when learn more button is pressed', () => {
+    it('should call onInfoPress when info button is pressed', () => {
       const { getByTestId } = render(
         <PerpsMarketHoursBanner
           marketType="stock"
@@ -143,12 +145,14 @@ describe('PerpsMarketHoursBanner', () => {
         />,
       );
 
-      fireEvent.press(getByTestId('perps-market-hours-banner-info-button'));
+      const infoButton = getByTestId('perps-market-hours-banner-info-button');
+      fireEvent.press(infoButton);
 
       expect(mockOnInfoPress).toHaveBeenCalledTimes(1);
     });
 
-    it('should render learn more action for both market states', () => {
+    it('should render info button for both market states', () => {
+      // Test open state
       (getMarketHoursStatus as jest.Mock).mockReturnValue({
         isOpen: true,
         nextTransition: new Date(),
@@ -164,6 +168,7 @@ describe('PerpsMarketHoursBanner', () => {
 
       expect(getByTestId('perps-market-hours-banner-info-button')).toBeTruthy();
 
+      // Test closed state
       (getMarketHoursStatus as jest.Mock).mockReturnValue({
         isOpen: false,
         nextTransition: new Date(),
@@ -178,6 +183,29 @@ describe('PerpsMarketHoursBanner', () => {
       );
 
       expect(getByTestId('perps-market-hours-banner-info-button')).toBeTruthy();
+    });
+  });
+
+  describe('accessibility', () => {
+    beforeEach(() => {
+      (isEquityAsset as jest.Mock).mockReturnValue(true);
+    });
+
+    it('should have proper hit slop for info button', () => {
+      const { getByTestId } = render(
+        <PerpsMarketHoursBanner
+          marketType="stock"
+          onInfoPress={mockOnInfoPress}
+        />,
+      );
+
+      const infoButton = getByTestId('perps-market-hours-banner-info-button');
+      expect(infoButton.props.hitSlop).toEqual({
+        top: 10,
+        bottom: 10,
+        left: 10,
+        right: 10,
+      });
     });
   });
 });

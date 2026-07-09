@@ -134,7 +134,6 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   caip19Id,
   source,
   testID,
-  containerTwClassName = 'px-4 mt-3 mb-3',
 }) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -219,7 +218,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onPress}
-        style={tw.style(containerTwClassName)}
+        style={tw.style('px-4 mt-2 mb-3')}
         testID={testID}
       >
         <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
