@@ -17,7 +17,7 @@ const inFlightByKey = new Map<string, Promise<void>>();
 
 type BalanceRow = {
   amount?: string;
-  accountAssetInfo?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 };
 
 /**
@@ -52,10 +52,7 @@ export function listStellarClassicAssetIdsForAccount(
   for (const assetId of Object.keys(balances)) {
     try {
       const parsed = parseCaipAssetType(assetId as CaipAssetType);
-      if (
-        parsed.chainId === chainId &&
-        parsed.assetNamespace === 'asset'
-      ) {
+      if (parsed.chainId === chainId && parsed.assetNamespace === 'asset') {
         assetIds.add(assetId as CaipAssetType);
       }
     } catch {
@@ -67,10 +64,7 @@ export function listStellarClassicAssetIdsForAccount(
     for (const assetId of AssetsController.getCustomAssets(accountId)) {
       try {
         const parsed = parseCaipAssetType(assetId as CaipAssetType);
-        if (
-          parsed.chainId === chainId &&
-          parsed.assetNamespace === 'asset'
-        ) {
+        if (parsed.chainId === chainId && parsed.assetNamespace === 'asset') {
           assetIds.add(assetId as CaipAssetType);
         }
       } catch {
@@ -84,7 +78,7 @@ export function listStellarClassicAssetIdsForAccount(
 
 /**
  * Collects Stellar classic assets that are present in balances but missing
- * `accountAssetInfo`, grouped by account and chain.
+ * `metadata`, grouped by account and chain.
  */
 export function findAccountsNeedingStellarEnrichment(
   assetsBalance: Record<string, Record<string, BalanceRow>>,
@@ -93,7 +87,7 @@ export function findAccountsNeedingStellarEnrichment(
 
   for (const [accountId, accountBalances] of Object.entries(assetsBalance)) {
     for (const [assetId, row] of Object.entries(accountBalances)) {
-      if (row?.accountAssetInfo !== undefined) {
+      if (row?.metadata !== undefined) {
         continue;
       }
       if (!isStellarClassicAssetId(assetId)) {
@@ -223,24 +217,21 @@ export async function enrichStellarAccountAssetInfo({
 
     const assetsBalance: Record<
       string,
-      Record<
-        string,
-        { amount: string; accountAssetInfo?: Record<string, unknown> }
-      >
+      Record<string, { amount: string; metadata?: Record<string, unknown> }>
     > = {
       [account.id]: {},
     };
 
     for (const assetId of assetIds) {
-      const accountAssetInfo = enrichment[assetId];
-      if (accountAssetInfo === undefined) {
+      const metadata = enrichment[assetId];
+      if (metadata === undefined) {
         continue;
       }
 
       const existingRow = existingBalances[assetId] as BalanceRow | undefined;
       assetsBalance[account.id][assetId] = {
         amount: existingRow?.amount ?? '0',
-        accountAssetInfo,
+        metadata,
       };
     }
 

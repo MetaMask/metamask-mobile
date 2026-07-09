@@ -163,13 +163,13 @@ function filterArcUsdcErc20Token(
   };
 }
 
-type BalanceRowWithAccountAssetInfo = {
+type BalanceRowWithMetadata = {
   amount?: string;
-  accountAssetInfo?: TokenI['accountAssetInfo'];
+  metadata?: TokenI['metadata'];
 };
 
 /**
- * Re-attaches Snap `accountAssetInfo` from migrated balances onto Asset rows.
+ * Re-attaches Snap balance `metadata` from migrated balances onto Asset rows.
  *
  * `@metamask/assets-controllers` `selectAllMultichainAssets` only copies
  * `balance.amount` into Asset, so trustline metadata would otherwise be lost
@@ -183,16 +183,16 @@ function attachAccountAssetInfoFromBalances(
   for (const [chainId, chainAssets] of Object.entries(assets)) {
     next[chainId] = chainAssets.map((asset) => {
       const balanceRow = balances[asset.accountId]?.[asset.assetId] as
-        | BalanceRowWithAccountAssetInfo
+        | BalanceRowWithMetadata
         | undefined;
-      const accountAssetInfo = balanceRow?.accountAssetInfo;
-      if (accountAssetInfo === undefined) {
+      const metadata = balanceRow?.metadata;
+      if (metadata === undefined) {
         return asset;
       }
       return {
         ...asset,
-        accountAssetInfo,
-      } as Asset & { accountAssetInfo?: TokenI['accountAssetInfo'] };
+        metadata,
+      } as Asset & { metadata?: TokenI['metadata'] };
     });
   }
 
@@ -650,7 +650,7 @@ const oneHundredths = 0.01;
 function assetToToken(
   asset: Asset & {
     isStaked?: boolean;
-    accountAssetInfo?: TokenI['accountAssetInfo'];
+    metadata?: TokenI['metadata'];
   },
   aggregators?: string[],
   rwaData?: TokenI['rwaData'],
@@ -697,9 +697,7 @@ function assetToToken(
     ticker: asset.symbol,
     accountType: asset.accountType,
     rwaData,
-    ...(asset.accountAssetInfo !== undefined
-      ? { accountAssetInfo: asset.accountAssetInfo }
-      : {}),
+    ...(asset.metadata !== undefined ? { metadata: asset.metadata } : {}),
   };
 }
 

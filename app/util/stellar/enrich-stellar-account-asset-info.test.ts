@@ -37,7 +37,7 @@ describe('enrich-stellar-account-asset-info', () => {
     state: {
       assetsBalance: Record<
         string,
-        Record<string, { amount?: string; accountAssetInfo?: unknown }>
+        Record<string, { amount?: string; metadata?: unknown }>
       >;
     };
     getCustomAssets: jest.Mock;
@@ -88,7 +88,7 @@ describe('enrich-stellar-account-asset-info', () => {
   });
 
   describe('findAccountsNeedingStellarEnrichment', () => {
-    it('returns classic assets missing accountAssetInfo', () => {
+    it('returns classic assets missing metadata', () => {
       const result = findAccountsNeedingStellarEnrichment({
         'account-1': {
           [STELLAR_USDC]: { amount: '10' },
@@ -102,12 +102,12 @@ describe('enrich-stellar-account-asset-info', () => {
       ]);
     });
 
-    it('skips assets that already have accountAssetInfo', () => {
+    it('skips assets that already have metadata', () => {
       const result = findAccountsNeedingStellarEnrichment({
         'account-1': {
           [STELLAR_USDC]: {
             amount: '10',
-            accountAssetInfo: { limit: '1000' },
+            metadata: { limit: '1000' },
           },
         },
       });
@@ -140,7 +140,7 @@ describe('enrich-stellar-account-asset-info', () => {
             'account-1': {
               [STELLAR_USDC]: {
                 amount: '10',
-                accountAssetInfo: { limit: '1000', authorized: true },
+                metadata: { limit: '1000', authorized: true },
               },
             },
           },

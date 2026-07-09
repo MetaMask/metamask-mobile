@@ -52,7 +52,7 @@ function getStellarChainIds(assetIds: CaipAssetType[]): CaipChainId[] {
  *
  * - `AccountsController:accountAssetListUpdated`: refresh trustline fields for
  *   affected Stellar assets.
- * - `AssetsController:stateChange`: fill missing `accountAssetInfo` after
+ * - `AssetsController:stateChange`: fill missing balance `metadata` after
  *   balances land (cold start / account switch / poll).
  *
  * @param options - Bridge dependencies.
@@ -111,10 +111,7 @@ export function startStellarAccountAssetInfoEnrichmentBridge({
     const needingEnrichment = findAccountsNeedingStellarEnrichment(
       state.assetsBalance as Record<
         string,
-        Record<
-          string,
-          { amount?: string; accountAssetInfo?: Record<string, unknown> }
-        >
+        Record<string, { amount?: string; metadata?: Record<string, unknown> }>
       >,
     );
     if (needingEnrichment.size === 0) {
@@ -139,7 +136,7 @@ export function startStellarAccountAssetInfoEnrichmentBridge({
           } catch (error) {
             Logger.log(
               error,
-              'StellarAccountAssetInfoEnrichmentBridge: failed to enrich missing accountAssetInfo',
+              'StellarAccountAssetInfoEnrichmentBridge: failed to enrich missing metadata',
             );
           }
         }

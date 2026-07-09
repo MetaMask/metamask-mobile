@@ -191,7 +191,7 @@ export const TokenListItem = React.memo(
     ///: BEGIN:ONLY_INCLUDE_IF(stellar)
     const isAssetInactive = isAssetRequireActivate({
       assetId: asset?.address,
-      assetMetadata: asset?.accountAssetInfo,
+      assetMetadata: asset?.metadata,
     });
     ///: END:ONLY_INCLUDE_IF
 

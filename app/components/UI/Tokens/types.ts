@@ -27,7 +27,7 @@ export interface TokenI {
   pricePercentChange1d?: number;
   rwaData?: TokenRwaData;
   securityData?: TokenSecurityData;
-  accountAssetInfo?: {
+  metadata?: {
     limit?: string;
     baseReserve?: string;
   };

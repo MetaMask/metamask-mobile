@@ -106,7 +106,7 @@ describe('startStellarAccountAssetInfoEnrichmentBridge', () => {
     expect(enrichAllStellarClassicAccountAssetInfo).not.toHaveBeenCalled();
   });
 
-  it('enriches missing accountAssetInfo after AssetsController state changes', async () => {
+  it('enriches missing metadata after AssetsController state changes', async () => {
     const needing = new Map([
       ['account-1', new Map([['stellar:pubnet' as const, [STELLAR_USDC]]])],
     ]);
