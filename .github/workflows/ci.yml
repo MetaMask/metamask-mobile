@@ -1268,7 +1268,7 @@ jobs:
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
     # Main push/schedule: always run when the iOS build succeeded.
-    # PRs: skipped by default; add run-appium-ios-tests to also run Appium iOS
+    # PRs: skipped by default; add run-appium-ios-tests, or change page-objects/selectors/locators
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
