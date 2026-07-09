@@ -17,6 +17,7 @@ import {
   getRawStringProp,
 } from './brazeBannerProperties';
 export type BrazeBannerStatus = 'loading' | 'visible' | 'empty' | 'dismissed';
+type BrazeBannerSource = 'warm-cache' | 'event';
 
 export interface UseBrazeBannerResult {
   status: BrazeBannerStatus;
@@ -125,7 +126,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
    * Returns `true` if the banner was accepted and state updated.
    */
   const handleBanner = useCallback(
-    (candidate: Banner | null) => {
+    (candidate: Banner | null, source: BrazeBannerSource) => {
       if (dismissedRef.current) return;
 
       // null means no cached/available banner — stay in loading state and
@@ -187,6 +188,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       }
 
       if (
+        source === 'event' &&
         currentBannerTrackingIdRef.current === null &&
         !initialBannerWindowOpenRef.current
       ) {
@@ -233,7 +235,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     // the next `bannerCardsUpdated` event.
     getBannerForPlacement(placementId).then((result) => {
       logBrazeBannerDebug('Warm-cache probe resolved', placementId, result);
-      handleBanner(result);
+      handleBanner(result, 'warm-cache');
     });
 
     const subscription = Braze.addListener(
@@ -257,7 +259,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         );
 
         if (match) {
-          handleBanner(match);
+          handleBanner(match, 'event');
         }
       },
     );

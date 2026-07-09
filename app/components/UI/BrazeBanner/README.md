@@ -31,7 +31,7 @@ The banner moves through four states managed by `useBrazeBanner`:
 
 > **Why no loading skeleton?** At mount time it is unknown whether the current user has a banner assigned. Showing a skeleton and then removing it — with nothing taking its place — is not ideal. The component renders nothing during `loading` and the banner only appears if a valid banner arrives.
 
-Late first-time banners are ignored after the startup window closes so the home screen does not jump by inserting a new block after the user has started interacting. If a banner is already visible from the warm cache or an early event, a later banner with a different `trackingId` may still replace it in the same reserved slot.
+Late first-time banners from `bannerCardsUpdated` events are ignored after the startup window closes so the home screen does not jump by inserting a new block after the user has started interacting. Warm-cache banners are still accepted when the native cache probe resolves because they are the returning-user fast path. If a banner is already visible from the warm cache or an early event, a later banner with a different `trackingId` may still replace it in the same reserved slot.
 
 ### Why a banner transitions to `empty`
 

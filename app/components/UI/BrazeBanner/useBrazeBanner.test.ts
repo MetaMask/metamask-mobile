@@ -424,6 +424,32 @@ describe('useBrazeBanner', () => {
     await waitFor(() => expect(result.current.status).toBe('visible'));
   });
 
+  it('accepts a warm-cache banner even when the native probe resolves after the startup window', async () => {
+    let resolveCachedBanner: (
+      banner: ReturnType<typeof makeBanner>,
+    ) => void = () => undefined;
+    mockGetBannerForPlacement.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCachedBanner = resolve;
+      }),
+    );
+    const cachedBanner = makeBanner({ body: 'Cached body' });
+
+    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+    act(() => {
+      jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+    });
+    expect(result.current.status).toBe('empty');
+
+    await act(async () => {
+      resolveCachedBanner(cachedBanner);
+    });
+
+    expect(result.current.status).toBe('visible');
+    expect(result.current.body).toBe('Cached body');
+  });
+
   it('removes the listener subscription on unmount', () => {
     const mockRemove = jest.fn();
     (Braze.addListener as jest.Mock).mockReturnValueOnce({
