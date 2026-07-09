@@ -208,4 +208,89 @@ describe('MoneyBalanceSummary', () => {
       ).toBeOnTheScreen();
     });
   });
+
+  describe('privacy mode', () => {
+    it('shows the real balance when privacyMode is false', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={balanceState('$123.45')}
+          privacyMode={false}
+        />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+        '$123.45',
+      );
+    });
+
+    it('masks the balance when privacyMode is true', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={balanceState('$123.45')}
+          privacyMode
+        />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+        '•'.repeat(12),
+      );
+    });
+
+    it('calls onBalancePress when the balance is pressed', () => {
+      const mockBalancePress = jest.fn();
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={balanceState('$123.45')}
+          onBalancePress={mockBalancePress}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      );
+
+      expect(mockBalancePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render a pressable balance when onBalancePress is not provided', () => {
+      const { queryByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={balanceState('$123.45')} />,
+      );
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render a pressable balance in the noAccount state even when onBalancePress is provided', () => {
+      const { queryByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={{ kind: 'noAccount' }}
+          onBalancePress={jest.fn()}
+        />,
+      );
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('masks the last known balance with bullet characters when privacyMode is true', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={unavailableState('$2,384.34')}
+          privacyMode
+        />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).toHaveTextContent('•'.repeat(12));
+    });
+  });
 });
