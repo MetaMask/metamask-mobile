@@ -307,23 +307,25 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   return (
     <HardwareWalletContext.Provider value={contextValue}>
       {children}
-      <FullWindowOverlay>
-        <HardwareWalletBottomSheet
-          connectionState={connectionState}
-          deviceSelection={deviceSelection}
-          walletType={effectiveWalletType}
-          forceHideBottomSheet={forceHideBottomSheet}
-          retryEnsureDeviceReady={handleRetryOrClose}
-          selectDevice={selectDevice}
-          rescan={rescan}
-          connect={connect}
-          onClose={handleCloseFlow}
-          onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
-          onConnectionSuccess={handleBottomSheetConnectionSuccess}
-          onCTAClicked={trackCTAClicked}
-          onRetryQrScan={handleRetryQrScan}
-        />
-      </FullWindowOverlay>
+      {isBottomSheetMounted && (
+        <FullWindowOverlay>
+          <HardwareWalletBottomSheet
+            connectionState={connectionState}
+            deviceSelection={deviceSelection}
+            walletType={effectiveWalletType}
+            forceHideBottomSheet={forceHideBottomSheet}
+            retryEnsureDeviceReady={handleRetryOrClose}
+            selectDevice={selectDevice}
+            rescan={rescan}
+            connect={connect}
+            onClose={handleCloseFlow}
+            onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
+            onConnectionSuccess={handleBottomSheetConnectionSuccess}
+            onCTAClicked={trackCTAClicked}
+            onRetryQrScan={handleRetryQrScan}
+          />
+        </FullWindowOverlay>
+      )}
     </HardwareWalletContext.Provider>
   );
 };
