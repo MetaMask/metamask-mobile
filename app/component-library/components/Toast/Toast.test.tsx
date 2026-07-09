@@ -32,9 +32,9 @@ const TEST_APP_ICON_SOURCE = {
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
-const triggerToastLayout = (view: ReturnType<typeof render>) => {
+const triggerToastLayout = (view: ReturnType<typeof render>, height = 120) => {
   fireEvent(view.UNSAFE_getByType(Animated.View), 'onLayout', {
-    nativeEvent: { layout: { height: 120, width: 320, x: 0, y: 0 } },
+    nativeEvent: { layout: { height, width: 320, x: 0, y: 0 } },
   });
 };
 
@@ -522,6 +522,32 @@ describe('Toast', () => {
       });
 
       expect(screen.queryByText('Wrapped title')).toBeNull();
+    });
+
+    it('auto-dismisses after remeasure with a taller toast height', async () => {
+      const view = render(<Toast ref={toastRef} />);
+      const options: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Growing toast' }],
+        hasNoTimeout: false,
+      };
+
+      await showToast(toastRef, options);
+
+      await act(async () => {
+        triggerToastLayout(view, 80);
+        jest.advanceTimersByTime(visibilityDuration - 500);
+      });
+
+      expect(screen.getByText('Growing toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        triggerToastLayout(view, 160);
+        jest.advanceTimersByTime(500);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Growing toast')).toBeNull();
     });
   });
 });

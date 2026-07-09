@@ -149,10 +149,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   >(null);
   const [titleLineCount, setTitleLineCount] = useState<number | null>(null);
   const { top: topInset } = useSafeAreaInsets();
-  const toastHeight = useSharedValue(screenHeight);
+  const hiddenTranslateY = useSharedValue(-screenHeight);
   const translateYProgress = useSharedValue(-screenHeight);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animationStartedRef = useRef(false);
+  const visibleAtRef = useRef<number | null>(null);
   const topOffset = toastOptions?.customTopOffset ?? 0;
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value + topOffset }],
@@ -196,9 +197,50 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
   const resetState = () => {
     animationStartedRef.current = false;
+    visibleAtRef.current = null;
     setDescriptionLineCount(null);
     setTitleLineCount(null);
     setToastOptions(undefined);
+  };
+
+  const startDismissAnimation = () => {
+    translateYProgress.value = withSpring(
+      hiddenTranslateY.value,
+      TOAST_SPRING_CONFIG,
+      (finished) => {
+        if (finished) {
+          runOnJS(resetState)();
+        }
+      },
+    );
+  };
+
+  const scheduleAutoDismiss = (delayMs: number) => {
+    visibleAtRef.current = Date.now();
+    translateYProgress.value = withDelay(
+      delayMs,
+      withSpring(hiddenTranslateY.value, TOAST_SPRING_CONFIG, (finished) => {
+        if (finished) {
+          runOnJS(resetState)();
+        }
+      }),
+    );
+  };
+
+  const syncDismissTargetAfterRemeasure = () => {
+    if (toastOptions?.hasNoTimeout || visibleAtRef.current === null) {
+      return;
+    }
+
+    const elapsed = Date.now() - visibleAtRef.current;
+    cancelAnimation(translateYProgress);
+
+    if (elapsed >= visibilityDuration) {
+      startDismissAnimation();
+      return;
+    }
+
+    scheduleAutoDismiss(visibilityDuration - elapsed);
   };
 
   const handleTitleTextLayout = (
@@ -235,6 +277,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       timeoutDuration = 100;
       // Clear existing toast state to prevent animation conflicts when showing rapid successive toasts
       animationStartedRef.current = false;
+      visibleAtRef.current = null;
       setDescriptionLineCount(null);
       setTitleLineCount(null);
       setToastOptions(undefined);
@@ -246,13 +289,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const closeToast = () => {
-    translateYProgress.value = withSpring(
-      getHiddenTranslateY(toastHeight.value, topOffset),
-      TOAST_SPRING_CONFIG,
-      () => {
-        runOnJS(resetState)();
-      },
-    );
+    visibleAtRef.current = null;
+    startDismissAnimation();
   };
 
   useImperativeHandle(ref, () => ({
@@ -263,19 +301,22 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const onAnimatedViewLayout = (e: LayoutChangeEvent) => {
     if (toastOptions) {
       const { height } = e.nativeEvent.layout;
-      const hiddenTranslateY = getHiddenTranslateY(height, topOffset);
+      const nextHiddenTranslateY = getHiddenTranslateY(height, topOffset);
       const visibleTranslateY = topInset + 8;
 
-      toastHeight.value = height;
+      hiddenTranslateY.value = nextHiddenTranslateY;
 
       // Text layout can change top-alignment styles and trigger another layout
-      // pass. Only run the entrance/dismiss animation on the first layout.
+      // pass. Only run the entrance animation on the first layout, but keep
+      // dismiss targets in sync with the latest measured height.
       if (animationStartedRef.current) {
+        syncDismissTargetAfterRemeasure();
         return;
       }
 
       animationStartedRef.current = true;
-      translateYProgress.value = hiddenTranslateY;
+      visibleAtRef.current = null;
+      translateYProgress.value = nextHiddenTranslateY;
 
       if (toastOptions.hasNoTimeout) {
         translateYProgress.value = withSpring(
@@ -286,15 +327,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         translateYProgress.value = withSpring(
           visibleTranslateY,
           TOAST_SPRING_CONFIG,
-          () => {
-            translateYProgress.value = withDelay(
-              visibilityDuration,
-              withSpring(
-                hiddenTranslateY,
-                TOAST_SPRING_CONFIG,
-                runOnJS(resetState),
-              ),
-            );
+          (finished) => {
+            if (finished) {
+              runOnJS(scheduleAutoDismiss)(visibilityDuration);
+            }
           },
         );
       }
