@@ -206,6 +206,7 @@
     "bn.js@npm:5.2.1": "5.2.3",
     "@metamask/messenger@^0.3.0": "^1.0.0",
     "@metamask/messenger": "^1.2.0",
+    "@metamask/snaps-rpc-methods": "17.0.0",
     "@metamask/keyring-internal-api": "^11.0.1",
     "@metamask/keyring-api@npm:^21.3.0": "^23.3.0",
     "@metamask/keyring-api@npm:^21.4.0": "^23.3.0",
