@@ -2,9 +2,12 @@ import {
   getBuyOutcomeImage,
   getMatchingSportTeam,
   getPrimaryMoneylineOutcomes,
+  getPrimarySportsCardOutcomes,
   getSportTeamColorForLabel,
   getSportTeamDisplayOrder,
   getTeamOutcome,
+  getTeamToAdvanceTokenLogo,
+  getTokenImage,
   outcomeMatchesTeam,
   resolveSportCardButtons,
   sportTeamMatchesLabel,
@@ -62,6 +65,59 @@ describe('getPrimaryMoneylineOutcomes', () => {
     ];
 
     expect(getPrimaryMoneylineOutcomes(outcomes)).toBe(outcomes);
+  });
+});
+
+describe('getPrimarySportsCardOutcomes', () => {
+  it('prefers team-to-advance outcomes for World Cup games', () => {
+    const moneylineOutcome = {
+      id: 'moneyline',
+      sportsMarketType: 'moneyline',
+    };
+    const teamToAdvanceOutcome = {
+      id: 'team-to-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+    };
+
+    const result = getPrimarySportsCardOutcomes(
+      [moneylineOutcome, teamToAdvanceOutcome],
+      'fifwc',
+    );
+
+    expect(result).toEqual([teamToAdvanceOutcome]);
+  });
+
+  it('falls back to moneyline outcomes for World Cup games without team-to-advance markets', () => {
+    const moneylineOutcome = {
+      id: 'moneyline',
+      sportsMarketType: 'moneyline',
+    };
+    const spreadOutcome = { id: 'spread', sportsMarketType: 'spreads' };
+
+    const result = getPrimarySportsCardOutcomes(
+      [spreadOutcome, moneylineOutcome],
+      'fifwc',
+    );
+
+    expect(result).toEqual([moneylineOutcome]);
+  });
+
+  it('keeps moneyline as primary for non-World-Cup games', () => {
+    const moneylineOutcome = {
+      id: 'moneyline',
+      sportsMarketType: 'moneyline',
+    };
+    const teamToAdvanceOutcome = {
+      id: 'team-to-advance',
+      sportsMarketType: 'soccer_team_to_advance',
+    };
+
+    const result = getPrimarySportsCardOutcomes(
+      [teamToAdvanceOutcome, moneylineOutcome],
+      'ucl',
+    );
+
+    expect(result).toEqual([moneylineOutcome]);
   });
 });
 
@@ -237,6 +293,35 @@ describe('sports team matching', () => {
     expect(getSportTeamDisplayOrder('Draw', game)).toBe(1);
     expect(getSportTeamColorForLabel('KOR', game)).toBe('red');
     expect(getSportTeamColorForLabel('CZE', game)).toBe('blue');
+  });
+});
+
+describe('getTokenImage', () => {
+  it('uses team logos for combined team-to-advance tokens', () => {
+    expect(getTeamToAdvanceTokenLogo('Korea Republic', game)).toBe(
+      'https://example.com/korea.png',
+    );
+    expect(getTeamToAdvanceTokenLogo('CZE', game)).toBe(
+      'https://example.com/czechia.png',
+    );
+    expect(getTeamToAdvanceTokenLogo('Team to Advance', game)).toBeUndefined();
+  });
+
+  it('resolves token images based on sports market type', () => {
+    expect(
+      getTokenImage({
+        sportsMarketType: 'soccer_team_to_advance',
+        tokenTitle: 'Korea Republic',
+        game,
+      }),
+    ).toBe('https://example.com/korea.png');
+    expect(
+      getTokenImage({
+        sportsMarketType: 'moneyline',
+        tokenTitle: 'Korea Republic',
+        game,
+      }),
+    ).toBeUndefined();
   });
 });
 

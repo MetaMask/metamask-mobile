@@ -19,10 +19,8 @@ import {
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
-import {
-  getPrimarySportsCardOutcomes,
-  resolveWorldCupFeedEvents,
-} from './sportsUtils';
+import { getPrimarySportsCardOutcomes } from '../../utils/sports';
+import { resolveWorldCupFeedEvents } from './sportsUtils';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {

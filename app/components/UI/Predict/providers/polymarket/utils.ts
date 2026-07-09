@@ -33,9 +33,9 @@ import {
   isMoneylineLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
+import { getTokenImage } from '../../utils/sports';
 import {
   getSportsMarketTeamLogo,
-  getTokenImage,
   resolveNegRiskMoneylineShortTitles,
 } from './sportsUtils';
 import type {

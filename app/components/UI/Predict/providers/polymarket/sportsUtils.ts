@@ -6,7 +6,7 @@ import {
 } from '../../constants/sports';
 import { getMatchingSportTeam } from '../../utils/sports';
 import { getEventLeague } from '../../utils/gameParser';
-import type { PredictMarketGame, PredictSportsLeague } from '../../types';
+import type { PredictMarketGame } from '../../types';
 import type { PolymarketApiEvent } from './types';
 import { fetchChildEventsFromGammaApi } from './utils';
 
@@ -118,67 +118,6 @@ export const getSportsMarketTeamLogo = (
   }
 
   return getMatchingSportTeam(market.groupItemTitle, game)?.logo;
-};
-
-export const getTeamToAdvanceTokenLogo = (
-  tokenTitle: string | undefined,
-  game?: PredictMarketGame,
-): string | undefined => {
-  if (
-    !game?.homeTeam ||
-    !game?.awayTeam ||
-    !tokenTitle ||
-    isGenericTeamLabel(tokenTitle)
-  ) {
-    return undefined;
-  }
-
-  return getMatchingSportTeam(tokenTitle, game)?.logo;
-};
-
-export const getTokenImage = ({
-  sportsMarketType,
-  tokenTitle,
-  game,
-}: {
-  sportsMarketType?: string;
-  tokenTitle?: string;
-  game?: PredictMarketGame;
-}): string | undefined => {
-  if (isTeamToAdvanceMarketType(sportsMarketType)) {
-    return getTeamToAdvanceTokenLogo(tokenTitle, game);
-  }
-
-  return undefined;
-};
-
-const getPrimaryMoneylineOutcomes = <T extends { sportsMarketType?: string }>(
-  outcomes: T[],
-): T[] => {
-  const moneylineOutcomes = outcomes.filter(
-    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
-  );
-
-  return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
-};
-
-export const getPrimarySportsCardOutcomes = <
-  T extends { sportsMarketType?: string },
->(
-  outcomes: T[],
-  league?: PredictSportsLeague,
-): T[] => {
-  if (league === WORLD_CUP_LEAGUE) {
-    const advanceOutcomes = outcomes.filter((outcome) =>
-      isTeamToAdvanceMarketType(outcome.sportsMarketType),
-    );
-
-    if (advanceOutcomes.length > 0) {
-      return advanceOutcomes;
-    }
-  }
-
-  return getPrimaryMoneylineOutcomes(outcomes);
 };
 
 export const shouldFetchWorldCupChildMarkets = <
