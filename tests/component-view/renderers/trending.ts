@@ -81,7 +81,7 @@ export function renderTrendingViewWithRoutes(
 export function renderExploreSearchScreenWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat } = options;
+  const { overrides, deterministicFiat, initialParams } = options;
 
   const builder = initialStateTrending({ deterministicFiat });
   if (overrides) {
@@ -94,5 +94,6 @@ export function renderExploreSearchScreenWithRoutes(
     { name: Routes.EXPLORE_SEARCH },
     [],
     { state },
+    initialParams,
   );
 }

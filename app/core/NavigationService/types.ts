@@ -80,6 +80,8 @@ import type { CreditBalanceTooltipParams } from '../../components/UI/Card/compon
 import type { MoneyUnlinkCardSheetRouteParams } from '../../components/UI/Card/components/MoneyUnlinkCardSheet/MoneyUnlinkCardSheet';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
+import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
+import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -476,14 +478,14 @@ export type RootStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
-  TrendingView: undefined;
-  TrendingFeed: undefined;
+  TrendingView: NestedNavigationParams | undefined;
+  TrendingFeed: ExploreFeedRouteParams | undefined;
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
-  ExploreSearch: undefined;
   MarketInsightsView: MarketInsightsRouteParams;
+  ExploreSearch: ExploreSearchRouteParams | undefined;
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;

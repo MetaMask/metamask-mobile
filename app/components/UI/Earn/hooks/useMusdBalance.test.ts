@@ -9,7 +9,6 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { EVM_SCOPE } from '../constants/networks';
 import { RootState } from '../../../../reducers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -32,9 +31,11 @@ const mockSelectSelectedInternalAccountByScope =
   >;
 
 type TokenBalancesByAddress = Record<Hex, Record<Hex, Record<Hex, string>>>;
-type TokenMarketData = Record<Hex, Record<Hex, { price?: number }>>;
 type NetworkConfigurations = Record<Hex, { nativeCurrency?: string }>;
-type CurrencyRates = Record<string, { conversionRate?: number }>;
+type CurrencyRates = Record<
+  string,
+  { conversionRate?: number; usdConversionRate?: number }
+>;
 
 describe('useMusdBalance', () => {
   const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
@@ -43,7 +44,6 @@ describe('useMusdBalance', () => {
 
   let selectedEvmAddress: Hex | undefined;
   let tokenBalancesByAddress: TokenBalancesByAddress;
-  let tokenMarketDataByChainId: TokenMarketData;
   let networkConfigurationsByChainId: NetworkConfigurations;
   let currencyRatesBySymbol: CurrencyRates;
   let currentCurrency: string | undefined;
@@ -52,7 +52,6 @@ describe('useMusdBalance', () => {
     jest.clearAllMocks();
     selectedEvmAddress = MOCK_EVM_ADDRESS;
     tokenBalancesByAddress = {} as TokenBalancesByAddress;
-    tokenMarketDataByChainId = {} as TokenMarketData;
     networkConfigurationsByChainId = {} as NetworkConfigurations;
     currencyRatesBySymbol = {} as CurrencyRates;
     currentCurrency = 'usd';
@@ -70,10 +69,6 @@ describe('useMusdBalance', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectTokensBalances) {
         return tokenBalancesByAddress;
-      }
-
-      if (selector === selectTokenMarketData) {
-        return tokenMarketDataByChainId;
       }
 
       if (selector === selectCurrencyRates) {
@@ -165,18 +160,13 @@ describe('useMusdBalance', () => {
         },
       };
 
-      // 1 mUSD = 0.0005 ETH, ETH = 2000 (preferred currency) -> 1 mUSD = 1 fiat
-      const checksummedMusdAddress = toChecksumAddress(MUSD_ADDRESS);
-      tokenMarketDataByChainId = {
-        [CHAIN_IDS.MAINNET]: {
-          [checksummedMusdAddress]: { price: 0.0005 },
-        },
-      } as TokenMarketData;
+      // mUSD is USD-pegged: 1 mUSD is valued at $1 regardless of its (drifting)
+      // market price, so with a USD display currency 1 mUSD -> $1.00.
       networkConfigurationsByChainId = {
         [CHAIN_IDS.MAINNET]: { nativeCurrency: 'ETH' },
       } as NetworkConfigurations;
       currencyRatesBySymbol = {
-        ETH: { conversionRate: 2000 },
+        ETH: { conversionRate: 2000, usdConversionRate: 2000 },
       };
 
       const { result } = renderHook(() => useMusdBalance());
@@ -201,6 +191,36 @@ describe('useMusdBalance', () => {
       expect(result.current.fiatBalanceAggregatedFormatted).toBe('$1.00');
     });
 
+    it('converts the USD peg into the display currency when it is not USD', () => {
+      const oneMusdMinimalHex = '0x0f4240' as Hex;
+      tokenBalancesByAddress = {
+        [MOCK_EVM_ADDRESS]: {
+          [CHAIN_IDS.MAINNET]: {
+            [MUSD_ADDRESS]: oneMusdMinimalHex,
+          },
+        },
+      };
+
+      // EUR display currency: 1 native = €1800 and $2000, so €/$ = 0.9 and
+      // 1 mUSD ($1) -> €0.90.
+      currentCurrency = 'eur';
+      networkConfigurationsByChainId = {
+        [CHAIN_IDS.MAINNET]: { nativeCurrency: 'ETH' },
+      } as NetworkConfigurations;
+      currencyRatesBySymbol = {
+        ETH: { conversionRate: 1800, usdConversionRate: 2000 },
+      };
+
+      const { result } = renderHook(() => useMusdBalance());
+
+      expect(result.current.fiatBalanceByChain[CHAIN_IDS.MAINNET]).toBe('0.9');
+      expect(result.current.fiatBalanceAggregated).toBe('0.9');
+      expect(
+        result.current.fiatBalanceFormattedByChain[CHAIN_IDS.MAINNET],
+      ).toBe('€0.90');
+      expect(result.current.fiatBalanceAggregatedFormatted).toBe('€0.90');
+    });
+
     it('returns token balances but omits fiat when conversion rate is missing', () => {
       const balance = '0x0f4240' as Hex;
       tokenBalancesByAddress = {
@@ -211,18 +231,12 @@ describe('useMusdBalance', () => {
         },
       };
 
-      const checksummedMusdAddress = toChecksumAddress(MUSD_ADDRESS);
-      tokenMarketDataByChainId = {
-        [CHAIN_IDS.MAINNET]: {
-          [checksummedMusdAddress]: { price: 0.0005 },
-        },
-      } as TokenMarketData;
       networkConfigurationsByChainId = {
         [CHAIN_IDS.MAINNET]: { nativeCurrency: 'ETH' },
       } as NetworkConfigurations;
       currencyRatesBySymbol = {
         // ETH conversionRate missing
-        ETH: {},
+        ETH: { usdConversionRate: 2000 },
       };
 
       const { result } = renderHook(() => useMusdBalance());
@@ -241,7 +255,7 @@ describe('useMusdBalance', () => {
       expect(result.current.fiatBalanceAggregatedFormatted).toBe('$0.00');
     });
 
-    it('returns token balances but omits fiat when token price is missing', () => {
+    it('returns token balances but omits fiat when USD conversion rate is missing', () => {
       // Arrange
       const balance = '0x0f4240' as Hex; // 1 mUSD (6 decimals)
       tokenBalancesByAddress = {
@@ -256,14 +270,9 @@ describe('useMusdBalance', () => {
         [CHAIN_IDS.MAINNET]: { nativeCurrency: 'ETH' },
       } as NetworkConfigurations;
       currencyRatesBySymbol = {
+        // usdConversionRate missing — cannot anchor mUSD to the $1 peg
         ETH: { conversionRate: 2000 },
       };
-      tokenMarketDataByChainId = {
-        [CHAIN_IDS.MAINNET]: {
-          // price omitted
-          [toChecksumAddress(MUSD_ADDRESS)]: {},
-        },
-      } as TokenMarketData;
 
       // Act
       const { result } = renderHook(() => useMusdBalance());

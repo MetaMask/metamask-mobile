@@ -536,4 +536,157 @@ describe('FeaturedCarouselSportCard', () => {
       { enabled: false },
     );
   });
+
+  describe('World Cup team-to-advance', () => {
+    const createWorldCupGame = (): PredictMarketGame => ({
+      id: 'game-world-cup',
+      startTime: '2026-06-08T21:30:00Z',
+      status: 'scheduled',
+      league: 'fifwc',
+      elapsed: null,
+      period: null,
+      score: null,
+      homeTeam: {
+        id: 'spain',
+        name: 'Spain',
+        logo: 'https://example.com/spain.png',
+        abbreviation: 'SPA',
+        color: 'orange',
+        alias: 'Spain',
+      },
+      awayTeam: {
+        id: 'england',
+        name: 'England',
+        logo: 'https://example.com/england.png',
+        abbreviation: 'ENG',
+        color: 'red',
+        alias: 'England',
+      },
+    });
+
+    const createWorldCupMarket = (outcomes: PredictOutcome[]): PredictMarket =>
+      createMockSportMarket({
+        id: 'market-world-cup',
+        title: 'Spain vs England',
+        tags: ['World Cup'],
+        game: createWorldCupGame(),
+        outcomes,
+      });
+
+    it('prefers team-to-advance outcomes for World Cup games', () => {
+      const moneylineOutcome = createMockOutcome([
+        { id: 'token-home', title: 'Spain', price: 0.6 },
+        { id: 'token-draw', title: 'Draw', price: 0.15 },
+        { id: 'token-away', title: 'England', price: 0.62 },
+      ]);
+      moneylineOutcome.id = 'outcome-moneyline';
+      moneylineOutcome.sportsMarketType = 'moneyline';
+
+      const teamToAdvanceOutcome = createMockOutcome([
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
+      ]);
+      teamToAdvanceOutcome.id = 'outcome-team-to-advance';
+      teamToAdvanceOutcome.sportsMarketType = 'soccer_team_to_advance';
+      teamToAdvanceOutcome.groupItemTitle = 'Team to Advance';
+
+      const market = createWorldCupMarket([
+        moneylineOutcome,
+        teamToAdvanceOutcome,
+      ]);
+
+      const { getByText, queryByText } = renderWithProvider(
+        <FeaturedCarouselSportCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      expect(getByText('72%')).toBeOnTheScreen();
+      expect(getByText('41%')).toBeOnTheScreen();
+      expect(queryByText('60%')).not.toBeOnTheScreen();
+      expect(queryByText('62%')).not.toBeOnTheScreen();
+      expect(
+        queryByText(strings('predict.outcome_draw')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens buy sheet with team-to-advance outcome on away button press', () => {
+      const moneylineOutcome = createMockOutcome([
+        { id: 'token-home', title: 'Spain', price: 0.6 },
+        { id: 'token-draw', title: 'Draw', price: 0.15 },
+        { id: 'token-away', title: 'England', price: 0.62 },
+      ]);
+      moneylineOutcome.id = 'outcome-moneyline';
+      moneylineOutcome.sportsMarketType = 'moneyline';
+
+      const teamToAdvanceOutcome = createMockOutcome([
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
+      ]);
+      teamToAdvanceOutcome.id = 'outcome-team-to-advance';
+      teamToAdvanceOutcome.sportsMarketType = 'soccer_team_to_advance';
+      teamToAdvanceOutcome.groupItemTitle = 'Team to Advance';
+
+      const market = createWorldCupMarket([
+        moneylineOutcome,
+        teamToAdvanceOutcome,
+      ]);
+
+      const { getByText } = renderWithProvider(
+        <FeaturedCarouselSportCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByText('41%'));
+
+      expect(mockOpenBuySheet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          market,
+          outcome: teamToAdvanceOutcome,
+          outcomeToken: expect.objectContaining({
+            id: 'token-england-advance',
+          }),
+        }),
+      );
+    });
+
+    it('keeps moneyline outcomes for non-World-Cup games with team-to-advance markets', () => {
+      const moneylineOutcome = createMockOutcome([
+        { id: 'token-home', title: 'Spain', price: 0.6 },
+        { id: 'token-draw', title: 'Draw', price: 0.15 },
+        { id: 'token-away', title: 'England', price: 0.62 },
+      ]);
+      moneylineOutcome.id = 'outcome-moneyline';
+      moneylineOutcome.sportsMarketType = 'moneyline';
+
+      const teamToAdvanceOutcome = createMockOutcome([
+        { id: 'token-spain-advance', title: 'Spain', price: 0.72 },
+        { id: 'token-england-advance', title: 'England', price: 0.41 },
+      ]);
+      teamToAdvanceOutcome.id = 'outcome-team-to-advance';
+      teamToAdvanceOutcome.sportsMarketType = 'soccer_team_to_advance';
+      teamToAdvanceOutcome.groupItemTitle = 'Team to Advance';
+
+      const market = createWorldCupMarket([
+        moneylineOutcome,
+        teamToAdvanceOutcome,
+      ]);
+      market.game = createMockGame({
+        ...createWorldCupGame(),
+        league: 'ucl',
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <FeaturedCarouselSportCard market={market} index={0} />,
+        { state: initialState },
+      );
+
+      expect(getByText('60%')).toBeOnTheScreen();
+      expect(getByText('62%')).toBeOnTheScreen();
+      expect(
+        getByText(`${strings('predict.outcome_draw')} 15%`),
+      ).toBeOnTheScreen();
+      expect(queryByText('72%')).not.toBeOnTheScreen();
+      expect(queryByText('41%')).not.toBeOnTheScreen();
+    });
+  });
 });
