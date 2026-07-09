@@ -128,14 +128,36 @@ describe('PerpsRecentlyAddedSection', () => {
   });
 
   describe('tile content', () => {
-    it('displays the market symbol', () => {
+    it('displays the market name when available', () => {
       render(
         <PerpsRecentlyAddedSection
-          markets={[createMarket({ symbol: 'BTC' })]}
+          markets={[createMarket({ symbol: 'BTC', name: 'Bitcoin' })]}
+          onMarketPress={jest.fn()}
+        />,
+      );
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+      expect(screen.queryByText('BTC')).toBeNull();
+    });
+
+    it('falls back to the display symbol when no name is available', () => {
+      render(
+        <PerpsRecentlyAddedSection
+          markets={[createMarket({ symbol: 'BTC', name: undefined })]}
           onMarketPress={jest.fn()}
         />,
       );
       expect(screen.getByText('BTC')).toBeOnTheScreen();
+    });
+
+    it('strips the HIP-3 dex prefix from the fallback symbol (e.g. "xyz:SKHY" -> "SKHY")', () => {
+      render(
+        <PerpsRecentlyAddedSection
+          markets={[createMarket({ symbol: 'xyz:SKHY', name: undefined })]}
+          onMarketPress={jest.fn()}
+        />,
+      );
+      expect(screen.getByText('SKHY')).toBeOnTheScreen();
+      expect(screen.queryByText('xyz:SKHY')).toBeNull();
     });
 
     it('displays the market price', () => {

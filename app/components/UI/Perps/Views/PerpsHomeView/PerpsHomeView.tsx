@@ -415,12 +415,12 @@ const PerpsHomeView = ({
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS);
     if (isLoading.markets || forexMarkets.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
-    // Recent activity shows a skeleton while loading, then self-hides when empty.
-    if (isLoading.activity || recentActivity.length > 0)
-      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
     // Recently Added self-hides when there are no markets listed in the last
     // 30 days, or when the feature flag is off.
     if (isRecentlyAddedVisible) sections.push('recently_added');
+    // Recent activity shows a skeleton while loading, then self-hides when empty.
+    if (isLoading.activity || recentActivity.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
     return sections;
   }, [
     isLoading,
@@ -834,19 +834,6 @@ const PerpsHomeView = ({
         ),
       },
       {
-        key: 'recent-activity',
-        visible: isLoading.activity || recentActivity.length > 0,
-        onLayout: handleSectionLayout(
-          PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
-        ),
-        content: (
-          <PerpsRecentActivityList
-            transactions={recentActivity}
-            isLoading={isLoading.activity}
-          />
-        ),
-      },
-      {
         key: 'recently-added',
         // Mirrors PerpsRecentlyAddedSection's own render gate (markets.length
         // === 0 -> null) plus the feature flag, so PerpsHomeSectionList does
@@ -857,6 +844,19 @@ const PerpsHomeView = ({
           <PerpsRecentlyAddedSection
             markets={recentlyAddedMarkets}
             onMarketPress={handleRecentlyAddedMarketPress}
+          />
+        ),
+      },
+      {
+        key: 'recent-activity',
+        visible: isLoading.activity || recentActivity.length > 0,
+        onLayout: handleSectionLayout(
+          PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
+        ),
+        content: (
+          <PerpsRecentActivityList
+            transactions={recentActivity}
+            isLoading={isLoading.activity}
           />
         ),
       },

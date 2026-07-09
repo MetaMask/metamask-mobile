@@ -1,7 +1,10 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SectionHeader } from '@metamask/design-system-react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import Text, {
   TextVariant,
   TextColor,
@@ -26,6 +29,15 @@ const PerpsRecentlyAddedTile: React.FC<{
 
   const isPositiveChange = !market.change24h.startsWith('-');
   const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+
+  // Prefer the display name (e.g. "Bitcoin"); fall back to the display symbol
+  // when no name is available. Both branches go through getPerpsDisplaySymbol
+  // so a HIP-3 `dex:SYMBOL` value (e.g. "xyz:SKHY") never renders with its raw
+  // dex prefix, whether it comes from `name` or `symbol`.
+  const assetLabel = useMemo(
+    () => getPerpsDisplaySymbol(market.name || market.symbol),
+    [market.name, market.symbol],
+  );
 
   return (
     <TouchableOpacity
@@ -56,7 +68,7 @@ const PerpsRecentlyAddedTile: React.FC<{
           color={TextColor.Default}
           numberOfLines={1}
         >
-          {market.symbol}
+          {assetLabel}
         </Text>
         <Text
           variant={TextVariant.BodyXS}
