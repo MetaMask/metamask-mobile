@@ -41,12 +41,11 @@ import {
   playImpact,
   playSelection,
 } from '../../../../util/haptics';
-import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import {
+  buildFollowTradingTokenContext,
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
-import { chainNameToId } from '../utils/chainMapping';
 
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
@@ -231,6 +230,7 @@ const TraderProfileView = () => {
         source: 'trader_profile',
         traderAddress: traderAddress || profile?.profile.address || '',
         traderUsername: profile?.profile.name,
+        traderAvatarUri: profile?.profile.imageUrl,
         // Rank only meaningful when arriving from a ranked surface; omit on
         // trader_profile to keep schema clean.
       });
@@ -279,15 +279,10 @@ const TraderProfileView = () => {
   const handlePositionPress = useCallback(
     (position: Position) => {
       const isOpenTab = activeTabRef.current === 'open';
-      const caipChainId = chainNameToId(position.chain);
-      const caip19 = caipChainId
-        ? (toAssetId(position.tokenAddress, caipChainId) ?? '')
-        : '';
-      if (traderAddress && caip19) {
+      const context = buildFollowTradingTokenContext(position, traderAddress);
+      if (context) {
         track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_POSITION_CLICKED, {
-          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
-          [SocialLeaderboardEventProperties.CAIP19]: caip19,
-          [SocialLeaderboardEventProperties.ASSET_NAME]: position.tokenSymbol,
+          ...context,
           [SocialLeaderboardEventProperties.IS_OPEN]: isOpenTab,
         });
       }

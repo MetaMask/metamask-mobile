@@ -6,7 +6,10 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  type PerpsMarketData,
+  type MarketTypeFilter,
+} from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
@@ -775,6 +778,18 @@ describe('PerpsMarketListView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('disables autocorrect and autocapitalize on the search input', () => {
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      const searchInput = screen.getByTestId(
+        PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
+      );
+
+      expect(searchInput.props.autoCorrect).toBe(false);
+      expect(searchInput.props.autoCapitalize).toBe('none');
+      expect(searchInput.props.autoComplete).toBe('off');
+    });
+
     it('shows all markets when search query is empty', async () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
@@ -1487,6 +1502,222 @@ describe('PerpsMarketListView', () => {
       mockMarketData.forEach((market) => {
         const rows = screen.queryAllByTestId(`market-row-${market.symbol}`);
         expect(rows.length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Empty States (TAT-3355)
+  // ─────────────────────────────────────────────────────────────────────────
+  describe('Empty States', () => {
+    /**
+     * Factory that returns a minimal usePerpsMarketListView mock value with
+     * no markets (triggering an empty state). Override individual fields as
+     * needed per test.
+     */
+    const buildHookReturn = ({
+      searchQuery = '',
+      marketTypeFilter = 'all' as MarketTypeFilter,
+      setSearchQueryFn = mockSetSearchQuery,
+      setMarketTypeFilterFn = jest.fn(),
+    } = {}) => ({
+      markets: [] as PerpsMarketData[],
+      searchState: {
+        searchQuery,
+        setSearchQuery: setSearchQueryFn,
+        clearSearch: mockClearSearch,
+      },
+      sortState: {
+        selectedOptionId: 'volume' as const,
+        sortBy: 'volume' as const,
+        direction: 'desc' as const,
+        handleOptionChange: jest.fn(),
+      },
+      favoritesState: {
+        showFavoritesOnly: false,
+        setShowFavoritesOnly: jest.fn(),
+        hasWatchlistMarkets: false,
+        watchlistMarketObjects: [],
+        suggestedMarkets: [],
+      },
+      marketTypeFilterState: {
+        marketTypeFilter,
+        setMarketTypeFilter: setMarketTypeFilterFn,
+      },
+      marketCounts: {
+        crypto: 0,
+        stocks: 0,
+        'pre-ipo': 0,
+        indices: 0,
+        etfs: 0,
+        commodities: 0,
+        forex: 0,
+        new: 0,
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    describe('Search-only (no category filter active)', () => {
+      it('shows the NO_RESULTS container with "No tokens found" title', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ searchQuery: 'XYZ' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
+        ).toBeOnTheScreen();
+        expect(screen.getByText('No tokens found')).toBeOnTheScreen();
+      });
+
+      it('shows the EMPTY_STATE_CTA with "Clear search" label', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ searchQuery: 'XYZ' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA),
+        ).toBeOnTheScreen();
+        expect(screen.getByText('Clear search')).toBeOnTheScreen();
+      });
+
+      it('calls setSearchQuery("") when "Clear search" CTA is pressed', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({
+            searchQuery: 'XYZ',
+            setSearchQueryFn: mockSetSearchQuery,
+          }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        fireEvent.press(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA),
+        );
+
+        expect(mockSetSearchQuery).toHaveBeenCalledWith('');
+      });
+
+      it('does not show the NO_RESULTS_FILTER container', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ searchQuery: 'XYZ' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(
+          screen.queryByTestId(
+            PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    describe('Filter + search (filter-priority branch)', () => {
+      it('shows the NO_RESULTS container with "No markets found" title', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ searchQuery: 'XYZ', marketTypeFilter: 'crypto' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
+        ).toBeOnTheScreen();
+        expect(screen.getByText('No markets found')).toBeOnTheScreen();
+      });
+
+      it('shows the EMPTY_STATE_CTA with "Clear filter" label', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ searchQuery: 'XYZ', marketTypeFilter: 'crypto' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(screen.getByText('Clear filter')).toBeOnTheScreen();
+      });
+
+      it('calls setMarketTypeFilter("all") when "Clear filter" CTA is pressed', () => {
+        const mockSetMarketTypeFilter = jest.fn();
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({
+            searchQuery: 'XYZ',
+            marketTypeFilter: 'crypto',
+            setMarketTypeFilterFn: mockSetMarketTypeFilter,
+          }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        fireEvent.press(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA),
+        );
+
+        expect(mockSetMarketTypeFilter).toHaveBeenCalledWith('all');
+      });
+
+      it('does not show the NO_RESULTS_FILTER container', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ searchQuery: 'XYZ', marketTypeFilter: 'crypto' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(
+          screen.queryByTestId(
+            PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER,
+          ),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    describe('Filter-only (no search query)', () => {
+      it('shows the NO_RESULTS_FILTER container with "No markets found" title', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ marketTypeFilter: 'stock' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER),
+        ).toBeOnTheScreen();
+        expect(screen.getByText('No markets found')).toBeOnTheScreen();
+      });
+
+      it('shows the EMPTY_STATE_CTA with "Clear filter" label', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ marketTypeFilter: 'stock' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA),
+        ).toBeOnTheScreen();
+        expect(screen.getByText('Clear filter')).toBeOnTheScreen();
+      });
+
+      it('calls setMarketTypeFilter("all") when "Clear filter" CTA is pressed', () => {
+        const mockSetMarketTypeFilter = jest.fn();
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({
+            marketTypeFilter: 'stock',
+            setMarketTypeFilterFn: mockSetMarketTypeFilter,
+          }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        fireEvent.press(
+          screen.getByTestId(PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA),
+        );
+
+        expect(mockSetMarketTypeFilter).toHaveBeenCalledWith('all');
+      });
+
+      it('does not show the NO_RESULTS container', () => {
+        mockUsePerpsMarketListView.mockReturnValueOnce(
+          buildHookReturn({ marketTypeFilter: 'stock' }),
+        );
+        renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+        expect(
+          screen.queryByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
+        ).not.toBeOnTheScreen();
       });
     });
   });
