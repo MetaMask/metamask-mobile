@@ -976,11 +976,17 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
-        // Orders just rendered to subscribers — close pending cancel / limit
-        // order-render CUF spans, flushing throttled subscribers first so the
-        // span ends when they actually render, not at throttle-enqueue time.
-        // Skip while paused: notifySubscribers delivered nothing, so nothing
-        // rendered.
+        // Orders confirmed in the live stream — close pending cancel / limit
+        // order-render CUF spans at this delivery instant. The boundary is
+        // stream confirmation (the order is now present/absent in live orders
+        // data), which the always-on prewarm subscription keeps observable even
+        // though the submitting surface (the order form, a confirmations modal)
+        // does not itself subscribe to orders; the initiating screen under that
+        // modal (Market Details / positions / home) does subscribe, so the
+        // flush-on-confirm renders it there at the same instant. Deliberately
+        // NOT gated on a real subscriber: the order form path has none of its
+        // own, so gating would time out a genuine confirmation.
+        // Skip while paused: notifySubscribers delivered nothing.
         if (this.pauseCount === 0) {
           handlePerpsCufOrdersDelivered(orders, () =>
             this.flushThrottledDeliveries(),
