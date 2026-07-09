@@ -930,7 +930,9 @@ describe('HardwareWalletProvider', () => {
       await waitFor(() => {
         expect(getByTestId('full-window-overlay')).toBeOnTheScreen();
       });
-      expect(getByTestId('hardware-wallet-bottom-sheet-mock')).toBeOnTheScreen();
+      expect(
+        getByTestId('hardware-wallet-bottom-sheet-mock'),
+      ).toBeOnTheScreen();
       expect(queryByTestId('app-content')).toBeOnTheScreen();
     });
 

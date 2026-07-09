@@ -402,9 +402,9 @@ describe('AwaitingConfirmationContent', () => {
         getByTestId(AWAITING_CONFIRMATION_QR_GET_SIGN_BUTTON_TEST_ID),
       );
 
-      expect(getByTestId('animated-qr-scanner-mock').props.accessibilityLabel).toBe(
-        'coverScreen:false',
-      );
+      expect(
+        getByTestId('animated-qr-scanner-mock').props.accessibilityLabel,
+      ).toBe('coverScreen:false');
     });
   });
 
