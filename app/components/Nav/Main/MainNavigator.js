@@ -149,7 +149,7 @@ import {
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  TopTradersView,
+  SocialTradersView,
   TraderProfileView,
   TraderPositionView,
   TradingSignalsSetupBottomSheet,
@@ -1375,7 +1375,7 @@ const MainNavigator = () => {
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={TopTradersView}
+          component={SocialTradersView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}

@@ -1,0 +1,87 @@
+import React from 'react';
+import { fireEvent, screen } from '@testing-library/react-native';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import FeedItemRow from './FeedItemRow';
+import type { FeedPerpItem, FeedSpotItem } from '../types';
+import {
+  getFeedItemTestId,
+  getFeedTradeButtonTestId,
+} from '../FeedView.testIds';
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+}));
+
+const spotItem: FeedSpotItem = {
+  id: 'spot-1',
+  type: 'spot',
+  username: 'dutchiono',
+  traderAddress: '0x1111111111111111111111111111111111111111',
+  action: 'bought',
+  timestamp: Date.now() - 21_000,
+  tokenSymbol: 'PEPE',
+  tokenName: 'Pepe',
+  tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+  chain: 'eip155:1',
+  chainIdHex: '0x1',
+  subHeader: '$120K at $900K MC',
+  valueLabel: '$123,000.5',
+  pnlLabel: '+12%',
+  isPnlPositive: true,
+};
+
+const perpItem: FeedPerpItem = {
+  id: 'perp-1',
+  type: 'perps',
+  username: 'aparjey',
+  traderAddress: '0x2222222222222222222222222222222222222222',
+  action: 'closed',
+  timestamp: Date.now() - 4 * 60_000,
+  marketSymbol: 'ETH',
+  marketName: 'Ethereum',
+  direction: 'long',
+  leverage: 8,
+  subHeader: '$50.6K at $1,701.24',
+  valueLabel: '$88,000.5',
+  pnlLabel: '+12%',
+  isPnlPositive: true,
+};
+
+describe('FeedItemRow', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders a spot row with the token symbol, value, and username', () => {
+    renderWithProvider(
+      <FeedItemRow item={spotItem} onTradePress={jest.fn()} />,
+    );
+
+    expect(screen.getByTestId(getFeedItemTestId('spot-1'))).toBeOnTheScreen();
+    expect(screen.getByText('PEPE')).toBeOnTheScreen();
+    expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
+    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+  });
+
+  it('calls onTradePress with the item when Trade is pressed', () => {
+    const onTradePress = jest.fn();
+    renderWithProvider(
+      <FeedItemRow item={spotItem} onTradePress={onTradePress} />,
+    );
+
+    fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('spot-1')));
+
+    expect(onTradePress).toHaveBeenCalledWith(spotItem);
+  });
+
+  it('renders the perp direction badge for a perps row', () => {
+    renderWithProvider(
+      <FeedItemRow item={perpItem} onTradePress={jest.fn()} />,
+    );
+
+    expect(screen.getByText('ETH')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('feed-item-perp-badges-perp-1'),
+    ).toBeOnTheScreen();
+  });
+});

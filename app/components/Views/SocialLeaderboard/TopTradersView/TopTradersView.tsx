@@ -239,7 +239,18 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
   );
 };
 
-const TopTradersView = () => {
+export interface TopTradersViewProps {
+  /**
+   * When true, renders only the leaderboard body (filter pills + list) without
+   * its own SafeAreaView, animated header, large title, or pinned filter bar,
+   * so it can be embedded as a page inside the Leaderboard | Feed tabs.
+   */
+  embeddedInTabs?: boolean;
+}
+
+const TopTradersView: React.FC<TopTradersViewProps> = ({
+  embeddedInTabs = false,
+}) => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const tw = useTailwind();
@@ -564,19 +575,21 @@ const TopTradersView = () => {
   const listHeader = useMemo(
     () => (
       <>
-        <Box
-          twClassName="px-4 pt-2 pb-3"
-          testID={TopTradersViewSelectorsIDs.TITLE_SECTION_WRAPPER}
-          onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
-        >
-          <Text
-            variant={TextVariant.HeadingLg}
-            color={TextColor.TextDefault}
-            testID={TopTradersViewSelectorsIDs.TITLE}
+        {!embeddedInTabs && (
+          <Box
+            twClassName="px-4 pt-2 pb-3"
+            testID={TopTradersViewSelectorsIDs.TITLE_SECTION_WRAPPER}
+            onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
           >
-            {title}
-          </Text>
-        </Box>
+            <Text
+              variant={TextVariant.HeadingLg}
+              color={TextColor.TextDefault}
+              testID={TopTradersViewSelectorsIDs.TITLE}
+            >
+              {title}
+            </Text>
+          </Box>
+        )}
 
         <FilterTabs
           filters={tabFilters}
@@ -585,8 +598,95 @@ const TopTradersView = () => {
         />
       </>
     ),
-    [activeTab, handleTabPress, setTitleSectionHeight, tabFilters, title],
+    [
+      activeTab,
+      embeddedInTabs,
+      handleTabPress,
+      setTitleSectionHeight,
+      tabFilters,
+      title,
+    ],
   );
+
+  const listBody = (
+    <Box twClassName="flex-1">
+      {isLoading && traders.length === 0 ? (
+        <Animated.ScrollView
+          // `flex-1` matches FlatList's default behavior so the list area sits
+          // directly under the filters and skeletons render top-aligned.
+          style={tw.style('flex-1')}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('pb-6')}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        >
+          {listHeader}
+          {skeletonKeys.map((key) => (
+            <TraderRowSkeleton key={key} />
+          ))}
+        </Animated.ScrollView>
+      ) : (
+        <Animated.FlatList<TopTrader>
+          data={traders}
+          keyExtractor={(item) => item.id}
+          renderItem={renderTraderRow}
+          ListHeaderComponent={listHeader}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={tw.style('pb-6')}
+          testID={TopTradersViewSelectorsIDs.TRADER_LIST}
+          initialNumToRender={INITIAL_TRADER_ROWS_TO_RENDER}
+          maxToRenderPerBatch={INITIAL_TRADER_ROWS_TO_RENDER}
+          windowSize={5}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+        />
+      )}
+
+      {!embeddedInTabs && (
+        <Animated.View
+          pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
+          accessibilityElementsHidden={!isFilterBarPinned}
+          importantForAccessibility={
+            isFilterBarPinned ? 'auto' : 'no-hide-descendants'
+          }
+          style={[
+            tw.style(
+              'absolute top-0 left-0 right-0 z-10 border-b border-muted bg-default',
+            ),
+            pinnedFilterStyle,
+          ]}
+          testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
+        >
+          <FilterTabs
+            filters={tabFilters}
+            selectedTab={activeTab}
+            onTabPress={handleTabPress}
+            suppressTestIDs
+          />
+        </Animated.View>
+      )}
+    </Box>
+  );
+
+  if (embeddedInTabs) {
+    return listBody;
+  }
 
   return (
     <SafeAreaView
@@ -613,77 +713,7 @@ const TopTradersView = () => {
         testID={TopTradersViewSelectorsIDs.HEADER}
       />
 
-      <Box twClassName="flex-1">
-        {isLoading && traders.length === 0 ? (
-          <Animated.ScrollView
-            // `flex-1` matches FlatList's default behavior so the list area sits
-            // directly under the filters and skeletons render top-aligned.
-            style={tw.style('flex-1')}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6')}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          >
-            {listHeader}
-            {skeletonKeys.map((key) => (
-              <TraderRowSkeleton key={key} />
-            ))}
-          </Animated.ScrollView>
-        ) : (
-          <Animated.FlatList<TopTrader>
-            data={traders}
-            keyExtractor={(item) => item.id}
-            renderItem={renderTraderRow}
-            ListHeaderComponent={listHeader}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6')}
-            testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-            initialNumToRender={INITIAL_TRADER_ROWS_TO_RENDER}
-            maxToRenderPerBatch={INITIAL_TRADER_ROWS_TO_RENDER}
-            windowSize={5}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            refreshControl={
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          />
-        )}
-
-        <Animated.View
-          pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
-          accessibilityElementsHidden={!isFilterBarPinned}
-          importantForAccessibility={
-            isFilterBarPinned ? 'auto' : 'no-hide-descendants'
-          }
-          style={[
-            tw.style(
-              'absolute top-0 left-0 right-0 z-10 border-b border-muted bg-default',
-            ),
-            pinnedFilterStyle,
-          ]}
-          testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
-        >
-          <FilterTabs
-            filters={tabFilters}
-            selectedTab={activeTab}
-            onTabPress={handleTabPress}
-            suppressTestIDs
-          />
-        </Animated.View>
-      </Box>
+      {listBody}
     </SafeAreaView>
   );
 };

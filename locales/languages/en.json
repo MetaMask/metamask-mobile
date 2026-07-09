@@ -1061,6 +1061,30 @@
         "perps": "Perps"
       }
     },
+    "feed": {
+      "tabs": {
+        "leaderboard": "Leaderboard",
+        "feed": "Feed"
+      },
+      "following": "Following",
+      "all": "All",
+      "trade": "Trade",
+      "action": {
+        "bought": "bought",
+        "sold": "sold",
+        "opened": "opened",
+        "closed": "closed"
+      },
+      "type_filter": {
+        "all": "All types",
+        "tokens": "Spot (tokens)",
+        "perps": "Perps"
+      },
+      "empty_following": {
+        "title": "No activity yet",
+        "description": "Follow traders to see their trades show up here."
+      }
+    },
     "notification_preferences": {
       "title": "Top traders",
       "allow_push_notifications": "Allow push notifications",
