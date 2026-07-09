@@ -55,7 +55,6 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
@@ -145,10 +144,6 @@ const PerpsMarketListView = ({
   // Handler for market press (defined early to avoid use-before-define)
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, sourceSectionOverride?: string) => {
-      // Record the view for the Recently Viewed rail regardless of entry path
-      // (direct navigation or a custom onMarketSelect consumer).
-      Engine.context.PerpsController.recordMarketViewed(market.symbol);
-
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {

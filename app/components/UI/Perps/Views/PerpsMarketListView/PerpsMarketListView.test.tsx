@@ -34,7 +34,6 @@ jest.mock('../../../../../core/Engine', () => ({
       getActiveProvider: jest.fn(() => ({
         protocolId: 'hyperliquid',
       })),
-      recordMarketViewed: jest.fn(),
     },
   },
 }));
@@ -1743,10 +1742,6 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Recently Viewed Rail', () => {
-    const { PerpsController: mockPerpsController } = jest.requireMock(
-      '../../../../../core/Engine',
-    ).context;
-
     type HookReturn = ReturnType<typeof mockUsePerpsMarketListView>;
 
     const buildHookReturn = (
@@ -1849,16 +1844,13 @@ describe('PerpsMarketListView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('records the view and navigates with source_section=recently_viewed when a rail pill is pressed', () => {
+    it('navigates with source_section=recently_viewed when a rail pill is pressed', () => {
       mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       fireEvent.press(screen.getByTestId('recently-viewed-row-ETH'));
 
-      expect(mockPerpsController.recordMarketViewed).toHaveBeenCalledWith(
-        'ETH',
-      );
       expect(mockNavigation.dispatch).toHaveBeenCalledWith(
         expect.objectContaining({
           payload: expect.objectContaining({
