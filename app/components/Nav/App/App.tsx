@@ -718,6 +718,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SHEET.IMPORT_WALLET_TIP}
       component={ImportWalletTipBottomSheet}
     />
+    <NativeStack.Screen
+      name={Routes.WEBVIEW.SIMPLE}
+      component={SimpleWebview}
+      options={{
+        presentation: 'modal',
+        animation: 'slide_from_bottom',
+      }}
+    />
   </NativeStack.Navigator>
 );
 

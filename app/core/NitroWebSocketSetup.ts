@@ -274,8 +274,57 @@ export function installProductionNitroWebSocket(): void {
   global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
 }
 
+// Dev builds route by scheme: ws:// → RN built-in (Metro HMR, LogBox), wss:// → Nitro.
+// Metro's HMRClient uses global.WebSocket after startup, so a blanket replacement breaks hot reload.
+export function installDevNitroWebSocket(): void {
+  const OriginalWebSocket = global.WebSocket;
+
+  if (!OriginalWebSocket) {
+    installProductionNitroWebSocket();
+    return;
+  }
+
+  type RNWebSocketConstructor = new (
+    url: string,
+    protocols?: string | string[],
+    options?: unknown,
+  ) => WebSocket;
+
+  function SchemeRoutingWebSocket(
+    url: string,
+    protocols?: string | string[],
+    optionsOrHeaders?: unknown,
+  ) {
+    if (typeof url === 'string' && /^wss:/i.test(url)) {
+      return new NitroWebSocketAdapter(
+        url,
+        protocols,
+        optionsOrHeaders as Record<string, string> | undefined,
+      );
+    }
+    // ws:// (Metro HMR, LogBox) keeps RN's built-in WebSocket.
+    return new (OriginalWebSocket as unknown as RNWebSocketConstructor)(
+      url,
+      protocols,
+      optionsOrHeaders,
+    );
+  }
+  Object.assign(SchemeRoutingWebSocket, {
+    CONNECTING: 0,
+    OPEN: 1,
+    CLOSING: 2,
+    CLOSED: 3,
+  });
+
+  global.WebSocket = SchemeRoutingWebSocket as unknown as typeof WebSocket;
+}
+
 if (!hasTestOverrides) {
-  installProductionNitroWebSocket();
+  if (__DEV__) {
+    installDevNitroWebSocket();
+  } else {
+    installProductionNitroWebSocket();
+  }
 }
 
 export { NitroWebSocketAdapter };
