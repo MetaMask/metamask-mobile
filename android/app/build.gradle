@@ -181,8 +181,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "8.1.0"
-        versionCode 5879
+        versionName "8.1.1"
+        versionCode 5983
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         missingDimensionStrategy 'detox', 'full'
