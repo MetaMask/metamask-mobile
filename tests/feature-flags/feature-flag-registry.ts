@@ -3334,6 +3334,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     },
     status: FeatureFlagStatus.Active,
   },
+  earnMoneyParallaxAnimationEnabled: {
+    name: 'earnMoneyParallaxAnimationEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
 
   earnMoneyVaultApyControl: {
     name: 'earnMoneyVaultApyControl',
