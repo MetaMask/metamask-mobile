@@ -5,12 +5,13 @@ import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
   ChartType,
-  resolveLineChromeOptions,
   type OHLCVBar,
   type AdvancedChartRef,
   type PositionLines,
   type TradeMarker,
+  type PositionLineColors,
 } from '../AdvancedChart.types';
+import { mockTheme } from '../../../../../util/theme';
 
 const mockInAppBrowserOpen = jest.fn();
 const mockIsAvailable = jest.fn().mockResolvedValue(true);
@@ -177,6 +178,209 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'SET_OHLCV_DATA',
         payload: { data: MOCK_BARS, pagination },
+      }),
+    );
+  });
+
+  it('responds noData when older-bars request has no RN handler', () => {
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+    const webView = getByTestId('mock-webview');
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'FETCH_OLDER_BARS_REQUEST',
+            payload: {
+              requestId: 'request-1',
+              seriesGeneration: 1,
+              symbol: 'ETH',
+              resolution: '1',
+              fromSec: 1000,
+              toSec: 2000,
+              countBack: 50,
+              oldestLoadedTimeMs: 1000000,
+            },
+          }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FETCH_OLDER_BARS_RESPONSE',
+        payload: {
+          requestId: 'request-1',
+          seriesGeneration: 1,
+          bars: [],
+          noData: true,
+          error: 'missing_onFetchOlderBarsRequest',
+        },
+      }),
+    );
+  });
+
+  it('includes RN-backed pagination config in SET_OHLCV_DATA when enabled', () => {
+    const rnBackedPagination = { enabled: true };
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        rnBackedPagination={rnBackedPagination}
+        visibleFromMs={1000000}
+        visibleToMs={1000300}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: {
+          data: MOCK_BARS,
+          rnBackedPagination,
+          visibleFromMs: 1000000,
+          visibleToMs: 1000300,
+        },
+      }),
+    );
+  });
+
+  it('responds to FETCH_OLDER_BARS_REQUEST through the RN handler', async () => {
+    const request = {
+      requestId: 'older-1',
+      seriesGeneration: 2,
+      symbol: 'BTC',
+      resolution: '60',
+      fromSec: 1000,
+      toSec: 2000,
+      countBack: 50,
+      oldestLoadedTimeMs: 1_700_000_000_000,
+    };
+    const response = {
+      requestId: request.requestId,
+      seriesGeneration: request.seriesGeneration,
+      bars: [
+        { time: 900000, open: 8, high: 9, low: 7, close: 8.5, volume: 50 },
+      ],
+      noData: false,
+    };
+    const onFetchOlderBarsRequest = jest.fn().mockResolvedValue(response);
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onFetchOlderBarsRequest={onFetchOlderBarsRequest}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'FETCH_OLDER_BARS_REQUEST',
+            payload: request,
+          }),
+        },
+      });
+    });
+    await flushMicrotasks();
+
+    expect(onFetchOlderBarsRequest).toHaveBeenCalledWith(request);
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FETCH_OLDER_BARS_RESPONSE',
+        payload: response,
+      }),
+    );
+  });
+
+  it('responds with noData when FETCH_OLDER_BARS_REQUEST handler rejects', async () => {
+    const request = {
+      requestId: 'older-rejected',
+      seriesGeneration: 4,
+      symbol: 'BTC',
+      resolution: '60',
+      fromSec: 1000,
+      toSec: 2000,
+      countBack: 50,
+      oldestLoadedTimeMs: 1_700_000_000_000,
+    };
+    const onFetchOlderBarsRequest = jest
+      .fn()
+      .mockRejectedValue(new Error('history failed'));
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onFetchOlderBarsRequest={onFetchOlderBarsRequest}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'FETCH_OLDER_BARS_REQUEST',
+            payload: request,
+          }),
+        },
+      });
+    });
+    await flushMicrotasks();
+
+    expect(onFetchOlderBarsRequest).toHaveBeenCalledWith(request);
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FETCH_OLDER_BARS_RESPONSE',
+        payload: {
+          requestId: request.requestId,
+          seriesGeneration: request.seriesGeneration,
+          bars: [],
+          noData: true,
+        },
+      }),
+    );
+  });
+
+  it('responds with noData when FETCH_OLDER_BARS_REQUEST has no RN handler', () => {
+    const request = {
+      requestId: 'older-without-handler',
+      seriesGeneration: 3,
+      symbol: 'BTC',
+      resolution: '60',
+      fromSec: 1000,
+      toSec: 2000,
+      countBack: 50,
+      oldestLoadedTimeMs: 1_700_000_000_000,
+    };
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'FETCH_OLDER_BARS_REQUEST',
+            payload: request,
+          }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FETCH_OLDER_BARS_RESPONSE',
+        payload: {
+          requestId: request.requestId,
+          seriesGeneration: request.seriesGeneration,
+          bars: [],
+          noData: true,
+          error: 'missing_onFetchOlderBarsRequest',
+        },
       }),
     );
   });
@@ -928,6 +1132,50 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('sends initial SET_POSITION_LINES after chart ready when positionLines are already present', () => {
+    const position: PositionLines = {
+      side: 'long',
+      currentPrice: 1991.7,
+      entryPrice: 1900,
+    };
+    const positionLineColors: PositionLineColors = {
+      currentPrice: 'current-price-color',
+      entry: 'entry-color',
+      takeProfit: 'take-profit-color',
+      stopLoss: 'stop-loss-color',
+      liquidation: 'liquidation-color',
+    };
+
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        positionLines={position}
+        positionLineColors={positionLineColors}
+      />,
+    );
+
+    mockPostMessage.mockClear();
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_POSITION_LINES',
+        payload: {
+          position,
+          positionLineColors,
+        },
+      }),
+    );
+  });
+
   it('sends SET_POSITION_LINES with null when positionLines cleared', () => {
     const position: PositionLines = {
       side: 'long',
@@ -955,6 +1203,61 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'SET_POSITION_LINES',
         payload: { position: null },
+      }),
+    );
+  });
+
+  it('resends SET_POSITION_LINES when only positionLineColors values change', () => {
+    const position: PositionLines = {
+      side: 'long',
+      entryPrice: 1991.7,
+      liquidationPrice: 1357.83,
+    };
+    const initialColors: PositionLineColors = {
+      entry: 'entry-color',
+      takeProfit: 'take-profit-color',
+      stopLoss: 'stop-loss-color',
+      liquidation: 'liquidation-color',
+    };
+    const updatedColors: PositionLineColors = {
+      ...initialColors,
+      liquidation: 'updated-liquidation-color',
+    };
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        positionLines={position}
+        positionLineColors={initialColors}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        positionLines={position}
+        positionLineColors={updatedColors}
+      />,
+    );
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_POSITION_LINES',
+        payload: {
+          position,
+          positionLineColors: updatedColors,
+        },
       }),
     );
   });
@@ -1055,30 +1358,6 @@ describe('AdvancedChart', () => {
     );
   });
 
-  it('sends SET_LINE_CHROME with resolved defaults after onLoadEnd and CHART_READY', () => {
-    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
-
-    const webView = getByTestId('mock-webview');
-    act(() => {
-      webView.props.onLoadEnd();
-    });
-
-    act(() => {
-      webView.props.onMessage({
-        nativeEvent: {
-          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
-        },
-      });
-    });
-
-    expect(mockPostMessage).toHaveBeenCalledWith(
-      JSON.stringify({
-        type: 'SET_LINE_CHROME',
-        payload: resolveLineChromeOptions(),
-      }),
-    );
-  });
-
   it('sends SET_SUB_PANE_LAYOUT with null by default after CHART_READY', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
 
@@ -1151,6 +1430,40 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'SET_CHART_TYPE',
         payload: { type: ChartType.Line },
+      }),
+    );
+  });
+
+  it('includes current price and volume colors in SET_THEME_COLORS updates', async () => {
+    const currentPriceColor = mockTheme.colors.text.default;
+    const volumeSuccessColor = 'rgba(0, 255, 0, 0.3)';
+    const volumeErrorColor = 'rgba(255, 0, 0, 0.3)';
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        currentPriceLineColorOverride={currentPriceColor}
+        volumeSuccessColorOverride={volumeSuccessColor}
+        volumeErrorColorOverride={volumeErrorColor}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    await flushMicrotasks();
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_THEME_COLORS',
+        payload: {
+          lineColor: mockTheme.colors.success.default,
+          successColor: mockTheme.colors.success.default,
+          errorColor: mockTheme.colors.error.default,
+          currentPriceColor,
+          volumeSuccessColor,
+          volumeErrorColor,
+        },
       }),
     );
   });

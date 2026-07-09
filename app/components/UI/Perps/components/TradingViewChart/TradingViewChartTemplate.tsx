@@ -1,12 +1,5 @@
 import { Theme } from '../../../../../util/theme/models';
-
-const hexToRgba = (hex: string, alpha: number): string => {
-  const clean = hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
-  const r = parseInt(clean.slice(1, 3), 16);
-  const g = parseInt(clean.slice(3, 5), 16);
-  const b = parseInt(clean.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+import { hexToRgba } from '../../utils/chartColors';
 
 export const createTradingViewChartTemplate = (
   theme: Theme,

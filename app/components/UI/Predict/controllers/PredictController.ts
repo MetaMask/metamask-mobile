@@ -25,6 +25,7 @@ import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import { errorCodes } from '@metamask/rpc-errors';
 import {
   TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
@@ -37,6 +38,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
+import { formatUnits, Interface } from 'ethers/lib/utils';
 import performance from 'react-native-performance';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -53,6 +55,7 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import {
   PredictEventValues,
   PredictTradeStatus,
+  type PredictTradeStatusValue,
 } from '../constants/eventNames';
 
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
@@ -60,8 +63,10 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
+  COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
 
@@ -288,6 +293,9 @@ export type PredictTransactionEventStatus =
   | 'rejected'
   | 'depositing';
 
+type PredictTransactionMetricType =
+  (typeof PredictEventValues.TRANSACTION_TYPE)[keyof typeof PredictEventValues.TRANSACTION_TYPE];
+
 export interface PredictControllerTransactionStatusChangedEvent {
   type: 'PredictController:transactionStatusChanged';
   payload: [
@@ -308,6 +316,25 @@ export type PredictTransactionStatusChangedPayload =
 export type PredictControllerEvents =
   | ControllerStateChangeEvent<'PredictController', PredictControllerState>
   | PredictControllerTransactionStatusChangedEvent;
+
+interface TransactionReceiptLog {
+  address?: string;
+  data?: string;
+  topics?: string | string[];
+}
+
+interface ClaimAmountFromSimulationOptions {
+  treatMissingRelevantTokenChangesAsZero?: boolean;
+}
+
+const PAYOUT_REDEMPTION_INTERFACE = new Interface([
+  'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
+]);
+
+const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
+  MATIC_CONTRACTS_V2.collateral.toLowerCase(),
+  USDC_E_ADDRESS.toLowerCase(),
+]);
 
 /**
  * The action which can be used to retrieve the state of the PredictController.
@@ -409,6 +436,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackActivityViewed',
   'trackBannerAction',
   'trackBetslipDismissed',
+  'trackCategoryClicked',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
@@ -481,6 +509,8 @@ export class PredictController extends BaseController<
    * Each claim creates a unique transaction id, so no per-attempt reset is needed.
    */
   private claimTerminalEmitted = new Set<string>();
+
+  private flowTerminalMetricEmitted = new Set<string>();
 
   private readonly traceable: TraceableController = {
     update: (updater) => this.update(updater),
@@ -1232,6 +1262,152 @@ export class PredictController extends BaseController<
     return this.analytics.trackPredictOrderEvent(args);
   }
 
+  private trackPredictFlowMetric({
+    transactionType,
+    status,
+    amountUsd,
+    analyticsProperties,
+    failureReason,
+  }: {
+    transactionType: PredictTransactionMetricType;
+    status: PredictTradeStatusValue;
+    amountUsd?: number;
+    analyticsProperties?: PredictTradeAnalyticsProperties;
+    failureReason?: string;
+  }): void {
+    const flowAnalyticsProperties: PredictTradeAnalyticsProperties = {
+      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+      ...(analyticsProperties ?? {}),
+      transactionType,
+    };
+
+    this.trackPredictOrderEvent({
+      status,
+      analyticsProperties: flowAnalyticsProperties,
+      ...(amountUsd !== undefined && {
+        amountUsd,
+      }),
+      ...(status === PredictTradeStatus.FAILED &&
+        failureReason && {
+          failureReason,
+        }),
+    });
+  }
+
+  private trackTransactionSubmissionMetric({
+    status,
+    failureReason,
+  }: {
+    status: PredictTradeStatusValue;
+    failureReason?: string;
+  }): void {
+    this.trackPredictFlowMetric({
+      transactionType:
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_TRANSACTION_SUBMISSION,
+      status,
+      ...(failureReason && {
+        failureReason,
+      }),
+    });
+  }
+
+  /**
+   * Logs an error that occurred after a transaction batch was already
+   * submitted. At that point the flow is genuinely in flight, so callers
+   * swallow the error (keeping any pending-state locks for the
+   * terminal-status handler) instead of surfacing a false failure.
+   */
+  private logPostSubmissionBookkeepingError(
+    method: string,
+    error: Error,
+  ): void {
+    Logger.error(
+      error,
+      this.getErrorContext(method, {
+        providerId: POLYMARKET_PROVIDER_ID,
+        operation: 'post_submission_bookkeeping',
+      }),
+    );
+  }
+
+  /**
+   * Tracks the terminal flow metric for an error thrown before the
+   * transaction batch was submitted, classifying user cancellations.
+   *
+   * @returns whether the error was a user cancellation
+   */
+  private trackFlowSubmissionFailureMetric({
+    transactionType,
+    error,
+  }: {
+    transactionType: PredictTransactionMetricType;
+    error: unknown;
+  }): boolean {
+    const isUserCancelled = this.isUserCancelledTransactionError(error);
+
+    this.trackPredictFlowMetric({
+      transactionType,
+      status: isUserCancelled
+        ? PredictTradeStatus.CANCELLED
+        : PredictTradeStatus.FAILED,
+      failureReason: ensureError(error).message,
+    });
+
+    return isUserCancelled;
+  }
+
+  private isUserCancelledTransactionError(error: unknown): boolean {
+    // Prefer the language-independent EIP-1193 code (4001) emitted by
+    // `providerErrors.userRejectedRequest()` over message matching, which can
+    // silently flip cancelled/failed if upstream error wording changes.
+    const errorCode = (error as { code?: unknown } | null | undefined)?.code;
+    if (errorCode === errorCodes.provider.userRejectedRequest) {
+      return true;
+    }
+
+    const message = ensureError(error).message.toLowerCase();
+    return (
+      message.includes('user denied transaction signature') ||
+      message.includes('user rejected') ||
+      message.includes('user cancelled') ||
+      message.includes('user canceled')
+    );
+  }
+
+  private async submitPredictTransactionBatch({
+    params,
+    missingBatchIdError,
+  }: {
+    params: Parameters<typeof addTransactionBatch>[0];
+    missingBatchIdError: string;
+  }): Promise<string> {
+    try {
+      const batchResult = await addTransactionBatch(params);
+
+      if (!batchResult?.batchId) {
+        throw new Error(missingBatchIdError);
+      }
+
+      this.trackTransactionSubmissionMetric({
+        status: PredictTradeStatus.SUCCEEDED,
+      });
+
+      return batchResult.batchId;
+    } catch (error) {
+      const e = ensureError(error);
+      const isUserCancelled = this.isUserCancelledTransactionError(error);
+
+      this.trackTransactionSubmissionMetric({
+        status: isUserCancelled
+          ? PredictTradeStatus.CANCELLED
+          : PredictTradeStatus.FAILED,
+        failureReason: e.message,
+      });
+
+      throw error;
+    }
+  }
+
   public trackMarketDetailsOpened(
     args: Parameters<PredictAnalytics['trackMarketDetailsOpened']>[0],
   ): void {
@@ -1292,6 +1468,12 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackBannerAction']>[0],
   ): void {
     this.analytics.trackBannerAction(args);
+  }
+
+  public trackCategoryClicked(
+    args: Parameters<PredictAnalytics['trackCategoryClicked']>[0],
+  ): void {
+    this.analytics.trackCategoryClicked(args);
   }
 
   public trackShareAction(
@@ -1774,6 +1956,7 @@ export class PredictController extends BaseController<
     });
 
     const signer = this.getSigner();
+    let submittedClaim: PredictClaim | undefined;
 
     try {
       const provider = this.provider;
@@ -1846,37 +2029,32 @@ export class PredictController extends BaseController<
       }
 
       // Add transaction batch - can fail if transaction submission fails
-      const batchResult = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        skipInitialGasEstimate: true,
-        // Temporarily breaking abstraction, can instead be abstracted via provider.
-        gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
-        transactions,
-      });
-
-      if (!batchResult?.batchId) {
-        throw new Error(
+      const batchId = await this.submitPredictTransactionBatch({
+        params: {
+          from: signer.address as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId,
+          disableHook: true,
+          disableSequential: true,
+          skipInitialGasEstimate: true,
+          // Temporarily breaking abstraction, can instead be abstracted via provider.
+          gasFeeToken: MATIC_CONTRACTS_V2.collateral as Hex,
+          transactions,
+        },
+        missingBatchIdError:
           'Failed to get batch ID from claim transaction submission',
-        );
-      }
-
-      const { batchId } = batchResult;
+      });
+      submittedClaim = {
+        batchId,
+        chainId,
+        status: PredictClaimStatus.PENDING,
+      };
 
       // Store the real batchId for pending claim tracking
       this.update((state) => {
         state.pendingClaims[signer.address] = batchId;
       });
-
-      const predictClaim: PredictClaim = {
-        batchId,
-        chainId,
-        status: PredictClaimStatus.PENDING,
-      };
 
       this.update((state) => {
         state.lastError = null; // Clear any previous errors
@@ -1884,26 +2062,30 @@ export class PredictController extends BaseController<
       });
 
       traceData = { success: true, positionCount: claimablePositions.length };
-      return predictClaim;
+      return submittedClaim;
     } catch (error) {
+      const e = ensureError(error);
+
+      if (submittedClaim) {
+        // Keep the pending-claim lock and analytics stash for the
+        // terminal-status handler, and return the pending claim so the caller
+        // does not record a false failure for a local bookkeeping error.
+        traceData = { success: true, error: e.message };
+        this.logPostSubmissionBookkeepingError('claimWithConfirmation', e);
+        return submittedClaim;
+      }
+
       this.clearPendingClaimForAddress({ address: signer.address });
 
-      const e = ensureError(error);
-      if (e.message.includes('User denied transaction signature')) {
+      if (this.isUserCancelledTransactionError(error)) {
         traceData = { success: false, reason: 'user_cancelled' };
 
-        // This branch returns without throwing and before any on-chain
-        // transaction exists, so neither the hook catch nor the terminal-status
-        // handler fires. Track the user rejection here so it stays measurable.
         const claimAnalytics =
           this.pendingClaimAnalytics[signer.address.toLowerCase()] ??
           this.buildClaimAnalyticsProperties(analyticsContext);
-        // Signing was denied before any transaction was created, so there is no
-        // terminal `transactionStatusUpdated` to dedupe against (no guard entry).
         this.trackPredictOrderEvent({
-          status: PredictTradeStatus.FAILED,
+          status: PredictTradeStatus.CANCELLED,
           analyticsProperties: claimAnalytics,
-          failureReason: PredictEventValues.CLAIM_FAILURE_REASON.USER_REJECTED,
         });
         delete this.pendingClaimAnalytics[signer.address.toLowerCase()];
 
@@ -2029,16 +2211,18 @@ export class PredictController extends BaseController<
         amountUsd: amount,
         analyticsProperties,
       });
+    } else if (status === 'rejected') {
+      this.trackPredictOrderEvent({
+        status: PredictTradeStatus.CANCELLED,
+        amountUsd: amount,
+        analyticsProperties,
+      });
     } else {
-      const failureReason =
-        status === 'rejected'
-          ? PredictEventValues.CLAIM_FAILURE_REASON.USER_REJECTED
-          : mapClaimFailureReason(transactionMeta.error?.message);
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.FAILED,
         amountUsd: amount,
         analyticsProperties,
-        failureReason,
+        failureReason: mapClaimFailureReason(transactionMeta.error?.message),
       });
     }
 
@@ -2052,7 +2236,7 @@ export class PredictController extends BaseController<
    * footer (Sentry 5JA7). Participates in the same per-transaction idempotency
    * guard as {@link trackClaimTransactionOutcome} (keyed by `transactionId`), so
    * the eventual `rejected` status update for the same transaction does not emit
-   * a duplicate (mislabeled `user_rejected`) terminal event.
+   * a duplicate terminal event.
    */
   public trackClaimResolutionLagFailure({
     transactionId,
@@ -2083,6 +2267,99 @@ export class PredictController extends BaseController<
       this.claimTerminalEmitted.add(transactionId);
     }
     delete this.pendingClaimAnalytics[normalizedAddress];
+  }
+
+  private getTerminalFlowTransactionType(
+    type: PredictTransactionEventType,
+  ): PredictTransactionMetricType | null {
+    switch (type) {
+      case 'deposit':
+      case 'depositAndOrder':
+        return PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT;
+      case 'withdraw':
+        return PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW;
+      case 'claim':
+      case 'order':
+        return null;
+    }
+  }
+
+  private getTerminalFlowStatus(
+    status: PredictTransactionEventStatus,
+  ): PredictTradeStatusValue | null {
+    switch (status) {
+      case 'confirmed':
+        return PredictTradeStatus.SUCCEEDED;
+      case 'failed':
+        return PredictTradeStatus.FAILED;
+      case 'rejected':
+        return PredictTradeStatus.CANCELLED;
+      case 'approved':
+      case 'depositing':
+        return null;
+    }
+  }
+
+  private getTerminalFlowFailureReason({
+    type,
+    transactionMeta,
+  }: {
+    type: PredictTransactionEventType;
+    transactionMeta: TransactionMeta;
+  }): string {
+    if (transactionMeta.error?.message) {
+      return transactionMeta.error.message;
+    }
+
+    switch (type) {
+      case 'withdraw':
+        return PREDICT_ERROR_CODES.WITHDRAW_FAILED;
+      case 'deposit':
+      case 'depositAndOrder':
+        return PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      case 'claim':
+      case 'order':
+        return PREDICT_ERROR_CODES.UNKNOWN_ERROR;
+    }
+  }
+
+  private trackTerminalFlowOutcomeMetric({
+    type,
+    status,
+    amount,
+    transactionMeta,
+  }: {
+    type: PredictTransactionEventType;
+    status: PredictTransactionEventStatus;
+    amount?: number;
+    transactionMeta: TransactionMeta;
+  }): void {
+    const transactionType = this.getTerminalFlowTransactionType(type);
+    const tradeStatus = this.getTerminalFlowStatus(status);
+
+    if (!transactionType || !tradeStatus) {
+      return;
+    }
+
+    const metricKey = `${transactionMeta.id}:${transactionType}`;
+    if (this.flowTerminalMetricEmitted.has(metricKey)) {
+      return;
+    }
+
+    this.trackPredictFlowMetric({
+      transactionType,
+      status: tradeStatus,
+      ...(amount !== undefined && {
+        amountUsd: amount,
+      }),
+      ...(tradeStatus === PredictTradeStatus.FAILED && {
+        failureReason: this.getTerminalFlowFailureReason({
+          type,
+          transactionMeta,
+        }),
+      }),
+    });
+    this.flowTerminalMetricEmitted.add(metricKey);
   }
 
   public confirmClaim({ address }: { address?: string }): void {
@@ -2383,6 +2660,7 @@ export class PredictController extends BaseController<
     _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
+    let submittedBatchId: string | undefined;
 
     try {
       const signer = this.getSigner();
@@ -2412,6 +2690,11 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by deposit preparation');
       }
 
+      const parsedChainId = hexToNumber(chainId);
+      if (isNaN(parsedChainId)) {
+        throw new Error(`Invalid chain ID format: ${chainId}`);
+      }
+
       DevLogger.log('PredictController: depositWithConfirmation transactions', {
         count: transactions.length,
         transactions: transactions.map((tx, index) => ({
@@ -2439,28 +2722,21 @@ export class PredictController extends BaseController<
         state.pendingDeposits[signer.address] = 'pending';
       });
 
-      const batchResult = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        skipInitialGasEstimate: true,
-        transactions,
+      const batchId = await this.submitPredictTransactionBatch({
+        params: {
+          from: signer.address as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId,
+          disableHook: true,
+          disableSequential: true,
+          skipInitialGasEstimate: true,
+          transactions,
+        },
+        missingBatchIdError:
+          'Failed to get batch ID from transaction submission',
       });
-
-      if (!batchResult?.batchId) {
-        throw new Error('Failed to get batch ID from transaction submission');
-      }
-
-      const { batchId } = batchResult;
-
-      // Validate chainId format before parsing
-      const parsedChainId = hexToNumber(chainId);
-      if (isNaN(parsedChainId)) {
-        throw new Error(`Invalid chain ID format: ${chainId}`);
-      }
+      submittedBatchId = batchId;
 
       this.update((state) => {
         state.pendingDeposits[signer.address] = batchId;
@@ -2474,7 +2750,24 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
-      if (e.message.includes('User denied transaction signature')) {
+
+      if (submittedBatchId !== undefined) {
+        // Keep the pending-deposit entry (the terminal-status handler clears
+        // it by address) and return the batchId so the caller does not
+        // surface a false deposit failure for a local bookkeeping error.
+        this.logPostSubmissionBookkeepingError('depositWithConfirmation', e);
+        return {
+          success: true,
+          response: { batchId: submittedBatchId },
+        };
+      }
+
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        error,
+      });
+
+      if (isUserCancelled) {
         // Clear pending state before returning
         this.clearPendingDeposit();
         // ignore error, as the user cancelled the tx
@@ -2514,6 +2807,7 @@ export class PredictController extends BaseController<
   public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
     const address = this.requireEvmAccountAddress();
+    let submittedBatchId: string | undefined;
 
     if (!this.state.activeBuyOrders[address]) {
       this.update((state) => {
@@ -2585,22 +2879,21 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
-      const batchResult = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        skipInitialGasEstimate: true,
-        transactions: depositAndOrderTransactions,
+      const batchId = await this.submitPredictTransactionBatch({
+        params: {
+          from: signer.address as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId,
+          disableHook: true,
+          disableSequential: true,
+          skipInitialGasEstimate: true,
+          transactions: depositAndOrderTransactions,
+        },
+        missingBatchIdError:
+          'Failed to get batch ID from transaction submission',
       });
-
-      if (!batchResult?.batchId) {
-        throw new Error('Failed to get batch ID from transaction submission');
-      }
-
-      const { batchId } = batchResult;
+      submittedBatchId = batchId;
 
       this.update((state) => {
         if (state.activeBuyOrders[address]) {
@@ -2616,6 +2909,22 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
+
+      if (submittedBatchId !== undefined) {
+        // Report success so a local bookkeeping error does not get treated as
+        // a failure of the in-flight deposit-and-order batch.
+        this.logPostSubmissionBookkeepingError('initPayWithAnyToken', e);
+        return {
+          success: true,
+          response: { batchId: submittedBatchId },
+        };
+      }
+
+      this.trackFlowSubmissionFailureMetric({
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        error,
+      });
+
       Logger.error(
         e,
         this.getErrorContext('initPayWithAnyToken', {
@@ -2751,6 +3060,13 @@ export class PredictController extends BaseController<
       senderAddress: address,
       ...(transactionId ? { transactionId } : {}),
       ...(amount !== undefined ? { amount } : {}),
+    });
+
+    this.trackTerminalFlowOutcomeMetric({
+      type,
+      status,
+      amount,
+      transactionMeta,
     });
 
     // Track terminal claim outcome on PREDICT_TRADE_TRANSACTION. `amount` is
@@ -2969,15 +3285,13 @@ export class PredictController extends BaseController<
       }
 
       if (this.state.activeBuyOrders[address]) {
-        // Track swap_failed — user rejected the deposit/swap approval
         this.trackPredictOrderEvent({
-          status: PredictTradeStatus.SWAP_FAILED,
+          status: PredictTradeStatus.CANCELLED,
           analyticsProperties: rejectedPendingOrder?.analyticsProperties,
           paymentTokenAddress:
             this.state.activeBuyOrders[address]?.paymentTokenAddress,
           paymentTokenSymbol:
             this.state.activeBuyOrders[address]?.paymentTokenSymbol,
-          failureReason: 'user_rejected',
           activeAbTests: rejectedPendingOrder?.activeAbTests,
         });
 
@@ -3055,6 +3369,134 @@ export class PredictController extends BaseController<
     );
   }
 
+  private getClaimAmountFromReceipt(
+    logs: TransactionReceiptLog[] | undefined,
+  ): number | undefined {
+    if (!logs?.length) {
+      return undefined;
+    }
+
+    let payoutRaw = 0n;
+    let hasPayoutRedemption = false;
+
+    for (const log of logs) {
+      if (
+        log.address?.toLowerCase() !==
+        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
+      ) {
+        continue;
+      }
+
+      const topics = this.normalizeLogTopics(log.topics);
+      if (!topics || !log.data) {
+        continue;
+      }
+
+      try {
+        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+          topics,
+          data: log.data,
+        });
+        const payout = parsedLog.args.payout?.toString();
+
+        if (payout === undefined) {
+          continue;
+        }
+
+        payoutRaw += BigInt(payout);
+        hasPayoutRedemption = true;
+      } catch (_error) {
+        continue;
+      }
+    }
+
+    if (!hasPayoutRedemption) {
+      return undefined;
+    }
+
+    return parseFloat(
+      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+    );
+  }
+
+  private getClaimAmountFromSimulation(
+    transactionMeta: TransactionMeta,
+    {
+      treatMissingRelevantTokenChangesAsZero = false,
+    }: ClaimAmountFromSimulationOptions = {},
+  ): number | undefined {
+    const tokenBalanceChanges =
+      transactionMeta.simulationData?.tokenBalanceChanges;
+
+    if (!tokenBalanceChanges) {
+      return undefined;
+    }
+
+    let hasRelevantTokenChange = false;
+
+    const claimAmount = tokenBalanceChanges.reduce((sum, change) => {
+      const address = change.address?.toLowerCase();
+
+      if (
+        change.isDecrease ||
+        change.standard !== 'erc20' ||
+        !address ||
+        !PREDICT_CLAIM_COLLATERAL_ADDRESSES.has(address) ||
+        typeof change.difference !== 'string'
+      ) {
+        return sum;
+      }
+
+      try {
+        const difference = parseFloat(
+          formatUnits(change.difference, COLLATERAL_TOKEN_DECIMALS),
+        );
+        hasRelevantTokenChange = true;
+        return sum + difference;
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to parse claim simulation difference',
+          {
+            difference: change.difference,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        );
+        return sum;
+      }
+    }, 0);
+
+    if (hasRelevantTokenChange) {
+      return claimAmount;
+    }
+
+    return treatMissingRelevantTokenChangesAsZero ? 0 : undefined;
+  }
+
+  private getActualClaimAmount(
+    transactionMeta: TransactionMeta,
+    options?: ClaimAmountFromSimulationOptions,
+  ): number | undefined {
+    const receiptAmount = this.getClaimAmountFromReceipt(
+      transactionMeta.txReceipt?.logs as TransactionReceiptLog[] | undefined,
+    );
+
+    if (receiptAmount !== undefined) {
+      return receiptAmount;
+    }
+
+    return this.getClaimAmountFromSimulation(transactionMeta, options);
+  }
+
+  private normalizeLogTopics(
+    topics: string | string[] | undefined,
+  ): string[] | undefined {
+    if (!topics) {
+      return undefined;
+    }
+
+    return Array.isArray(topics) ? topics : undefined;
+  }
+
   private getTransactionAmount({
     type,
     status,
@@ -3066,7 +3508,10 @@ export class PredictController extends BaseController<
     transactionMeta: TransactionMeta;
     address: string;
   }): number | undefined {
-    if (type === 'deposit' && status === 'confirmed') {
+    if (
+      (type === 'deposit' || type === 'depositAndOrder') &&
+      status === 'confirmed'
+    ) {
       const totalFiat = Number(transactionMeta.metamaskPay?.totalFiat ?? 0);
       const bridgeFeeFiat = Number(
         transactionMeta.metamaskPay?.bridgeFeeFiat ?? 0,
@@ -3084,7 +3529,15 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'claim') {
-      return this.getClaimAmountByAddress(address);
+      const actualClaimAmount = this.getActualClaimAmount(transactionMeta, {
+        treatMissingRelevantTokenChangesAsZero: status === 'confirmed',
+      });
+
+      if (status === 'confirmed') {
+        return actualClaimAmount ?? 0;
+      }
+
+      return actualClaimAmount ?? this.getClaimAmountByAddress(address);
     }
 
     if (type === 'withdraw' && status === 'confirmed') {
@@ -3208,6 +3661,8 @@ export class PredictController extends BaseController<
   public async prepareWithdraw(
     _params: PrepareWithdrawParams = {},
   ): Promise<Result<string>> {
+    let submittedBatchId: string | undefined;
+
     try {
       const provider = this.provider;
 
@@ -3239,20 +3694,25 @@ export class PredictController extends BaseController<
         };
       });
 
-      const { batchId } = await addTransactionBatch({
-        from: signer.address as Hex,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
-        networkClientId: this.messenger.call(
-          'NetworkController:findNetworkClientIdByChainId',
-          chainId,
-        ),
-        disableHook: true,
-        disableSequential: true,
-        requireApproval: true,
-        transactions: [transaction],
-        gasFeeToken,
+      const batchId = await this.submitPredictTransactionBatch({
+        params: {
+          from: signer.address as Hex,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          networkClientId: this.messenger.call(
+            'NetworkController:findNetworkClientIdByChainId',
+            chainId,
+          ),
+          disableHook: true,
+          disableSequential: true,
+          requireApproval: true,
+          transactions: [transaction],
+          gasFeeToken,
+        },
+        missingBatchIdError:
+          'Failed to get batch ID from transaction submission',
       });
+      submittedBatchId = batchId;
 
       this.update((state) => {
         if (state.withdrawTransaction) {
@@ -3271,7 +3731,25 @@ export class PredictController extends BaseController<
           : PREDICT_ERROR_CODES.WITHDRAW_FAILED;
 
       const e = ensureError(error);
-      if (e.message.includes('User denied transaction signature')) {
+
+      if (submittedBatchId !== undefined) {
+        // Keep `withdrawTransaction` (the terminal-status handler clears it)
+        // and report success so a local bookkeeping error does not surface a
+        // false failure for the in-flight withdraw.
+        this.logPostSubmissionBookkeepingError('prepareWithdraw', e);
+        return {
+          success: true,
+          response: submittedBatchId,
+        };
+      }
+
+      const isUserCancelled = this.trackFlowSubmissionFailureMetric({
+        transactionType:
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
+        error,
+      });
+
+      if (isUserCancelled) {
         // ignore error, as the user cancelled the tx
         return {
           success: true,

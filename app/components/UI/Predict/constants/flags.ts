@@ -65,7 +65,6 @@ export const DEFAULT_WIMBLEDON_TAB_FLAG = {
 
 export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
 export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
-export const PREDICT_WORLD_CUP_DEFAULT_WINNER_EVENT_ID = '30615';
 
 export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   enabled: false,
@@ -77,6 +76,6 @@ export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   showHubBanner: false,
   tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
   gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
-  winnerEventId: PREDICT_WORLD_CUP_DEFAULT_WINNER_EVENT_ID,
+  winnerEventId: '',
   stages: [],
 };

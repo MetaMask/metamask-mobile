@@ -6,13 +6,13 @@ import {
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyHubEnabledFlag,
-  selectMoneyNoFeeTokens,
   selectMoneyDepositMinBalance,
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
   selectMoneyCardActivityCashbackMultisendContracts,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
+  selectMoneyParallaxAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
 } from './featureFlags';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
@@ -266,80 +266,6 @@ describe('selectMoneyHubEnabledFlag', () => {
     const result = selectMoneyHubEnabledFlag(state as never);
 
     expect(result).toBe(false);
-  });
-});
-
-describe('selectMoneyNoFeeTokens', () => {
-  const originalEnv = process.env;
-  let consoleWarnSpy: jest.SpyInstance;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    process.env = { ...originalEnv };
-    consoleWarnSpy = jest
-      .spyOn(console, 'warn')
-      .mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-    consoleWarnSpy.mockRestore();
-  });
-
-  it('returns remote wildcard map object when valid', () => {
-    const state = createState({
-      earnMoneyDepositNoFeeTokens: { '*': ['USDC', 'USDT'] },
-    });
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(result).toEqual({ '*': ['USDC', 'USDT'] });
-  });
-
-  it('parses remote value from JSON string', () => {
-    const state = createState({
-      earnMoneyDepositNoFeeTokens: '{"0x1":["USDC"]}',
-    });
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(result).toEqual({ '0x1': ['USDC'] });
-  });
-
-  it('logs console.warn and falls back to env when remote value is structurally invalid', () => {
-    process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS = JSON.stringify({
-      '0x1': ['USDC'],
-    });
-    const state = createState({
-      earnMoneyDepositNoFeeTokens: { '0x1': 'not-an-array' },
-    });
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('produced invalid structure'),
-    );
-    expect(result).toEqual({ '0x1': ['USDC'] });
-  });
-
-  it('parses env var JSON as fallback when remote is absent', () => {
-    process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS = JSON.stringify({
-      '*': ['USDC'],
-    });
-    const state = createState({});
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(result).toEqual({ '*': ['USDC'] });
-  });
-
-  it('returns empty object when both remote and env are absent', () => {
-    delete process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS;
-    const state = createState({});
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(result).toEqual({});
   });
 });
 
@@ -629,6 +555,91 @@ describe('selectMoneyFirstTimeDepositAnimationEnabledFlag', () => {
   });
 });
 
+describe('selectMoneyParallaxAnimationEnabledFlag', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('returns true when remote flag is enabled and version requirement is met', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyParallaxAnimationEnabled: {
+        enabled: true,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyParallaxAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('defaults to false when remote flag returns undefined and env is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    delete process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED;
+
+    const state = createState({
+      _unique: 'parallax-default-off',
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when env var is set to true and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      _unique: 'parallax-env-true',
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(true);
+  });
+
+  it('remote flag takes precedence over env var', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_PARALLAX_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      earnMoneyParallaxAnimationEnabled: {
+        enabled: false,
+        minimumVersion: '1.0.0',
+      },
+    });
+
+    const result = selectMoneyParallaxAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+});
+
 describe('selectMoneyVaultApyRemoteConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -902,7 +913,17 @@ describe('selectMoneyNoFeeDepositTokens', () => {
       expect.arrayContaining(['USDC', 'aUSDC', 'aUSDT', 'USDT']),
     );
     expect(result['0xe708']).toEqual(['MUSD']);
-    expect(result['0x8f']).toEqual(['USDC']);
+    expect(result['0x8f']).toEqual(['USDC', 'MUSD']);
+  });
+
+  it('lists Monad mUSD even though no route emits a Monad mUSD -> Monad mUSD deposit', () => {
+    const state = createState({
+      confirmations_relay_fixed_spread: MOCK_RELAY_FLAG,
+    });
+
+    const result = selectMoneyNoFeeDepositTokens(state as never);
+
+    expect(result['0x8f']).toContain('MUSD');
   });
 
   it('deduplicates symbols within a chain', () => {

@@ -208,8 +208,8 @@ const INTERMEDIATE_TEST_DIRS = [
 ] as const;
 
 /**
- * Finds smoke/regression spec files that import a given file, resolving up to
- * one level of indirection through intermediate utility/flow/page-object files.
+ * Finds E2E smoke spec files that import a given file,
+ * resolving up to one level of indirection through intermediate files.
  *
  * Example: wallet.flow.ts → imported by 30 spec files (direct)
  * Example: TokenSelectors.ts → imported by TokenPage.ts → imported by token specs
@@ -285,7 +285,7 @@ function findSpecFilesImporting(
 }
 
 /**
- * Extracts Detox tag names imported in a spec file.
+ * Extracts E2E smoke tag names imported in a spec file.
  * Tags are imported as named exports from the tags module.
  */
 function extractTagsFromSpecFile(
@@ -369,7 +369,7 @@ const HARD_RULES: HardRule[] = [
   {
     name: 'test-shared-infra-impact',
     description:
-      'Changes to flows, page-objects, selectors, or locators — find impacted smoke/regression specs and run their tags',
+      'Changes to flows, page-objects, selectors, or locators — find impacted smoke specs and run their tags',
     check: (changedFiles, context) => {
       const infraFiles = getChangedSharedInfraFiles(changedFiles);
       if (infraFiles.length === 0) return null;
@@ -411,9 +411,9 @@ const HARD_RULES: HardRule[] = [
 
       if (selectedTags.length === 0) {
         console.log(
-          '   No Detox spec files import these files — falling through to next rule.',
+          '   No E2E spec files import these files — falling through to next rule.',
         );
-        // Bug 4 fix: return null so test-spec-tag-extraction can handle directly-changed specs
+        // Return null so test-spec-tag-extraction can handle directly-changed specs
         return null;
       }
 
@@ -433,7 +433,7 @@ const HARD_RULES: HardRule[] = [
   {
     name: 'test-spec-tag-extraction',
     description:
-      'Spec files in tests/smoke/ or tests/regression/ changed — extract their tags and run directly',
+      'Spec files in tests/smoke/ or tests/smoke-appium/ changed — extract their tags and run directly',
     check: (changedFiles, context) => {
       const specFiles = getChangedSpecFiles(changedFiles);
       if (specFiles.length === 0) return null;

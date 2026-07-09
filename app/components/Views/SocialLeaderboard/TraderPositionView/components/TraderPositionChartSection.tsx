@@ -37,6 +37,8 @@ export interface TraderPositionChartSectionProps {
    */
   isPerp?: boolean;
   activeTimePeriod: TimePeriod;
+  /** Whether the selected period is still controlled by automatic trade framing. */
+  shouldAutoRequestTimePeriod?: boolean;
   /** Crosshair % change while scrubbing the AdvancedChart. */
   onScrubPercentChange?: (percent: number | null) => void;
   /** When set, the AdvancedChart slides to center this trade. */
@@ -61,6 +63,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   assetId,
   isPerp,
   activeTimePeriod,
+  shouldAutoRequestTimePeriod,
   onScrubPercentChange,
   focusRequest,
   onRequestTimePeriod,
@@ -74,6 +77,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           assetId={assetId}
           isPerp={isPerp}
           activeTimePeriod={activeTimePeriod}
+          shouldAutoRequestTimePeriod={shouldAutoRequestTimePeriod}
           trades={trades}
           focusRequest={focusRequest}
           onRequestTimePeriod={onRequestTimePeriod}

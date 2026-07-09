@@ -41,16 +41,14 @@ describe('PerpsDepositInfo', () => {
     );
   });
 
-  it('sets navbar title to "Transfer to Perps" when payWithOption is MoneyAccount', () => {
+  it('sets navbar title to "Send to Perps" when payWithOption is MoneyAccount', () => {
     mockUseParams.mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });
 
     render(<PerpsDepositInfo />);
 
-    expect(mockUseNavbar).toHaveBeenCalledWith(
-      strings('perps.transfer_to_perps'),
-    );
+    expect(mockUseNavbar).toHaveBeenCalledWith(strings('perps.send_to_perps'));
   });
 
   it('registers Arbitrum USDC token', () => {

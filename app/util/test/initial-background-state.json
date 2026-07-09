@@ -31,6 +31,7 @@
   },
   "AnalyticsController": {
     "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+    "consentDecisionMade": false,
     "optedIn": false
   },
   "GatorPermissionsController": {
@@ -517,6 +518,10 @@
       "mainnet": [],
       "testnet": []
     },
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "tradeConfigurations": {
       "mainnet": {},
       "testnet": {}
@@ -703,11 +708,13 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "inputPrimaryDenomination": "token_amount",
     "tokenSecurityTypeDestination": null,
     "tokenWarnings": [],
     "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
+    "quoteUpdateStatusStore": {},
     "txHistory": {}
   },
   "CardController": {
@@ -720,6 +727,12 @@
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null
+  },
+  "ConfigRegistryController": {
+    "configs": { "networks": {} },
+    "etag": null,
+    "lastFetched": null,
+    "version": null
   },
   "ClientController": {
     "isUiOpen": false
@@ -812,6 +825,7 @@
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
     "clientVersionRequirements": null,
+    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -838,6 +852,13 @@
     "activeBuyOrders": {},
     "selectedPaymentToken": null,
     "accountMeta": {}
+  },
+  "QrSyncController": {
+    "phase": "idle",
+    "connectionStatus": "disconnected",
+    "otp": null,
+    "error": null,
+    "importPlan": null
   },
   "AiDigestController": {
     "marketInsights": {},

@@ -45,6 +45,36 @@ import {
 } from '../utils/formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
+import { TERMINAL_API_URLS } from '../constants/terminalApi';
+
+/**
+ * Resolves the Terminal API base URL based on build environment.
+ *
+ * Mapping:
+ * - dev / test / e2e → DEV (takes priority over beta build type)
+ * - beta build type (non-dev envs) → UAT
+ * - production / rc → PRD
+ * - all other environments (local, undefined, etc.) → UAT
+ */
+export function getTerminalApiUrl(): string {
+  const env = process.env.METAMASK_ENVIRONMENT;
+
+  if (env === 'dev' || env === 'test' || env === 'e2e') {
+    return TERMINAL_API_URLS.DEV;
+  }
+
+  // Beta builds target UAT (except dev/test/e2e which are handled above).
+  if (process.env.METAMASK_BUILD_TYPE === 'beta') {
+    return TERMINAL_API_URLS.UAT;
+  }
+
+  if (env === 'production' || env === 'rc') {
+    return TERMINAL_API_URLS.PRD;
+  }
+
+  return TERMINAL_API_URLS.UAT;
+}
+
 /**
  * Type conversion helper - isolated cast for platform bridge.
  * PerpsTraceName values are string literals that match TraceName enum values.
@@ -299,6 +329,9 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       removeItem: (key: string) =>
         StorageWrapper.removeItem(key).then(() => undefined),
     },
+
+    // === Terminal API (preferred market data source with HyperLiquid fallback) ===
+    terminalApiUrl: getTerminalApiUrl(),
 
     // === Rewards (DI — no RewardsController in Core yet) ===
     rewards: {

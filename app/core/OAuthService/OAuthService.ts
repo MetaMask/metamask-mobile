@@ -531,31 +531,33 @@ export class OAuthService {
     });
   };
 
-  private getAccessToken = (): string | undefined =>
-    Engine.context.SeedlessOnboardingController.state?.accessToken;
-
-  updateMarketingOptInStatus = async (
-    marketingOptIn: boolean,
-  ): Promise<void> => {
-    const accessToken = this.getAccessToken();
+  private async getValidAccessToken(): Promise<string> {
+    await whenEngineReady();
+    const accessToken =
+      await Engine.context.SeedlessOnboardingController.getAccessToken();
 
     if (!accessToken) {
       throw new Error('No access token found. User must be authenticated.');
     }
 
+    return accessToken;
+  }
+
+  updateMarketingOptInStatus = async (
+    marketingOptIn: boolean,
+  ): Promise<void> => {
+    const accessToken = await this.getValidAccessToken();
     const requestBody: MarketingOptInRequest = {
       opt_in_status: marketingOptIn,
     };
 
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify(requestBody),
     });
 
@@ -570,21 +572,14 @@ export class OAuthService {
   };
 
   getMarketingOptInStatus = async (): Promise<MarketingOptInResponse> => {
-    const accessToken = this.getAccessToken();
-
-    if (!accessToken) {
-      throw new Error('No access token found. User must be authenticated.');
-    }
-
+    const accessToken = await this.getValidAccessToken();
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
     const response = await fetch(url, {
       method: 'GET',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (!response.ok) {

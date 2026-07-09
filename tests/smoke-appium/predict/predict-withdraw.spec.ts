@@ -40,6 +40,15 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
+    predictExtendedSportsMarkets: {
+      versions: {
+        '7.82.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+      },
+    },
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow
   // Keep this smoke test on the legacy Safe withdraw path.

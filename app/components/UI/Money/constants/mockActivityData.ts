@@ -15,6 +15,7 @@ export enum MoneyActivityFilter {
   All = 'all',
   Deposits = 'deposits',
   Transfers = 'transfers',
+  Purchases = 'purchases',
 }
 
 /**
@@ -165,6 +166,15 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
     moneySubtitle: 'Transak',
     moneyActivityTitleKey: 'deposited',
   }),
+  // Apple Pay funded deposit; renders an "Apple Pay" subtitle in the list.
+  makeMoneyTx({
+    id: 'money-tx-deposited-apple-pay',
+    timestampSec: 1747004100,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '1000000000',
+    moneySubtitle: 'Apple Pay',
+    moneyActivityTitleKey: 'deposited',
+  }),
   makeMoneyTx({
     id: 'money-tx-deposited-musd',
     timestampSec: 1747000800,
@@ -225,6 +235,19 @@ export const MOCK_API_ACTIVITY: AccountsApiActivity[] = [
       decimals: MUSD_TOKEN.decimals,
     },
     amount: '300000', // 0.30 mUSD → "+0.30 mUSD"
+    receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+  },
+  {
+    kind: 'refund',
+    hash: '0xca5f000000000000000000000000000000000000000000000000000000000001',
+    time: 1746813600 * 1000,
+    chainId: MOCK_CHAIN_ID,
+    token: {
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: MUSD_TOKEN.symbol,
+      decimals: MUSD_TOKEN.decimals,
+    },
+    amount: '10000000', // 10.00 mUSD → "+10.00 mUSD"
     receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
   },
 ];

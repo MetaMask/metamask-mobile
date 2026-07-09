@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   CustomAmountInfo,
   CustomAmountInfoProps,
+  AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
 } from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
@@ -47,8 +48,11 @@ import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
+import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/ui/useMMPayNavigation');
+jest.mock('../../../hooks/alerts/useAccountNoFundsAlert');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -79,6 +83,12 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+jest.mock('../../rows/perps-account-picker-row', () => ({
+  PerpsAccountPickerRow: () => null,
+}));
+jest.mock('../../rows/predict-account-picker-row', () => ({
+  PredictAccountPickerRow: () => null,
+}));
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -272,6 +282,7 @@ describe('CustomAmountInfo', () => {
     usePayWithMoneyAccountSection,
   );
   const setIsConfirmationSubmittingMock = jest.fn();
+  const useAccountNoFundsAlertMock = jest.mocked(useAccountNoFundsAlert);
 
   const useRouteMock = jest.mocked(useRoute);
 
@@ -319,12 +330,14 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: jest.fn(),
     });
 
     useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
@@ -372,6 +385,7 @@ describe('CustomAmountInfo', () => {
 
     useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: false });
     usePayWithMoneyAccountSectionMock.mockReturnValue(null);
+    useAccountNoFundsAlertMock.mockReturnValue([]);
   });
 
   it('renders amount', () => {
@@ -548,6 +562,34 @@ describe('CustomAmountInfo', () => {
     },
   );
 
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'renders "Send" confirm label for %s from Money Account',
+    async (transactionType) => {
+      useRouteMock.mockReturnValue({
+        key: 'mock-route',
+        name: 'MockScreen',
+        params: { payWithOption: 'money_account' },
+      } as never);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByText, findByText } = render({ transactionType });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        await findByText(
+          strings('confirm.deposit_edit_amount_money_account_send'),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
   it('hides PayTokenAmount when hidePayTokenAmount is true', () => {
     const { queryByText } = render({ hidePayTokenAmount: true });
 
@@ -578,6 +620,7 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -624,6 +667,7 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -713,15 +757,19 @@ describe('CustomAmountInfo', () => {
     expect(queryByTestId('pay-account-selector')).toBeNull();
   });
 
-  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', () => {
+  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
 
-    const { getByTestId } = render({
+    const { getByTestId, getByText } = render({
       supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
     expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
@@ -737,6 +785,7 @@ describe('CustomAmountInfo', () => {
         amountFiatDebounced: '0',
         hasInput: false,
         isInputChanged: false,
+        isPrefillPending: false,
         updatePendingAmount: noop,
         updatePendingAmountPercentage: noop,
         updateTokenAmount: jest.fn(),
@@ -1053,6 +1102,124 @@ describe('CustomAmountInfo', () => {
       expect(mockRampsTrackEvent).not.toHaveBeenCalled();
     });
   });
+
+  describe('no-funds account with accountOverride', () => {
+    function setupNoFundsWithOverride() {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      useAccountNoFundsAlertMock.mockReturnValue([
+        {
+          key: AlertKeys.AccountNoFunds,
+          title: 'No funds',
+          message: 'No funds available',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+
+      useTransactionAccountOverrideMock.mockReturnValue('0xoverride' as never);
+    }
+
+    it('hides transaction detail rows when account has no funds and override is present', async () => {
+      setupNoFundsWithOverride();
+
+      const { getByText, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(queryByTestId('bridge-fee-row')).toBeNull();
+    });
+
+    it('hides buy section when account has no funds and override is present', async () => {
+      setupNoFundsWithOverride();
+
+      const { getByText, queryByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
+
+    it('hides buy section during loading when override is present (prevents flash)', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      useTransactionAccountOverrideMock.mockReturnValue('0xoverride' as never);
+      useAccountNoFundsAlertMock.mockReturnValue([]);
+
+      const { queryByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(
+        queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
+  });
+
+  describe('buy section without accountOverride', () => {
+    it('shows buy section when account has no funds but no override', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      useAccountNoFundsAlertMock.mockReturnValue([
+        {
+          key: AlertKeys.AccountNoFunds,
+          title: 'No funds',
+          message: 'No funds available',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+
+      useTransactionAccountOverrideMock.mockReturnValue(undefined);
+
+      const { getByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        getByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeOnTheScreen();
+    });
+  });
 });
 
 describe('CustomAmountInfoSkeleton', () => {
@@ -1067,5 +1234,25 @@ describe('CustomAmountInfoSkeleton', () => {
     });
 
     expect(queryByTestId('account-selector-skeleton')).toBeNull();
+  });
+});
+
+describe('AdvancedCustomAmountInfoSkeleton', () => {
+  it('renders skeleton with AccountSelectorSkeleton', () => {
+    const { getByTestId } = renderWithProvider(
+      <AdvancedCustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(getByTestId('account-selector-skeleton')).toBeTruthy();
+    expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
+    expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
   });
 });

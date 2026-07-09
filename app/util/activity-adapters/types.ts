@@ -11,6 +11,8 @@ import type { TransactionGroup } from './adapters/transaction-group';
 import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PredictActivity } from '../../components/UI/Predict/types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
 export type Status = 'pending' | 'success' | 'failed' | 'cancelled';
 
@@ -19,6 +21,8 @@ export type ActivityKind =
   | 'sell'
   | 'buy'
   | 'deposit'
+  | 'stake'
+  | 'unstake'
   | 'swap'
   | 'swapIncomplete'
   | 'claim'
@@ -33,6 +37,8 @@ export type ActivityKind =
   | 'contractDeployment'
   | 'bridge'
   | 'convert'
+  | 'nftBuy'
+  | 'nftSell'
   | 'smartAccountUpgrade'
   | 'lendingDeposit'
   | 'lendingWithdrawal'
@@ -58,6 +64,8 @@ export type ActivityKind =
   | 'marketShort'
   | 'stopMarketCloseShort'
   | 'marketCloseShort'
+  | 'limitShort'
+  | 'limitCloseShort'
   | 'nftMint';
 
 export interface TokenAmount {
@@ -96,7 +104,8 @@ interface ActivityData<Type extends ActivityKind, Data> {
     | { type: 'keyringTransaction'; data: Transaction }
     | { type: 'localTransaction'; data: TransactionGroup }
     | { type: 'perpsTransaction'; data: PerpsTransaction }
-    | { type: 'predictActivity'; data: PredictActivity };
+    | { type: 'predictActivity'; data: PredictActivity }
+    | { type: 'rampOrder'; data: FiatOrder };
   data: Data;
 }
 
@@ -138,11 +147,12 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
-      'buy' | 'claim' | 'deposit',
+      'buy' | 'claim' | 'deposit' | 'stake' | 'unstake',
       {
         from?: string;
         to?: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -160,11 +170,12 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
-      'nftMint',
+      'nftBuy' | 'nftMint' | 'nftSell',
       {
-        from: string;
-        to: string;
+        from?: string;
+        to?: string;
         token?: TokenAmount;
+        paymentToken?: TokenAmount;
         fees?: ActivityFee[];
       }
     >
@@ -206,12 +217,15 @@ export type ActivityListItem =
       | 'perpsCloseLongTakeProfit'
       | 'marketShort'
       | 'stopMarketCloseShort'
-      | 'marketCloseShort',
+      | 'marketCloseShort'
+      | 'limitShort'
+      | 'limitCloseShort',
       {
         from?: string;
         to?: string;
         token?: TokenAmount;
         sourceToken?: TokenAmount;
         destinationToken?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >;

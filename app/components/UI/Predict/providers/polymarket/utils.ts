@@ -29,12 +29,15 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
-  getNegRiskMoneylineTeamLogo,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
-  resolveNegRiskMoneylineShortTitles,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
+import { getTokenImage } from '../../utils/sports';
+import {
+  getSportsMarketTeamLogo,
+  resolveNegRiskMoneylineShortTitles,
+} from './sportsUtils';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -813,10 +816,17 @@ const parsePolymarketMarketOutcomes = (
         shortTitle = negRiskShort.noShort;
       }
 
+      const tokenImage = getTokenImage({
+        sportsMarketType: market.sportsMarketType,
+        tokenTitle: title,
+        game,
+      });
+
       return {
         id: tokenId,
         title,
         ...(shortTitle && { shortTitle }),
+        ...(tokenImage && { image: tokenImage }),
         price: parseFloat(outcomePrices[index]),
       };
     },
@@ -915,8 +925,7 @@ export const parsePolymarketMarket = (
   marketId: event.id,
   title: market.question,
   description: market.description,
-  image:
-    getNegRiskMoneylineTeamLogo(market, game) ?? market.icon ?? market.image,
+  image: getSportsMarketTeamLogo(market, game) ?? market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   groupItemThreshold:
     market.groupItemThreshold != null
@@ -1114,6 +1123,14 @@ export const parsePolymarketActivity = (
 
     const price = Number(activity.price ?? 0);
     const amount = Number(activity.usdcSize ?? 0);
+    const rawSize =
+      activity.size === undefined || activity.size === null
+        ? undefined
+        : Number(activity.size);
+    const size =
+      rawSize !== undefined && Number.isFinite(rawSize) && rawSize > 0
+        ? rawSize
+        : undefined;
 
     const outcomeId = String(activity.conditionId ?? '');
     const marketId = String(activity.conditionId ?? '');
@@ -1121,6 +1138,16 @@ export const parsePolymarketActivity = (
     const title = String(activity.title ?? 'Market');
     const outcome = activity.outcome ? String(activity.outcome) : undefined;
     const icon = activity.icon as string | undefined;
+    const slug = activity.slug ? String(activity.slug) : undefined;
+    const eventSlug = activity.eventSlug
+      ? String(activity.eventSlug)
+      : undefined;
+    const netPnlUsd =
+      typeof activity.netPnlUsd === 'number' ? activity.netPnlUsd : undefined;
+    const totalNetPnlUsd =
+      typeof activity.totalNetPnlUsd === 'number'
+        ? activity.totalNetPnlUsd
+        : undefined;
 
     const parsedActivity: PredictActivity = {
       id,
@@ -1136,14 +1163,23 @@ export const parsePolymarketActivity = (
               outcomeTokenId,
               amount,
               price,
+              ...(size !== undefined && { size }),
             },
       title,
       outcome,
       icon,
+      slug,
+      eventSlug,
+      netPnlUsd,
+      totalNetPnlUsd,
     } as PredictActivity & {
       title?: string;
       outcome?: string;
       icon?: string;
+      slug?: string;
+      eventSlug?: string;
+      netPnlUsd?: number;
+      totalNetPnlUsd?: number;
     };
 
     return parsedActivity;
@@ -2396,6 +2432,11 @@ export const previewOrder = async (
     amount: dollarAmount,
     decimals: roundConfig.amount,
   });
+  const serviceFees = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: takerAmount,
+  });
   return {
     marketId,
     outcomeId,
@@ -2411,6 +2452,6 @@ export const previewOrder = async (
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,
-    // no fees for sell orders
+    fees: serviceFees,
   };
 };

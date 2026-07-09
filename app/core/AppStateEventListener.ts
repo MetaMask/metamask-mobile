@@ -1,4 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
+import branch from 'react-native-branch';
 import Logger from '../util/Logger';
 import { MetaMetricsEvents } from './Analytics';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
@@ -10,6 +11,82 @@ import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
 import generateDeviceAnalyticsMetaData from '../util/metrics';
 import generateUserSettingsAnalyticsMetaData from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import {
+  selectExistingUser,
+  selectAppInstallEventFired,
+} from '../reducers/user/selectors';
+import { setAppInstallEventFired } from '../actions/user';
+
+/** Prevents parallel start() calls from double-firing before Redux persists. */
+let trackAppInstallInFlight = false;
+
+/**
+ * Fire the App Installed analytics event exactly once on first install.
+ * Mirrors the extension's addAppInstalledEvent / onInstall logic:
+ * - Sets InstallDateMobile user trait (yyyy-mm-dd)
+ * - Adds install_source + deeplink_path when app was opened via a Branch
+ * deferred deeplink (+is_first_session && +clicked_branch_link)
+ * - The analytics queue handles pre-opt-in buffering automatically
+ */
+export async function trackAppInstallOnce() {
+  if (trackAppInstallInFlight) {
+    return;
+  }
+
+  trackAppInstallInFlight = true;
+  try {
+    const state = ReduxService.store.getState();
+    const existingUser = selectExistingUser(state);
+    const alreadyFired = selectAppInstallEventFired(state);
+
+    if (existingUser || alreadyFired) {
+      return;
+    }
+
+    // Set install date trait (yyyy-mm-dd), mirrors InstallDateExt on extension
+    const installDate = new Date().toISOString().split('T')[0];
+    analytics.identify({
+      [UserProfileProperty.INSTALL_DATE_MOBILE]: installDate,
+    });
+
+    // Detect deferred deeplink install via Branch
+    const branchParams = await branch.getLatestReferringParams();
+    const isFirstSession = branchParams?.['+is_first_session'] as
+      | boolean
+      | undefined;
+    const clickedBranchLink = branchParams?.['+clicked_branch_link'] as
+      | boolean
+      | undefined;
+
+    const isDeferredDeeplinkInstall =
+      isFirstSession === true && clickedBranchLink === true;
+
+    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.APP_INSTALLED,
+    );
+
+    if (isDeferredDeeplinkInstall) {
+      const deeplinkPath = branchParams?.$deeplink_path as string | undefined;
+      eventBuilder.addProperties({
+        install_source: 'deeplink',
+        ...(deeplinkPath ? { deeplink_path: deeplinkPath } : {}),
+      });
+    }
+
+    analytics.trackEvent(eventBuilder.build());
+
+    // Only persist after tracking succeeds so a failed attempt can retry
+    ReduxService.store.dispatch(setAppInstallEventFired());
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'AppStateManager: Error tracking app install event',
+    );
+  } finally {
+    trackAppInstallInFlight = false;
+  }
+}
 
 export class AppStateEventListener {
   private appStateSubscription:
@@ -38,6 +115,9 @@ export class AppStateEventListener {
     // Identify user on app launch
     // This ensures user is identified with full traits including chain_id_list when the app starts
     this.identifyUserOnAppStart();
+
+    // Fire App Installed event once on first install
+    this.trackAppInstallOnce();
   }
 
   public setCurrentDeeplink(deeplink: string | null, source?: string) {
@@ -85,6 +165,8 @@ export class AppStateEventListener {
       );
     }
   };
+
+  private trackAppInstallOnce = trackAppInstallOnce;
 
   private processAppStateChange = () => {
     try {
