@@ -26,7 +26,11 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import {
+  emitOrderConfirmedAnalyticsFromCallback,
+  emitTerminalOrderAnalyticsFromCallback,
+  isTerminalOrderStatus,
+} from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import {
   BottomSheet,
@@ -428,11 +432,18 @@ const Checkout = () => {
             region: regionCode ?? '',
           });
 
-          // TRAM-3691: headless callback skips OrderDetails, so an
-          // already-terminal order here is never polled and its terminal
-          // metrics event would be lost. Emit it directly (no-ops for
-          // non-terminal orders and dedups against the polling path).
-          emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+          // TRAM-3738 / TRAM-3691: headless callback skips OrderDetails, so
+          // non-terminal orders emit Confirmed here; terminal orders emit
+          // Completed/Failed directly (never polled).
+          if (isTerminalOrderStatus(rampsOrder.status)) {
+            emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+          } else {
+            emitOrderConfirmedAnalyticsFromCallback(rampsOrder, {
+              rampType: 'HEADLESS',
+              rampSurface: headlessRampSurface,
+              region: regionCode,
+            });
+          }
 
           dispatch(protectWalletModalVisible());
           try {

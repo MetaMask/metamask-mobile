@@ -62,6 +62,21 @@ jest.mock(
   }),
 );
 
+const mockEmitOrderConfirmedAnalyticsFromCallback = jest.fn();
+const mockEmitTerminalOrderAnalyticsFromCallback = jest.fn();
+jest.mock(
+  '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+    ),
+    emitOrderConfirmedAnalyticsFromCallback: (...args: unknown[]) =>
+      mockEmitOrderConfirmedAnalyticsFromCallback(...args),
+    emitTerminalOrderAnalyticsFromCallback: (...args: unknown[]) =>
+      mockEmitTerminalOrderAnalyticsFromCallback(...args),
+  }),
+);
+
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
@@ -753,6 +768,38 @@ describe('Checkout', () => {
         type: 'PROTECT_WALLET_MODAL_VISIBLE',
       });
       expect(mockNavigation.reset).not.toHaveBeenCalled();
+    });
+
+    it('emits RAMPS_TRANSACTION_CONFIRMED for a non-terminal headless callback order', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { rampSurface: 'money_account' },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(mockEmitOrderConfirmedAnalyticsFromCallback).toHaveBeenCalledWith(
+          mockOrder,
+          {
+            rampType: 'HEADLESS',
+            rampSurface: 'money_account',
+            region: undefined,
+          },
+        );
+      });
+      expect(mockEmitTerminalOrderAnalyticsFromCallback).not.toHaveBeenCalled();
     });
 
     it('persists the headless order context so a later terminal failure stays tagged HEADLESS', async () => {
