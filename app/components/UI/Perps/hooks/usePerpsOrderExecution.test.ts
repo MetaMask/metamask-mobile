@@ -11,8 +11,12 @@ import { usePerpsTrading } from './usePerpsTrading';
 import {
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
+  resetPerpsCufTraceForTests,
 } from '../utils/perpsCufTrace';
-import { PERPS_CUF_STREAM_TIMEOUT_MS } from '../constants/perpsCufTags';
+import {
+  PERPS_CUF_STREAM_CONFIRM_RACE_MS,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 import { endTrace, TraceName } from '../../../../util/trace';
 
 jest.mock('./usePerpsTrading');
@@ -27,10 +31,18 @@ jest.mock('../../../../util/trace', () => {
 const mockEndTrace = endTrace as jest.Mock;
 const mockGetPositionsSnapshot = jest.fn();
 const mockGetOrdersSnapshot = jest.fn();
+const mockPositionsLastDeliveredAt = jest.fn(() => null as number | null);
+const mockOrdersLastDeliveredAt = jest.fn(() => null as number | null);
 jest.mock('../providers/PerpsStreamManager', () => ({
   usePerpsStream: () => ({
-    positions: { getSnapshot: mockGetPositionsSnapshot },
-    orders: { getSnapshot: mockGetOrdersSnapshot },
+    positions: {
+      getSnapshot: mockGetPositionsSnapshot,
+      getLastDeliveredAt: mockPositionsLastDeliveredAt,
+    },
+    orders: {
+      getSnapshot: mockGetOrdersSnapshot,
+      getLastDeliveredAt: mockOrdersLastDeliveredAt,
+    },
   }),
 }));
 const mockTrack = jest.fn();
@@ -62,10 +74,15 @@ describe('usePerpsOrderExecution', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Clear the CUF singleton's pending map/place-order state so armed ops from
+    // one test can't leak into the next (these tests drive the real module).
+    resetPerpsCufTraceForTests();
     mockTrack.mockClear();
     mockEndTrace.mockClear();
     mockGetPositionsSnapshot.mockReturnValue([]); // Loaded, no positions by default
     mockGetOrdersSnapshot.mockReturnValue([]); // Loaded, no orders by default
+    mockPositionsLastDeliveredAt.mockReturnValue(null);
+    mockOrdersLastDeliveredAt.mockReturnValue(null);
     (usePerpsTrading as jest.Mock).mockReturnValue({
       placeOrder: mockPlaceOrder,
     });
@@ -125,6 +142,7 @@ describe('usePerpsOrderExecution', () => {
       // Order already rendered by submit time: the span ends synchronously; the
       // gesture-anchored safety fallback stays pending and no-ops.
       mockGetOrdersSnapshot.mockReturnValue([{ orderId: 'lim1' }]);
+      mockOrdersLastDeliveredAt.mockReturnValue(4242);
       mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'lim1' });
 
       const { result } = renderHook(() =>
@@ -147,6 +165,16 @@ describe('usePerpsOrderExecution', () => {
       // limits that fill before watcher registration are still detected.
       expect(onSuccess).toHaveBeenCalledWith();
       expect(mockGetPositionsSnapshot).toHaveBeenCalledTimes(1);
+      // The already-rested order ends at its stream delivery instant, not now.
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.stringContaining(
+            TraceName.PerpsPlaceLimitOrderToOrderRendered,
+          ),
+          timestamp: 4242,
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
     });
 
     it('ends immediately when a marketable limit fill rendered before watcher registration', async () => {
@@ -154,6 +182,7 @@ describe('usePerpsOrderExecution', () => {
         .mockReturnValueOnce([]) // pre-submit baseline: loaded, no position
         .mockReturnValue([mockPosition]); // post-submit fill already rendered
       mockGetOrdersSnapshot.mockReturnValue([]);
+      mockPositionsLastDeliveredAt.mockReturnValue(7777);
       mockPlaceOrder.mockImplementation(async () => {
         handlePerpsCufPositionsDelivered([mockPosition]);
         return { success: true, orderId: 'lim1' };
@@ -169,11 +198,13 @@ describe('usePerpsOrderExecution', () => {
         });
       });
 
+      // The already-rendered fill ends at the positions delivery instant.
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           id: expect.stringContaining(
             TraceName.PerpsPlaceLimitOrderToOrderRendered,
           ),
+          timestamp: 7777,
           data: expect.objectContaining({ success: true }),
         }),
       );
@@ -338,6 +369,61 @@ describe('usePerpsOrderExecution', () => {
               TraceName.PerpsPlaceOrderToPositionRendered,
             ),
             data: expect.objectContaining({ success: false }),
+          }),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not let the hung-controller watchdog end after controller success while stream wait continues', async () => {
+      jest.useFakeTimers();
+      try {
+        const onSuccess = jest.fn();
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order123',
+        });
+
+        const { result } = renderHook(() =>
+          usePerpsOrderExecution({ onSuccess }),
+        );
+
+        let placeOrderPromise: Promise<unknown>;
+        await act(async () => {
+          placeOrderPromise = result.current.placeOrder(mockOrderParams);
+          await Promise.resolve();
+        });
+
+        await act(async () => {
+          jest.advanceTimersByTime(PERPS_CUF_STREAM_CONFIRM_RACE_MS);
+          await Promise.resolve();
+        });
+        await act(async () => {
+          await placeOrderPromise;
+        });
+        expect(onSuccess).toHaveBeenCalledWith();
+        mockEndTrace.mockClear();
+
+        act(() => {
+          jest.advanceTimersByTime(
+            PERPS_CUF_STREAM_TIMEOUT_MS - PERPS_CUF_STREAM_CONFIRM_RACE_MS,
+          );
+        });
+
+        expect(mockEndTrace).not.toHaveBeenCalled();
+
+        await act(async () => {
+          handlePerpsCufPositionsDelivered([mockPosition]);
+          await Promise.resolve();
+        });
+
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: expect.stringContaining(
+              TraceName.PerpsPlaceOrderToPositionRendered,
+            ),
+            data: expect.objectContaining({ success: true }),
           }),
         );
       } finally {

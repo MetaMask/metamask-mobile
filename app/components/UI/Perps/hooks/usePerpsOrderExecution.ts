@@ -117,6 +117,18 @@ export function usePerpsOrderExecution(
           },
           timestamp: renderedAt,
         });
+      // Limit fast-path end: the confirming order/fill was already present in the
+      // stream cache when we checked, so end at the channel's last delivery
+      // instant rather than now (falls back to now if unavailable).
+      const endCufStreamRendered = (renderedAt: number | null) =>
+        endPerpsCufTrace({
+          id: cufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: true,
+            [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+          },
+          timestamp: renderedAt ?? undefined,
+        });
       // Baseline lets stream matchers tell this order's fill apart from a
       // position that already existed on this market before submission. A null
       // cache means "not loaded", not "no position" — pass that through so the
@@ -143,21 +155,19 @@ export function usePerpsOrderExecution(
         );
       }
 
-      // Safety fallback anchored at the gesture: if the controller never
-      // returns (a hung request), none of the per-flow ends run, so this
-      // guarantees the span is always closed and never leaks in the pending
-      // registry. It is idempotent, so the real end (render or failure) no-ops
-      // it whenever that happens first.
-      endPerpsCufTraceAfter(
-        {
-          id: cufOpId,
-          data: {
+      // Safety watchdog anchored at the gesture: if the controller never
+      // returns (a hung request), none of the per-flow ends run, so this closes
+      // the span. Once the controller settles, stream-specific waits own the
+      // timeout window and this watchdog must not race them.
+      let controllerSettled = false;
+      setTimeout(() => {
+        if (!controllerSettled) {
+          endCuf({
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
-          },
-        },
-        PERPS_CUF_STREAM_TIMEOUT_MS,
-      );
+          });
+        }
+      }, PERPS_CUF_STREAM_TIMEOUT_MS);
 
       try {
         setIsPlacing(true);
@@ -172,6 +182,7 @@ export function usePerpsOrderExecution(
         onSubmitted?.();
 
         const result = await controllerPlaceOrder(orderParams);
+        controllerSettled = true;
         setLastResult(result);
 
         if (result.success) {
@@ -238,11 +249,9 @@ export function usePerpsOrderExecution(
             } else if (
               stream.orders.getSnapshot()?.some((o) => o.orderId === orderId)
             ) {
-              // Already rendered between submit and here.
-              endCuf({
-                [PERPS_CUF_TAG.SUCCESS]: true,
-                [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-              });
+              // Already rested between submit and here: end at the delivery
+              // instant, not now.
+              endCufStreamRendered(stream.orders.getLastDeliveredAt());
             } else {
               // End when the order rests in the orders stream, or — for a
               // marketable limit that fills immediately — when it renders as a
@@ -259,10 +268,8 @@ export function usePerpsOrderExecution(
                 renderedPosition &&
                 renderedPositionSnapshot !== positionBaselineSnapshot
               ) {
-                endCuf({
-                  [PERPS_CUF_TAG.SUCCESS]: true,
-                  [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
-                });
+                // Fill already rendered: end at the positions delivery instant.
+                endCufStreamRendered(stream.positions.getLastDeliveredAt());
               } else {
                 watchPerpsCufLimitRendered(
                   cufOpId,
@@ -374,6 +381,7 @@ export function usePerpsOrderExecution(
           onError?.(errorMessage);
         }
       } catch (err) {
+        controllerSettled = true;
         endCuf({
           [PERPS_CUF_TAG.SUCCESS]: false,
           [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
