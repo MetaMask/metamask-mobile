@@ -34,6 +34,9 @@ const CUF_META = {
   WATCH: 'watch',
   ORDER_ID: 'orderId',
   SNAPSHOT: 'snapshot',
+  // True when the positions cache was not loaded at submit, so the pre-order
+  // baseline is unknown and must be captured from the first stream delivery.
+  BASELINE_PENDING: 'baselinePending',
 } as const;
 
 /** What a pending confirmation span is watching for in the stream. */
@@ -186,6 +189,7 @@ export function armPerpsPlaceOrderCuf(
   opId: string,
   symbol: string,
   baseline?: PerpsCufPositionLike | null,
+  baselineLoaded: boolean = true,
 ): void {
   // A prior place-order op still pending is being superseded: end it now so it
   // can't linger in the registry as an open span (the position path has no
@@ -209,8 +213,25 @@ export function armPerpsPlaceOrderCuf(
   supersededResolver?.();
   setPerpsCufMeta(opId, {
     [CUF_META.SYMBOL]: symbol,
-    ...(baseline ? { [CUF_META.SNAPSHOT]: positionSnapshot(baseline) } : {}),
+    ...baselineMeta(baseline, baselineLoaded),
   });
+}
+
+/**
+ * Baseline metadata for an order-render matcher. A loaded cache gives a known
+ * baseline (a position's size, or absent when none). An unloaded cache leaves
+ * the baseline pending so it's captured from the first stream delivery rather
+ * than assumed absent — otherwise a pre-existing position in that first
+ * delivery would falsely satisfy the render.
+ */
+function baselineMeta(
+  baseline: PerpsCufPositionLike | null | undefined,
+  baselineLoaded: boolean,
+): Record<string, TraceValue> {
+  if (!baselineLoaded) {
+    return { [CUF_META.BASELINE_PENDING]: true };
+  }
+  return baseline ? { [CUF_META.SNAPSHOT]: positionSnapshot(baseline) } : {};
 }
 
 /** Whether `opId` still owns the place-order confirmation state. */
@@ -266,11 +287,16 @@ export function waitForPerpsPlaceOrderPositionRendered(
  * Returns true when it matched (so the caller can flush once for the tick).
  */
 /**
- * Whether the armed position has rendered for `meta`: a new/changed position
+ * Whether the armed position has rendered for op `opId`: a new/changed position
  * for its symbol, OR — when a position existed pre-order — that position now
  * absent (the order reduced/flipped it to zero via the order form).
+ *
+ * When the baseline is pending (positions cache was unloaded at submit), this
+ * delivery is treated as the baseline: it is captured and NOT counted as a
+ * render, so a pre-existing position can't falsely confirm the order.
  */
 function placeOrderPositionRendered(
+  opId: string,
   meta: Record<string, TraceValue>,
   positions: readonly PerpsCufPositionLike[],
 ): PerpsCufPositionLike | null {
@@ -279,6 +305,15 @@ function placeOrderPositionRendered(
     return null;
   }
   const current = positions.find((p) => p.symbol === symbol);
+  if (meta[CUF_META.BASELINE_PENDING] === true) {
+    // First delivery after an unloaded-cache submit: this is the real
+    // pre-order state. Capture it and wait for a subsequent change.
+    setPerpsCufMeta(opId, {
+      [CUF_META.BASELINE_PENDING]: false,
+      ...(current ? { [CUF_META.SNAPSHOT]: positionSnapshot(current) } : {}),
+    });
+    return null;
+  }
   const baseline = meta[CUF_META.SNAPSHOT];
   const baselineExisted = typeof baseline === 'string';
   if (current) {
@@ -290,24 +325,6 @@ function placeOrderPositionRendered(
   }
   // Position absent: a render only if one existed before (order closed it).
   return baselineExisted ? { symbol, size: '0' } : null;
-}
-
-function resolvePerpsPlaceOrderCufOnPositions(
-  positions: readonly PerpsCufPositionLike[],
-): void {
-  if (placeOrderRendered || !placeOrderOpId) {
-    return;
-  }
-  const meta = pendingCufMeta.get(placeOrderOpId);
-  if (!meta) {
-    return;
-  }
-  const rendered = placeOrderPositionRendered(meta, positions);
-  if (!rendered) {
-    return;
-  }
-  placeOrderRendered = { position: rendered, renderedAt: Date.now() };
-  placeOrderResolver?.();
 }
 
 /** Close confirmation: end `opId` when its position's size shrinks or vanishes. */
@@ -353,14 +370,13 @@ export function watchPerpsCufLimitRendered(
   orderId: string,
   symbol: string,
   positionBaseline?: PerpsCufPositionLike | null,
+  baselineLoaded: boolean = true,
 ): void {
   setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_PRESENT_OR_FILLED,
     [CUF_META.ORDER_ID]: orderId,
     [CUF_META.SYMBOL]: symbol,
-    ...(positionBaseline
-      ? { [CUF_META.SNAPSHOT]: positionSnapshot(positionBaseline) }
-      : {}),
+    ...baselineMeta(positionBaseline, baselineLoaded),
   });
 }
 
@@ -456,7 +472,7 @@ export function handlePerpsCufPositionsDelivered(
     if (meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.ORDER_PRESENT_OR_FILLED) {
       continue;
     }
-    if (placeOrderPositionRendered(meta, positions)) {
+    if (placeOrderPositionRendered(opId, meta, positions)) {
       toEnd.push(opId);
     }
   }
@@ -472,21 +488,33 @@ export function handlePerpsCufPositionsDelivered(
     }
   }
 
-  const placeMeta =
-    !placeOrderRendered && placeOrderOpId
-      ? pendingCufMeta.get(placeOrderOpId)
-      : undefined;
-  const placeWillMatch = placeMeta
-    ? placeOrderPositionRendered(placeMeta, positions) !== null
-    : false;
+  // Place-order render: evaluate exactly once (the matcher mutates on the
+  // baseline-capture tick, so it must not be called twice per delivery).
+  let placeRenderedNow: PerpsCufPositionLike | null = null;
+  if (!placeOrderRendered && placeOrderOpId) {
+    const meta = pendingCufMeta.get(placeOrderOpId);
+    if (meta) {
+      placeRenderedNow = placeOrderPositionRendered(
+        placeOrderOpId,
+        meta,
+        positions,
+      );
+    }
+  }
 
   // Flush once if anything is about to be confirmed, so the measured render
   // instant reflects real subscriber delivery (not the throttle enqueue).
-  if (flushThrottled && (toEnd.length > 0 || placeWillMatch)) {
+  if (flushThrottled && (toEnd.length > 0 || placeRenderedNow)) {
     flushThrottled();
   }
 
-  resolvePerpsPlaceOrderCufOnPositions(positions);
+  if (placeRenderedNow) {
+    placeOrderRendered = {
+      position: placeRenderedNow,
+      renderedAt: Date.now(),
+    };
+    placeOrderResolver?.();
+  }
   for (const opId of toEnd) {
     endPerpsCufTrace({ id: opId, data: { ...STREAM_END_DATA } });
   }

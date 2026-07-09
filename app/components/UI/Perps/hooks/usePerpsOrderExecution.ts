@@ -110,15 +110,23 @@ export function usePerpsOrderExecution(
           [PERPS_CUF_TAG.TOAST_POSITION_DELTA_MS]: renderedAt - toastShownAt,
         });
       // Baseline lets stream matchers tell this order's fill apart from a
-      // position that already existed on this market before submission.
+      // position that already existed on this market before submission. A null
+      // cache means "not loaded", not "no position" — pass that through so the
+      // matcher captures the baseline from the first delivery instead of
+      // assuming absent (which a pre-existing position would falsely satisfy).
+      const positionsCache = stream.positions.getSnapshot();
+      const positionsLoaded = positionsCache !== null;
       const positionBaseline =
-        stream.positions
-          .getSnapshot()
-          ?.find((p) => p.symbol === orderParams.symbol) ?? null;
+        positionsCache?.find((p) => p.symbol === orderParams.symbol) ?? null;
       const positionBaselineSnapshot =
         getPerpsOrderPositionSnapshot(positionBaseline);
       if (isMarketOrder) {
-        armPerpsPlaceOrderCuf(cufOpId, orderParams.symbol, positionBaseline);
+        armPerpsPlaceOrderCuf(
+          cufOpId,
+          orderParams.symbol,
+          positionBaseline,
+          positionsLoaded,
+        );
       }
 
       try {
@@ -215,6 +223,9 @@ export function usePerpsOrderExecution(
               const renderedPositionSnapshot =
                 getPerpsOrderPositionSnapshot(renderedPosition);
               if (
+                // Only trust a synchronous fill when we had a real baseline to
+                // compare against; otherwise defer to the stream matcher.
+                positionsLoaded &&
                 renderedPosition &&
                 renderedPositionSnapshot !== positionBaselineSnapshot
               ) {
@@ -228,6 +239,7 @@ export function usePerpsOrderExecution(
                   orderId,
                   orderParams.symbol,
                   positionBaseline,
+                  positionsLoaded,
                 );
                 endPerpsCufTraceAfter(
                   {

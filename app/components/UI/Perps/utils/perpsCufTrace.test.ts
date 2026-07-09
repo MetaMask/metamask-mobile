@@ -345,6 +345,56 @@ describe('perpsCufTrace', () => {
     ).resolves.toBeNull();
   });
 
+  it('unloaded cache: a pre-existing position in the first delivery does NOT confirm', async () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceOrderToPositionRendered,
+    });
+    // Cache not loaded at submit (baselineLoaded=false), user already holds BTC.
+    armPerpsPlaceOrderCuf(opId, 'BTC', null, false);
+
+    // First delivery is the pre-order position, captured as baseline — not a
+    // confirm — so stale stream data can't satisfy the order.
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.01' }]);
+
+    await expect(
+      waitForPerpsPlaceOrderPositionRendered(5, opId),
+    ).resolves.toBeNull();
+  });
+
+  it('unloaded cache: confirms on a later change after capturing the baseline', async () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceOrderToPositionRendered,
+    });
+    armPerpsPlaceOrderCuf(opId, 'BTC', null, false);
+    const wait = waitForPerpsPlaceOrderPositionRendered(1000, opId);
+
+    // First delivery = pre-order baseline (0.01), captured, no confirm.
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.01' }]);
+    // The order changes the size -> confirm.
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.02' }]);
+
+    await expect(wait).resolves.toEqual(
+      expect.objectContaining({ position: { symbol: 'BTC', size: '0.02' } }),
+    );
+  });
+
+  it('unloaded cache with no prior position: confirms when the order fills', async () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsPlaceOrderToPositionRendered,
+    });
+    armPerpsPlaceOrderCuf(opId, 'BTC', null, false);
+    const wait = waitForPerpsPlaceOrderPositionRendered(1000, opId);
+
+    // First delivery = empty (no position), captured as absent baseline.
+    handlePerpsCufPositionsDelivered([]);
+    // Order fills -> a new position appears -> confirm.
+    handlePerpsCufPositionsDelivered([{ symbol: 'BTC', size: '0.01' }]);
+
+    await expect(wait).resolves.toEqual(
+      expect.objectContaining({ position: { symbol: 'BTC', size: '0.01' } }),
+    );
+  });
+
   it('ignores deliveries that do not match the armed symbol', async () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsPlaceOrderToPositionRendered,

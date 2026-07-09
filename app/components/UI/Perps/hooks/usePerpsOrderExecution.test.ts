@@ -63,8 +63,8 @@ describe('usePerpsOrderExecution', () => {
     jest.clearAllMocks();
     mockTrack.mockClear();
     mockEndTrace.mockClear();
-    mockGetPositionsSnapshot.mockReturnValue(null); // No cached positions by default
-    mockGetOrdersSnapshot.mockReturnValue(null); // No cached orders by default
+    mockGetPositionsSnapshot.mockReturnValue([]); // Loaded, no positions by default
+    mockGetOrdersSnapshot.mockReturnValue([]); // Loaded, no orders by default
     (usePerpsTrading as jest.Mock).mockReturnValue({
       placeOrder: mockPlaceOrder,
     });
@@ -110,7 +110,7 @@ describe('usePerpsOrderExecution', () => {
   const mockPlaceOrderSuccessWithRender = (
     result: Record<string, unknown> = {},
   ) => {
-    mockGetPositionsSnapshot.mockReturnValueOnce(null); // pre-order baseline: none
+    mockGetPositionsSnapshot.mockReturnValueOnce([]); // pre-order baseline: loaded, none
     mockGetPositionsSnapshot.mockReturnValue([mockPosition]);
     mockPlaceOrder.mockImplementation(async () => {
       handlePerpsCufPositionsDelivered([mockPosition]);
@@ -150,7 +150,7 @@ describe('usePerpsOrderExecution', () => {
 
     it('ends immediately when a marketable limit fill rendered before watcher registration', async () => {
       mockGetPositionsSnapshot
-        .mockReturnValueOnce(null) // pre-submit baseline
+        .mockReturnValueOnce([]) // pre-submit baseline: loaded, no position
         .mockReturnValue([mockPosition]); // post-submit fill already rendered
       mockGetOrdersSnapshot.mockReturnValue([]);
       mockPlaceOrder.mockImplementation(async () => {
