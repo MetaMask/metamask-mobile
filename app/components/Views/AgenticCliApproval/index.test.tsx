@@ -8,6 +8,16 @@ import AgenticCliApproval from './index';
 
 const mockGoBack = jest.fn();
 
+const defaultApprovalParams = {
+  approvalPagePath: '/agentic/login',
+  projectId: 'project-1',
+  approvalId: 'approval-1',
+  mimirSignature: 'signature-1',
+  operationType: 'transaction_request',
+};
+
+const mockUseParams = jest.fn(() => defaultApprovalParams);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
@@ -15,13 +25,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../util/navigation/navUtils', () => ({
-  useParams: () => ({
-    approvalPagePath: '/agentic/login',
-    projectId: 'project-1',
-    approvalId: 'approval-1',
-    mimirSignature: 'signature-1',
-    operationType: 'transaction_request',
-  }),
+  useParams: () => mockUseParams(),
 }));
 
 jest.mock('../../../util/Logger', () => ({
@@ -29,6 +33,12 @@ jest.mock('../../../util/Logger', () => ({
   default: {
     error: jest.fn(),
   },
+}));
+
+jest.mock('../../../core/AgenticCli/agenticCliConnectionSession', () => ({
+  waitForAgenticCliLoginConnectionEstablished: jest
+    .fn()
+    .mockResolvedValue(undefined),
 }));
 
 jest.mock('./AgenticCliApprovalService', () => {
@@ -149,12 +159,35 @@ jest.mock(
 );
 
 const mockGetAuthToken = AgenticCliApprovalService.getAuthToken as jest.Mock;
+const mockWaitForAgenticCliLoginConnectionEstablished = jest.requireMock(
+  '../../../core/AgenticCli/agenticCliConnectionSession',
+).waitForAgenticCliLoginConnectionEstablished as jest.Mock;
 
 describe('AgenticCliApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWebViewProps = {};
+    mockUseParams.mockReturnValue(defaultApprovalParams);
     mockGetAuthToken.mockResolvedValue('dashboard-token');
+    mockWaitForAgenticCliLoginConnectionEstablished.mockResolvedValue(
+      undefined,
+    );
+  });
+
+  it('waits for CLI login connection before minting for login deeplinks', async () => {
+    mockUseParams.mockReturnValue({
+      ...defaultApprovalParams,
+      operationType: 'login',
+    });
+
+    render(<AgenticCliApproval />);
+
+    await waitFor(() =>
+      expect(
+        mockWaitForAgenticCliLoginConnectionEstablished,
+      ).toHaveBeenCalled(),
+    );
+    expect(mockGetAuthToken).toHaveBeenCalled();
   });
 
   it('renders the localized header title after the WebView loads', async () => {

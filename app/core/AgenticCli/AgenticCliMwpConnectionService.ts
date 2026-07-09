@@ -24,6 +24,10 @@ import {
   isAgenticCliLoginOperation,
 } from './agenticCliConnectionRequest';
 import {
+  clearAgenticCliLoginConnectionEstablished,
+  markAgenticCliLoginConnectionEstablished,
+} from './agenticCliConnectionSession';
+import {
   createMwpClientConnectedWaiter,
   handleAgenticCliQrLogin,
   waitForKeyringUnlock,
@@ -175,6 +179,8 @@ export async function handleAgenticCliConnectDeeplink(
       return;
     }
 
+    markAgenticCliLoginConnectionEstablished();
+
     // --- QR login: Hydra → dashboard → WebView → auth token ---
     try {
       await handleAgenticCliQrLogin({
@@ -186,6 +192,7 @@ export async function handleAgenticCliConnectDeeplink(
         cleanupConnection: deps.cleanupConnection,
       });
     } finally {
+      clearAgenticCliLoginConnectionEstablished();
       conn = undefined;
     }
 
@@ -229,6 +236,7 @@ export async function handleAgenticCliConnectDeeplink(
     });
 
     if (conn) {
+      clearAgenticCliLoginConnectionEstablished();
       try {
         await deps.cleanupConnection(conn);
       } catch (cleanupError) {
