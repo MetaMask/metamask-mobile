@@ -236,12 +236,11 @@ const MoreTokenActionsMenu = () => {
   ]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-  const handleDeactivateTrustline = useCallback(async () => {
-    const didDeactivate = await deactivateAsset();
-    if (didDeactivate) {
-      sheetRef.current?.onCloseBottomSheet();
-    }
-  }, [deactivateAsset]);
+  const handleDeactivateTrustline = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      void deactivateAsset();
+    });
+  }, [closeBottomSheetAndNavigate, deactivateAsset]);
   ///: END:ONLY_INCLUDE_IF
 
   const tokenIsInAccount = !!useSelector((state: RootState) =>

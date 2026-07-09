@@ -21,7 +21,6 @@ describe('getMultichainAccountName', () => {
     [TrxScope.Nile, WalletClientType.Tron, 'Tron Nile Account '],
     [TrxScope.Shasta, WalletClientType.Tron, 'Tron Shasta Account '],
     [XlmScope.Pubnet, WalletClientType.Stellar, 'Stellar Account '],
-    [XlmScope.Testnet, WalletClientType.Stellar, 'Stellar Testnet Account '],
   ])(
     'should return account name for %s scope and %s client type',
     (scope, clientType, expectedName) => {

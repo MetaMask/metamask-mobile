@@ -26,7 +26,6 @@ export const MULTICHAIN_TOKEN_IMAGES = {
   [TrxScope.Nile]: imageIcons.TRON,
   [TrxScope.Shasta]: imageIcons.TRON,
   [XlmScope.Pubnet]: imageIcons.STELLAR,
-  [XlmScope.Testnet]: imageIcons.STELLAR,
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
@@ -90,11 +89,6 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     url: 'https://stellar.expert',
     address: 'https://stellar.expert/explorer/public/account/{address}',
     transaction: 'https://stellar.expert/explorer/public/tx/{txId}',
-  },
-  [XlmScope.Testnet]: {
-    url: 'https://stellar.expert',
-    address: 'https://stellar.expert/explorer/testnet/account/{address}',
-    transaction: 'https://stellar.expert/explorer/testnet/tx/{txId}',
   },
 } as const;
 
