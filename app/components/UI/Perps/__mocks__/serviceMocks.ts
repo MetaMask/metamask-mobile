@@ -162,6 +162,10 @@ export const createMockPerpsControllerState = (
   selectedPaymentToken: null,
   cachedMarketDataByProvider: {},
   cachedUserDataByProvider: {},
+  recentlyViewedMarkets: {
+    testnet: [],
+    mainnet: [],
+  },
   ...overrides,
 });
 

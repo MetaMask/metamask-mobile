@@ -37,7 +37,14 @@ describe('outcomeGrouping', () => {
         'spreads',
         'totals',
         'both_teams_to_score',
+        'both_teams_to_score_first_half',
+        'both_teams_to_score_second_half',
+        'first_half_totals',
+        'second_half_totals',
         'soccer_first_to_score',
+        'soccer_halftime_result',
+        'soccer_second_half_result',
+        'soccer_player_goals',
         'soccer_team_to_advance',
         'soccer_extra_time',
         'soccer_penalty_shootout',
@@ -59,10 +66,19 @@ describe('outcomeGrouping', () => {
           'MONEYLINE',
           'spreads',
           'totals',
-          'first_half_moneyline',
+          'first_half_totals',
+          'soccer_halftime_result',
+          'soccer_player_goals',
           'points',
         ]),
-      ).toEqual(['moneyline', 'spreads', 'totals']);
+      ).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+        'first_half_totals',
+        'soccer_halftime_result',
+        'soccer_player_goals',
+      ]);
     });
   });
 
@@ -147,6 +163,34 @@ describe('outcomeGrouping', () => {
       expect(groups[1].subgroups?.map((group) => group.key)).toEqual([
         'tennis_first_set_winner',
         'tennis_first_set_totals',
+      ]);
+    });
+
+    it('orders soccer groups to match Polymarket tabs', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('moneyline', 'moneyline'),
+        createGroupingOutcome('team-total', 'soccer_team_totals'),
+        createGroupingOutcome('exact-score', 'soccer_exact_score'),
+        createGroupingOutcome('half-result', 'soccer_halftime_result'),
+        createGroupingOutcome('corners', 'total_corners'),
+        createGroupingOutcome(
+          'player-goal',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Player A: 1+ goals',
+        ),
+        createGroupingOutcome('assist', 'assists'),
+      ]);
+
+      expect(groups.map((group) => group.key)).toEqual([
+        'game_lines',
+        'team_totals',
+        'exact_score',
+        'halves',
+        'corners',
+        'goals',
+        'assists',
       ]);
     });
 
@@ -276,6 +320,182 @@ describe('outcomeGrouping', () => {
           ],
         }),
       ]);
+    });
+
+    it('groups supported half markets under halves', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('h1-total', 'first_half_totals', 0.5),
+        createGroupingOutcome('h2-total', 'second_half_totals', 1.5),
+        createGroupingOutcome(
+          'btts-h1',
+          'both_teams_to_score_first_half',
+          undefined,
+          'Yes',
+        ),
+        createGroupingOutcome(
+          'btts-h2',
+          'both_teams_to_score_second_half',
+          undefined,
+          'Yes',
+        ),
+        createGroupingOutcome('h1-result', 'soccer_halftime_result'),
+        createGroupingOutcome('h2-result', 'soccer_second_half_result'),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].key).toBe('halves');
+      expect(groups[0].subgroups?.map((subgroup) => subgroup.key)).toEqual([
+        'soccer_halftime_result',
+        'soccer_second_half_result',
+        'first_half_totals',
+        'second_half_totals',
+        'both_teams_to_score_first_half',
+        'both_teams_to_score_second_half',
+      ]);
+    });
+
+    it('keeps full-match BTTS under game lines', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('btts', 'both_teams_to_score', undefined, 'Yes'),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].key).toBe('game_lines');
+      expect(groups[0].outcomes[0]).toEqual(
+        expect.objectContaining({ sportsMarketType: 'both_teams_to_score' }),
+      );
+    });
+
+    it('splits soccer player goals into one subgroup per player', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome(
+          'player-a-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Player A: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'player-a-2',
+          'soccer_player_goals',
+          1.5,
+          'Yes',
+          'Player A: 2+ goals',
+        ),
+        createGroupingOutcome(
+          'player-b-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Player B: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'player-c-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Player C: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'player-d-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Player D: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'player-e-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Player E: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'player-f-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Player F: 1+ goals',
+        ),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].key).toBe('goals');
+      expect(groups[0].subgroups).toHaveLength(6);
+      expect(groups[0].subgroups?.map((subgroup) => subgroup.title)).toEqual([
+        'Player A',
+        'Player B',
+        'Player C',
+        'Player D',
+        'Player E',
+        'Player F',
+      ]);
+      expect(groups[0].subgroups?.[0]).toEqual(
+        expect.objectContaining({
+          key: 'soccer_player_goals-player-a',
+          title: 'Player A',
+          outcomes: [
+            expect.objectContaining({ id: 'player-a-1' }),
+            expect.objectContaining({ id: 'player-a-2' }),
+          ],
+        }),
+      );
+    });
+
+    it('deduplicates soccer player goal subgroups by normalized player key', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome(
+          'dani-olmo-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Dani Olmo: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'dani-olmo-2',
+          'soccer_player_goals',
+          1.5,
+          'Yes',
+          'DANI OLMO: 2+ goals',
+        ),
+        createGroupingOutcome(
+          'alvaro-morata-1',
+          'soccer_player_goals',
+          0.5,
+          'Yes',
+          'Álvaro Morata: 1+ goals',
+        ),
+        createGroupingOutcome(
+          'alvaro-morata-2',
+          'soccer_player_goals',
+          1.5,
+          'Yes',
+          'Alvaro Morata: 2+ goals',
+        ),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0].subgroups).toHaveLength(2);
+      expect(groups[0].subgroups).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: 'soccer_player_goals-alvaro-morata',
+            title: 'Álvaro Morata',
+            outcomes: [
+              expect.objectContaining({ id: 'alvaro-morata-1' }),
+              expect.objectContaining({ id: 'alvaro-morata-2' }),
+            ],
+          }),
+          expect.objectContaining({
+            key: 'soccer_player_goals-dani-olmo',
+            title: 'Dani Olmo',
+            outcomes: [
+              expect.objectContaining({ id: 'dani-olmo-1' }),
+              expect.objectContaining({ id: 'dani-olmo-2' }),
+            ],
+          }),
+        ]),
+      );
     });
   });
 });

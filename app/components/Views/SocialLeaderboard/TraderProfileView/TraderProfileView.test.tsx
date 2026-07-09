@@ -692,6 +692,27 @@ describe('TraderProfileView', () => {
     );
   });
 
+  it('tracks Trader Profile Position Clicked with perps_market for a perp row', () => {
+    mockPositionsResult.openPositions = [
+      ...fixtureOpenPositions,
+      fixturePerpOpenPosition,
+    ];
+
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(screen.getByTestId('position-row-BTC'));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_PROFILE_POSITION_CLICKED,
+      expect.objectContaining({
+        trader_address: '0xabc',
+        asset_name: 'BTC',
+        perps_market: 'BTC',
+        is_open: true,
+      }),
+    );
+  });
+
   it('shows empty state when no positions', () => {
     mockPositionsResult.openPositions = [];
     renderWithProvider(<TraderProfileView />);
@@ -938,6 +959,7 @@ describe('TraderProfileView', () => {
           source: 'trader_profile',
           traderAddress: '0xabc',
           traderUsername: 'trader1',
+          traderAvatarUri: fixtureProfile.profile.imageUrl,
         }),
       );
     });
