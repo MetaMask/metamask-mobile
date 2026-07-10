@@ -34,6 +34,7 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
@@ -197,7 +198,12 @@ const MultichainPermissionsSummary = ({
         >
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
-            badge={<BadgeNetwork name={networkName} src={networkImageSource} />}
+            badge={
+              <BadgeNetwork
+                name={networkName}
+                src={networkImageSource as ImageOrSvgSrc}
+              />
+            }
           >
             {icon ? (
               <AvatarFavicon
@@ -440,11 +446,11 @@ const MultichainPermissionsSummary = ({
                         : chainName
                     }
                     src={
-                      isNonDappNetworkSwitch
+                      (isNonDappNetworkSwitch
                         ? getNetworkImageSource({
                             chainId,
                           })
-                        : chainImage
+                        : chainImage) as ImageOrSvgSrc
                     }
                   />
                 </>
@@ -464,7 +470,7 @@ const MultichainPermissionsSummary = ({
                       size={AvatarGroupSize.Xs}
                       avatarPropsArr={networkAvatars.map((avatar) => ({
                         name: avatar.name,
-                        src: avatar.imageSource,
+                        src: avatar.imageSource as ImageOrSvgSrc,
                       }))}
                     />
                   </View>
