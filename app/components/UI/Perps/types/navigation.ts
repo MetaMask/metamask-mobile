@@ -1,3 +1,4 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import {
   type Position,
   type Order,
@@ -11,15 +12,33 @@ import {
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/PerpsTooltipView';
 
-/**
- * Nested navigation into the Perps stack root.
- * Kept local to avoid a circular import with NavigationService/types.
- */
-interface PerpsNestedNavigationParams {
-  screen?: string;
-  params?: object;
-}
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsModalsNavigationParamList = {
+  PerpsQuoteExpiredModal: undefined;
+  PerpsGTMModal: undefined;
+  PerpsCloseAllPositions: undefined;
+  PerpsCancelAllOrders: undefined;
+  PerpsCrossMarginWarning: undefined;
+  PerpsSelectProvider: undefined;
+  PerpsSelectModifyAction: {
+    position: Position;
+  };
+  PerpsSelectAdjustMarginAction: {
+    position: Position;
+  };
+  PerpsSelectOrderType: {
+    currentOrderType: OrderType;
+    asset: string;
+    direction: 'long' | 'short';
+  };
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsClosePositionModalsNavigationParamList = {
+  PerpsTooltip: PerpsTooltipViewRouteParams;
+};
 
 /**
  * PERPS navigation parameter types.
@@ -30,7 +49,7 @@ interface PerpsNestedNavigationParams {
  * `consistent-type-definitions` rule prefers `interface`, hence the suppression.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PerpsNavigationParamList = {
+export type PerpsStackParamList = {
   // Order flow routes
   PerpsOrder: {
     direction: 'long' | 'short';
@@ -239,9 +258,6 @@ export type PerpsNavigationParamList = {
     showBackButton?: boolean;
   };
 
-  // Root perps view
-  Perps: PerpsNestedNavigationParams | undefined;
-
   /** Params for RedesignedConfirmations when shown in Perps stack (header options) */
   RedesignedConfirmations: {
     showPerpsHeader?: boolean;
@@ -277,8 +293,12 @@ export type PerpsNavigationParamList = {
     action?: 'view' | 'edit' | 'cancel';
   };
   PerpsHIP3Debug: undefined;
-  PerpsClosePositionModals: PerpsNestedNavigationParams | undefined;
-  PerpsModals: PerpsNestedNavigationParams | undefined;
+  PerpsClosePositionModals:
+    | NavigatorScreenParams<PerpsClosePositionModalsNavigationParamList>
+    | undefined;
+  PerpsModals:
+    | NavigatorScreenParams<PerpsModalsNavigationParamList>
+    | undefined;
   PerpsQuoteExpiredModal: undefined;
   PerpsGTMModal: undefined;
   PerpsCloseAllPositions: undefined;
@@ -288,6 +308,12 @@ export type PerpsNavigationParamList = {
   PerpsSelectProvider: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;
+};
+
+/** Screens inside the Perps stack plus the root `Perps` entry for cross-stack navigation. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsNavigationParamList = PerpsStackParamList & {
+  Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
 };
 
 /**

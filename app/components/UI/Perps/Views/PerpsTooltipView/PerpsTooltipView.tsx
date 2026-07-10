@@ -17,7 +17,7 @@ import { tooltipContentRegistry } from '../../components/PerpsBottomSheetTooltip
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
-interface PerpsTooltipViewRouteParams {
+export interface PerpsTooltipViewRouteParams {
   contentKey: PerpsTooltipContentKey;
   data?: Record<string, unknown>;
 }
