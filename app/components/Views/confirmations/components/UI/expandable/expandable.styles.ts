@@ -20,11 +20,14 @@ const styleSheet = (params: {
       padding: isCompact ? 0 : 16,
       marginBottom: isCompact ? 0 : 8,
     },
+    /** Full-screen wrapper for transparent Modal so BottomSheet can fill the window. */
+    modalRoot: {
+      flex: 1,
+    },
     modalContent: {
+      // Deprecated: kept for backward-compat; BottomSheet provides surface + radius.
       backgroundColor: theme.colors.background.section,
       paddingBottom: 34,
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
     },
     modalExpandedContent: {
       paddingHorizontal: 16,
