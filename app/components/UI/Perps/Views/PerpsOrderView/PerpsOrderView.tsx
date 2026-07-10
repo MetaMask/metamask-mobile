@@ -799,12 +799,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   ]);
 
   // Emit "trade quote received" when a pay-with-token relay quote
-  // request completes (loading transitions true -> false). Only meaningful for
-  // the trade-with-token flow; the start time is captured when loading begins.
+  // request completes. Loading transitions provide real latency; cached quotes
+  // that are already settled emit once with zero latency instead of being
+  // skipped because no loading start was observed.
   const payQuoteStartRef = useRef<number | null>(null);
+  const lastEmittedPayQuoteKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (!hasCustomTokenSelected) {
       payQuoteStartRef.current = null;
+      lastEmittedPayQuoteKeyRef.current = null;
       return;
     }
 
@@ -819,33 +822,49 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       return;
     }
 
-    // isPayTotalsLoading === false: emit once when a tracked quote completes.
-    if (payQuoteStartRef.current !== null) {
-      const latencyMs = Date.now() - payQuoteStartRef.current;
-      payQuoteStartRef.current = null;
+    const blockingNoQuoteAlert = noQuotesAlerts.find((a) => a.isBlocking);
+    const succeeded = Boolean(payTotals) && !blockingNoQuoteAlert;
 
-      const blockingNoQuoteAlert = noQuotesAlerts.find((a) => a.isBlocking);
-      const succeeded = Boolean(payTotals) && !blockingNoQuoteAlert;
-
-      const quoteProps: Record<string, unknown> = {
-        [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-        [PERPS_EVENT_PROPERTY.STATUS]: succeeded
-          ? PERPS_EVENT_VALUE.STATUS.SUCCESS
-          : PERPS_EVENT_VALUE.STATUS.FAILED,
-        [PERPS_EVENT_PROPERTY.QUOTE_LATENCY_MS]: latencyMs,
-      };
-      if (!succeeded && blockingNoQuoteAlert) {
-        if (typeof blockingNoQuoteAlert.message === 'string') {
-          quoteProps[PERPS_EVENT_PROPERTY.ERROR_MESSAGE] =
-            blockingNoQuoteAlert.message;
-        }
-        if (blockingNoQuoteAlert.key) {
-          quoteProps[PERPS_EVENT_PROPERTY.ERROR_REASON] =
-            blockingNoQuoteAlert.key;
-        }
-      }
-      track(MetaMetricsEvents.PERPS_TRADE_QUOTE_RECEIVED, quoteProps);
+    if (!payTotals && !blockingNoQuoteAlert) {
+      return;
     }
+
+    const quoteKey = JSON.stringify({
+      asset: orderForm.asset,
+      payTotals,
+      errorKey: blockingNoQuoteAlert?.key,
+      errorMessage: blockingNoQuoteAlert?.message,
+    });
+
+    if (lastEmittedPayQuoteKeyRef.current === quoteKey) {
+      return;
+    }
+
+    const latencyMs =
+      payQuoteStartRef.current === null
+        ? 0
+        : Date.now() - payQuoteStartRef.current;
+    payQuoteStartRef.current = null;
+    lastEmittedPayQuoteKeyRef.current = quoteKey;
+
+    const quoteProps: Record<string, unknown> = {
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+      [PERPS_EVENT_PROPERTY.STATUS]: succeeded
+        ? PERPS_EVENT_VALUE.STATUS.SUCCESS
+        : PERPS_EVENT_VALUE.STATUS.FAILED,
+      [PERPS_EVENT_PROPERTY.QUOTE_LATENCY_MS]: latencyMs,
+    };
+    if (!succeeded && blockingNoQuoteAlert) {
+      if (typeof blockingNoQuoteAlert.message === 'string') {
+        quoteProps[PERPS_EVENT_PROPERTY.ERROR_MESSAGE] =
+          blockingNoQuoteAlert.message;
+      }
+      if (blockingNoQuoteAlert.key) {
+        quoteProps[PERPS_EVENT_PROPERTY.ERROR_REASON] =
+          blockingNoQuoteAlert.key;
+      }
+    }
+    track(MetaMetricsEvents.PERPS_TRADE_QUOTE_RECEIVED, quoteProps);
   }, [
     isPayTotalsLoading,
     hasCustomTokenSelected,
