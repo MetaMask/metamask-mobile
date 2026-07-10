@@ -1,11 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
-import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import { getElevatedSurfaceColor } from '../../../../util/theme/themeUtils';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 export const createStyles = (theme, isPureBlack = false) =>
   StyleSheet.create({
@@ -77,6 +81,43 @@ export default function ActionContent({
   const isPureBlack = usePureBlack();
   const styles = createStyles(theme, isPureBlack);
 
+  // Map legacy StyledButton modes to MMDS Button props
+  const mapModeToProps = (mode, { isCancel } = { isCancel: false }) => {
+    // Normalize mode string
+    const normalized = String(mode || '').toLowerCase();
+
+    // Link-style buttons
+    if (
+      normalized === 'transparent' ||
+      normalized === 'transparent-blue' ||
+      normalized === 'warning-empty' ||
+      normalized === 'info'
+    ) {
+      return { variant: ButtonVariant.Link, isDanger: normalized.includes('warning') };
+    }
+
+    // Secondary for cancel or explicit neutral/secondary/cancel
+    if (
+      isCancel ||
+      normalized === 'neutral' ||
+      normalized === 'secondary' ||
+      normalized === 'cancel' ||
+      normalized === 'rounded-normal' ||
+      normalized === 'normal'
+    ) {
+      return { variant: ButtonVariant.Secondary, isDanger: false };
+    }
+
+    // Primary destructive
+    if (normalized === 'warning' || normalized === 'danger') {
+      return { variant: ButtonVariant.Primary, isDanger: true };
+    }
+
+    // Default primary confirm
+    // includes: 'confirm', 'blue', 'sign', 'inverse', etc.
+    return { variant: ButtonVariant.Primary, isDanger: false };
+  };
+
   return (
     <View style={[styles.viewWrapper, viewWrapperStyle]}>
       <View style={[styles.viewContainer, viewContainerStyle]}>
@@ -91,34 +132,48 @@ export default function ActionContent({
             actionContainerStyle,
           ]}
         >
-          {displayCancelButton && (
-            <StyledButton
-              disabled={cancelButtonDisabled}
-              testID={cancelTestID}
-              type={cancelButtonMode}
-              onPress={onCancelPress}
-              containerStyle={[
-                styles.button,
-                !verticalButtons && styles.buttonHorizontal,
-              ]}
-            >
-              {cancelText}
-            </StyledButton>
-          )}
-          {displayConfirmButton && (
-            <StyledButton
-              testID={confirmTestID}
-              type={confirmButtonMode}
-              onPress={onConfirmPress}
-              containerStyle={[
-                styles.button,
-                !verticalButtons && styles.buttonHorizontal,
-              ]}
-              disabled={confirmDisabled}
-            >
-              {confirmText}
-            </StyledButton>
-          )}
+          {displayCancelButton && (() => {
+            const { variant, isDanger } = mapModeToProps(cancelButtonMode, {
+              isCancel: true,
+            });
+            return (
+              <Button
+                testID={cancelTestID}
+                variant={variant}
+                isDanger={isDanger}
+                onPress={onCancelPress}
+                isDisabled={cancelButtonDisabled}
+                size={ButtonSize.Lg}
+                style={[
+                  styles.button,
+                  !verticalButtons && styles.buttonHorizontal,
+                ]}
+              >
+                {cancelText}
+              </Button>
+            );
+          })()}
+          {displayConfirmButton && (() => {
+            const { variant, isDanger } = mapModeToProps(confirmButtonMode, {
+              isCancel: false,
+            });
+            return (
+              <Button
+                testID={confirmTestID}
+                variant={variant}
+                isDanger={isDanger}
+                onPress={onConfirmPress}
+                isDisabled={confirmDisabled}
+                size={ButtonSize.Lg}
+                style={[
+                  styles.button,
+                  !verticalButtons && styles.buttonHorizontal,
+                ]}
+              >
+                {confirmText}
+              </Button>
+            );
+          })()}
         </View>
       </View>
     </View>
