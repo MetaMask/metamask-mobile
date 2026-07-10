@@ -65,6 +65,11 @@ import {
 } from '../../providers/PerpsStreamManager';
 import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import PerpsOrderView from './PerpsOrderView';
 
 jest.mock('@react-navigation/native', () => {
@@ -159,6 +164,11 @@ jest.mock('../../hooks/stream', () => ({
     bid: '2999',
     ask: '3001',
   })),
+}));
+
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
@@ -928,6 +938,7 @@ describe('PerpsOrderView', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      addListener: jest.fn(() => jest.fn()),
     });
 
     (useRoute as jest.Mock).mockReturnValue(defaultMockRoute);
@@ -4426,5 +4437,83 @@ describe('PerpsOrderView', () => {
       // copy and event payload are verified separately by the slippage recipe and the `eventNames` constants tests.)
       expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
+  });
+
+  describe('abandon order tracking', () => {
+    let captured: { eventName: unknown; props: Record<string, unknown> }[];
+
+    const isAbandonEvent = (event: {
+      eventName: unknown;
+      props: Record<string, unknown>;
+    }) =>
+      event.eventName === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+      event.props?.[PERPS_EVENT_PROPERTY.ACTION] ===
+        PERPS_EVENT_VALUE.ACTION.ABANDON_ORDER;
+
+    const setupAbandonNav = (routes: { key: string }[]) => {
+      const listeners: Record<string, (() => void)[]> = {};
+      (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        goBack: mockGoBack,
+        dispatch: jest.fn(),
+        addListener: jest.fn((event: string, cb: () => void) => {
+          (listeners[event] = listeners[event] || []).push(cb);
+          return jest.fn();
+        }),
+        getState: jest.fn(() => ({ routes })),
+        getParent: jest.fn(() => undefined),
+      });
+      return (event: string) => (listeners[event] || []).forEach((cb) => cb());
+    };
+
+    beforeEach(() => {
+      captured = [];
+      mockCreateEventBuilder.mockImplementation((eventName?: unknown) => {
+        const builder: { addProperties: jest.Mock; build: jest.Mock } = {
+          addProperties: jest.fn((props: Record<string, unknown>) => {
+            captured.push({ eventName, props });
+            return builder;
+          }),
+          build: jest.fn(() => ({})),
+        };
+        return builder;
+      });
+    });
+
+    it('emits abandon_order on beforeRemove (back / hardware back)', () => {
+      const fire = setupAbandonNav([{ key: 'trade' }]);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => fire('beforeRemove'));
+
+      expect(captured.some(isAbandonEvent)).toBe(true);
+    });
+
+    it('emits abandon_order on tab-away (blur with unchanged depth)', () => {
+      const fire = setupAbandonNav([{ key: 'trade' }]);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => fire('blur'));
+
+      expect(captured.some(isAbandonEvent)).toBe(true);
+    });
+
+    it('does NOT emit on blur when a child route was pushed (depth increased)', () => {
+      const routes = [{ key: 'trade' }];
+      const fire = setupAbandonNav(routes);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      routes.push({ key: 'child' });
+      act(() => fire('blur'));
+
+      expect(captured.some(isAbandonEvent)).toBe(false);
+    });
+
+    // Note: committed-order suppression (hasPlacedOrderRef) is covered
+    // deterministically by the usePerpsAbandonOrderTracking hook unit test and by
+    // the PerpsClosePositionView "does NOT emit after a confirmed close"
+    // integration test (which drives the real confirm button). Driving the full
+    // place-order flow here is too dependent on cross-test mock state to assert
+    // reliably.
   });
 });

@@ -59,6 +59,7 @@ import {
   usePerpsTopOfBook,
 } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   formatPositionSize,
@@ -94,6 +95,8 @@ const PerpsClosePositionView: React.FC = () => {
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
+  const hasConfirmedCloseRef = useRef(false);
+  const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
@@ -343,7 +346,37 @@ const PerpsClosePositionView: React.FC = () => {
       [PERPS_EVENT_PROPERTY.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
       [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]: receiveAmount,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: isPartialClose
+        ? PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE
+        : PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
     },
+  });
+
+  latestAbandonPropsRef.current = {
+    [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+      PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+    [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.ABANDON_ORDER,
+    [PERPS_EVENT_PROPERTY.ASSET]: position.symbol,
+    [PERPS_EVENT_PROPERTY.DIRECTION]: isLong
+      ? PERPS_EVENT_VALUE.DIRECTION.LONG
+      : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+    [PERPS_EVENT_PROPERTY.ORDER_SIZE]: closingValue,
+    [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: livePosition.leverage?.value,
+  };
+
+  // emit abandon_order on a real exit (back swipe, hardware back,
+  // programmatic dismissal) AND on a genuine tab switch away, but never when a
+  // child route (e.g. the limit-price flow) is pushed or after a confirmed close
+  // (hasConfirmedCloseRef).
+  const getAbandonProperties = useCallback(
+    () => latestAbandonPropsRef.current,
+    [],
+  );
+  usePerpsAbandonOrderTracking({
+    getAbandonProperties,
+    hasCommittedRef: hasConfirmedCloseRef,
   });
 
   // Initialize USD values when price data is available (only once, not on price updates)
@@ -379,6 +412,9 @@ const PerpsClosePositionView: React.FC = () => {
     if (orderType === 'limit' && !limitPrice) {
       return;
     }
+
+    // Mark confirmed so the focus-effect cleanup does not emit an abandon event
+    hasConfirmedCloseRef.current = true;
 
     // Go back immediately to close the position screen
     navigation.goBack();

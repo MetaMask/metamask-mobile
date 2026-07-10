@@ -270,7 +270,7 @@ const { variant, variantName, isEnabled } = usePerpsABTest({
 
 ### Why Flat Properties?
 
-To support multiple AB tests running simultaneously (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties per test** instead of generic properties.
+To support multiple AB tests running simultaneously (e.g., button colors, asset CTA, homepage CTA), we use **flat properties per test** instead of generic properties.
 
 > **Note:** For the complete event property definitions and tracking patterns, see [Perps MetaMetrics Reference](./perps-metametrics-reference.md#multiple-concurrent-tests).
 
@@ -323,9 +323,9 @@ export const PerpsEventProperties = {
 
   // A/B testing properties (flat per test for multiple concurrent tests)
   // Only include AB test properties when test is enabled (event not sent when disabled)
-  // Button color test (TAT-1937)
+  // Button color test
   AB_TEST_BUTTON_COLOR: 'ab_test_button_color',
-  // Asset CTA test (TAT-1940)
+  // Asset CTA test
   AB_TEST_ASSET_CTA: 'ab_test_asset_cta',
   // Future tests: add as AB_TEST_{TEST_NAME} (no _ENABLED property needed)
 } as const;
@@ -396,7 +396,7 @@ const handleLongPress = () => {
 - Screen views alone = exposure but not engagement
 - Button presses alone = engagement but no baseline for comparison
 
-**Example Flow (TAT-1937):**
+**Example Flow:**
 
 1. User views PerpsMarketDetailsView → `PERPS_SCREEN_VIEWED` with `ab_test_button_color: 'control'` (baseline)
 2. User taps Long button → `PERPS_UI_INTERACTION` with `ab_test_button_color: 'control'`, `interaction_type: 'tap'` (engagement)
@@ -562,7 +562,7 @@ Check console logs for:
 
 Segment uses a Tracking Plan (schema) to validate incoming events. Properties not defined in the schema are automatically removed by Segment Protocols. This is a data governance feature, not a bug.
 
-**Real Example (TAT-1937 Button Color Test):**
+**Real Example (Button Color Test):**
 
 The app correctly sent events with `ab_test_button_color`:
 
@@ -614,7 +614,7 @@ The `protocols.omitted` array confirms the property was sent but rejected by sch
    ```yaml
    ab_test_button_color:
      type: string
-     description: 'Button color A/B test variant (TAT-1937)'
+     description: 'Button color A/B test variant'
      required: false
      enum:
        - control
@@ -626,7 +626,7 @@ The `protocols.omitted` array confirms the property was sent but rejected by sch
    ```yaml
    ab_test_button_color:
      type: string
-     description: 'Button color A/B test variant (TAT-1937). Values: control (green/red buttons) or monochrome (white/white buttons).'
+     description: 'Button color A/B test variant. Values: control (green/red buttons) or monochrome (white/white buttons).'
      required: false
      enum:
        - control
@@ -673,9 +673,9 @@ For A/B test properties in Segment schema:
 
 **Examples:**
 
-- `ab_test_button_color` - Button color test (TAT-1937)
-- `ab_test_asset_cta` - Asset CTA test (TAT-1940)
-- `ab_test_homepage_cta` - Homepage CTA test (TAT-1827)
+- `ab_test_button_color` - Button color test
+- `ab_test_asset_cta` - Asset CTA test
+- `ab_test_homepage_cta` - Homepage CTA test
 
 ---
 
@@ -683,14 +683,14 @@ For A/B test properties in Segment schema:
 
 This section guides you through creating a Mixpanel dashboard to analyze A/B test results.
 
-**Reference Dashboard:** [Perps A/B Test - Button Color (TAT-1937)](https://mixpanel.com/project/2697051/view/3233695/app/boards#id=10912360)
+**Reference Dashboard:** [Perps A/B Test - Button Color](https://mixpanel.com/project/2697051/view/3233695/app/boards#id=10912360)
 
 ### Creating the Dashboard
 
 #### 1. Create New Dashboard
 
 - Navigate to Mixpanel → Boards → + New Board
-- **Name:** `Perps A/B Test - Button Color (TAT-1937)`
+- **Name:** `Perps A/B Test - Button Color`
 - **Description:** `Measures impact of button colors on trading engagement`
 
 #### 2. Add Exposure Report (Baseline)

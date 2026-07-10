@@ -5,6 +5,11 @@ import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
 
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
   GestureDetector: 'View',

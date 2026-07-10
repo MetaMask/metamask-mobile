@@ -359,7 +359,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 
 ### Flat Property Pattern
 
-To support multiple AB tests running concurrently (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties** instead of generic properties.
+To support multiple AB tests running concurrently (e.g., button colors, asset CTA, homepage CTA), we use **flat properties** instead of generic properties.
 
 **Property Naming:** `ab_test_{test_name}` (no `_enabled` suffix needed)
 
@@ -383,15 +383,15 @@ usePerpsEventTracking({
     [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
       PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
     [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
-    // Test 1: Button color test (TAT-1937) - only included when enabled
+    // Test 1: Button color test - only included when enabled
     ...(isButtonColorTestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
     }),
-    // Test 2: Asset CTA test (TAT-1940) - future
+    // Test 2: Asset CTA test - future
     ...(isAssetCTATestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_ASSET_CTA]: assetCTAVariant,
     }),
-    // Test 3: Homepage CTA test (TAT-1827) - future
+    // Test 3: Homepage CTA test - future
     ...(isHomepageCTATestEnabled && {
       [PERPS_EVENT_PROPERTY.AB_TEST_HOMEPAGE_CTA]: homepageCTAVariant,
     }),

@@ -631,7 +631,7 @@ enum EVENT_NAME {
   PERPS_RISK_MANAGEMENT = 'Perp Risk Management',
   PERPS_ERROR = 'Perp Error',
   PERPS_ACCOUNT_SETUP = 'Perp Account Setup',
-  // TAT-3463 controller contract additions (PerpsAnalyticsEvent)
+  // controller contract additions (PerpsAnalyticsEvent)
   PERPS_TRANSACTION_CONSIDERED = 'Perp Transaction Considered',
   PERPS_TRADE_QUOTE_RECEIVED = 'Perp Trade Quote Received',
   PERPS_SEARCH_QUERY = 'Perp Search Query',

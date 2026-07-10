@@ -12,7 +12,7 @@
 import type { ABTestConfig, ButtonColorTestVariants } from './types';
 
 /**
- * TAT-1937: Long/Short Button Color Test
+ * Long/Short Button Color Test
  *
  * Tests the impact of button colors on trading behavior:
  * - Control: Traditional green (long) / red (short) - familiar and intuitive

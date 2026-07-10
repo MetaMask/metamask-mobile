@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -1813,6 +1813,23 @@ describe('PerpsMarketListView', () => {
       );
     });
 
+    it('fires filter_applied with filter_category=watchlist when the watchlist toggle is pressed', () => {
+      mockWatchlistFlagEnabled = true;
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(`${FILTERS_TEST_ID}-categories-watchlist`),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.FILTER_APPLIED,
+          [PEP.FILTER_CATEGORY]: PEV.BUTTON_CLICKED.WATCHLIST,
+        }),
+      );
+    });
+
     it('includes source_section=all_markets when pressing a market with no active filter or search', () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
@@ -1873,20 +1890,372 @@ describe('PerpsMarketListView', () => {
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // Advance past the 600ms debounce window
-      jest.advanceTimersByTime(700);
+      // Advance past the 500ms debounce window
+      jest.advanceTimersByTime(600);
 
       await waitFor(() => {
         expect(mockTrack).toHaveBeenCalledWith(
           MetaMetricsEvents.PERPS_SEARCH_QUERY,
           expect.objectContaining({
-            [PEP.SEARCH_QUERY]: 'BT',
+            [PEP.SEARCH_QUERY]: 'bt',
+            query_text: 'bt',
+            query_length: 2,
             [PEP.RESULTS_COUNT]: 1,
+            [PEP.RESULT_COUNT]: 1,
+            has_results: true,
+            [PEP.MODE]: 'intent',
+            [PEP.SOURCE]: PEV.SOURCE.PERP_MARKET_SEARCH,
           }),
         );
       });
 
+      // a results-shown screen view accompanies the search query event.
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PEP.SCREEN_TYPE]: PEV.SCREEN_TYPE.SEARCH_RESULTS_SHOWN,
+          [PEP.SEARCH_QUERY]: 'bt',
+          [PEP.RESULT_COUNT]: 1,
+        }),
+      );
+
       jest.useRealTimers();
+    });
+
+    it('fires a search_no_results screen view when the query returns nothing', async () => {
+      jest.useFakeTimers();
+
+      mockUsePerpsMarketListView.mockReturnValue({
+        markets: [],
+        searchState: {
+          searchQuery: 'ZZZZ',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc' as const,
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: false,
+          watchlistMarketObjects: [],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all' as const,
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 0,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      jest.advanceTimersByTime(600);
+
+      await waitFor(() => {
+        expect(mockTrack).toHaveBeenCalledWith(
+          MetaMetricsEvents.PERPS_SEARCH_QUERY,
+          expect.objectContaining({
+            [PEP.SEARCH_QUERY]: 'zzzz',
+            [PEP.RESULT_COUNT]: 0,
+            has_results: false,
+          }),
+        );
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PEP.SCREEN_TYPE]: PEV.SCREEN_TYPE.SEARCH_NO_RESULTS,
+          [PEP.SEARCH_QUERY]: 'zzzz',
+          [PEP.RESULT_COUNT]: 0,
+        }),
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('emits SEARCH_ABANDONED on blur for an emitted, un-tapped query', () => {
+      jest.useFakeTimers();
+
+      mockUsePerpsMarketListView.mockReturnValue({
+        markets: [mockMarketData[0]],
+        searchState: {
+          searchQuery: 'BT',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc' as const,
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: false,
+          watchlistMarketObjects: [],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all' as const,
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 1,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Let the debounce emit the query.
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      // Simulate the screen blurring by invoking every captured focus cleanup
+      // (the abandon cleanup is among them; sibling cleanups are no-ops here).
+      const rnav = jest.requireMock('@react-navigation/native');
+      const focusCleanups = (
+        rnav.useFocusEffect.mock.results as { value: unknown }[]
+      )
+        .map((r) => r.value)
+        .filter((v): v is () => void => typeof v === 'function');
+      act(() => {
+        focusCleanups.forEach((cleanup) => cleanup());
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SEARCH_ABANDONED,
+        expect.objectContaining({
+          [PEP.SEARCH_QUERY]: 'bt',
+          query_count: 1,
+        }),
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('does NOT flush a pending search query on blur while results are still loading', () => {
+      jest.useFakeTimers();
+
+      mockUsePerpsMarketListView.mockReturnValue({
+        markets: [],
+        searchState: {
+          searchQuery: 'BT',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc' as const,
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: false,
+          watchlistMarketObjects: [],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all' as const,
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 0,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        // Results still loading — a mid-load flush would report a stale count.
+        isLoading: true,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // The debounce is gated while loading, so nothing is scheduled.
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+
+      const rnav = jest.requireMock('@react-navigation/native');
+      const focusCleanups = (
+        rnav.useFocusEffect.mock.results as { value: unknown }[]
+      )
+        .map((r) => r.value)
+        .filter((v): v is () => void => typeof v === 'function');
+      act(() => {
+        focusCleanups.forEach((cleanup) => cleanup());
+      });
+
+      // The pending query is dropped (not emitted as settled) while loading.
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SEARCH_QUERY,
+        expect.anything(),
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('resets the full session on abandonment so query_count does not inflate across sessions', () => {
+      jest.useFakeTimers();
+
+      const sessionMock = (searchQuery: string) => ({
+        markets: [mockMarketData[0]],
+        searchState: {
+          searchQuery,
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc' as const,
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: false,
+          watchlistMarketObjects: [],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all' as const,
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 1,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const rnav = jest.requireMock('@react-navigation/native');
+      const blur = () =>
+        act(() => {
+          (rnav.useFocusEffect.mock.results as { value: unknown }[])
+            .map((r) => r.value)
+            .filter((v): v is () => void => typeof v === 'function')
+            .forEach((cleanup) => cleanup());
+        });
+
+      // Session 1: emit then abandon on blur (resets the session).
+      mockUsePerpsMarketListView.mockReturnValue(sessionMock('BT'));
+      const { rerender } = renderWithProvider(<PerpsMarketListView />, {
+        state: mockState,
+      });
+      act(() => jest.advanceTimersByTime(600));
+      blur();
+
+      // Session 2: a fresh query — its abandonment must report query_count 1,
+      // not an inflated count carried over from session 1.
+      mockTrack.mockClear();
+      mockUsePerpsMarketListView.mockReturnValue(sessionMock('ETH'));
+      act(() => rerender(<PerpsMarketListView />));
+      act(() => jest.advanceTimersByTime(600));
+      blur();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SEARCH_ABANDONED,
+        expect.objectContaining({ query_count: 1 }),
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('does NOT fire filter_applied when the watchlist toggle is turned OFF', () => {
+      mockWatchlistFlagEnabled = true;
+      // Watchlist already active → pressing it clears the filter.
+      mockUsePerpsMarketListView.mockReturnValue({
+        markets: [mockMarketData[0]],
+        searchState: {
+          searchQuery: '',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc' as const,
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: true,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: true,
+          watchlistMarketObjects: [mockMarketData[0]],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all' as const,
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 1,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(
+        screen.getByTestId(`${FILTERS_TEST_ID}-categories-watchlist`),
+      );
+
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.FILTER_APPLIED,
+        }),
+      );
     });
   });
 

@@ -269,7 +269,7 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     perpsPath,
   );
 
-  // Propagate UTM params into controller attribution context (TAT-3463).
+  // Propagate UTM params into controller attribution context.
   try {
     setPerpsUtmAttribution(parsePerpsUtmFromPath(perpsPath));
     // Attribution is best-effort: Engine/controller may be unavailable during

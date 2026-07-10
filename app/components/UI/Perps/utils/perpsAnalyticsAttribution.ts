@@ -1,9 +1,10 @@
 /**
  * Helpers for mapping Mobile navigation / deeplink context onto the
- * perps-controller analytics attribution contract (TAT-3463).
+ * perps-controller analytics attribution contract.
  */
 
 import type {
+  PerpsAnalyticsProperties,
   PerpsAttributionContext,
   TrackingData,
 } from '@metamask/perps-controller';
@@ -83,4 +84,13 @@ export function setPerpsUtmAttribution(context: PerpsAttributionContext): void {
     return;
   }
   Engine.context.PerpsController.setAttributionContext(context);
+}
+
+/**
+ * Snapshot the stored UTM attribution as analytics event properties.
+ * Delegates to the controller's canonical merge so UTM keys map to their
+ * PERPS_EVENT_PROPERTY names; returns only the defined UTM keys.
+ */
+export function getPerpsUtmAttributionProperties(): PerpsAnalyticsProperties {
+  return Engine.context.PerpsController.mergeAttributionContext();
 }

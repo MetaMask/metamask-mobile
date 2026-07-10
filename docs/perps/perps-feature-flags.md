@@ -179,9 +179,9 @@ Follow existing test patterns covering:
 
 ### A/B Test Flags
 
-| Redux Property           | LaunchDarkly Key            | Variants                | Purpose                          |
-| ------------------------ | --------------------------- | ----------------------- | -------------------------------- |
-| `perpsAbtestButtonColor` | `perps-abtest-button-color` | `control`, `monochrome` | Button color A/B test (TAT-1937) |
+| Redux Property           | LaunchDarkly Key            | Variants                | Purpose               |
+| ------------------------ | --------------------------- | ----------------------- | --------------------- |
+| `perpsAbtestButtonColor` | `perps-abtest-button-color` | `control`, `monochrome` | Button color A/B test |
 
 ### Configuration Flags
 

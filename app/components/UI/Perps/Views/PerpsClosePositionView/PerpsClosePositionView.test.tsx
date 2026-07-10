@@ -1,4 +1,9 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import {
@@ -170,6 +175,7 @@ describe('PerpsClosePositionView', () => {
     // Setup navigation mocks
     useNavigationMock.mockReturnValue({
       goBack: mockGoBack,
+      addListener: jest.fn(() => jest.fn()),
     });
 
     // Setup default route params
@@ -3266,6 +3272,94 @@ describe('PerpsClosePositionView', () => {
           defaultPerpsClosePositionMock.handleClosePosition,
         ).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('abandon order tracking', () => {
+    const abandonInteraction = [
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.ABANDON_ORDER,
+      }),
+    ];
+
+    let focusSpy: jest.SpyInstance;
+
+    const setupAbandonNav = (routes: { key: string }[]) => {
+      const listeners: Record<string, (() => void)[]> = {};
+      useNavigationMock.mockReturnValue({
+        goBack: mockGoBack,
+        navigate: jest.fn(),
+        addListener: jest.fn((event: string, cb: () => void) => {
+          (listeners[event] = listeners[event] || []).push(cb);
+          return jest.fn();
+        }),
+        getState: jest.fn(() => ({ routes })),
+        getParent: jest.fn(() => undefined),
+      });
+      return (event: string) => (listeners[event] || []).forEach((cb) => cb());
+    };
+
+    beforeEach(() => {
+      // Run the focus callback so the abandon hook records the focus depth.
+      focusSpy = jest
+        .spyOn(jest.requireMock('@react-navigation/native'), 'useFocusEffect')
+        .mockImplementation((...args: unknown[]) => (args[0] as () => void)());
+    });
+
+    afterEach(() => {
+      focusSpy.mockRestore();
+    });
+
+    it('emits abandon_order on beforeRemove (back / hardware back)', () => {
+      const fire = setupAbandonNav([{ key: 'close' }]);
+      renderWithProvider(<PerpsClosePositionView />);
+
+      act(() => fire('beforeRemove'));
+
+      expect(defaultPerpsEventTrackingMock.track).toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
+    });
+
+    it('emits abandon_order on tab-away (blur with unchanged depth)', () => {
+      const fire = setupAbandonNav([{ key: 'close' }]);
+      renderWithProvider(<PerpsClosePositionView />);
+
+      act(() => fire('blur'));
+
+      expect(defaultPerpsEventTrackingMock.track).toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
+    });
+
+    it('does NOT emit on blur when a child route was pushed (depth increased)', () => {
+      const routes = [{ key: 'close' }];
+      const fire = setupAbandonNav(routes);
+      renderWithProvider(<PerpsClosePositionView />);
+
+      routes.push({ key: 'child' });
+      act(() => fire('blur'));
+
+      expect(defaultPerpsEventTrackingMock.track).not.toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
+    });
+
+    it('does NOT emit after a confirmed close', () => {
+      const fire = setupAbandonNav([{ key: 'close' }]);
+      const { getByTestId } = renderWithProvider(<PerpsClosePositionView />);
+
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+      act(() => fire('beforeRemove'));
+
+      expect(defaultPerpsEventTrackingMock.track).not.toHaveBeenCalledWith(
+        ...abandonInteraction,
+      );
     });
   });
 });

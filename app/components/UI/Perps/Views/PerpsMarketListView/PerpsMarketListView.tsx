@@ -47,6 +47,7 @@ import {
   useRoute,
   RouteProp,
   useNavigation,
+  useFocusEffect,
   StackActions,
 } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -131,6 +132,22 @@ const PerpsMarketListView = ({
 
   const { track } = usePerpsEventTracking();
 
+  // Search-session tracking refs — shared by the debounced query effect and the
+  // result-tap handler so time-to-tap / abandonment durations line up.
+  const searchResultTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const lastEmittedSearchQueryRef = useRef<string>('');
+  const lastEmittedSearchResultsCountRef = useRef<number>(0);
+  const searchStartTimeRef = useRef<number | null>(null);
+  const searchQueryCountRef = useRef<number>(0);
+  // query awaiting the debounce (typed but not yet emitted). Flushed
+  // on blur/unmount so a mid-debounce exit is never silently lost.
+  const pendingSearchQueryRef = useRef<string | null>(null);
+  // set when a search result is tapped so leaving the screen after a
+  // tap is not counted as a search abandonment.
+  const searchResultTappedRef = useRef(false);
+
   // Handler for market press (defined early to avoid use-before-define)
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
@@ -144,14 +161,22 @@ const PerpsMarketListView = ({
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ACTIVE_SEARCH;
           const resultRank =
             filteredMarkets.findIndex((m) => m.symbol === market.symbol) + 1;
+          const timeToTapMs =
+            searchStartTimeRef.current !== null
+              ? Date.now() - searchStartTimeRef.current
+              : undefined;
           track(MetaMetricsEvents.PERPS_SEARCH_RESULT_TAPPED, {
-            [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: trimmedQuery,
+            [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: trimmedQuery.toLowerCase(),
             [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,
             ...(resultRank > 0
               ? { [PERPS_EVENT_PROPERTY.RESULT_RANK]: resultRank }
               : {}),
+            ...(timeToTapMs !== undefined
+              ? { time_to_tap_ms: timeToTapMs }
+              : {}),
             [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
           });
+          searchResultTappedRef.current = true;
         } else if (showFavoritesOnly) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST;
         } else if (marketTypeFilter !== 'all') {
@@ -202,6 +227,11 @@ const PerpsMarketListView = ({
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
       });
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.FILTER_APPLIED,
+        [PERPS_EVENT_PROPERTY.FILTER_CATEGORY]: category,
+      });
       setMarketTypeFilter(category);
       setShowFavoritesOnly(false);
     },
@@ -219,11 +249,36 @@ const PerpsMarketListView = ({
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
     });
+    // The watchlist toggle is a filter control too, so emit filter_applied
+    // alongside category filters for a complete filter funnel — but only when
+    // APPLYING the filter, not when toggling it off (which clears the filter).
+    if (willActivate) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.FILTER_APPLIED,
+        [PERPS_EVENT_PROPERTY.FILTER_CATEGORY]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST,
+      });
+    }
     setShowFavoritesOnly(willActivate);
     if (willActivate) {
       setMarketTypeFilter('all');
     }
   }, [showFavoritesOnly, setShowFavoritesOnly, setMarketTypeFilter, track]);
+
+  // Emit sort interaction, then apply the sort change to the list.
+  const handleSortChange = useCallback<typeof handleOptionChange>(
+    (optionId, field, sortDirection) => {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SORT_APPLIED,
+        [PERPS_EVENT_PROPERTY.SORT_FIELD]: field,
+        [PERPS_EVENT_PROPERTY.SORT_DIRECTION]: sortDirection,
+      });
+      handleOptionChange(optionId, field, sortDirection);
+    },
+    [handleOptionChange, track],
+  );
 
   useEffect(() => {
     if (filteredMarkets.length > 0) {
@@ -237,49 +292,176 @@ const PerpsMarketListView = ({
 
   const handleBackPressed = perpsNavigation.navigateBack;
 
-  // Debounced Search Query tracking — fires ~600ms after the query/result
-  // count stabilises. Includes zero-result searches so analysts can measure failure.
-  // Uses controller contract event PERPS_SEARCH_QUERY (TAT-3463).
-  const searchResultTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const lastEmittedSearchQueryRef = useRef<string>('');
-  const lastEmittedSearchResultsCountRef = useRef<number>(0);
+  // emit the search query + results/no-results screen view.
+  // Stored in a ref (event-callback pattern) so both the debounce timer and the
+  // on-blur flush use the latest result count / filter context.
+  const emitSearchQueryRef = useRef<(trimmedQuery: string) => void>(() => {
+    // Assigned on every render below.
+  });
+  emitSearchQueryRef.current = (trimmedQuery: string) => {
+    const normalizedQuery = trimmedQuery.toLowerCase();
+    const resultCount = filteredMarkets.length;
+    const hasResults = resultCount > 0;
+    const activeChips = [
+      ...(showFavoritesOnly
+        ? [PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST]
+        : []),
+      ...(marketTypeFilter !== 'all' ? [marketTypeFilter] : []),
+    ];
+    // mode: chips/category narrow the set → discovery; a short ticker-like
+    // token → intent; free-text or empty context → browse.
+    const mode = activeChips.length
+      ? 'discovery'
+      : /^[a-z0-9]{1,6}$/.test(normalizedQuery)
+        ? 'intent'
+        : 'browse';
+
+    lastEmittedSearchQueryRef.current = normalizedQuery;
+    lastEmittedSearchResultsCountRef.current = resultCount;
+    searchQueryCountRef.current += 1;
+
+    track(MetaMetricsEvents.PERPS_SEARCH_QUERY, {
+      [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: normalizedQuery,
+      query_text: normalizedQuery,
+      query_length: normalizedQuery.length,
+      [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: resultCount,
+      [PERPS_EVENT_PROPERTY.RESULT_COUNT]: resultCount,
+      has_results: hasResults,
+      [PERPS_EVENT_PROPERTY.MODE]: mode,
+      active_chips: activeChips,
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        PERPS_EVENT_VALUE.SOURCE.PERP_MARKET_SEARCH,
+    });
+
+    track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: hasResults
+        ? PERPS_EVENT_VALUE.SCREEN_TYPE.SEARCH_RESULTS_SHOWN
+        : PERPS_EVENT_VALUE.SCREEN_TYPE.SEARCH_NO_RESULTS,
+      [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: normalizedQuery,
+      [PERPS_EVENT_PROPERTY.RESULT_COUNT]: resultCount,
+    });
+  };
+
+  // Latest loading state readable from stable callbacks without dep churn.
+  const isLoadingMarketsRef = useRef(isLoadingMarkets);
+  isLoadingMarketsRef.current = isLoadingMarkets;
+
+  // Reset the FULL search-session state so a new session never inherits a prior
+  // session's start time or query count. Called on every abandonment path
+  // (explicit clear, blur, unmount).
+  const resetSearchSession = useCallback(() => {
+    if (searchResultTimerRef.current) {
+      clearTimeout(searchResultTimerRef.current);
+      searchResultTimerRef.current = null;
+    }
+    pendingSearchQueryRef.current = null;
+    lastEmittedSearchQueryRef.current = '';
+    lastEmittedSearchResultsCountRef.current = 0;
+    searchStartTimeRef.current = null;
+    searchQueryCountRef.current = 0;
+  }, []);
+
+  // Flush a query still awaiting the debounce so a blur/unmount records it
+  // before we decide on abandonment — it is never silently lost. A query whose
+  // results are still loading is dropped (not emitted as settled), matching the
+  // debounce gate, so result_count/has_results are never captured mid-load.
+  const flushPendingSearchQuery = useCallback(() => {
+    if (searchResultTimerRef.current) {
+      clearTimeout(searchResultTimerRef.current);
+      searchResultTimerRef.current = null;
+    }
+    if (pendingSearchQueryRef.current) {
+      if (!isLoadingMarketsRef.current) {
+        emitSearchQueryRef.current(pendingSearchQueryRef.current);
+      }
+      pendingSearchQueryRef.current = null;
+    }
+  }, []);
+
+  const emitSearchAbandoned = useCallback(() => {
+    if (!lastEmittedSearchQueryRef.current) {
+      return;
+    }
+    track(MetaMetricsEvents.PERPS_SEARCH_ABANDONED, {
+      [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: lastEmittedSearchQueryRef.current,
+      [PERPS_EVENT_PROPERTY.RESULTS_COUNT]:
+        lastEmittedSearchResultsCountRef.current,
+      query_count: searchQueryCountRef.current,
+      ...(searchStartTimeRef.current !== null
+        ? { time_in_search_ms: Date.now() - searchStartTimeRef.current }
+        : {}),
+    });
+    lastEmittedSearchQueryRef.current = '';
+    lastEmittedSearchResultsCountRef.current = 0;
+  }, [track]);
+
+  // Debounced Search Query tracking — fires ~500ms after the query stabilises.
+  // Includes zero-result searches so analysts can measure failure. On an
+  // explicit clear, emits SEARCH_ABANDONED for any emitted query and resets the
+  // full search session. Emits the controller contract event PERPS_SEARCH_QUERY.
   useEffect(() => {
     const trimmedQuery = searchQuery.trim();
     if (!trimmedQuery) {
-      if (lastEmittedSearchQueryRef.current) {
-        track(MetaMetricsEvents.PERPS_SEARCH_ABANDONED, {
-          [PERPS_EVENT_PROPERTY.SEARCH_QUERY]:
-            lastEmittedSearchQueryRef.current,
-          [PERPS_EVENT_PROPERTY.RESULTS_COUNT]:
-            lastEmittedSearchResultsCountRef.current,
-        });
-        lastEmittedSearchQueryRef.current = '';
-        lastEmittedSearchResultsCountRef.current = 0;
-      }
+      emitSearchAbandoned();
+      resetSearchSession();
       return;
+    }
+
+    if (searchStartTimeRef.current === null) {
+      searchStartTimeRef.current = Date.now();
     }
 
     if (searchResultTimerRef.current) {
       clearTimeout(searchResultTimerRef.current);
+      searchResultTimerRef.current = null;
+    }
+    pendingSearchQueryRef.current = trimmedQuery;
+
+    // Wait for results to settle before scheduling the debounced emit so the
+    // reported result_count / has_results are never captured from the loading
+    // state. This effect re-runs (and reschedules) when loading completes or the
+    // result count changes, so the emitted count reflects the settled results.
+    if (isLoadingMarkets) {
+      return;
     }
 
     searchResultTimerRef.current = setTimeout(() => {
-      lastEmittedSearchQueryRef.current = trimmedQuery;
-      lastEmittedSearchResultsCountRef.current = filteredMarkets.length;
-      track(MetaMetricsEvents.PERPS_SEARCH_QUERY, {
-        [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: trimmedQuery,
-        [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,
-      });
-    }, 600);
+      emitSearchQueryRef.current(trimmedQuery);
+      pendingSearchQueryRef.current = null;
+      searchResultTimerRef.current = null;
+    }, 500);
 
     return () => {
       if (searchResultTimerRef.current) {
         clearTimeout(searchResultTimerRef.current);
       }
     };
-  }, [searchQuery, filteredMarkets.length, track]);
+  }, [
+    searchQuery,
+    isLoadingMarkets,
+    filteredMarkets.length,
+    emitSearchAbandoned,
+    resetSearchSession,
+  ]);
+
+  // Leaving the list with an emitted (or mid-debounce) un-tapped search query is
+  // an abandonment (blur / unmount / tab switch), not only an explicit clear.
+  // Flush any pending query first so it is counted, then abandon unless a result
+  // was tapped, then reset the full session so the next search starts clean. The
+  // suppressor is re-armed on focus so returning to an active search and leaving
+  // again still counts.
+  useFocusEffect(
+    useCallback(() => {
+      searchResultTappedRef.current = false;
+      return () => {
+        flushPendingSearchQuery();
+        if (!searchResultTappedRef.current) {
+          emitSearchAbandoned();
+        }
+        resetSearchSession();
+      };
+    }, [flushPendingSearchQuery, emitSearchAbandoned, resetSearchSession]),
+  );
 
   // Performance tracking: Measure screen load time until market data is displayed
   usePerpsMeasurement({
@@ -551,7 +733,7 @@ const PerpsMarketListView = ({
         onClose={() => setIsSortFieldSheetVisible(false)}
         selectedOptionId={selectedOptionId}
         sortDirection={direction}
-        onOptionSelect={handleOptionChange}
+        onOptionSelect={handleSortChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
     </View>

@@ -11,7 +11,7 @@ import { hasProperty } from '@metamask/utils';
 import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
 
 /**
- * Valid variants for button color A/B test (TAT-1937)
+ * Valid variants for button color A/B test
  * Used for runtime validation of LaunchDarkly responses
  */
 const VALID_BUTTON_COLOR_VARIANTS: readonly ButtonColorVariantName[] = [
@@ -144,7 +144,7 @@ export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
 
 /**
  * Selector for button color A/B test variant from LaunchDarkly
- * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
+ * Tests impact of button colors (green/red vs white/white) on trading behavior
  *
  * @returns Variant name ('control' | 'monochrome') or null if test is disabled
  */
