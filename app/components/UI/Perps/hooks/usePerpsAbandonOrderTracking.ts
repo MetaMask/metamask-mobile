@@ -72,7 +72,12 @@ export function usePerpsAbandonOrderTracking({
       focusStartRef.current = Date.now();
       focusDepthRef.current = getNavigationStackDepth(navigation);
       emittedRef.current = false;
-    }, [navigation]),
+      // A new focus is a fresh order session: clear the committed flag so a
+      // commit from a previous session (on a reused, non-remounted screen) does
+      // not suppress abandon tracking for this one. Safe when the screen does
+      // remount too — the ref simply starts false either way.
+      hasCommittedRef.current = false;
+    }, [navigation, hasCommittedRef]),
   );
 
   useEffect(() => {

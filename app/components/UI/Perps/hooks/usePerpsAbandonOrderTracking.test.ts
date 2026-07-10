@@ -50,9 +50,10 @@ describe('usePerpsAbandonOrderTracking', () => {
       [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
       [PERPS_EVENT_PROPERTY.ACTION]: 'abandon_order',
     });
-    return renderHook(() =>
+    const result = renderHook(() =>
       usePerpsAbandonOrderTracking({ getAbandonProperties, hasCommittedRef }),
     );
+    return { ...result, hasCommittedRef };
   };
 
   beforeEach(() => {
@@ -98,11 +99,23 @@ describe('usePerpsAbandonOrderTracking', () => {
   });
 
   it('does NOT emit after the flow is committed (placed / confirmed)', () => {
-    renderTracking(true);
+    const { hasCommittedRef } = renderTracking();
+    // Commit happens during the focused session.
+    hasCommittedRef.current = true;
     fire(nav, 'beforeRemove');
     fire(nav, 'blur');
 
     expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('clears a committed flag from a prior session on focus so the next session still tracks abandon', () => {
+    // A stale commit carried in at focus time (reused, non-remounted screen)
+    // must not suppress the fresh session — focus resets it.
+    const { hasCommittedRef } = renderTracking(true);
+    expect(hasCommittedRef.current).toBe(false);
+
+    fire(nav, 'beforeRemove');
+    expect(mockTrack).toHaveBeenCalledTimes(1);
   });
 
   it('emits at most once across overlapping beforeRemove and blur', () => {

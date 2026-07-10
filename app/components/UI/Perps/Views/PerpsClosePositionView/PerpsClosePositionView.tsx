@@ -351,7 +351,11 @@ const PerpsClosePositionView: React.FC = () => {
       [PERPS_EVENT_PROPERTY.POSITION_SIZE]: absSize,
       [PERPS_EVENT_PROPERTY.UNREALIZED_PNL_DOLLAR]: pnl,
       [PERPS_EVENT_PROPERTY.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      // Honour the route-provided source threaded by each entry CTA
+      // (reduce-exposure → position_screen, order-book → order_book); fall back
+      // to the asset screen for direct entries that pass no source.
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        routeSource ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]: receiveAmount,
       // The entry CTA (close vs reduce_exposure) is passed via the navigation
       // route param — closePercentage defaults to 100 at open, so isPartialClose

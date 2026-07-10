@@ -842,8 +842,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       return;
     }
 
+    // Include the amount and pay-token identity so a retry after changing them
+    // is a distinct attempt, not deduped against the previous one — a failed
+    // quote carries no payTotals, so without these a repeated failure with the
+    // same blocking alert would be silently undercounted.
     const quoteKey = JSON.stringify({
       asset: orderForm.asset,
+      amount: orderForm.amount,
+      payToken: payToken
+        ? `${payToken.symbol ?? ''}:${payToken.chainId ?? ''}`
+        : null,
       payTotals,
       errorKey: blockingNoQuoteAlert?.key,
       errorMessage: blockingNoQuoteAlert?.message,
@@ -885,6 +893,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     payTotals,
     noQuotesAlerts,
     orderForm.asset,
+    orderForm.amount,
+    payToken,
     track,
   ]);
 

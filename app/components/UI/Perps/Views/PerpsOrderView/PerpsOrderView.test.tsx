@@ -4536,6 +4536,47 @@ describe('PerpsOrderView', () => {
         }),
       );
     });
+
+    it('emits a distinct PERPS_TRADE_QUOTE_RECEIVED per failed attempt when the amount changes (same blocking alert)', () => {
+      const { useNoPayTokenQuotesAlert: mockNoQuotes } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      // Same blocking no-quotes alert for both attempts; a failed quote carries
+      // no payTotals, so only the amount distinguishes the two attempts.
+      mockNoQuotes.mockReturnValue([
+        { key: 'no_quotes', message: 'No quotes available', isBlocking: true },
+      ]);
+
+      try {
+        const { rerender } = render(<PerpsOrderView />, {
+          wrapper: TestWrapper,
+        });
+
+        // Second attempt: user edits the amount, same failing alert.
+        (usePerpsOrderContext as jest.Mock).mockReturnValue({
+          ...defaultMockHooks.usePerpsOrderContext,
+          orderForm: {
+            ...defaultMockHooks.usePerpsOrderContext.orderForm,
+            amount: '22',
+          },
+        });
+        act(() => {
+          rerender(<PerpsOrderView />);
+        });
+
+        const quotes = eventsOf(MetaMetricsEvents.PERPS_TRADE_QUOTE_RECEIVED);
+        expect(quotes).toHaveLength(2);
+        quotes.forEach((q) =>
+          expect(q.props).toEqual(
+            expect.objectContaining({
+              [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+            }),
+          ),
+        );
+      } finally {
+        mockNoQuotes.mockReturnValue([]);
+      }
+    });
   });
 
   describe('abandon order tracking', () => {

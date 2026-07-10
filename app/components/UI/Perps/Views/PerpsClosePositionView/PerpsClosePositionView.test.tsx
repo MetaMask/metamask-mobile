@@ -3374,10 +3374,11 @@ describe('PerpsClosePositionView', () => {
         }),
       );
 
-    it('reports button_clicked=reduce_exposure when opened via the reduce-exposure entry', () => {
+    it('reports button_clicked=reduce_exposure and source=position_screen when opened via the reduce-exposure entry', () => {
       useRouteMock.mockReturnValue({
         params: {
           position: defaultPerpsPositionMock,
+          source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
           buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
           buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
         },
@@ -3386,6 +3387,7 @@ describe('PerpsClosePositionView', () => {
       renderWithProvider(<PerpsClosePositionView />);
 
       expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
           PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
@@ -3393,10 +3395,11 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('reports button_clicked=close when opened via a plain close entry', () => {
+    it('reports button_clicked=close and source=order_book when opened via the order-book close entry', () => {
       useRouteMock.mockReturnValue({
         params: {
           position: defaultPerpsPositionMock,
+          source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
           buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
           buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
         },
@@ -3405,6 +3408,7 @@ describe('PerpsClosePositionView', () => {
       renderWithProvider(<PerpsClosePositionView />);
 
       expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK,
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
           PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
@@ -3412,7 +3416,7 @@ describe('PerpsClosePositionView', () => {
       });
     });
 
-    it('defaults button_clicked=close when no entry action is provided', () => {
+    it('defaults button_clicked=close and source=perp_asset_screen when no entry action is provided', () => {
       useRouteMock.mockReturnValue({
         params: { position: defaultPerpsPositionMock },
       });
@@ -3420,6 +3424,8 @@ describe('PerpsClosePositionView', () => {
       renderWithProvider(<PerpsClosePositionView />);
 
       expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
           PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
       });
