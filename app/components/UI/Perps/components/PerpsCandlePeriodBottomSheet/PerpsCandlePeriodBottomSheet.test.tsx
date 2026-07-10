@@ -96,10 +96,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
 // Create mock store
 const configureMockStoreValue = configureMockStore();
 const mockStore = configureMockStoreValue({

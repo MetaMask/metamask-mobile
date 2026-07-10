@@ -16,7 +16,7 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import { strings } from '../../../../../../locales/i18n';
 import { CreditBalanceTooltipSheetSelectors } from './CreditBalanceTooltipSheet.testIds';
 
-interface CreditBalanceTooltipParams {
+export interface CreditBalanceTooltipParams {
   moneyAccountAmount?: string;
   refundAmount?: string;
   isMoneyAccount?: boolean;
