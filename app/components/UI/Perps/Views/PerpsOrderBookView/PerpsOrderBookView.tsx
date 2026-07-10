@@ -41,7 +41,6 @@ import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -103,7 +102,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { symbol, marketData: routeMarketData } = route.params || {};
   const displaySymbol = getPerpsDisplaySymbol(symbol || '');
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
   const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
@@ -788,7 +786,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         <BottomSheet
           ref={depthBandSheetRef}
           onClose={handleDepthBandSheetClose}
-          twClassName={surfaceClass}
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET}
         >
           <BottomSheetHeader
