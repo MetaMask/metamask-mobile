@@ -82,9 +82,9 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       }
 
       onSelect(type);
-      onClose();
+      handleClose();
     },
-    [currentOrderType, track, asset, direction, onSelect, onClose],
+    [currentOrderType, track, asset, direction, onSelect, handleClose],
   );
 
   if (!isVisible) return null;
