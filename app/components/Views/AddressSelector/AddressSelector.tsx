@@ -40,7 +40,6 @@ import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
 import { AddressSelectorSelectors } from './AddressSelector.testIds';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 export const createAddressSelectorNavDetails =
   createNavigationDetails<AddressSelectorParams>(
@@ -73,7 +72,6 @@ const AddressSelector = () => {
   );
 
   const accountName = useAccountName();
-  const surfaceClass = useElevatedSurface();
   const selectedCaipChainId = isCaipChainId(selectedChainId)
     ? selectedChainId
     : toEvmCaipChainId(selectedChainId);
@@ -157,7 +155,6 @@ const AddressSelector = () => {
       ref={sheetRef}
       isFullscreen
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         {strings('address_selector.select_an_address')}
