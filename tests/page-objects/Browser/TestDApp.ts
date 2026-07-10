@@ -9,6 +9,8 @@ import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.select
 import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
@@ -476,6 +478,17 @@ class TestDApp {
     elementId: WebElement,
     options: TapOptions = {},
   ): Promise<void> {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      await PlaywrightWebMatchers.withWebViewAction(
+        testDappPageUrl(),
+        async () => {
+          await Gestures.scrollToWebViewPort(elementId);
+          await Gestures.tap(elementId, options);
+        },
+      );
+      return;
+    }
+
     await Gestures.scrollToWebViewPort(elementId);
     await Gestures.tap(elementId, options);
   }
@@ -538,7 +551,7 @@ class TestDApp {
   }
 
   async tapOpenNetworkPicker(): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
       const picker = await PlaywrightMatchers.getElementById(
         TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
       );
@@ -560,7 +573,7 @@ class TestDApp {
   }
 
   async tapNetworkByName(networkName: string): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
       const networkItem =
         await PlaywrightMatchers.getElementByText(networkName);
       const webview = await PlaywrightMatchers.getElementById(
@@ -575,20 +588,9 @@ class TestDApp {
       return;
     }
 
-    // Try to find the network without scrolling first
-    try {
-      const networkItem = await this.getNetworkItemByName(networkName);
-      await Assertions.expectElementToBeVisible(
-        networkItem as unknown as WebElement,
-        { timeout: 2000, description: 'network item by label' },
-      );
-      await Gestures.waitAndTap(networkItem as unknown as WebElement, {
-        elemDescription: `tap ${networkName} network`,
-      });
-      return;
-    } catch {
-      throw new Error(`Could not find network "${networkName}"`);
-    }
+    await this.tapButton(this.getNetworkItemByName(networkName), {
+      elemDescription: `tap ${networkName} network`,
+    });
   }
 }
 

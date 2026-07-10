@@ -9,6 +9,7 @@ import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 
 class ConnectBottomSheet {
   get container(): EncapsulatedElementType {
@@ -64,6 +65,7 @@ class ConnectBottomSheet {
 
   async tapConnectButton(): Promise<void> {
     if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
       const button = await PlaywrightMatchers.getElementById(
         CommonSelectorsIDs.CONNECT_BUTTON,
       );

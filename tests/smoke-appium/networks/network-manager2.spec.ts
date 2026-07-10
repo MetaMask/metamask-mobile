@@ -86,9 +86,7 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
           await ConnectBottomSheet.tapConnectButton();
 
-          await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
-            description: 'Browser screen should be visible after connecting',
-          });
+          await waitForTestDappToLoad();
 
           await Browser.tapCloseBrowserButton();
           await TabBarComponent.tapWallet();

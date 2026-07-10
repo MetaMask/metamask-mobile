@@ -152,14 +152,10 @@ const ensureSingleBrowserTabView = async (): Promise<void> => {
 const getBrowserUrlBarVisibleIndicator = (): EncapsulatedElementType =>
   encapsulated({
     detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
-    appium: {
+    appium: () =>
       // TextInput (`browser-modal-url-input`) is hidden when the URL bar is unfocused;
       // the wrapper view (`url-input`) stays visible and shows the current URL.
-      android: () =>
-        PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT),
-      ios: () =>
-        PlaywrightMatchers.getElementById(BrowserURLBarSelectorsIDs.URL_INPUT),
-    },
+      PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT),
   });
 
 export const navigateToBrowserView = async (): Promise<void> => {

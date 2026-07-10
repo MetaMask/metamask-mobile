@@ -10,6 +10,7 @@ import {
 import { Json } from '@metamask/utils';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import PlaywrightAssertions from './PlaywrightAssertions.ts';
+import PlaywrightContextHelpers from './PlaywrightContextHelpers.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -28,6 +29,7 @@ export default class Assertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
       return PlaywrightAssertions.expectElementToBeVisible(
         asPlaywrightElement(elem as EncapsulatedElementType),
         options,
@@ -207,6 +209,7 @@ export default class Assertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
       return PlaywrightAssertions.expectElementToHaveLabel(
         asPlaywrightElement(elem),
         label,

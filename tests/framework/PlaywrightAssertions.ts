@@ -3,6 +3,7 @@ import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import {
   addOverhead,
   isOverheadTrackingActive,
@@ -345,14 +346,19 @@ export default class PlaywrightAssertions {
     el: PlaywrightElement,
   ): Promise<string> {
     const raw = el.unwrap();
-    const contentDesc = (await raw.getAttribute('content-desc')) ?? '';
+    const isAndroid = await PlatformDetector.isAndroid();
+    const accessibilityText = isAndroid
+      ? ((await raw.getAttribute('content-desc')) ?? '')
+      : ((await raw.getAttribute('label')) ??
+        (await raw.getAttribute('name')) ??
+        '');
     let text = '';
     try {
       text = await raw.getText();
     } catch {
       text = '';
     }
-    return [contentDesc, text].filter(Boolean).join(', ');
+    return [accessibilityText, text].filter(Boolean).join(', ');
   }
 
   static async expectTextNotDisplayed(
