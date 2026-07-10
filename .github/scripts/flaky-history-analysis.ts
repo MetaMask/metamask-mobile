@@ -511,13 +511,14 @@ async function main(): Promise<void> {
     `📁 Found ${modifiedFiles.length} modified unit test file(s): ${modifiedFiles.join(', ') || 'none'}`,
   );
 
-  // `has_test_files` gates every subsequent step in the workflow — when there
-  // is no unit test in the PR we skip both the AI analyzer invocation and the
-  // sticky comment update to avoid LLM cost and noise. `files` is the exact
-  // space-separated list passed to `--changed-files` in Stage 2 so the two
-  // stages agree on scope (the AI must not analyze production code or e2e).
+  // `has_test_files` gates the AI analyzer invocation — when there is no unit
+  // test in the PR we skip it to avoid LLM cost and noise. It also lets
+  // Stage 3 run when it is false, so the sticky comment can flip to an
+  // all-clear state once a PR no longer modifies any unit test file. Stage 2
+  // is scoped separately via `files_to_analyze`, the space-separated list of
+  // files that actually need re-analysis (so the two stages agree on scope —
+  // the AI must not analyze production code or e2e).
   core.setOutput('has_test_files', modifiedFiles.length > 0 ? 'true' : 'false');
-  core.setOutput('files', modifiedFiles.join(' '));
 
   if (modifiedFiles.length === 0) {
     writeHistoryFile([], emptyWindowCounts(), [], env.headSha);
