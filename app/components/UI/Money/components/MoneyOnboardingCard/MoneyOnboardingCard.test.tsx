@@ -40,11 +40,6 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
-jest.mock('../MoneyNextBestActionParallax', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));

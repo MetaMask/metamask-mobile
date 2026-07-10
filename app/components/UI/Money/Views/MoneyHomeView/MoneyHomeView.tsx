@@ -16,8 +16,6 @@ import {
   BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -108,8 +106,6 @@ const MoneyHomeView = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedCardActionRowViewRef = useRef(false);
-  const { PreferencesController } = Engine.context;
-  const privacyMode = useSelector(selectPrivacyMode);
 
   const {
     trackButtonClicked,
@@ -468,10 +464,6 @@ const MoneyHomeView = () => {
     });
   }, [trackTooltipClicked, navigation, apyPercent]);
 
-  const handleBalancePress = useCallback(() => {
-    PreferencesController.setPrivacyMode(!privacyMode);
-  }, [PreferencesController, privacyMode]);
-
   const handleEarningsInfoPress = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_EARNINGS,
@@ -697,7 +689,6 @@ const MoneyHomeView = () => {
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
             isBalanceStale={showBalanceUnavailableBanner}
-            privacyMode={privacyMode}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}
             analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
@@ -723,7 +714,6 @@ const MoneyHomeView = () => {
           yearlyEarnings={yearlyEarnings}
           isLoading={vaultApyQuery.isLoading || isBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
-          privacyMode={privacyMode}
         />
       ),
     });
@@ -752,7 +742,6 @@ const MoneyHomeView = () => {
             }
             onAddPress={handleMusdRowAddPress}
             balance={musdFiatFormatted}
-            privacyMode={privacyMode}
           />
         </>
       ),
@@ -776,7 +765,6 @@ const MoneyHomeView = () => {
           onViewAllPress={handleViewAllActivityPress}
           onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
-          privacyMode={privacyMode}
         />
       ),
     });
@@ -795,7 +783,6 @@ const MoneyHomeView = () => {
           onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
           onHeaderPress={handlePotentialEarningsHeaderPress}
           onInfoPress={handleEarnCryptoInfoPress}
-          privacyMode={privacyMode}
         />
       ),
     });
@@ -876,8 +863,6 @@ const MoneyHomeView = () => {
           apy={apyPercent}
           displayState={displayState}
           onApyInfoPress={handleApyInfoPress}
-          privacyMode={privacyMode}
-          onBalancePress={handleBalancePress}
         />
         <MoneyActionButtonRow
           add={{

@@ -7,5 +7,4 @@ export const ToastSelectorsText = {
 export const ToastSelectorsIDs = {
   CONTAINER: 'toast',
   NOTIFICATION_TITLE: 'notification-title',
-  PRESSABLE: 'toast-pressable',
 };

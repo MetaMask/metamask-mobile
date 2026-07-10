@@ -13,10 +13,6 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../services/PerpsConnectionManager');
 
-jest.mock('../utils/perpsLifecycleContext', () => ({
-  initPerpsLifecycleTracking: jest.fn(() => jest.fn()),
-}));
-
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {

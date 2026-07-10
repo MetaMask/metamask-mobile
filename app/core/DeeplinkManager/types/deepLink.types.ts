@@ -65,11 +65,6 @@ export interface DeeplinkUrlParams {
   // Home-specific parameters
   previewToken?: string;
 
-  // What's Happening-specific parameters
-  // Id of a market overview front-page item to render as the first, "outdated"
-  // card of the What's Happening expanded view.
-  id?: string;
-
   // Note: All properties are explicitly defined above
 }
 

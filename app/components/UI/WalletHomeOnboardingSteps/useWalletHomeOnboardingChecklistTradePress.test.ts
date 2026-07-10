@@ -76,39 +76,4 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
       ActionLocation.ONBOARDING_CHECKLIST,
     );
   });
-
-  it('uses swap pair resolved after mount', () => {
-    mockUseWalletHomeOnboardingTradeSwapPair.mockReturnValue(undefined);
-
-    const { result, rerender } = renderHook(() =>
-      useWalletHomeOnboardingChecklistTradePress(goToSwaps),
-    );
-
-    act(() => {
-      result.current();
-    });
-
-    expect(goToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
-
-    mockUseWalletHomeOnboardingTradeSwapPair.mockReturnValue(swapPair);
-    rerender({});
-
-    act(() => {
-      result.current();
-    });
-
-    expect(goToSwaps).toHaveBeenCalledWith(
-      sourceToken,
-      destToken,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
-  });
 });

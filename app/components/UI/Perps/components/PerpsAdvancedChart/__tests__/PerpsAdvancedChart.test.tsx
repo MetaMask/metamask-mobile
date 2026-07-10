@@ -5,6 +5,7 @@ import PerpsAdvancedChart, {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
+import { advancedChartLineChromePresets } from '../../../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import type { AdvancedChartProps } from '../../../../Charts/AdvancedChart/AdvancedChart.types';
 import { getPerpsVolumeColors, hexToRgba } from '../../../utils/chartColors';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
@@ -109,6 +110,7 @@ describe('PerpsAdvancedChart', () => {
 
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({
+        lineChrome: advancedChartLineChromePresets.perps.lineChrome,
         currentPriceLineColorOverride: mockTheme.colors.text.default,
         volumeSuccessColorOverride: volumeColors.success,
         volumeErrorColorOverride: volumeColors.error,

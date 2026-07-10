@@ -278,7 +278,6 @@ describe('useSwapBridgeNavigation', () => {
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
-        autoFocusSourceAmountInput: true,
       },
     });
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
@@ -320,7 +319,6 @@ describe('useSwapBridgeNavigation', () => {
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
-        autoFocusSourceAmountInput: true,
       },
     });
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
@@ -371,7 +369,6 @@ describe('useSwapBridgeNavigation', () => {
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
-        autoFocusSourceAmountInput: true,
       },
     });
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
@@ -469,14 +466,6 @@ describe('useSwapBridgeNavigation', () => {
 
     expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(true);
     expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Bridge',
-      expect.objectContaining({
-        params: expect.objectContaining({
-          autoFocusSourceAmountInput: true,
-        }),
-      }),
-    );
   });
 
   it('uses home page filter network when no token is provided', () => {
@@ -729,7 +718,6 @@ describe('useSwapBridgeNavigation', () => {
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
           location: 'Main View',
-          autoFocusSourceAmountInput: true,
         },
       });
       expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
@@ -770,7 +758,6 @@ describe('useSwapBridgeNavigation', () => {
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
           location: 'Main View',
-          autoFocusSourceAmountInput: true,
         },
       });
     });

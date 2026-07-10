@@ -9,7 +9,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { POLYGON_PUSD } from '../../../constants/predict';
-import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
 import { TransactionSummaryLine } from './transaction-summary-line';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 
@@ -64,9 +63,7 @@ export function ReceiveSummaryLine({
   } else if (isPredictDeposit) {
     targetSymbol = POLYGON_PUSD.symbol;
   } else if (isPredictWithdraw) {
-    targetSymbol =
-      getTokenDisplaySymbol(sourceTokenAddress, sourceToken?.symbol) ??
-      'Unknown';
+    targetSymbol = sourceToken?.symbol ?? 'Unknown';
     finalTargetNetworkName = sourceNetworkName;
     receiveChainId = sourceChainId ?? '0x0';
   }

@@ -37,6 +37,7 @@ export const handleBridgeFetch = async (
   const urlString = url.toString();
 
   if (urlString.includes('Stream')) {
+    // @ts-expect-error - expoFetch has a different RequestInit type
     return expoFetch(urlString, options);
   }
 

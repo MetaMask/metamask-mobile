@@ -70,14 +70,14 @@ describe('mapRampOrder', () => {
     });
   });
 
-  it('maps deposit orders to buy', () => {
+  it('maps deposit orders to deposit', () => {
     const order = {
       ...baseOrder,
       orderType: DepositOrderType.Deposit,
     };
 
     expect(mapRampOrder({ order })).toMatchObject({
-      type: 'buy',
+      type: 'deposit',
       data: { token: { direction: 'in' } },
     });
   });
@@ -111,27 +111,5 @@ describe('mapRampOrder', () => {
     expect(
       mapRampOrder({ order: { ...baseOrder, network: 'not-a-chain' } }),
     ).toBeNull();
-  });
-
-  it('maps orders with a non-EVM CAIP-2 network', () => {
-    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-
-    expect(
-      mapRampOrder({
-        order: { ...baseOrder, network: solanaChainId, cryptocurrency: 'SOL' },
-      }),
-    ).toMatchObject({
-      type: 'buy',
-      chainId: solanaChainId,
-    });
-  });
-
-  it('maps orders with an eip155 CAIP-2 network', () => {
-    expect(
-      mapRampOrder({ order: { ...baseOrder, network: 'eip155:137' } }),
-    ).toMatchObject({
-      type: 'buy',
-      chainId: 'eip155:137',
-    });
   });
 });

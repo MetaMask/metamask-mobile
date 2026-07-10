@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { colors as importedColors } from '../../../../styles/common';
 import { Theme } from '../../../../util/theme/models';
 
 const createStyles = (params: {
@@ -41,6 +40,7 @@ const createStyles = (params: {
     sectionHeader: {
       paddingHorizontal: 16,
       paddingVertical: 8,
+      backgroundColor: theme.colors.background.default,
     },
     sectionHeaderText: {
       color: theme.colors.text.alternative,
@@ -51,8 +51,8 @@ const createStyles = (params: {
       paddingHorizontal: 16,
       width: '100%',
       backgroundColor: isSelected
-        ? colors.background.section
-        : importedColors.transparent,
+        ? colors.background.muted
+        : colors.background.default,
     },
     selectedIndicator: {
       marginLeft: -12, // The width of the indicator is 4px, so we need to offset by 12px to align with the cell

@@ -31,7 +31,6 @@ import {
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
   type SetOnboardingStepperStepAction,
-  type SetAppInstallEventFiredAction,
   UserActionType,
 } from './types';
 
@@ -291,11 +290,5 @@ export function setOnboardingStepperStep(
   return {
     type: UserActionType.SET_ONBOARDING_STEPPER_STEP,
     payload: { stepperId, step },
-  };
-}
-
-export function setAppInstallEventFired(): SetAppInstallEventFiredAction {
-  return {
-    type: UserActionType.SET_APP_INSTALL_EVENT_FIRED,
   };
 }

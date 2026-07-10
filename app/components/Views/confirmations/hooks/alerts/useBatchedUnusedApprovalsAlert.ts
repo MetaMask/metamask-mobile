@@ -12,7 +12,6 @@ import { TokenStandard } from '../../../../UI/SimulationDetails/types';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { APPROVAL_TYPES } from '../../constants/approvals';
 import { AlertKeys } from '../../constants/alerts';
-import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { memoizedGetTokenStandardAndDetails } from '../../utils/token';
@@ -20,7 +19,6 @@ import {
   parseApprovalTransactionData,
   ParsedApprovalTransactionData,
 } from '../../utils/approvals';
-import { hasTransactionType } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { selectNonZeroUnusedApprovalsAllowList } from '../../../../../selectors/featureFlagController/confirmations';
@@ -220,17 +218,11 @@ export const useBatchedUnusedApprovalsAlert = () => {
     return findUnusedApprovals(approvals, tokenOutflows);
   }, [approvals, tokenOutflows]);
 
-  const isMMPayTransaction = hasTransactionType(
-    transactionMetadata,
-    MM_PAY_TRANSACTION_TYPES,
-  );
-
   const shouldShowAlert =
     unusedApprovals.length > 0 &&
     Boolean(simulationData) &&
     isSimulationSupported &&
-    !skipAlertOriginAllowed &&
-    !isMMPayTransaction;
+    !skipAlertOriginAllowed;
 
   return useMemo(() => {
     if (!shouldShowAlert) {

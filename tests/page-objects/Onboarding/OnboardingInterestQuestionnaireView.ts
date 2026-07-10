@@ -42,20 +42,6 @@ class OnboardingInterestQuestionnaireView {
     });
   }
 
-  get skipButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
-          { exact: true },
-        ),
-    });
-  }
-
   getOptionById(id: InterestOptionId): EncapsulatedElementType {
     const testID = `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${id}`;
     return encapsulated({
@@ -67,13 +53,6 @@ class OnboardingInterestQuestionnaireView {
   async tapContinueButton(): Promise<void> {
     await UnifiedGestures.tap(this.continueButton, {
       description: 'Onboarding Interest Questionnaire Continue Button',
-      timeout: 2000,
-    });
-  }
-
-  async tapSkipButton(): Promise<void> {
-    await UnifiedGestures.tap(this.skipButton, {
-      description: 'Onboarding Interest Questionnaire Skip Button',
       timeout: 2000,
     });
   }

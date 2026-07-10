@@ -18,7 +18,7 @@ import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinka
 import { CardEntryPoint } from '../../util/metrics';
 import { MoneyUnlinkCardSheetTestIds } from './MoneyUnlinkCardSheet.testIds';
 
-export interface MoneyUnlinkCardSheetRouteParams {
+interface MoneyUnlinkCardSheetRouteParams {
   fundingSource?: string;
   entrypoint?: CardEntryPoint | string;
 }

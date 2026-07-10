@@ -183,4 +183,10 @@ describe('PerpsPayRow', () => {
 
     expect(onPayWithInfoPress).toHaveBeenCalledTimes(1);
   });
+
+  it('renders with embedded style when embeddedInStack is true', () => {
+    const { getByTestId } = renderWithProvider(<PerpsPayRow embeddedInStack />);
+
+    expect(getByTestId(ConfirmationRowComponentIDs.PAY_WITH)).toBeOnTheScreen();
+  });
 });

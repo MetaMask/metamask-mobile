@@ -12,11 +12,17 @@ import android.database.CursorWindow
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
+import com.facebook.react.ReactNativeHost
+import com.facebook.react.ReactPackage
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
+import com.facebook.react.defaults.DefaultReactNativeHost
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
+import com.facebook.soloader.SoLoader
 
 import expo.modules.ApplicationLifecycleDispatcher
-import expo.modules.ExpoReactHostFactory.getDefaultReactHost
+import expo.modules.ReactNativeHostWrapper
 
 import cl.json.ShareApplication
 import io.branch.rnbranch.RNBranchModule
@@ -31,24 +37,30 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
     override fun getFileProviderAuthority(): String = "${BuildConfig.APPLICATION_ID}.provider"
 
-    // Expo SDK 55 removed `ReactNativeHostWrapper`; the New Architecture entry point
-    // is now `ExpoReactHostFactory.getDefaultReactHost`, which wires in Expo modules'
-    // host handlers (dev launcher, updates, etc.). `reactNativeHost` is intentionally
-    // not overridden — it's deprecated in RN 0.83 and throws by default in the New
-    // Architecture. `jsMainModulePath` defaults to ".expo/.virtual-metro-entry" and
-    // the JS engine is Hermes, matching the previous configuration.
-    override val reactHost: ReactHost by lazy {
-        getDefaultReactHost(
-            applicationContext,
-            packageList = PackageList(this).packages.apply {
+    override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
+        this,
+        object : DefaultReactNativeHost(this) {
+            override fun getPackages(): List<ReactPackage> {
+                val packages = PackageList(this).packages.toMutableList()
                 // Add all our custom packages
-                add(PreventScreenshotPackage())
-                add(RCTMinimizerPackage())
-                add(RNTarPackage())
-                add(NotificationPackage())
-            },
-        )
-    }
+                packages.add(PreventScreenshotPackage())
+                packages.add(RCTMinimizerPackage())
+                packages.add(RNTarPackage())
+                packages.add(NotificationPackage())
+                return packages
+            }
+
+            override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"
+
+            override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
+
+            override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+            override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
+        }
+    )
+
+    override val reactHost: ReactHost
+        get() = ReactNativeHostWrapper.createReactHost(applicationContext, reactNativeHost)
 
     @Suppress("OVERRIDE_DEPRECATION")
     override fun registerReceiver(receiver: BroadcastReceiver?, filter: IntentFilter): Intent? {

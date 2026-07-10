@@ -21,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { formatTimeRemaining } from '../../utils/formatUtils';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface OndoAfterHoursSheetProps {
   onClose: () => void;
@@ -35,8 +36,10 @@ const OndoAfterHoursSheet: React.FC<OndoAfterHoursSheetProps> = ({
 }) => {
   const countdownText = nextOpenAt ? formatTimeRemaining(nextOpenAt) : null;
 
+  const surfaceClass = useElevatedSurface();
+
   return (
-    <BottomSheet onClose={onClose}>
+    <BottomSheet onClose={onClose} twClassName={surfaceClass}>
       <Box twClassName="px-4 pb-4">
         {/* Header row: spacer + close button */}
         <Box

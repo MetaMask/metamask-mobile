@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { Provider as ReduxProvider } from 'react-redux';
+import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store';
 import App from '../../Nav/App';
@@ -13,7 +13,6 @@ import ThemeProvider from '../../../component-library/providers/ThemeProvider/Th
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
@@ -98,40 +97,36 @@ const Root = ({ foxCode }: RootProps) => {
     // native-stack does not add this automatically.
     <GestureHandlerRootView style={styles.gestureRoot}>
       <SafeAreaProvider>
-        <KeyboardProvider>
-          <ReduxProvider store={store}>
-            <PersistGate persistor={persistor}>
-              <ErrorBoundary view="Root">
-                {
-                  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-                  // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
-                  <SnapsExecutionWebView />
-                  ///: END:ONLY_INCLUDE_IF
-                }
-                <QueryClientProvider client={reactQueryService.queryClient}>
-                  <FeatureFlagOverrideProvider>
-                    <ThemeProvider>
-                      <NavigationProvider>
-                        <ControllersGate>
-                          <UIMessengerProvider value={uiMessenger}>
-                            <ToastContextWrapper>
-                              <HardwareWalletProvider>
-                                <ReducedMotionConfig
-                                  mode={ReduceMotion.Never}
-                                />
-                                <App />
-                              </HardwareWalletProvider>
-                            </ToastContextWrapper>
-                          </UIMessengerProvider>
-                        </ControllersGate>
-                      </NavigationProvider>
-                    </ThemeProvider>
-                  </FeatureFlagOverrideProvider>
-                </QueryClientProvider>
-              </ErrorBoundary>
-            </PersistGate>
-          </ReduxProvider>
-        </KeyboardProvider>
+        <Provider store={store}>
+          <PersistGate persistor={persistor}>
+            <ErrorBoundary view="Root">
+              {
+                ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+                // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+                <SnapsExecutionWebView />
+                ///: END:ONLY_INCLUDE_IF
+              }
+              <QueryClientProvider client={reactQueryService.queryClient}>
+                <FeatureFlagOverrideProvider>
+                  <ThemeProvider>
+                    <NavigationProvider>
+                      <ControllersGate>
+                        <UIMessengerProvider value={uiMessenger}>
+                          <ToastContextWrapper>
+                            <HardwareWalletProvider>
+                              <ReducedMotionConfig mode={ReduceMotion.Never} />
+                              <App />
+                            </HardwareWalletProvider>
+                          </ToastContextWrapper>
+                        </UIMessengerProvider>
+                      </ControllersGate>
+                    </NavigationProvider>
+                  </ThemeProvider>
+                </FeatureFlagOverrideProvider>
+              </QueryClientProvider>
+            </ErrorBoundary>
+          </PersistGate>
+        </Provider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

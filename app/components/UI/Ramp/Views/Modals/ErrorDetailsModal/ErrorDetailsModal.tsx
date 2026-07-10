@@ -27,6 +27,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
 import styleSheet from './ErrorDetailsModal.styles';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ErrorDetailsModalParams {
   errorMessage: string;
@@ -57,6 +58,7 @@ function ErrorDetailsModal() {
     showChangeProvider,
     amount,
   } = useParams<ErrorDetailsModalParams>();
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -91,7 +93,11 @@ function ErrorDetailsModal() {
   }, [navigation, amount]);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
       <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}

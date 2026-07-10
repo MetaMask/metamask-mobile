@@ -13,9 +13,6 @@ import Modal from 'react-native-modal';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { AppThemeKey } from '../../../util/theme/models';
-import { isPureBlackEnabled } from '../../../util/theme/pureBlackPreview';
-import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 import PickerBase from '../../../component-library/components/Pickers/PickerBase';
 import {
   HeaderStandard,
@@ -26,10 +23,8 @@ import {
 } from '@metamask/design-system-react-native';
 
 const ROW_HEIGHT = 35;
-export const createStyles = (theme) => {
-  const { colors } = theme;
-
-  return StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
     pickerTrigger: {
       backgroundColor: colors.background.muted,
       padding: 0,
@@ -48,23 +43,12 @@ export const createStyles = (theme) => {
       width: '100%',
       padding: 60,
     },
-    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
-    // Drop getElevatedSurfaceColor, isPureBlackEnabled, and AppThemeKey checks.
-    // Use: backgroundColor: colors.background.default, borderWidth: 0
     modalView: {
-      backgroundColor: getElevatedSurfaceColor(theme),
+      backgroundColor: colors.background.default,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 10,
       maxHeight: Device.getDeviceHeight() - 120, // Subtract top and bottom padding
-      borderWidth:
-        isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-          ? 1
-          : 0,
-      borderColor:
-        isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark
-          ? colors.border.muted
-          : undefined,
     },
     list: {
       width: '100%',
@@ -91,7 +75,6 @@ export const createStyles = (theme) => {
       paddingBottom: 10,
     },
   });
-};
 
 export default class SelectComponent extends PureComponent {
   static propTypes = {
@@ -170,9 +153,8 @@ export default class SelectComponent extends PureComponent {
   };
 
   renderDropdownSelector = () => {
-    const theme = this.context || mockTheme;
-    const { colors } = theme;
-    const styles = createStyles(theme);
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
 
     return (
       <View style={baseStyles.flexGrow}>

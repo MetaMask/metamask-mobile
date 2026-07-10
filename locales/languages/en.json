@@ -476,7 +476,6 @@
     "security_alert_title": "Security alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
-    "biometric_too_many_attempts": "Too many attempts, please enter your password.",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use a different login method",
@@ -1070,14 +1069,21 @@
       "traders_you_follow_empty": "You aren't following any traders yet.",
       "error_loading_followed": "Unable to load the traders you follow."
     },
+    "trader_notifications": {
+      "title": "Notifications from {{traderName}}",
+      "allow_push_notifications": "Allow push notifications",
+      "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
+      "manage_traders": "Manage traders you follow"
+    },
+    "trader_notifications_setup": {
+      "description": "Get real-time alerts on trades from the traders you follow",
+      "allow_push_notifications": "Allow push notifications",
+      "trades_over_label": "Get notified of trades over:",
+      "save": "Save",
+      "title": "Top Traders"
+    },
     "follow": "Follow",
     "following": "Following",
-    "mute": {
-      "on_accessibility_label": "Notifications on. Tap to mute this trader",
-      "muted_accessibility_label": "Muted. Tap to turn notifications back on",
-      "on_accessibility_label_named": "Notifications on for {{traderName}}. Tap to mute",
-      "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
-    },
     "all_networks": "All networks",
     "trader_profile": {
       "followers_count": "{{count}} follower",
@@ -1104,6 +1110,7 @@
       "market_cap": "Market cap",
       "price": "Price",
       "position": "Position",
+      "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
       "unsupported_market": "Unsupported market",
@@ -1152,8 +1159,6 @@
       "buy_label": "Buy",
       "sell_label": "Sell",
       "receive": "Receive",
-      "max": "Max",
-      "add_funds": "Add funds",
       "toast_pending_buy": "Buying {{amount}} of {{symbol}} with {{counter}}",
       "toast_pending_sell": "Selling {{amount}} of {{symbol}} for {{counter}}",
       "toast_complete_buy": "Bought {{amount}} of {{symbol}} with {{counter}}",
@@ -2084,8 +2089,7 @@
       "products": "Products",
       "top_movers": "Top movers",
       "gainers": "Gainers",
-      "losers": "Losers",
-      "recently_added": "Recently added"
+      "losers": "Losers"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -2179,15 +2183,8 @@
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
     },
-    "market_count": "{{count}} market",
-    "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
     "no_tokens_found_description": "We couldn't find any tokens with the name \"{{searchQuery}}\". Try a different search.",
-    "no_markets_found": "No markets found",
-    "no_markets_found_description": "No markets match your current filter. Try a different category.",
-    "no_markets_search_description": "No markets match \"{{searchQuery}}\" in this category. Try a different search or clear the filter.",
-    "clear_search": "Clear search",
-    "clear_filter": "Clear filter",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -2502,7 +2499,6 @@
     },
     "outcome_groups": {
       "game_lines": "Game Lines",
-      "halves": "Halves",
       "first_half": "1st Half",
       "first_set": "1st Set",
       "team_totals": "Team Totals",
@@ -2531,7 +2527,6 @@
       "first_half_moneyline": "1H Moneyline",
       "first_half_spreads": "1H Spreads",
       "first_half_totals": "1H Totals",
-      "second_half_totals": "2H Totals",
       "points": "Points",
       "assists": "Assists",
       "rebounds": "Rebounds",
@@ -2539,7 +2534,6 @@
       "basketball_odd_even": "Odd/Even Score",
       "basketball_team_to_score_first": "Team to Score First",
       "goalscorers": "Goalscorers",
-      "soccer_player_goals": "Goals",
       "exact_score": "Exact Score",
       "halftime_result": "Halftime Result",
       "corners": "Corners",
@@ -2551,22 +2545,17 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
-      "soccer_first_half_team_totals": "1st Half Team Totals",
-      "both_teams_to_score_first_half": "1st Half Both Teams to Score",
-      "soccer_second_half_result": "2nd Half Result",
-      "soccer_second_half_team_totals": "2nd Half Team Totals",
-      "both_teams_to_score_second_half": "2nd Half Both Teams to Score",
-      "soccer_team_to_advance": "Team to Advance",
       "soccer_first_to_score": "First Team to Score",
-      "soccer_extra_time": "Extra Time?",
-      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
       "tennis_set_handicap": "Set Handicap",
       "tennis_match_totals": "Total Games",
       "tennis_first_set_totals": "1st Set Total Games",
       "tennis_first_set_winner": "1st Set Winner",
-      "tennis_completed_match": "Completed Match"
+      "tennis_completed_match": "Completed Match",
+      "soccer_team_to_advance": "Team to Advance",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?"
     },
     "sell_position": "Sell position",
     "odds": "Odds",
@@ -2730,10 +2719,6 @@
           "title": "Claimed",
           "description": "{{amount}} added to your balance"
         },
-        "redeemed": {
-          "title": "Position redeemed",
-          "description": "Your position has been redeemed"
-        },
         "error": {
           "title": "Something went wrong",
           "description": "Failed to proceed with claim",
@@ -2854,15 +2839,15 @@
       "volume_display": "${{volume}} Vol",
       "read_terms": "Read the full contract terms and conditions"
     },
+    "sports": {
+      "halftime": "Halftime",
+      "final": "Final"
+    },
     "reg_time_info": {
       "tag": "Reg time",
       "accessibility_label": "Regulation time market information",
       "title": "Regulation time",
       "description": "This market refers to the outcome during the 90 minutes of regular play plus stoppage time. It excludes extra time and penalties."
-    },
-    "sports": {
-      "halftime": "Halftime",
-      "final": "Final"
     }
   },
   "rwa": {
@@ -3119,7 +3104,8 @@
       "buy_sell": "Buy/Sell",
       "perps": "Perps",
       "predictions": "Predictions",
-      "metamask_card": "Card"
+      "metamask_card": "Card",
+      "money": "Money"
     },
     "perps_filter": {
       "title": "Perps",
@@ -3159,6 +3145,14 @@
       "buy_sell": {
         "description": "Add funds to your wallet to get started.",
         "action": "Add funds"
+      },
+      "money_funded": {
+        "description": "You've got funds—put them to work in MetaMask Money.",
+        "action": "Transfer funds"
+      },
+      "money_unfunded": {
+        "description": "Transfer to MetaMask Money and unlock all it has to offer.",
+        "action": "Transfer funds"
       },
       "metamask_card": {
         "description": "Manage your MetaMask Card and spend crypto anywhere.",
@@ -3260,24 +3254,18 @@
     "pna25_description_3": "You can read more about what we collect, how we protect it, and why we're making this change in our latest",
     "pna25_blog_post_link": "blog post",
     "pna25_confirm_button": "Accept and close",
-    "pna25_open_settings_button": "Open Settings",
-    "settings": "You can also",
-    "settings_link": "manage other default settings."
+    "pna25_open_settings_button": "Open Settings"
   },
   "onboarding_interest_questionnaire": {
-    "title": "How will you use MetaMask?",
+    "title": "What do you want to do with MetaMask?",
     "description": "Select all that apply.",
-    "option_swap_tokens": "Swap tokens",
-    "option_trade_perpetuals": "Trade perpetuals",
-    "option_prediction_markets": "Prediction markets",
-    "option_send_receive_crypto": "Send and receive crypto",
-    "option_earn_and_spend": "Earn and spend",
-    "option_use_other_crypto_apps": "Use other crypto apps",
-    "option_other": "Other",
-    "other_placeholder": "How else will you use MetaMask?",
-    "done": "Done",
-    "skip": "Skip",
-    "next": "Next"
+    "option_buy_and_sell_crypto": "Buy and sell crypto tokens",
+    "option_consolidate_wallets": "Consolidate your wallets",
+    "option_advanced_trades": "Trade perpetuals",
+    "option_predict_sports_events": "Predict sports and events",
+    "option_crypto_as_money": "Use crypto as money",
+    "option_connect_apps_sites": "Connect to apps or sites",
+    "continue": "Continue"
   },
   "onboarding_crypto_experience_questionnaire": {
     "title": "What's your experience with crypto?",
@@ -4872,21 +4860,21 @@
     "activity_perps_withdrawal": "Perps withdrawal",
     "activity_perps_open_long": "Opened long",
     "activity_perps_close_long": "Closed long",
-    "activity_perps_close_long_liquidated": "Closed long — liquidated",
-    "activity_perps_close_long_stop_loss": "Closed long — stop loss",
+    "activity_perps_close_long_liquidated": "Closed long—liquidated",
+    "activity_perps_close_long_stop_loss": "Closed long—stop loss",
     "activity_perps_open_short": "Opened short",
     "activity_perps_close_short": "Closed short",
-    "activity_perps_close_short_liquidated": "Closed short — liquidated",
-    "activity_perps_close_short_stop_loss": "Closed short — stop loss",
+    "activity_perps_close_short_liquidated": "Closed short—liquidated",
+    "activity_perps_close_short_stop_loss": "Closed short—stop loss",
     "activity_perps_paid_funding_fees": "Paid funding fees",
     "activity_perps_received_funding_fees": "Received funding fees",
-    "activity_perps_close_short_take_profit": "Closed short — take profit",
-    "activity_perps_close_long_take_profit": "Closed long — take profit",
+    "activity_perps_close_short_take_profit": "Closed short—take profit",
+    "activity_perps_close_long_take_profit": "Closed long—take profit",
     "activity_market_short": "Market short",
-    "activity_stop_market_close_short": "Stop market — close short",
-    "activity_market_close_short": "Market — close short",
+    "activity_stop_market_close_short": "Stop market—close short",
+    "activity_market_close_short": "Market—close short",
     "activity_limit_short": "Limit short",
-    "activity_limit_close_short": "Limit — close short",
+    "activity_limit_close_short": "Limit—close short",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -7183,10 +7171,8 @@
     "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
-        "title": "Earn up to {{apy}}% APY",
-        "title_no_apy": "Fund your Money account",
-        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
-        "description_no_apy": "Fund your Money account and watch your balance grow.",
+        "title": "Fund your account",
+        "description": "Drop in some funds. Your Money account will handle the rest.",
         "cta": "Add funds"
       },
       "step_2": {
@@ -7254,8 +7240,7 @@
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "description_with_amounts_prefix": "Convert your",
-      "description_with_amounts_middle": "in assets and you could earn up to",
+      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
       "add": "Add",
       "convert_cta": "Convert your crypto",
@@ -7322,6 +7307,7 @@
       "convert_crypto": "Convert crypto",
       "deposit_funds": "Debit card or Apple Pay",
       "bank_account": "Bank account",
+      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
       "coming_soon": "Coming soon"
@@ -9958,7 +9944,6 @@
   "trending": {
     "title": "Explore",
     "crypto_movers": "Crypto movers",
-    "hot_tokens": "Hot tokens",
     "perps_movers": "Perps movers",
     "perps_movers_pill_gainers": "Gainers",
     "perps_movers_pill_losers": "Losers",
@@ -10208,7 +10193,6 @@
   "whats_happening": {
     "title": "What's happening",
     "ai": "AI",
-    "outdated": "Outdated",
     "impact": {
       "bullish": "Bullish",
       "bearish": "Bearish",

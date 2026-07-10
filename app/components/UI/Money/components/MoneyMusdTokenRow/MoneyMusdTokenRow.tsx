@@ -10,8 +10,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  SensitiveText,
-  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -38,15 +36,12 @@ interface MoneyMusdTokenRowProps {
    * subtitle falls back to just the symbol.
    */
   balance?: string;
-  /** Whether the balance should be masked. */
-  privacyMode?: boolean;
 }
 
 const MoneyMusdTokenRow = ({
   onPress,
   onAddPress,
   balance,
-  privacyMode = false,
 }: MoneyMusdTokenRowProps) => {
   const subtitle = balance
     ? `${balance} • ${MUSD_TOKEN.symbol}`
@@ -68,27 +63,13 @@ const MoneyMusdTokenRow = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {MUSD_TOKEN.name}
           </Text>
-          {balance ? (
-            <SensitiveText
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-              testID={MoneyMusdTokenRowTestIds.SUBTITLE}
-            >
-              {subtitle}
-            </SensitiveText>
-          ) : (
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              testID={MoneyMusdTokenRowTestIds.SUBTITLE}
-            >
-              {subtitle}
-            </Text>
-          )}
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {subtitle}
+          </Text>
         </Box>
         <Button
           variant={ButtonVariant.Secondary}

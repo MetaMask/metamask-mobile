@@ -65,6 +65,34 @@ describe('getActivityEmptyState', () => {
     });
   });
 
+  describe('Money filter', () => {
+    it('returns funded copy + TransferToMoney when hasFunds is true', () => {
+      expect(
+        getActivityEmptyState({
+          filter: ActivityTypeFilter.Money,
+          hasFunds: true,
+        }),
+      ).toEqual({
+        descriptionKey: 'activity_view.empty_state.money_funded.description',
+        actionLabelKey: 'activity_view.empty_state.money_funded.action',
+        action: ActivityEmptyStateAction.TransferToMoney,
+      });
+    });
+
+    it('returns unfunded copy + TransferToMoney when hasFunds is false', () => {
+      expect(
+        getActivityEmptyState({
+          filter: ActivityTypeFilter.Money,
+          hasFunds: false,
+        }),
+      ).toEqual({
+        descriptionKey: 'activity_view.empty_state.money_unfunded.description',
+        actionLabelKey: 'activity_view.empty_state.money_unfunded.action',
+        action: ActivityEmptyStateAction.TransferToMoney,
+      });
+    });
+  });
+
   describe('Filters that override hasFunds (themed copy regardless of balance)', () => {
     it.each([true, false])(
       'Predictions returns themed copy + MakePrediction (hasFunds=%s)',

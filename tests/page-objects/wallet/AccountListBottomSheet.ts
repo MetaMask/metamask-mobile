@@ -394,9 +394,6 @@ class AccountListBottomSheet {
           scrollParams: { direction: 'down' },
         });
         await PlaywrightGestures.waitAndTap(link);
-        await this.waitForAccountSyncToComplete(90_000, {
-          addAccountButtonIndex: index,
-        });
       },
     });
   }

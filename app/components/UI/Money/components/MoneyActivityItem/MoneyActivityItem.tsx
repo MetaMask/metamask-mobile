@@ -11,8 +11,6 @@ export interface MoneyActivityItemProps {
   onPress?: (transaction: TransactionMeta) => void;
   /** When true, shows the chain network badge on the icon avatar. Defaults to false. */
   showNetworkBadge?: boolean;
-  /** Whether the crypto/fiat amounts should be masked. */
-  privacyMode?: boolean;
 }
 
 const MoneyActivityItem = ({
@@ -20,7 +18,6 @@ const MoneyActivityItem = ({
   moneyAddress,
   onPress,
   showNetworkBadge = false,
-  privacyMode = false,
 }: MoneyActivityItemProps) => {
   const display = useMoneyTransactionDisplayInfo(tx, moneyAddress);
   const activityDetailsEnabled = useSelector(
@@ -34,7 +31,6 @@ const MoneyActivityItem = ({
       chainId={tx.chainId}
       onPress={activityDetailsEnabled ? () => onPress?.(tx) : undefined}
       showNetworkBadge={showNetworkBadge}
-      privacyMode={privacyMode}
     />
   );
 };

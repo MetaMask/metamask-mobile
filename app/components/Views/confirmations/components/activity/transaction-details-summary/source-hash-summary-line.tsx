@@ -11,7 +11,6 @@ import { TransactionSummaryLine } from './transaction-summary-line';
 import { hasTransactionType } from '../../../utils/transaction';
 import { POLYGON_PUSD } from '../../../constants/predict';
 import { ARBITRUM_USDC } from '../../../constants/perps';
-import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
 
 export function SourceHashSummaryLine({
   parentTransaction,
@@ -43,11 +42,6 @@ export function SourceHashSummaryLine({
   const chainId =
     isPredictWithdraw || isPerpsWithdraw ? targetChainId : sourceTokenChainId;
 
-  const sourceSymbol = getTokenDisplaySymbol(
-    sourceTokenAddress,
-    sourceToken?.symbol,
-  );
-
   let title = strings('transaction_details.summary_title.bridge_send_loading');
 
   if (isPerpsWithdraw) {
@@ -55,9 +49,9 @@ export function SourceHashSummaryLine({
       sourceSymbol: ARBITRUM_USDC.symbol,
       sourceChain: targetNetworkName,
     });
-  } else if (sourceSymbol && sourceNetworkName) {
+  } else if (sourceToken?.symbol && sourceNetworkName) {
     title = strings('transaction_details.summary_title.bridge_send', {
-      sourceSymbol,
+      sourceSymbol: sourceToken.symbol,
       sourceChain: sourceNetworkName,
     });
 

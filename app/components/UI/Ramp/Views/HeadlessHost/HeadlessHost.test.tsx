@@ -69,21 +69,6 @@ jest.mock('../../headless/useHeadlessSessionFocusDismissal', () => ({
     mockUseHeadlessSessionFocusDismissal(...args),
 }));
 
-// Keep the real `setHeadlessEntryCardTouchThrough` (asserted via the
-// navigation setOptions mock) but spy on `dismissHeadlessFlow` so the
-// terminal-error teardown can be asserted in isolation. `dismissHeadlessFlow`
-// pops the transparent HEADLESS_ENTRY modal; its absence on the error path
-// was the bug that froze the app over the confirmation screen.
-const mockDismissHeadlessFlow = jest.fn();
-jest.mock('../../headless/headlessEntryNavigation', () => {
-  const actual = jest.requireActual('../../headless/headlessEntryNavigation');
-  return {
-    ...actual,
-    dismissHeadlessFlow: (...args: unknown[]) =>
-      mockDismissHeadlessFlow(...args),
-  };
-});
-
 jest.mock('../../hooks/useContinueWithQuote', () => ({
   __esModule: true,
   default: (options?: unknown) => {
@@ -396,7 +381,7 @@ describe('HeadlessHost', () => {
         code: 'UNKNOWN',
         message: expect.stringContaining('not-a-caip-19'),
       });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
@@ -413,7 +398,7 @@ describe('HeadlessHost', () => {
           message: 'quote expired',
         });
       });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
     });
 
@@ -431,7 +416,7 @@ describe('HeadlessHost', () => {
           message: 'Daily limit exceeded',
         });
       });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
     });
 
@@ -475,7 +460,7 @@ describe('HeadlessHost', () => {
         code: 'AUTH_FAILED',
         message: 'OTP rejected',
       });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
@@ -581,7 +566,7 @@ describe('HeadlessHost', () => {
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('fires onError only (no onClose) when a Phase 7 nativeFlowError terminates the session, even across unmount', () => {
+    it('does not fire a second onClose when a Phase 7 nativeFlowError already closed the session before unmount', () => {
       const quote = buildNativeQuote();
       const session = seedSession(quote);
       const callbacks = session.callbacks;
@@ -590,16 +575,13 @@ describe('HeadlessHost', () => {
         nativeFlowError: 'OTP rejected',
       });
 
-      expect(callbacks.onError).toHaveBeenCalledWith({
-        code: 'AUTH_FAILED',
-        message: 'OTP rejected',
-      });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
 
       registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
       unmount();
 
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
 
     it('no-ops on unmount when the host mounted against an already-terminated session', () => {
@@ -617,99 +599,6 @@ describe('HeadlessHost', () => {
       unmount();
 
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  // The bug: a headless flow that terminates with an ERROR called
-  // `failSession` (registry bookkeeping only, no navigation) but never
-  // dismissed the transparent HEADLESS_ENTRY modal. The modal stayed mounted
-  // over the confirmation screen and intercepted every touch, so the app
-  // looked frozen until relaunch. Each terminal-error path must now pop the
-  // modal via `dismissHeadlessFlow` in addition to failing the session, and
-  // must do so exactly once even when paths race.
-  describe('Terminal-error modal teardown (stuck-screen fix)', () => {
-    it('dismisses the headless flow when continueWithQuote rejects, in addition to failing the session', async () => {
-      mockContinueWithQuote.mockRejectedValueOnce(new Error('quote expired'));
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote);
-      const callbacks = session.callbacks;
-
-      renderHost({ headlessSessionId: session.id });
-
-      await waitFor(() => {
-        expect(callbacks.onError).toHaveBeenCalledWith({
-          code: 'UNKNOWN',
-          message: 'quote expired',
-        });
-      });
-      // The session teardown (failSession) AND the modal dismissal both fire.
-      expect(mockDismissHeadlessFlow).toHaveBeenCalledTimes(1);
-      expect(getSession(session.id)).toBeUndefined();
-    });
-
-    it('dismisses the headless flow when the assetId is invalid, in addition to failing the session', () => {
-      mockUseRampAccountAddress.mockReturnValue(null);
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote, { assetId: 'not-a-caip-19' });
-      const callbacks = session.callbacks;
-
-      renderHost({ headlessSessionId: session.id });
-
-      expect(callbacks.onError).toHaveBeenCalledWith({
-        code: 'UNKNOWN',
-        message: expect.stringContaining('not-a-caip-19'),
-      });
-      expect(mockDismissHeadlessFlow).toHaveBeenCalledTimes(1);
-    });
-
-    it('dismisses the headless flow when a nativeFlowError terminates the session', () => {
-      const quote = buildNativeQuote();
-      const session = seedSession(quote);
-
-      renderHost({
-        headlessSessionId: session.id,
-        nativeFlowError: 'OTP rejected',
-      });
-
-      expect(mockDismissHeadlessFlow).toHaveBeenCalledTimes(1);
-      expect(getSession(session.id)).toBeUndefined();
-    });
-
-    it('does NOT dismiss the headless flow on a normal in-progress render (no terminal error)', async () => {
-      mockContinueWithQuote.mockImplementation(
-        () => new Promise(() => undefined),
-      );
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote);
-
-      renderHost({ headlessSessionId: session.id });
-
-      await waitFor(() =>
-        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
-      );
-      expect(mockDismissHeadlessFlow).not.toHaveBeenCalled();
-      expect(getSession(session.id)).toBeDefined();
-    });
-
-    it('dismisses at most once even if the terminal-error guard is re-entered after teardown', async () => {
-      // First terminal error (continueWithQuote rejection) tears down and
-      // dismisses. The ref guard + failSession returning undefined for an
-      // already-removed session must prevent a second dismissal if any error
-      // path fires again (e.g. a re-render re-runs the effect body).
-      mockContinueWithQuote.mockRejectedValue(new Error('quote expired'));
-      const quote = buildAggregatorQuote();
-      const session = seedSession(quote);
-
-      renderHost({ headlessSessionId: session.id });
-
-      await waitFor(() =>
-        expect(mockDismissHeadlessFlow).toHaveBeenCalledTimes(1),
-      );
-      // Let any additional pending microtasks settle.
-      await act(async () => {
-        await Promise.resolve();
-      });
-      expect(mockDismissHeadlessFlow).toHaveBeenCalledTimes(1);
     });
   });
 

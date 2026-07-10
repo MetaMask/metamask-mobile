@@ -41,7 +41,6 @@ import {
   SEED_PHRASE,
   CONFIRM_PASSWORD,
   WRONG_PASSWORD_ERROR,
-  ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
@@ -197,7 +196,6 @@ const ManualBackupStep1 = () => {
       routeParams: route.params,
       isMetricsEnabled,
       track,
-      successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
     });
   }, [navigation, route.params, isMetricsEnabled, track]);
 

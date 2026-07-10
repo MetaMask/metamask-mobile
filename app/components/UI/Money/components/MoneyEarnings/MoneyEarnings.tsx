@@ -4,8 +4,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
-  SensitiveText,
-  SensitiveTextLength,
   Skeleton,
   Text,
   TextColor,
@@ -36,33 +34,25 @@ interface MoneyEarningsProps {
    * Opens the Earnings tooltip bottom sheet.
    */
   onInfoPress?: () => void;
-  /**
-   * Whether the earnings values should be masked.
-   */
-  privacyMode?: boolean;
 }
 
 const ValueText = ({
   children,
   testID,
-  privacyMode,
 }: {
   children: string;
   testID: string;
-  privacyMode: boolean;
 }) => {
   const isPositive = children.startsWith('+');
   return (
-    <SensitiveText
+    <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
       color={isPositive ? TextColor.SuccessDefault : TextColor.TextDefault}
-      isHidden={privacyMode}
-      length={SensitiveTextLength.Medium}
       testID={testID}
     >
       {children}
-    </SensitiveText>
+    </Text>
   );
 };
 
@@ -71,7 +61,6 @@ const MoneyEarnings = ({
   yearlyEarnings,
   isLoading = false,
   onInfoPress,
-  privacyMode = false,
 }: MoneyEarningsProps) => (
   <Box twClassName="px-4 pt-7 pb-3" testID={MoneyEarningsTestIds.CONTAINER}>
     <MoneySectionHeader
@@ -97,10 +86,7 @@ const MoneyEarnings = ({
             testID={MoneyEarningsTestIds.MONTHLY_SKELETON}
           />
         ) : (
-          <ValueText
-            testID={MoneyEarningsTestIds.MONTHLY_VALUE}
-            privacyMode={privacyMode}
-          >
+          <ValueText testID={MoneyEarningsTestIds.MONTHLY_VALUE}>
             {monthlyEarnings}
           </ValueText>
         )}
@@ -122,10 +108,7 @@ const MoneyEarnings = ({
             testID={MoneyEarningsTestIds.YEARLY_SKELETON}
           />
         ) : (
-          <ValueText
-            testID={MoneyEarningsTestIds.YEARLY_VALUE}
-            privacyMode={privacyMode}
-          >
+          <ValueText testID={MoneyEarningsTestIds.YEARLY_VALUE}>
             {yearlyEarnings}
           </ValueText>
         )}

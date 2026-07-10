@@ -7,28 +7,15 @@ import { darkTheme } from '@metamask/design-tokens';
 import { ThemeContext } from '../../../../../util/theme';
 import { AppThemeKey, Theme } from '../../../../../util/theme/models';
 import ForcedDarkThemeProvider from './ForcedDarkThemeProvider';
-import { Theme as DesignSystemTheme } from '@metamask/design-system-twrnc-preset';
 
-let mockIsPureBlackEnabled = false;
-
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  get isPureBlackEnabled() {
-    return mockIsPureBlackEnabled;
-  },
-}));
-
-const mockDesignSystemThemeProvider = jest.fn(
-  ({ children }: { children: React.ReactNode }) => children,
-);
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  ThemeProvider: (props: {
-    children: React.ReactNode;
-    isPureBlack?: boolean;
-    theme?: string;
-  }) => mockDesignSystemThemeProvider(props),
-  Theme: { Light: 'light', Dark: 'dark' },
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    ThemeProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+    Theme: { Light: 'light', Dark: 'dark' },
+  };
+});
 
 const mockStore = configureMockStore();
 const renderWithStore = (
@@ -57,8 +44,6 @@ describe('ForcedDarkThemeProvider', () => {
   let setBackgroundColorSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockIsPureBlackEnabled = false;
     setBarStyleSpy = jest.spyOn(StatusBar, 'setBarStyle').mockImplementation();
     setTranslucentSpy = jest
       .spyOn(StatusBar, 'setTranslucent')
@@ -185,40 +170,6 @@ describe('ForcedDarkThemeProvider', () => {
     Object.defineProperty(Platform, 'OS', {
       configurable: true,
       get: () => originalOS,
-    });
-  });
-
-  describe('isPureBlack', () => {
-    it('passes isPureBlack false to DesignSystemThemeProvider when preview flag is off', () => {
-      renderWithStore(
-        <ForcedDarkThemeProvider>
-          <Text>child</Text>
-        </ForcedDarkThemeProvider>,
-      );
-
-      expect(mockDesignSystemThemeProvider).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isPureBlack: false,
-          theme: DesignSystemTheme.Dark,
-        }),
-      );
-    });
-
-    it('passes isPureBlack true to DesignSystemThemeProvider when preview flag is on', () => {
-      mockIsPureBlackEnabled = true;
-
-      renderWithStore(
-        <ForcedDarkThemeProvider>
-          <Text>child</Text>
-        </ForcedDarkThemeProvider>,
-      );
-
-      expect(mockDesignSystemThemeProvider).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isPureBlack: true,
-          theme: DesignSystemTheme.Dark,
-        }),
-      );
     });
   });
 });

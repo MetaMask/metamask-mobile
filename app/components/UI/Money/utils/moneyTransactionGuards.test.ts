@@ -17,7 +17,6 @@ import {
   nestedTxWithType,
   perpsPredictServiceFamily,
   getMMPayChainIds,
-  resolveMoneyDepositIntent,
 } from './moneyTransactionGuards';
 
 const baseTx = {
@@ -87,42 +86,6 @@ describe('isMoneyDepositTx', () => {
     expect(isMoneyDepositTx(makeTx(TransactionType.contractInteraction))).toBe(
       false,
     );
-  });
-});
-
-describe('resolveMoneyDepositIntent', () => {
-  const makeDepositTx = (
-    metamaskPay?: Record<string, unknown>,
-  ): TransactionMeta =>
-    ({
-      ...baseTx,
-      type: TransactionType.moneyAccountDeposit,
-      metamaskPay,
-    }) as unknown as TransactionMeta;
-
-  it('returns "card" for a fiat on-ramp deposit', () => {
-    expect(resolveMoneyDepositIntent(makeDepositTx({ fiat: true }))).toBe(
-      'card',
-    );
-  });
-
-  it('returns "addMusd" for a deposit paid with mUSD', () => {
-    expect(
-      resolveMoneyDepositIntent(
-        makeDepositTx({ tokenAddress: MUSD_TOKEN_ADDRESS }),
-      ),
-    ).toBe('addMusd');
-  });
-
-  it('returns "convert" for a crypto deposit with no fiat/mUSD payment', () => {
-    expect(resolveMoneyDepositIntent(makeDepositTx())).toBe('convert');
-    expect(
-      resolveMoneyDepositIntent(
-        makeDepositTx({
-          tokenAddress: '0x1234567890123456789012345678901234567890',
-        }),
-      ),
-    ).toBe('convert');
   });
 });
 

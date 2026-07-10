@@ -1,6 +1,5 @@
 import React, { ComponentType } from 'react';
 import { RefreshControl } from 'react-native';
-import { act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import {
@@ -314,28 +313,6 @@ describe('UnifiedTransactionsView', () => {
 
     // Assert
     expect(UNSAFE_getByType(TestHeader)).toBeTruthy();
-  });
-
-  it('clears pull-to-refresh state when refetch fails', async () => {
-    const mockRefetch = jest.fn().mockRejectedValue(new Error('network error'));
-    (useTransactionsQuery as jest.Mock).mockReturnValue({
-      ...createUseTransactionsQueryResult(),
-      refetch: mockRefetch,
-    });
-
-    const { UNSAFE_getByType } = renderWithProvider(
-      <UnifiedTransactionsView />,
-      { state: initialState },
-    );
-
-    const refreshControl = UNSAFE_getByType(RefreshControl);
-
-    await act(async () => {
-      await refreshControl.props.onRefresh();
-    });
-
-    expect(mockRefetch).toHaveBeenCalled();
-    expect(refreshControl.props.refreshing).toBe(false);
   });
 
   it('renders TransactionsFooter when only EVM chains enabled', () => {

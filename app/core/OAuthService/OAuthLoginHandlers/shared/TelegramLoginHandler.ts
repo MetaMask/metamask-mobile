@@ -208,15 +208,12 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     });
 
     try {
-      const authSessionOptions = {
-        createTask: false,
-        preferUniversalLinks: true,
-      };
-
       const result = await openAuthSessionAsync(
         authorizationUrl,
         this.redirectUri,
-        authSessionOptions,
+        {
+          createTask: false,
+        },
       );
 
       if (result.type === 'success') {

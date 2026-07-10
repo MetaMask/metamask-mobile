@@ -1546,16 +1546,6 @@ describe('accounts selectors', () => {
       expect(result[0].id).toBe(ACCOUNT_GROUP_ID_1);
       expect(result[1].id).toBe(ACCOUNT_GROUP_ID_3);
     });
-
-    it('returns a stable reference when called twice with equal-but-new addresses arrays', () => {
-      const firstResult = selectAccountGroupsByAddress(mockState, [
-        mockEvmAccount.address,
-      ]);
-      const secondResult = selectAccountGroupsByAddress(mockState, [
-        mockEvmAccount.address,
-      ]);
-      expect(secondResult).toBe(firstResult);
-    });
   });
 
   describe('selectIconSeedAddressByAccountGroupId', () => {

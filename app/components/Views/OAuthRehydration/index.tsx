@@ -48,10 +48,7 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID_2,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Login/constants';
-import {
-  isAndroidKeychainBiometricLockout,
-  isBiometricUnlockCancelledByUser,
-} from '../../../core/Authentication/utils';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -498,12 +495,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       if (isBiometricCancellation) {
         setBiometryChoice(false);
-        setLoading(false);
-        return;
-      }
-
-      if (isAndroidKeychainBiometricLockout(loginError)) {
-        setError(strings('login.biometric_too_many_attempts'));
         setLoading(false);
         return;
       }

@@ -15,18 +15,9 @@ jest.mock('../MoneyActivityItem/MoneyActivityItem', () => {
   const mockRowPrefix = 'money-activity-item-row';
   return {
     __esModule: true,
-    default: ({
-      tx,
-      privacyMode,
-    }: {
-      tx: { id: string; moneySubtitle?: string };
-      privacyMode?: boolean;
-    }) => (
+    default: ({ tx }: { tx: { id: string; moneySubtitle?: string } }) => (
       <View testID={`${mockRowPrefix}-${tx.id}`}>
         <Text>{tx.moneySubtitle ?? 'no-desc'}</Text>
-        <Text testID={`${mockRowPrefix}-${tx.id}-privacy-mode`}>
-          {String(privacyMode)}
-        </Text>
       </View>
     ),
   };
@@ -181,29 +172,5 @@ describe('MoneyActivityList', () => {
     ).toBeOnTheScreen();
     fireEvent.press(getByTestId('section-header'));
     expect(onHeaderPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('forwards privacyMode false by default to each row', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} />,
-    );
-
-    expect(
-      getByTestId(
-        `${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}-privacy-mode`,
-      ),
-    ).toHaveTextContent('false');
-  });
-
-  it('forwards privacyMode true to each row when set', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityList items={MOCK_ITEMS} privacyMode />,
-    );
-
-    expect(
-      getByTestId(
-        `${MoneyActivityItemTestIds.ROW}-${MOCK_ITEMS[0].id}-privacy-mode`,
-      ),
-    ).toHaveTextContent('true');
   });
 });

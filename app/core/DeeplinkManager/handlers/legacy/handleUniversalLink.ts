@@ -762,8 +762,7 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.WHATS_HAPPENING: {
-      const { params: whatsHappeningParams } = extractURLParams(urlObj.href);
-      handleWhatsHappeningUrl({ id: whatsHappeningParams?.id });
+      handleWhatsHappeningUrl();
       break;
     }
     case SUPPORTED_ACTIONS.TOP_TRADERS: {

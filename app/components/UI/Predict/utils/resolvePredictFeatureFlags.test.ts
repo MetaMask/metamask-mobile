@@ -835,14 +835,7 @@ describe('resolvePredictFeatureFlags', () => {
         'spreads',
         'totals',
         'both_teams_to_score',
-        'both_teams_to_score_first_half',
-        'both_teams_to_score_second_half',
-        'first_half_totals',
-        'second_half_totals',
         'soccer_first_to_score',
-        'soccer_halftime_result',
-        'soccer_second_half_result',
-        'soccer_player_goals',
         'soccer_team_to_advance',
         'soccer_extra_time',
         'soccer_penalty_shootout',
@@ -961,8 +954,7 @@ describe('resolvePredictFeatureFlags', () => {
               'MONEYLINE',
               'spreads',
               'totals',
-              'soccer_halftime_result',
-              'soccer_player_goals',
+              'first_half_moneyline',
               'points',
             ],
           },
@@ -973,8 +965,6 @@ describe('resolvePredictFeatureFlags', () => {
         'moneyline',
         'spreads',
         'totals',
-        'soccer_halftime_result',
-        'soccer_player_goals',
       ]);
     });
 

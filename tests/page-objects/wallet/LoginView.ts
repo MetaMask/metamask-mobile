@@ -112,9 +112,9 @@ class LoginView {
           checkForDisplayed: true,
           checkForEnabled: true,
           waitForInteractive: true,
-          timeout: 10_000,
-          enabledStableReads: 2,
-          postEnabledSettleMs: 300,
+          timeout: 20_000,
+          enabledStableReads: 4,
+          postEnabledSettleMs: 1500,
         });
       },
     });

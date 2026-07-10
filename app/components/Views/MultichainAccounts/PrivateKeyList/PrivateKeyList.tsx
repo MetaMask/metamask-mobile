@@ -25,6 +25,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Toaster,
   toast,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
@@ -187,7 +188,9 @@ export const PrivateKeyList = () => {
               privateKeys[item.account.id],
             );
             toast({
-              title: strings('multichain_accounts.private_key_list.copied'),
+              description: strings(
+                'multichain_accounts.private_key_list.copied',
+              ),
               hasNoTimeout: false,
             });
           },
@@ -323,6 +326,7 @@ export const PrivateKeyList = () => {
       />
 
       {reveal ? renderPrivateKeyList() : renderPassword()}
+      <Toaster />
     </Box>
   );
 };

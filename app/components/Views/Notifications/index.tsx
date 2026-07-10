@@ -124,8 +124,9 @@ const NotificationsView = ({
       <HeaderCompactStandard
         title={strings('app_settings.notifications_title')}
         titleProps={{ testID: NotificationMenuViewSelectorsIDs.TITLE }}
-        onBack={handleClose}
-        backButtonProps={{
+        startButtonIconProps={{
+          iconName: IconName.Close,
+          onPress: handleClose,
           testID: NotificationMenuViewSelectorsIDs.CLOSE_BUTTON,
         }}
         endButtonIconProps={[

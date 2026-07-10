@@ -401,7 +401,7 @@ describe('ManualBackupStep2', () => {
       expect(mockDispatch).toHaveBeenCalled();
 
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
-        successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+        onContinue: expect.any(Function),
         accountType: AccountType.Metamask,
       });
     });

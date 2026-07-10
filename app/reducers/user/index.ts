@@ -35,7 +35,6 @@ export const userInitialState: UserState = {
   tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
   tokenIndicators: [],
   onboardingStepperProgress: {},
-  appInstallEventFired: false,
 };
 
 /**
@@ -188,11 +187,6 @@ const userReducer = (
           ...state.onboardingStepperProgress,
           [action.payload.stepperId]: action.payload.step,
         },
-      };
-    case UserActionType.SET_APP_INSTALL_EVENT_FIRED:
-      return {
-        ...state,
-        appInstallEventFired: true,
       };
     default:
       return state;

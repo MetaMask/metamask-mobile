@@ -55,7 +55,9 @@ export function useInsufficientPerpsBalanceAlert({
       return true;
     }
 
-    // Skip during input — totals may be stale.
+    // On the confirmation screen (not while typing), check if fees
+    // exceed the withdraw amount — user would receive nothing.
+    // Skipped during input because totals may be stale.
     if (
       !isPendingInput &&
       hasQuotes &&
@@ -68,16 +70,6 @@ export function useInsufficientPerpsBalanceAlert({
         .plus(totals.fees.metaMask?.usd ?? 0);
 
       if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
-        return true;
-      }
-
-      if (
-        withdrawableBalance !== undefined &&
-        withdrawableBalance !== null &&
-        new BigNumber(amountHuman)
-          .plus(totalFees)
-          .isGreaterThan(withdrawableBalance)
-      ) {
         return true;
       }
     }
@@ -101,10 +93,7 @@ export function useInsufficientPerpsBalanceAlert({
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        title: strings('alert_system.insufficient_pay_token_balance.message'),
-        message: strings(
-          'alert_system.insufficient_pay_method_balance.message',
-        ),
+        message: strings('alert_system.insufficient_pay_token_balance.message'),
         severity: Severity.Danger,
         isBlocking: true,
       },

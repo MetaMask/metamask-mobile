@@ -121,7 +121,6 @@ describe('TelegramLoginHandler', () => {
         'metamask://oauth-tg',
         {
           createTask: false,
-          preferUniversalLinks: true,
         },
       );
     });

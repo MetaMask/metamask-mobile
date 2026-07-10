@@ -20,6 +20,10 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../../../../../util/theme/themeUtils', () => ({
+  useElevatedSurface: () => 'bg-default',
+}));
+
 const mockUseRoute = jest.fn();
 
 jest.mock('@react-navigation/native', () => {

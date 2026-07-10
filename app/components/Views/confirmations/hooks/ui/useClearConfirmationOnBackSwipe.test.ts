@@ -39,7 +39,6 @@ describe('useClearConfirmationOnBackSwipe', () => {
 
     (useNavigation as jest.Mock).mockReturnValue({
       addListener: mockAddListener,
-      goBack: jest.fn(),
     });
 
     (useConfirmActions as jest.Mock).mockReturnValue({
@@ -47,7 +46,6 @@ describe('useClearConfirmationOnBackSwipe', () => {
     });
 
     (useConfirmationContext as jest.Mock).mockReturnValue({
-      mmPayRequestInProgressNavHandler: { current: false },
       isConfirmationSubmittingRef: { current: false },
     });
 
@@ -92,7 +90,7 @@ describe('useClearConfirmationOnBackSwipe', () => {
         ([eventName]: [string]) => eventName === 'beforeRemove',
       )?.[1];
 
-      beforeRemoveCallback({ preventDefault: jest.fn() });
+      beforeRemoveCallback();
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
       expect(mockOnReject).toHaveBeenCalledWith(undefined, true);
@@ -100,7 +98,6 @@ describe('useClearConfirmationOnBackSwipe', () => {
 
     it('does not reject on beforeRemove when confirmation is submitting', () => {
       (useConfirmationContext as jest.Mock).mockReturnValue({
-        mmPayRequestInProgressNavHandler: { current: false },
         isConfirmationSubmittingRef: { current: true },
       });
 
@@ -109,7 +106,7 @@ describe('useClearConfirmationOnBackSwipe', () => {
         ([eventName]: [string]) => eventName === 'beforeRemove',
       )?.[1];
 
-      beforeRemoveCallback({ preventDefault: jest.fn() });
+      beforeRemoveCallback();
 
       expect(mockOnReject).not.toHaveBeenCalled();
     });
@@ -117,7 +114,6 @@ describe('useClearConfirmationOnBackSwipe', () => {
     it('reads the submitting ref at beforeRemove event time', () => {
       const isConfirmationSubmittingRef = { current: false };
       (useConfirmationContext as jest.Mock).mockReturnValue({
-        mmPayRequestInProgressNavHandler: { current: false },
         isConfirmationSubmittingRef,
       });
 
@@ -127,7 +123,7 @@ describe('useClearConfirmationOnBackSwipe', () => {
       )?.[1];
 
       isConfirmationSubmittingRef.current = true;
-      beforeRemoveCallback({ preventDefault: jest.fn() });
+      beforeRemoveCallback();
 
       expect(mockOnReject).not.toHaveBeenCalled();
     });
@@ -138,30 +134,10 @@ describe('useClearConfirmationOnBackSwipe', () => {
         ([eventName]: [string]) => eventName === 'beforeRemove',
       )?.[1];
 
-      beforeRemoveCallback({ preventDefault: jest.fn() });
-      beforeRemoveCallback({ preventDefault: jest.fn() });
+      beforeRemoveCallback();
+      beforeRemoveCallback();
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
-    });
-
-    it('intercepts beforeRemove and calls the handler when mmPayRequestInProgressNavHandler is set', () => {
-      const mockPreventDefault = jest.fn();
-      const mockHandler = jest.fn();
-      (useConfirmationContext as jest.Mock).mockReturnValue({
-        mmPayRequestInProgressNavHandler: { current: mockHandler },
-        isConfirmationSubmittingRef: { current: false },
-      });
-
-      renderHook(() => useClearConfirmationOnBackSwipe());
-      const beforeRemoveCallback = mockAddListener.mock.calls.find(
-        ([eventName]: [string]) => eventName === 'beforeRemove',
-      )?.[1];
-
-      beforeRemoveCallback({ preventDefault: mockPreventDefault });
-
-      expect(mockPreventDefault).toHaveBeenCalledTimes(1);
-      expect(mockHandler).toHaveBeenCalledTimes(1);
-      expect(mockOnReject).not.toHaveBeenCalled();
     });
 
     it('calls unsubscribe when unmounted', () => {
@@ -209,7 +185,6 @@ describe('useClearConfirmationOnBackSwipe', () => {
 
     it('does not reject on hardware back when confirmation is submitting', () => {
       (useConfirmationContext as jest.Mock).mockReturnValue({
-        mmPayRequestInProgressNavHandler: { current: false },
         isConfirmationSubmittingRef: { current: true },
       });
 
@@ -243,25 +218,10 @@ describe('useClearConfirmationOnBackSwipe', () => {
         ([eventName]: [string]) => eventName === 'beforeRemove',
       )?.[1];
 
-      beforeRemoveCallback({ preventDefault: jest.fn() });
+      beforeRemoveCallback();
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
       expect(mockOnReject).toHaveBeenCalledWith(undefined, true);
-    });
-
-    it('intercepts hardware back when mmPayRequestInProgressNavHandler is true', () => {
-      (useConfirmationContext as jest.Mock).mockReturnValue({
-        mmPayRequestInProgressNavHandler: { current: true },
-        isConfirmationSubmittingRef: { current: false },
-      });
-
-      renderHook(() => useClearConfirmationOnBackSwipe());
-      const backHandlerCallback = (BackHandler.addEventListener as jest.Mock)
-        .mock.calls[0][1];
-      const result = backHandlerCallback();
-
-      expect(result).toBe(true);
-      expect(mockOnReject).not.toHaveBeenCalled();
     });
   });
 });

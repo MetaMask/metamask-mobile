@@ -64,7 +64,7 @@ export interface BasicInfoFormData {
   ssn?: string;
 }
 
-export interface V2BasicInfoParams {
+interface V2BasicInfoParams {
   quote: TransakBuyQuote;
   previousFormData?: BasicInfoFormData & AddressFormData;
   /**
@@ -75,7 +75,7 @@ export interface V2BasicInfoParams {
   headlessSessionId?: string;
 }
 
-const V2BasicInfo = (): React.JSX.Element => {
+const V2BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();

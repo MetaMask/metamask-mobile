@@ -1,3 +1,12 @@
+// Mock dependencies
+jest.mock('../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      background: { default: '#FFFFFF' },
+    },
+  }),
+}));
+
 // Mutable state objects for tests to manipulate
 const mockConnectionState: Record<string, unknown> = { status: 'disconnected' };
 const mockDeviceSelection = {
@@ -53,31 +62,35 @@ const mockLastBottomSheetOnCloseRef = {
 };
 
 // Mock bottom sheet
-jest.mock('@metamask/design-system-react-native', () => {
-  const React = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    BottomSheet: React.forwardRef(
-      (
-        {
-          children,
-          testID,
-          onClose,
-        }: {
-          children: React.ReactNode;
-          testID?: string;
-          onClose?: () => void;
+jest.mock(
+  '../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: React.forwardRef(
+        (
+          {
+            children,
+            testID,
+            onClose,
+          }: {
+            children: React.ReactNode;
+            testID?: string;
+            onClose?: () => void;
+          },
+          _ref: React.Ref<unknown>,
+        ) => {
+          // Test double: capture BottomSheet onClose for assertions (not production UI).
+          // eslint-disable-next-line react-compiler/react-compiler -- intentional mock side effect
+          mockLastBottomSheetOnCloseRef.current = onClose;
+          return <View testID={testID}>{children}</View>;
         },
-        _ref: React.Ref<unknown>,
-      ) => {
-        // Test double: capture BottomSheet onClose for assertions (not production UI).
-        // eslint-disable-next-line react-compiler/react-compiler -- intentional mock side effect
-        mockLastBottomSheetOnCloseRef.current = onClose;
-        return <View testID={testID}>{children}</View>;
-      },
-    ),
-  };
-});
+      ),
+    };
+  },
+);
 
 import React from 'react';
 import { act, render } from '@testing-library/react-native';

@@ -10,10 +10,6 @@ import { isPositiveNumber } from '../../utils/number';
 import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
-import MoneyNextBestActionParallax, {
-  PARALLAX_ARTBOARD_CARD,
-  PARALLAX_ARTBOARD_FUND,
-} from '../MoneyNextBestActionParallax';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -272,20 +268,7 @@ const MoneyOnboardingCard = () => {
         onPress: handleStep1CtaPressed,
       },
       image: moneyOnboardingStepperStep1,
-      media: (
-        <MoneyNextBestActionParallax
-          artboardName={PARALLAX_ARTBOARD_FUND}
-          fallbackImage={moneyOnboardingStepperStep1}
-        />
-      ),
     };
-
-    const cardStepMedia = (
-      <MoneyNextBestActionParallax
-        artboardName={PARALLAX_ARTBOARD_CARD}
-        fallbackImage={moneyOnboardingStepperStep2}
-      />
-    );
 
     // Case 1: Cardholder, or authenticated with a card not yet linked.
     const step2: StepperCardStep = shouldShowLinkCardAction
@@ -318,7 +301,6 @@ const MoneyOnboardingCard = () => {
               ),
           },
           image: moneyOnboardingStepperStep2,
-          media: cardStepMedia,
         }
       : // No MetaMask card yet.
         {
@@ -350,7 +332,6 @@ const MoneyOnboardingCard = () => {
               ),
           },
           image: moneyOnboardingStepperStep2,
-          media: cardStepMedia,
         };
 
     return [step1, step2];

@@ -10,11 +10,6 @@ import {
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { analytics } from '../../../util/analytics/analytics';
-import { reloadAppAsync } from 'expo';
-
-jest.mock('expo', () => ({
-  reloadAppAsync: jest.fn().mockResolvedValue(undefined),
-}));
 
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
@@ -169,20 +164,6 @@ describe('ErrorBoundary', () => {
     });
 
     expect(mockProps.copyErrorToClipboard).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls reloadAppAsync when Try again is pressed', async () => {
-    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
-      state: initialState,
-    });
-
-    const tryAgainButton = getByText('Try again');
-    await act(async () => {
-      fireEvent.press(tryAgainButton);
-    });
-
-    expect(reloadAppAsync).toHaveBeenCalledTimes(1);
-    expect(reloadAppAsync).toHaveBeenCalledWith('Error boundary Try again');
   });
 
   it('calls showExportSeedphrase when save seedphrase link is pressed', async () => {

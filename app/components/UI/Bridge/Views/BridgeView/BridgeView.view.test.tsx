@@ -38,7 +38,6 @@ import {
 } from '../../_mocks_/bridgeViewTestConstants';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 import { TrendingTokensBottomSheetTestIds } from '../../../Trending/components/TrendingTokensBottomSheet/TrendingTokensBottomSheet.testIds';
-import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/SwapDiscoveryFeed/abTestConfig';
 import { getTrendingTokenRowItemTestId } from '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
 import {
   setupTrendingApiFetchMock,
@@ -881,9 +880,7 @@ describeForPlatforms('BridgeView', () => {
             engine: {
               backgroundState: {
                 RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    [SWAP_DISCOVERY_FEED_REVAMP_AB_KEY]: 'control',
-                  },
+                  remoteFeatureFlags: { swapsTrendingTokens: true },
                   cacheTimestamp: 0,
                 },
               },
@@ -891,6 +888,7 @@ describeForPlatforms('BridgeView', () => {
           } as unknown as DeepPartial<RootState>,
         });
 
+      // Section and all three filter controls appear in zero state
       await findByTestId(BridgeTrendingTokensSectionTestIds.SECTION);
       expect(
         getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
@@ -902,6 +900,7 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeTrendingTokensSectionTestIds.TIME_FILTER),
       ).toBeOnTheScreen();
 
+      // Token rows from the mock API response appear
       await waitFor(
         () => {
           expect(
@@ -915,6 +914,7 @@ describeForPlatforms('BridgeView', () => {
         { timeout: 5000 },
       );
 
+      // Tapping the price filter opens its bottom sheet
       fireEvent.press(
         getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
       );
@@ -922,6 +922,7 @@ describeForPlatforms('BridgeView', () => {
         await findByTestId(TrendingTokensBottomSheetTestIds.PRICE_CHANGE),
       ).toBeOnTheScreen();
 
+      // Entering an amount transitions out of zero state and hides the trending section
       act(() => {
         store.dispatch(setSourceAmount('1'));
       });

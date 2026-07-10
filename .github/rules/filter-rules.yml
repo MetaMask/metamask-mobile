@@ -91,12 +91,5 @@ ios_or_ignorable:
   - *config_files
   - *ci_files
 
-# Shared smoke/regression test infrastructure whose changes can break Appium iOS smoke tests.
-e2e_smoke_infra:
-  - 'tests/page-objects/**'
-  - 'tests/selectors/**'
-  - 'tests/locators/**'
-  - 'tests/framework/**'
-
 all_changes:
   - '**'

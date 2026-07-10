@@ -23,7 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 12,
+      paddingBottom: 140,
     },
     section: {
       paddingHorizontal: 16,
@@ -36,9 +36,16 @@ const styleSheet = (params: { theme: Theme }) => {
       // No flex or minHeight - let content determine size
     },
     footer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
       paddingHorizontal: 16,
       paddingTop: 12,
+      // paddingBottom is calculated dynamically in component with safe area insets
       backgroundColor: colors.background.default,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
     },
     spreadContainer: {
       flexDirection: 'row',

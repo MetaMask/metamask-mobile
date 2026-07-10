@@ -9,12 +9,6 @@ export {
   DEFAULT_TX_AMOUNT_LIMIT,
 } from './useNotificationPreferences';
 
-export {
-  areTradingSignalsChannelsDisabled,
-  areTradingSignalsChannelsEnabled,
-} from './tradingSignalsChannels';
-export type { TradingSignalsChannelPreferences } from './tradingSignalsChannels';
-
 export { default as useFollowedTraders } from './useFollowedTraders';
 export type {
   FollowedTrader,

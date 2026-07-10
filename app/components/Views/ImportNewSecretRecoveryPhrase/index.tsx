@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
+  KeyboardProvider,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
@@ -241,7 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     }
   };
 
-  return (
+  const content = (
     <Box twClassName="flex-1 bg-default">
       <HeaderStandard
         includesTopInset
@@ -341,6 +342,8 @@ const ImportNewSecretRecoveryPhrase = () => {
       <ScreenshotDeterrent enabled isSRP />
     </Box>
   );
+
+  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default ImportNewSecretRecoveryPhrase;

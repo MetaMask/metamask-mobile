@@ -287,7 +287,7 @@ describe('PrivateKeyList', () => {
 
     await waitFor(() => {
       expect(toast).toHaveBeenCalledWith({
-        title: strings('multichain_accounts.private_key_list.copied'),
+        description: strings('multichain_accounts.private_key_list.copied'),
         hasNoTimeout: false,
       });
     });

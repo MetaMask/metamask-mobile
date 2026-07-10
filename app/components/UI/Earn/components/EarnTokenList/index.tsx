@@ -82,7 +82,7 @@ const EarnTokenListSkeletonPlaceholder = () => (
   </View>
 );
 
-export interface EarnTokenListViewRouteParams {
+interface EarnTokenListViewRouteParams {
   tokenFilter: {
     includeReceiptTokens: boolean;
   };

@@ -10,14 +10,11 @@ import ActivityRowView from '../MoneyActivityItem/ActivityRowView';
 export interface AccountsApiActivityItemProps {
   activity: AccountsApiActivity;
   showNetworkBadge?: boolean;
-  /** Whether the crypto/fiat amounts should be masked. */
-  privacyMode?: boolean;
 }
 
 const AccountsApiActivityItem = ({
   activity,
   showNetworkBadge = false,
-  privacyMode = false,
 }: AccountsApiActivityItemProps) => {
   const navigation = useNavigation();
   const activityDetailsEnabled = useSelector(
@@ -40,7 +37,6 @@ const AccountsApiActivityItem = ({
       chainId={activity.chainId}
       onPress={activityDetailsEnabled ? handlePress : undefined}
       showNetworkBadge={showNetworkBadge}
-      privacyMode={privacyMode}
     />
   );
 };

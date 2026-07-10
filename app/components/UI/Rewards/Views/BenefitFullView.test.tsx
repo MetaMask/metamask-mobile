@@ -10,8 +10,6 @@ import {
   createMockEventBuilder,
   createMockUseAnalyticsHook,
 } from '../../../../util/test/analyticsMock';
-import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
-import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -30,7 +28,7 @@ const mockStrings = jest.fn((key: string) => {
   return translations[key] || key;
 });
 
-const mockBenefit: SubscriptionBenefitDto = {
+const mockBenefit = {
   id: 1,
   longTitle: 'Premium Benefit',
   shortDescription: 'Short description',
@@ -38,9 +36,8 @@ const mockBenefit: SubscriptionBenefitDto = {
   thumbnail: 'https://example.com/thumb.png',
   validFrom: '2026-01-01T00:00:00Z',
   validTo: '2026-12-31T23:59:59Z',
-  url: 'https://benefits.example.com/claim?wallet=0x1111111111111111111111111111111111111111',
+  url: 'https://benefits.example.com/claim',
   actionDate: '2026-12-30T00:00:00Z',
-  companyName: 'Pudgy Penguins',
   chain: 'ethereum',
   type: { id: 7, name: 'Partner' },
 };
@@ -115,21 +112,11 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
-const MOCK_WALLET_ADDRESS = '0x1111111111111111111111111111111111111111';
-
 describe('BenefitFullView', () => {
-  let mockSubscriptionId: string | null;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteBenefit = mockBenefit;
-    mockSubscriptionId = 'subscription-123';
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectRewardsSubscriptionId) {
-        return mockSubscriptionId;
-      }
-      return undefined;
-    });
+    mockUseSelector.mockReturnValue('subscription-123');
     mockFormatDateRemaining.mockReturnValue('1mo 3d');
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -148,7 +135,6 @@ describe('BenefitFullView', () => {
     expect(getByText('Claim benefit')).toBeOnTheScreen();
     expect(getByText('Premium Benefit')).toBeOnTheScreen();
     expect(getByText('Long description')).toBeOnTheScreen();
-    expect(getByText('Pudgy Penguins')).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION),
     ).toBeOnTheScreen();
@@ -169,7 +155,7 @@ describe('BenefitFullView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('posts benefit impression on mount with the wallet address from the benefit click URL', async () => {
+  it('posts benefit impression on mount when subscription exists', async () => {
     render(<BenefitFullView />);
 
     await waitFor(() => {
@@ -178,88 +164,12 @@ describe('BenefitFullView', () => {
         'subscription-123',
         mockBenefit.id,
         mockBenefit.type.id,
-        MOCK_WALLET_ADDRESS,
       );
     });
-  });
-
-  it('posts the wallet from the click URL even when it is not the first account in the wallet list', async () => {
-    const otherWallet = '0x2222222222222222222222222222222222222222';
-    mockRouteBenefit = {
-      ...mockBenefit,
-      url: `https://benefits.example.com/claim?wallet=${otherWallet}&ref=abc`,
-    };
-
-    render(<BenefitFullView />);
-
-    await waitFor(() => {
-      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
-        'RewardsController:postBenefitImpression',
-        'subscription-123',
-        mockBenefit.id,
-        mockBenefit.type.id,
-        otherWallet,
-      );
-    });
-  });
-
-  it('posts benefit impression with an undefined wallet address when the URL has no wallet param', async () => {
-    mockRouteBenefit = {
-      ...mockBenefit,
-      url: 'https://benefits.example.com/claim',
-    };
-
-    render(<BenefitFullView />);
-
-    await waitFor(() => {
-      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
-        'RewardsController:postBenefitImpression',
-        'subscription-123',
-        mockBenefit.id,
-        mockBenefit.type.id,
-        undefined,
-      );
-    });
-  });
-
-  it('posts benefit impression with an undefined wallet address when the benefit has no URL', async () => {
-    mockRouteBenefit = { ...mockBenefit, url: '' };
-
-    render(<BenefitFullView />);
-
-    await waitFor(() => {
-      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
-        'RewardsController:postBenefitImpression',
-        'subscription-123',
-        mockBenefit.id,
-        mockBenefit.type.id,
-        undefined,
-      );
-    });
-  });
-
-  it('posts exactly one benefit impression when the subscription hydrates after mount', async () => {
-    mockSubscriptionId = null;
-    const { rerender } = render(<BenefitFullView />);
-    expect(mockPostBenefitImpression).not.toHaveBeenCalled();
-
-    mockSubscriptionId = 'subscription-123';
-    rerender(<BenefitFullView />);
-
-    await waitFor(() => {
-      expect(mockPostBenefitImpression).toHaveBeenCalledTimes(1);
-    });
-    expect(mockPostBenefitImpression).toHaveBeenCalledWith(
-      'RewardsController:postBenefitImpression',
-      'subscription-123',
-      mockBenefit.id,
-      mockBenefit.type.id,
-      MOCK_WALLET_ADDRESS,
-    );
   });
 
   it('does not post benefit impression when subscription is missing', async () => {
-    mockSubscriptionId = null;
+    mockUseSelector.mockReturnValue(null);
 
     render(<BenefitFullView />);
 
@@ -385,17 +295,6 @@ describe('BenefitFullView', () => {
 
     expect(mockFormatDateRemaining).not.toHaveBeenCalled();
     expect(queryByText('1mo 3d')).toBeNull();
-  });
-
-  it('does not render company label when companyName is null', () => {
-    mockRouteBenefit = {
-      ...mockBenefit,
-      companyName: null,
-    };
-
-    const { queryByText } = render(<BenefitFullView />);
-
-    expect(queryByText('Pudgy Penguins')).toBeNull();
   });
 
   it('renders benefit image from thumbnail', () => {

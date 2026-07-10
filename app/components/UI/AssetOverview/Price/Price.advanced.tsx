@@ -1052,6 +1052,9 @@ const PriceAdvanced = ({
               chartType={chartType}
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
+              lineChrome={
+                advancedChartLineChromePresets.tokenOverview.lineChrome
+              }
               subPaneHeightRatio={
                 advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
               }

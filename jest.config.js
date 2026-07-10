@@ -98,12 +98,6 @@ const config = {
     '^@metamask/perps-controller/(.*)$':
       '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
-    // The preview build of @metamask/perps-controller bundles the hyperliquid
-    // Deno SDK via a file:// URL left over from its CI build environment.
-    // Map it to the same mock used for the npm package above so jest.requireActual
-    // can load @metamask/perps-controller without crashing.
-    '^file:///home/runner/work/hyperliquid/hyperliquid/src/mod\\.ts$':
-      '<rootDir>/app/__mocks__/hyperliquidMock.js',
     '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
@@ -114,7 +108,6 @@ const config = {
     '^expo-screen-orientation(/.*)?$':
       '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
-    '^expo$': '<rootDir>/app/__mocks__/expo.ts',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
     '^@metamask/design-system-react-native/spinner$':
       '<rootDir>/app/__mocks__/spinnerMock.js',

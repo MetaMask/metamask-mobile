@@ -30,8 +30,6 @@ import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -61,10 +59,10 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
+import Logger from '../../../util/Logger';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
-import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
-import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -85,12 +83,6 @@ const OptinMetrics = () => {
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
-  const walletSetupAttributionProps = useSelector(
-    selectWalletSetupCompletedAttributionAnalyticsProps,
-  );
 
   // State
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
@@ -103,9 +95,6 @@ const OptinMetrics = () => {
   const [isMarketingChecked, setIsMarketingChecked] = useState(false);
   const [isBasicUsageChecked, setIsBasicUsageChecked] = useState(true);
 
-  const { shouldShowQuestionnaire } =
-    useOnboardingInterestQuestionnaireEligibility();
-
   const isMediumDevice = useMemo(() => Device.isMediumDevice(), []);
   const illustrationSize = useMemo(
     () =>
@@ -114,6 +103,9 @@ const OptinMetrics = () => {
         : { width: 200, height: 180 },
     [isMediumDevice],
   );
+
+  const getShouldShowQuestionnaire =
+    useOnboardingInterestQuestionnaireEligibility();
 
   /**
    * Temporary disabling the back button so users can't go back
@@ -160,16 +152,6 @@ const OptinMetrics = () => {
   const continueNavigation = useCallback(async () => {
     await markMetricsOptInUISeen();
 
-    const successFlow = route?.params?.successFlow;
-    finalizeOnboardingCompletion({
-      successFlow,
-      accountType,
-      isBasicFunctionalityEnabled,
-      walletSetupAttributionProps,
-      dispatch,
-      discoverAccountsLogContext: 'OptinMetrics',
-    });
-
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
     if (onContinue) {
       return onContinue();
@@ -178,14 +160,7 @@ const OptinMetrics = () => {
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
-  }, [
-    dispatch,
-    navigation,
-    route?.params,
-    accountType,
-    isBasicFunctionalityEnabled,
-    walletSetupAttributionProps,
-  ]);
+  }, [navigation, route?.params]);
 
   /**
    * Callback on press confirm
@@ -253,24 +228,36 @@ const OptinMetrics = () => {
 
     dispatch(clearOnboardingEvents());
 
-    if (isBasicUsageChecked && shouldShowQuestionnaire) {
+    let shouldShowInterestQuestionnaire = false;
+    if (isBasicUsageChecked) {
+      try {
+        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'OptinMetrics: interest questionnaire eligibility check failed',
+        );
+      }
+    }
+
+    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
       });
     } else {
-      await continueNavigation();
+      continueNavigation();
     }
   }, [
-    metrics,
     isBasicUsageChecked,
-    shouldShowQuestionnaire,
-    dispatch,
     isMarketingChecked,
-    accountType,
     events,
-    navigation,
+    metrics,
+    dispatch,
     continueNavigation,
+    accountType,
+    getShouldShowQuestionnaire,
+    navigation,
   ]);
 
   /**
@@ -389,12 +376,6 @@ const OptinMetrics = () => {
     [tw],
   );
 
-  const goToDefaultSettings = () => {
-    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
-      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
-    });
-  };
-
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
       <ScrollView
@@ -490,7 +471,6 @@ const OptinMetrics = () => {
                 </Text>
               </Text>
             </Pressable>
-
             <Pressable
               style={({ pressed }) =>
                 tw.style(
@@ -544,20 +524,6 @@ const OptinMetrics = () => {
                 {strings('privacy_policy.checkbox')}
               </Text>
             </Pressable>
-
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('privacy_policy.settings')}{' '}
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.PrimaryDefault}
-                onPress={goToDefaultSettings}
-              >
-                {strings('privacy_policy.settings_link')}
-              </Text>
-            </Text>
           </Box>
         </Box>
       </ScrollView>

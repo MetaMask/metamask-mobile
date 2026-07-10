@@ -553,10 +553,9 @@ const UnifiedTransactionsView = ({
     setRefreshing(true);
     try {
       await refetch();
-    } catch {
-      // refetch errors are surfaced by react-query; always clear pull-to-refresh UI
+    } finally {
+      setRefreshing(false);
     }
-    setRefreshing(false);
   }, [refetch]);
 
   const lastConfirmedEvmIndex = useMemo(() => {

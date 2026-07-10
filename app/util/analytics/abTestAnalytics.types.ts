@@ -5,11 +5,9 @@ export interface ABTestAnalyticsMapping {
   /**
    * Optional per-event property requirements. When set for an event name,
    * enrichment applies only if every listed property matches on the payload.
-   * Values may be a scalar or an array of scalars (any one matching value
-   * satisfies the condition).
    */
   eventPropertyRequirements?: Readonly<
-    Record<string, Readonly<Record<string, string | readonly string[]>>>
+    Record<string, Readonly<Record<string, string>>>
   >;
   /**
    * When set, `active_ab_tests` for this flag is only injected if every entry

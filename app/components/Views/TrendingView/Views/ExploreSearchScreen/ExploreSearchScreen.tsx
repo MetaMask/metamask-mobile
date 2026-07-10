@@ -16,7 +16,7 @@ import {
 } from '../../search/abTestConfig';
 import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
@@ -42,7 +42,6 @@ import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
-import type { ExploreSearchRouteParams } from './ExploreSearchScreen.types';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
@@ -310,11 +309,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const route =
-    useRoute<RouteProp<{ params: ExploreSearchRouteParams }, 'params'>>();
-  const [searchQuery, setSearchQuery] = useState(
-    () => route.params?.initialQuery?.trim() ?? '',
-  );
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');

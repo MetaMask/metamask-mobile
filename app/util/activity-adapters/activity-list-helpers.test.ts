@@ -6,7 +6,6 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
-  isSpendingCapWithAmount,
   shouldShowPlusSign,
 } from './activity-list-helpers';
 
@@ -50,49 +49,6 @@ describe('activity list helpers', () => {
     expect(shouldShowPlusSign('increaseSpendingCap')).toBe(false);
     expect(shouldShowPlusSign('revokeSpendingCap')).toBe(false);
     expect(shouldShowPlusSign('receive')).toBe(true);
-  });
-
-  describe('isSpendingCapWithAmount', () => {
-    it('is true for a spending-cap item with an explicit amount', () => {
-      const item = makeItem({
-        type: 'approveSpendingCap',
-        data: { token: { amount: '100000', direction: 'out' } },
-      });
-      expect(isSpendingCapWithAmount(item)).toBe(true);
-    });
-
-    it('is true for an unlimited spending-cap approval', () => {
-      const item = makeItem({
-        type: 'increaseSpendingCap',
-        data: { token: { direction: 'out', isUnlimitedApproval: true } },
-      });
-      expect(isSpendingCapWithAmount(item)).toBe(true);
-    });
-
-    it('is false for a spending-cap item without a cap amount', () => {
-      const item = makeItem({
-        type: 'approveSpendingCap',
-        data: { token: { direction: 'out' } },
-      });
-      expect(isSpendingCapWithAmount(item)).toBe(false);
-    });
-
-    it('is false for a spending-cap item with no token', () => {
-      const item = makeItem({ type: 'revokeSpendingCap', data: {} });
-      expect(isSpendingCapWithAmount(item)).toBe(false);
-    });
-
-    it('is false for a non-spending-cap kind even with an amount', () => {
-      const item = makeItem({
-        type: 'send',
-        data: {
-          from: '0xfrom',
-          to: '0xto',
-          token: { amount: '100000', direction: 'out' },
-        },
-      });
-      expect(isSpendingCapWithAmount(item)).toBe(false);
-    });
   });
 
   it('matches token, source token, and destination token asset ids case-insensitively', () => {

@@ -1,8 +1,5 @@
 import { useTheme } from './index';
 import { AppThemeKey, Theme } from './models';
-import { isPureBlackEnabled } from './pureBlackPreview';
-
-export { isPureBlackEnabled };
 
 // Stopgap surface helper for the MM_PURE_BLACK_PREVIEW rollout.
 //
@@ -16,6 +13,7 @@ export { isPureBlackEnabled };
 //
 // Remove these helpers once the MMDS package ships its own pure-black-aware
 // surface tokens and the flag is enabled by default.
+export const isPureBlackEnabled = process.env.MM_PURE_BLACK_PREVIEW === 'true';
 
 export const getElevatedSurfaceColor = (theme: Theme): string => {
   if (!isPureBlackEnabled) return theme.colors.background.default;

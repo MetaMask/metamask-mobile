@@ -63,7 +63,6 @@ import {
   RewardsDataServiceGetVipFeesAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
-  RewardsDataServiceGetFirstPredictOnUsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
   RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
@@ -125,7 +124,6 @@ type AllowedActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
-  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -227,7 +225,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getVipFees',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
-      'RewardsDataService:getFirstPredictOnUs',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
       'RewardsDataService:getOndoCampaignPortfolioPosition',

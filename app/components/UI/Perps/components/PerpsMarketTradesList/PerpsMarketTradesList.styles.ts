@@ -15,11 +15,6 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 4,
       marginBottom: 16,
     },
-    headerButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
     listContainer: {
       gap: 1,
     },

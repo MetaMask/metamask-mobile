@@ -55,9 +55,8 @@ const TAB_NAMES: ExploreTabName[] = [
 
 export { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
 
-export interface ExploreFeedRouteParams {
+interface ExploreFeedRouteParams {
   initialTab?: number | null;
-  /** Entry surface for `tab_switched` analytics (e.g. `deeplink`). */
   source?: string;
 }
 

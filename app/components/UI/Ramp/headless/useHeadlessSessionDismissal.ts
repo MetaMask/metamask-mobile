@@ -17,7 +17,7 @@ import { closeSession, getSession } from './sessionRegistry';
  * registry, so the cleanup re-reads `getSession(id)` and no-ops:
  *
  * - Phase 6 success — `closeSession({ reason: 'completed' })`
- * - Phase 7 errors: `failSession` removes the session directly, firing `onError` with no `onClose`
+ * - Phase 7 errors — `failSession` → `closeSession({ reason: 'unknown' })`
  * - Phase 5 single-live-session restart — `closeSession({ reason: 'consumer_cancelled' })`
  * - Consumer `cancel()` — same
  * - `handleBack` (this PR) — fires `closeSession({ reason: 'user_dismissed' })` synchronously before `goBack`, so the cleanup that follows the unmount is also a no-op.

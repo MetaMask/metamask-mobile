@@ -172,67 +172,6 @@ describe('WalletHomeOnboardingSteps', () => {
     });
   });
 
-  it('keeps fund step gated until canAdvanceFundStepAfterBalance becomes true', async () => {
-    const onFundPrimaryPress = jest.fn();
-    const state = {
-      onboarding: { ...baseOnboarding },
-      engine: { backgroundState },
-    };
-    const { getByTestId, store, rerender } = renderWithProvider(
-      <WalletHomeOnboardingSteps
-        testID="steps-root"
-        onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance={false}
-      />,
-      { state },
-    );
-
-    fireEvent.press(getByTestId(primaryTestId));
-    mockUseIsFocused.mockReturnValue(false);
-    rerender(
-      <WalletHomeOnboardingSteps
-        testID="steps-root"
-        onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance={false}
-      />,
-    );
-    mockUseIsFocused.mockReturnValue(true);
-    rerender(
-      <WalletHomeOnboardingSteps
-        testID="steps-root"
-        onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance={false}
-      />,
-    );
-
-    await act(async () => {
-      jest.advanceTimersByTime(WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS);
-    });
-
-    expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-      expect.objectContaining({ stepIndex: 0 }),
-    );
-
-    rerender(
-      <WalletHomeOnboardingSteps
-        testID="steps-root"
-        onFundPrimaryPress={onFundPrimaryPress}
-        canAdvanceFundStepAfterBalance
-      />,
-    );
-
-    await act(async () => {
-      jest.advanceTimersByTime(WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS);
-    });
-    await flushWalletHomeStepTransition();
-
-    await waitFor(() => {
-      expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
-        expect.objectContaining({ stepIndex: 1 }),
-      );
-    });
-  });
-
   it('allows another fund primary press after returning without funded balance', async () => {
     const onFundPrimaryPress = jest.fn();
     const state = {

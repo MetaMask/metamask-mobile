@@ -41,10 +41,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
   // Keep the latest callback in a ref so the parent re-rendering (which passes
   // a new inline arrow each time) doesn't tear down the timers below.
   const onTransitionToEmptyRef = useRef(onTransitionToEmpty);
-
-  useEffect(() => {
-    onTransitionToEmptyRef.current = onTransitionToEmpty;
-  }, [onTransitionToEmpty]);
+  onTransitionToEmptyRef.current = onTransitionToEmpty;
 
   // Fire confetti and start the idle-dismiss timer once the card is fully visible.
   useEffect(() => {
@@ -59,12 +56,8 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
       }
 
       confettiTimer = setTimeout(() => {
-        const rive = riveRef.current;
-        if (!rive) {
-          return;
-        }
         try {
-          rive.fireState('Confetti', 'Start');
+          riveRef.current?.fireState('Confetti', 'Start');
         } catch (error) {
           console.warn('Error triggering Rive confetti animation:', error);
         }

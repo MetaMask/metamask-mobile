@@ -26,7 +26,7 @@ import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
+  'https://metamask.github.io/snaps/test-snaps/3.4.2/';
 
 class TestSnaps {
   get getConnectSnapButton(): EncapsulatedElementType {
@@ -433,7 +433,7 @@ class TestSnaps {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
-    ) as unknown as Promise<IndexableWebElement>;
+    ) as Promise<IndexableWebElement>;
     // New gestures currently don't support web elements
     await Gestures.typeInWebElement(webElement, message);
   }
@@ -468,10 +468,12 @@ class TestSnaps {
       timeout: 15_000,
     });
     await this.blurActiveWebViewInput();
-    await Utilities.waitForElementToStopMoving(this.confirmSignatureButton, {
-      stableCount: 2,
-      timeout: 5_000,
-    });
+    // On iOS the confirmation is presented as a `transparentModal` over the WebView, so
+    // dismissing the WebView keyboard leaves the sheet's keyboard-avoidance layout
+    // repositioning the footer on an ongoing basis rather than settling once. A strict
+    // pixel-exact stability check (checkStability) never finds 3 consecutive identical
+    // frames — even a much longer window still times out — so don't gate the tap on
+    // frame stillness here; visibility + enabled is sufficient for this button.
     await Gestures.tap(this.confirmSignatureButton, {
       elemDescription: 'confirm snap signature',
     });

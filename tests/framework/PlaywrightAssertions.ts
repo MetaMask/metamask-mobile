@@ -1,4 +1,4 @@
-import Utilities, { BASE_DEFAULTS, sleep } from './Utilities.ts';
+import { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
@@ -246,13 +246,6 @@ export default class PlaywrightAssertions {
   ): Promise<void> {
     try {
       const el = await targetElement;
-      try {
-        if (!(await el.unwrap().isExisting())) {
-          return;
-        }
-      } catch {
-        // Fall through to waitForDisplayed when existence cannot be determined.
-      }
       await el.waitForDisplayed({
         reverse: true,
         timeout: this.getTimeout(options),
@@ -263,12 +256,6 @@ export default class PlaywrightAssertions {
         (error.message.includes('No elements found for XPath') ||
           error.message.includes('An element could not be located') ||
           error.message.includes('no such element'))
-      ) {
-        return;
-      }
-      if (
-        error instanceof TypeError &&
-        error.message.includes('waitForDisplayed')
       ) {
         return;
       }
@@ -285,17 +272,8 @@ export default class PlaywrightAssertions {
       await this.expectElementText(within, text, assertionOptions);
       return;
     }
-    const timeout = this.getTimeout(assertionOptions);
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = await PlaywrightMatchers.getElementByText(text);
-        await el.waitForDisplayed({ timeout: 100 });
-      },
-      {
-        timeout,
-        description: `Assert text "${text}" is displayed`,
-      },
-    );
+    const el = await PlaywrightMatchers.getElementByText(text);
+    await el.waitForDisplayed({ timeout: this.getTimeout(assertionOptions) });
   }
 
   static async expectTextNotDisplayed(

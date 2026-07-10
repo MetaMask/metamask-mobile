@@ -1,5 +1,5 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import type { RootState } from '../../../../reducers';
+import { RootState } from '../../../../reducers';
 import {
   Hex,
   CaipChainId,
@@ -39,6 +39,7 @@ import {
   hardwareWalletsSwapsReducer,
   initialHardwareWalletsSwapsState,
 } from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import {
@@ -55,7 +56,6 @@ import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/to
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
-import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -692,50 +692,27 @@ export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
 export const selectIsGasIncluded7702Supported = (state: RootState) =>
   state.bridge.isGasIncluded7702Supported;
 
-const EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID = {};
-const EMPTY_HISTORICAL_PRICES = {};
-
-const selectGasFeeEstimatesByChainIdForBridge = (state: RootState) =>
-  state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
-  EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID;
-
-const selectBridgeConfig = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => remoteFeatureFlags.bridgeConfig,
-);
-
-export const selectControllerFields = createSelector(
-  selectBridgeControllerState,
-  selectGasFeeEstimatesByChainIdForBridge,
-  getMultichainAssetsRatesControllerConversionRates,
-  getTokenRatesControllerMarketData,
-  getCurrencyRateControllerCurrencyRates,
-  getCurrencyRateControllerCurrentCurrency,
-  selectBridgeConfig,
-  selectAnalyticsEnabled,
-  (
-    bridgeControllerState,
-    gasFeeEstimatesByChainId,
-    conversionRates,
-    marketData,
-    currencyRates,
-    currentCurrency,
-    bridgeConfig,
-    isAnalyticsEnabled,
-  ) => ({
-    ...bridgeControllerState,
-    gasFeeEstimatesByChainId,
-    conversionRates,
-    historicalPrices: EMPTY_HISTORICAL_PRICES,
-    marketData,
-    currencyRates,
-    currentCurrency,
-    participateInMetaMetrics: Boolean(isAnalyticsEnabled),
-    remoteFeatureFlags: {
-      bridgeConfig,
-    },
-  }),
-);
+const selectControllerFields = (state: RootState) => ({
+  ...state.engine.backgroundState.BridgeController,
+  gasFeeEstimatesByChainId:
+    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+    {},
+  ...{
+    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
+    historicalPrices: {},
+  },
+  ...{
+    marketData: getTokenRatesControllerMarketData(state),
+  },
+  ...{
+    currencyRates: getCurrencyRateControllerCurrencyRates(state),
+    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
+  },
+  participateInMetaMetrics: analytics.isEnabled(),
+  remoteFeatureFlags: {
+    bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
+  },
+});
 
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,

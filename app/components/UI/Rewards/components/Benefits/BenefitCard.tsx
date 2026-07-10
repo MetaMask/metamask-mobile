@@ -4,7 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Icon,
   IconColor,
   IconName,
@@ -32,7 +31,6 @@ const BenefitCard = ({ benefit }: Props) => {
     benefit.actionDate == null
       ? null
       : formatDateRemaining(benefit.actionDate, Date.now());
-  const companyName = benefit.companyName?.trim();
 
   return (
     <TouchableOpacity
@@ -55,30 +53,13 @@ const BenefitCard = ({ benefit }: Props) => {
         </Box>
 
         <Box twClassName="flex-1 gap-1">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2"
+          <Text
+            variant={TextVariant.HeadingSm}
+            twClassName="text-default"
+            numberOfLines={1}
           >
-            <Text
-              variant={TextVariant.HeadingSm}
-              twClassName="text-default flex-1"
-              numberOfLines={1}
-            >
-              {benefit.longTitle}
-            </Text>
-            {companyName ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                twClassName="max-w-[40%]"
-                numberOfLines={1}
-              >
-                {companyName}
-              </Text>
-            ) : null}
-          </Box>
+            {benefit.longTitle}
+          </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}

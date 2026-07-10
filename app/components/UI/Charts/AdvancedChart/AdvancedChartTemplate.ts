@@ -2,7 +2,9 @@ import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type ChartLabelStyleOverrides,
+  type LineChromeOptions,
   type LegendOverlayConfig,
+  resolveLineChromeOptions,
   resolveCurrentPriceColor,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
@@ -67,6 +69,7 @@ const getChartSuccessColor = (theme: Theme): string =>
 interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
+  lineChrome?: LineChromeOptions;
   useSubscriptPriceFormat?: boolean;
   hidePaneSeparator?: boolean;
   gridLineColorOverride?: string;
@@ -78,7 +81,6 @@ interface ChartFeatures {
   volumeSuccessColorOverride?: string;
   volumeErrorColorOverride?: string;
   legendOverlay?: LegendOverlayConfig;
-  showBuiltInLegend?: boolean;
 }
 
 const createConfigScript = (
@@ -86,6 +88,7 @@ const createConfigScript = (
   theme: Theme,
   features: ChartFeatures,
 ): string => {
+  const lc = resolveLineChromeOptions(features.lineChrome);
   const successColor =
     features.successColorOverride ?? getChartSuccessColor(theme);
   const lineColor = features.lineColorOverride ?? successColor;
@@ -138,8 +141,13 @@ window.CONFIG = {
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
     disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
-    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'},
-    showBuiltInLegend: ${features.showBuiltInLegend ? 'true' : 'false'}
+    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'}
+  },
+  lineChrome: {
+    hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
+    useCustomLineEndMarker: ${lc.useCustomLineEndMarker ? 'true' : 'false'},
+    useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
+    useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
@@ -287,7 +295,7 @@ export const createAdvancedChartTemplate = (
          * Visible-edge outline pill: same pill metrics as .crosshair-label + .crosshair-price-label
          * as the filled last-close label, but transparent fill + success border and success (green)
          * text for readability on the chart background. Shown only when the series tail is off-screen
-         * and lineChrome.useCustomPriceLabels is true.
+         * and lineChrome.useCustomPriceLabels is true (chartLogic.js).
          */
         #custom-series-last-value-label {
             z-index: 55;
@@ -302,7 +310,7 @@ export const createAdvancedChartTemplate = (
             z-index: 60;
         }
         /*
-         * Study legend pills: semi-transparent background via color-mix.
+         * Study legend pills (chartLogic.js): semi-transparent background via color-mix.
          */
         .legend-pill {
             display: inline-flex;
@@ -343,6 +351,12 @@ export const createAdvancedChartTemplate = (
     <div id="loading-overlay" class="loading-overlay">Loading chart...</div>
     <div id="chart_surface">
         <div id="tv_chart_container"></div>
+        <div id="custom-crosshair-overlay" aria-hidden="true">
+            <div id="last-close-price-label" class="crosshair-label crosshair-price-label" style="display: none;"></div>
+            <div id="custom-series-last-value-label" class="crosshair-label crosshair-price-label" style="display: none;" aria-hidden="true"></div>
+            <div id="crosshair-price-label" class="crosshair-label crosshair-price-label"></div>
+            <div id="crosshair-time-label" class="crosshair-label crosshair-time-label"></div>
+        </div>
     </div>
 
     <script type="text/javascript">

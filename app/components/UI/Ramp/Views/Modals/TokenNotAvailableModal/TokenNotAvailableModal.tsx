@@ -27,6 +27,7 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
 import type { BuyFlowOrigin } from '../../BuildQuote/BuildQuote';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
@@ -49,6 +50,7 @@ function TokenNotAvailableModal() {
 
   const { selectedProvider } = useRampsProviders();
   const { selectedToken } = useRampsTokens();
+  const surfaceClass = useElevatedSurface();
 
   const tokenName = selectedToken?.name ?? '';
   const providerName = selectedProvider?.name ?? '';
@@ -160,6 +162,7 @@ function TokenNotAvailableModal() {
       goBack={navigation.goBack}
       onClose={handleDismiss}
       testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
+      twClassName={surfaceClass}
     >
       <HeaderStandard
         title={strings('fiat_on_ramp.token_unavailable_modal.title')}

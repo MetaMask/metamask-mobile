@@ -41,10 +41,6 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
-import {
-  ACTIVITY_FALLBACK_TITLE_RESOLVERS,
-  TOKEN_ACTION_LABELS,
-} from './titleLabels';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdraw';
@@ -54,23 +50,12 @@ function isPerpsFundingKind(type: ActivityKind): boolean {
   return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
 }
 
-/**
- * Perps trade fills, whose amount is realized PnL (gains green, losses red).
- * Excludes orders, funds, and funding — they show a notional and stay neutral.
- */
-function isPerpsPnlKind(type: ActivityKind): boolean {
-  return (
-    type.startsWith('perps') &&
-    !isPerpsFundsKind(type) &&
-    !isPerpsFundingKind(type)
-  );
-}
-
 function isPerpsTradeKind(type: ActivityKind): boolean {
   return (
-    isPerpsPnlKind(type) ||
+    (type.startsWith('perps') &&
+      !isPerpsFundsKind(type) &&
+      !isPerpsFundingKind(type)) ||
     type.startsWith('market') ||
-    type.startsWith('limit') ||
     type.startsWith('stopMarket')
   );
 }
@@ -278,6 +263,47 @@ function statusTitle(
   return titles.success;
 }
 
+const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
+  Record<ActivityKind, () => string>
+> = {
+  predictionsAddFunds: () =>
+    strings('transactions.activity_prediction_account_funded'),
+  predictionsWithdrawFunds: () =>
+    strings('transactions.activity_prediction_withdrawal'),
+  predictionClaimWinnings: () => strings('predict.transactions.claim_title'),
+  predictionCashedOut: () => strings('predict.transactions.sell_title'),
+  // Design board copy: "Prediction placed" (not the legacy "Predicted").
+  predictionPlaced: () => strings('transactions.activity_prediction_placed'),
+  perpsAddFunds: () => strings('transactions.activity_perps_account_funded'),
+  perpsWithdraw: () => strings('transactions.activity_perps_withdrawal'),
+  perpsOpenLong: () => strings('transactions.activity_perps_open_long'),
+  perpsCloseLong: () => strings('transactions.activity_perps_close_long'),
+  perpsCloseLongLiquidated: () =>
+    strings('transactions.activity_perps_close_long_liquidated'),
+  perpsCloseLongStopLoss: () =>
+    strings('transactions.activity_perps_close_long_stop_loss'),
+  perpsOpenShort: () => strings('transactions.activity_perps_open_short'),
+  perpsCloseShort: () => strings('transactions.activity_perps_close_short'),
+  perpsCloseShortLiquidated: () =>
+    strings('transactions.activity_perps_close_short_liquidated'),
+  perpsCloseShortStopLoss: () =>
+    strings('transactions.activity_perps_close_short_stop_loss'),
+  perpsPaidFundingFees: () =>
+    strings('transactions.activity_perps_paid_funding_fees'),
+  perpsReceivedFundingFees: () =>
+    strings('transactions.activity_perps_received_funding_fees'),
+  perpsCloseShortTakeProfit: () =>
+    strings('transactions.activity_perps_close_short_take_profit'),
+  perpsCloseLongTakeProfit: () =>
+    strings('transactions.activity_perps_close_long_take_profit'),
+  marketShort: () => strings('transactions.activity_market_short'),
+  stopMarketCloseShort: () =>
+    strings('transactions.activity_stop_market_close_short'),
+  marketCloseShort: () => strings('transactions.activity_market_close_short'),
+  limitShort: () => strings('transactions.activity_limit_short'),
+  limitCloseShort: () => strings('transactions.activity_limit_close_short'),
+};
+
 // Domain (perps/predict) rows have no bespoke failed copy, so mark a
 // failed/cancelled status with an em-dash "—Failed" suffix, mirroring the perps
 // severity suffix style (e.g. "Closed short—liquidated"). The failed color is
@@ -287,10 +313,10 @@ function withDomainStatusSuffix(
   status: ActivityListItem['status'],
 ): string {
   if (status === 'failed') {
-    return `${title} — ${strings('transaction.failed')}`;
+    return `${title}—${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title} — ${strings('transaction.canceled')}`;
+    return `${title}—${strings('transaction.canceled')}`;
   }
   return title;
 }
@@ -597,27 +623,44 @@ function resolveCoreContent(
     case 'buy':
     case 'sell':
     case 'claim':
-    case 'stake':
     case 'unstake':
     case 'deposit': {
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
-      // Pooled staking is ETH-only, so stake/unstake read the full asset name
-      // ("Staked Ethereum" / "Unstaked Ethereum") rather than the "ETH" symbol.
-      const isStakingKind = item.type === 'stake' || item.type === 'unstake';
-      let displayNoun = symbol;
-      if (isStakingKind) {
-        displayNoun = 'Ethereum';
-      } else if (isNamelessNftBuy) {
-        displayNoun = 'NFT';
-      }
-      const labels = TOKEN_ACTION_LABELS[item.type];
+      const labels =
+        item.type === 'buy'
+          ? { success: 'Bought', pending: 'Buying', failed: 'Buy failed' }
+          : item.type === 'sell'
+            ? { success: 'Sold', pending: 'Selling', failed: 'Sell failed' }
+            : item.type === 'claim'
+              ? {
+                  success: 'Claimed',
+                  pending: 'Claiming',
+                  failed: 'Claim failed',
+                }
+              : item.type === 'unstake'
+                ? {
+                    success: 'Unstaked',
+                    pending: 'Unstaking',
+                    failed: 'Unstake failed',
+                  }
+                : {
+                    success: 'Deposited',
+                    pending: 'Depositing',
+                    failed: 'Deposit failed',
+                  };
 
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol(labels.success, displayNoun),
-          pending: withOptionalSymbol(labels.pending, displayNoun),
+          success: withOptionalSymbol(
+            labels.success,
+            isNamelessNftBuy ? 'NFT' : symbol,
+          ),
+          pending: withOptionalSymbol(
+            labels.pending,
+            isNamelessNftBuy ? 'NFT' : symbol,
+          ),
           failed: labels.failed,
         }),
         subtitle: protocolSubtitle(item),
@@ -1217,6 +1260,5 @@ export function useActivityListItemRowContent(
     secondaryToken,
     primaryAmount,
     secondaryAmount,
-    isPnlAmount: isPerpsPnlKind(item.type),
   };
 }

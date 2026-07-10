@@ -14,8 +14,6 @@ import { IconName } from '@metamask/design-system-react-native';
 const ANDROID_KEYCHAIN_BIOMETRIC_USER_CANCEL_REGEX =
   /code:\s*(?:5|10|13)\s*,\s*msg:/i;
 
-const ANDROID_KEYCHAIN_BIOMETRIC_LOCKOUT_REGEX = /code:\s*7\s*,\s*msg:/i;
-
 /**
  * @param error - Error thrown during biometric unlock (SecureKeychain / react-native-keychain).
  * @returns Whether the error is an Android keychain-formatted user cancellation.
@@ -25,21 +23,6 @@ export const isAndroidKeychainBiometricUserCancellation = (
 ): boolean => {
   const message = error.message || error.toString();
   return ANDROID_KEYCHAIN_BIOMETRIC_USER_CANCEL_REGEX.test(message);
-};
-
-/**
- * @param error - Error thrown during biometric unlock (SecureKeychain / react-native-keychain).
- * @returns Whether the error is an Android keychain-formatted biometric lockout (too many attempts).
- */
-export const isAndroidKeychainBiometricLockout = (error: Error): boolean => {
-  const message = error.message || error.toString();
-  return (
-    ANDROID_KEYCHAIN_BIOMETRIC_LOCKOUT_REGEX.test(message) ||
-    containsErrorMessage(
-      error,
-      UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_BIOMETRIC_LOCKOUT,
-    )
-  );
 };
 
 /**

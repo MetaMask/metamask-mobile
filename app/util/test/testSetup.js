@@ -467,15 +467,60 @@ jest.mock(
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
 /**
- * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
- * react-native-worklets, and requiring the real package eagerly initializes its
- * native part (absent under Jest), throwing "Native part of Worklets doesn't
- * seem to be initialized". The mock also installs `globalThis._getAnimationTimestamp`
- * and a timestamp-correct `requestAnimationFrame` that animation tests rely on.
+ * Inline Jest mock for `react-native-worklets` when the package is not installed
+ * (e.g. older RN/reanimated stacks). Mirrors the critical behavior from the
+ * upstream package mock — especially `runOnJS` scheduling via `queueMicrotask`.
  * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
  */
-jest.mock('react-native-worklets', () =>
-  require('react-native-worklets/lib/module/mock'),
+jest.mock(
+  'react-native-worklets',
+  () => {
+    const RuntimeKind = { ReactNative: 0 };
+    const NOOP = () => {};
+    const identity = (value) => value;
+
+    const runOnJS =
+      (fun) =>
+      (...args) =>
+        queueMicrotask(() => (args.length ? fun(...args) : fun()));
+
+    return {
+      __esModule: true,
+      RuntimeKind,
+      isShareableRef: () => true,
+      makeShareable: identity,
+      makeShareableCloneOnUIRecursive: identity,
+      makeShareableCloneRecursive: identity,
+      shareableMappingCache: new Map(),
+      getStaticFeatureFlag: () => false,
+      setDynamicFeatureFlag: NOOP,
+      isSynchronizable: () => false,
+      getRuntimeKind: () => RuntimeKind.ReactNative,
+      createWorkletRuntime: () => NOOP,
+      runOnRuntime: identity,
+      runOnRuntimeAsync: async (_runtime, worklet, ...args) => worklet(...args),
+      scheduleOnRuntime: (callback) => callback(),
+      createSerializable: identity,
+      isSerializableRef: identity,
+      serializableMappingCache: new Map(),
+      createSynchronizable: identity,
+      callMicrotasks: NOOP,
+      executeOnUIRuntimeSync: identity,
+      runOnJS,
+      runOnUI:
+        (worklet) =>
+        (...args) => {
+          worklet(...args);
+        },
+      runOnUIAsync: async (worklet, ...args) => worklet(...args),
+      runOnUISync: (callback) => callback(),
+      scheduleOnRN: (fun, ...args) => runOnJS(fun)(...args),
+      scheduleOnUI: (worklet, ...args) => worklet(...args),
+      isWorkletFunction: () => false,
+      WorkletsModule: {},
+    };
+  },
+  { virtual: true },
 );
 
 jest.mock('react-native-mmkv', () => {
@@ -760,6 +805,13 @@ try {
   }
 } catch {
   // Reanimated internals may change — fall through silently
+}
+
+// useAnimatedGestureHandler was removed in react-native-reanimated v4 but is
+// still imported by legacy source code (e.g. ReusableModal). Patch the module
+// so tests that render those components don't crash.
+if (typeof Reanimated.useAnimatedGestureHandler !== 'function') {
+  Reanimated.useAnimatedGestureHandler = jest.fn(() => ({}));
 }
 
 global.__DEV__ = false;

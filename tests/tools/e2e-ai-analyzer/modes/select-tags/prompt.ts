@@ -37,10 +37,8 @@ ${availableSkills
 
   const guidanceSection = `GUIDANCE:
 Use your judgment - selecting all tags is acceptable (recommended as conservative approach for risky changes), as well as selecting none of them if the changes are unrisky.
-E2E smoke tags (from tests/tags.js) select which smoke suites run in CI. Select tags based on impacted user flows and app areas. Regression tests (tests/regression/) are NOT in scope for Smart E2E selection — only smoke and performance tags are selected here.
-Changes to smoke spec files (tests/smoke/, tests/smoke-appium/) or shared test infra they import (page-objects, flows, selectors, locators) — inspect changed specs for their imported tags.
-Changes to wdio/ or tests/performance directories do not require smoke tags from tests/tags.js - select none unless app code is also changed.
-Changes to tests/selectors/, tests/flows/, tests/locators/, or tests/page-objects/ — use find_related_files to identify which smoke spec files import the changed file and select the appropriate tags.
+Changes to wdio/ or tests/performance directories (separate test frameworks) do not require Detox tags - select none unless app code is also changed.
+Changes to tests/selectors/, tests/flows/, tests/locators/, or tests/page-objects/ DO affect Detox tests - use find_related_files to identify which spec files import the changed file and select the appropriate tags.
 Critical files (marked in file list) typically warrant wide testing. Use tools to investigate the impact of the changes.
 For E2E test infrastructure related changes, consider running the necessary tests or all of them in case the changes are wide-ranging.
 Balance thoroughness with efficiency, and be conservative in your risk assessment. When in doubt, err on the side of running more test tags to ensure adequate coverage.

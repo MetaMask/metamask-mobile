@@ -92,7 +92,7 @@ export interface ExploreInteractedProperties {
     | 'section_see_all_tapped'
     | 'section_item_tapped'
     | 'prediction_voted';
-  tab_name?: ExploreTabName;
+  tab_name: ExploreTabName;
   section_name?: ExploreSectionName;
   position?: number;
   asset_type?: 'token' | 'stock' | 'perp' | 'prediction' | 'dapp';

@@ -1,10 +1,5 @@
 import React from 'react';
 import { View } from 'react-native';
-import {
-  BadgeStatus,
-  BadgeStatusStatus,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Text, {
   TextColor,
   TextVariant,
@@ -13,23 +8,18 @@ import { NotificationMenuItem } from '../../../../util/notifications/notificatio
 import useStyles from '../List/useStyles';
 import { formatMenuItemDate } from '../../../../util/notifications/methods';
 
-export const TEST_IDS = {
-  UNREAD_BADGE: 'notification-menu-item-content:unread-badge',
-};
-
 type NotificationContentProps = Pick<
   NotificationMenuItem,
   'title' | 'description' | 'createdAt'
-> & { isRead: boolean };
+>;
 
 function NotificationContent(props: NotificationContentProps) {
   const { styles } = useStyles();
-  const tw = useTailwind();
 
   return (
     <View style={styles.containerFill}>
       {/* Section 1 - Title + Timestamp */}
-      <View style={[styles.rowInsider, tw`items-center`]}>
+      <View style={styles.rowInsider}>
         <Text
           color={TextColor.Alternative}
           variant={TextVariant.BodySM}
@@ -37,18 +27,9 @@ function NotificationContent(props: NotificationContentProps) {
         >
           {props.title}
         </Text>
-        <View style={tw`flex-row items-center gap-1`}>
-          {!props.isRead && (
-            <BadgeStatus
-              status={BadgeStatusStatus.New}
-              testID={TEST_IDS.UNREAD_BADGE}
-              style={tw`self-center`}
-            />
-          )}
-          <Text color={TextColor.Muted} variant={TextVariant.BodySM}>
-            {formatMenuItemDate(new Date(props.createdAt))}
-          </Text>
-        </View>
+        <Text color={TextColor.Muted} variant={TextVariant.BodySM}>
+          {formatMenuItemDate(new Date(props.createdAt))}
+        </Text>
       </View>
       {/* Section 2 - Left Desc + Right Desc */}
       <View style={styles.rowInsider}>

@@ -1,7 +1,4 @@
-import {
-  isNonEvmChainId,
-  formatChainIdToCaip,
-} from '@metamask/bridge-controller';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
 import {
   useCallback,
@@ -90,7 +87,6 @@ import { useTheme } from '../../../../../../../util/theme';
 import { calcTokenValue } from '../../../../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { toAssetId } from '../../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { useRampNavigation } from '../../../../../../UI/Ramp/hooks/useRampNavigation';
 import { useHasSufficientGas } from '../../../../../../UI/Bridge/hooks/useHasSufficientGas';
 import { useInitialSlippage } from '../../../../../../UI/Bridge/hooks/useInitialSlippage';
 import useIsInsufficientBalance from '../../../../../../UI/Bridge/hooks/useInsufficientBalance';
@@ -215,8 +211,6 @@ export interface UseQuickBuyControllerResult {
   isHardwareSolanaBlocked: boolean;
   priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
   isPriceImpactError: boolean;
-  /** True when a buy pill amount exceeds balance and the CTA routes to Ramp. */
-  isPresetAddFundsMode: boolean;
   // button state (priority-encoded; the Buy button surfaces at most one)
   buttonError: QuickBuyButtonError | null;
   hasValidAmount: boolean;
@@ -227,10 +221,6 @@ export interface UseQuickBuyControllerResult {
   handleClose: () => void;
   handleSliderChange: (percent: number) => void;
   handleSliderDragEnd: (percent: number) => void;
-  /** Buy-mode preset fiat pill tap — commits amount and fetches quote immediately. */
-  handleQuickAmountPress: (fiatValue: number, presetTierUsd?: number) => void;
-  /** USD → user display currency rate for fallback pill conversion. */
-  usdToCurrentCurrencyRate: number | undefined;
   handleAmountAreaPress: () => void;
   handleAmountChange: (text: string) => void;
   handleToggleAmountDisplay: () => void;
@@ -247,7 +237,6 @@ export function useQuickBuyController(
   const dispatch = useDispatch();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { goToBuy } = useRampNavigation();
 
   const traderAddress = analyticsContext?.traderAddress ?? '';
   const caip19 = useMemo(
@@ -294,8 +283,6 @@ export function useQuickBuyController(
     useState<QuickBuyAmountDisplayMode>('fiat');
   const [sliderPercent, setSliderPercent] = useState(0);
   const lastSliderPercentRef = useRef(0);
-  const [isPresetAddFundsMode, setIsPresetAddFundsMode] = useState(false);
-  const hasAppliedOpenDefaultRef = useRef(false);
   // Deduplicates consecutive handleSliderDragEnd calls with the same
   // user-currency amount (can happen when Tap + Pan both fire onEnd for a pure
   // tap gesture).
@@ -504,25 +491,6 @@ export function useQuickBuyController(
     },
     [sourceToken?.chainId, networkConfigurations, currencyRates],
   );
-
-  const usdToCurrentCurrencyRate = useMemo(() => {
-    const nativeCurrency = sourceToken?.chainId
-      ? networkConfigurations[sourceToken.chainId]?.nativeCurrency
-      : undefined;
-    const evmChainCurrencyEntry = nativeCurrency
-      ? currencyRates?.[nativeCurrency]
-      : undefined;
-    const fallbackEvmCurrencyEntry = Object.values(currencyRates ?? {}).find(
-      (entry) => entry?.conversionRate && entry?.usdConversionRate,
-    );
-    const currencyEntry = evmChainCurrencyEntry ?? fallbackEvmCurrencyEntry;
-    const conversionRate = currencyEntry?.conversionRate;
-    const usdConversionRate = currencyEntry?.usdConversionRate;
-    if (!conversionRate || !usdConversionRate) {
-      return undefined;
-    }
-    return conversionRate / usdConversionRate;
-  }, [sourceToken?.chainId, networkConfigurations, currencyRates]);
 
   // BridgeController.fetchQuotes does not start gas fee polling, so estimates
   // for the source chain may be missing when selectBridgeQuotesBase enriches
@@ -979,7 +947,6 @@ export function useQuickBuyController(
   // gesture, not on every pixel of movement.
   const handleSliderChange = useCallback(
     (percent: number) => {
-      setIsPresetAddFundsMode(false);
       const rounded = Math.round(percent);
       if (rounded === lastSliderPercentRef.current) {
         return;
@@ -1025,7 +992,6 @@ export function useQuickBuyController(
   // and fires analytics exactly once per interaction.
   const handleSliderDragEnd = useCallback(
     (percent: number) => {
-      setIsPresetAddFundsMode(false);
       const rounded = Math.round(percent);
       const nextFiat =
         rounded === 0 || maxSpendFiat <= 0
@@ -1081,67 +1047,6 @@ export function useQuickBuyController(
     ],
   );
 
-  const handleQuickAmountPress = useCallback(
-    (fiatValue: number, presetTierUsd?: number) => {
-      if (!Number.isFinite(fiatValue) || fiatValue <= 0) {
-        return;
-      }
-
-      lastInputMethodRef.current =
-        QuickBuyEventValues.AMOUNT_SELECTION_METHOD.PRESET;
-      setIsMaxSourceAmount(false);
-
-      const exceedsBalance =
-        tradeMode === 'buy' && maxSpendFiat > 0 && fiatValue > maxSpendFiat;
-      setIsPresetAddFundsMode(exceedsBalance);
-
-      const nextFiat = fiatValue.toFixed(FIAT_INPUT_DECIMALS);
-      lastCommittedFiatRef.current = nextFiat;
-      setFiatAmount(nextFiat);
-      setQuotedFiatAmount(nextFiat);
-
-      const nextSliderPercent =
-        maxSpendFiat > 0
-          ? Math.min(100, Math.round((fiatValue / maxSpendFiat) * 100))
-          : 0;
-      setSliderPercent(nextSliderPercent);
-      lastSliderPercentRef.current = nextSliderPercent;
-
-      if (!exceedsBalance) {
-        setImmediateFetchToken((token) => token + 1);
-      }
-      trackAmountSelected(
-        toAmountUsd(fiatValue),
-        QuickBuyEventValues.AMOUNT_SELECTION_METHOD.PRESET,
-        tradeMode === 'buy' ? sourceToken?.symbol : undefined,
-        undefined,
-        tradeMode === 'sell' ? destToken?.symbol : undefined,
-        presetTierUsd,
-      );
-    },
-    [
-      maxSpendFiat,
-      sourceToken?.symbol,
-      destToken?.symbol,
-      tradeMode,
-      toAmountUsd,
-      trackAmountSelected,
-      lastInputMethodRef,
-    ],
-  );
-
-  // Default the slider to 50% once per sheet open when spendable balance is known.
-  useEffect(() => {
-    if (hasAppliedOpenDefaultRef.current) {
-      return;
-    }
-    if (!hasSourcePrice || maxSpendFiat <= 0) {
-      return;
-    }
-    hasAppliedOpenDefaultRef.current = true;
-    handleSliderDragEnd(50);
-  }, [hasSourcePrice, maxSpendFiat, handleSliderDragEnd]);
-
   const handleAmountAreaPress = useCallback(() => {
     // Priced flows are fiat-first, so typing in fiat keeps the keyboard digits
     // aligned with the headline. Unpriced flows are crypto-first by necessity
@@ -1163,7 +1068,6 @@ export function useQuickBuyController(
     setQuotedFiatAmount('');
     setSourceAmountTokens('');
     setIsMaxSourceAmount(false);
-    setIsPresetAddFundsMode(false);
     setSliderPercent(0);
     lastSliderPercentRef.current = 0;
     lastCommittedFiatRef.current = '';
@@ -1244,7 +1148,6 @@ export function useQuickBuyController(
 
   const handleAmountChange = useCallback(
     (text: string) => {
-      setIsPresetAddFundsMode(false);
       lastInputMethodRef.current =
         QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT;
       const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
@@ -1305,19 +1208,6 @@ export function useQuickBuyController(
   ]);
 
   const handleConfirm = useCallback(async () => {
-    if (isPresetAddFundsMode && tradeMode === 'buy' && sourceToken) {
-      const assetId = toAssetId(
-        sourceToken.address,
-        formatChainIdToCaip(sourceToken.chainId),
-      );
-      if (!assetId) {
-        return;
-      }
-      await goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-      handleClose();
-      return;
-    }
-
     if (!activeQuote || !walletAddress) return;
 
     // `amount_usd` is contractually USD; the entered amount is in the user's
@@ -1488,9 +1378,6 @@ export function useQuickBuyController(
       dispatch(setIsSubmittingTx(false));
     }
   }, [
-    isPresetAddFundsMode,
-    goToBuy,
-    handleClose,
     activeQuote,
     walletAddress,
     stxEnabled,
@@ -1501,7 +1388,7 @@ export function useQuickBuyController(
     isNonEvmSourced,
     isEvmNonEvmBridge,
     isNonEvmNonEvmBridge,
-    sourceToken,
+    sourceToken?.chainId,
     destToken?.chainId,
     fiatAmountNumber,
     toAmountUsd,
@@ -1512,6 +1399,7 @@ export function useQuickBuyController(
     tradeMode,
     destToken?.symbol,
     target.tokenSymbol,
+    sourceToken?.symbol,
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
@@ -1621,26 +1509,25 @@ export function useQuickBuyController(
   // receive estimate are not blanked every refresh tick.
   const isBlockingQuoteLoad = isQuoteLoading && !hasUsableQuoteOnScreen;
 
-  const isConfirmDisabled = isPresetAddFundsMode
-    ? !hasValidAmount || isSetupLoading || !sourceToken || isSubmittingTx
-    : !hasValidAmount ||
-      isAmountUncommitted ||
-      isSetupLoading ||
-      !sourceToken ||
-      !destToken ||
-      isDestinationAddressMissing ||
-      !activeQuote ||
-      hasQuoteMismatch ||
-      isPendingQuoteRefresh ||
-      isQuoteRequestStale ||
-      isBlockingQuoteLoad ||
-      hasInsufficientBalance ||
-      isNetworkFeeUnavailable ||
-      hasInsufficientGas ||
-      isSubmittingTx ||
-      hasError ||
-      isHardwareSolanaBlocked ||
-      !walletAddress;
+  const isConfirmDisabled =
+    !hasValidAmount ||
+    isAmountUncommitted ||
+    isSetupLoading ||
+    !sourceToken ||
+    !destToken ||
+    isDestinationAddressMissing ||
+    !activeQuote ||
+    hasQuoteMismatch ||
+    isPendingQuoteRefresh ||
+    isQuoteRequestStale ||
+    isBlockingQuoteLoad ||
+    hasInsufficientBalance ||
+    isNetworkFeeUnavailable ||
+    hasInsufficientGas ||
+    isSubmittingTx ||
+    hasError ||
+    isHardwareSolanaBlocked ||
+    !walletAddress;
 
   const isTotalLoading =
     hasValidAmount &&
@@ -1649,14 +1536,12 @@ export function useQuickBuyController(
   const isConfirmLoading = isSubmittingTx;
 
   let buttonError: QuickBuyButtonError | null = null;
-  if (!isPresetAddFundsMode) {
-    if (hasInsufficientBalance || isNetworkFeeUnavailable) {
-      buttonError = 'insufficient_balance';
-    } else if (hasInsufficientGas) {
-      buttonError = 'insufficient_gas';
-    } else if (hasError) {
-      buttonError = 'no_quotes';
-    }
+  if (hasInsufficientBalance || isNetworkFeeUnavailable) {
+    buttonError = 'insufficient_balance';
+  } else if (hasInsufficientGas) {
+    buttonError = 'insufficient_gas';
+  } else if (hasError) {
+    buttonError = 'no_quotes';
   }
 
   let confirmButtonState: 'idle' | 'loading' | 'success' = 'idle';
@@ -1665,15 +1550,12 @@ export function useQuickBuyController(
   }
 
   const getButtonLabel = useCallback(() => {
-    if (isPresetAddFundsMode) {
-      return strings('social_leaderboard.quick_buy.add_funds');
-    }
     if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
     return tradeMode === 'sell'
       ? strings('social_leaderboard.trader_position.sell')
       : strings('social_leaderboard.trader_position.buy');
-  }, [buttonError, isPresetAddFundsMode, isSubmittingTx, tradeMode]);
+  }, [buttonError, isSubmittingTx, tradeMode]);
 
   return {
     hiddenInputRef,
@@ -1732,7 +1614,6 @@ export function useQuickBuyController(
     isHardwareSolanaBlocked,
     priceImpactViewData,
     isPriceImpactError,
-    isPresetAddFundsMode,
     buttonError,
     hasValidAmount,
     isConfirmDisabled,
@@ -1741,8 +1622,6 @@ export function useQuickBuyController(
     handleClose,
     handleSliderChange,
     handleSliderDragEnd,
-    handleQuickAmountPress,
-    usdToCurrentCurrencyRate,
     handleAmountAreaPress,
     handleAmountChange,
     handleToggleAmountDisplay,

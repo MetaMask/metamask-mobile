@@ -30,7 +30,7 @@ const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
   premium: '0.001',
   oraclePx: '51000',
   totalVlm: '5000000000',
-  impactPxs: ['50000', '52000'] as [string, string],
+  impactPxs: ['50000', '52000'],
   markPx: '51500',
   impactPx: '51000',
   dayBaseVlm: '500000',

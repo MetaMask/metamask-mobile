@@ -41,15 +41,12 @@ describeForPlatforms('ActivityScreen', () => {
       await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET),
     ).toBeOnTheScreen();
 
-    fireEvent.press(
-      await findByTestId(optionTestId(ActivityTypeFilter.MetamaskCard)),
-    );
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Money)));
 
     // The label renders on both the in-list chip and its pinned copy.
     await waitFor(() => {
       expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.MetamaskCard))
-          .length,
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Money)).length,
       ).toBeGreaterThan(0);
     });
   });
@@ -101,18 +98,15 @@ describeForPlatforms('ActivityScreen', () => {
       ).toBeGreaterThan(0);
     });
 
-    // User manually switches to MetaMask Card.
+    // User manually switches to Money.
     fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
-    fireEvent.press(
-      await findByTestId(optionTestId(ActivityTypeFilter.MetamaskCard)),
-    );
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Money)));
 
     // The re-apply effect is keyed on the param value (which didn't change), so
     // the manual selection sticks instead of snapping back to Perps.
     await waitFor(() => {
       expect(
-        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.MetamaskCard))
-          .length,
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Money)).length,
       ).toBeGreaterThan(0);
     });
   });

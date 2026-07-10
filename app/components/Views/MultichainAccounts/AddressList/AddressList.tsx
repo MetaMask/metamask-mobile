@@ -10,7 +10,7 @@ import {
   selectInternalAccountListSpreadByScopesByGroupId,
   selectInternalAccountsByGroupId,
 } from '../../../../selectors/multichainAccounts/accounts';
-import { IconName, toast } from '@metamask/design-system-react-native';
+import { IconName, Toaster, toast } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -98,7 +98,9 @@ export const AddressList = () => {
             callback: async () => {
               await copyAddressToClipboard();
               toast({
-                title: strings('notifications.address_copied_to_clipboard'),
+                description: strings(
+                  'notifications.address_copied_to_clipboard',
+                ),
                 hasNoTimeout: false,
               });
             },
@@ -154,6 +156,7 @@ export const AddressList = () => {
         renderItem={renderAddressItem}
         onLoad={onLoad}
       />
+      <Toaster />
     </View>
   );
 };

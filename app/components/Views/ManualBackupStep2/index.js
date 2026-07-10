@@ -115,7 +115,9 @@ const ManualBackupStep2 = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
-            successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+            onContinue: () => {
+              navigation.dispatch(resetAction);
+            },
             accountType: AccountType.Metamask,
           });
         }

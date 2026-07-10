@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { extractOrderCode } from '../utils/extractOrderCode';
 import Engine from '../../../../core/Engine';
-import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 import {
   selectRampsOrders,
   selectRampsOrdersForSelectedAccountGroup,
@@ -55,15 +54,10 @@ export function useRampsOrders(): UseRampsOrdersResult {
     [allOrders],
   );
 
-  const addOrder = useCallback((order: RampsOrder) => {
-    Engine.context.RampsController.addOrder(order);
-    // TRAM-3691: a callback-fetched order that is already terminal is never
-    // polled, so `orderStatusChanged` never fires and the terminal metrics
-    // event would be lost. Emit it here so every `addOrder` caller is covered
-    // without importing analytics into the views (no-ops for non-terminal
-    // orders and dedups against the polling path).
-    emitTerminalOrderAnalyticsFromCallback(order);
-  }, []);
+  const addOrder = useCallback(
+    (order: RampsOrder) => Engine.context.RampsController.addOrder(order),
+    [],
+  );
 
   const addPrecreatedOrder = useCallback(
     (params: AddPrecreatedOrderParams) =>

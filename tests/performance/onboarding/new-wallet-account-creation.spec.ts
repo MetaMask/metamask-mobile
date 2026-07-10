@@ -17,6 +17,7 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet.js';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView.js';
 import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView.js';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView.js';
+import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView.js';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
@@ -60,6 +61,11 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
+
+      await PlaywrightAssertions.expectElementToBeVisible(
+        await asPlaywrightElement(OnboardingSuccessView.doneButton),
+      );
+      await OnboardingSuccessView.tapDone();
       await dismissPushNotificationExistingUserSheet();
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',

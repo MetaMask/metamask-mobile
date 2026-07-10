@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
+  KeyboardProvider,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
@@ -472,8 +473,10 @@ const ImportFromSecretRecoveryPhrase = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
+            onContinue: () => {
+              navigation.dispatch(resetAction);
+            },
             accountType: AccountType.Imported,
-            successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
           });
         }
       } catch (error) {
@@ -555,7 +558,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
-  return (
+  const content = (
     <Box twClassName="flex-1 bg-default">
       <HeaderStandard
         includesTopInset
@@ -881,6 +884,8 @@ const ImportFromSecretRecoveryPhrase = ({
       <ScreenshotDeterrent enabled isSRP />
     </Box>
   );
+
+  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 ImportFromSecretRecoveryPhrase.propTypes = {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -47,16 +47,12 @@ const useHomeSessionSummary = ({
     totalSectionsLoaded,
     appSessionId,
   });
-
-  // useLayoutEffect so blur handlers always read values from the latest commit.
-  useLayoutEffect(() => {
-    latestRef.current = {
-      visitId,
-      entryPoint,
-      totalSectionsLoaded,
-      appSessionId,
-    };
-  }, [visitId, entryPoint, totalSectionsLoaded, appSessionId]);
+  latestRef.current = {
+    visitId,
+    entryPoint,
+    totalSectionsLoaded,
+    appSessionId,
+  };
 
   // active_ab_tests is auto-injected by the analytics registry via
   // HOMEPAGE_TRENDING_SECTIONS_AB_TEST_ANALYTICS_MAPPING in abTestConfig.ts

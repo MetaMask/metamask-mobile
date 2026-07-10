@@ -49,7 +49,7 @@ const DEFAULT_RE_RENDER_WINDOW_MS = 500;
  * Captures three metrics via the existing trace/endTrace Sentry integration:
  * 1. **Time to Content** — mount until `contentReady` (valuable non-skeleton UI).
  * 2. **Data Fetch Latency** — first full `isLoading` cycle per mount (opt-in; refresh excluded).
- * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs after every commit).
+ * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs in `useEffect` after paint, not during render).
  *
  * Bookkeeping is ref-based; the hook does not intentionally trigger extra re-renders.
  */
@@ -115,7 +115,8 @@ export const useSectionPerformance = ({
         fetchStarted.current = false;
       }
     };
-  }, [enabled, sectionId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled]);
 
   // Time to Content — end span when content is ready
   useEffect(() => {
@@ -176,7 +177,7 @@ export const useSectionPerformance = ({
   }, [enabled, isLoading, sectionId, traceContentState]);
 
   // ──────────────────────────────────────────────
-  // 3. Re-render Monitoring — runs after every commit (no dep array)
+  // 3. Re-render Monitoring — useEffect after commit (not during render)
   //
   // In development, React 18 Strict Mode runs mount effects twice (setup → cleanup
   // → setup), which records one extra sample vs a single logical mount. Bump the
@@ -215,5 +216,7 @@ export const useSectionPerformance = ({
         },
       });
     }
+    // Intentionally every commit — do not add deps (would miss re-renders).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   });
 };

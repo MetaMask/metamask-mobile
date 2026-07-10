@@ -199,49 +199,6 @@ describe('WhatsHappeningExpandedCard', () => {
     expect(screen.queryByText('AI')).toBeNull();
   });
 
-  it('renders the Outdated badge when the item is outdated', () => {
-    const item = { ...baseItem, isOutdated: true };
-    renderWithProvider(
-      <WhatsHappeningExpandedCard
-        item={item}
-        cardIndex={0}
-        cardWidth={CARD_WIDTH}
-        cardHeight={CARD_HEIGHT}
-        source="deeplink"
-      />,
-    );
-    expect(screen.getByText('Outdated')).toBeOnTheScreen();
-  });
-
-  it('does not render the Outdated badge by default', () => {
-    renderWithProvider(
-      <WhatsHappeningExpandedCard
-        item={baseItem}
-        cardIndex={0}
-        cardWidth={CARD_WIDTH}
-        cardHeight={CARD_HEIGHT}
-        source="homepage"
-      />,
-    );
-    expect(screen.queryByText('Outdated')).toBeNull();
-  });
-
-  it('renders the Outdated badge and AI pill even when impact is undefined', () => {
-    const item = { ...baseItem, impact: undefined, isOutdated: true };
-    renderWithProvider(
-      <WhatsHappeningExpandedCard
-        item={item}
-        cardIndex={0}
-        cardWidth={CARD_WIDTH}
-        cardHeight={CARD_HEIGHT}
-        source="deeplink"
-      />,
-    );
-    expect(screen.getByText('Outdated')).toBeOnTheScreen();
-    expect(screen.getByText('AI')).toBeOnTheScreen();
-    expect(screen.queryByText('Bullish')).toBeNull();
-  });
-
   it('renders the single Related Assets section header when relatedAssets is non-empty', () => {
     const item = { ...baseItem, relatedAssets: [perpsOnlyAsset] };
     renderWithProvider(

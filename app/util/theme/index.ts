@@ -9,15 +9,8 @@ import {
 import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
-import {
-  lightTheme,
-  resolveDarkTheme,
-  brandColor,
-} from '@metamask/design-tokens';
+import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
 import Device from '../device';
-import { isPureBlackEnabled } from './pureBlackPreview';
-
-const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
 
 /**
  * Darker success green used in light mode for better contrast on charts,
@@ -54,9 +47,7 @@ export const ThemeContext = React.createContext<any>(undefined);
  */
 export const getAssetFromTheme = (
   appTheme: AppThemeKey,
-  // `Appearance.getColorScheme()` (and therefore `useColorScheme`) can resolve
-  // to `null`/`undefined`, which RN 0.83 no longer includes in `ColorSchemeName`.
-  osColorScheme: ColorSchemeName | null | undefined,
+  osColorScheme: ColorSchemeName,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   light: any,
@@ -163,9 +154,9 @@ export const useAppTheme = (): Theme => {
         setLightStatusBar();
         break;
       } else if (osThemeName === AppThemeKey.dark) {
-        colors = resolvedDarkTheme.colors;
-        typography = resolvedDarkTheme.typography;
-        shadows = resolvedDarkTheme.shadows;
+        colors = darkTheme.colors;
+        typography = darkTheme.typography;
+        shadows = darkTheme.shadows;
         setDarkStatusBar();
         break;
       } else {
@@ -183,9 +174,9 @@ export const useAppTheme = (): Theme => {
       setLightStatusBar();
       break;
     case AppThemeKey.dark:
-      colors = resolvedDarkTheme.colors;
-      typography = resolvedDarkTheme.typography;
-      shadows = resolvedDarkTheme.shadows;
+      colors = darkTheme.colors;
+      typography = darkTheme.typography;
+      shadows = darkTheme.shadows;
       setDarkStatusBar();
       break;
     default:

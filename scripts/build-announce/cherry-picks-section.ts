@@ -3,8 +3,7 @@
  *
  * Two sections are generated:
  * 1. Cherry-picks: Commits on the release branch after forking from main
- * 2. Changelog: Commits since the previous release tag. For Runway releases,
- * falls back to the release branch when main-line changelog is empty or only release commits.
+ * 2. Changelog: Commits on main between the previous release and the RC cut point
  */
 
 import { execFileSync } from 'child_process';
@@ -58,42 +57,47 @@ function getAncestryPathCommits(
 }
 
 /**
- * Get the most recent release tag merged into a given commit.
- * Uses --merged to find the highest version tag that is an ancestor of the commit.
+ * Get the most recent release tag before a given commit
  */
-function getPreviousReleaseTag(mergeBase: string): string | null {
+function getPreviousReleaseTag(beforeCommit: string): string | null {
   try {
+    // Get the most recent tag reachable from the commit, matching v*.*.* pattern
     const out = execFileSync(
       'git',
-      ['tag', '--sort=-version:refname', '--list', 'v*.*.*', '--merged', mergeBase],
+      ['describe', '--tags', '--abbrev=0', '--match', 'v*.*.*', `${beforeCommit}^`],
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
     );
-    const tags = out.trim().split('\n').filter(Boolean);
-    // Return first tag (highest version that's an ancestor of merge-base)
-    return tags[0] || null;
+    return out.trim() || null;
   } catch {
-    return null;
+    // Fallback: list tags that are ancestors of (merged into) the commit
+    try {
+      const out = execFileSync(
+        'git',
+        ['tag', '--sort=-version:refname', '--list', 'v*.*.*', '--merged', beforeCommit],
+        { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+      );
+      const tags = out.trim().split('\n').filter(Boolean);
+      // Return first tag (highest version that's actually an ancestor)
+      return tags[0] || null;
+    } catch {
+      return null;
+    }
   }
 }
 
 /**
- * Get commits between two refs.
- * @param firstParent - If true, use --first-parent for main-line history; otherwise include all commits.
+ * Get commits between two refs (for changelog - commits on main)
  */
 function getCommitsBetween(
   fromRef: string,
   toRef: string,
-  firstParent = true,
 ): { hash: string; subject: string }[] {
   try {
-    const args = ['log', `${fromRef}..${toRef}`, '--pretty=format:%h\t%s'];
-    if (firstParent) {
-      args.push('--first-parent');
-    }
-    const out = execFileSync('git', args, {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    const out = execFileSync(
+      'git',
+      ['log', `${fromRef}..${toRef}`, '--pretty=format:%h\t%s', '--first-parent'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
 
     if (!out.trim()) return [];
 
@@ -132,7 +136,6 @@ export interface WhatsInRcResult {
   changelog: { hash: string; subject: string }[];
   mergeBase: string;
   previousTag: string | null;
-  changelogFromReleaseBranch: boolean;
 }
 
 export function extractWhatsInRc(): WhatsInRcResult {
@@ -145,39 +148,18 @@ export function extractWhatsInRc(): WhatsInRcResult {
   const cherryPicks = getAncestryPathCommits(mergeBase, headRef);
   console.log(`[cherry-picks] Found ${cherryPicks.length} commit(s)`);
 
-  // Changelog: commits since previous release tag
+  // Changelog: commits on main from previous release to merge-base
   const previousTag = getPreviousReleaseTag(mergeBase);
   let changelog: { hash: string; subject: string }[] = [];
-  let changelogFromReleaseBranch = false;
 
   if (previousTag) {
-    // First try: commits on main from previous release to merge-base
-    changelog = getCommitsBetween(previousTag, mergeBase, true);
-    console.log(
-      `[changelog] Found ${changelog.length} commit(s) on main from ${previousTag} to merge-base`,
-    );
-
-    // Check if changelog is empty or contains only release commits
-    // This happens for Runway releases where features are cherry-picked to release branch
-    const isOnlyReleaseCommits =
-      changelog.length > 0 && changelog.every((c) => c.subject.startsWith('release:'));
-
-    if (changelog.length === 0 || isOnlyReleaseCommits) {
-      console.log(
-        `[changelog] Main-line changelog is ${changelog.length === 0 ? 'empty' : 'only release commits'}, falling back to release branch`,
-      );
-      // Fallback: get commits from release branch since previous tag (without --first-parent)
-      changelog = getCommitsBetween(previousTag, headRef, false);
-      changelogFromReleaseBranch = true;
-      console.log(
-        `[changelog] Found ${changelog.length} commit(s) on release branch from ${previousTag}`,
-      );
-    }
+    changelog = getCommitsBetween(previousTag, mergeBase);
+    console.log(`[changelog] Found ${changelog.length} commit(s) from ${previousTag} to merge-base`);
   } else {
     console.log(`[changelog] Could not find previous release tag`);
   }
 
-  return { cherryPicks, changelog, mergeBase, previousTag, changelogFromReleaseBranch };
+  return { cherryPicks, changelog, mergeBase, previousTag };
 }
 
 function buildCommitTable(commits: { hash: string; subject: string }[]): string {
@@ -196,7 +178,7 @@ function buildCommitTable(commits: { hash: string; subject: string }[]): string 
 }
 
 export function buildWhatsInRcSection(result: WhatsInRcResult, buildNumber?: string): string {
-  const { cherryPicks, changelog, previousTag, changelogFromReleaseBranch } = result;
+  const { cherryPicks, changelog } = result;
 
   // If both are empty, return nothing
   if (cherryPicks.length === 0 && changelog.length === 0) {
@@ -223,12 +205,9 @@ export function buildWhatsInRcSection(result: WhatsInRcResult, buildNumber?: str
 
   // Changelog section
   if (changelog.length > 0) {
-    const changelogLabel = changelogFromReleaseBranch
-      ? `Changelog (${changelog.length} commits since ${previousTag})`
-      : `Changelog (${changelog.length} commits from main at RC cut)`;
     lines.push(`<a id="changelog${anchorSuffix}"></a>`);
     lines.push('<details>');
-    lines.push(`<summary>${changelogLabel}</summary>\n`);
+    lines.push(`<summary>Changelog (${changelog.length} commits from main at RC cut)</summary>\n`);
     lines.push(buildCommitTable(changelog));
     lines.push('\n</details>\n');
   }

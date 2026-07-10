@@ -113,7 +113,8 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `outage_banner_shown` (optional): Whether the service interruption banner is displayed (boolean, used for perps_home, asset_details, trading screens)
 - `market_insights_displayed` (optional): Whether market insights content is displayed on the screen (boolean, used for asset_details screen)
-- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
+- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 2. PERPS_UI_INTERACTION
 
@@ -173,7 +174,8 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `completion_duration_tutorial` (optional): Time spent in tutorial (number)
 - `steps_viewed` (optional): Number of tutorial steps viewed (number)
 - `view_occurrences` (optional): Number of times tutorial was viewed (number)
-- `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
+- `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled and user taps Long/Short or Place Order button (for engagement tracking)
+- Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
 ### 3. PERPS_TRADE_TRANSACTION
 
@@ -355,11 +357,47 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 
 ## Multiple Concurrent Tests
 
-### Canonical `active_ab_tests` Pattern
+### Flat Property Pattern
 
-Perps A/B tests (e.g., TAT-1937 button colors) follow the canonical MetaMask Mobile A/B testing standard (see [`docs/ab-testing.md`](../ab-testing.md)) rather than a Perps-local flat-property pattern. Each test is registered once in `app/util/analytics/abTestAnalyticsRegistry.ts` with the events it should be attached to; `active_ab_tests` is then injected automatically onto every matching event when the test is active — no manual per-event wiring is required in the view components.
+To support multiple AB tests running concurrently (e.g., TAT-1937 button colors, TAT-1940 asset CTA, TAT-1827 homepage CTA), we use **flat properties** instead of generic properties.
 
-To run multiple concurrent tests, register each test's mapping in the registry; `enrichWithABTests()` appends an entry per active test to the shared `active_ab_tests` array on any event that matches one of the registered `eventNames`.
+**Property Naming:** `ab_test_{test_name}` (no `_enabled` suffix needed)
+
+**Why no `_enabled` property?**
+
+- Events are only sent when test is enabled (`isEnabled === true`)
+- Including the property means the test is active
+- No need for redundant `_enabled` flag
+
+**Example with 3 concurrent tests:**
+
+```typescript
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
+usePerpsEventTracking({
+  eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+  properties: {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+      PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+    [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+    // Test 1: Button color test (TAT-1937) - only included when enabled
+    ...(isButtonColorTestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
+    // Test 2: Asset CTA test (TAT-1940) - future
+    ...(isAssetCTATestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_ASSET_CTA]: assetCTAVariant,
+    }),
+    // Test 3: Homepage CTA test (TAT-1827) - future
+    ...(isHomepageCTATestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_HOMEPAGE_CTA]: homepageCTAVariant,
+    }),
+  },
+});
+```
 
 ### Where to Track AB Tests
 
@@ -368,12 +406,13 @@ To run multiple concurrent tests, register each test's mapping in the registry; 
 **Dual Tracking Approach:**
 
 1. **PERPS_SCREEN_VIEWED** (baseline exposure):
-   - `active_ab_tests` is auto-injected when the test is active
+   - Include `ab_test_button_color` when test is enabled
    - Establishes how many users were exposed to each variant
    - Required to calculate engagement rate
 
 2. **PERPS_UI_INTERACTION** (engagement):
-   - `active_ab_tests` is auto-injected when the test is active and user taps Long/Short or Place Order button
+   - Include `ab_test_button_color` when user taps Long/Short or Place Order button
+   - Only sent when test is enabled
    - Measures which variant drives more button presses
 
 **Why Both Events?**

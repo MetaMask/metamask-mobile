@@ -31,10 +31,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
-import {
-  AdvancedCustomAmountInfoSkeleton,
-  CustomAmountInfoSkeleton,
-} from '../info/custom-amount-info';
+import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { hasTransactionType } from '../../utils/transaction';
@@ -56,7 +53,6 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
-  AdvancedCustomAmount = 'advancedCustomAmount',
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
 }
@@ -213,17 +209,6 @@ function Loader() {
     return (
       <InfoLoader testId="confirm-loader-custom-amount" loader={loader}>
         <CustomAmountInfoSkeleton />
-      </InfoLoader>
-    );
-  }
-
-  if (loader === ConfirmationLoader.AdvancedCustomAmount) {
-    return (
-      <InfoLoader
-        testId="confirm-loader-advanced-custom-amount"
-        loader={loader}
-      >
-        <AdvancedCustomAmountInfoSkeleton />
       </InfoLoader>
     );
   }

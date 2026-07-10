@@ -10,36 +10,6 @@ import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote
 import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import { RootMessenger } from '../../types';
 
-const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
-  // core#9388: RPC balance refresh on account-group switch / tree updates
-  'AccountTreeController:selectedAccountGroupChange',
-  'AccountTreeController:stateChanged',
-  // core#9388: RPC balance refresh when enabling custom RPC networks (e.g. DXC)
-  'NetworkEnablementController:stateChanged',
-  // StakedBalanceDataSource
-  'NetworkEnablementController:stateChange',
-  // UI + keyring lifecycle (RpcDataSource only runs when UI open + unlocked)
-  'ClientController:stateChanged',
-  'KeyringController:lock',
-  'KeyringController:unlock',
-  // Network picker (EVM selected network switch)
-  'NetworkController:networkDidChange',
-  'NetworkController:networkAdded',
-  'NetworkController:networkRemoved',
-  // RpcDataSource + StakedBalanceDataSource
-  'NetworkController:stateChange',
-  // Snap + WS + tx + preferences
-  'BackendWebSocketService:connectionStateChanged',
-  'AccountsController:accountBalancesUpdated',
-  'PermissionController:stateChange',
-  'SnapController:snapInstalled',
-  'PreferencesController:stateChange',
-  'TransactionController:transactionConfirmed',
-  'TransactionController:unapprovedTransactionAdded',
-  // Real-time post-tx balances (AccountActivityService WS path)
-  'AccountActivityService:balanceUpdated',
-] as const;
-
 /**
  * Get the messenger for the AssetsController. This is scoped to the
  * actions and events that the AssetsController is allowed to handle.
@@ -50,7 +20,6 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
 export function getAssetsControllerMessenger(
   rootMessenger: RootMessenger<
     MessengerActions<AssetsControllerMessenger>,
-    // @ts-expect-error assets-controller v10 AllowedEvents include stateChanged events not yet on GlobalEvents
     MessengerEvents<AssetsControllerMessenger>
   >,
 ): AssetsControllerMessenger {
@@ -58,26 +27,38 @@ export function getAssetsControllerMessenger(
     namespace: 'AssetsController',
     parent: rootMessenger,
   });
-
   rootMessenger.delegate({
     actions: [
-      // Account group + network context for RpcDataSource (core#9388)
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'NetworkEnablementController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
-      'AccountsController:getSelectedAccount',
       'BackendWebSocketService:subscribe',
       'BackendWebSocketService:getConnectionInfo',
       'BackendWebSocketService:findSubscriptionsByChannelPrefix',
-      'BackendWebSocketService:addChannelCallback',
-      'BackendWebSocketService:removeChannelCallback',
       'SnapController:handleRequest',
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',
       'PhishingController:bulkScanTokens',
+      'AccountsController:getSelectedAccount',
     ],
-    events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
+    events: [
+      'AccountTreeController:selectedAccountGroupChange',
+      'ClientController:stateChange',
+      'NetworkEnablementController:stateChange',
+      'KeyringController:lock',
+      'KeyringController:unlock',
+      'PreferencesController:stateChange',
+      'NetworkController:stateChange',
+      'TransactionController:transactionConfirmed',
+      'BackendWebSocketService:connectionStateChanged',
+      'AccountsController:accountBalancesUpdated',
+      'PermissionController:stateChange',
+      'TransactionController:unapprovedTransactionAdded',
+      'NetworkController:networkRemoved',
+      'NetworkController:networkAdded',
+      'SnapController:snapInstalled',
+    ],
     messenger,
   });
 

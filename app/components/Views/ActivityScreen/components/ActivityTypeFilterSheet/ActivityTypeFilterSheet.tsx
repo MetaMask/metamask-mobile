@@ -17,6 +17,7 @@ export const ACTIVITY_TYPE_FILTER_LABEL_KEY: Record<
   [ActivityTypeFilter.Perps]: 'activity_view.type_filter.perps',
   [ActivityTypeFilter.Predictions]: 'activity_view.type_filter.predictions',
   [ActivityTypeFilter.MetamaskCard]: 'activity_view.type_filter.metamask_card',
+  [ActivityTypeFilter.Money]: 'activity_view.type_filter.money',
 };
 
 export interface ActivityTypeFilterSheetProps {

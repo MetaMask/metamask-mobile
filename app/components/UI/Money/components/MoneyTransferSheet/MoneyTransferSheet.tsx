@@ -32,6 +32,7 @@ import MoneySheetOptionsList, {
 } from '../MoneySheetOptionsList';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -47,6 +48,7 @@ const MoneyTransferSheet = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
+  const surfaceClass = useElevatedSurface();
   const { isEnabled: isPerpsEnabled, initiatePerpsDeposit } =
     useMoneyPerpsDeposit();
   const { isEnabled: isPredictEnabled, initiatePredictDeposit } =
@@ -209,6 +211,7 @@ const MoneyTransferSheet = () => {
       goBack={handleGoBack}
       testID={MoneyTransferSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

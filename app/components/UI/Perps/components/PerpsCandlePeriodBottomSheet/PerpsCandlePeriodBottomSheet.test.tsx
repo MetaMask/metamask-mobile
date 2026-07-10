@@ -31,70 +31,65 @@ import {
   TimeDuration,
 } from '@metamask/perps-controller';
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View, Pressable, Text: RNText } = jest.requireActual('react-native');
+// Mock react-native-safe-area-context first
+// Mock BottomSheet components
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const { forwardRef } = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    const BottomSheet = forwardRef(
+      (
+        { children, testID }: { children: React.ReactNode; testID?: string },
+        _ref: unknown,
+      ) => <View testID={testID || 'bottom-sheet'}>{children}</View>,
+    );
+    BottomSheet.displayName = 'BottomSheet';
+    return {
+      __esModule: true,
+      default: BottomSheet,
+    };
+  },
+);
 
-  const BottomSheet = ReactActual.forwardRef(
-    (
-      {
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return jest.fn(
+      ({
         children,
-        testID,
         onClose,
       }: {
         children: React.ReactNode;
-        testID?: string;
         onClose?: () => void;
-      },
-      ref: React.Ref<{
-        onOpenBottomSheet: () => void;
-        onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: jest.fn(),
-        onCloseBottomSheet: (callback?: () => void) => {
-          onClose?.();
-          callback?.();
-        },
-      }));
+      }) => (
+        <View testID="bottom-sheet-header">
+          {children}
+          <View testID="close-button" onTouchEnd={onClose} />
+        </View>
+      ),
+    );
+  },
+);
 
-      return <View testID={testID || 'bottom-sheet'}>{children}</View>;
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: () => ({
+    styles: {
+      container: {},
+      periodOption: {},
+      periodOptionActive: {},
+      periodText: {},
+      periodTextActive: {},
+      checkIcon: {},
+      periodOptionLast: {},
     },
-  );
-  BottomSheet.displayName = 'BottomSheet';
-
-  const BottomSheetHeader = ({
-    children,
-    onClose,
-    closeButtonProps,
-  }: {
-    children: React.ReactNode;
-    onClose?: () => void;
-    closeButtonProps?: { testID?: string };
-  }) => (
-    <View testID="bottom-sheet-header">
-      {typeof children === 'string' ? <RNText>{children}</RNText> : children}
-      <Pressable
-        testID={closeButtonProps?.testID ?? 'close-button'}
-        onPress={onClose}
-      />
-    </View>
-  );
-
-  return {
-    ...actual,
-    BottomSheet,
-    BottomSheetHeader,
-  };
-});
-
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
+  }),
+  useComponentSize: () => ({
+    size: { width: 0, height: 0 },
+    onLayout: jest.fn(),
+  }),
+}));
 
 // Create mock store
 const configureMockStoreValue = configureMockStore();
@@ -284,11 +279,7 @@ describe('PerpsCandlePeriodBottomSheet', () => {
 
       fireEvent.press(screen.getByText('2h'));
 
-      expect(mockOnClose).toHaveBeenCalled();
       expect(mockOnPeriodChange).toHaveBeenCalledWith('2h');
-      expect(mockOnClose.mock.invocationCallOrder[0]).toBeLessThan(
-        mockOnPeriodChange.mock.invocationCallOrder[0],
-      );
     });
 
     it('calls onClose after period selection', () => {
@@ -310,9 +301,9 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         </TestWrapper>,
       );
 
-      fireEvent.press(screen.getByTestId('close-button'));
+      fireEvent(screen.getByTestId('close-button'), 'touchEnd');
 
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
+      expect(mockOnClose).toHaveBeenCalled();
     });
 
     it('handles period selection without onPeriodChange callback', () => {
@@ -364,12 +355,13 @@ describe('PerpsCandlePeriodBottomSheet', () => {
         expect(screen.getByText(period.label)).toBeOnTheScreen();
       });
 
+      // No check icon should be visible since selected period is invalid
+      // All periods should have only one child (just Text, no SvgMock)
       mockPeriods.forEach((period) => {
-        expect(
-          screen.getByTestId(
-            `candle-period-bottom-sheet-period-${period.value}`,
-          ),
-        ).toBeOnTheScreen();
+        const periodElement = screen.getByTestId(
+          `candle-period-bottom-sheet-period-${period.value}`,
+        );
+        expect(periodElement.children).toHaveLength(1);
       });
     });
 

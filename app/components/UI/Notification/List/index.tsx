@@ -157,11 +157,11 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
       style={tw`gap-2`}
     >
       <Box style={tw`flex-row gap-4`}>
-        <NotificationMenuItem.Icon {...menuItemState} />
-        <NotificationMenuItem.Content
+        <NotificationMenuItem.Icon
           isRead={props.notification.isRead}
           {...menuItemState}
         />
+        <NotificationMenuItem.Content {...menuItemState} />
       </Box>
     </NotificationMenuItem.Root>
   );

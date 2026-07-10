@@ -53,7 +53,6 @@ let mockTokenMarketData: Record<
 let mockCurrencyRates: Record<string, { conversionRate: number }> = {};
 let mockCurrentCurrency = 'usd';
 let mockNativeCurrencyByChainId: Record<Hex, string | undefined> = {};
-let mockMultichainAssetsRates = {};
 const usdcAssetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
 
@@ -164,10 +163,6 @@ jest.mock('../../../../../selectors/tokenRatesController', () => ({
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(() => mockCurrencyRates),
   selectCurrentCurrency: jest.fn(() => mockCurrentCurrency),
-}));
-
-jest.mock('../../../../../selectors/multichain/multichain', () => ({
-  selectMultichainAssetsRates: jest.fn(() => mockMultichainAssetsRates),
 }));
 
 jest.mock('../../../../../selectors/networkController', () => ({
@@ -424,7 +419,6 @@ describe('BatchSellTokenSelect', () => {
       ETH: { conversionRate: 1 },
     };
     mockCurrentCurrency = 'usd';
-    mockMultichainAssetsRates = {};
     mockCommittedSourceTokens = [];
     mockNativeCurrencyByChainId = {
       ['0x1' as Hex]: 'ETH',
@@ -686,14 +680,8 @@ describe('BatchSellTokenSelect', () => {
     };
     mockTokenMarketData = {
       ['0x1' as Hex]: {
-        [gainToken.address as Hex]: {
-          price: 1.17226,
-          pricePercentChange1d: 1.23,
-        },
-        [lossToken.address as Hex]: {
-          price: 0.5,
-          pricePercentChange1d: -4.56,
-        },
+        [gainToken.address as Hex]: { price: 1.17226 },
+        [lossToken.address as Hex]: { price: 0.5 },
       },
     };
 
@@ -715,67 +703,6 @@ describe('BatchSellTokenSelect', () => {
       textAlign: 'right',
       paddingHorizontal: 0,
     });
-  });
-
-  it('renders EVM percentage changes when multichain percentage change is null', () => {
-    const token = createToken({
-      symbol: 'EVM',
-      name: 'EVM Token',
-      address: '0x2222222222222222222222222222222222222222',
-      tokenFiatAmount: 10,
-    });
-    mockWalletTokens = [token];
-    mockMultichainAssetsRates = {
-      [token.address]: {
-        marketData: {
-          pricePercentChange: {
-            P1D: null,
-          },
-        },
-      },
-    };
-    mockTokenMarketData = {
-      ['0x1' as Hex]: {
-        [token.address as Hex]: {
-          pricePercentChange1d: 2.34,
-        },
-      },
-    };
-
-    const { getByText } = render(<BatchSellTokenSelect />);
-
-    expect(getByText('+2.34%')).toBeOnTheScreen();
-  });
-
-  it('renders multichain percentage changes before EVM percentage changes', () => {
-    const token = createToken({
-      symbol: 'MCA',
-      name: 'Multichain Asset',
-      address: '0x2222222222222222222222222222222222222222',
-      tokenFiatAmount: 10,
-    });
-    mockWalletTokens = [token];
-    mockMultichainAssetsRates = {
-      [token.address]: {
-        marketData: {
-          pricePercentChange: {
-            P1D: 3.45,
-          },
-        },
-      },
-    };
-    mockTokenMarketData = {
-      ['0x1' as Hex]: {
-        [token.address as Hex]: {
-          pricePercentChange1d: 2.34,
-        },
-      },
-    };
-
-    const { getByText, queryByText } = render(<BatchSellTokenSelect />);
-
-    expect(getByText('+3.45%')).toBeOnTheScreen();
-    expect(queryByText('+2.34%')).not.toBeOnTheScreen();
   });
 
   it('disables TokenSelectorItem selected row styling and network icons for Batch Sell rows', () => {

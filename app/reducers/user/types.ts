@@ -29,5 +29,4 @@ export interface UserState {
   tokenOverviewChartInterval: string;
   tokenIndicators: string[];
   onboardingStepperProgress: Record<string, number>;
-  appInstallEventFired: boolean;
 }

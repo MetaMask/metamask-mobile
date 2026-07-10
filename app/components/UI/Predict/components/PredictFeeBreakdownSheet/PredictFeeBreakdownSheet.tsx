@@ -48,7 +48,6 @@ interface PredictFeeBreakdownSheetProps {
   contractCount: number;
   betAmount: number;
   total: number;
-  slippage?: number;
   onClose?: () => void;
   fakOrdersEnabled?: boolean;
 }
@@ -66,7 +65,6 @@ const PredictFeeBreakdownSheet = forwardRef<
       contractCount,
       betAmount,
       total,
-      slippage = SLIPPAGE_BUY,
       onClose,
       fakOrdersEnabled = false,
     },
@@ -82,7 +80,7 @@ const PredictFeeBreakdownSheet = forwardRef<
             {
               count: contractCount.toFixed(2),
               price: formatPrice(sharePrice, { maximumDecimals: 2 }),
-              slippage: Math.round(slippage * 100),
+              slippage: Math.round(SLIPPAGE_BUY * 100),
             },
           )}
           amount={formatPrice(betAmount, { maximumDecimals: 2 })}

@@ -7,9 +7,21 @@ const styleSheet = (params: { theme: Theme }) =>
       // Let content determine height
     },
     header: {
+      flexDirection: 'row',
       paddingVertical: 8,
       borderBottomWidth: 1,
       borderBottomColor: params.theme.colors.border.muted,
+    },
+    headerColumn: {
+      flex: 1,
+    },
+    headerColumnCenter: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    headerColumnRight: {
+      flex: 1,
+      alignItems: 'flex-end',
     },
     bookContainer: {
       flexDirection: 'row',
@@ -24,6 +36,9 @@ const styleSheet = (params: { theme: Theme }) =>
       flexDirection: 'row',
       paddingVertical: 2,
       position: 'relative',
+    },
+    bidRow: {
+      flexDirection: 'row-reverse', // Flip for bid side (total on left)
     },
     depthBar: {
       position: 'absolute',
@@ -41,25 +56,26 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     totalColumn: {
       flex: 1,
-      minWidth: 0,
       zIndex: 1,
     },
     totalColumnRight: {
       flex: 1,
-      minWidth: 0,
       alignItems: 'flex-end',
+      zIndex: 1,
+    },
+    priceColumn: {
+      flex: 1,
+      alignItems: 'center',
       zIndex: 1,
     },
     priceColumnBid: {
       flex: 1,
-      minWidth: 0,
       alignItems: 'flex-end',
       paddingRight: 8,
       zIndex: 1,
     },
     priceColumnAsk: {
       flex: 1,
-      minWidth: 0,
       alignItems: 'flex-start',
       paddingLeft: 8,
       zIndex: 1,

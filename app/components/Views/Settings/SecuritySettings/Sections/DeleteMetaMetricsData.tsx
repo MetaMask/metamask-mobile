@@ -132,25 +132,10 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
   };
 
   const deleteMetaMetrics = async () => {
-    let deleteResponse:
-      | Awaited<ReturnType<typeof createDataDeletionTask>>
-      | undefined;
-
     try {
-      deleteResponse = await createDataDeletionTask();
-    } catch (error: unknown) {
-      showDeleteTaskError();
-      Logger.log('Error deleteMetaMetrics -', error);
-      return;
-    }
+      const deleteResponse = await createDataDeletionTask();
 
-    const responseStatus =
-      deleteResponse === null || deleteResponse === undefined
-        ? undefined
-        : deleteResponse.status;
-
-    if (DataDeleteResponseStatus.ok === responseStatus) {
-      try {
+      if (DataDeleteResponseStatus.ok === deleteResponse?.status) {
         // Local-to-screen reset: no new event has been generated since this
         // deletion request was just initiated, so the button must reflect
         // "no data tracked since last deletion" regardless of metricsOptin.
@@ -158,12 +143,14 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
         setDataTrackedSinceLastDeletion(false);
         await checkInitialStatus();
         trackDataDeletionRequest();
-      } catch (error: unknown) {
+      } else {
         showDeleteTaskError();
-        Logger.log('Error deleteMetaMetrics -', error);
       }
-    } else {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       showDeleteTaskError();
+      Logger.log('Error deleteMetaMetrics -', error);
     }
   };
 

@@ -216,16 +216,6 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   }),
 }));
 
-// Mock useABTest to return default control variant (controllable per-test)
-const mockUseABTest = jest.fn(() => ({
-  variantName: 'control',
-  variant: { long: 'white', short: 'white' },
-  isActive: false,
-}));
-jest.mock('../../../../../hooks/useABTest', () => ({
-  useABTest: () => mockUseABTest(),
-}));
-
 // Mock components
 jest.mock('../../components/PerpsOrderBookTable', () => {
   const { View } = jest.requireActual('react-native');

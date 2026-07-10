@@ -42,10 +42,6 @@ import {
 } from '@metamask/perps-controller/constants/perpsConfig';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
-import {
-  handlePerpsCufPositionsDelivered,
-  handlePerpsCufOrdersDelivered,
-} from '../utils/perpsCufTrace';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -102,11 +98,6 @@ abstract class StreamChannel<T> {
   // allowing independent callers (tab visibility, controller operations) to
   // pause/resume without clobbering each other.
   protected pauseCount = 0;
-  // Wall-clock instant of the most recent real delivery to subscribers (unset
-  // while paused, since nothing rendered). Lets a caller that reads getSnapshot()
-  // attribute an already-present value to the instant it was delivered rather
-  // than to when the caller happened to look.
-  protected lastDeliveredAt: number | null = null;
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
   // Timer handle for deferConnect so it can be cancelled on disconnect
@@ -119,29 +110,9 @@ abstract class StreamChannel<T> {
       return;
     }
 
-    this.lastDeliveredAt = Date.now();
     this.subscribers.forEach((subscriber) => {
       this.deliverToSubscriber(subscriber, updates);
     });
-  }
-
-  /**
-   * Wall-clock instant of the most recent real delivery on this channel, or null
-   * if nothing has been delivered (or the channel is paused). Used to timestamp a
-   * CUF span end at the delivery instant when the confirming value was already
-   * present by the time the caller checked getSnapshot().
-   *
-   * Granularity is per-channel, not per-symbol: on a full-snapshot channel like
-   * positions (which re-delivers all symbols on any PnL tick) this is effectively
-   * "the last tick", so it upper-bounds an individual symbol's change instant
-   * rather than pinpointing it. The bound is always >= the span start and <= now,
-   * so a span end using it is bounded and never optimistic — it can only slightly
-   * over-measure, never under-measure. Callers needing the exact per-symbol change
-   * instant should observe the live delivery (as the normal watcher path does),
-   * not read this after the fact.
-   */
-  public getLastDeliveredAt(): number | null {
-    return this.lastDeliveredAt;
   }
 
   /**
@@ -163,7 +134,6 @@ abstract class StreamChannel<T> {
       return;
     }
 
-    this.lastDeliveredAt = Date.now();
     // A subscriber registered for multiple changed symbols must be delivered to
     // exactly once per tick (not once per matching symbol).
     const notifiedIds = new Set<string>();
@@ -220,30 +190,6 @@ abstract class StreamChannel<T> {
       }
       subscriber.timer = undefined;
     }, subscriber.throttleMs);
-  }
-
-  /**
-   * Immediately deliver any throttled subscriber's pending update, cancelling
-   * its timer. Used to close CUF confirmations at the instant subscribers
-   * actually render, instead of up to a throttle interval later.
-   *
-   * This is a deliberate throttle bypass, invoked ONLY when a CUF matcher
-   * confirms on a delivery (not on every tick), so the measured render instant
-   * reflects real subscriber delivery. The affected subscribers simply receive
-   * their already-pending update slightly early; no extra work is scheduled.
-   */
-  public flushThrottledDeliveries() {
-    this.subscribers.forEach((subscriber) => {
-      if (!subscriber.timer) {
-        return;
-      }
-      clearTimeout(subscriber.timer);
-      subscriber.timer = undefined;
-      if (subscriber.pendingUpdate !== undefined) {
-        subscriber.callback(subscriber.pendingUpdate);
-        subscriber.pendingUpdate = undefined;
-      }
-    });
   }
 
   /**
@@ -464,18 +410,7 @@ abstract class StreamChannel<T> {
       this.wsSubscription = null;
     }
     this.accountAddress = null;
-    // End any first-data trace still open (disconnected before first data), so
-    // it isn't left running until the 5-minute auto-clean as a bogus long span.
-    this.endOpenFirstDataTrace();
     this.wsConnectionStartTime = null;
-  }
-
-  /**
-   * End a first-data ("time to first ...") trace left open at disconnect.
-   * No-op in the base; channels that start such a trace override this.
-   */
-  protected endOpenFirstDataTrace(): void {
-    // Overridden by channels with a first-data trace.
   }
 
   /**
@@ -502,9 +437,6 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
-    // End any first-data trace still open, so clearing the cache before first
-    // data doesn't leave a span running until the 5-minute auto-clean.
-    this.endOpenFirstDataTrace();
     // This ensures no timers are orphaned during the disconnect/reconnect cycle
     this.subscribers.forEach((subscriber) => {
       // Clear any pending updates and timers
@@ -549,19 +481,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private readonly symbols = new Set<string>();
   private prewarmUnsubscribe?: () => void;
   private actualPriceUnsubscribe?: () => void;
-  private firstDataTraceId?: string;
-
-  protected endOpenFirstDataTrace(): void {
-    if (this.firstDataTraceId) {
-      endTrace({
-        name: TraceName.PerpsWebSocketFirstPrice,
-        id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
-      });
-      this.firstDataTraceId = undefined;
-    }
-  }
-
   private allMarketSymbols: string[] = [];
   // Unique ID per prewarm cycle to detect stale promises and prevent subscription leaks
   private prewarmCycleId: number = 0;
@@ -624,35 +543,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       return;
     }
 
-    // Start trace for first price measurement (before subscription)
-    this.firstDataTraceId = uuidv4();
-    trace({
-      name: TraceName.PerpsWebSocketFirstPrice,
-      id: this.firstDataTraceId,
-      op: TraceOperation.PerpsOperation,
-    });
-    this.wsConnectionStartTime = performance.now();
-
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
-        // Track first price data from WebSocket (only once per connection)
-        if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
-          const firstDataDuration =
-            performance.now() - this.wsConnectionStartTime;
-          DevLogger.log(
-            `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
-            { duration: `${firstDataDuration.toFixed(0)}ms` },
-          );
-          endTrace({
-            name: TraceName.PerpsWebSocketFirstPrice,
-            id: this.firstDataTraceId,
-            data: { success: true, duration: firstDataDuration },
-          });
-          this.wsConnectionStartTime = null;
-          this.firstDataTraceId = undefined;
-        }
-
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
@@ -798,20 +691,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           },
         );
 
-        // End any first-price span still open from a prior connect()/prewarm
-        // before overwriting the trace id, or that span is orphaned and ships
-        // bogus first-data telemetry.
-        this.endOpenFirstDataTrace();
-        // Start trace for first price measurement (prewarm is the usual
-        // price subscription path; connect() covers the no-prewarm case)
-        this.firstDataTraceId = uuidv4();
-        trace({
-          name: TraceName.PerpsWebSocketFirstPrice,
-          id: this.firstDataTraceId,
-          op: TraceOperation.PerpsOperation,
-        });
-        this.wsConnectionStartTime = performance.now();
-
         // WARNING: Do NOT set includeMarketData: true here. It triggers
         // per-symbol activeAssetCtx subscriptions (N symbols × N DEXs = N²
         // WebSocket connections). assetCtxs (1 per DEX) is always established
@@ -820,23 +699,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           symbols: this.allMarketSymbols,
           includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
-            // Track first price data from WebSocket (only once per prewarm)
-            if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
-              const firstDataDuration =
-                performance.now() - this.wsConnectionStartTime;
-              DevLogger.log(
-                `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First price data received`,
-                { duration: `${firstDataDuration.toFixed(0)}ms` },
-              );
-              endTrace({
-                name: TraceName.PerpsWebSocketFirstPrice,
-                id: this.firstDataTraceId,
-                data: { success: true, duration: firstDataDuration },
-              });
-              this.wsConnectionStartTime = null;
-              this.firstDataTraceId = undefined;
-            }
-
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
               const priceUpdate = this.toPriceUpdate(update);
@@ -888,10 +750,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    * Cleanup pre-warm subscription
    */
   public cleanupPrewarm(): void {
-    // Prewarm starts the first-price trace; end it here too so a soft reconnect
-    // (preserveCaches: true skips clearCache) doesn't leave it open to be
-    // overwritten by the next prewarm.
-    this.endOpenFirstDataTrace();
     if (this.actualPriceUnsubscribe) {
       this.actualPriceUnsubscribe();
       this.actualPriceUnsubscribe = undefined;
@@ -905,17 +763,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 class OrderStreamChannel extends StreamChannel<Order[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
-
-  protected endOpenFirstDataTrace(): void {
-    if (this.firstDataTraceId) {
-      endTrace({
-        name: TraceName.PerpsWebSocketFirstOrders,
-        id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
-      });
-      this.firstDataTraceId = undefined;
-    }
-  }
 
   protected connect() {
     if (this.wsSubscription) return;
@@ -976,22 +823,6 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
-        // Orders confirmed in the live stream — close pending cancel / limit
-        // order-render CUF spans at this delivery instant. The boundary is
-        // stream confirmation (the order is now present/absent in live orders
-        // data), which the always-on prewarm subscription keeps observable even
-        // though the submitting surface (the order form, a confirmations modal)
-        // does not itself subscribe to orders; the initiating screen under that
-        // modal (Market Details / positions / home) does subscribe, so the
-        // flush-on-confirm renders it there at the same instant. Deliberately
-        // NOT gated on a real subscriber: the order form path has none of its
-        // own, so gating would time out a genuine confirmation.
-        // Skip while paused: notifySubscribers delivered nothing.
-        if (this.pauseCount === 0) {
-          handlePerpsCufOrdersDelivered(orders, () =>
-            this.flushThrottledDeliveries(),
-          );
-        }
         this.triggerPersist();
       },
     });
@@ -1051,16 +882,14 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
   }
 
   public disconnect() {
-    // End (not just drop) any open first-data trace before the base teardown.
-    this.endOpenFirstDataTrace();
+    this.firstDataTraceId = undefined;
     super.disconnect();
   }
 
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
-    // End (not just drop) any open first-data trace before the base teardown.
-    this.endOpenFirstDataTrace();
+    this.firstDataTraceId = undefined;
     // Call parent clearCache
     super.clearCache();
   }
@@ -1070,17 +899,6 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 class PositionStreamChannel extends StreamChannel<Position[] | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
-
-  protected endOpenFirstDataTrace(): void {
-    if (this.firstDataTraceId) {
-      endTrace({
-        name: TraceName.PerpsWebSocketFirstPositions,
-        id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
-      });
-      this.firstDataTraceId = undefined;
-    }
-  }
 
   protected connect() {
     if (this.wsSubscription) return;
@@ -1145,15 +963,6 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
-        // Positions just rendered to subscribers — close any pending CUF span
-        // (place/close/TPSL/reconnect) at its user-perceived boundary, flushing
-        // throttled subscribers first so the span ends at real render time.
-        // Skip while paused: notifySubscribers delivered nothing.
-        if (this.pauseCount === 0) {
-          handlePerpsCufPositionsDelivered(positions, () =>
-            this.flushThrottledDeliveries(),
-          );
-        }
         this.triggerPersist();
       },
     });
@@ -1203,16 +1012,14 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
   }
 
   public disconnect() {
-    // End (not just drop) any open first-data trace before the base teardown.
-    this.endOpenFirstDataTrace();
+    this.firstDataTraceId = undefined;
     super.disconnect();
   }
 
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
-    // End (not just drop) any open first-data trace before the base teardown.
-    this.endOpenFirstDataTrace();
+    this.firstDataTraceId = undefined;
     // Call parent clearCache
     super.clearCache();
   }
@@ -1373,17 +1180,6 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   private prewarmUnsubscribe?: () => void;
   private firstDataTraceId?: string;
 
-  protected endOpenFirstDataTrace(): void {
-    if (this.firstDataTraceId) {
-      endTrace({
-        name: TraceName.PerpsWebSocketFirstAccount,
-        id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
-      });
-      this.firstDataTraceId = undefined;
-    }
-  }
-
   protected connect() {
     if (this.wsSubscription) return;
 
@@ -1470,16 +1266,14 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 
   public disconnect() {
-    // End (not just drop) any open first-data trace before the base teardown.
-    this.endOpenFirstDataTrace();
+    this.firstDataTraceId = undefined;
     super.disconnect();
   }
 
   public clearCache(): void {
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
-    // End (not just drop) any open first-data trace before the base teardown.
-    this.endOpenFirstDataTrace();
+    this.firstDataTraceId = undefined;
     // Call parent clearCache
     super.clearCache();
   }
@@ -1617,18 +1411,6 @@ class TopOfBookStreamChannel extends StreamChannel<
   private cachedTopOfBook:
     | { bestBid?: string; bestAsk?: string; spread?: string }
     | undefined = undefined;
-  private firstDataTraceId?: string;
-
-  protected endOpenFirstDataTrace(): void {
-    if (this.firstDataTraceId) {
-      endTrace({
-        name: TraceName.PerpsWebSocketFirstOrderBook,
-        id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
-      });
-      this.firstDataTraceId = undefined;
-    }
-  }
 
   protected connect() {
     if (!this.currentSymbol || this.wsSubscription) {
@@ -1641,38 +1423,12 @@ class TopOfBookStreamChannel extends StreamChannel<
       symbol: this.currentSymbol,
     });
 
-    // Start trace for first top-of-book measurement (before subscription)
-    this.firstDataTraceId = uuidv4();
-    trace({
-      name: TraceName.PerpsWebSocketFirstOrderBook,
-      id: this.firstDataTraceId,
-      op: TraceOperation.PerpsOperation,
-    });
-    this.wsConnectionStartTime = performance.now();
-
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: [this.currentSymbol],
       includeOrderBook: true,
       callback: (updates: PriceUpdate[]) => {
         const update = updates.find((u) => u.symbol === this.currentSymbol);
         if (update) {
-          // Track first top-of-book data (only once per connection)
-          if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
-            const firstDataDuration =
-              performance.now() - this.wsConnectionStartTime;
-            DevLogger.log(
-              `${PERFORMANCE_CONFIG.LoggingMarkers.WebsocketPerformance} PerpsWS: First order book data received`,
-              { duration: `${firstDataDuration.toFixed(0)}ms` },
-            );
-            endTrace({
-              name: TraceName.PerpsWebSocketFirstOrderBook,
-              id: this.firstDataTraceId,
-              data: { success: true, duration: firstDataDuration },
-            });
-            this.wsConnectionStartTime = null;
-            this.firstDataTraceId = undefined;
-          }
-
           const topOfBook = {
             bestBid: update.bestBid,
             bestAsk: update.bestAsk,

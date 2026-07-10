@@ -7,18 +7,22 @@ import { defineConfig } from './framework/config';
 // Requires HAS_TEST_OVERRIDES=true baked in at build time so the app activates
 // ReadOnlyNetworkStore and fetches fixture state from /state.json.
 //
-// Defaults match Detox local debug e2e output
-// Override with ANDROID_APK_PATH / IOS_APP_PATH for release/main-e2e artifacts
-// (e.g. build/ci-main-e2e/app-prod-release.apk) — launch helpers detect release
-// from the path and skip Metro deep-link automatically.
+// Use the release e2e APK (same as CI Appium smoke). The debug APK is an Expo
+// "Development Build" and stops on the dev-launcher Connect screen unless
+// Metro is running and the session deep-links into the bundle.
+// Build with: HAS_TEST_OVERRIDES=true METAMASK_ENVIRONMENT=e2e yarn build:android:main:e2e
+// Local CI artifact: `gh run download <run-id> -n main-e2e-release.apk -D build/ci-main-e2e`
+const CI_MAIN_E2E_ANDROID_APK = 'build/ci-main-e2e/app-prod-release.apk';
 const DEFAULT_ANDROID_APK =
   process.env.ANDROID_APK_PATH?.trim() ||
   process.env.PREBUILT_ANDROID_APK_PATH?.trim() ||
-  'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk';
+  CI_MAIN_E2E_ANDROID_APK;
+// Local CI artifacts: `gh run download 28019927211 -n <artifact> -D build/ci-main-e2e`
+const CI_MAIN_E2E_IOS_APP = 'build/ci-main-e2e/MetaMask.app';
 const DEFAULT_IOS_APP =
   process.env.IOS_APP_PATH?.trim() ||
   process.env.PREBUILT_IOS_APP_PATH?.trim() ||
-  'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app';
+  CI_MAIN_E2E_IOS_APP;
 
 /**
  * Playwright runner config for Appium smoke tests.
@@ -26,11 +30,16 @@ const DEFAULT_IOS_APP =
  * Runs Appium smoke specs from tests/smoke-appium. Tags live in describe titles
  * via tags.js (same convention as Detox); --grep uses the tag id (e.g. SmokeAccounts).
  *
+ * IMPORTANT: Requires an e2e build with HAS_TEST_OVERRIDES=true (release APK on
+ * Android — matches CI). Do not use the Detox debug APK here; it opens the Expo
+ * dev launcher instead of loading fixture state. Build with:
+ * HAS_TEST_OVERRIDES=true METAMASK_ENVIRONMENT=e2e yarn build:android:main:e2e
+ * CONFIGURATION=Debug yarn build:ios:main:e2e (iOS)
+ *
  * Environment variables (all optional — defaults shown):
- * - PREBUILT_ANDROID_APK_PATH — e2e APK from .e2e.env (overrides default debug path)
+ * - PREBUILT_ANDROID_APK_PATH — e2e test APK from .e2e.env (preferred locally)
  * - ANDROID_APK_PATH — path to the APK (overrides PREBUILT_ANDROID_APK_PATH)
- * - PREBUILT_IOS_APP_PATH — e2e .app from .e2e.env (overrides default debug path)
- * - IOS_APP_PATH — path to the .app (overrides PREBUILT_IOS_APP_PATH)
+ * - IOS_APP_PATH — path to the .app (default: build/ci-main-e2e/MetaMask.app from CI)
  * - ANDROID_AVD_NAME — AVD name (default: 'Pixel_5_Pro_API_34')
  * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
  * - IOS_SIMULATOR_UDID — booted sim UDID (CI sets this from prepare-ios-appium-runner)
@@ -43,9 +52,6 @@ const DEFAULT_IOS_APP =
  * Usage:
  * yarn appium-smoke:android
  * yarn appium-smoke:ios
- *
- * Release CI artifact locally:
- * ANDROID_APK_PATH=build/ci-main-e2e/app-prod-release.apk yarn appium-smoke:android
  */
 const suiteName = process.env.APPIUM_SMOKE_SUITE_NAME?.trim();
 const htmlReportDir = suiteName
@@ -80,7 +86,6 @@ export default defineConfig({
   projects: [
     {
       name: 'android-smoke',
-      timeout: 8 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
         device: {

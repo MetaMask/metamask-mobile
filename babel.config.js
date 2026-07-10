@@ -66,13 +66,7 @@ module.exports = {
   presets: ['babel-preset-expo'],
   plugins: [
     ...reactCompilerBabelConfig,
-    // `JEST_WORKER_ID` must NOT be inlined: Metro runs Babel transforms inside
-    // `jest-worker` child processes, which set `JEST_WORKER_ID` in their env.
-    // Inlining it bakes a truthy value into the app bundle and defeats every
-    // `process.env.JEST_WORKER_ID` runtime guard (e.g. the xhr2-based test-only
-    // XMLHttpRequest shim), crashing the app. Excluding it keeps the lookup at
-    // runtime: undefined in the app, set under Jest.
-    ['transform-inline-environment-variables', { exclude: ['JEST_WORKER_ID'] }],
+    'transform-inline-environment-variables',
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
     // Required by reanimated v3 to compile `'worklet'` directives; without it,

@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export interface EarnMusdConversionEducationViewRouteParams {
+interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
    * When true, the component determines routing based on user state

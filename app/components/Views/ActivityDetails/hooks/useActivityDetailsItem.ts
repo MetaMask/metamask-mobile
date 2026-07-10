@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
-import {
-  type ActivityListItem,
-  isSpendingCapWithAmount,
-} from '../../../../util/activity-adapters';
+import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
@@ -150,19 +147,7 @@ export function useActivityDetailsItem(
       const isLocalLessCategorized =
         localItem.type === 'contractInteraction' ||
         localItem.type === 'swapIncomplete';
-      // Spending caps: the accounts API returns no calldata for an approve, so
-      // its confirmed copy has no cap amount. Keep the local copy (decoded from
-      // calldata) when only it carries the amount, so the details screen shows
-      // the cap
-      const localHasRicherSpendingCap =
-        !!apiItem &&
-        isSpendingCapWithAmount(localItem) &&
-        !isSpendingCapWithAmount(apiItem);
-      if (
-        apiItem &&
-        (hasMatchingType || isLocalLessCategorized) &&
-        !localHasRicherSpendingCap
-      ) {
+      if (apiItem && (hasMatchingType || isLocalLessCategorized)) {
         return apiItem;
       }
       return localItem;

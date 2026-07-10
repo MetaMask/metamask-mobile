@@ -11,7 +11,6 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -85,11 +84,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../selectors/preferencesController', () => ({
-  __esModule: true,
-  selectPrivacyMode: jest.fn(),
-}));
-
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
@@ -104,7 +98,6 @@ const mockSelectHasWalletFundingPrimaryCta = jest.mocked(
 const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
   selectMoneyOnboardingStepperAnimationEnabled,
 );
-const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
@@ -156,7 +149,6 @@ describe('MoneyBalanceCard', () => {
     mockSelectMoneyOnboardingSeen.mockReturnValue(true);
     mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
     mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
-    mockSelectPrivacyMode.mockReturnValue(false);
     mockUseMoneyNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
@@ -435,35 +427,6 @@ describe('MoneyBalanceCard', () => {
 
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
         /• mUSD/,
-      );
-    });
-  });
-
-  describe('privacy mode', () => {
-    it('shows the real balance when privacy mode is disabled', () => {
-      mockSelectPrivacyMode.mockReturnValue(false);
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
-        '$1,000.00',
-      );
-    });
-
-    it('masks the balance when privacy mode is enabled', () => {
-      mockSelectPrivacyMode.mockReturnValue(true);
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(getByTestId(MoneyBalanceCardTestIds.BALANCE)).toHaveTextContent(
-        '•••••••••',
-      );
-    });
-
-    it('does not mask the APY tag when privacy mode is enabled', () => {
-      mockSelectPrivacyMode.mockReturnValue(true);
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
-        /4% APY/,
       );
     });
   });

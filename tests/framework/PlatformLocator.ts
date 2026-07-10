@@ -33,14 +33,4 @@ export class PlatformDetector {
   static isIOS(): boolean {
     return PlatformDetector.getPlatform() === 'ios';
   }
-
-  /** Appium/WebdriverIO session on Android. */
-  static isAndroidAppium(): boolean {
-    return FrameworkDetector.isAppium() && PlatformDetector.isAndroid();
-  }
-
-  /** Appium/WebdriverIO session on iOS. */
-  static isIOSAppium(): boolean {
-    return FrameworkDetector.isAppium() && PlatformDetector.isIOS();
-  }
 }

@@ -12,7 +12,6 @@ import {
   getAuthLabel,
   getAuthType,
   getAuthIcon,
-  isAndroidKeychainBiometricLockout,
   isAndroidKeychainBiometricUserCancellation,
   isIosUserCancelledBiometricUnlock,
   isBiometricUnlockCancelledByUser,
@@ -99,18 +98,6 @@ describe('handlePasswordSubmissionError', () => {
     );
     expect(() => handlePasswordSubmissionError(error)).toThrow(
       expectedThrownError,
-    );
-  });
-});
-
-describe('isAndroidKeychainBiometricLockout', () => {
-  it.each([
-    ['code: 7, msg: Too many attempts. Try again later.', true],
-    ['code:7, msg: lockout', true],
-    ['code: 10, msg: Fingerprint operation canceled by user', false],
-  ])('returns %s -> %s', (message, expected) => {
-    expect(isAndroidKeychainBiometricLockout(new Error(message))).toBe(
-      expected,
     );
   });
 });

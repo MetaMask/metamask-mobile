@@ -29,7 +29,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Team to Score First',
       'predict.sports_market_types.soccer_first_to_score':
         'First Team to Score',
-      'predict.sports_market_types.soccer_player_goals': 'Goals',
       'predict.world_cup.market_info.regulation_time_winner.title':
         'Regulation time winner',
       'predict.world_cup.market_info.team_to_advance.title': 'Team to advance',
@@ -50,7 +49,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
-  default: { error: jest.fn(), log: jest.fn() },
+  default: { error: jest.fn() },
 }));
 
 const createToken = (
@@ -156,9 +155,8 @@ describe('PredictGameDetailsContent utils', () => {
       ).toBe('Fallback Title');
     });
 
-    it('logs warning-level missing translations only once per key', () => {
+    it('logs missing translations only once per key', () => {
       const mockLoggerError = jest.mocked(Logger.error);
-      const mockLoggerLog = jest.mocked(Logger.log);
       const type = 'basketball_logged_once_market';
       const key = `predict.sports_market_types.${type}`;
       const message = `Missing Predict sports market type translation: ${key}`;
@@ -170,41 +168,11 @@ describe('PredictGameDetailsContent utils', () => {
         'Fallback Title',
       );
 
-      expect(mockLoggerLog).toHaveBeenCalledTimes(1);
-      expect(mockLoggerLog).toHaveBeenCalledWith(message, { key, type });
-      expect(mockLoggerError).not.toHaveBeenCalled();
-    });
-
-    it('does not warn for dynamic soccer player goals subgroup keys', () => {
-      const mockLoggerError = jest.mocked(Logger.error);
-      const mockLoggerLog = jest.mocked(Logger.log);
-
-      expect(
-        getSportsMarketTypeLabelForGame(
-          'soccer_player_goals-dani-olmo',
-          'Dani Olmo',
-          mockGame,
-        ),
-      ).toBe('Dani Olmo');
-
-      expect(mockLoggerLog).not.toHaveBeenCalled();
-      expect(mockLoggerError).not.toHaveBeenCalled();
-    });
-
-    it('does not warn for dynamic soccer team totals subgroup keys', () => {
-      const mockLoggerError = jest.mocked(Logger.error);
-      const mockLoggerLog = jest.mocked(Logger.log);
-
-      expect(
-        getSportsMarketTypeLabelForGame(
-          'soccer_team_totals-0',
-          'Portugal Totals',
-          mockGame,
-        ),
-      ).toBe('Portugal Totals');
-
-      expect(mockLoggerLog).not.toHaveBeenCalled();
-      expect(mockLoggerError).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({ message }),
+        { message, context: { key, type } },
+      );
     });
   });
 

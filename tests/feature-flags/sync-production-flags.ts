@@ -22,6 +22,8 @@
  */
 
 // eslint-disable-next-line import-x/no-nodejs-modules -- Node.js script for CI/sync
+import { execFileSync } from 'child_process';
+// eslint-disable-next-line import-x/no-nodejs-modules -- Node.js script for CI/sync
 import fs from 'fs';
 // eslint-disable-next-line import-x/no-nodejs-modules -- Node.js script for CI/sync
 import path from 'path';
@@ -467,6 +469,33 @@ export function validateRegistryFile(content: string): string[] {
   const duplicates = findDuplicateRegistryKeys(content);
   errors.push(...duplicates);
 
+  const rootDir = path.resolve(__dirname, '../..');
+  try {
+    execFileSync(
+      path.resolve(rootDir, 'node_modules/.bin/tsc'),
+      ['--noEmit', '-p', path.resolve(rootDir, 'tsconfig.json')],
+      { encoding: 'utf-8', stdio: 'pipe', cwd: rootDir },
+    );
+  } catch (err: unknown) {
+    const stdout = (err as { stdout?: string }).stdout ?? '';
+    const stderr = (err as { stderr?: string }).stderr ?? '';
+    if (!stdout && !stderr) {
+      errors.push('tsc failed to run (no output — binary may be missing)');
+    } else {
+      const output = stdout || stderr;
+      const tsErrors = output
+        .split('\n')
+        .filter((line: string) => line.includes('error TS'));
+      if (tsErrors.length > 0) {
+        errors.push(...tsErrors);
+      } else {
+        errors.push(
+          `tsc exited with an error but no TS diagnostics found: ${output.trim().split('\n')[0]}`,
+        );
+      }
+    }
+  }
+
   return errors;
 }
 
@@ -717,14 +746,12 @@ export async function updateRegistryFile(result: SyncResult): Promise<void> {
 
   const validationErrors = validateRegistryFile(finalContent);
   if (validationErrors.length > 0) {
-    console.warn(c.yellow('\n⚠ Post-write validation warnings:'));
+    console.error(c.red('\n✗ Post-write validation failed:'));
     for (const err of validationErrors) {
-      console.warn(c.yellow(`  - ${err}`));
+      console.error(c.red(`  - ${err}`));
     }
-    console.warn(
-      c.yellow(
-        'The registry file was written but has validation issues that need manual attention.',
-      ),
+    throw new Error(
+      `Registry file has ${validationErrors.length} validation error(s)`,
     );
   }
 

@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
@@ -23,16 +23,13 @@ const useTabViewedEvent = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const entryPointRef = useRef(entryPoint);
-  const appSessionIdRef = useRef(appSessionId);
-  const visitIdRef = useRef(visitId);
+  entryPointRef.current = entryPoint;
 
-  // useLayoutEffect keeps refs current before paint while preserving a stable
-  // trackTabViewed callback (HomepageDiscoveryTabs fires portfolio on mount only).
-  useLayoutEffect(() => {
-    entryPointRef.current = entryPoint;
-    appSessionIdRef.current = appSessionId;
-    visitIdRef.current = visitId;
-  }, [entryPoint, appSessionId, visitId]);
+  const appSessionIdRef = useRef(appSessionId);
+  appSessionIdRef.current = appSessionId;
+
+  const visitIdRef = useRef(visitId);
+  visitIdRef.current = visitId;
 
   const trackTabViewed = useCallback(
     (name: HomeTabName) => {

@@ -3,7 +3,6 @@ import {
   KnownCaipNamespace,
   CaipNamespace,
 } from '@metamask/utils';
-import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { decimalToHex } from '../../../util/conversions';
 import { RootState } from '../../../reducers';
@@ -55,9 +54,8 @@ export const useDisplayName = (
   );
 
   const parsedAddress = isEip155 ? toChecksumHexAddress(address) : address;
-  const addressArray = useMemo(() => [parsedAddress], [parsedAddress]);
   const accountGroups = useSelector((state: RootState) =>
-    selectAccountGroupsByAddress(state, addressArray),
+    selectAccountGroupsByAddress(state, [parsedAddress]),
   );
 
   const accountGroupName = accountGroups[0]?.metadata.name;

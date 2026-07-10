@@ -27,9 +27,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.spreads': 'Spreads',
       'predict.sports_market_types.totals': 'Totals',
       'predict.sports_market_types.points': 'Points',
-      'predict.sports_market_types.soccer_player_goals': 'Goals',
-      'predict.sports_market_types.soccer_second_half_result':
-        '2nd Half Result',
       'predict.sports_market_types.basketball_total_points': 'Totals',
       'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
       'predict.sports_market_types.basketball_team_to_score_first':
@@ -1277,100 +1274,6 @@ describe('PredictGameOutcomesTab', () => {
         expect.objectContaining({ label: 'HOME', price: 72 }),
         expect.objectContaining({ label: 'AWAY', price: 28 }),
       ]);
-    });
-
-    it('renders second-half result subgroup as an inline moneyline card', () => {
-      const subgroups: PredictOutcomeGroup[] = [
-        createGroup({
-          key: 'soccer_second_half_result',
-          outcomes: [
-            createOutcome({
-              id: 'shr-home',
-              sportsMarketType: 'soccer_second_half_result',
-              groupItemTitle: 'Home',
-              volume: 4000,
-              tokens: [createToken({ shortTitle: 'HOM', price: 0.5 })],
-            }),
-            createOutcome({
-              id: 'shr-draw',
-              sportsMarketType: 'soccer_second_half_result',
-              groupItemTitle: 'Draw',
-              volume: 2000,
-              tokens: [createToken({ shortTitle: 'Draw', price: 0.2 })],
-            }),
-            createOutcome({
-              id: 'shr-away',
-              sportsMarketType: 'soccer_second_half_result',
-              groupItemTitle: 'Away',
-              volume: 3000,
-              tokens: [createToken({ shortTitle: 'AWY', price: 0.3 })],
-            }),
-          ],
-        }),
-      ];
-      const groups = [createGroup({ key: 'halves', outcomes: [], subgroups })];
-
-      render(
-        <PredictGameOutcomesTab
-          groupMap={toGroupMap(groups)}
-          game={mockGame}
-          activeChipKey="halves"
-          onBuyPress={mockOnBuyPress}
-        />,
-      );
-
-      expect(mockCapturedCards).toHaveLength(1);
-      expect(mockCapturedCards[0].title).toBe('2nd Half Result');
-      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
-    });
-  });
-
-  describe('player goal subgroup rendering', () => {
-    it('renders one line card per player for soccer player goals', () => {
-      const subgroups: PredictOutcomeGroup[] = [
-        createGroup({
-          key: 'soccer_player_goals-0',
-          title: 'Player A',
-          outcomes: [
-            createOutcome({
-              id: 'player-a-1',
-              sportsMarketType: 'soccer_player_goals',
-              groupItemTitle: 'Player A: 1+ goals',
-              line: 0.5,
-              tokens: [
-                createToken({ shortTitle: 'Yes', price: 0.62 }),
-                createToken({ shortTitle: 'No', price: 0.38 }),
-              ],
-            }),
-            createOutcome({
-              id: 'player-a-2',
-              sportsMarketType: 'soccer_player_goals',
-              groupItemTitle: 'Player A: 2+ goals',
-              line: 1.5,
-              volume: 500,
-              tokens: [
-                createToken({ shortTitle: 'Yes', price: 0.21 }),
-                createToken({ shortTitle: 'No', price: 0.79 }),
-              ],
-            }),
-          ],
-        }),
-      ];
-      const groups = [createGroup({ key: 'goals', outcomes: [], subgroups })];
-
-      render(
-        <PredictGameOutcomesTab
-          groupMap={toGroupMap(groups)}
-          game={mockGame}
-          activeChipKey="goals"
-          onBuyPress={mockOnBuyPress}
-        />,
-      );
-
-      expect(mockCapturedCards).toHaveLength(1);
-      expect(mockCapturedCards[0].title).toBe('Player A');
-      expect(mockCapturedCards[0].lines).toEqual([0.5, 1.5]);
-      expect(mockCapturedCards[0].buttons[0].price).toBe(62);
     });
   });
 });

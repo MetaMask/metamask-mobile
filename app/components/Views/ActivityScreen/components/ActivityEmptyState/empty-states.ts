@@ -10,6 +10,7 @@ export enum ActivityEmptyStateAction {
   AddFunds = 'addFunds',
   MakePrediction = 'makePrediction',
   BrowsePerpsMarkets = 'browsePerpsMarkets',
+  TransferToMoney = 'transferToMoney',
   OpenMetamaskCard = 'openMetamaskCard',
 }
 
@@ -86,6 +87,21 @@ export function getActivityEmptyState({
         actionLabelKey: 'activity_view.empty_state.buy_sell.action',
         action: ActivityEmptyStateAction.AddFunds,
       };
+
+    case ActivityTypeFilter.Money:
+      return hasFunds
+        ? {
+            descriptionKey:
+              'activity_view.empty_state.money_funded.description',
+            actionLabelKey: 'activity_view.empty_state.money_funded.action',
+            action: ActivityEmptyStateAction.TransferToMoney,
+          }
+        : {
+            descriptionKey:
+              'activity_view.empty_state.money_unfunded.description',
+            actionLabelKey: 'activity_view.empty_state.money_unfunded.action',
+            action: ActivityEmptyStateAction.TransferToMoney,
+          };
 
     case ActivityTypeFilter.MetamaskCard:
       // TODO: confirm card empty state copy with product

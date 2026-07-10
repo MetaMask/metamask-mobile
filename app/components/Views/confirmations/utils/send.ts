@@ -30,7 +30,6 @@ import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
-import { SendStackScreen } from '../hooks/send/useSendScreenNavigation';
 
 export enum ChainType {
   EVM = 'evm',
@@ -110,6 +109,10 @@ export const handleSendPageNavigation = (
 ) => {
   const { location, asset, predefinedRecipient } = params;
   captureSendStartedEvent(location);
+  type SendStackScreen =
+    | typeof Routes.SEND.ASSET
+    | typeof Routes.SEND.RECIPIENT
+    | typeof Routes.SEND.AMOUNT;
   let screen: SendStackScreen = Routes.SEND.ASSET;
   if (asset) {
     if (asset.standard === TokenStandard.ERC721) {

@@ -469,13 +469,13 @@ export const selectIconSeedAddressesByAccountGroupIds = createDeepEqualSelector(
 export const selectAccountGroupsByAddress = createDeepEqualSelector(
   [
     selectAccountGroupWithInternalAccounts,
-    (_state: RootState, addresses: string[]) => addresses,
+    (_state: RootState, addresses: string[]) =>
+      new Set(addresses.map((address) => address.toLowerCase())),
   ],
   (
     accountGroupWithInternalAccounts,
-    addresses: string[],
+    addressesSet: Set<string>,
   ): AccountGroupWithInternalAccounts[] => {
-    const addressesSet = new Set(addresses.map((a) => a.toLowerCase()));
     const matchingGroups = new Set<AccountGroupWithInternalAccounts>();
 
     accountGroupWithInternalAccounts.forEach((group) => {

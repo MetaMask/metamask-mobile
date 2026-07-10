@@ -12,6 +12,7 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export interface RampInfoBottomSheetAction {
   /** Button label */
@@ -54,6 +55,7 @@ function RampInfoBottomSheet({
 }: RampInfoBottomSheetProps) {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -65,6 +67,7 @@ function RampInfoBottomSheet({
       goBack={navigation.goBack}
       isInteractable={false}
       testID={testIDs.MODAL}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import {
   Box,
@@ -16,8 +15,6 @@ import {
   ButtonVariant,
   FontWeight,
   IconName,
-  SensitiveText,
-  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
@@ -28,7 +25,6 @@ import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -53,7 +49,6 @@ const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
-  const privacyMode = useSelector(selectPrivacyMode);
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
     overrideToUsd: true,
@@ -227,30 +222,20 @@ const MoneyPotentialEarningsView = () => {
             >
               {`${strings(
                 'money.potential_earnings.description_with_amounts_prefix',
+                {
+                  total: moneyFormatFiat(
+                    new BigNumber(totalAssetsFiat),
+                    currency,
+                  ),
+                },
               )} `}
-              <SensitiveText
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Regular}
-                color={TextColor.TextAlternative}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-                testID={MoneyPotentialEarningsViewTestIds.TOTAL}
-              >
-                {moneyFormatFiat(new BigNumber(totalAssetsFiat), currency)}
-              </SensitiveText>
-              {` ${strings(
-                'money.potential_earnings.description_with_amounts_middle',
-              )} `}
-              <SensitiveText
+              <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
                 color={TextColor.SuccessDefault}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-                testID={MoneyPotentialEarningsViewTestIds.PROJECTED}
               >
                 {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
-              </SensitiveText>
+              </Text>
               {` ${strings(
                 'money.potential_earnings.description_with_amounts_suffix',
               )}`}
@@ -276,7 +261,6 @@ const MoneyPotentialEarningsView = () => {
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
             testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}
-            privacyMode={privacyMode}
           />
         ))}
       </ScrollView>

@@ -32,8 +32,6 @@ export interface QuickBuyFeatures {
   payWithSheet: boolean;
   highPriceImpactModal: boolean;
   fiatCryptoToggle: boolean;
-  /** Fixed fiat / percentage quick-amount pills below the slider. */
-  quickAmountPills?: boolean;
 }
 
 /** Stable-token destination candidates for the Sell "Receive with" picker. */

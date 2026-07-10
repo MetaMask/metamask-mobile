@@ -16,7 +16,6 @@ import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { Hex } from '@metamask/utils';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
@@ -47,11 +46,6 @@ jest.mock('../transactions/useTransactionAccountOverride', () => ({
 const useTransactionAccountOverrideMock = jest.mocked(
   useTransactionAccountOverride,
 );
-
-jest.mock('../pay/useTransactionPayCurrency', () => ({
-  useTransactionPayCurrency: jest.fn(),
-}));
-const useTransactionPayCurrencyMock = jest.mocked(useTransactionPayCurrency);
 
 jest.mock('../../../../../selectors/accountsController', () => ({
   selectInternalAccountsById: jest.fn(),
@@ -128,7 +122,6 @@ describe('useAccountTokens', () => {
     jest.clearAllMocks();
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
-    useTransactionPayCurrencyMock.mockReturnValue(undefined);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockSelectAssetsBySelectedAccountGroup.mockReturnValue(mockAssets as any);
@@ -984,50 +977,6 @@ describe('useAccountTokens', () => {
 
       expect(result.current).toHaveLength(2);
       expect(result.current[0].symbol).toBe('TOKEN1');
-    });
-  });
-
-  describe('pay currency', () => {
-    it('uses preferred currency when useTransactionPayCurrency returns undefined', () => {
-      useTransactionPayCurrencyMock.mockReturnValue(undefined);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAssetsBySelectedAccountGroup) {
-          return mockAssets;
-        }
-        if (selector === selectCurrentCurrency) {
-          return 'eur';
-        }
-        return undefined;
-      });
-
-      renderHook(() => useAccountTokens());
-
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
-        style: 'currency',
-        currency: 'eur',
-        minimumFractionDigits: 2,
-      });
-    });
-
-    it('uses USD from useTransactionPayCurrency over preferred currency', () => {
-      useTransactionPayCurrencyMock.mockReturnValue('USD');
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectAssetsBySelectedAccountGroup) {
-          return mockAssets;
-        }
-        if (selector === selectCurrentCurrency) {
-          return 'eur';
-        }
-        return undefined;
-      });
-
-      renderHook(() => useAccountTokens());
-
-      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-      });
     });
   });
 });

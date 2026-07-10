@@ -32,7 +32,7 @@ import {
   useApproveTransactionData,
 } from '../../hooks/useApproveTransactionData';
 import {
-  isPermitRevoke,
+  isPermitDaiRevoke,
   isRecognizedPermit,
   isSIWESignatureRequest,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
@@ -112,7 +112,6 @@ const getTitleAndSubTitle = (
           parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
         const { allowed, tokenId, value } = parsedData.message ?? {};
         const { verifyingContract } = parsedData.domain ?? {};
-        const { types, primaryType } = parsedData;
 
         const isERC721Permit = tokenId !== undefined;
         if (isERC721Permit) {
@@ -122,13 +121,12 @@ const getTitleAndSubTitle = (
           };
         }
 
-        const isRevoke = isPermitRevoke(
+        const isDaiRevoke = isPermitDaiRevoke(
           verifyingContract,
           allowed,
           value,
-          types,
-          primaryType,
         );
+        const isRevoke = isDaiRevoke || value === '0';
 
         if (isRevoke) {
           return {

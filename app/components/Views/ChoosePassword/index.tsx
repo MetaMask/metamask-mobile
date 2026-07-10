@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -103,8 +103,6 @@ import generateDeviceAnalyticsMetaData, {
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
-import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
 interface KeyringState {
   type: string;
@@ -164,10 +162,6 @@ const ChoosePassword = () => {
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
-
-  const reduxAccountType = useSelector(selectOnboardingAccountType);
-  const { shouldShowQuestionnaire } =
-    useOnboardingInterestQuestionnaireEligibility();
 
   const getOauth2LoginSuccess = useCallback(
     () => route.params?.oauthLoginSuccess,
@@ -403,29 +397,69 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
-  const onContinueNavigation = useCallback(() => {
-    navigation.reset({
-      index: 0,
-      routes: [
-        {
-          name: Routes.ONBOARDING.SUCCESS_FLOW,
-          params: {
-            screen: Routes.ONBOARDING.SUCCESS,
-            params: {
-              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-            },
-          },
-        },
-      ],
-    });
-  }, [navigation]);
-
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData, marketingOptInChecked: boolean) => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
-      if (!authType.oauth2Login) {
+      if (authType.oauth2Login) {
+        endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+        endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+        dispatch(setDataCollectionForMarketing(marketingOptInChecked));
+        OAuthLoginService.updateMarketingOptInStatus(
+          marketingOptInChecked,
+        ).catch((err) => {
+          Logger.error(err);
+        });
+
+        const oauthProvider = route.params?.provider;
+        const socialAccountType =
+          oauthProvider !== undefined
+            ? getSocialAccountType(oauthProvider, false)
+            : undefined;
+
+        try {
+          metrics.trackEvent(
+            metrics
+              .createEventBuilder(
+                MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+              )
+              .addProperties({
+                [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+                  marketingOptInChecked,
+                ),
+                is_metrics_opted_in: true,
+                location: 'onboarding_choosePassword',
+                updated_after_onboarding: false,
+                ...(socialAccountType && { account_type: socialAccountType }),
+              })
+              .build(),
+          );
+
+          await metrics.identify({
+            ...generateDeviceAnalyticsMetaData(),
+            ...generateUserSettingsAnalyticsMetaData(),
+          });
+        } catch (analyticsError) {
+          Logger.error(analyticsError as Error);
+        }
+
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                screen: Routes.ONBOARDING.SUCCESS,
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                },
+              },
+            },
+          ],
+        });
+      } else {
         const seedPhrase = await tryExportSeedPhrase(password);
         (
           navigation as unknown as {
@@ -436,67 +470,13 @@ const ChoosePassword = () => {
           backupFlow: false,
           settingsBackup: false,
         });
-        return;
-      }
-
-      endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      dispatch(setDataCollectionForMarketing(marketingOptInChecked));
-      OAuthLoginService.updateMarketingOptInStatus(marketingOptInChecked).catch(
-        (err) => {
-          Logger.error(err);
-        },
-      );
-
-      const oauthProvider = route.params?.provider;
-      const socialAccountType =
-        oauthProvider !== undefined
-          ? getSocialAccountType(oauthProvider, false)
-          : undefined;
-
-      try {
-        metrics.trackEvent(
-          metrics
-            .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-            .addProperties({
-              [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-                marketingOptInChecked,
-              ),
-              is_metrics_opted_in: true,
-              location: 'onboarding_choosePassword',
-              updated_after_onboarding: false,
-              ...(socialAccountType && { account_type: socialAccountType }),
-            })
-            .build(),
-        );
-
-        await metrics.identify({
-          ...generateDeviceAnalyticsMetaData(),
-          ...generateUserSettingsAnalyticsMetaData(),
-        });
-      } catch (analyticsError) {
-        Logger.error(analyticsError as Error);
-      }
-
-      const accountType = reduxAccountType;
-      if (shouldShowQuestionnaire) {
-        navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
-          onComplete: onContinueNavigation,
-          ...(accountType && { accountType }),
-        });
-      } else {
-        onContinueNavigation();
       }
     },
     [
       dispatch,
-      route.params?.provider,
       metrics,
-      reduxAccountType,
-      shouldShowQuestionnaire,
       navigation,
-      onContinueNavigation,
+      route.params?.provider,
       tryExportSeedPhrase,
       password,
     ],
@@ -775,6 +755,7 @@ const ChoosePassword = () => {
         ) : (
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
+            resetScrollToCoords={{ x: 0, y: 0 }}
             keyboardShouldPersistTaps="handled"
           >
             <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">

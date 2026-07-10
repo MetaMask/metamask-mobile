@@ -34,6 +34,7 @@ import {
   resetProviderToken,
 } from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 /**
  * Transak native provider path prefix - matches both production
@@ -55,6 +56,7 @@ function SettingsModal() {
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
+  const surfaceClass = useElevatedSurface();
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
 
@@ -196,7 +198,11 @@ function SettingsModal() {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
       <HeaderStandard
         title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
         onClose={handleClosePress}

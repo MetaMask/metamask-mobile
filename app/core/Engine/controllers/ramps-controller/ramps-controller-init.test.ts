@@ -220,25 +220,6 @@ describe('ramps controller init', () => {
     expect(rampsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 
-  // TRAM-3691: confirms the analytics/notification handlers have a SINGLE
-  // trigger — RampsController:orderStatusChanged. There is no addOrder/create
-  // subscription, so an already-terminal callback order (added via addOrder,
-  // never polled) never reaches the metrics handler. This is the mobile-side
-  // half of the root cause pinned by the core RampsController TRAM-3691 tests.
-  it('subscribes order handlers ONLY to RampsController:orderStatusChanged', () => {
-    rampsControllerInit(initRequestMock);
-
-    const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
-
-    expect(subscribeMock).toHaveBeenCalled();
-    const subscribedEvents = subscribeMock.mock.calls.map(([event]) => event);
-    expect(
-      subscribedEvents.every(
-        (event) => event === 'RampsController:orderStatusChanged',
-      ),
-    ).toBe(true);
-  });
-
   describe('when __DEV__ is true', () => {
     let previousDev: boolean;
     let previousRampsDebugDashboard: string | undefined;

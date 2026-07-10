@@ -7,8 +7,6 @@ export const UNLOCK_WALLET_ERROR_MESSAGES = {
     'error:1e000065:Cipher functions:OPENSSL_internal:BAD_DECRYPT',
   ANDROID_WRONG_PASSWORD_2: 'error in DoCipher, status: 2',
   ANDROID_PIN_DENIED: 'Error: Cancel',
-  /** Android BiometricPrompt lockout after too many failed attempts (react-native-keychain code 7). */
-  ANDROID_BIOMETRIC_LOCKOUT: 'code: 7',
   // iOS specific error messages.
   IOS_USER_CANCELLED_BIOMETRICS: 'User canceled the operation',
   // General error messages.

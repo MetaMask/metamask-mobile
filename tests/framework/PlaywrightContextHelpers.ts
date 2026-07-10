@@ -5,24 +5,18 @@ import type {
 } from 'webdriverio/build/types';
 import { APP_PACKAGE_IDS } from './Constants';
 import { PlatformDetector } from './PlatformLocator';
-import { getDriver, withTimeout } from './PlaywrightUtilities';
+import { getDriver } from './PlaywrightUtilities';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('PlaywrightContextHelpers');
 
 type DetailedContext = IosDetailedContext | AndroidDetailedContext;
 
-type AndroidContextWithPage = AndroidDetailedContext & {
-  webviewPageId?: string;
-};
-
 const NATIVE_APP = 'NATIVE_APP';
 const LAVAMOAT_PATTERN = /LavaMoat|ShadowRoot|scuttling/i;
 
 export default class PlaywrightContextHelpers {
   private static readonly WEBVIEW_TIMEOUT_MS = 30_000;
-  private static readonly WEBVIEW_SWITCH_TIMEOUT_MS = 45_000;
-  private static readonly WEBVIEW_WARMUP_TIMEOUT_MS = 15_000;
   private static readonly POLL_INTERVAL_MS = 1_000;
 
   static async switchToNativeContext(): Promise<void> {
@@ -36,16 +30,10 @@ export default class PlaywrightContextHelpers {
     // Falls back to manual polling on any failure (LavaMoat scuttling,
     // stale URL metadata on BrowserStack, platform quirks, etc.).
     try {
-      await withTimeout(
-        getDriver().switchContext({
-          url: new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-          androidWebviewConnectTimeout: this.WEBVIEW_TIMEOUT_MS,
-        }),
-        this.WEBVIEW_SWITCH_TIMEOUT_MS,
-        `switchContext for ${dappUrl}`,
-      );
-      await this.warmWebViewContext();
-      await this.switchToMatchingWebviewWindow(dappUrl);
+      await getDriver().switchContext({
+        url: new RegExp(dappUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+        androidWebviewConnectTimeout: this.WEBVIEW_TIMEOUT_MS,
+      });
       logger.debug(`Switched to webview context for URL: ${dappUrl}`);
       return;
     } catch (err) {
@@ -69,14 +57,8 @@ export default class PlaywrightContextHelpers {
       const selected = await this.selectBestWebview(webviews, dappUrl);
 
       if (selected?.id) {
-        const switched = await withTimeout(
-          this.attemptContextSwitch(selected.id),
-          this.WEBVIEW_SWITCH_TIMEOUT_MS,
-          `switchContext to ${selected.id}`,
-        ).catch(() => false);
+        const switched = await this.attemptContextSwitch(selected.id);
         if (switched) {
-          await this.warmWebViewContext();
-          await this.switchToMatchingWebviewWindow(dappUrl);
           logger.debug(`Switched to webview context: ${selected.id}`);
           return;
         }
@@ -126,55 +108,6 @@ export default class PlaywrightContextHelpers {
       filtered.find((ctx) => ctx.id.includes(packageId)) ??
       filtered[filtered.length - 1]
     );
-  }
-
-  private static async warmWebViewContext(): Promise<void> {
-    if (!(await PlatformDetector.isAndroid())) {
-      return;
-    }
-
-    try {
-      await withTimeout(
-        getDriver().getTitle(),
-        this.WEBVIEW_WARMUP_TIMEOUT_MS,
-        'WebView getTitle warm-up',
-      );
-    } catch (error) {
-      logger.debug(
-        'WebView warm-up failed (non-fatal):',
-        this.getErrorMessage(error).slice(0, 200),
-      );
-    }
-  }
-
-  private static async switchToMatchingWebviewWindow(
-    dappUrl: string,
-  ): Promise<void> {
-    if (!(await PlatformDetector.isAndroid())) {
-      return;
-    }
-
-    const webviews = await this.getDetailedWebviews();
-    const match = webviews.find((ctx) => ctx.url?.includes(dappUrl));
-    const pageId = (match as AndroidContextWithPage | undefined)?.webviewPageId;
-
-    if (!pageId) {
-      return;
-    }
-
-    try {
-      await withTimeout(
-        getDriver().switchToWindow(pageId),
-        this.WEBVIEW_SWITCH_TIMEOUT_MS,
-        `switchToWindow(${pageId})`,
-      );
-      logger.debug(`Switched to WebView window ${pageId} for ${dappUrl}`);
-    } catch (error) {
-      logger.debug(
-        'WebView window switch failed (non-fatal):',
-        this.getErrorMessage(error).slice(0, 200),
-      );
-    }
   }
 
   private static async attemptContextSwitch(

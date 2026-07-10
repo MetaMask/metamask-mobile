@@ -26,10 +26,6 @@ export enum TokenDetailsSource {
   ExploreSearch = 'explore_search',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
-  /** Swap discovery feed — hot tokens / movers pills */
-  MoversSwaps = 'movers-swaps',
-  /** Swap discovery feed — stocks section */
-  RwasStocksSwaps = 'rwas_stocks-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */
   HomepageTrending = 'homepage-trending',
   /** Swap/Bridge token selector */
@@ -90,6 +86,6 @@ export type TokenDetailsExitAction =
 
 /**
  * Technical indicators that occupy a sub-pane below the main chart.
- * Keep in sync with SUB_PANE_INDICATOR_NAMES in webview/src/features/indicators/studies.ts.
+ * Keep in sync with SUB_PANE_INDICATOR_NAMES in chartLogic.js.
  */
 export const SUB_PANE_INDICATORS = ['MACD', 'RSI'] as const;

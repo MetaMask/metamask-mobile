@@ -11,7 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import Logger from '../../../../../util/Logger';
 
-export interface KycWebviewParams {
+interface KycWebviewParams {
   url: string;
   providerName: string;
   workFlowRunId: string;

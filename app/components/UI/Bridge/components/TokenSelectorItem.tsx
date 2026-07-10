@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -7,6 +7,7 @@ import {
   StyleProp,
   TextStyle,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { getAssetTestId } from '../../../../../tests/selectors/Wallet/WalletView.selectors';
 import TagBase, {
@@ -32,16 +33,21 @@ import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken, SecurityDataType } from '../types';
+import { RootState } from '../../../../reducers';
 import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
+import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
 import Tag from '../../../../component-library/components/Tags/Tag';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { formatTokenBalance, getTokenImageSource } from '../utils';
+import { useRWAToken } from '../hooks/useRWAToken';
+import { useABTest } from '../../../../hooks';
 import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
   TokenSelectorBalanceLayoutConfig,
   TokenSelectorBalanceLayoutVariant,
@@ -174,7 +180,6 @@ interface TokenSelectorItemProps {
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
   isNoFeeAsset?: boolean;
-  showStockBadge?: boolean;
   secondaryRowContent?: React.ReactNode;
   tokenBalanceTextProps?: Partial<BalanceTextProps>;
   balanceLayoutConfigOverride?: TokenSelectorBalanceLayoutConfig;
@@ -282,7 +287,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   shouldShowBalance = true,
   children,
   isNoFeeAsset = false,
-  showStockBadge = false,
   secondaryRowContent,
   tokenBalanceTextProps,
   balanceLayoutConfigOverride,
@@ -295,12 +299,21 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   const { styles } = useStyles(createStyles, {
     isSelected: shouldShowSelectedStyle,
   });
-  const showNoFeeBadge = isNoFeeAsset;
+  const { variant } = useABTest(
+    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  );
+  const noFeeAssets = useSelector((state: RootState) =>
+    selectNoFeeAssets(state, token.chainId),
+  );
+
+  const showNoFeeBadge = isNoFeeAsset || noFeeAssets?.includes(token.address);
 
   const fiatValue = token.balanceFiat;
 
   const selectedVariant =
     balanceLayoutConfigOverride ??
+    variant ??
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
       TokenSelectorBalanceLayoutVariant.Control
     ];
@@ -315,20 +328,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
 
   const isNative = token.address === ethers.constants.AddressZero;
 
-  const handlePress = useCallback(() => {
-    onPress(token);
-  }, [onPress, token]);
-
-  const tokenImageSource = useMemo(
-    () =>
-      getTokenImageSource(
-        token.symbol,
-        token.image,
-        token.address,
-        token.chainId,
-      ),
-    [token.address, token.chainId, token.image, token.symbol],
-  );
+  const { isStockToken } = useRWAToken();
 
   const fiatBalance = shouldShowBalance ? fiatValue : undefined;
   const tokenBalance = shouldShowBalance ? cryptoBalance : undefined;
@@ -341,7 +341,12 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   const tokenAvatar = (
     <AvatarToken
       name={token.symbol}
-      imageSource={tokenImageSource}
+      imageSource={getTokenImageSource(
+        token.symbol,
+        token.image,
+        token.address,
+        token.chainId,
+      )}
       size={AvatarSize.Lg}
       testID={
         isNative ? `network-logo-${token.symbol}` : `token-logo-${token.symbol}`
@@ -360,7 +365,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
 
       <TouchableOpacity
         key={token.address}
-        onPress={handlePress}
+        onPress={() => onPress(token)}
         style={[
           styles.itemWrapper,
           shouldIncludeChildrenInPressTarget && styles.itemWrapperWithChildren,
@@ -552,7 +557,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                 />
               )}
             </Box>
-            {showStockBadge && <StockBadge token={token} />}
+            {isStockToken(token as BridgeToken) && <StockBadge token={token} />}
           </Box>
         </Box>
         {shouldIncludeChildrenInPressTarget && children ? (

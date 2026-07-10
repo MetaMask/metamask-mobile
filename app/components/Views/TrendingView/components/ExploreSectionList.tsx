@@ -10,7 +10,6 @@ export interface ExploreSectionItem {
 
 interface ExploreSectionListProps {
   sections: ExploreSectionItem[];
-  includeDividers?: boolean;
 }
 
 /**
@@ -19,12 +18,11 @@ interface ExploreSectionListProps {
  */
 const ExploreSectionList: React.FC<ExploreSectionListProps> = ({
   sections,
-  includeDividers = true,
 }) => (
   <>
     {sections.map((section, index) => (
       <Fragment key={section.key}>
-        {includeDividers && index > 0 ? (
+        {index > 0 ? (
           <Box testID="explore-section-divider">
             <SectionDivider />
           </Box>

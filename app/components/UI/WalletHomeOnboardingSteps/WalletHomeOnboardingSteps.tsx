@@ -49,7 +49,7 @@ import WalletHomeOnboardingStepper from './WalletHomeOnboardingStepper';
 import WalletHomeOnboardingProgressBar from './WalletHomeOnboardingProgressBar';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
 import Logger from '../../../util/Logger';
-import onboardChecklistV07Animation from '../../../animations/onboard_checklist_v07.riv';
+import onboardChecklistV05Animation from '../../../animations/onboard_checklist_v05.riv';
 import { hasTestOverrides } from '../../../util/test/utils';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD,
@@ -137,7 +137,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const isFocused = useIsFocused();
   const checklistRiveRef = useRef<RiveRef>(null);
   const prevSuspendRiveForCurtainRef = useRef(false);
-  const [checklistFadeOpacity] = useState(() => new Animated.Value(1));
+  const checklistFadeOpacity = useRef(new Animated.Value(1)).current;
   const dispatch = useDispatch();
   const walletHomeOnboardingStepsState = useSelector(
     selectWalletHomeOnboardingSteps,
@@ -164,8 +164,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const visualStepIndexForProgress =
     walletHomeOnboardingCappedVisualStepIndex(displayStepIndex);
 
-  const [slideX] = useState(() => new Animated.Value(0));
-  const [slideY] = useState(() => new Animated.Value(0));
+  const slideX = useRef(new Animated.Value(0)).current;
+  const slideY = useRef(new Animated.Value(0)).current;
   const progressRatio = useSharedValue(
     walletHomeOnboardingProgressRatioForStep(visualStepIndexForProgress),
   );
@@ -192,6 +192,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const canAdvanceFundStepAfterBalanceRef = useRef(
     canAdvanceFundStepAfterBalance,
   );
+  canAdvanceFundStepAfterBalanceRef.current = canAdvanceFundStepAfterBalance;
 
   /**
    * After returning from trade / notifications (deferred advance), skip replaying the checklist
@@ -226,7 +227,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     WALLET_HOME_ONBOARDING_VISIBLE_STEPS[visualStepIndexForProgress].kind,
   );
   useEffect(() => {
-    canAdvanceFundStepAfterBalanceRef.current = canAdvanceFundStepAfterBalance;
     stepIndexRef.current = stepIndex;
     isLastStepRef.current =
       stepIndex >= WALLET_HOME_ONBOARDING_VISIBLE_STEPS.length - 1;
@@ -234,7 +234,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     const cappedVisual = walletHomeOnboardingCappedVisualStepIndex(displayIdx);
     currentStepKindRef.current =
       WALLET_HOME_ONBOARDING_VISIBLE_STEPS[cappedVisual].kind;
-  }, [stepIndex, isAwaitingBalance, canAdvanceFundStepAfterBalance]);
+  }, [stepIndex, isAwaitingBalance]);
 
   useEffect(
     () => () => {
@@ -322,16 +322,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       return;
     }
     const timeoutId = setTimeout(() => {
-      const rive = checklistRiveRef.current;
-      if (!rive) {
-        return;
-      }
       try {
-        rive.fireState(
+        checklistRiveRef.current?.fireState(
           WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
           WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
         );
-        rive.play();
+        checklistRiveRef.current?.play();
       } catch (error) {
         Logger.error(
           error as Error,
@@ -470,19 +466,16 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       // Always run checklist Rive outro before leaving the step (including last step with
       // coordinated Wallet fade — previously outro was skipped and hold was 0, so returning
       // from notification settings showed intro replay then no outro).
-      const rive = checklistRiveRef.current;
-      if (rive) {
-        try {
-          rive.fireState(
-            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
-            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
-          );
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
-          );
-        }
+      try {
+        checklistRiveRef.current?.fireState(
+          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'WalletHomeOnboardingSteps: failed to fire checklist Rive outro',
+        );
       }
 
       if (outroHoldTimeoutRef.current !== null) {
@@ -761,7 +754,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             <Rive
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
               ref={checklistRiveRef}
-              source={onboardChecklistV07Animation}
+              source={onboardChecklistV05Animation}
               artboardName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD[currentStep.kind]
               }

@@ -20,12 +20,7 @@ import { act, waitFor } from '@testing-library/react-native';
 import { BigNumber } from 'ethers';
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import {
-  selectBridgeFeatureFlags as selectAppBridgeFeatureFlags,
-  selectBridgeQuotes as selectAppBridgeQuotes,
-  selectControllerFields,
-  setSourceAmount,
-} from '../../../../../core/redux/slices/bridge';
+import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
@@ -91,12 +86,6 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
 describe('useBridgeQuoteData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    selectControllerFields.clearCache();
-    selectControllerFields.memoizedResultFunc.clearCache();
-    selectAppBridgeQuotes.clearCache();
-    selectAppBridgeQuotes.memoizedResultFunc.clearCache();
-    selectAppBridgeFeatureFlags.clearCache();
-    selectAppBridgeFeatureFlags.memoizedResultFunc.clearCache();
     (isQuoteExpired as jest.Mock).mockReturnValue(false);
     (getQuoteRefreshRate as jest.Mock).mockReturnValue(5000);
     (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
@@ -1100,8 +1089,6 @@ describe('useBridgeQuoteData', () => {
     });
 
     recommendedQuote = secondMockQuote;
-    selectAppBridgeQuotes.clearCache();
-    selectAppBridgeQuotes.memoizedResultFunc.clearCache();
     act(() => {
       store.dispatch(setSourceAmount('2'));
     });
@@ -1860,33 +1847,6 @@ describe('useBridgeQuoteData', () => {
       expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
       expect(result.current.isExpired).toBe(true);
       expect(result.current.willRefresh).toBe(true);
-    });
-  });
-
-  describe('memoization', () => {
-    it('keeps the same return object reference when inputs do not change', () => {
-      const bridgeQuotes = {
-        recommendedQuote: mockQuoteWithMetadata,
-        alternativeQuotes: [],
-      };
-      (selectBridgeQuotes as unknown as jest.Mock).mockReturnValue(
-        bridgeQuotes,
-      );
-
-      const testState = createBridgeTestState({});
-
-      const { result, rerender } = renderHookWithProvider(
-        () => useBridgeQuoteData(),
-        {
-          state: testState,
-        },
-      );
-
-      const firstResult = result.current;
-
-      rerender({ state: testState });
-
-      expect(result.current).toBe(firstResult);
     });
   });
 });

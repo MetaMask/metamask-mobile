@@ -53,12 +53,12 @@ const PredictionsCarouselSection: React.FC<PredictionsCarouselSectionProps> = ({
             item_clicked: item.id,
           })
         }
-        onBuyButtonPress={({ market }) =>
+        onBuyButtonPress={(marketId) =>
           trackExploreInteracted({
             interaction_type: 'prediction_voted',
             tab_name: tabName,
             section_name: sectionName,
-            item_clicked: market.id,
+            item_clicked: marketId,
           })
         }
       />

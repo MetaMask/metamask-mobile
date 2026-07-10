@@ -132,20 +132,4 @@ describe('AccountsApiActivityItem', () => {
 
     expect(lastRowProps().onPress).toBeUndefined();
   });
-
-  it('forwards privacyMode false by default to ActivityRowView', () => {
-    render(<AccountsApiActivityItem activity={card} />);
-
-    expect(
-      (lastRowProps() as unknown as { privacyMode?: boolean }).privacyMode,
-    ).toBe(false);
-  });
-
-  it('forwards privacyMode true to ActivityRowView when set', () => {
-    render(<AccountsApiActivityItem activity={card} privacyMode />);
-
-    expect(
-      (lastRowProps() as unknown as { privacyMode?: boolean }).privacyMode,
-    ).toBe(true);
-  });
 });

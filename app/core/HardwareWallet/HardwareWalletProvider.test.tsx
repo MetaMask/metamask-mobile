@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react-hooks';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import { Pressable, Text, View } from 'react-native';
+import { render, waitFor } from '@testing-library/react-native';
+import { Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { HardwareWalletProvider } from './HardwareWalletProvider';
 import { useHardwareWallet } from './contexts';
@@ -87,24 +87,12 @@ jest.mock('react-native', () => ({
 
 // Capture bottom sheet props so we can invoke internal actions in tests
 let capturedBottomSheetProps: Record<string, unknown> = {};
-jest.mock('./components', () => {
-  const { View: MockView } = jest.requireActual('react-native');
-  return {
-    HardwareWalletBottomSheet: (props: Record<string, unknown>) => {
-      capturedBottomSheetProps = props;
-      return <MockView testID="hardware-wallet-bottom-sheet-mock" />;
-    },
-  };
-});
-
-jest.mock('react-native-screens', () => {
-  const { View: MockView } = jest.requireActual('react-native');
-  return {
-    FullWindowOverlay: ({ children }: { children: React.ReactNode }) => (
-      <MockView testID="full-window-overlay">{children}</MockView>
-    ),
-  };
-});
+jest.mock('./components', () => ({
+  HardwareWalletBottomSheet: (props: Record<string, unknown>) => {
+    capturedBottomSheetProps = props;
+    return null;
+  },
+}));
 
 describe('HardwareWalletProvider', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -890,113 +878,6 @@ describe('HardwareWalletProvider', () => {
       expect(result.current.state.connectionState.status).toBe(
         ConnectionStatus.ErrorState,
       );
-    });
-  });
-
-  describe('FullWindowOverlay mount gate (iOS a11y regression #32973)', () => {
-    it('does not mount FullWindowOverlay while idle / Disconnected', () => {
-      mockUseSelector.mockReturnValue({ address: '0x1234' });
-      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
-
-      const { queryByTestId } = render(
-        <HardwareWalletProvider>
-          <View testID="app-content" />
-        </HardwareWalletProvider>,
-      );
-
-      // Empty overlay would set accessibilityViewIsModal and hide the AX tree.
-      expect(queryByTestId('full-window-overlay')).toBeNull();
-      expect(queryByTestId('hardware-wallet-bottom-sheet-mock')).toBeNull();
-    });
-
-    it('mounts overlay with bottom sheet content during AwaitingConfirmation', async () => {
-      mockUseSelector.mockReturnValue({ address: '0x1234' });
-      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
-
-      const Trigger: React.FC = () => {
-        const { showAwaitingConfirmation } = useHardwareWallet();
-        React.useEffect(() => {
-          showAwaitingConfirmation('message');
-        }, [showAwaitingConfirmation]);
-        return <View testID="app-content" />;
-      };
-
-      const { getByTestId, queryByTestId } = render(
-        <HardwareWalletProvider>
-          <Trigger />
-        </HardwareWalletProvider>,
-      );
-
-      await waitFor(() => {
-        expect(getByTestId('full-window-overlay')).toBeOnTheScreen();
-      });
-      expect(
-        getByTestId('hardware-wallet-bottom-sheet-mock'),
-      ).toBeOnTheScreen();
-      expect(queryByTestId('app-content')).toBeOnTheScreen();
-    });
-
-    it('unmounts FullWindowOverlay when returning to Disconnected', async () => {
-      mockUseSelector.mockReturnValue({ address: '0x1234' });
-      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
-
-      const Trigger: React.FC = () => {
-        const { showAwaitingConfirmation, hideAwaitingConfirmation } =
-          useHardwareWallet();
-        React.useEffect(() => {
-          showAwaitingConfirmation('message');
-        }, [showAwaitingConfirmation]);
-        return (
-          <Pressable
-            testID="hide-confirmation"
-            onPress={() => hideAwaitingConfirmation()}
-          >
-            <Text>hide</Text>
-          </Pressable>
-        );
-      };
-
-      const { getByTestId, queryByTestId } = render(
-        <HardwareWalletProvider>
-          <Trigger />
-        </HardwareWalletProvider>,
-      );
-
-      await waitFor(() => {
-        expect(getByTestId('full-window-overlay')).toBeOnTheScreen();
-      });
-
-      fireEvent.press(getByTestId('hide-confirmation'));
-
-      await waitFor(() => {
-        expect(queryByTestId('full-window-overlay')).toBeNull();
-      });
-    });
-
-    it('does not mount FullWindowOverlay when forceHideBottomSheet is set', async () => {
-      mockUseSelector.mockReturnValue({ address: '0x1234' });
-      mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
-
-      const Trigger: React.FC = () => {
-        const { showAwaitingConfirmation, setForceHideBottomSheet } =
-          useHardwareWallet();
-        React.useEffect(() => {
-          setForceHideBottomSheet?.(true);
-          showAwaitingConfirmation('message');
-        }, [setForceHideBottomSheet, showAwaitingConfirmation]);
-        return <View testID="app-content" />;
-      };
-
-      const { queryByTestId } = render(
-        <HardwareWalletProvider>
-          <Trigger />
-        </HardwareWalletProvider>,
-      );
-
-      await waitFor(() => {
-        expect(queryByTestId('app-content')).toBeOnTheScreen();
-      });
-      expect(queryByTestId('full-window-overlay')).toBeNull();
     });
   });
 

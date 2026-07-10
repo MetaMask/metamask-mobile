@@ -130,10 +130,7 @@ describe('general.flow Playwright dev screens', () => {
       PlaywrightAssertions.expectElementToNotBeVisible,
     ).toHaveBeenCalledWith(
       closeButton,
-      expect.objectContaining({
-        timeout: 2000,
-        description: 'Dev Menu Close Button should not be visible',
-      }),
+      expect.objectContaining({ timeout: 5000 }),
     );
     expect(
       (PlaywrightAssertions.expectElementToNotBeVisible as jest.Mock).mock

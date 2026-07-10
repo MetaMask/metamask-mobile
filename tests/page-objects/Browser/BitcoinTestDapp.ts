@@ -1,7 +1,6 @@
 import { dataTestIds } from '@metamask/test-dapp-bitcoin';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Gestures from '../../framework/Gestures';
 import Browser from './BrowserView';
@@ -16,7 +15,7 @@ import Utilities, { BASE_DEFAULTS } from '../../framework/Utilities';
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<DetoxElement | WebElement | PlaywrightElement> {
+): Promise<DetoxElement | WebElement> {
   const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 

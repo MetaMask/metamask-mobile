@@ -100,16 +100,15 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       useNetworkEnablement();
     const { detectNfts, abortDetection } = useNftDetection();
     const popularNetworksKey = popularNetworks.join(',');
-    const areAllPopularNetworksEnabled = useMemo(() => {
-      if (popularNetworksKey === '') {
-        return true;
-      }
-      return popularNetworksKey
-        .split(',')
-        .every((chainId) =>
+    const areAllPopularNetworksEnabled = useMemo(
+      () =>
+        popularNetworks.every((chainId) =>
           isNetworkEnabled(chainId as Parameters<typeof isNetworkEnabled>[0]),
-        );
-    }, [isNetworkEnabled, popularNetworksKey]);
+        ),
+      // popularNetworksKey stabilizes by content; popularNetworks is a new array ref every render from the hook
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [isNetworkEnabled, popularNetworksKey],
+    );
 
     // useFocusEffect (not useEffect) so we run every time the user focuses this screen
     // (e.g. switches to Wallet tab or returns from a section). With useEffect we would

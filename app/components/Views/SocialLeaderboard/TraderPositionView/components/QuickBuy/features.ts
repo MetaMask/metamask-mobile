@@ -8,5 +8,4 @@ export const TOP_TRADERS_QUICK_BUY_FEATURES: QuickBuyFeatures = {
   payWithSheet: true,
   highPriceImpactModal: true,
   fiatCryptoToggle: true,
-  quickAmountPills: true,
 };

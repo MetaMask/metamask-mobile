@@ -13,7 +13,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useFiatOrderStatus } from '../../../hooks/activity/useFiatOrderStatus';
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
-import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import { useTheme } from '../../../../../../util/theme';
 
@@ -89,7 +88,7 @@ export function TransactionDetailsPaidWithRow() {
 
   const displayText = isFiatDeposit
     ? (paymentMethodName ?? '')
-    : (getTokenDisplaySymbol(tokenAddress, token?.symbol) ?? '');
+    : (token?.symbol ?? '');
 
   return (
     <TransactionDetailsRow label={label}>

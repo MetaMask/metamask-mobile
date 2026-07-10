@@ -11,10 +11,14 @@ import React, {
   useRef,
 } from 'react';
 import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  PanGestureHandler,
+  PanGestureHandlerGestureEvent,
+} from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
   runOnJS,
+  useAnimatedGestureHandler,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
@@ -70,7 +74,6 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
     const currentYOffset = useSharedValue(screenHeight);
     const visibleYOffset = useSharedValue(0);
     const sheetHeight = useSharedValue(screenHeight);
-    const gestureStartY = useSharedValue(0);
     const overlayOpacity = useDerivedValue(() =>
       interpolate(
         currentYOffset.value,
@@ -90,57 +93,55 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
       postCallback.current?.();
     }, [navigation, onDismiss, shouldGoBack]);
 
-    const gestureHandler = useMemo(
-      () =>
-        Gesture.Pan()
-          .enabled(isInteractable)
-          .onStart(() => {
-            gestureStartY.value = currentYOffset.value;
-          })
-          .onUpdate((event) => {
-            currentYOffset.value = gestureStartY.value + event.translationY;
-            if (currentYOffset.value >= sheetHeight.value) {
-              currentYOffset.value = sheetHeight.value;
-            }
-            if (currentYOffset.value <= visibleYOffset.value) {
-              currentYOffset.value = visibleYOffset.value;
-            }
-          })
-          .onEnd((event) => {
-            const { translationY, velocityY } = event;
-            let finalOffset: number;
-            const latestOffset = gestureStartY.value + translationY;
-            const hasReachedDismissOffset =
-              latestOffset > sheetHeight.value * DISMISS_DISTANCE_THRESHOLD;
-            const hasReachedSwipeThreshold =
-              Math.abs(velocityY) > DISMISS_SWIPE_SPEED_THRESHOLD;
-            const isDismissing = velocityY > 0;
+    const gestureHandler = useAnimatedGestureHandler<
+      PanGestureHandlerGestureEvent,
+      { startY: number }
+    >({
+      onStart: (_, ctx) => {
+        ctx.startY = currentYOffset.value;
+      },
+      onActive: (event, ctx) => {
+        const { translationY } = event;
+        currentYOffset.value = ctx.startY + translationY;
+        if (currentYOffset.value >= sheetHeight.value) {
+          currentYOffset.value = sheetHeight.value;
+        }
+        if (currentYOffset.value <= visibleYOffset.value) {
+          currentYOffset.value = visibleYOffset.value;
+        }
+      },
+      onEnd: (event, ctx) => {
+        const { translationY, velocityY } = event;
+        let finalOffset: number;
+        const latestOffset = ctx.startY + translationY;
+        const hasReachedDismissOffset =
+          latestOffset > sheetHeight.value * DISMISS_DISTANCE_THRESHOLD;
+        const hasReachedSwipeThreshold =
+          Math.abs(velocityY) > DISMISS_SWIPE_SPEED_THRESHOLD;
+        const isDismissing = velocityY > 0;
 
-            if (hasReachedSwipeThreshold) {
-              // Quick swipe takes priority
-              if (isDismissing) {
-                finalOffset = sheetHeight.value;
-              } else {
-                finalOffset = visibleYOffset.value;
-              }
-            } else if (hasReachedDismissOffset) {
-              finalOffset = sheetHeight.value;
-            } else {
-              finalOffset = visibleYOffset.value;
-            }
+        if (hasReachedSwipeThreshold) {
+          // Quick swipe takes priority
+          if (isDismissing) {
+            finalOffset = sheetHeight.value;
+          } else {
+            finalOffset = visibleYOffset.value;
+          }
+        } else if (hasReachedDismissOffset) {
+          finalOffset = sheetHeight.value;
+        } else {
+          finalOffset = visibleYOffset.value;
+        }
 
-            const isDismissed = finalOffset === sheetHeight.value;
+        const isDismissed = finalOffset === sheetHeight.value;
 
-            currentYOffset.value = withTiming(
-              finalOffset,
-              { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
-              () => isDismissed && runOnJS(onHidden)(),
-            );
-          }),
-      // Shared values are stable refs; only the enabled flag and onHidden matter.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [isInteractable, onHidden],
-    );
+        currentYOffset.value = withTiming(
+          finalOffset,
+          { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
+          () => isDismissed && runOnJS(onHidden)(),
+        );
+      },
+    });
 
     // Animate in on initial render.
     const show = useCallback(() => {
@@ -219,11 +220,14 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
         >
           <Animated.View style={combinedOverlayStyle} />
         </TouchableOpacity>
-        <GestureDetector gesture={gestureHandler}>
+        <PanGestureHandler
+          enabled={isInteractable}
+          onGestureEvent={gestureHandler}
+        >
           <Animated.View style={[combinedModalStyle, style]}>
             {children}
           </Animated.View>
-        </GestureDetector>
+        </PanGestureHandler>
       </View>
     );
   },

@@ -409,10 +409,6 @@
             "optionId": "volume"
           },
           "perpsBalances": {},
-          "recentlyViewedMarkets": {
-            "mainnet": [],
-            "testnet": []
-          },
           "selectedPaymentToken": null,
           "tradeConfigurations": {
             "mainnet": {},

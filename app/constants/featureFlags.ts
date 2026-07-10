@@ -19,14 +19,10 @@ export enum FeatureFlagNames {
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
-  ledgerDmk = 'ledgerDmk',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
 export const ADD_DEVICE_SYNC_MINIMUM_VERSION = '8.6.0';
-
-/** Minimum expected app version required for Ledger DMK (Device Management Key). */
-export const LEDGER_DMK_MINIMUM_VERSION = '8.2.0';
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
@@ -39,10 +35,6 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.addDeviceSyncEnabled]: {
     enabled: false,
     minimumVersion: ADD_DEVICE_SYNC_MINIMUM_VERSION,
-  },
-  [FeatureFlagNames.ledgerDmk]: {
-    enabled: false,
-    minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
 };

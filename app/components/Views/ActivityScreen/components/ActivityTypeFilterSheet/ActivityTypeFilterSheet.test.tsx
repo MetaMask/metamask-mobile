@@ -65,11 +65,11 @@ describe('ActivityTypeFilterSheet', () => {
     );
 
     const props = lastProps();
-    expect(props.getLabel(ActivityTypeFilter.MetamaskCard)).toBe(
-      strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[ActivityTypeFilter.MetamaskCard]),
+    expect(props.getLabel(ActivityTypeFilter.Money)).toBe(
+      strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[ActivityTypeFilter.Money]),
     );
-    expect(props.getOptionTestID(ActivityTypeFilter.MetamaskCard)).toBe(
-      `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${ActivityTypeFilter.MetamaskCard}`,
+    expect(props.getOptionTestID(ActivityTypeFilter.Money)).toBe(
+      `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${ActivityTypeFilter.Money}`,
     );
   });
 

@@ -9,10 +9,7 @@ import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import { InteractionManager, Platform } from 'react-native';
-import {
-  AccountType,
-  ONBOARDING_SUCCESS_FLOW,
-} from '../../../constants/onboarding';
+import { AccountType } from '../../../constants/onboarding';
 
 const mockStore = configureMockStore();
 const store = mockStore({ user: { appTheme: AppThemeKey.light } });
@@ -491,7 +488,7 @@ describe('ManualBackupStep1', () => {
       expect(navigate).toHaveBeenCalledWith(
         'OptinMetrics',
         expect.objectContaining({
-          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+          onContinue: expect.any(Function),
           accountType: AccountType.Metamask,
         }),
       );

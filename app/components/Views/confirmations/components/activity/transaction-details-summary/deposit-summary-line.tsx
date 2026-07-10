@@ -7,7 +7,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
-import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
 import { TransactionSummaryLine } from './transaction-summary-line';
 
 export function DepositSummaryLine({
@@ -30,16 +29,14 @@ export function DepositSummaryLine({
     TransactionType.musdConversion,
   ]);
 
-  const sourceSymbol = getTokenDisplaySymbol(tokenAddress, sourceToken?.symbol);
-
   const title =
-    sourceSymbol && sourceNetworkName
+    sourceToken?.symbol && sourceNetworkName
       ? strings(
           isMusdConversion
             ? 'transaction_details.summary_title.musd_convert_send'
             : 'transaction_details.summary_title.bridge_send',
           {
-            sourceSymbol,
+            sourceSymbol: sourceToken.symbol,
             sourceChain: sourceNetworkName,
           },
         )

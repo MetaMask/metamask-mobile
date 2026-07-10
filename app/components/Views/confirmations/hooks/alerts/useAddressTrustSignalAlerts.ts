@@ -16,7 +16,7 @@ import { useApproveTransactionData } from '../useApproveTransactionData';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import {
   isRecognizedPermit,
-  isPermitRevoke,
+  isPermitDaiRevoke,
   parseAndNormalizeSignTypedData,
 } from '../../utils/signature';
 
@@ -45,8 +45,6 @@ export function useAddressTrustSignalAlerts(): Alert[] {
       const {
         domain: { verifyingContract },
         message: { allowed, tokenId, value },
-        types,
-        primaryType,
       } = parseAndNormalizeSignTypedData(msgData);
 
       const isNFTPermit = tokenId !== undefined;
@@ -54,13 +52,10 @@ export function useAddressTrustSignalAlerts(): Alert[] {
         return false;
       }
 
-      return isPermitRevoke(
-        verifyingContract,
-        allowed,
-        value,
-        types,
-        primaryType,
-      );
+      const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+      const isZeroValueRevoke = value === '0' || value === 0;
+
+      return isDaiRevoke || isZeroValueRevoke;
     } catch {
       return false;
     }

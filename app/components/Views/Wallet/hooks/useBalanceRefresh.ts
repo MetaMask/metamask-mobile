@@ -60,27 +60,24 @@ export const useBalanceRefresh = () => {
       .filter((id): id is string => Boolean(id));
 
     try {
-      const refreshTasks: Promise<unknown>[] = [
-        AccountTrackerController.refresh(networkClientIds),
-        CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        TokenDetectionController.detectTokens({
-          chainIds: evmChainIds,
-        }),
-        TokenBalancesController.updateBalances({
-          chainIds: evmChainIds,
-        }),
-      ];
-
-      if (isNftDetectionEnabled) {
-        refreshTasks.push(
-          NftDetectionController.detectNfts(evmChainIds, {
-            firstPageOnly: true,
-          }),
-        );
-      }
-
       await Promise.race([
-        Promise.allSettled(refreshTasks),
+        Promise.allSettled([
+          AccountTrackerController.refresh(networkClientIds),
+          CurrencyRateController.updateExchangeRate(nativeCurrencies),
+          TokenDetectionController.detectTokens({
+            chainIds: evmChainIds,
+          }),
+          TokenBalancesController.updateBalances({
+            chainIds: evmChainIds,
+          }),
+          ...(isNftDetectionEnabled
+            ? [
+                NftDetectionController.detectNfts(evmChainIds, {
+                  firstPageOnly: true,
+                }),
+              ]
+            : []),
+        ]),
         new Promise((_, reject) =>
           setTimeout(
             () => reject(new Error(REFRESH_TIMEOUT_ERROR_MESSAGE)),
@@ -105,8 +102,11 @@ export const useBalanceRefresh = () => {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refreshBalance();
-    setRefreshing(false);
+    try {
+      await refreshBalance();
+    } finally {
+      setRefreshing(false);
+    }
   }, [refreshBalance]);
 
   return {

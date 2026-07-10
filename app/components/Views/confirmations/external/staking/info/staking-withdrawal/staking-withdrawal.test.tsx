@@ -140,9 +140,6 @@ describe('StakingWithdrawal', () => {
       onReject: mockOnReject,
       addBackButton: true,
       theme: expect.any(Object),
-      mmPayRequestInProgressNavHandler: expect.objectContaining({
-        current: false,
-      }),
     });
   });
 

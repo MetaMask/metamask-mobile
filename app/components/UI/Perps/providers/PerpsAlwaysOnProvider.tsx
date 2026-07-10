@@ -8,7 +8,6 @@ import { selectPerpsEnabledFlag } from '../index';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
-import { initPerpsLifecycleTracking } from '../utils/perpsLifecycleContext';
 
 /**
  * Top-level always-on provider for Perps WebSocket connections.
@@ -31,9 +30,6 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-
-  // Track AppState so Perps CUF spans can tag lifecycle_context.
-  useEffect(() => initPerpsLifecycleTracking(), []);
 
   useEffect(() => {
     const controller = Engine.context.PerpsController;

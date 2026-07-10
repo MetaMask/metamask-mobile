@@ -3,12 +3,10 @@ import {
   withTheme,
   withNavigation,
   withSafeArea,
-  withToaster,
 } from './decorators';
 
 export const decorators = [
   withTheme,
-  withToaster,
   withSafeArea,
   withNavigation,
   withMockStore,

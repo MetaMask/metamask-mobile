@@ -104,38 +104,4 @@ describe('MoneyEarnings', () => {
       YEARLY_VALUE,
     );
   });
-
-  it('renders the real monthly and yearly values when privacyMode is false', () => {
-    const { getByTestId } = render(
-      <MoneyEarnings
-        monthlyEarnings={MONTHLY_VALUE}
-        yearlyEarnings={YEARLY_VALUE}
-        privacyMode={false}
-      />,
-    );
-
-    expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
-      MONTHLY_VALUE,
-    );
-    expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
-      YEARLY_VALUE,
-    );
-  });
-
-  it('masks the monthly and yearly values when privacyMode is true', () => {
-    const { getByTestId } = render(
-      <MoneyEarnings
-        monthlyEarnings={MONTHLY_VALUE}
-        yearlyEarnings={YEARLY_VALUE}
-        privacyMode
-      />,
-    );
-
-    expect(getByTestId(MoneyEarningsTestIds.MONTHLY_VALUE)).toHaveTextContent(
-      '•'.repeat(9),
-    );
-    expect(getByTestId(MoneyEarningsTestIds.YEARLY_VALUE)).toHaveTextContent(
-      '•'.repeat(9),
-    );
-  });
 });

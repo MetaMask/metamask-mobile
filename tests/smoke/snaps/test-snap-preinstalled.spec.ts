@@ -43,22 +43,6 @@ describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
     );
   });
 
-  it('can access the messenger', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
-        restartDevice: false,
-        skipReactNativeReload: true,
-        disableSynchronization: true,
-      },
-      async () => {
-        await TestSnaps.tapButton('messengerCallButton');
-
-        await TestSnaps.checkResultSpan('preinstalledResultSpan', 'false');
-      },
-    );
-  });
-
   it.todo('tracks an error in Sentry with `snap_trackError`');
 
   it.todo(

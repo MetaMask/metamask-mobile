@@ -16,6 +16,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyEarnCryptoInfoSheet.styles';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
 
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
@@ -32,6 +33,7 @@ const MoneyEarnCryptoInfoSheet = () => {
   const { styles } = useStyles(styleSheet, {});
   const { variant = 'default' } = useParams<MoneyEarnCryptoInfoSheetParams>();
   const { apyPercent } = useMoneyAccountBalance();
+  const surfaceClass = useElevatedSurface();
 
   const { trackBottomSheetViewed } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,
@@ -58,6 +60,7 @@ const MoneyEarnCryptoInfoSheet = () => {
       goBack={handleGoBack}
       testID={MoneyEarnCryptoInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text

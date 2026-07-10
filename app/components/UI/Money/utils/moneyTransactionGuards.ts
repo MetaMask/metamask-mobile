@@ -7,7 +7,6 @@ import {
   isMusdOnMoneyAccountChain,
   isMusdToken,
 } from '../../Earn/constants/musd';
-import type { MoneyAccountDepositIntent } from '../hooks/useMoneyAccount';
 
 /**
  * Returns the first nested transaction matching a given TransactionType,
@@ -26,25 +25,6 @@ export const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
   Boolean(
     nestedTxWithType(transactionMeta, TransactionType.moneyAccountDeposit),
   );
-
-/**
- * Derives the funding method of a Money account deposit from the transaction's
- * own payment data, so toast copy matches the flow the user actually took:
- * - fiat on-ramp (Apple Pay / debit / credit) → `card`
- * - paid with mUSD from holdings → `addMusd`
- * - any other crypto → `convert`
- */
-export const resolveMoneyDepositIntent = (
-  transactionMeta: TransactionMeta,
-): MoneyAccountDepositIntent => {
-  if (transactionMeta.metamaskPay?.fiat) {
-    return 'card';
-  }
-  if (isMusdToken(transactionMeta.metamaskPay?.tokenAddress)) {
-    return 'addMusd';
-  }
-  return 'convert';
-};
 
 export const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
   transactionMeta.type === TransactionType.moneyAccountWithdraw ||

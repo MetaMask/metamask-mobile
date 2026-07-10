@@ -15,8 +15,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  SensitiveText,
-  SensitiveTextLength,
   Tag,
   TagSeverity,
   Text,
@@ -61,8 +59,6 @@ interface MoneyMetaMaskCardProps {
   showMetalCard?: boolean;
   /** User's available card balance (manage mode only). */
   cardBalance?: string;
-  /** Whether the available card balance should be masked (manage mode only). */
-  privacyMode?: boolean;
   /**
    * When true, the real-time balance could not be retrieved, so the available
    * balance is the last known value and is rendered muted (manage mode only).
@@ -250,7 +246,6 @@ const ManageRow = ({
   containerTestID,
   ctaTestID,
   subtitleTestID,
-  privacyMode = false,
 }: {
   imageSource: ImageSourcePropType;
   title: string;
@@ -262,7 +257,6 @@ const ManageRow = ({
   containerTestID: string;
   ctaTestID: string;
   subtitleTestID?: string;
-  privacyMode?: boolean;
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -283,7 +277,7 @@ const ManageRow = ({
             {title}
           </Text>
           {subtitle ? (
-            <SensitiveText
+            <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={
@@ -291,12 +285,10 @@ const ManageRow = ({
                   ? TextColor.TextAlternative
                   : TextColor.TextDefault
               }
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Medium}
               testID={subtitleTestID}
             >
               {subtitle}
-            </SensitiveText>
+            </Text>
           ) : null}
         </Box>
         <Tag severity={TagSeverity.Success}>
@@ -322,13 +314,11 @@ const ManageContent = ({
   isBalanceStale,
   onManagePress,
   showMetalCard,
-  privacyMode,
 }: {
   cardBalance: string;
   isBalanceStale: boolean;
   onManagePress: () => void;
   showMetalCard: boolean;
-  privacyMode: boolean;
 }) => (
   <Box twClassName="gap-2" testID={MoneyMetaMaskCardTestIds.MANAGE_CONTAINER}>
     <ManageRow
@@ -342,7 +332,6 @@ const ManageContent = ({
       containerTestID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_ROW}
       ctaTestID={MoneyMetaMaskCardTestIds.MANAGE_BUTTON}
       subtitleTestID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
-      privacyMode={privacyMode}
     />
   </Box>
 );
@@ -357,7 +346,6 @@ const MoneyMetaMaskCard = ({
   isLinkDisabled = false,
   cardBalance,
   isBalanceStale = false,
-  privacyMode = false,
   apy,
   hideCardImage = false,
   analyticsScreen,
@@ -476,7 +464,6 @@ const MoneyMetaMaskCard = ({
         isBalanceStale={isBalanceStale}
         onManagePress={handleManagePress}
         showMetalCard={showMetalCard}
-        privacyMode={privacyMode}
       />
     );
   } else if (mode === 'verifying') {

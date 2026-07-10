@@ -46,7 +46,7 @@ function analyticsTrackPushClickEvent(
               rawData?.payload.data.kind,
               rawData?.type,
               rawData?.notification_type,
-              'wallet_activity',
+              'on-chain',
             ].find((kind) => Boolean(kind)),
             rawData,
           };

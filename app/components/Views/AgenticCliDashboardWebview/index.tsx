@@ -110,14 +110,12 @@ const AgenticCliDashboardWebview: React.FC = () => {
     );
   }, [close, navigation]);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
-      if (completedRef.current) return;
+  useEffect(
+    () => () => {
       rejectOnce(DASHBOARD_CLOSED_MESSAGE);
-    });
-
-    return unsubscribe;
-  }, [navigation, rejectOnce]);
+    },
+    [rejectOnce],
+  );
 
   const handleMessage = useCallback(
     (messageEvent: WebViewMessageEvent) => {

@@ -138,8 +138,6 @@ ignores:
   - 'react-native-nitro-modules'
   # Jest `jest.mock('react-native-worklets', …, { virtual: true })` in testSetup only; not a root dependency
   - 'react-native-worklets'
-  # Activated via /** @jest-environment jsdom */ docblock pragma in test files, not imported directly
-  - 'jest-environment-jsdom'
 
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'

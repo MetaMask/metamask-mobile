@@ -1,6 +1,5 @@
 import { dataTestIds } from '@metamask/test-dapp-solana';
 import Matchers from '../../framework/Matchers';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
@@ -19,7 +18,7 @@ import { Utilities } from '../../framework';
 function getTestElement(
   dataTestId: string,
   options: { extraXPath?: string; tag?: string } = {},
-): Promise<DetoxElement | WebElement | PlaywrightElement> {
+): Promise<DetoxElement | WebElement> {
   const { tag = 'div', extraXPath = '' } = options;
   const xpath = `//${tag}[@data-testid="${dataTestId}"]${extraXPath}`;
 

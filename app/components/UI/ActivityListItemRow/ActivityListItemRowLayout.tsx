@@ -17,7 +17,6 @@ export function ActivityListItemRowLayout({
   onPress,
   primaryAmount,
   primaryToken,
-  amountIsPnl,
   secondaryAmount,
   styles,
   subtitle,
@@ -34,7 +33,6 @@ export function ActivityListItemRowLayout({
   onPress?: () => void;
   primaryAmount?: string;
   primaryToken?: TokenAmount;
-  amountIsPnl?: boolean;
   secondaryAmount?: string;
   styles: ActivityListItemRowStyles;
   subtitle?: string;
@@ -95,9 +93,6 @@ export function ActivityListItemRowLayout({
       style={[
         styles.listItemAmount,
         primaryToken?.direction === 'in' && styles.listItemAmountIncoming,
-        amountIsPnl &&
-          primaryToken?.direction === 'out' &&
-          styles.listItemAmountLoss,
       ]}
       testID={`activity-primary-amount-${testIdSuffix}`}
     >

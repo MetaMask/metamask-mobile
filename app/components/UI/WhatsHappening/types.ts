@@ -18,10 +18,4 @@ export interface WhatsHappeningItem {
   impact?: 'positive' | 'negative' | 'neutral';
   relatedAssets: RelatedAsset[];
   articles: Article[];
-  /**
-   * When true, this item was fetched by id from the front-page endpoint (an
-   * older item no longer in the latest market overview) and is rendered first
-   * in the carousel with an "Outdated" label.
-   */
-  isOutdated?: boolean;
 }

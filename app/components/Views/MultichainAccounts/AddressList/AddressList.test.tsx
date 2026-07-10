@@ -397,7 +397,7 @@ describe('AddressList', () => {
 
       await waitFor(() => {
         expect(toast).toHaveBeenCalledWith({
-          title: strings('notifications.address_copied_to_clipboard'),
+          description: strings('notifications.address_copied_to_clipboard'),
           hasNoTimeout: false,
         });
       });

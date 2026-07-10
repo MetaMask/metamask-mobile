@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useRef } from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -10,7 +10,6 @@ import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
-import Routes from '../../../constants/navigation/Routes';
 import { colors as commonColors } from '../../../styles/common';
 import {
   Box,
@@ -90,15 +89,15 @@ const OnboardingSheet = () => {
     }
   };
 
-  const goTo = useCallback(
-    (url: string, title: string) => {
-      navigation.navigate(Routes.WEBVIEW.SIMPLE, {
+  const goTo = (url: string, title: string) => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
         url,
         title,
-      });
-    },
-    [navigation],
-  );
+      },
+    });
+  };
 
   const onPressTermsOfUse = () => {
     const url = AppConstants.URLS.TERMS_OF_USE_URL;

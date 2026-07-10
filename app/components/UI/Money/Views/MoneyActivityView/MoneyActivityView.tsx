@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
@@ -27,7 +26,6 @@ import {
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
@@ -139,7 +137,6 @@ const MoneyActivityView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const privacyMode = useSelector(selectPrivacyMode);
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
   const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
     useMoneyAnalytics({
@@ -230,7 +227,6 @@ const MoneyActivityView = () => {
       item={item}
       moneyAddress={moneyAddress}
       onPress={mockDataEnabled ? undefined : handleItemPress}
-      privacyMode={privacyMode}
     />
   );
 

@@ -8,9 +8,6 @@ import React, {
 } from 'react';
 
 export interface ConfirmationContextParams {
-  mmPayRequestInProgressNavHandler: React.MutableRefObject<
-    (() => void) | false
-  >;
   headlessBuyError: string | undefined;
   isFooterVisible?: boolean;
   isConfirmationSubmitting: boolean;
@@ -29,7 +26,6 @@ export interface ConfirmationContextParams {
 // This context is used to share the valuable information between the components
 // that are used to render the confirmation
 const ConfirmationContext = React.createContext<ConfirmationContextParams>({
-  mmPayRequestInProgressNavHandler: { current: false },
   headlessBuyError: undefined,
   isFooterVisible: true,
   isConfirmationSubmitting: false,
@@ -52,8 +48,6 @@ interface ConfirmationContextProviderProps {
 export const ConfirmationContextProvider: React.FC<
   ConfirmationContextProviderProps
 > = ({ children }) => {
-  const mmPayRequestInProgressNavHandler = useRef<(() => void) | false>(false);
-
   const [isTransactionValueUpdating, setIsTransactionValueUpdating] =
     useState(false);
 
@@ -81,7 +75,6 @@ export const ConfirmationContextProvider: React.FC<
 
   const contextValue = useMemo(
     () => ({
-      mmPayRequestInProgressNavHandler,
       headlessBuyError,
       isFooterVisible,
       isHeadlessBuyInProgress,
@@ -97,7 +90,6 @@ export const ConfirmationContextProvider: React.FC<
       setIsConfirmationSubmitting,
     }),
     [
-      mmPayRequestInProgressNavHandler,
       headlessBuyError,
       isFooterVisible,
       isHeadlessBuyInProgress,

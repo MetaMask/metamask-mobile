@@ -34,13 +34,10 @@ jest.mock('../../../util/analytics/analytics', () => ({
 }));
 
 jest.mock(
-  '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
+  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
   () => ({
-    useOnboardingInterestQuestionnaireEligibility: () => ({
-      shouldShowQuestionnaire: false,
-      variantName: 'control',
-      isActive: false,
-    }),
+    useOnboardingInterestQuestionnaireEligibility: () => (): Promise<boolean> =>
+      Promise.resolve(false),
   }),
 );
 
@@ -91,9 +88,6 @@ jest.mock('../../../core/AppStateEventListener', () => ({
 
 jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
   getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
-  getWalletSetupCompletedAttributionAnalyticsProps: jest
-    .fn()
-    .mockReturnValue({}),
 }));
 
 jest.mock(

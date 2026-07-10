@@ -21,7 +21,6 @@ export type ActivityKind =
   | 'sell'
   | 'buy'
   | 'deposit'
-  | 'stake'
   | 'unstake'
   | 'swap'
   | 'swapIncomplete'
@@ -147,7 +146,7 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
-      'buy' | 'claim' | 'deposit' | 'stake' | 'unstake',
+      'buy' | 'claim' | 'deposit' | 'unstake',
       {
         from?: string;
         to?: string;

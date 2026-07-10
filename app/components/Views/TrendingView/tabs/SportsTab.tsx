@@ -178,12 +178,12 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
                 item_clicked: item.id,
               })
             }
-            onBuyButtonPress={({ market }) =>
+            onBuyButtonPress={(marketId) =>
               trackExploreInteracted({
                 interaction_type: 'prediction_voted',
                 tab_name: 'Sports',
                 section_name: sectionName,
-                item_clicked: market.id,
+                item_clicked: marketId,
               })
             }
           />

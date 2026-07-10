@@ -454,104 +454,6 @@ describe('useMoneyToasts', () => {
     });
   });
 
-  describe('onPress', () => {
-    it.each([
-      ['deposit.inProgress', (onPress: () => void) => ({ onPress })],
-      [
-        'deposit.success',
-        (onPress: () => void) => ({ amountFiat: '$1.00', onPress }),
-      ],
-      ['deposit.failed', (onPress: () => void) => ({ onPress })],
-      ['send.inProgress', (onPress: () => void) => ({ onPress })],
-      [
-        'send.success',
-        (onPress: () => void) => ({
-          amountFiat: '$1.00',
-          destination: 'Perps',
-          onPress,
-        }),
-      ],
-      ['send.failed', (onPress: () => void) => ({ onPress })],
-    ])(
-      'sets a composed onPress on %s when a callback is provided',
-      (key, paramsFactory) => {
-        const { result } = renderHook(() => useMoneyToasts(), { wrapper });
-        const [namespace, builder] = key.split('.') as [
-          'deposit' | 'send',
-          'inProgress' | 'success' | 'failed',
-        ];
-        const onPress = jest.fn();
-
-        const toast = result.current.MoneyToastOptions[namespace][builder](
-          paramsFactory(onPress) as never,
-        );
-
-        expect(toast.onPress).toEqual(expect.any(Function));
-      },
-    );
-
-    it('closes the toast before invoking the provided callback when onPress fires', () => {
-      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
-      const onPress = jest.fn();
-
-      const toast = result.current.MoneyToastOptions.deposit.inProgress({
-        onPress,
-      });
-      toast.onPress?.();
-
-      expect(mockCloseToast).toHaveBeenCalledTimes(1);
-      expect(onPress).toHaveBeenCalledTimes(1);
-      expect(mockCloseToast.mock.invocationCallOrder[0]).toBeLessThan(
-        onPress.mock.invocationCallOrder[0],
-      );
-    });
-
-    it.each([
-      ['deposit.inProgress', () => undefined],
-      ['deposit.success', () => ({ amountFiat: '$1.00' })],
-      ['deposit.failed', () => undefined],
-      ['send.inProgress', () => undefined],
-      ['send.success', () => ({ amountFiat: '$1.00', destination: 'Perps' })],
-      ['send.failed', () => undefined],
-    ])(
-      'returns undefined onPress on %s when no callback is provided',
-      (key, paramsFactory) => {
-        const { result } = renderHook(() => useMoneyToasts(), { wrapper });
-        const [namespace, builder] = key.split('.') as [
-          'deposit' | 'send',
-          'inProgress' | 'success' | 'failed',
-        ];
-
-        const toast = result.current.MoneyToastOptions[namespace][builder](
-          paramsFactory() as never,
-        );
-
-        expect(toast.onPress).toBeUndefined();
-      },
-    );
-
-    it.each([
-      ['withdraw.inProgress', () => undefined],
-      [
-        'withdraw.success',
-        () => ({ amountFiat: '$1.00', destination: 'Account 1' }),
-      ],
-      ['withdraw.failed', () => undefined],
-    ])('never sets onPress on %s', (key, paramsFactory) => {
-      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
-      const [, builder] = key.split('.') as [
-        'withdraw',
-        'inProgress' | 'success' | 'failed',
-      ];
-
-      const toast = result.current.MoneyToastOptions.withdraw[builder](
-        paramsFactory() as never,
-      );
-
-      expect(toast.onPress).toBeUndefined();
-    });
-  });
-
   describe('edge cases', () => {
     it('handles missing toastRef gracefully on showToast', () => {
       const emptyWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -586,25 +488,6 @@ describe('useMoneyToasts', () => {
       const toast = result.current.MoneyToastOptions.deposit.inProgress();
 
       expect(() => toast.closeButtonOptions?.onPress?.()).not.toThrow();
-    });
-
-    it('invokes the provided onPress callback even when toastRef is null', () => {
-      const emptyWrapper = ({ children }: { children: React.ReactNode }) => (
-        <ToastContext.Provider value={{ toastRef: { current: null } }}>
-          {children}
-        </ToastContext.Provider>
-      );
-      const onPress = jest.fn();
-
-      const { result } = renderHook(() => useMoneyToasts(), {
-        wrapper: emptyWrapper,
-      });
-      const toast = result.current.MoneyToastOptions.deposit.inProgress({
-        onPress,
-      });
-
-      expect(() => toast.onPress?.()).not.toThrow();
-      expect(onPress).toHaveBeenCalledTimes(1);
     });
   });
 });

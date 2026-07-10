@@ -5,8 +5,6 @@ export const MoneyPotentialEarningsViewTestIds = {
   INFO_BUTTON: 'money-potential-earnings-view-info-button',
   CTA_BUTTON: 'money-potential-earnings-view-cta-button',
   DESCRIPTION: 'money-potential-earnings-view-description',
-  TOTAL: 'money-potential-earnings-view-total',
-  PROJECTED: 'money-potential-earnings-view-projected',
   TOKEN_ROW: (index: number) =>
     `money-potential-earnings-view-token-row-${index}` as const,
 } as const;

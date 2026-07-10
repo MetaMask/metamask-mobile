@@ -13,6 +13,7 @@ export enum ActivityTypeFilter {
   Perps = 'perps',
   Predictions = 'predictions',
   MetamaskCard = 'metamaskCard',
+  Money = 'money',
 }
 
 /**
@@ -118,13 +119,11 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'nftBuy',
     'nftMint',
     'nftSell',
+    // Earn/Staking (ETH pooled staking deposit / claim / unstake). Lumped under
+    // Transactions for now — they have no dedicated bucket yet.
     'deposit',
-    'stake',
     'claim',
     'unstake',
-    'lendingDeposit',
-    'lendingWithdrawal',
-    'claimMusdBonus',
   ]),
   [ActivityTypeFilter.BuySell]: new Set<ActivityKind>(['buy', 'sell']),
   // Derived from the Perps sub-buckets — see PERPS_ACTIVITY_FILTER_KINDS.
@@ -137,6 +136,11 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'predictionPlaced',
   ]),
   [ActivityTypeFilter.MetamaskCard]: new Set<ActivityKind>([]),
+  [ActivityTypeFilter.Money]: new Set<ActivityKind>([
+    'claimMusdBonus',
+    'lendingDeposit',
+    'lendingWithdrawal',
+  ]),
 };
 
 // TODO: re-enable `ActivityTypeFilter.All` once the data sources are unified
@@ -149,6 +153,7 @@ export const ACTIVITY_TYPE_FILTER_ORDER: ActivityTypeFilter[] = [
   ActivityTypeFilter.Perps,
   ActivityTypeFilter.Predictions,
   ActivityTypeFilter.MetamaskCard,
+  ActivityTypeFilter.Money,
 ];
 
 export function activityKindMatchesTypeFilter(

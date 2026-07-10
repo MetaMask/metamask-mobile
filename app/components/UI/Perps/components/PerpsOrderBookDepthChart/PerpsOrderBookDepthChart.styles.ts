@@ -11,18 +11,18 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     chartContainer: {
       position: 'relative',
-      backgroundColor: params.theme.colors.background.default,
     },
     labelContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      paddingHorizontal: 16,
       paddingVertical: 8,
     },
     legendContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
       gap: 24,
-      paddingBottom: 8,
+      paddingVertical: 8,
     },
     legendItem: {
       flexDirection: 'row',

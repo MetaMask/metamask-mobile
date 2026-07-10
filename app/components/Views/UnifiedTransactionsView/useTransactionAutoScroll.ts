@@ -120,13 +120,8 @@ export function useTransactionAutoScroll<T>(
           return;
         }
 
-        const list = listRef.current;
-        if (!list) {
-          return;
-        }
-
         try {
-          list.scrollToOffset({ offset: 0, animated: true });
+          listRef.current?.scrollToOffset({ offset: 0, animated: true });
         } catch (error) {
           // Silently handle scroll errors (e.g., list not ready)
           Logger.error(

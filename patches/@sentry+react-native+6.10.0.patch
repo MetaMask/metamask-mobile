@@ -1,0 +1,125 @@
+diff --git a/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js b/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
+index e3d0936..5277051 100644
+--- a/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
++++ b/node_modules/@sentry/react-native/dist/js/vendor/base64-js/index.js
+@@ -1,2 +1,2 @@
+-export { base64StringFromByteArray } from './fromByteArray';
++export { fromByteArray as base64StringFromByteArray } from 'react-native-quick-base64';
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
+diff --git a/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js b/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js
+index 03a1c6e..dac9820 100644
+--- a/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js
++++ b/node_modules/@sentry/react-native/dist/js/vendor/buffer/utf8ToBytes.js
+@@ -20,76 +20,41 @@
+ /**
+  * Convert a string to a byte array
+  */
+-export function utf8ToBytes(string, units) {
+-    units = units || Infinity;
+-    let codePoint;
+-    const length = string.length;
+-    let leadSurrogate = null;
+-    const bytes = [];
+-    for (let i = 0; i < length; ++i) {
+-        codePoint = string.charCodeAt(i);
+-        // is surrogate component
+-        if (codePoint > 0xd7ff && codePoint < 0xe000) {
+-            // last char was a lead
+-            if (!leadSurrogate) {
+-                // no lead yet
+-                if (codePoint > 0xdbff) {
+-                    // unexpected trail
+-                    if ((units -= 3) > -1)
+-                        bytes.push(0xef, 0xbf, 0xbd);
+-                    continue;
+-                }
+-                else if (i + 1 === length) {
+-                    // unpaired lead
+-                    if ((units -= 3) > -1)
+-                        bytes.push(0xef, 0xbf, 0xbd);
+-                    continue;
+-                }
+-                // valid lead
+-                leadSurrogate = codePoint;
+-                continue;
+-            }
+-            // 2 leads in a row
+-            if (codePoint < 0xdc00) {
+-                if ((units -= 3) > -1)
+-                    bytes.push(0xef, 0xbf, 0xbd);
+-                leadSurrogate = codePoint;
+-                continue;
+-            }
+-            // valid surrogate pair
+-            codePoint = (((leadSurrogate - 0xd800) << 10) | (codePoint - 0xdc00)) + 0x10000;
+-        }
+-        else if (leadSurrogate) {
+-            // valid bmp char, but last char was a lead
+-            if ((units -= 3) > -1)
+-                bytes.push(0xef, 0xbf, 0xbd);
+-        }
+-        leadSurrogate = null;
+-        // encode utf8
+-        if (codePoint < 0x80) {
+-            if ((units -= 1) < 0)
+-                break;
+-            bytes.push(codePoint);
+-        }
+-        else if (codePoint < 0x800) {
+-            if ((units -= 2) < 0)
+-                break;
+-            bytes.push((codePoint >> 0x6) | 0xc0, (codePoint & 0x3f) | 0x80);
+-        }
+-        else if (codePoint < 0x10000) {
+-            if ((units -= 3) < 0)
+-                break;
+-            bytes.push((codePoint >> 0xc) | 0xe0, ((codePoint >> 0x6) & 0x3f) | 0x80, (codePoint & 0x3f) | 0x80);
+-        }
+-        else if (codePoint < 0x110000) {
+-            if ((units -= 4) < 0)
+-                break;
+-            bytes.push((codePoint >> 0x12) | 0xf0, ((codePoint >> 0xc) & 0x3f) | 0x80, ((codePoint >> 0x6) & 0x3f) | 0x80, (codePoint & 0x3f) | 0x80);
+-        }
+-        else {
+-            throw new Error('Invalid code point');
++export function utf8ToBytes(string, unitsInput) {
++    let units;
++
++    // Mimic the polyfill's `units = units || Infinity` behavior for common falsy values
++    // that would lead to `Infinity` in the original.
++    if (unitsInput === undefined ||
++        unitsInput === null ||
++        unitsInput === 0 || // Original `|| Infinity` makes 0 effectively Infinity
++        (typeof unitsInput === 'number' && Number.isNaN(unitsInput))) {
++        units = Infinity;
++    } else {
++        units = Number(unitsInput); // Coerce to number (e.g., if it was a string "10")
++        if (Number.isNaN(units)) {  // If coercion results in NaN (e.g., from "abc")
++        units = Infinity;
+         }
+     }
+-    return bytes;
++
++    const encoder = new TextEncoder(); // UTF-8 by default
++    const uint8Array = encoder.encode(string);
++
++    let finalUint8Array;
++
++    if (units < 0) {
++        // If units was specified as a negative number not caught by the Infinity conditions.
++        // The polyfill would also likely break immediately or produce no bytes.
++        finalUint8Array = new Uint8Array(0);
++    } else if (units !== Infinity && uint8Array.length > units) {
++        // Truncate if the encoded length is greater than the specified units.
++        // Ensure units is not negative for slice, though above logic should handle most.
++        finalUint8Array = uint8Array.slice(0, Math.max(0, units));
++    } else {
++        // No truncation needed or units is Infinity
++        finalUint8Array = uint8Array;
++    }
++
++    return finalUint8Array
+ }
+ //# sourceMappingURL=utf8ToBytes.js.map
+\ No newline at end of file

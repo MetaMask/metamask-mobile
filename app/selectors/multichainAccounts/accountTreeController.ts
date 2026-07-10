@@ -379,15 +379,18 @@ export const selectAccountGroupWithInternalAccounts = createSelector(
   (
     accountGroups: readonly AccountGroupObject[],
     internalAccounts: readonly InternalAccount[],
-  ): readonly AccountGroupWithInternalAccounts[] => {
-    const byId = new Map(internalAccounts.map((a) => [a.id, a]));
-    return accountGroups.map((accountGroup) => ({
+  ): readonly AccountGroupWithInternalAccounts[] =>
+    accountGroups.map((accountGroup) => ({
       ...accountGroup,
       accounts: accountGroup.accounts
-        .map((accountId: string) => byId.get(accountId))
+        .map((accountId: string) => {
+          const internalAccount = internalAccounts.find(
+            (account) => account.id === accountId,
+          );
+          return internalAccount;
+        })
         .filter((account): account is InternalAccount => account !== undefined),
-    }));
-  },
+    })),
 );
 
 /**

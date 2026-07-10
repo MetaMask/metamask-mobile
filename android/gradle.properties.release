@@ -34,14 +34,8 @@ android.enablePngCrunchInReleaseBuilds=true
 # ALL architectures for Play Store distribution (differs from E2E which uses x86_64 only)
 reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
 
-# New Architecture is the default in RN 0.83. This property must remain defined
-# because libraries such as react-native-reanimated fail the build if
-# `newArchEnabled` is not explicitly set to "true".
+# New Architecture + Hermes
 newArchEnabled=true
-
-# Hermes is the default JS engine. This property must remain defined because
-# third-party React Native modules (e.g. react-native-worklets) read
-# `project(':app').hermesEnabled` directly and fail if it's absent.
 hermesEnabled=true
 
 android.disableResourceValidation=true

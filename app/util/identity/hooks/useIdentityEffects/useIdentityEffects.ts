@@ -3,13 +3,11 @@ import { useAccountSyncing } from '../useAccountSyncing';
 import { useContactSyncing } from '../useContactSyncing';
 import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 import { useBrazeIdentity } from '../../../../core/Braze/hooks';
-import { useCanonicalProfileIdTrait } from '../useCanonicalProfileIdTrait';
 
 /**
  * Takes care of various identity effects.
  * - Automatically signs users in or out based on the app state.
  * - Syncs profile ID to Braze on sign-in/sign-out.
- * - Pushes the canonical_profile_id MetaMetrics trait on sign-in.
  */
 export const useIdentityEffects = () => {
   const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
@@ -20,7 +18,6 @@ export const useIdentityEffects = () => {
   const { autoSignOut, shouldAutoSignOut } = useAutoSignOut();
 
   useBrazeIdentity();
-  useCanonicalProfileIdTrait();
 
   /**
    * Back up & sync effects

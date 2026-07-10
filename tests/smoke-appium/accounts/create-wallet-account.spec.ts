@@ -1,7 +1,6 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
 import {
-  dismissToWalletHomePlaywright,
   loginAndOpenAccountList,
   waitForWalletHomePlaywright,
 } from '../../flows/wallet.flow.js';
@@ -40,19 +39,11 @@ appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
           for (const [accountName, expectedCount] of Object.entries(
             expectedAccountCounts,
           )) {
-            await assertAccountCount(accountName, expectedCount, 15_000);
+            await assertAccountCount(accountName, expectedCount);
           }
 
-          // Account 3 is created on the first SRP (near the top). Scrolling to the
-          // bottom first scrolls it off-screen and breaks Android taps.
-          await AccountListBottomSheet.expectAccountVisibleByNameV2(
-            'Account 3',
-            {
-              description: 'Account 3 should be visible after creation',
-              timeout: 15_000,
-            },
-          );
-          await AccountListBottomSheet.tapAccountByNameV2('Account 3', true);
+          await AccountListBottomSheet.scrollToBottomOfAccountList();
+          await AccountListBottomSheet.tapAccountByNameV2('Account 3');
           await waitForWalletHomePlaywright();
 
           await WalletView.tapIdenticon();
@@ -73,13 +64,16 @@ appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
           await AccountDetails.tapBackButton();
 
           try {
-            await AccountListBottomSheet.waitForAccountListVisible(10_000);
-            await AccountListBottomSheet.tapAccountByNameV2('Account 3', true);
+            await Assertions.expectElementToBeVisible(
+              AccountListBottomSheet.accountList,
+              { timeout: 5_000, description: 'Account list after navigation' },
+            );
+            await AccountListBottomSheet.tapAccountByNameV2('Account 3');
           } catch {
             // Account list already dismissed — Account 3 remains selected.
           }
 
-          await dismissToWalletHomePlaywright();
+          await waitForWalletHomePlaywright(60_000);
           await Assertions.expectElementToHaveText(
             WalletView.accountName,
             'Account 3',

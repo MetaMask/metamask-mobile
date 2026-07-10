@@ -1,1 +1,0 @@
-export { useCanonicalProfileIdTrait } from './useCanonicalProfileIdTrait';

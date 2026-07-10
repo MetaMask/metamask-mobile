@@ -21,7 +21,6 @@ import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import type { RootState } from '../../../../../reducers';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 import { isNetworkTestnet } from './useNetworkFilter';
 
 export interface EnrichTokenRequest {
@@ -74,10 +73,7 @@ export function useAccountTokens({
       accountOverride !== undefined ? (accountAssets ?? {}) : globalAssets,
     [accountOverride, accountAssets, globalAssets],
   );
-
-  const preferredCurrency = useSelector(selectCurrentCurrency);
-  const payCurrency = useTransactionPayCurrency();
-  const fiatCurrency = payCurrency ?? preferredCurrency;
+  const fiatCurrency = useSelector(selectCurrentCurrency);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
   const assetIds = useMemo(

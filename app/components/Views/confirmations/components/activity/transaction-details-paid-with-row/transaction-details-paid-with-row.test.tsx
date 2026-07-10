@@ -80,29 +80,6 @@ describe('TransactionDetailsPaidWithRow', () => {
     expect(getByText(TOKEN_SYMBOL_MOCK)).toBeDefined();
   });
 
-  it('renders branded mUSD symbol when registry token at the mUSD address has symbol MUSD', () => {
-    const musdAddress = '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA';
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        metamaskPay: {
-          chainId: CHAIN_ID_MOCK,
-          tokenAddress: musdAddress,
-        },
-      } as unknown as TransactionMeta,
-    });
-    useTokenWithBalanceMock.mockReturnValue({
-      address: musdAddress,
-      chainId: CHAIN_ID_MOCK,
-      decimals: 6,
-      symbol: 'MUSD',
-    } as unknown as ReturnType<typeof useTokenWithBalance>);
-
-    const { getByText, queryByText } = render();
-
-    expect(getByText('mUSD')).toBeDefined();
-    expect(queryByText('MUSD')).toBeNull();
-  });
-
   it('renders token icon', () => {
     const { getByTestId } = render();
     expect(getByTestId('token-icon')).toBeDefined();

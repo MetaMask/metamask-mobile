@@ -1,4 +1,8 @@
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import React, { useCallback } from 'react';
+import { Switch, TouchableOpacity, View } from 'react-native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
@@ -9,12 +13,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback } from 'react';
-import { Switch, TouchableOpacity, View } from 'react-native';
-import { useSelector } from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
@@ -26,21 +24,27 @@ import {
   playImpact,
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
-import {
-  PreferencesSkeleton,
-  TradersFollowedSkeleton,
-} from '../../SocialLeaderboard/NotificationPreferences/components/Skeletons';
-import ThresholdRadioList from '../../SocialLeaderboard/NotificationPreferences/components/ThresholdRadioList';
 import {
   DEFAULT_TX_AMOUNT_LIMIT,
   useFollowedTraders,
   useNotificationPreferences,
   type TxAmountThreshold,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
-import { areTradingSignalsChannelsDisabled } from '../../SocialLeaderboard/NotificationPreferences/hooks/tradingSignalsChannels';
+import {
+  PreferencesSkeleton,
+  TradersFollowedSkeleton,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../../SocialLeaderboard/NotificationPreferences/components/Skeletons';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import ThresholdRadioList from '../../SocialLeaderboard/NotificationPreferences/components/ThresholdRadioList';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
 const AVATAR_SIZE = 40;
 
@@ -162,8 +166,8 @@ const SocialAINotificationPreferencesContent = ({
   );
 
   const showPreferencesSkeleton = isLoadingPreferences;
-  const tradingSignalsChannelsDisabled =
-    isLoadingPreferences || areTradingSignalsChannelsDisabled(preferences);
+  const pushNotificationsOff =
+    isLoadingPreferences || !preferences.pushNotificationsEnabled;
 
   const handleSetEnabled = useCallback(
     (value: boolean) => {
@@ -178,31 +182,24 @@ const SocialAINotificationPreferencesContent = ({
 
   const handleToggleTrader = useCallback(
     (traderId: string) => {
-      if (tradingSignalsChannelsDisabled) {
+      if (pushNotificationsOff) {
         return Promise.resolve();
       }
       fireSwitchHaptic(ImpactFeedbackStyle.Light);
       return toggleTraderNotification(traderId);
     },
-    [tradingSignalsChannelsDisabled, toggleTraderNotification],
+    [pushNotificationsOff, toggleTraderNotification],
   );
 
   const handleSetTxAmountLimit = useCallback(
     (value: TxAmountThreshold) => {
-      if (
-        tradingSignalsChannelsDisabled ||
-        value === preferences.txAmountLimit
-      ) {
+      if (pushNotificationsOff || value === preferences.txAmountLimit) {
         return Promise.resolve();
       }
       playImpact(ImpactMoment.QuickAmountSelection);
       return setTxAmountLimit(value);
     },
-    [
-      tradingSignalsChannelsDisabled,
-      preferences.txAmountLimit,
-      setTxAmountLimit,
-    ],
+    [pushNotificationsOff, preferences.txAmountLimit, setTxAmountLimit],
   );
 
   const showFollowedError =
@@ -261,7 +258,7 @@ const SocialAINotificationPreferencesContent = ({
                 DEFAULT_TX_AMOUNT_LIMIT) as TxAmountThreshold
             }
             onChange={handleSetTxAmountLimit}
-            isDisabled={tradingSignalsChannelsDisabled}
+            isDisabled={pushNotificationsOff}
             currency={currentCurrency}
             labelText={strings(
               'social_leaderboard.notification_preferences.trades_over_label',
@@ -282,9 +279,7 @@ const SocialAINotificationPreferencesContent = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={
-            tradingSignalsChannelsDisabled
-              ? TextColor.TextMuted
-              : TextColor.TextDefault
+            pushNotificationsOff ? TextColor.TextMuted : TextColor.TextDefault
           }
         >
           {strings(
@@ -293,11 +288,7 @@ const SocialAINotificationPreferencesContent = ({
         </Text>
         <Text
           variant={TextVariant.BodySm}
-          color={
-            tradingSignalsChannelsDisabled
-              ? TextColor.TextMuted
-              : TextColor.TextAlternative
-          }
+          color={TextColor.TextAlternative}
           twClassName="mt-0.5"
         >
           {strings(
@@ -343,7 +334,7 @@ const SocialAINotificationPreferencesContent = ({
             address={trader.address}
             avatarUri={trader.avatarUri}
             isEnabled={isTraderNotificationEnabled(trader.id)}
-            isDisabled={tradingSignalsChannelsDisabled}
+            isDisabled={pushNotificationsOff}
             withHorizontalPadding={withHorizontalPadding}
             onToggle={handleToggleTrader}
             onPress={handleTraderPress}

@@ -93,8 +93,9 @@ const TurnOffRememberMeModal = () => {
 
       // Dismiss modal even on error
       dismissModal();
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [passwordText]);
 
   const disableRememberMe = useCallback(async () => {

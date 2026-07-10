@@ -25,8 +25,8 @@ const APPROVAL_PAGE_PATH_PATTERN = /^\/agentic\/[a-zA-Z0-9/_-]+$/;
 const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
 
 const AGENTIC_CLI_APPROVAL_HOST = {
-  dev: 'https://develop-developer.metamask.io',
-  uat: 'https://staging-developer.metamask.io',
+  dev: 'https://test-dashboard.web3auth.io',
+  uat: 'https://dev-dashboard.web3auth.io',
   prod: 'https://developer.metamask.io',
 } as const;
 
@@ -41,8 +41,6 @@ interface CliDashboardTokenResponse {
 const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/link\.metamask\.io$/,
   /^https:\/\/developer\.metamask\.io$/,
-  /^https:\/\/develop-developer\.metamask\.io$/,
-  /^https:\/\/staging-developer\.metamask\.io$/,
   /^https:\/\/test-dashboard\.web3auth\.io$/,
   /^https:\/\/dev-dashboard\.web3auth\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,

@@ -83,8 +83,7 @@ jest.mock(
         children: React.ReactNode;
         testID?: string;
       }) => <RNText testID={testID}>{children}</RNText>,
-      TextVariant: { BodyMD: 'BodyMD', BodySM: 'BodySM' },
-      TextColor: { Alternative: 'Alternative', Default: 'Default' },
+      TextVariant: { BodyMD: 'BodyMD' },
     };
   },
 );
@@ -98,7 +97,6 @@ describe('PerpsMarketFiltersBar', () => {
     onSortPress: mockOnSortPress,
     marketTypeFilter: 'all' as MarketTypeFilter,
     onCategorySelect: mockOnCategorySelect,
-    marketCount: 42,
     testID: 'filters-bar',
   };
 
@@ -174,66 +172,6 @@ describe('PerpsMarketFiltersBar', () => {
     });
   });
 
-  describe('Market Count', () => {
-    it('displays the market count string', () => {
-      const { getByText } = render(
-        <PerpsMarketFiltersBar {...defaultProps} marketCount={42} />,
-      );
-
-      expect(getByText('42 markets')).toBeTruthy();
-    });
-
-    it('updates displayed count when marketCount prop changes', () => {
-      const { getByText, rerender } = render(
-        <PerpsMarketFiltersBar {...defaultProps} marketCount={10} />,
-      );
-
-      expect(getByText('10 markets')).toBeTruthy();
-
-      rerender(<PerpsMarketFiltersBar {...defaultProps} marketCount={3} />);
-      expect(getByText('3 markets')).toBeTruthy();
-    });
-
-    it('displays zero markets correctly', () => {
-      const { getByText } = render(
-        <PerpsMarketFiltersBar {...defaultProps} marketCount={0} />,
-      );
-
-      expect(getByText('0 markets')).toBeTruthy();
-    });
-
-    it('displays singular market count when there is exactly one market', () => {
-      const { getByText, queryByText } = render(
-        <PerpsMarketFiltersBar {...defaultProps} marketCount={1} />,
-      );
-
-      expect(getByText('1 market')).toBeTruthy();
-      expect(queryByText('1 markets')).toBeNull();
-    });
-
-    it('renders market count with the derived testID', () => {
-      const { getByTestId } = render(
-        <PerpsMarketFiltersBar {...defaultProps} testID="filters-bar" />,
-      );
-
-      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
-    });
-
-    it('does not render market count when watchlist filter is active', () => {
-      const { queryByTestId } = render(
-        <PerpsMarketFiltersBar
-          {...defaultProps}
-          isWatchlistSelected
-          onWatchlistToggle={jest.fn()}
-        />,
-      );
-
-      // The entire sort row (including count) is hidden when watchlist is active
-      expect(queryByTestId('filters-bar-market-count')).toBeNull();
-      expect(queryByTestId('filters-bar-sort')).toBeNull();
-    });
-  });
-
   describe('Test IDs', () => {
     it('applies custom testID and derived testIDs', () => {
       const { getByTestId } = render(
@@ -243,7 +181,6 @@ describe('PerpsMarketFiltersBar', () => {
       expect(getByTestId('custom-filters')).toBeTruthy();
       expect(getByTestId('custom-filters-categories')).toBeTruthy();
       expect(getByTestId('custom-filters-sort')).toBeTruthy();
-      expect(getByTestId('custom-filters-market-count')).toBeTruthy();
     });
 
     it('handles missing testID gracefully', () => {
@@ -253,7 +190,6 @@ describe('PerpsMarketFiltersBar', () => {
           onSortPress={mockOnSortPress}
           marketTypeFilter="all"
           onCategorySelect={mockOnCategorySelect}
-          marketCount={0}
         />,
       );
 

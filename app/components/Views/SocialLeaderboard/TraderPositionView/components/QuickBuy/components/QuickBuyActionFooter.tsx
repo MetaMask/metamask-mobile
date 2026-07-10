@@ -19,7 +19,6 @@ import QuickBuyBanners from '../QuickBuyBanners';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
-import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
@@ -59,12 +58,6 @@ const QuickBuyActionFooter: React.FC = () => {
           onDragEnd={handleSliderDragEnd}
         />
       </Box>
-
-      {features.quickAmountPills ? (
-        <Box twClassName="pb-3">
-          <QuickBuyQuickAmounts />
-        </Box>
-      ) : null}
 
       {/* Pay with / Receive with row */}
       <Box

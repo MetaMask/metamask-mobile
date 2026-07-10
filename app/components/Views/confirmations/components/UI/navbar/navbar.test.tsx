@@ -85,61 +85,6 @@ describe('getNavbar', () => {
     });
   });
 
-  describe('mmPayRequestInProgressNavHandler', () => {
-    it('calls the handler instead of onReject when ref is a function', () => {
-      const mockHandler = jest.fn();
-      const ref = { current: mockHandler as (() => void) | false };
-
-      const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-            mmPayRequestInProgressNavHandler: ref,
-          }).header()}
-        </>,
-      );
-
-      fireEvent.press(getByTestId('Test Title-navbar-back-button'));
-
-      expect(mockHandler).toHaveBeenCalledTimes(1);
-      expect(mockOnReject).not.toHaveBeenCalled();
-    });
-
-    it('calls onReject when ref is false', () => {
-      const ref = { current: false as (() => void) | false };
-
-      const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-            mmPayRequestInProgressNavHandler: ref,
-          }).header()}
-        </>,
-      );
-
-      fireEvent.press(getByTestId('Test Title-navbar-back-button'));
-
-      expect(mockOnReject).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onReject when ref is not provided', () => {
-      const { getByTestId } = render(
-        <>
-          {getNavbar({
-            onReject: mockOnReject,
-            title: 'Test Title',
-          }).header()}
-        </>,
-      );
-
-      fireEvent.press(getByTestId('Test Title-navbar-back-button'));
-
-      expect(mockOnReject).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('overrides', () => {
     it('renders custom headerTitle when provided', () => {
       const customHeaderTitle = () => (

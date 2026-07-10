@@ -15,7 +15,7 @@ import type { ActivityListItem, Status, TokenAmount } from '../types';
 
 export type RampActivityKind = Extract<
   ActivityListItem['type'],
-  'buy' | 'sell'
+  'buy' | 'sell' | 'deposit'
 >;
 
 export function mapRampOrderType(
@@ -23,10 +23,11 @@ export function mapRampOrderType(
 ): RampActivityKind | null {
   switch (orderType) {
     case OrderOrderTypeEnum.Buy:
-    case DepositOrderType.Deposit:
       return 'buy';
     case OrderOrderTypeEnum.Sell:
       return 'sell';
+    case DepositOrderType.Deposit:
+      return 'deposit';
     default:
       return null;
   }
@@ -49,16 +50,15 @@ export function mapRampOrderStatus(state: FiatOrder['state']): Status {
 
 export function toRampOrderCaipChainId(network: string): CaipChainId | null {
   try {
-    if (!network) {
+    const parsedCaipChainId = isCaipChainId(network)
+      ? parseCaipChainId(network)
+      : undefined;
+    if (parsedCaipChainId && parsedCaipChainId.namespace !== 'eip155') {
       return null;
     }
 
-    if (isCaipChainId(network)) {
-      const { namespace, reference } = parseCaipChainId(network);
-      return toCaipChainId(namespace, reference);
-    }
-
-    const chainReference = getDecimalChainId(network);
+    const chainReference =
+      parsedCaipChainId?.reference ?? getDecimalChainId(network);
     if (!chainReference || Number.isNaN(Number(chainReference))) {
       return null;
     }

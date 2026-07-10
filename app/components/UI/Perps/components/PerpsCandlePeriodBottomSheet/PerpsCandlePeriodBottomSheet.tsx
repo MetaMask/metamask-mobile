@@ -1,17 +1,14 @@
-import React, { useRef, useEffect, useCallback } from 'react';
-import {
-  BottomSheet,
-  BottomSheetHeader,
-  Box,
-  FilterButton,
-  FilterButtonSize,
-  FilterButtonVariant,
-  FontWeight,
-  Text,
-  TextColor,
+import React, { useRef, useEffect } from 'react';
+import { TouchableOpacity } from 'react-native';
+import { useStyles } from '../../../../../component-library/hooks';
+import Text, {
   TextVariant,
-  type BottomSheetRef,
-} from '@metamask/design-system-react-native';
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   getCandlePeriodsForDuration,
   CandlePeriod,
@@ -21,7 +18,9 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { getPerpsCandlePeriodBottomSheetSelector } from '../../Perps.testIds';
+import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import styleSheet from './PerpsCandlePeriodBottomSheet.styles';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
@@ -37,13 +36,6 @@ interface PerpsCandlePeriodBottomSheetProps {
   asset?: string;
 }
 
-const PERIOD_COLUMNS = 5;
-
-type CandlePeriodOption = Readonly<{
-  label: string;
-  value: CandlePeriod;
-}>;
-
 const PerpsCandlePeriodBottomSheet: React.FC<
   PerpsCandlePeriodBottomSheetProps
 > = ({
@@ -56,6 +48,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   testID,
   asset,
 }) => {
+  const { styles } = useStyles(styleSheet, {});
   const { track } = usePerpsEventTracking();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -118,85 +111,113 @@ const PerpsCandlePeriodBottomSheet: React.FC<
       ]
     : null;
 
-  const handleClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet();
-  }, []);
-
-  const handlePeriodSelect = useCallback(
-    (period: CandlePeriod) => {
-      bottomSheetRef.current?.onCloseBottomSheet(() => {
-        onPeriodChange?.(period);
-      });
-    },
-    [onPeriodChange],
-  );
-
-  const renderPeriodRow = (periods: readonly CandlePeriodOption[]) =>
-    Array.from({ length: PERIOD_COLUMNS }, (_, index) => {
-      const period = periods[index];
-
-      if (!period) {
-        return <Box key={`period-spacer-${index}`} twClassName="flex-1" />;
-      }
-
-      const isSelected = selectedPeriod === period.value;
-
-      return (
-        <Box key={period.value} twClassName="flex-1">
-          <FilterButton
-            isSelected={isSelected}
-            variant={FilterButtonVariant.Primary}
-            size={FilterButtonSize.Md}
-            onPress={() => handlePeriodSelect(period.value)}
-            isFullWidth
-            testID={
-              testID
-                ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
-                    testID,
-                    period.value,
-                  )
-                : undefined
-            }
-          >
-            {period.label}
-          </FilterButton>
-        </Box>
-      );
-    });
+  const handlePeriodSelect = (period: CandlePeriod) => {
+    onPeriodChange?.(period);
+    onClose();
+  };
 
   if (!isVisible) return null;
 
   return (
-    <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{ testID: 'close-button' }}
-      >
-        {strings('perps.chart.candle_intervals')}
+    <BottomSheet
+      ref={bottomSheetRef}
+      shouldNavigateBack={false}
+      onClose={onClose}
+      isFullscreen={false}
+      testID={testID}
+    >
+      <BottomSheetHeader onClose={onClose}>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('perps.chart.candle_intervals')}
+        </Text>
       </BottomSheetHeader>
-      <Box twClassName="px-4">
+      <Box>
         {showAllPeriods && periodSections ? (
           periodSections.map((section, sectionIndex) => (
             <Box
               key={section.title}
-              twClassName={sectionIndex > 0 ? 'mt-4' : undefined}
+              style={sectionIndex > 0 ? styles.sectionSpacing : undefined}
             >
               <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-                twClassName="pb-2"
+                variant={TextVariant.BodyMDBold}
+                color={TextColor.Alternative}
+                style={styles.sectionTitle}
               >
                 {section.title}
               </Text>
-              <Box twClassName="flex-row gap-2">
-                {renderPeriodRow(section.periods)}
+              <Box style={styles.periodOptionsGrid}>
+                {section.periods.map((period) => (
+                  <TouchableOpacity
+                    key={period.value}
+                    style={[
+                      styles.periodOption,
+                      selectedPeriod === period.value &&
+                        styles.periodOptionActive,
+                    ]}
+                    onPress={() => handlePeriodSelect(period.value)}
+                    testID={
+                      testID
+                        ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
+                            testID,
+                            period.value,
+                          )
+                        : undefined
+                    }
+                  >
+                    <Text
+                      variant={
+                        selectedPeriod === period.value
+                          ? TextVariant.BodyMDBold
+                          : TextVariant.BodySMMedium
+                      }
+                      color={
+                        selectedPeriod === period.value
+                          ? TextColor.Inverse
+                          : TextColor.Default
+                      }
+                    >
+                      {period.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </Box>
             </Box>
           ))
         ) : (
-          <Box twClassName="flex-row gap-2">
-            {renderPeriodRow(availablePeriods)}
+          <Box style={styles.periodOptionsGrid}>
+            {availablePeriods.map((period) => (
+              <TouchableOpacity
+                key={period.value}
+                style={[
+                  styles.periodOption,
+                  selectedPeriod === period.value && styles.periodOptionActive,
+                ]}
+                onPress={() => handlePeriodSelect(period.value)}
+                testID={
+                  testID
+                    ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
+                        testID,
+                        period.value,
+                      )
+                    : undefined
+                }
+              >
+                <Text
+                  variant={
+                    selectedPeriod === period.value
+                      ? TextVariant.BodyMDBold
+                      : TextVariant.BodySMMedium
+                  }
+                  color={
+                    selectedPeriod === period.value
+                      ? TextColor.Inverse
+                      : TextColor.Default
+                  }
+                >
+                  {period.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </Box>
         )}
       </Box>

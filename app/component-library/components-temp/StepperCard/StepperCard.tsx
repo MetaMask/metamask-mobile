@@ -57,13 +57,11 @@ const StepperCard = ({
       {/* Image */}
       <Box twClassName="p-4">
         <Box testID={getTestId('step-image')} twClassName="w-full aspect-video">
-          {step.media ?? (
-            <Image
-              source={step.image}
-              style={tw.style('w-full h-full')}
-              resizeMode="contain"
-            />
-          )}
+          <Image
+            source={step.image}
+            style={tw.style('w-full h-full')}
+            resizeMode="contain"
+          />
         </Box>
       </Box>
 

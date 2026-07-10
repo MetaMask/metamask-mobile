@@ -343,20 +343,6 @@ export type PredictOutcomeToken = {
   buyPrice?: number;
 };
 
-export type PredictMarketBuyButtonPressParams = {
-  market: PredictMarket;
-  outcome: PredictOutcome;
-  outcomeToken: PredictOutcomeToken;
-};
-
-/**
- * Called when the user taps a buy button (before the betslip opens).
- * Return `true` to handle the buy flow externally and skip the default sheet.
- */
-export type PredictMarketBuyButtonPress = (
-  params: PredictMarketBuyButtonPressParams,
-) => boolean | void;
-
 export interface PredictActivity {
   id: string;
   providerId: string;

@@ -24,15 +24,6 @@ const mockAddPrecreatedOrder = jest.fn();
 const mockRemoveOrder = jest.fn();
 const mockGetOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
-const mockEmitTerminalOrderAnalyticsFromCallback = jest.fn();
-
-jest.mock(
-  '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
-  () => ({
-    emitTerminalOrderAnalyticsFromCallback: (...args: unknown[]) =>
-      mockEmitTerminalOrderAnalyticsFromCallback(...args),
-  }),
-);
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -215,25 +206,6 @@ describe('useRampsOrders', () => {
     });
 
     expect(mockAddOrder).toHaveBeenCalledWith(order);
-  });
-
-  // TRAM-3691: addOrder is the boundary that emits terminal analytics for
-  // callback-fetched orders, so the views never touch analytics internals.
-  it('emits terminal order analytics after adding the order', () => {
-    const store = createMockStore();
-    const { result } = renderHook(() => useRampsOrders(), {
-      wrapper: wrapper(store),
-    });
-    const order = createMockOrder();
-
-    act(() => {
-      result.current.addOrder(order);
-    });
-
-    expect(mockAddOrder).toHaveBeenCalledWith(order);
-    expect(mockEmitTerminalOrderAnalyticsFromCallback).toHaveBeenCalledWith(
-      order,
-    );
   });
 
   it('calls Engine.context.RampsController.removeOrder', () => {

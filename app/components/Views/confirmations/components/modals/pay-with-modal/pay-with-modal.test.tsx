@@ -37,7 +37,6 @@ import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/us
 
 const mockAddTokens = jest.fn().mockResolvedValue(undefined);
 const mockRenderNoFeeTag = jest.fn(() => null);
-const mockEnsurePayToken = jest.fn().mockResolvedValue(undefined);
 const mockFindNetworkClientIdByChainId = jest
   .fn()
   .mockReturnValue('network-client-1');

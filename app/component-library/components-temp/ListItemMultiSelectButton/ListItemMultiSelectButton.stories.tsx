@@ -59,9 +59,7 @@ const ListItemSelectWithButtonMeta = {
 export default ListItemSelectWithButtonMeta;
 
 export const ListItemWithButtonSelect = {
-  render: (
-    args: React.JSX.IntrinsicAttributes & ListItemMultiSelectButtonProps,
-  ) => (
+  render: (args: JSX.IntrinsicAttributes & ListItemMultiSelectButtonProps) => (
     <ListItemSelectWithButtonComponent {...args}>
       <ListItemColumn>
         <Icon name={IconName.Clock} />

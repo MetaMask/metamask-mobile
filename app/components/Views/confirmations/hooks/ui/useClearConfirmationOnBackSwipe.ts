@@ -11,8 +11,7 @@ const useClearConfirmationOnBackSwipe = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { onReject } = useConfirmActions();
-  const { mmPayRequestInProgressNavHandler, isConfirmationSubmittingRef } =
-    useConfirmationContext();
+  const { isConfirmationSubmittingRef } = useConfirmationContext();
   const hasRejectedRef = useRef(false);
 
   const rejectConfirmation = useCallback(
@@ -32,31 +31,19 @@ const useClearConfirmationOnBackSwipe = () => {
       return;
     }
 
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (mmPayRequestInProgressNavHandler.current) {
-        e.preventDefault();
-        mmPayRequestInProgressNavHandler.current();
-        return;
-      }
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
       rejectConfirmation(true);
     });
 
     return () => unsubscribe?.();
-  }, [
-    mmPayRequestInProgressNavHandler,
-    isFullScreenConfirmation,
-    navigation,
-    rejectConfirmation,
-  ]);
+  }, [isFullScreenConfirmation, navigation, rejectConfirmation]);
 
   useEffect(() => {
     if (isFullScreenConfirmation && Device.isAndroid()) {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
         () => {
-          if (!mmPayRequestInProgressNavHandler.current) {
-            rejectConfirmation();
-          }
+          rejectConfirmation();
           return true;
         },
       );
@@ -65,11 +52,7 @@ const useClearConfirmationOnBackSwipe = () => {
         backHandlerSubscription.remove();
       };
     }
-  }, [
-    mmPayRequestInProgressNavHandler,
-    isFullScreenConfirmation,
-    rejectConfirmation,
-  ]);
+  }, [isFullScreenConfirmation, rejectConfirmation]);
 
   return rejectConfirmation;
 };

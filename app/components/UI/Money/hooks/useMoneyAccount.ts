@@ -67,6 +67,7 @@ export function useMoneyAccountDeposit() {
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
       const preferredPaymentToken = options?.preferredPaymentToken;
+      const intent: MoneyAccountDepositIntent = options?.intent ?? 'convert';
       if (!vaultConfig) {
         throw new Error(`${LOG_TAG} Missing vault config`);
       }
@@ -94,12 +95,7 @@ export function useMoneyAccountDeposit() {
       const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
 
       const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
-      // Only record an explicit funding intent (card / addMusd). Generic deposits
-      // (e.g. the home "Add" button) are left unset so the toast derives the
-      // intent from the transaction's actual payment method instead of a guess.
-      if (options?.intent) {
-        depositIntentByBatchId.set(batchId.toLowerCase(), options.intent);
-      }
+      depositIntentByBatchId.set(batchId.toLowerCase(), intent);
 
       const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
         amount: BigInt(0),
@@ -113,7 +109,7 @@ export function useMoneyAccountDeposit() {
 
       // Navigate early for better UX; recover on failure below.
       navigateToConfirmation({
-        loader: ConfirmationLoader.AdvancedCustomAmount,
+        loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
@@ -202,7 +198,7 @@ export function useMoneyAccountWithdrawal() {
 
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
-      loader: ConfirmationLoader.AdvancedCustomAmount,
+      loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 

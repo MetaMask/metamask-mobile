@@ -51,8 +51,6 @@ import {
   type OffDeviceSubscriptionAccountsState,
   type ClientVersionRequirementDto,
   type ClientVersionRequirementState,
-  type FirstPredictOnUsDto,
-  type FirstPredictOnUsCacheState,
   type CampaignState,
   type CampaignDtoState,
   type SubscriptionBenefitsState,
@@ -191,9 +189,6 @@ const PREDICT_THE_PITCH_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minu
 
 // Client version requirements cache threshold
 const CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
-
-// First predict on us cache threshold — matches API Cache-Control max-age=60
-const FIRST_PREDICT_ON_US_CACHE_THRESHOLD_MS = 1000 * 60; // 1 minute
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -350,12 +345,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   clientVersionRequirements: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  firstPredictOnUs: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -530,7 +519,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getCampaigns',
   'getCandidateSubscriptionId',
   'getClientVersionRequirements',
-  'getFirstPredictOnUs',
   'getDefaultRewardsEnvUrl',
   'getFirstSubscriptionId',
   'getGeoRewardsMetadata',
@@ -609,7 +597,6 @@ export class RewardsController extends BaseController<
   > = new Map();
   #isDisabled: () => boolean;
   #isVipDisabled: () => boolean;
-  #isFirstPredictOnUsDisabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   // Deduplicates concurrent /vip/fees fetches for the same subscriptionId.
@@ -778,13 +765,11 @@ export class RewardsController extends BaseController<
     state,
     isDisabled,
     isVipDisabled,
-    isFirstPredictOnUsDisabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isVipDisabled?: () => boolean;
-    isFirstPredictOnUsDisabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -798,8 +783,6 @@ export class RewardsController extends BaseController<
 
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isVipDisabled = isVipDisabled ?? (() => false);
-    this.#isFirstPredictOnUsDisabled =
-      isFirstPredictOnUsDisabled ?? (() => false);
 
     this.messenger.registerMethodActionHandlers(
       this,
@@ -2386,18 +2369,6 @@ export class RewardsController extends BaseController<
   isVipFeatureEnabled(): boolean {
     if (!this.isRewardsFeatureEnabled()) return false;
     if (this.#isVipDisabled()) return false;
-    return true;
-  }
-
-  /**
-   * Check if the First Predict On Us feature is enabled.
-   * First Predict On Us is a sub-feature of rewards, so it requires both
-   * the rewards feature and the dedicated feature flag to be enabled.
-   * @returns boolean - True if the First Predict On Us feature is enabled
-   */
-  isFirstPredictOnUsFeatureEnabled(): boolean {
-    if (!this.isRewardsFeatureEnabled()) return false;
-    if (this.#isFirstPredictOnUsDisabled()) return false;
     return true;
   }
 
@@ -4736,14 +4707,12 @@ export class RewardsController extends BaseController<
    * @param subscriptionId - The subscription ID for authentication
    * @param benefitId - The specific benefit ID that was impressed
    * @param benefitType - The type of the benefit that was impressed
-   * @param walletAddress - The wallet address that viewed the benefit (optional)
    * @returns Promise<SubscriptionBenefitsState> - The benefits data
    */
   async postBenefitImpression(
     subscriptionId: string,
     benefitId: number,
     benefitType: number,
-    walletAddress?: string,
   ): Promise<void> {
     try {
       Logger.log(
@@ -4757,7 +4726,6 @@ export class RewardsController extends BaseController<
             subscriptionId,
             benefitId,
             benefitType,
-            walletAddress,
           ),
         subscriptionId,
       );
@@ -4884,39 +4852,6 @@ export class RewardsController extends BaseController<
         ...result,
         lastFetched: Date.now(),
       } as ClientVersionRequirementState;
-    });
-
-    return result;
-  }
-
-  /**
-   * Fetch the visible first predict on us content from the public API.
-   * Cached for 1 minute using controller state, matching the API Cache-Control header.
-   * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
-   */
-  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
-    if (!this.isFirstPredictOnUsFeatureEnabled()) return null;
-
-    const cached = this.state.firstPredictOnUs;
-    if (
-      cached &&
-      Date.now() - cached.lastFetched < FIRST_PREDICT_ON_US_CACHE_THRESHOLD_MS
-    ) {
-      return cached.data;
-    }
-
-    Logger.log(
-      'RewardsController: Fetching fresh first predict on us data via API call',
-    );
-    const result = (await this.messenger.call(
-      'RewardsDataService:getFirstPredictOnUs',
-    )) as FirstPredictOnUsDto | null;
-
-    this.update((state) => {
-      state.firstPredictOnUs = {
-        data: result,
-        lastFetched: Date.now(),
-      };
     });
 
     return result;

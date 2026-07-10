@@ -88,10 +88,7 @@ import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
-import {
-  isAndroidKeychainBiometricLockout,
-  isBiometricUnlockCancelledByUser,
-} from '../../../core/Authentication/utils';
+import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 interface LoginRouteParams {
@@ -236,12 +233,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
-        setLoading(false);
-        return;
-      }
-
-      if (isAndroidKeychainBiometricLockout(loginError)) {
-        setError(strings('login.biometric_too_many_attempts'));
         setLoading(false);
         return;
       }

@@ -1,7 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-import NotificationContent, { TEST_IDS } from './Content';
+import NotificationContent from './Content';
 
 describe('NotificationContent', () => {
   const title = 'Welcome to the new Test!';
@@ -15,7 +15,6 @@ describe('NotificationContent', () => {
   it('renders title and description', () => {
     const { getByText } = renderWithProvider(
       <NotificationContent
-        isRead
         title={title}
         description={{
           start: description.start,
@@ -29,32 +28,4 @@ describe('NotificationContent', () => {
     expect(getByText(description.start)).toBeOnTheScreen();
     expect(getByText(description.end)).toBeOnTheScreen();
   });
-
-  it.each([
-    { isRead: false, visible: true },
-    { isRead: true, visible: false },
-  ])(
-    'renders unread indicator when isRead is $isRead',
-    ({ isRead, visible }) => {
-      const { queryByTestId } = renderWithProvider(
-        <NotificationContent
-          isRead={isRead}
-          title={title}
-          description={{
-            start: description.start,
-            end: description.end,
-          }}
-          createdAt={createdAt}
-        />,
-      );
-
-      const unreadBadge = queryByTestId(TEST_IDS.UNREAD_BADGE);
-
-      if (visible) {
-        expect(unreadBadge).toBeOnTheScreen();
-      } else {
-        expect(unreadBadge).not.toBeOnTheScreen();
-      }
-    },
-  );
 });

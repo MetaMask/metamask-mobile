@@ -169,24 +169,19 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
     [styles, handleTradePress, iconSize, renderRightContent, trades.length],
   );
 
+  // Render header section
   const renderHeader = () => (
     <View style={styles.header}>
-      {isLoading ? (
-        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-          {strings('perps.market.recent_trades')}
-        </Text>
-      ) : (
+      <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+        {strings('perps.market.recent_trades')}
+      </Text>
+      {!isLoading && (
         <TouchableOpacity
           testID="see-all-button"
           onPress={handleSeeAll}
           accessibilityRole="button"
           accessibilityLabel={strings('perps.home.see_all')}
-          activeOpacity={0.7}
-          style={styles.headerButton}
         >
-          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            {strings('perps.market.recent_trades')}
-          </Text>
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Md}

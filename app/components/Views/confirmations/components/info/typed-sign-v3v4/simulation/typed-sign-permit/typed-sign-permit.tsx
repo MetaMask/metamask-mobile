@@ -9,7 +9,7 @@ import { safeToChecksumAddress } from '../../../../../../../../util/address';
 import { PrimaryType } from '../../../../../constants/signatures';
 import { useSignatureRequest } from '../../../../../hooks/signatures/useSignatureRequest';
 import {
-  isPermitRevoke,
+  isPermitDaiRevoke,
   parseAndNormalizeSignTypedData,
 } from '../../../../../utils/signature';
 import InfoRow from '../../../../UI/info-row';
@@ -77,7 +77,6 @@ const PermitSimulation = () => {
     message,
     message: { allowed, tokenId, value },
     primaryType,
-    types,
   } = parseAndNormalizeSignTypedData(msgData as string);
 
   const tokenDetails = extractTokenDetailsByPrimaryType(message, primaryType);
@@ -88,13 +87,8 @@ const PermitSimulation = () => {
     ? strings('confirm.simulation.label_change_type_permit_nft')
     : strings('confirm.simulation.label_change_type_permit');
 
-  const isRevoke = isPermitRevoke(
-    verifyingContract,
-    allowed,
-    value,
-    types,
-    primaryType,
-  );
+  const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+  const isRevoke = isDaiRevoke || value === '0';
 
   if (isRevoke) {
     labelChangeType = strings('confirm.simulation.label_change_type_revoke');

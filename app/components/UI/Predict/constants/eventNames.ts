@@ -128,8 +128,6 @@ export const PredictEventValues = {
     MM_PREDICT_DEPOSIT: 'mm_predict_deposit',
     MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
     MM_PREDICT_CLAIM: 'mm_predict_claim',
-    MM_PREDICT_TRANSACTION_SUBMISSION: 'mm_predict_transaction_submission',
-    MM_PREDICT_WALLET_CREATION: 'mm_predict_wallet_creation',
   },
   CLAIM_FAILURE_REASON: {
     PENDING_RESOLUTION: 'pending_resolution',
@@ -195,7 +193,6 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
-  CANCELLED: 'cancelled',
   SWAP_INITIATED: 'swap_initiated',
   SWAP_SUCCESS: 'swap_success',
   SWAP_FAILED: 'swap_failed',

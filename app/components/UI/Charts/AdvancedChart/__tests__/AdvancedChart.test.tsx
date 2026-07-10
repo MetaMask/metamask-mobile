@@ -5,6 +5,7 @@ import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
   ChartType,
+  resolveLineChromeOptions,
   type OHLCVBar,
   type AdvancedChartRef,
   type PositionLines,
@@ -1354,6 +1355,30 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'REALTIME_UPDATE',
         payload: { bar: newBar },
+      }),
+    );
+  });
+
+  it('sends SET_LINE_CHROME with resolved defaults after onLoadEnd and CHART_READY', () => {
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_LINE_CHROME',
+        payload: resolveLineChromeOptions(),
       }),
     );
   });

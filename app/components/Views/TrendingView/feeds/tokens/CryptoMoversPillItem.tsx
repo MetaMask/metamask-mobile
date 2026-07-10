@@ -27,7 +27,6 @@ interface CryptoMoversPillItemProps {
   token: TrendingAsset;
   index: number;
   timeOption?: TimeOption;
-  tokenDetailsSource?: TokenDetailsSource;
   /** Called synchronously before the card's press handler fires. */
   onCardPress?: () => void;
 }
@@ -36,14 +35,13 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
   token,
   index,
   timeOption = TimeOption.TwentyFourHours,
-  tokenDetailsSource = TokenDetailsSource.ExploreNowMovers,
   onCardPress,
 }) => {
   const { onPress: defaultOnPress } = useTrendingTokenPress({
     token,
     index,
     filterContext: CRYPTO_MOVERS_HOME_FILTER_CONTEXT,
-    tokenDetailsSource,
+    tokenDetailsSource: TokenDetailsSource.ExploreNowMovers,
   });
 
   const onPress = React.useCallback(async () => {

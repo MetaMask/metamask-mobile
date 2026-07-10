@@ -5,7 +5,6 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
 } from 'react';
 import {
   Animated,
@@ -17,6 +16,8 @@ import {
 } from 'react-native';
 import Reanimated, {
   SharedValue,
+  withTiming,
+  Easing,
   useSharedValue,
 } from 'react-native-reanimated';
 import LinearGradient from 'react-native-linear-gradient';
@@ -41,11 +42,6 @@ import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { TabIconAnimationContext } from '../../../../../component-library/components-temp/Tabs/TabsIconTab/TabsIconAnimationContext';
 import useTabViewedEvent, { HomeTabNames } from '../../hooks/useTabViewedEvent';
-import {
-  animateIconCollapseMirror,
-  animateIconCollapseProgress,
-  showDiscoveryWalletHeader,
-} from './homepageDiscoveryHeaderAnimation';
 
 // Tab indices — kept as a const so future tabs can be added without renumbering.
 const TAB_INDEX = {
@@ -178,11 +174,11 @@ const HomepageDiscoveryTabs = forwardRef<
     const isDarkMode = themeAppearance === AppThemeKey.dark;
     // One Animated.Value per tab — pre-rendered at mount so no re-render is needed
     // during a tab switch. Portfolio starts fully visible; others start at 0.
-    const [tabGradientOpacities] = useState(() =>
+    const tabGradientOpacities = useRef(
       Object.keys(TAB_GRADIENT_COLORS).map(
         (_, i) => new Animated.Value(i === TAB_INDEX.PORTFOLIO ? 1 : 0),
       ),
-    );
+    ).current;
     const activeTabIndexRef = useRef<number>(TAB_INDEX.PORTFOLIO);
     // Tracks whether the tab layer currently holds a pause so the unmount
     // cleanup only calls resume when it actually owns one, preventing an
@@ -195,16 +191,31 @@ const HomepageDiscoveryTabs = forwardRef<
     const iconCollapseProgress = useSharedValue(0);
     // RN Animated.Value mirror for the gradient overlay's Animated.multiply (which composes
     // with tabGradientOpacities). Updated alongside the SharedValue at every toggle.
-    const [iconCollapseAnim] = useState(() => new Animated.Value(0));
+    const iconCollapseAnim = useRef(new Animated.Value(0)).current;
+    const iconCollapseAnimRef = useRef(iconCollapseAnim);
 
     // Triggered directly from the scroll worklet via onHeaderHiddenChange —
     // fires in the same frame as the hide/show decision, not based on position.
     const animateIcons = useCallback(
       (hidden: boolean) => {
-        animateIconCollapseProgress(iconCollapseProgress, hidden);
-        animateIconCollapseMirror(iconCollapseAnim, hidden);
+        const toValue = hidden ? 1 : 0;
+        const duration = hidden ? 300 : 250;
+
+        // UI-thread layout animation via Reanimated.
+        // eslint-disable-next-line react-compiler/react-compiler -- mutating a Reanimated SharedValue is the documented pattern; it does not affect React render
+        iconCollapseProgress.value = withTiming(toValue, {
+          duration,
+          easing: Easing.out(Easing.cubic),
+        });
+
+        // Mirror onto the Animated.Value for the gradient overlay's Animated.multiply.
+        Animated.timing(iconCollapseAnimRef.current, {
+          toValue,
+          duration,
+          useNativeDriver: true,
+        }).start();
       },
-      [iconCollapseAnim, iconCollapseProgress],
+      [iconCollapseProgress],
     );
 
     const { scrollHandler, onTabEnter: portfolioOnTabEnter } =
@@ -255,19 +266,38 @@ const HomepageDiscoveryTabs = forwardRef<
           } else {
             // First visit — Perps not mounted yet so ref is null. It will mount
             // at the top of scroll, so show the header/icons immediately.
-            showDiscoveryWalletHeader(
-              walletHeaderTranslateY,
-              iconCollapseProgress,
-              iconCollapseAnim,
-            );
+            // eslint-disable-next-line react-compiler/react-compiler
+            walletHeaderTranslateY &&
+              (walletHeaderTranslateY.value = withTiming(0, {
+                duration: 250,
+                easing: Easing.out(Easing.cubic),
+              }));
+            iconCollapseProgress.value = withTiming(0, {
+              duration: 250,
+              easing: Easing.out(Easing.cubic),
+            });
+            Animated.timing(iconCollapseAnimRef.current, {
+              toValue: 0,
+              duration: 250,
+              useNativeDriver: true,
+            }).start();
           }
         } else {
           // Predictions has no scroll manager — always show header + icons on entry.
-          showDiscoveryWalletHeader(
-            walletHeaderTranslateY,
-            iconCollapseProgress,
-            iconCollapseAnim,
-          );
+          walletHeaderTranslateY &&
+            (walletHeaderTranslateY.value = withTiming(0, {
+              duration: 250,
+              easing: Easing.out(Easing.cubic),
+            }));
+          iconCollapseProgress.value = withTiming(0, {
+            duration: 250,
+            easing: Easing.out(Easing.cubic),
+          });
+          Animated.timing(iconCollapseAnimRef.current, {
+            toValue: 0,
+            duration: 250,
+            useNativeDriver: true,
+          }).start();
         }
 
         if (prevIndex !== i) {
@@ -311,7 +341,6 @@ const HomepageDiscoveryTabs = forwardRef<
         walletHeaderTranslateY,
         trackTabViewed,
         iconCollapseProgress,
-        iconCollapseAnim,
       ],
     );
 

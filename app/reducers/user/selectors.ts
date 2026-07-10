@@ -94,9 +94,3 @@ export const selectTokenIndicators = (state: RootState): string[] =>
  */
 export const selectOnboardingStepperProgress = (state: RootState) =>
   state.user?.onboardingStepperProgress ?? {};
-
-/**
- * Selects whether the App Installed analytics event has already been fired
- */
-export const selectAppInstallEventFired = (state: RootState) =>
-  state.user?.appInstallEventFired ?? false;

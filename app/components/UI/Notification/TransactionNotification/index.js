@@ -24,10 +24,6 @@ import BigNumber from 'bignumber.js';
 import { collectibleContractsSelector } from '../../../../reducers/collectibles';
 import { useTheme } from '../../../../util/theme';
 import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../util/theme/themeUtils';
-import {
   selectChainId,
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
@@ -45,10 +41,8 @@ const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
 const ACTION_SPEEDUP = 'speedup';
 
-const createStyles = (theme) => {
-  const { colors } = theme;
-
-  return StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
     absoluteFill: {
       ...StyleSheet.absoluteFillObject,
     },
@@ -100,17 +94,12 @@ const createStyles = (theme) => {
     modalContainer: {
       width: '90%',
       borderRadius: 10,
-      backgroundColor: getElevatedSurfaceColor(theme),
-      ...(isPureBlackEnabled && {
-        borderWidth: 1,
-        borderColor: colors.border.muted,
-      }),
+      backgroundColor: colors.background.default,
     },
     elevatedView: {
       backgroundColor: importedColors.transparent,
     },
   });
-};
 
 function TransactionNotification(props) {
   const {
@@ -138,8 +127,8 @@ function TransactionNotification(props) {
   const actionXAnimated = useSharedValue(0);
   const detailsAnimated = useSharedValue(0);
 
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const detailsFadeIn = useCallback(async () => {
     setTransactionDetailsIsVisible(true);

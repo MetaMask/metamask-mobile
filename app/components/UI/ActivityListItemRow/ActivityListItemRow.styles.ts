@@ -95,9 +95,6 @@ export const createStyles = (
     listItemAmountIncoming: {
       color: colors.success.default,
     } as TextStyle,
-    listItemAmountLoss: {
-      color: colors.error.default,
-    } as TextStyle,
     listItemSecondaryAmount: {
       ...typography.sBodySM,
       fontFamily: getFontFamily(TextVariant.BodySM),

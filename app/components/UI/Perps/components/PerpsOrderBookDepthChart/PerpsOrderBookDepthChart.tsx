@@ -44,7 +44,7 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
   const chartDimensions = useMemo(() => {
     const chartWidth = 100; // Percentage-based for SVG viewBox
     const chartHeight = height;
-    const padding = { top: 10, right: 0, bottom: 10, left: 0 };
+    const padding = { top: 10, right: 10, bottom: 10, left: 10 };
     const innerWidth = chartWidth - padding.left - padding.right;
     const innerHeight = chartHeight - padding.top - padding.bottom;
     return { chartWidth, chartHeight, padding, innerWidth, innerHeight };

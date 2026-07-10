@@ -1,5 +1,3 @@
-import ReduxService from '../../../redux';
-import configureStore from '../../../../util/test/configureStore';
 import {
   __resetHeadlessOrderContextRegistryForTests,
   deleteHeadlessOrderContext,
@@ -9,7 +7,6 @@ import {
 
 describe('headlessOrderContextRegistry', () => {
   beforeEach(() => {
-    ReduxService.store = configureStore({});
     __resetHeadlessOrderContextRegistryForTests();
   });
 

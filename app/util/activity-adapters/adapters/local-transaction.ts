@@ -254,31 +254,6 @@ export function mapLocalTransaction(
   const from = initialTransaction.txParams.from ?? '';
   const to = initialTransaction.txParams.to ?? '';
   const methodId = initialTransaction.txParams.data?.slice(0, 10);
-
-  const getLendingWithdrawalDestinationToken = () => {
-    const fromAddress = from.toLowerCase();
-    const receivedTokenLog = (initialTransaction.txReceipt?.logs ?? []).find(
-      ({ topics: [eventTopic, , logTo] = [] }) => {
-        const toAddress = logTo
-          ? `0x${logTo.slice(-40)}`.toLowerCase()
-          : undefined;
-
-        return (
-          eventTopic?.toLowerCase() === environment.tokenTransferLogTopicHash &&
-          toAddress === fromAddress
-        );
-      },
-    );
-
-    return receivedTokenLog
-      ? getContractToken({
-          amount: BigInt(String(receivedTokenLog.data)).toString(),
-          transaction: initialTransaction,
-          direction: 'in',
-          contractAddress: receivedTokenLog.address,
-        })
-      : undefined;
-  };
   const getDirectWrappedTokenActivity = (): ActivityListItem | undefined => {
     if (!methodId) {
       return undefined;
@@ -703,23 +678,9 @@ export function mapLocalTransaction(
         },
       };
 
-    case TransactionType.lendingWithdraw:
-      return {
-        type: 'lendingWithdrawal',
-        chainId,
-        status,
-        timestamp,
-        hash,
-        raw: { type: 'localTransaction', data: transactionGroup },
-        data: {
-          destinationToken: getLendingWithdrawalDestinationToken(),
-          ...(fees ? { fees } : {}),
-        },
-      };
-
     case TransactionType.stakingDeposit:
       return {
-        type: 'stake',
+        type: 'deposit',
         chainId,
         status,
         timestamp,
@@ -795,22 +756,6 @@ export function mapLocalTransaction(
       };
     }
 
-    case TransactionType.deployContract: {
-      return {
-        type: 'contractDeployment',
-        chainId,
-        status,
-        timestamp,
-        hash,
-        raw: { type: 'localTransaction', data: transactionGroup },
-        data: {
-          from,
-          to,
-          ...(fees ? { fees } : {}),
-        },
-      };
-    }
-
     default: {
       const isSupplyContractInteraction =
         initialTransaction.type === TransactionType.contractInteraction &&
@@ -848,6 +793,28 @@ export function mapLocalTransaction(
       }
 
       if (isWithdrawContractInteraction) {
+        const fromAddress = from.toLowerCase();
+        const receivedTokenLog = (
+          initialTransaction.txReceipt?.logs ?? []
+        ).find(({ topics: [eventTopic, , logTo] = [] }) => {
+          const toAddress = logTo
+            ? `0x${logTo.slice(-40)}`.toLowerCase()
+            : undefined;
+
+          return (
+            eventTopic?.toLowerCase() ===
+              environment.tokenTransferLogTopicHash && toAddress === fromAddress
+          );
+        });
+        const destinationToken = receivedTokenLog
+          ? getContractToken({
+              amount: BigInt(String(receivedTokenLog.data)).toString(),
+              transaction: initialTransaction,
+              direction: 'in',
+              contractAddress: receivedTokenLog.address,
+            })
+          : undefined;
+
         return {
           type: 'lendingWithdrawal',
           chainId,
@@ -856,7 +823,7 @@ export function mapLocalTransaction(
           hash,
           raw: { type: 'localTransaction', data: transactionGroup },
           data: {
-            destinationToken: getLendingWithdrawalDestinationToken(),
+            destinationToken,
             ...(fees ? { fees } : {}),
           },
         };

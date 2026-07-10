@@ -2,11 +2,6 @@ import { renderHook } from '@testing-library/react-native';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
-import {
-  getPerpsLifecycleContext,
-  resetPerpsLifecycleContextForTests,
-  PERPS_LIFECYCLE_CONTEXT,
-} from '../utils/perpsLifecycleContext';
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
@@ -21,9 +16,6 @@ jest.mock('../../../../util/trace', () => ({
     PerpsPositionDetailsView: 'Perps Position Details View',
     PerpsOrderView: 'Perps Order View',
     PerpsClosePositionView: 'Perps Close Position View',
-    PerpsEntryToLiveMarketList: 'Perps Entry To Live Market List',
-    PerpsMarketDetailLive: 'Perps Market Detail Live',
-    PerpsTradePageRender: 'Perps Trade Page Render',
   },
   TraceOperation: {
     PerpsOperation: 'perps.operation',
@@ -169,46 +161,6 @@ describe('usePerpsMeasurement', () => {
         expect.stringContaining('completed'),
         expect.objectContaining({
           metric: TraceName.PerpsPositionDetailsView,
-        }),
-      );
-    });
-
-    it('does not reset or restart across loading re-renders (measures mount -> ready)', () => {
-      jest.clearAllMocks();
-
-      // Simulate a CUF span: start at mount, several re-renders while the first
-      // end-condition is still false (loading), then readiness. The span must
-      // start exactly once and never end as `reset`, so its duration spans the
-      // whole mount -> ready window rather than restarting near readiness.
-      const { rerender } = renderHook(
-        ({ endConditions }) =>
-          usePerpsMeasurement({
-            traceName: TraceName.PerpsEntryToLiveMarketList,
-            endConditions,
-            // Fresh endData ref each render (as the real views pass), which
-            // forces the effect to re-run every render.
-            endData: { variant: 'empty' },
-          }),
-        { initialProps: { endConditions: [false, false] } },
-      );
-
-      // Re-render repeatedly while still loading (new array each time).
-      rerender({ endConditions: [false, false] });
-      rerender({ endConditions: [true, false] });
-      rerender({ endConditions: [false, false] });
-
-      // Started once, never reset.
-      expect(mockTrace).toHaveBeenCalledTimes(1);
-      expect(mockEndTrace).not.toHaveBeenCalled();
-
-      // Readiness: ends once as a success.
-      rerender({ endConditions: [true, true] });
-      expect(mockTrace).toHaveBeenCalledTimes(1);
-      expect(mockEndTrace).toHaveBeenCalledTimes(1);
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.PerpsEntryToLiveMarketList,
-          data: { success: true, variant: 'empty' },
         }),
       );
     });
@@ -381,41 +333,6 @@ describe('usePerpsMeasurement', () => {
 
       // Should only call trace once (no restart without reset)
       expect(mockTrace).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('foreground settle on entry render', () => {
-    beforeEach(() => {
-      resetPerpsLifecycleContextForTests();
-    });
-
-    it.each([
-      TraceName.PerpsEntryToLiveMarketList,
-      TraceName.PerpsMarketDetailLive,
-      TraceName.PerpsTradePageRender,
-    ])(
-      'settles the foreground when the %s entry span completes',
-      (entryTraceName) => {
-        expect(getPerpsLifecycleContext()).toBe(
-          PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
-        );
-
-        // Immediate completion (no conditions) — any entry surface, no opt-in.
-        renderHook(() => usePerpsMeasurement({ traceName: entryTraceName }));
-
-        // Later in-session flows now read as warm, regardless of entry path.
-        expect(getPerpsLifecycleContext()).toBe(PERPS_LIFECYCLE_CONTEXT.WARM);
-      },
-    );
-
-    it('does not settle the foreground for non-entry spans', () => {
-      renderHook(() =>
-        usePerpsMeasurement({ traceName: TraceName.PerpsOrderView }),
-      );
-
-      expect(getPerpsLifecycleContext()).toBe(
-        PERPS_LIFECYCLE_CONTEXT.COLD_PROCESS,
-      );
     });
   });
 });

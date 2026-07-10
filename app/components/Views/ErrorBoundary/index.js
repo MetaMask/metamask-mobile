@@ -7,11 +7,11 @@ import {
   Alert,
   Modal,
   KeyboardAvoidingView,
+  DevSettings,
   TextInput,
   ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { reloadAppAsync } from 'expo';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
 import {
   captureSentryFeedback,
@@ -153,11 +153,7 @@ export const Fallback = (props) => {
   const handleContactSupport = () =>
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
 
-  const handleTryAgain = () => {
-    reloadAppAsync('Error boundary Try again').catch((error) => {
-      Logger.log(error, 'Error reloading app after Try again pressed');
-    });
-  };
+  const handleTryAgain = () => DevSettings.reload();
 
   const handleSubmit = () => {
     toggleModal();
@@ -453,6 +449,10 @@ class ErrorBoundary extends Component {
     });
   }
 
+  resetError = () => {
+    this.setState({ error: null });
+  };
+
   showExportSeedphrase = () => {
     this.setState({ backupSeedphrase: true });
   };
@@ -509,6 +509,7 @@ class ErrorBoundary extends Component {
         ? this.renderWithSafeArea(
             <Fallback
               errorMessage={this.getErrorMessage()}
+              resetError={this.resetError}
               showExportSeedphrase={this.showExportSeedphrase}
               copyErrorToClipboard={this.copyErrorToClipboard}
               openTicket={this.openTicket}

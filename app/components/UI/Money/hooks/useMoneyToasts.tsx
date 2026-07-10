@@ -74,20 +74,16 @@ const DEPOSIT_TOAST_KEYS: Record<DepositIntent, DepositToastKeys> = {
 const getDepositToastKeys = (intent?: DepositIntent): DepositToastKeys =>
   DEPOSIT_TOAST_KEYS[intent ?? 'convert'];
 
-interface ToastPressParams {
-  onPress?: () => void;
-}
-
-export interface DepositInProgressParams extends ToastPressParams {
+export interface DepositInProgressParams {
   intent?: DepositIntent;
 }
 
-export interface DepositSuccessParams extends ToastPressParams {
+export interface DepositSuccessParams {
   amountFiat?: string;
   intent?: DepositIntent;
 }
 
-export interface DepositFailedParams extends ToastPressParams {
+export interface DepositFailedParams {
   intent?: DepositIntent;
 }
 
@@ -96,14 +92,10 @@ export interface WithdrawSuccessParams {
   destination: string;
 }
 
-export interface SendSuccessParams extends ToastPressParams {
+export interface SendSuccessParams {
   amountFiat?: string;
   destination: string;
 }
-
-export type SendInProgressParams = ToastPressParams;
-
-export type SendFailedParams = ToastPressParams;
 
 export interface MoneyToastOptionsConfig {
   deposit: {
@@ -117,9 +109,9 @@ export interface MoneyToastOptionsConfig {
     failed: () => MoneyToastOptions;
   };
   send: {
-    inProgress: (params?: SendInProgressParams) => MoneyToastOptions;
+    inProgress: () => MoneyToastOptions;
     success: (params: SendSuccessParams) => MoneyToastOptions;
-    failed: (params?: SendFailedParams) => MoneyToastOptions;
+    failed: () => MoneyToastOptions;
   };
 }
 
@@ -166,19 +158,6 @@ const useMoneyToasts = (): {
       iconName: IconName.Close,
       onPress: closeToast,
     }),
-    [closeToast],
-  );
-
-  const buildToastPress = useCallback(
-    (onPress?: () => void) => {
-      if (!onPress) {
-        return undefined;
-      }
-      return () => {
-        closeToast();
-        onPress();
-      };
-    },
     [closeToast],
   );
 
@@ -247,7 +226,6 @@ const useMoneyToasts = (): {
       primaryKey: string,
       secondaryKey: string,
       secondaryParams?: Record<string, string>,
-      onPress?: () => void,
     ): MoneyToastOptions => ({
       ...base,
       labelOptions: getMoneyToastLabels({
@@ -260,7 +238,6 @@ const useMoneyToasts = (): {
         ),
       }),
       closeButtonOptions,
-      onPress: buildToastPress(onPress),
     });
 
     return {
@@ -282,10 +259,9 @@ const useMoneyToasts = (): {
               ),
             }),
             closeButtonOptions,
-            onPress: buildToastPress(params?.onPress),
           };
         },
-        success: ({ amountFiat, intent, onPress }: DepositSuccessParams) => ({
+        success: ({ amountFiat, intent }: DepositSuccessParams) => ({
           ...moneyBaseToastOptions.success,
           labelOptions: getMoneyToastLabels({
             primary: strings(getDepositToastKeys(intent).successTitle),
@@ -304,7 +280,6 @@ const useMoneyToasts = (): {
             ),
           }),
           closeButtonOptions,
-          onPress: buildToastPress(onPress),
         }),
         failed: (params?: DepositFailedParams) => {
           const keys = getDepositToastKeys(params?.intent);
@@ -323,7 +298,6 @@ const useMoneyToasts = (): {
               ),
             }),
             closeButtonOptions,
-            onPress: buildToastPress(params?.onPress),
           };
         },
       },
@@ -385,42 +359,35 @@ const useMoneyToasts = (): {
         }),
       },
       send: {
-        inProgress: (params?: SendInProgressParams) =>
+        inProgress: () =>
           buildSendToast(
             moneyBaseToastOptions.inProgress,
             'money.toasts.send_in_progress_title',
             'money.toasts.in_progress_body',
-            undefined,
-            params?.onPress,
           ),
-        success: ({ amountFiat, destination, onPress }: SendSuccessParams) =>
+        success: ({ amountFiat, destination }: SendSuccessParams) =>
           amountFiat
             ? buildSendToast(
                 moneyBaseToastOptions.success,
                 'money.toasts.send_success_title',
                 'money.toasts.send_success_body',
                 { amount: amountFiat, destination },
-                onPress,
               )
             : buildSendToast(
                 moneyBaseToastOptions.success,
                 'money.toasts.send_success_title',
                 'money.toasts.send_success_body_no_amount',
                 { destination },
-                onPress,
               ),
-        failed: (params?: SendFailedParams) =>
+        failed: () =>
           buildSendToast(
             moneyBaseToastOptions.error,
             'money.toasts.send_failed_title',
             'money.toasts.send_failed_body',
-            undefined,
-            params?.onPress,
           ),
       },
     };
   }, [
-    buildToastPress,
     closeButtonOptions,
     moneyBaseToastOptions.error,
     moneyBaseToastOptions.inProgress,

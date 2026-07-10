@@ -28,8 +28,6 @@ import {
   IconName,
   IconSize,
   IconColor,
-  KeyValueRow,
-  KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
@@ -38,6 +36,10 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -120,21 +122,17 @@ import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
-import { useABTest } from '../../../../../hooks/useABTest';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
-import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
-import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
+  selectPerpsButtonColorTestVariant,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
-import {
-  BUTTON_COLOR_VARIANTS,
-  PERPS_BUTTON_COLOR_AB_TEST_KEY,
-} from '../../abTestConfig';
+import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
+import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -352,10 +350,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // A/B Testing: Button color test (TAT-1937)
   const {
     variantName: buttonColorVariant,
-    isActive: isButtonColorTestEnabled,
-  } = useABTest(PERPS_BUTTON_COLOR_AB_TEST_KEY, BUTTON_COLOR_VARIANTS, {
-    experimentName: 'Long/Short Button Color Test',
-    variationNames: { control: 'White/White', colors: 'Green/Red' },
+    isEnabled: isButtonColorTestEnabled,
+  } = usePerpsABTest({
+    test: BUTTON_COLOR_TEST,
+    featureFlagSelector: selectPerpsButtonColorTestVariant,
   });
 
   // Markets data for navigation
@@ -413,6 +411,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
     [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
       isServiceInterruptionBannerEnabled,
+    ...(isButtonColorTestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
   };
 
   usePerpsEventTracking({
@@ -463,26 +464,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   usePerpsMeasurement({
     traceName: TraceName.PerpsOrderView,
     conditions: [isDataReady, !!currentPrice, !!account],
-  });
-
-  // Trade page CUF: order form ready with live price + account. Tags at mount.
-  const tradePageCufTags = useMemo(() => buildPerpsCufStartTags(), []);
-  usePerpsMeasurement({
-    traceName: TraceName.PerpsTradePageRender,
-    // endConditions (not the simple `conditions` API), which would auto-reset
-    // while the first condition is false and restart the span before readiness
-    // flips — making the reported trade-page render duration falsely faster.
-    // The funded/unfunded endData reads account.totalBalance, so gate on account
-    // freshness (!isLoadingAccount), not just presence — a present-but-stale
-    // account would otherwise misclassify a funded user as unfunded.
-    endConditions: [isDataReady, !!currentPrice, !!account, !isLoadingAccount],
-    tags: tradePageCufTags,
-    endData: {
-      [PERPS_CUF_TAG.VARIANT]:
-        !!account?.totalBalance && Number.parseFloat(account.totalBalance) > 0
-          ? PERPS_CUF_VARIANT.FUNDED
-          : PERPS_CUF_VARIANT.UNFUNDED,
-    },
   });
 
   const assetData = useMemo(() => {
@@ -1087,6 +1068,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderForm.direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
         });
       }
 
@@ -1302,6 +1284,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       feeResults.estimatedPoints,
       source,
       isButtonColorTestEnabled,
+      buttonColorVariant,
       isTradeWithAnyTokenEnabled,
       depositAmount,
       activeTransactionMeta,
@@ -1366,17 +1349,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const handleTooltipClose = useCallback(() => {
     setSelectedTooltip(null);
   }, []);
-
-  const handleSlippageEditPress = useCallback(() => {
-    setIsSlippageVisible(true);
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(maxSlippageBps),
-      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
-    });
-  }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
 
   useInitPerpsPaymentToken(orderForm.asset ?? '');
 
@@ -1447,7 +1419,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
       <PerpsOrderHeader
-        asset={orderForm.asset}
+        asset={getPerpsDisplaySymbol(orderForm.asset)}
         price={assetData.price}
         priceChange={assetData.change}
         orderType={orderForm.type}
@@ -1500,67 +1472,141 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Order Details */}
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
-            <View style={styles.inputGroupContainer}>
-              <TouchableOpacity
-                testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
-                onPress={() => setIsLeverageVisible(true)}
-              >
-                <KeyValueRow
-                  variant={KeyValueRowVariant.Input}
-                  keyLabel={strings('perps.order.leverage')}
-                  keyEndButtonIconProps={{
-                    iconName: IconName.Info,
-                    onPress: () => handleTooltipPress('leverage'),
-                    testID: PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON,
-                  }}
-                  value={isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
-                />
-              </TouchableOpacity>
+            {/* Leverage */}
+            <TouchableOpacity
+              testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
+              onPress={() => setIsLeverageVisible(true)}
+              style={[
+                styles.detailItem,
+                // If there are items below (limit price, TP/SL, or Pay with), only round top corners
+                // Otherwise, round all corners
+                orderForm.type === 'limit' || !hideTPSL || isPayRowVisible
+                  ? styles.detailItemFirst
+                  : styles.detailItemOnly,
+              ]}
+            >
+              <ListItem style={styles.detailItemWrapper}>
+                <ListItemColumn widthType={WidthType.Fill}>
+                  <View style={styles.detailLeft}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('perps.order.leverage')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => handleTooltipPress('leverage')}
+                      style={styles.infoIcon}
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.IconAlternative}
+                        testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </ListItemColumn>
+                <ListItemColumn widthType={WidthType.Auto}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
+                    {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
+                  </Text>
+                </ListItemColumn>
+              </ListItem>
+            </TouchableOpacity>
 
-              {orderForm.type === 'limit' && (
-                <TouchableOpacity
-                  testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
-                  onPress={() => setIsLimitPriceVisible(true)}
-                >
-                  <KeyValueRow
-                    variant={KeyValueRowVariant.Input}
-                    keyLabel={strings('perps.order.limit_price')}
-                    value={
-                      orderForm.limitPrice !== undefined &&
+            {/* Limit price - only show for limit orders */}
+            {orderForm.type === 'limit' && (
+              <TouchableOpacity
+                testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
+                onPress={() => setIsLimitPriceVisible(true)}
+                style={[
+                  styles.detailItem,
+                  // Only round bottom corners when this is the last item (no TP/SL and no Pay row below)
+                  hideTPSL && !isPayRowVisible && styles.detailItemLast,
+                ]}
+              >
+                <ListItem style={styles.detailItemWrapper}>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('perps.order.limit_price')}
+                    </Text>
+                  </ListItemColumn>
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {orderForm.limitPrice !== undefined &&
                       orderForm.limitPrice !== null
                         ? formatPerpsFiat(orderForm.limitPrice, {
                             ranges: PRICE_RANGES_UNIVERSAL,
                           })
-                        : 'Set price'
-                    }
-                  />
-                </TouchableOpacity>
-              )}
+                        : 'Set price'}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
+            )}
 
-              {!hideTPSL && (
-                <TouchableOpacity
-                  onPress={handleTPSLPress}
-                  testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
-                >
-                  <KeyValueRow
-                    variant={KeyValueRowVariant.Input}
-                    keyLabel={strings('perps.order.tp_sl')}
-                    keyEndButtonIconProps={{
-                      iconName: IconName.Info,
-                      onPress: () => handleTooltipPress('tp_sl'),
-                      testID: PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON,
-                    }}
-                    value={tpSlDisplayText}
-                  />
-                </TouchableOpacity>
-              )}
-
-              {isPayRowVisible && (
+            {/* Combined TP/SL row - Hidden when modifying existing position */}
+            {!hideTPSL && (
+              <TouchableOpacity
+                onPress={handleTPSLPress}
+                testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
+                style={[
+                  styles.detailItem,
+                  !isPayRowVisible && styles.detailItemLast,
+                ]}
+              >
+                <ListItem style={styles.detailItemWrapper}>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <View style={styles.detailLeft}>
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
+                      >
+                        {strings('perps.order.tp_sl')}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => handleTooltipPress('tp_sl')}
+                        style={styles.infoIcon}
+                      >
+                        <Icon
+                          name={IconName.Info}
+                          size={IconSize.Sm}
+                          color={IconColor.IconAlternative}
+                          testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </ListItemColumn>
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
+                    >
+                      {tpSlDisplayText}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
+            )}
+            {/* Pay with row - directly below TP/SL, same stacked box styling */}
+            {isPayRowVisible && (
+              <View style={[styles.detailItem, styles.detailItemLast]}>
                 <PerpsPayRow
+                  embeddedInStack
                   onPayWithInfoPress={() => handleTooltipPress('pay_with')}
                 />
-              )}
-            </View>
+              </View>
+            )}
             {hasInsufficientPayTokenBalance && (
               <View style={styles.insufficientPayTokenWarning}>
                 <Text
@@ -1636,98 +1682,158 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             { marginTop: isInputFocused ? 8 : 0 },
           ]}
         >
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.order.margin')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: () => handleTooltipPress('margin'),
-              testID: PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON,
-            }}
-            value={
-              marginRequired !== undefined && marginRequired !== null
+          <View style={styles.infoRow}>
+            <View style={styles.detailLeft}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('perps.order.margin')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleTooltipPress('margin')}
+                style={styles.infoIcon}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                  testID={PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON}
+                />
+              </TouchableOpacity>
+            </View>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              testID={PerpsOrderViewSelectorsIDs.MARGIN_VALUE}
+            >
+              {marginRequired !== undefined && marginRequired !== null
                 ? formatPerpsFiat(marginRequired, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
-                : PERPS_CONSTANTS.FallbackDataDisplay
-            }
-            valueTextProps={{
-              testID: PerpsOrderViewSelectorsIDs.MARGIN_VALUE,
-            }}
-          />
+                : PERPS_CONSTANTS.FallbackDataDisplay}
+            </Text>
+          </View>
 
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.order.liquidation_price')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: () => handleTooltipPress('liquidation_price'),
-              testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
-            }}
-            value={
-              hasValidAmount
+          <View style={styles.infoRow}>
+            <View style={styles.detailLeft}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('perps.order.liquidation_price')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleTooltipPress('liquidation_price')}
+                style={styles.infoIcon}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                  testID={
+                    PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              testID={PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+            >
+              {hasValidAmount
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
-                : PERPS_CONSTANTS.FallbackDataDisplay
-            }
-            valueTextProps={{
-              testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
-            }}
-          />
-
+                : PERPS_CONSTANTS.FallbackDataDisplay}
+            </Text>
+          </View>
           {isMarketOrder && (
-            <KeyValueRow
+            <TouchableOpacity
               testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_ROW}
-              variant={KeyValueRowVariant.Summary}
-              keyLabel={strings('perps.slippage.slippage')}
-              value={
-                estimatedSlippagePctDisplay === null
-                  ? strings('perps.slippage.row_format_pending', {
-                      value: bpsToPercent(maxSlippageBps),
-                    })
-                  : strings('perps.slippage.row_format', {
-                      est: estimatedSlippagePctDisplay,
-                      value: bpsToPercent(maxSlippageBps),
-                    })
-              }
-              valueTextProps={{
-                testID: PerpsOrderViewSelectorsIDs.SLIPPAGE_VALUE,
-                ...(exceedsMaxSlippage && {
-                  color: TextColor.ErrorDefault,
-                }),
+              onPress={() => {
+                setIsSlippageVisible(true);
+                track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+                  [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+                    PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
+                  [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+                  [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]:
+                    bpsToPercent(maxSlippageBps),
+                  [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
+                });
               }}
-              valueEndButtonIconProps={{
-                iconName: IconName.Edit,
-                onPress: handleSlippageEditPress,
-              }}
-            />
+            >
+              <View style={styles.infoRow}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('perps.slippage.slippage')}
+                </Text>
+                <View style={styles.slippageValueRow}>
+                  <Text
+                    testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_VALUE}
+                    variant={TextVariant.BodySm}
+                    color={
+                      exceedsMaxSlippage
+                        ? TextColor.ErrorDefault
+                        : TextColor.TextDefault
+                    }
+                  >
+                    {estimatedSlippagePctDisplay === null
+                      ? strings('perps.slippage.row_format_pending', {
+                          value: bpsToPercent(maxSlippageBps),
+                        })
+                      : strings('perps.slippage.row_format', {
+                          est: estimatedSlippagePctDisplay,
+                          value: bpsToPercent(maxSlippageBps),
+                        })}
+                  </Text>
+                  <Icon
+                    name={IconName.Edit}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
           )}
-
-          <KeyValueRow
-            variant={KeyValueRowVariant.Summary}
-            keyLabel={strings('perps.order.fees')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: () => handleTooltipPress('fees'),
-              testID: PerpsOrderViewSelectorsIDs.FEES_INFO_ICON,
-            }}
-            value={
-              isFeesLoading ? (
-                <Skeleton height={16} width={60} />
-              ) : (
-                <PerpsFeesDisplay
-                  feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                  fee={hasValidAmount ? feesToDisplay : undefined}
-                  originalFee={
-                    hasValidAmount ? undiscountedFeesToDisplay : undefined
-                  }
-                  placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
-                  testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
+          <View style={styles.infoRow}>
+            <View style={styles.detailLeft}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('perps.order.fees')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleTooltipPress('fees')}
+                style={styles.infoIcon}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                  testID={PerpsOrderViewSelectorsIDs.FEES_INFO_ICON}
                 />
-              )
-            }
-          />
+              </TouchableOpacity>
+            </View>
+            {isFeesLoading ? (
+              <Skeleton height={16} width={60} />
+            ) : (
+              <PerpsFeesDisplay
+                feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                fee={hasValidAmount ? feesToDisplay : undefined}
+                originalFee={
+                  hasValidAmount ? undiscountedFeesToDisplay : undefined
+                }
+                placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
+                testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
+                variant={TextVariant.BodySm}
+              />
+            )}
+          </View>
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
@@ -1869,7 +1975,27 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
           />
 
-          {buttonColorVariant === 'colors' ? (
+          {buttonColorVariant === 'monochrome' ? (
+            <DSButton
+              variant={ButtonVariant.Primary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              isFullWidth
+              onPress={() => handlePlaceOrder()}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                hasInvalidTPSL ||
+                isAtOICap ||
+                shouldBlockBecauseOfFeesLoading ||
+                hasBlockingPayAlerts
+              }
+              isLoading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            >
+              {placeOrderLabel}
+            </DSButton>
+          ) : (
             <ButtonSemantic
               severity={
                 orderForm.direction === 'long'
@@ -1893,26 +2019,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             >
               {placeOrderLabel}
             </ButtonSemantic>
-          ) : (
-            <DSButton
-              variant={ButtonVariant.Primary}
-              size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
-              onPress={() => handlePlaceOrder()}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </DSButton>
           )}
         </View>
       )}

@@ -58,20 +58,23 @@ export class EmulatorConfigBuilder {
       process.env.USE_PREBUILT_WDA === 'true' &&
       !usePreinstalledWda;
 
-    const androidAdbExecTimeoutMs = 120_000;
-    const androidTimeout = androidAdbExecTimeoutMs + 30_000;
-    const iosTimeout = usePreinstalledWda
-      ? 3 * 60 * 1000
-      : usePrebuiltWda
-        ? 5 * 60 * 1000
-        : 12 * 60 * 1000;
-    const connectionRetryTimeout =
-      platformName === Platform.ANDROID ? androidTimeout : iosTimeout;
-
     return {
       hostname: getAppiumHost(),
       port: getAppiumPort(),
-      connectionRetryTimeout,
+      // XCUITest driver must build and install WDA on first run (3-4 min on
+      // local, up to 10 min on CI). Raise the WebDriverIO HTTP timeout so the
+      // session-creation POST doesn't time out before Appium responds.
+      // connectionRetryCount: 0 — no retries on session creation; a timeout
+      // here is not a transient error and retrying just doubles the wait.
+      // Preinstalled WDA: prepare-ios-appium-runner already launched WDA on CI.
+      // Must exceed wdaLaunchTimeout (120 s) + wdaConnectionTimeout (30 s) = 150 s
+      // so the client doesn't abort before Appium finishes the WDA handshake.
+      // Prebuilt/cold paths still need minutes for xcodebuild or first launch.
+      connectionRetryTimeout: usePreinstalledWda
+        ? 3 * 60 * 1000
+        : usePrebuiltWda
+          ? 5 * 60 * 1000
+          : 12 * 60 * 1000,
       connectionRetryCount: 0,
       capabilities: {
         'appium:deviceName': emulatorDevice.name,
@@ -83,9 +86,9 @@ export class EmulatorConfigBuilder {
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
               'appium:appActivity': this.project.use.app?.launchableActivity,
-              'appium:adbExecTimeout': androidAdbExecTimeoutMs,
-              // Fail Chromedriver attach faster than the default when WebView is stuck.
-              'appium:androidWebviewConnectTimeout': 60_000,
+              // Release E2E launches with many intent extras; default 20s adbExecTimeout
+              // is too low on CI after a prior test (see appium-accounts-android-smoke).
+              'appium:adbExecTimeout': 120_000,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,

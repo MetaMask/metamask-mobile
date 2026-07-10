@@ -202,46 +202,6 @@ describe('ReceiveSummaryLine', () => {
     ).toBeDefined();
   });
 
-  it('renders branded mUSD symbol for predict withdraw when registry token at the mUSD address has symbol MUSD', () => {
-    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
-      chainId === '0x1' ? 'Ethereum' : 'Polygon',
-    );
-    jest
-      .mocked(useTokenWithBalance)
-      .mockReturnValue({ symbol: 'MUSD' } as ReturnType<
-        typeof useTokenWithBalance
-      >);
-
-    const { getByText, queryByText } = render({
-      id: 'tx-id',
-      chainId: '0x89' as Hex,
-      hash: '0x123',
-      submittedTime: 1755719285723,
-      type: TransactionType.predictWithdraw,
-      metamaskPay: {
-        chainId: '0x1' as Hex,
-        tokenAddress: '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA' as Hex,
-      },
-    } as Partial<TransactionMeta>);
-
-    expect(
-      getByText(
-        strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: 'mUSD',
-          targetChain: 'Ethereum',
-        }),
-      ),
-    ).toBeDefined();
-    expect(
-      queryByText(
-        strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: 'MUSD',
-          targetChain: 'Ethereum',
-        }),
-      ),
-    ).toBeNull();
-  });
-
   it('renders perps withdraw title with mUSD and destination network', () => {
     useNetworkNameMock.mockImplementation((chainId?: Hex) =>
       chainId === '0xmonad' ? 'Monad' : 'Arbitrum',

@@ -6,12 +6,6 @@ import MoneySheetOptionsList, {
   MoneySheetOption,
 } from './MoneySheetOptionsList';
 import { strings } from '../../../../../../locales/i18n';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-
-jest.mock('../../../../../selectors/preferencesController', () => ({
-  ...jest.requireActual('../../../../../selectors/preferencesController'),
-  selectPrivacyMode: jest.fn(() => false),
-}));
 
 const createOption = (
   overrides: Partial<MoneySheetOption> = {},
@@ -171,99 +165,5 @@ describe('MoneySheetOptionsList', () => {
       'money-sheet-option-receive-external',
       'money-sheet-option-add-musd',
     ]);
-  });
-
-  describe('privacy-masked label', () => {
-    beforeEach(() => {
-      jest.mocked(selectPrivacyMode).mockReturnValue(false);
-    });
-
-    it('renders the real maskedText when the label has no suffix and privacy mode is off', () => {
-      const options = [
-        createOption({
-          label: { maskedText: '$12.34 mUSD' },
-        }),
-      ];
-
-      const { getByText } = renderWithProvider(
-        <MoneySheetOptionsList options={options} />,
-      );
-
-      expect(getByText('$12.34 mUSD')).toBeOnTheScreen();
-    });
-
-    it('masks the entire maskedText when the label has no suffix and privacy mode is on', () => {
-      jest.mocked(selectPrivacyMode).mockReturnValue(true);
-      const options = [
-        createOption({
-          label: { maskedText: '$12.34 mUSD' },
-        }),
-      ];
-
-      const { getByText, queryByText } = renderWithProvider(
-        <MoneySheetOptionsList options={options} />,
-      );
-
-      expect(getByText('•'.repeat(9))).toBeOnTheScreen();
-      expect(queryByText('$12.34 mUSD')).toBeNull();
-    });
-
-    it('does not mask a plain string label, even when privacy mode is on', () => {
-      jest.mocked(selectPrivacyMode).mockReturnValue(true);
-      const options = [createOption({ label: 'Convert crypto' })];
-
-      const { getByText } = renderWithProvider(
-        <MoneySheetOptionsList options={options} />,
-      );
-
-      expect(getByText('Convert crypto')).toBeOnTheScreen();
-    });
-
-    it('renders the real masked-text portion and the visible suffix when privacy mode is off', () => {
-      const options = [
-        createOption({
-          label: { maskedText: '$12.34', suffix: 'mUSD' },
-        }),
-      ];
-
-      const { getByText } = renderWithProvider(
-        <MoneySheetOptionsList options={options} />,
-      );
-
-      expect(getByText('$12.34')).toBeOnTheScreen();
-      expect(getByText('mUSD')).toBeOnTheScreen();
-    });
-
-    it('masks only the masked-text portion and keeps the visible suffix shown when privacy mode is on', () => {
-      jest.mocked(selectPrivacyMode).mockReturnValue(true);
-      const options = [
-        createOption({
-          label: { maskedText: '$12.34', suffix: 'mUSD' },
-        }),
-      ];
-
-      const { getByText, queryByText } = renderWithProvider(
-        <MoneySheetOptionsList options={options} />,
-      );
-
-      expect(getByText('•'.repeat(6))).toBeOnTheScreen();
-      expect(getByText('mUSD')).toBeOnTheScreen();
-      expect(queryByText('$12.34')).toBeNull();
-    });
-
-    it('renders the masked-text and suffix joined with the coming-soon label when comingSoon is set', () => {
-      const options = [
-        createOption({
-          label: { maskedText: '$12.34', suffix: 'mUSD' },
-          comingSoon: true,
-        }),
-      ];
-
-      const { getByText } = renderWithProvider(
-        <MoneySheetOptionsList options={options} />,
-      );
-
-      expect(getByText('$12.34 mUSD')).toBeOnTheScreen();
-    });
   });
 });

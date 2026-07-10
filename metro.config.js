@@ -133,23 +133,6 @@ module.exports = function (baseConfig) {
           ) {
             return { type: 'empty' };
           }
-          // @metamask/perps-controller@9.2.1's CJS build (standaloneInfoClient.cjs,
-          // HyperLiquidClientService.cjs) contains a leftover absolute file:// require
-          // from the package's own CI build machine instead of `@nktkas/hyperliquid`
-          // (the ESM build correctly imports `@nktkas/hyperliquid`, confirming this is
-          // a CJS-transpile bug in the published package). Redirect to the real package
-          // until upstream ships a patched release.
-          if (
-            moduleName ===
-              'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
-            context.originModulePath?.includes('@metamask/perps-controller')
-          ) {
-            return context.resolveRequest(
-              context,
-              '@nktkas/hyperliquid',
-              platform,
-            );
-          }
           // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
           // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
           // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
