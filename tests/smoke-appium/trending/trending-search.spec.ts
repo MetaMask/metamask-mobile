@@ -41,9 +41,12 @@ appiumTest.describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
             description: 'Search button should be visible',
           });
 
-          await Assertions.expectElementToBeVisible(TrendingView.browserButton, {
-            description: 'Browser button should be visible',
-          });
+          await Assertions.expectElementToBeVisible(
+            TrendingView.browserButton,
+            {
+              description: 'Browser button should be visible',
+            },
+          );
 
           await TrendingView.tapSearchButton();
 

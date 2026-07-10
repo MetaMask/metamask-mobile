@@ -14,45 +14,51 @@ import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-r
 import Browser from '../../page-objects/Browser/BrowserView.js';
 import TestDApp from '../../page-objects/Browser/TestDApp.js';
 
-appiumTest.describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(
-      mockServer,
-      remoteFeatureFlagTrendingTokensEnabled(),
-    );
-
-    await setupMockEvents(mockServer, TRENDING_API_MOCKS);
-  };
-
-  appiumTest(
-    'navigate to browser from trending view and interact with dapp',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withFixtures(
-        {
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
-          fixture: new FixtureBuilder()
-            .withPermissionControllerConnectedToTestDapp()
-            .build(),
-          restartDevice: true,
-          currentDeviceDetails,
-          testSpecificMock,
-        },
-        async () => {
-          await loginToAppPlaywright({ scenarioType: 'e2e' });
-
-          await navigateToBrowserView();
-
-          await Browser.navigateToTestDApp();
-
-          await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
-            description: 'Test Dapp page title should be visible',
-          });
-        },
+appiumTest.describe(
+  SmokeWalletPlatform('Trending Feature Browser Test'),
+  () => {
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(
+        mockServer,
+        remoteFeatureFlagTrendingTokensEnabled(),
       );
-    },
-  );
-});
+
+      await setupMockEvents(mockServer, TRENDING_API_MOCKS);
+    };
+
+    appiumTest(
+      'navigate to browser from trending view and interact with dapp',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withFixtures(
+          {
+            dapps: [
+              {
+                dappVariant: DappVariants.TEST_DAPP,
+              },
+            ],
+            fixture: new FixtureBuilder()
+              .withPermissionControllerConnectedToTestDapp()
+              .build(),
+            restartDevice: true,
+            currentDeviceDetails,
+            testSpecificMock,
+          },
+          async () => {
+            await loginToAppPlaywright({ scenarioType: 'e2e' });
+
+            await navigateToBrowserView();
+
+            await Browser.navigateToTestDApp();
+
+            await Assertions.expectElementToBeVisible(
+              TestDApp.testDappPageTitle,
+              {
+                description: 'Test Dapp page title should be visible',
+              },
+            );
+          },
+        );
+      },
+    );
+  },
+);

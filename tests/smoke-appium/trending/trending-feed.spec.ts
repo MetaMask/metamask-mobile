@@ -32,150 +32,156 @@ interface SectionConfig {
   };
 }
 
-appiumTest.describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(mockServer, {
-      ...remoteFeatureFlagTrendingTokensEnabled(),
-      ...remoteFeatureFlagPredictEnabled(),
-      // TODO: Fix this test to support the FF-enabled What's Happening Explore section.
-      aiSocialWhatsHappeningEnabled: {
-        enabled: false,
-        minimumVersion: '0.0.0',
-      },
-      predictWorldCup: {
-        enabled: false,
-        minimumVersion: '0.0.0',
-      },
-    });
-
-    await setupMockEvents(mockServer, TRENDING_API_MOCKS);
-
-    await mockServer
-      .forPost('/proxy')
-      .matching((request) => {
-        try {
-          const url = getDecodedProxiedURL(request.url);
-          return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
-            url,
-          );
-        } catch {
-          return false;
-        }
-      })
-      .asPriority(1001)
-      .thenCallback(async (request) => {
-        let addresses: string[] = [];
-        try {
-          const text = await request.body.getText();
-          if (text) {
-            const parsed = JSON.parse(text) as unknown;
-            if (Array.isArray(parsed)) {
-              addresses = parsed.filter(
-                (a): a is string => typeof a === 'string',
-              );
-            }
-          }
-        } catch {
-          /* ignore malformed body */
-        }
-        return {
-          statusCode: 200,
-          json: addresses.map((address) => ({ address, blocked: false })),
-        };
+appiumTest.describe(
+  SmokeWalletPlatform('Trending Feed View All Navigation'),
+  () => {
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      await setupRemoteFeatureFlagsMock(mockServer, {
+        ...remoteFeatureFlagTrendingTokensEnabled(),
+        ...remoteFeatureFlagPredictEnabled(),
+        // TODO: Fix this test to support the FF-enabled What's Happening Explore section.
+        aiSocialWhatsHappeningEnabled: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+        predictWorldCup: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
       });
-  };
 
-  appiumTest(
-    'Navigate to all sections full views via View All and return to feed',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder().withDetectedGeolocation('AR').build(),
-          restartDevice: true,
-          currentDeviceDetails,
-          testSpecificMock,
-        },
-        async () => {
-          await loginToAppPlaywright({ scenarioType: 'e2e' });
+      await setupMockEvents(mockServer, TRENDING_API_MOCKS);
 
-          await TrendingView.tapTrendingTab();
-
-          const sectionsConfig: SectionConfig[] = [
-            {
-              section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
-              sectionHeaderText: TrendingViewSelectorsText.SECTION_PREDICTIONS,
-              verifyItemVisible: () => TrendingView.verifyPredictionVisible('1'),
-              details: {
-                tapItem: () => TrendingView.tapPredictionRow('1'),
-                verifyVisible: () =>
-                  TrendingView.verifyPredictionDetailsVisible(),
-                tapBack: () => TrendingView.tapBackFromPredictionDetails(),
-              },
-            },
-            {
-              section: TrendingViewSelectorsText.SECTION_PERPS,
-              sectionHeaderText: 'Perps movers',
-              verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
-              details: {
-                tapItem: () => TrendingView.tapPerpRow('BTC'),
-                verifyVisible: () => TrendingView.verifyPerpDetailsVisible(),
-                tapBack: () => TrendingView.tapBackFromPerpDetails(),
-              },
-            },
-            {
-              section: TrendingViewSelectorsText.SECTION_TOKENS,
-              sectionHeaderText: TrendingViewSelectorsText.SECTION_TOKENS,
-              verifyItemVisible: () =>
-                TrendingView.verifyTokenVisible(USDC_ASSET_ID),
-              details: {
-                tapItem: () => TrendingView.tapTokenRow(USDC_ASSET_ID),
-                verifyVisible: () =>
-                  TrendingView.verifyTokenDetailsTitleVisible('USDC'),
-                tapBack: () => TrendingView.tapBackFromTokenDetails(),
-              },
-            },
-            {
-              section: TrendingViewSelectorsText.SECTION_STOCKS,
-              sectionHeaderText: TrendingViewSelectorsText.SECTION_STOCKS,
-              verifyItemVisible: () =>
-                TrendingView.verifyTokenVisible(RWA_STOCK_ASSET_ID),
-              details: {
-                tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
-                verifyVisible: () =>
-                  TrendingView.verifyTokenDetailsTitleVisible('USDY'),
-                tapBack: () => TrendingView.tapBackFromTokenDetails(),
-              },
-            },
-            {
-              section: TrendingViewSelectorsText.SECTION_SITES,
-              sectionHeaderText: 'Popular',
-              verifyItemVisible: () => TrendingView.verifySiteVisible('Uniswap'),
-            },
-          ];
-
-          for (const config of sectionsConfig) {
-            await TrendingView.navigateToSectionTab(config.section);
-            await TrendingView.verifySectionHeaderInFeed(
-              config.sectionHeaderText,
+      await mockServer
+        .forPost('/proxy')
+        .matching((request) => {
+          try {
+            const url = getDecodedProxiedURL(request.url);
+            return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+              url,
             );
-
-            await TrendingView.tapViewAll(config.section);
-            await TrendingView.verifySectionHeaderInFullView(config.section);
-            await TrendingView.tapBackFromFullView(config.section);
-            await TrendingView.verifyFeedVisible();
-
-            await TrendingView.navigateToSectionTab(config.section);
-            await config.verifyItemVisible();
-
-            if (config.details) {
-              await config.details.tapItem();
-              await config.details.verifyVisible();
-              await config.details.tapBack();
-              await TrendingView.verifyFeedVisible();
-            }
+          } catch {
+            return false;
           }
-        },
-      );
-    },
-  );
-});
+        })
+        .asPriority(1001)
+        .thenCallback(async (request) => {
+          let addresses: string[] = [];
+          try {
+            const text = await request.body.getText();
+            if (text) {
+              const parsed = JSON.parse(text) as unknown;
+              if (Array.isArray(parsed)) {
+                addresses = parsed.filter(
+                  (a): a is string => typeof a === 'string',
+                );
+              }
+            }
+          } catch {
+            /* ignore malformed body */
+          }
+          return {
+            statusCode: 200,
+            json: addresses.map((address) => ({ address, blocked: false })),
+          };
+        });
+    };
+
+    appiumTest(
+      'Navigate to all sections full views via View All and return to feed',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withFixtures(
+          {
+            fixture: new FixtureBuilder().withDetectedGeolocation('AR').build(),
+            restartDevice: true,
+            currentDeviceDetails,
+            testSpecificMock,
+          },
+          async () => {
+            await loginToAppPlaywright({ scenarioType: 'e2e' });
+
+            await TrendingView.tapTrendingTab();
+
+            const sectionsConfig: SectionConfig[] = [
+              {
+                section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
+                sectionHeaderText:
+                  TrendingViewSelectorsText.SECTION_PREDICTIONS,
+                verifyItemVisible: () =>
+                  TrendingView.verifyPredictionVisible('1'),
+                details: {
+                  tapItem: () => TrendingView.tapPredictionRow('1'),
+                  verifyVisible: () =>
+                    TrendingView.verifyPredictionDetailsVisible(),
+                  tapBack: () => TrendingView.tapBackFromPredictionDetails(),
+                },
+              },
+              {
+                section: TrendingViewSelectorsText.SECTION_PERPS,
+                sectionHeaderText: 'Perps movers',
+                verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
+                details: {
+                  tapItem: () => TrendingView.tapPerpRow('BTC'),
+                  verifyVisible: () => TrendingView.verifyPerpDetailsVisible(),
+                  tapBack: () => TrendingView.tapBackFromPerpDetails(),
+                },
+              },
+              {
+                section: TrendingViewSelectorsText.SECTION_TOKENS,
+                sectionHeaderText: TrendingViewSelectorsText.SECTION_TOKENS,
+                verifyItemVisible: () =>
+                  TrendingView.verifyTokenVisible(USDC_ASSET_ID),
+                details: {
+                  tapItem: () => TrendingView.tapTokenRow(USDC_ASSET_ID),
+                  verifyVisible: () =>
+                    TrendingView.verifyTokenDetailsTitleVisible('USDC'),
+                  tapBack: () => TrendingView.tapBackFromTokenDetails(),
+                },
+              },
+              {
+                section: TrendingViewSelectorsText.SECTION_STOCKS,
+                sectionHeaderText: TrendingViewSelectorsText.SECTION_STOCKS,
+                verifyItemVisible: () =>
+                  TrendingView.verifyTokenVisible(RWA_STOCK_ASSET_ID),
+                details: {
+                  tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
+                  verifyVisible: () =>
+                    TrendingView.verifyTokenDetailsTitleVisible('USDY'),
+                  tapBack: () => TrendingView.tapBackFromTokenDetails(),
+                },
+              },
+              {
+                section: TrendingViewSelectorsText.SECTION_SITES,
+                sectionHeaderText: 'Popular',
+                verifyItemVisible: () =>
+                  TrendingView.verifySiteVisible('Uniswap'),
+              },
+            ];
+
+            for (const config of sectionsConfig) {
+              await TrendingView.navigateToSectionTab(config.section);
+              await TrendingView.verifySectionHeaderInFeed(
+                config.sectionHeaderText,
+              );
+
+              await TrendingView.tapViewAll(config.section);
+              await TrendingView.verifySectionHeaderInFullView(config.section);
+              await TrendingView.tapBackFromFullView(config.section);
+              await TrendingView.verifyFeedVisible();
+
+              await TrendingView.navigateToSectionTab(config.section);
+              await config.verifyItemVisible();
+
+              if (config.details) {
+                await config.details.tapItem();
+                await config.details.verifyVisible();
+                await config.details.tapBack();
+                await TrendingView.verifyFeedVisible();
+              }
+            }
+          },
+        );
+      },
+    );
+  },
+);
