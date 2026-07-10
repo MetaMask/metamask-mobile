@@ -23,9 +23,6 @@ import {
 
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { TOKEN_LIST_ITEM_TEST_IDS } from './TokenListItem.testIds';
-import { useTheme } from '../../../../../util/theme';
-import { AppThemeKey } from '../../../../../util/theme/models';
-import { isPureBlackEnabled } from '../../../../../util/theme/themeUtils';
 
 interface TokenListItemProps {
   token: DepositCryptoCurrency;
@@ -47,9 +44,6 @@ function TokenListItem({
   const getTokenNetworkInfo = useTokenNetworkInfo();
   const { networkName, depositNetworkName, networkImageSource } =
     getTokenNetworkInfo(token.chainId);
-  const theme = useTheme();
-  const isPureBlackDarkMode =
-    isPureBlackEnabled && theme.themeAppearance === AppThemeKey.dark;
 
   const handleInfoPress = useCallback(() => {
     onInfoPress?.();
@@ -60,9 +54,6 @@ function TokenListItem({
       isSelected={isSelected}
       onPress={onPress}
       isDisabled={isDisabled}
-      // In Pure Black dark mode, make the row background transparent so the
-      // screen remains true #000000. Otherwise, keep the elevated surface.
-      style={isPureBlackDarkMode ? { backgroundColor: 'transparent' } : undefined}
       gap={20}
       listItemProps={{
         style: { paddingVertical: 8, paddingHorizontal: 16 },
