@@ -1,7 +1,16 @@
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 
 import Routes from '../../constants/navigation/Routes';
+
+type NavigatorWithParent = Pick<
+  NavigationProp<ParamListBase>,
+  'getState' | 'getParent' | 'addListener'
+>;
 
 const navigatorHasQrTabSwitcher = (
   routes: { name: string }[] | undefined,
@@ -17,13 +26,12 @@ const navigatorHasQrTabSwitcher = (
  * existing-user flows.
  */
 export const useIsQrTabSwitcherOpen = (): boolean => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigatorWithParent>();
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const updateIsOpen = () => {
-      let currentNavigation: ReturnType<typeof useNavigation> | undefined =
-        navigation;
+      let currentNavigation: NavigatorWithParent | undefined = navigation;
 
       while (currentNavigation) {
         const { routes } = currentNavigation.getState();
