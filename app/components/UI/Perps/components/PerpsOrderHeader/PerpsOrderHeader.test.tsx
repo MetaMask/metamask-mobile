@@ -316,14 +316,19 @@ describe('PerpsOrderHeader', () => {
       expect(getByText('$3,000')).toBeTruthy();
     });
 
-    it('subscribes using the asset symbol so different order screens get independent prices', () => {
+    it('subscribes using the asset symbol with no artificial throttle', () => {
+      // Unlike the parent screen's own price subscription (throttled to avoid
+      // re-running expensive fee/margin/validation calculations), this
+      // subscription only feeds the lightweight header display, so it should
+      // not be artificially throttled — matching the market details header's
+      // effectively real-time cadence.
       renderWithProvider(<PerpsOrderHeader {...defaultProps} asset="BTC" />, {
         state: initialState,
       });
 
       expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
         symbols: ['BTC'],
-        throttleMs: 1000,
+        throttleMs: 0,
       });
     });
   });

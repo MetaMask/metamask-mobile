@@ -16,8 +16,14 @@ import { usePerpsLivePrices } from '../../hooks/stream';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
-// Header price cadence, matches LivePriceHeader's own default throttle.
-const HEADER_PRICE_THROTTLE_MS = 1000;
+// No artificial throttle: unlike PerpsOrderView / PerpsClosePositionView's own
+// price subscription (which drives expensive fee/margin/validation recompute
+// and is deliberately throttled to 1000ms), this subscription only feeds a
+// couple of Text nodes inside a memoized leaf component. Matches the market
+// details header, which is effectively unthrottled (driven directly by chart
+// ticks) — see PerpsMarketTradesList for the same "instant" pattern applied
+// to a different lightweight display.
+const HEADER_PRICE_THROTTLE_MS = 0;
 
 interface PerpsOrderHeaderProps {
   asset: string;
