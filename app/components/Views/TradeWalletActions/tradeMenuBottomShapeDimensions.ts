@@ -3,6 +3,8 @@ export const TRADE_MENU_BOTTOM_SHAPE_WIDTH_MULTIPLIER = 2;
 export const TRADE_MENU_BOTTOM_SHAPE_BASE_BEZIER_LENGTH = 55;
 export const TRADE_MENU_BOTTOM_SHAPE_PEAK_HEIGHT = 16;
 export const TRADE_MENU_BOTTOM_SHAPE_PEAK_BEZIER_LENGTH = 25;
+export const TRADE_MENU_BOTTOM_SHAPE_STROKE_WIDTH = 1;
+export const TRADE_MENU_BOTTOM_SHAPE_STROKE_SVG_WIDTH_EXTRA = 4;
 
 /** Bottom notch mask/stroke dimensions for TradeWalletActions. */
 export const getTradeMenuBottomShapeDimensions = (buttonWidth: number) => ({

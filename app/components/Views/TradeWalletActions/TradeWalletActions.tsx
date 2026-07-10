@@ -85,7 +85,11 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
-import { getTradeMenuBottomShapeDimensions } from './tradeMenuBottomShapeDimensions';
+import {
+  getTradeMenuBottomShapeDimensions,
+  TRADE_MENU_BOTTOM_SHAPE_STROKE_SVG_WIDTH_EXTRA,
+  TRADE_MENU_BOTTOM_SHAPE_STROKE_WIDTH,
+} from './tradeMenuBottomShapeDimensions';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
@@ -323,6 +327,9 @@ function TradeWalletActions() {
     () => getTradeMenuBottomShapeDimensions(buttonLayout.width),
     [buttonLayout.width],
   );
+  const bottomShapeStrokeWidth =
+    bottomShapeDimensions.width +
+    TRADE_MENU_BOTTOM_SHAPE_STROKE_SVG_WIDTH_EXTRA;
 
   const actionList = (
     <>
@@ -438,7 +445,7 @@ function TradeWalletActions() {
               testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
             >
               <BottomShape
-                width={bottomShapeDimensions.width}
+                width={bottomShapeStrokeWidth}
                 height={bottomMaskHeight}
                 peakHeight={bottomShapeDimensions.peakHeight}
                 peakBezierLength={bottomShapeDimensions.peakBezierLength}
@@ -446,7 +453,7 @@ function TradeWalletActions() {
                 strokeOnly
                 pathProps={{
                   stroke: colors.border.muted,
-                  strokeWidth: 1,
+                  strokeWidth: TRADE_MENU_BOTTOM_SHAPE_STROKE_WIDTH,
                 }}
               />
             </View>
