@@ -46,6 +46,7 @@ import {
   selectDepositLimits,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { isStablecoin } from '../../utils/token';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
@@ -60,6 +61,10 @@ jest.mock(
 jest.mock('../../utils/token', () => ({
   ...jest.requireActual('../../utils/token'),
   isStablecoin: jest.fn(),
+}));
+jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
+  ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
+  getMoneyAccountDepositIntent: jest.fn(),
 }));
 
 jest.mock('../tokens/useTokenFiatRates');
@@ -1048,7 +1053,16 @@ describe('useTransactionCustomAmount', () => {
       } as ReturnType<typeof useMoneyAccountBalance>);
     });
 
+    const addMusdTransactionMeta = {
+      type: TransactionType.moneyAccountDeposit,
+      id: transactionIdMock,
+      batchId: '0xtestbatchid' as Hex,
+      chainId: '0x1' as Hex,
+      txParams: { from: '0xabc' },
+    } as unknown as Partial<TransactionMeta>;
+
     it('sets isMaxAmount=true when auto-filling so the full mUSD balance is moved', async () => {
+      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('addMusd');
       runHook({
         transactionMeta: addMusdTransactionMeta,
       });
