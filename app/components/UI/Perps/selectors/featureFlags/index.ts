@@ -132,7 +132,6 @@ export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
 );
 
 /**
-<<<<<<< HEAD
  * Selector for Recently Viewed rail feature flag.
  * Controls visibility of the "Recently viewed" markets rail on the Perps
  * market list screen.
@@ -152,69 +151,6 @@ export const selectPerpsRecentlyViewedEnabledFlag = createSelector(
 );
 
 /**
- * Selector for button color A/B test variant from LaunchDarkly
- * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
- *
- * @returns Variant name ('control' | 'monochrome') or null if test is disabled
- */
-export const selectPerpsButtonColorTestVariant = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): string | null => {
-    const remoteFlag = remoteFeatureFlags?.perpsAbtestButtonColor;
-
-    // LaunchDarkly can return:
-    // 1. A string variant name: 'control' or 'monochrome'
-    // 2. A version-gated object: { enabled: true, minAppVersion: '7.60.0', variant: 'control' }
-    // 3. null/undefined if test is disabled
-
-    if (!remoteFlag) {
-      return null;
-    }
-
-    // Direct string variant (simpler LaunchDarkly config)
-    if (typeof remoteFlag === 'string') {
-      // Validate variant is a known value
-      if (
-        VALID_BUTTON_COLOR_VARIANTS.includes(
-          remoteFlag as ButtonColorVariantName,
-        )
-      ) {
-        return remoteFlag; // Already a string, validated against known variants
-      }
-      return null;
-    }
-
-    // Check if it's a version-gated flag with variant
-    if (isVersionGatedFeatureFlag(remoteFlag)) {
-      // Validate version gating (enabled and version check)
-      const isValid = validatedVersionGatedFeatureFlag(remoteFlag);
-
-      if (!isValid) {
-        return null;
-      }
-
-      // Safely access variant property if it exists
-      if ('variant' in remoteFlag && typeof remoteFlag.variant === 'string') {
-        // Validate variant is a known value
-        if (
-          VALID_BUTTON_COLOR_VARIANTS.includes(
-            remoteFlag.variant as ButtonColorVariantName,
-          )
-        ) {
-          return remoteFlag.variant; // Already a string, validated against known variants
-        }
-      }
-
-      return null;
-    }
-
-    return null;
-  },
-);
-
-/**
-=======
->>>>>>> main
  * Selector for HIP-3 configuration version
  * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
  *
