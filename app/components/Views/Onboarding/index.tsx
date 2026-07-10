@@ -12,8 +12,10 @@ import {
   ScrollView,
   InteractionManager,
   Platform,
+  StyleSheet,
   View,
 } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
 import { captureException } from '@sentry/react-native';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -1072,8 +1074,13 @@ const Onboarding = () => {
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
-      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast)
+      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast) {
         return null;
+      }
+
+      if (!onboardingNotificationVisible) {
+        return null;
+      }
 
       const notificationData = route?.params?.showErrorReportSentToast
         ? {
@@ -1088,24 +1095,27 @@ const Onboarding = () => {
           };
 
       return (
-        <View
-          style={tw.style('absolute top-0 left-0 right-0', { zIndex: 999 })}
-          pointerEvents="box-none"
-        >
-          <BaseNotification
-            isVisible={onboardingNotificationVisible}
-            dismissDuration={4000}
-            onDismissComplete={() => setOnboardingNotificationVisible(false)}
-            status="success"
-            data={notificationData}
-          />
-        </View>
+        <FullWindowOverlay>
+          {/*
+            Portal the toast to a UIWindow so BaseNotification's top-anchored
+            animation is not affected by onboarding layout siblings (fox
+            animation, fast onboarding sheet) lower in the tree.
+          */}
+          <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+            <BaseNotification
+              isVisible={onboardingNotificationVisible}
+              dismissDuration={4000}
+              onDismissComplete={() => setOnboardingNotificationVisible(false)}
+              status="success"
+              data={notificationData}
+            />
+          </View>
+        </FullWindowOverlay>
       );
     }, [
       route?.params?.delete,
       route?.params?.showErrorReportSentToast,
       onboardingNotificationVisible,
-      tw,
     ]);
 
   useEffect(() => {
@@ -1175,6 +1185,7 @@ const Onboarding = () => {
         })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
+        {handleSimpleNotification()}
         <ScrollView
           style={tw.style('flex-1')}
           contentContainerStyle={tw.style('flex-1')}
@@ -1212,8 +1223,6 @@ const Onboarding = () => {
         {!hasTestOverrides && (
           <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         )}
-
-        <Box>{handleSimpleNotification()}</Box>
 
         <FastOnboarding
           onPressContinueWithGoogle={onPressContinueWithGoogle}
