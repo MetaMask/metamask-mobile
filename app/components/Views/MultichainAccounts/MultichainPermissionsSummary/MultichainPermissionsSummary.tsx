@@ -6,16 +6,6 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
-import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
 import {
   Text,
   TextColor,
@@ -23,7 +13,27 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
-  IconName as DesignSystemIconName,
+  ButtonIcon,
+  ButtonIconSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  AvatarFavicon,
+  AvatarFaviconSize,
+  AvatarToken,
+  AvatarTokenSize,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  AvatarIcon,
+  AvatarIconSize,
+  AvatarIconSeverity,
+  AvatarGroup,
+  AvatarGroupSize,
+  AvatarGroupVariant,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
 } from '@metamask/design-system-react-native';
 import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
@@ -34,9 +44,6 @@ import {
   getConnectButtonContent,
 } from '../../../UI/PermissionsSummary/MaliciousDappIndicators';
 import Routes from '../../../../constants/navigation/Routes';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
 import TabBar from '../../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
@@ -53,17 +60,10 @@ import { PermissionSummaryBottomSheetSelectorsIDs } from '../../MultichainAccoun
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { selectIconSeedAddressesByAccountGroupIds } from '../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../reducers';
 
@@ -196,27 +196,20 @@ const MultichainPermissionsSummary = ({
           testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
         >
           <BadgeWrapper
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={networkImageSource}
-              />
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              <BadgeNetwork name={networkName} src={networkImageSource} />
             }
           >
             {icon ? (
               <AvatarFavicon
-                imageSource={{
+                src={{
                   uri: typeof icon === 'string' ? icon : icon?.uri,
                 }}
-                size={AvatarSize.Md}
+                size={AvatarFaviconSize.Md}
               />
             ) : (
-              <AvatarToken
-                name={iconTitle}
-                isHaloEnabled
-                size={AvatarSize.Md}
-              />
+              <AvatarToken name={iconTitle} size={AvatarTokenSize.Md} />
             )}
           </BadgeWrapper>
         </TouchableOpacity>
@@ -239,9 +232,10 @@ const MultichainPermissionsSummary = ({
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
-              iconColor={IconColor.Default}
               onPress={onBack}
               iconName={IconName.ArrowLeft}
+              size={ButtonIconSize.Md}
+              iconProps={{ color: IconColor.IconDefault }}
             />
           )}
         </View>
@@ -256,9 +250,9 @@ const MultichainPermissionsSummary = ({
         </View>
         <View style={styles.endAccessory}>
           <ButtonIcon
-            size={ButtonIconSizes.Sm}
+            size={ButtonIconSize.Sm}
             iconName={IconName.Info}
-            iconColor={IconColor.Default}
+            iconProps={{ color: IconColor.IconDefault }}
             onPress={() => {
               navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                 screen: Routes.SHEET.CONNECTION_DETAILS,
@@ -282,7 +276,11 @@ const MultichainPermissionsSummary = ({
   const renderEndAccessory = () => (
     <View testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
       {isAlreadyConnected ? (
-        <Icon size={IconSize.Md} name={IconName.ArrowRight} />
+        <Icon
+          size={IconSize.Md}
+          name={IconName.ArrowRight}
+          color={IconColor.IconDefault}
+        />
       ) : (
         <View style={styles.editTextContainer}>
           <Text color={TextColor.PrimaryDefault} variant={TextVariant.BodyMd}>
@@ -352,15 +350,6 @@ const MultichainPermissionsSummary = ({
     selectIconSeedAddressesByAccountGroupIds(state, selectedAccountGroupIds),
   );
 
-  const renderAccountAvatar = useCallback(
-    (accountGroup: AccountGroupObject) => ({
-      variant: AvatarVariant.Account as const,
-      accountAddress: iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
-      size: AvatarSize.Xs,
-    }),
-    [iconSeedAddresses],
-  );
-
   function renderAccountPermissionsRequestInfoCard() {
     return (
       <TouchableOpacity
@@ -368,13 +357,12 @@ const MultichainPermissionsSummary = ({
         style={styles.accountPermissionRequestInfoCard}
         testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
       >
-        <Avatar
-          variant={AvatarVariant.Icon}
+        <AvatarIcon
+          iconName={IconName.Wallet}
           style={styles.walletIcon}
-          name={IconName.Wallet}
-          size={AvatarSize.Md}
-          backgroundColor={colors.shadow.default}
-          iconColor={colors.icon.alternative}
+          size={AvatarIconSize.Md}
+          severity={AvatarIconSeverity.Neutral}
+          iconProps={{ color: IconColor.IconAlternative }}
         />
         <View style={styles.accountPermissionRequestDetails}>
           <Text variant={TextVariant.BodyMd}>
@@ -396,9 +384,12 @@ const MultichainPermissionsSummary = ({
             </View>
             <View style={styles.avatarGroup}>
               <AvatarGroup
-                avatarPropsList={selectedAccountGroups.map((accountGroup) =>
-                  renderAccountAvatar(accountGroup),
-                )}
+                variant={AvatarGroupVariant.Account}
+                size={AvatarGroupSize.Xs}
+                avatarPropsArr={selectedAccountGroups.map((accountGroup) => ({
+                  address:
+                    iconSeedAddresses[accountGroup.id] ?? accountGroup.id,
+                }))}
               />
             </View>
           </View>
@@ -417,13 +408,12 @@ const MultichainPermissionsSummary = ({
         }
       >
         <View style={styles.networkPermissionRequestInfoCard}>
-          <Avatar
+          <AvatarIcon
             style={styles.dataIcon}
-            variant={AvatarVariant.Icon}
-            name={IconName.Data}
-            size={AvatarSize.Md}
-            backgroundColor={colors.shadow.default}
-            iconColor={colors.icon.alternative}
+            iconName={IconName.Data}
+            size={AvatarIconSize.Md}
+            severity={AvatarIconSeverity.Neutral}
+            iconProps={{ color: IconColor.IconAlternative }}
           />
           <View style={styles.networkPermissionRequestDetails}>
             <Text variant={TextVariant.BodyMd}>
@@ -444,15 +434,14 @@ const MultichainPermissionsSummary = ({
                       </Text>
                     </Text>
                   </View>
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Xs}
+                  <AvatarNetwork
+                    size={AvatarNetworkSize.Xs}
                     name={
                       isNonDappNetworkSwitch
                         ? networkName || providerConfig.nickname
                         : chainName
                     }
-                    imageSource={
+                    src={
                       isNonDappNetworkSwitch
                         ? getNetworkImageSource({
                             chainId,
@@ -473,9 +462,11 @@ const MultichainPermissionsSummary = ({
                   </View>
                   <View style={styles.avatarGroup}>
                     <AvatarGroup
-                      avatarPropsList={networkAvatars.map((avatar) => ({
-                        ...avatar,
-                        variant: AvatarVariant.Network,
+                      variant={AvatarGroupVariant.Network}
+                      size={AvatarGroupSize.Xs}
+                      avatarPropsArr={networkAvatars.map((avatar) => ({
+                        name: avatar.name,
+                        src: avatar.imageSource,
                       }))}
                     />
                   </View>
@@ -630,7 +621,7 @@ const MultichainPermissionsSummary = ({
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
                 }
                 onPress={toggleRevokeAllPermissionsModal}
-                startIconName={DesignSystemIconName.Logout}
+                startIconName={IconName.Logout}
                 isDanger
                 size={ButtonBaseSize.Lg}
                 style={{

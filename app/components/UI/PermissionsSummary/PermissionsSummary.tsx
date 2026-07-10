@@ -7,16 +7,6 @@ import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../component-library/components/Avatars/Avatar';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import styleSheet from './PermissionsSummary.styles';
@@ -28,9 +18,6 @@ import {
 } from './MaliciousDappIndicators';
 import { USER_INTENT } from '../../../constants/permissions';
 import Routes from '../../../constants/navigation/Routes';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
 import TabBar from '../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../util/networks';
 import { SDKSelectorsIDs } from '../../Views/SDK/SDK.testIds';
@@ -53,12 +40,6 @@ import {
 } from './PermissionSummary.constants';
 import { isCaipAccountIdInPermittedAccountIds } from '@metamask/chain-agnostic-permission';
 import { CaipChainId, parseCaipAccountId } from '@metamask/utils';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import AccountConnectCreateInitialAccount from '../../Views/MultichainAccounts/shared/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/types';
@@ -71,6 +52,27 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  ButtonIcon,
+  ButtonIconSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  AvatarFavicon,
+  AvatarFaviconSize,
+  AvatarToken,
+  AvatarTokenSize,
+  AvatarNetwork,
+  AvatarNetworkSize,
+  AvatarIcon,
+  AvatarIconSize,
+  AvatarIconSeverity,
+  AvatarGroup,
+  AvatarGroupSize,
+  AvatarGroupVariant,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
 } from '@metamask/design-system-react-native';
 
 const PermissionsSummary = ({
@@ -173,27 +175,20 @@ const PermissionsSummary = ({
           testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
         >
           <BadgeWrapper
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={networkImageSource}
-              />
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              <BadgeNetwork name={networkName} src={networkImageSource} />
             }
           >
             {icon ? (
               <AvatarFavicon
-                imageSource={{
+                src={{
                   uri: typeof icon === 'string' ? icon : icon?.uri,
                 }}
-                size={AvatarSize.Md}
+                size={AvatarFaviconSize.Md}
               />
             ) : (
-              <AvatarToken
-                name={iconTitle}
-                isHaloEnabled
-                size={AvatarSize.Md}
-              />
+              <AvatarToken name={iconTitle} size={AvatarTokenSize.Md} />
             )}
           </BadgeWrapper>
         </TouchableOpacity>
@@ -216,9 +211,10 @@ const PermissionsSummary = ({
           {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               testID={PermissionSummaryBottomSheetSelectorsIDs.BACK_BUTTON}
-              iconColor={IconColor.Default}
               onPress={onBack}
               iconName={IconName.ArrowLeft}
+              size={ButtonIconSize.Md}
+              iconProps={{ color: IconColor.IconDefault }}
             />
           )}
         </View>
@@ -234,9 +230,9 @@ const PermissionsSummary = ({
         <View style={styles.endAccessory}>
           {!isRenderedAsBottomSheet && (
             <ButtonIcon
-              size={ButtonIconSizes.Sm}
+              size={ButtonIconSize.Sm}
               iconName={IconName.Info}
-              iconColor={IconColor.Default}
+              iconProps={{ color: IconColor.IconDefault }}
               onPress={() => {
                 navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                   screen: Routes.SHEET.CONNECTION_DETAILS,
@@ -263,7 +259,11 @@ const PermissionsSummary = ({
   const renderEndAccessory = () => (
     <View testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
       {isAlreadyConnected ? (
-        <Icon size={IconSize.Md} name={IconName.ArrowRight} />
+        <Icon
+          size={IconSize.Md}
+          name={IconName.ArrowRight}
+          color={IconColor.IconDefault}
+        />
       ) : (
         <View style={styles.editTextContainer}>
           <TextComponent
@@ -361,13 +361,12 @@ const PermissionsSummary = ({
           style={styles.accountPermissionRequestInfoCard}
           testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
         >
-          <Avatar
-            variant={AvatarVariant.Icon}
+          <AvatarIcon
+            iconName={IconName.Wallet}
             style={styles.walletIcon}
-            name={IconName.Wallet}
-            size={AvatarSize.Md}
-            backgroundColor={colors.shadow.default}
-            iconColor={colors.icon.alternative}
+            size={AvatarIconSize.Md}
+            severity={AvatarIconSeverity.Neutral}
+            iconProps={{ color: IconColor.IconAlternative }}
           />
           <View style={styles.accountPermissionRequestDetails}>
             <TextComponent variant={TextVariant.BodyMd}>
@@ -389,13 +388,11 @@ const PermissionsSummary = ({
               </View>
               <View style={styles.avatarGroup}>
                 <AvatarGroup
-                  avatarPropsList={accountAddresses.map((caipAccountId) => {
+                  variant={AvatarGroupVariant.Account}
+                  size={AvatarGroupSize.Xs}
+                  avatarPropsArr={accountAddresses.map((caipAccountId) => {
                     const { address } = parseCaipAccountId(caipAccountId);
-                    return {
-                      variant: AvatarVariant.Account,
-                      accountAddress: address,
-                      size: AvatarSize.Xs,
-                    };
+                    return { address };
                   })}
                 />
               </View>
@@ -416,13 +413,12 @@ const PermissionsSummary = ({
         }
       >
         <View style={styles.networkPermissionRequestInfoCard}>
-          <Avatar
+          <AvatarIcon
             style={styles.dataIcon}
-            variant={AvatarVariant.Icon}
-            name={IconName.Data}
-            size={AvatarSize.Md}
-            backgroundColor={colors.shadow.default}
-            iconColor={colors.icon.alternative}
+            iconName={IconName.Data}
+            size={AvatarIconSize.Md}
+            severity={AvatarIconSeverity.Neutral}
+            iconProps={{ color: IconColor.IconAlternative }}
           />
           <View style={styles.networkPermissionRequestDetails}>
             <TextComponent variant={TextVariant.BodyMd}>
@@ -446,15 +442,14 @@ const PermissionsSummary = ({
                       </TextComponent>
                     </TextComponent>
                   </View>
-                  <Avatar
-                    variant={AvatarVariant.Network}
-                    size={AvatarSize.Xs}
+                  <AvatarNetwork
+                    size={AvatarNetworkSize.Xs}
                     name={
                       isNonDappNetworkSwitch
                         ? networkName || providerConfig.nickname
                         : chainName
                     }
-                    imageSource={
+                    src={
                       isNonDappNetworkSwitch
                         ? getNetworkImageSource({
                             chainId,
@@ -475,9 +470,11 @@ const PermissionsSummary = ({
                   </View>
                   <View style={styles.avatarGroup}>
                     <AvatarGroup
-                      avatarPropsList={networkAvatars.map((avatar) => ({
-                        ...avatar,
-                        variant: AvatarVariant.Network,
+                      variant={AvatarGroupVariant.Network}
+                      size={AvatarGroupSize.Xs}
+                      avatarPropsArr={networkAvatars.map((avatar) => ({
+                        name: avatar.name,
+                        src: avatar.imageSource,
                       }))}
                     />
                   </View>
