@@ -21,7 +21,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 const ONDO_ELIGIBILITY_URL =
   'https://docs.ondo.finance/ondo-global-markets/eligibility';
@@ -43,7 +42,6 @@ const RwaUnavailableBottomSheet = forwardRef<
   const [isVisible, setIsVisible] = useState(false);
   const tw = useTailwind();
   const navigation = useNavigation();
-  const surfaceClass = useElevatedSurface();
 
   const handleSheetClosed = useCallback(() => {
     setIsVisible(false);
@@ -101,12 +99,7 @@ const RwaUnavailableBottomSheet = forwardRef<
   }
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      isInteractable
-      onClose={handleSheetClosed}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} isInteractable onClose={handleSheetClosed}>
       <BottomSheetHeader onClose={closeSheet}>
         {strings('rwa.unavailable.title')}
       </BottomSheetHeader>
