@@ -155,6 +155,50 @@ describe('BaseNotification', () => {
     expect(queryByTestId('base-notification-container')).not.toBeOnTheScreen();
   });
 
+  it('invokes onDismissComplete when isVisible becomes false after enter', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={5000}
+        isVisible
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    rerender(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={5000}
+        isVisible={false}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    expect(queryByTestId('base-notification-container')).not.toBeOnTheScreen();
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('does not invoke onDismissComplete when isVisible starts false', () => {
+    const onDismissComplete = jest.fn();
+    renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        isVisible={false}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    expect(onDismissComplete).not.toHaveBeenCalled();
+  });
+
   it('invokes onDismissComplete after the auto dismiss animation completes', async () => {
     jest.useFakeTimers();
     const onDismissComplete = jest.fn();

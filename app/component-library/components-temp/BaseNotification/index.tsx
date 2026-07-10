@@ -259,6 +259,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   useEffect(() => {
     const statusChanged = prevStatusRef.current !== status;
     const visibilityChanged = prevIsVisibleRef.current !== isVisible;
+    const wasVisible = prevIsVisibleRef.current;
     prevStatusRef.current = status;
     prevIsVisibleRef.current = isVisible;
 
@@ -269,16 +270,35 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       return;
     }
 
+    const hadEntered = hasEnteredRef.current;
+
+    if (!isVisible) {
+      cancelAnimation(translateYProgress);
+      hasEnteredRef.current = false;
+
+      if (visibilityChanged && wasVisible && hadEntered) {
+        handleDismissComplete();
+      }
+
+      return;
+    }
+
     hasEnteredRef.current = false;
     dismissCompleteCalledRef.current = false;
     cancelAnimation(translateYProgress);
 
-    if (!isVisible || measuredHeightRef.current === null) {
+    if (measuredHeightRef.current === null) {
       return;
     }
 
     startEnterAnimation(measuredHeightRef.current);
-  }, [isVisible, startEnterAnimation, status, translateYProgress]);
+  }, [
+    handleDismissComplete,
+    isVisible,
+    startEnterAnimation,
+    status,
+    translateYProgress,
+  ]);
 
   const runExitAnimation = useCallback(
     (onComplete?: () => void) => {
