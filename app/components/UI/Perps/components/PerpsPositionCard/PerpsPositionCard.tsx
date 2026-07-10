@@ -45,6 +45,7 @@ import {
   formatPnl,
   formatPositionSize,
   formatPercentage,
+  formatPerpsPrice,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -107,6 +108,8 @@ interface PerpsPositionCardProps {
   iconSize?: number;
   /** When true, shows a small skeleton placeholder for the TP/SL field instead of "No TP/SL" */
   tpSlLoading?: boolean;
+  /** Market size decimals, used to derive Hyperliquid price precision for TP/SL display. */
+  szDecimals?: number | null;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -124,6 +127,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   testID,
   iconSize = 40,
   tpSlLoading = false,
+  szDecimals,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
@@ -555,18 +559,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   const parts: string[] = [];
 
                   if (hasTakeProfit && takeProfitPrice) {
-                    const tpPrice = formatPerpsFiat(
-                      parseFloat(takeProfitPrice),
-                      {
-                        ranges: PRICE_RANGES_UNIVERSAL,
-                      },
-                    );
+                    const tpPrice = formatPerpsPrice(takeProfitPrice, {
+                      szDecimals,
+                    });
                     parts.push(`${strings('perps.order.tp')} ${tpPrice}`);
                   }
 
                   if (hasStopLoss && stopLossPrice) {
-                    const slPrice = formatPerpsFiat(parseFloat(stopLossPrice), {
-                      ranges: PRICE_RANGES_UNIVERSAL,
+                    const slPrice = formatPerpsPrice(stopLossPrice, {
+                      szDecimals,
                     });
                     parts.push(`${strings('perps.order.sl')} ${slPrice}`);
                   }

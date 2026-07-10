@@ -670,10 +670,11 @@ jest.mock('../../components/PerpsPositionCard', () => ({
   default: (props: {
     onAutoClosePress?: () => void;
     onMarginPress?: () => void;
+    szDecimals?: number;
   }) => {
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
     return (
-      <View testID="perps-position-card">
+      <View testID="perps-position-card" {...props}>
         {props.onAutoClosePress && (
           <TouchableOpacity
             testID="perps-position-card-auto-close-button"
@@ -1830,6 +1831,69 @@ describe('PerpsMarketDetailsView', () => {
       await waitFor(() => {
         expect(getAllByText('$47,000').length).toBeGreaterThan(0);
       });
+    });
+
+    it('forwards market szDecimals to advanced chart and position card', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const { usePerpsMarketData } = jest.requireMock('../../hooks');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+      usePerpsMarketData.mockReturnValue({
+        marketData: { szDecimals: 2, maxLeverage: 50 },
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '50',
+          marginUsed: '500',
+          leverage: { type: 'isolated', value: 5 },
+          liquidationPrice: '40000',
+          maxLeverage: 40,
+          returnOnEquity: '10',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(getByTestId('mock-perps-advanced-chart').props.szDecimals).toBe(2);
+      expect(getByTestId('perps-position-card').props.szDecimals).toBe(2);
     });
 
     it('logs and tracks advanced chart errors from market details', () => {
