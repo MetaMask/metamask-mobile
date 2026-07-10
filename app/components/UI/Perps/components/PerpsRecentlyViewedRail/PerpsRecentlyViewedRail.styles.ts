@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     rail: {
-      paddingVertical: 16,
+      paddingBottom: 4,
     },
     scrollContent: {
       paddingHorizontal: 16,

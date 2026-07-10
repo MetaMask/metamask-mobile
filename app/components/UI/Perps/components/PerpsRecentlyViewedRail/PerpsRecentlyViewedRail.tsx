@@ -1,6 +1,10 @@
 import React, { memo, useCallback } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { SectionHeader } from '@metamask/design-system-react-native';
+import {
+  SectionHeader,
+  TextVariant as DSTextVariant,
+  TextColor as DSTextColor,
+} from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
@@ -126,7 +130,13 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
 
   return (
     <View style={styles.rail} testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL}>
-      <SectionHeader title={strings('perps.recently_searched')} />
+      <SectionHeader
+        title={strings('perps.recently_searched')}
+        titleProps={{
+          variant: DSTextVariant.BodySm,
+          color: DSTextColor.TextAlternative,
+        }}
+      />
 
       <ScrollView
         horizontal

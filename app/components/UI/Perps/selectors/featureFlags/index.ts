@@ -151,15 +151,14 @@ export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
  */
 export const selectPerpsRecentlyViewedEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => 
-    // // Default to false if no flag is set (disabled by default)
-    // const localFlag = process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED === 'true';
-    // const remoteFlag =
-    //   remoteFeatureFlags?.perpsRecentlyViewedEnabled as unknown as VersionGatedFeatureFlag;
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRecentlyViewedEnabled as unknown as VersionGatedFeatureFlag;
 
-    // return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
-     true
-  ,
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
 );
 
 /**

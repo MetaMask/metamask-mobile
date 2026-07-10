@@ -316,6 +316,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     showWatchlistBadge,
     onWatchlistToggle,
     onCategorySelect,
+    showCategoryRow = true,
+    showSortRow = true,
     testID,
   }: {
     selectedOptionId: string;
@@ -330,6 +332,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     isWatchlistSelected?: boolean;
     onWatchlistToggle?: () => void;
     onCategorySelect?: (category: string) => void;
+    showCategoryRow?: boolean;
+    showSortRow?: boolean;
     testID?: string;
   }) {
     // Map sort option IDs to display labels
@@ -360,7 +364,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     return MockReact.createElement(
       View,
       { testID },
-      showMarketTypeDropdown &&
+      showCategoryRow &&
+        showMarketTypeDropdown &&
         onMarketTypePress &&
         MockReact.createElement(
           RNTouchableOpacity,
@@ -374,16 +379,21 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
             getMarketTypeLabel(marketTypeFilter || 'all'),
           ),
         ),
-      MockReact.createElement(
-        RNTouchableOpacity,
-        { testID: testID ? `${testID}-sort` : undefined, onPress: onSortPress },
+      showSortRow &&
         MockReact.createElement(
-          Text,
-          { testID: `${testID}-sort-text` },
-          displayText,
+          RNTouchableOpacity,
+          {
+            testID: testID ? `${testID}-sort` : undefined,
+            onPress: onSortPress,
+          },
+          MockReact.createElement(
+            Text,
+            { testID: `${testID}-sort-text` },
+            displayText,
+          ),
         ),
-      ),
-      showStocksCommoditiesDropdown &&
+      showCategoryRow &&
+        showStocksCommoditiesDropdown &&
         onStocksCommoditiesPress &&
         MockReact.createElement(
           RNTouchableOpacity,
@@ -399,7 +409,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
             `Stocks/Commodities: ${stocksCommoditiesFilter || 'all'}`,
           ),
         ),
-      showWatchlistBadge &&
+      showCategoryRow &&
+        showWatchlistBadge &&
         MockReact.createElement(
           RNTouchableOpacity,
           {
@@ -408,7 +419,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
           },
           MockReact.createElement(Text, null, 'Watchlist'),
         ),
-      onCategorySelect &&
+      showCategoryRow &&
+        onCategorySelect &&
         ['all', 'crypto', 'stock', 'commodity', 'forex'].map((cat) =>
           MockReact.createElement(
             RNTouchableOpacity,

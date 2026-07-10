@@ -22,6 +22,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     SectionHeader: ({ title, testID }: { title: string; testID?: string }) => (
       <Text testID={testID}>{title}</Text>
     ),
+    TextVariant: { BodySm: 'body-sm' },
+    TextColor: { TextAlternative: 'text-alternative' },
   };
 });
 

@@ -521,6 +521,7 @@ const PerpsMarketListView = ({
           showWatchlistBadge={isWatchlistEnabled}
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}
+          showSortRow={false}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}
@@ -537,6 +538,19 @@ const PerpsMarketListView = ({
             }
           />
         )}
+
+      {!isLoadingMarkets && !error && (
+        <PerpsMarketFiltersBar
+          selectedOptionId={selectedOptionId}
+          onSortPress={() => setIsSortFieldSheetVisible(true)}
+          marketTypeFilter={marketTypeFilter}
+          onCategorySelect={handleCategorySelect}
+          marketCount={filteredMarkets.length}
+          isWatchlistSelected={showFavoritesOnly}
+          showCategoryRow={false}
+          testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
+        />
+      )}
 
       {/* Market List - wrapped in KeyboardAvoidingView so empty-state CTAs
           remain visible and tappable when the search keyboard is open */}
