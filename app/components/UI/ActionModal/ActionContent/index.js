@@ -3,10 +3,11 @@ import PropTypes from 'prop-types';
 import { StyleSheet, View } from 'react-native';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
+import { usePureBlack } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../util/theme';
 import { getElevatedSurfaceColor } from '../../../../util/theme/themeUtils';
 
-const createStyles = (theme) =>
+export const createStyles = (theme, isPureBlack = false) =>
   StyleSheet.create({
     viewWrapper: {
       flexDirection: 'column',
@@ -14,11 +15,15 @@ const createStyles = (theme) =>
       alignItems: 'center',
       marginHorizontal: 24,
     },
+    // TODO(Pure Black): Remove once MMDS ships pure-black-aware surface tokens.
+    // Drop getElevatedSurfaceColor, usePureBlack(), and the isPureBlack param.
+    // Use: backgroundColor: theme.colors.background.default, borderWidth: 0
     viewContainer: {
       width: '100%',
       backgroundColor: getElevatedSurfaceColor(theme),
-      borderWidth: 1,
       borderRadius: 10,
+      borderWidth: isPureBlack ? 1 : 0,
+      borderColor: isPureBlack ? theme.colors.border.muted : undefined,
     },
     actionHorizontalContainer: {
       flexDirection: 'row',
@@ -69,7 +74,8 @@ export default function ActionContent({
   verticalButtons,
 }) {
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const isPureBlack = usePureBlack();
+  const styles = createStyles(theme, isPureBlack);
 
   return (
     <View style={[styles.viewWrapper, viewWrapperStyle]}>
