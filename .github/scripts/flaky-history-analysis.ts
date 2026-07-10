@@ -407,6 +407,10 @@ async function getFailedTestFilesForRun(
 // files, bucketing each failure into every window it falls in. The denominator
 // is failure+success runs only — cancelled/timed_out runs don't tell us whether
 // the suite passed, so counting them inflates the sample and deflates the rate.
+// When MAX_FAILED_LOG_FETCHES is hit, failed runs beyond the cap are excluded
+// from the denominator too (not just the numerator) — otherwise runsSampled
+// would include failed runs whose per-file failures could never be counted,
+// biasing every rate downward.
 async function buildHistory(
   octokit: Octokit,
   owner: string,
@@ -421,11 +425,7 @@ async function buildHistory(
   const countableRuns = runs.filter(
     (r) => r.conclusion === 'failure' || r.conclusion === 'success',
   );
-
-  const runsSampled = emptyWindowCounts();
-  for (const run of countableRuns) {
-    for (const key of windowKeysForAge(ageInDays(run.createdAt))) runsSampled[key]++;
-  }
+  const successRuns = countableRuns.filter((r) => r.conclusion === 'success');
 
   // Newest-first so the failed-log budget is spent on recent runs, keeping the
   // short windows accurate if the cap is ever hit.
@@ -433,6 +433,14 @@ async function buildHistory(
     .filter((r) => r.conclusion === 'failure')
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, MAX_FAILED_LOG_FETCHES);
+
+  // Denominator = success runs (all) + failed runs actually inspected above.
+  // Uninspected failed runs (past the cap) are excluded from both numerator
+  // and denominator so the reported rate stays consistent.
+  const runsSampled = emptyWindowCounts();
+  for (const run of [...successRuns, ...failedRuns]) {
+    for (const key of windowKeysForAge(ageInDays(run.createdAt))) runsSampled[key]++;
+  }
 
   // Fetch failed-file lists for all failed runs concurrently. Each run only
   // downloads unit-test-shard logs (small), so the total download time is now
