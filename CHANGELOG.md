@@ -7,6 +7,289 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.3.0]
+
+### Uncategorized
+
+- Fixed blank flash on Token Details chart when switching timeframes with technical indicators enabled (#33032)
+- chore(navigation): complete RootStackParamList for bridge confirmation routes (#32548)
+- chore(navigation): complete RootStackParamList for Ramp routes (#32495)
+- chore(navigation): complete RootStackParamList for onboarding routes (#32500)
+- Added extended soccer Predict market types and improved outcome grouping for halves and player goals. (#32823)
+- chore(navigation): complete RootStackParamList for Assets routes (#32498)
+- chore: add robinhood png (#32809)
+- Fixed an issue where some regions showed an incorrect default buy amount after a cold app start. (#32776)
+- chore(cla): allowlist mm-token-exchange-service[bot] (#32844)
+- chore(social): remove orphaned NOTIFICATION_TYPE analytics constant (#32816)
+- chore(navigation): complete RootStackParamList for Card and Money routes (#32490)
+- chore(navigation): complete RootStackParamList for Earn routes (#32497)
+- revert: VS Code color settings (#32731)
+- Improved the Bridge quote flip button animation with a subtle bounce. (#32715)
+- chore: migrate MOBILE_BUNDLESIZE_TOKEN to OIDC token exchange (#32333)
+- Updated the Top Traders Follow button to match the size and padding of the leaderboard filter pills (#32676)
+- chore: migrate RELEASE_LABEL_TOKEN to OIDC token exchange (#32334)
+- Bump bridge status controller to v74.0.2 (#32711)
+- chore: backport EAS update workflow and metro transform from v8.0.1 (#32638)
+- chore: Update RBTC Icon (#30786)
+- Updated the SDK v1 connection screen to use the current MetaMask fox branding. (#31829)
+- chore(navigation): phase 1 - strict route typing infrastructure (#32369)
+- Post-RC cleanup of relay fixed spread and aave token symbol normalisation (#32552)
+- Add missing integration tests for price alerts (#32565)
+- Improved responsiveness when opening the weekly top traders leaderboard (#32474)
+- Updated the Money account FAQ copy and added a Risk and Disclosures section. (#32267)
+- chore: migrate STABLE_SYNC_TOKEN to OIDC token exchange (#32331)
+- chore: migrate METAMASKBOT_CROWDIN_TOKEN to OIDC token exchange (#32335)
+- Removed assets deprecated code (#30803)
+- Improve error handling of price alerts (#32469)
+- Removed unused earnMoneyDepositNoFeeTokens and MoneyHomeScreenEnabled flags (#32489)
+- chore: migrate ACTIONS_WRITE_TOKEN to OIDC token exchange (#32329)
+- chore: migrate METAMASK_MOBILE_BRANCH_SYNC_TOKEN to OIDC token exchange (#32328)
+- perf(ci): compress node_modules tarball with zstd to speed up build download (#32428)
+- chore(ci): skip Android AAB for non-production builds (PR-C) (#32411)
+- Add sign prefix to price alert percentage displays (#32453)
+
+### Added
+
+- feat(predict): add buy-button override and cardPressDisabled (RWDS-1435 2/4) (#32858)
+- Updated wallet home onboarding and Money onboarding animations (#33052)
+- Added Robinhood Chain as a featured network (#33037)
+- Added a Batch Sell banner to the Swap source token selector (#33033)
+- Added deeplink support for all Explore tabs (`?tab=now|macro|rwas|crypto|sports|sites`) and full-screen views (#32782)
+  (`?screen=trending-tokens|sites|favorite-sites|search`).
+- Upgraded `@metamask/notification-services-controller` to the v4 Notification API preview and migrated on-chain notification (#32808)
+  discriminator checks to `isOnChainNotification()`.
+- Added a subtle tilt-driven parallax animation to the Money "Fund your account" onboarding card. (#32892)
+- feat(rewards): add First Predict On Us CMS and flag foundation (RWDS-1435 1/4) (#32857)
+- Adds recently added market list search pill and section (#32612)
+- Added a shimmer animation to the APY label on the Money account screen. (#32955)
+- Fixed a bug that could cause a swap or bridge transaction's final status to never sync to MetaMask's backend if the (#32936)
+  extension was closed before the transaction had a chance to report as
+  submitted.
+- Added support for opening a specific "What's Happening" item from a deep link (e.g. `metamask://whats-happening?id=<id>`); the (#32881)
+  item opens in the expanded view and is labelled "Outdated" when it is no
+  longer in the latest feed.
+- Null ## **Related issues** (#32555)
+- Added the provider company name to benefit cards and the benefit detail page. (#30231)
+- Updated the onboarding interest questionnaire to match the latest Figma design with a list layout, new option categories, and a (#32670)
+  free-text "Other" input sheet.
+- feat: remove Social Leaderboard position PnL arrows (#32899)
+- Null ## **Related issues** (#30339)
+  Fixes:
+  [ASSETS-3116](https://consensyssoftware.atlassian.net/browse/ASSETS-3116)
+  Tech Spec: [WatchList Tech Spec — Technical Breakdown & Tasks
+  (§2.3)](https://consensyssoftware.atlassian.net/wiki/spaces/TL1/pages/401467637802/WatchList+Tech+Spec+-+Technical+Breakdown+Tasks#2.3-Hooks---TanStack-Query)
+  Supersedes local-storage layer from: [#30337 — `feat(watchlist): add
+local-storage backed watchlist storage
+utils`](https://github.com/MetaMask/metamask-mobile/pull/30337) (merged
+  into `main` in `804e12545a`) — `storage.ts` is refactored in this PR to
+  use AUS instead.
+
+## **Manual testing steps**
+
+These hooks are not yet wired into any UI (that is the scope of Phase 2
+in the tech spec). Verification is covered by automated tests:
+
+```bash
+yarn jest app/components/UI/assets/watchlist --coverage=false
+```
+
+Expected: **3 suites pass, 42 tests pass** — including three
+cross-mutation coalescing tests:
+
+1. Bursts of add/remove/replace ops from different hooks coalesce into a
+   single read-modify-write.
+2. A toggle (add A → remove A) within the debounce window collapses to
+   no change.
+3. A `replace` op overwrites prior add/remove ops in the same batch.
+
+```gherkin
+Feature: Watchlist mutation hooks (Phase 1 — business logic)
+  Scenario: TanStack mutation hooks pass automated tests
+    Given storage.ts delegates to AuthenticatedUserStorageService messenger actions (getAssetsWatchlist / setAssetsWatchlist)
+    When I run `yarn jest app/components/UI/assets/watchlist --coverage=false`
+    Then all 3 suites pass with 42 passing tests
+    And `yarn lint:tsc` reports no errors
+    And `npx eslint app/components/UI/assets/watchlist/` reports no errors
+```
+
+## **Screenshots/Recordings**
+
+N/A — business-logic-only PR. UI wiring is tracked separately under the
+Phase 2 tickets.
+
+### **Before**
+
+N/A
+
+### **After**
+
+N/A
+
+## **Pre-merge author checklist**
+
+- [x] I've followed [MetaMask Contributor
+      Docs](https://github.com/MetaMask/contributor-docs) and [MetaMask Mobile
+      Coding
+      Standards](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md).
+- [x] I've completed the PR template to the best of my ability
+- [x] I've included tests if applicable
+- [x] I've documented my code using [JSDoc](https://jsdoc.app/) format
+      if applicable
+- [ ] I've applied the right labels on the PR (see [labeling
+      guidelines](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md)).
+      Not required for external contributors.
+
+#### Performance checks (if applicable)
+
+- [ ] I've tested on Android
+- [ ] I've tested with a power user scenario
+- [ ] I've instrumented key operations with Sentry traces for production
+      performance metrics
+  > Not applicable for this PR — hooks are not yet wired into any UI
+  > surface, so there is no user-perceivable performance impact to validate.
+  > Phase 2 PRs that consume these hooks should re-check performance.
+
+## **Pre-merge reviewer checklist**
+
+- [ ] I've manually tested the PR (e.g. pull and build branch, run the
+      app, test code being changed).
+- [ ] I confirm that this PR addresses all acceptance criteria described
+      in the ticket it closes and includes the necessary testing evidence such
+      as recordings and or screenshots.
+- Added an A/B test for hot tokens, trending tokens, and stocks discovery content on the swap zero state (#32775)
+- Added streamed swap quotes to QuickBuy so each provider's quote appears as soon as it is available, instead of waiting (#32575)
+  for all providers (gated behind the bridge SSE feature flag).
+- Improved real-time data performance by moving WebSocket connections to a native transport with cold-start prewarming. (#32472)
+- Improved Swaps entry from token pages by focusing the amount input and opening the keypad automatically (#32783)
+- Added fee breakdown disclosure to the Sell trade confirmation screen, showing MetaMask fee, Exchange fee, and net Total (#32560)
+  before users confirm a cash out.
+- Added a mute chip for trader notifications on the leaderboard and profile, and a setup prompt when following or unmuting (#32716)
+  while trading-signal notifications are disabled
+- Added `Banner Dismissed` event (#32602)
+- Improved Social Trading position charts to frame the trader's trades, with tap-to-focus on individual trades. (#32590)
+- Added Price Alerts notification preferences to Settings > Notifications (#32698)
+- Added Card refund balances and redemption from Card Home (#32485)
+- Added discount badges (VIP/Promo/DAO) to the bridge fee disclaimer based on the quote discountType (#32584)
+- Fix rendering of apple order IDs in money account (#32591)
+- Added the ability to select a phone country code on the deposit KYC Basic Info screen, allowing users to enter a phone number (#31075)
+  from a country different from their detected region.
+- - Integrated the dynamic network registry into MetaMask Extension (#27201)
+- Networks persist across extension restarts
+- UI displays dynamic additional networks when available
+- Polling starts/stops automatically based on feature flag
+- Polling stops when the app is closed
+- Account syncs via the QR Code, controller and integration with UI. (#32078)
+- Added Speed up and Cancel actions for pending transactions on the redesigned activity transaction details screen. (#32618)
+- Added a QR code scanner button to the Send flow recipient field for scanning EVM recipient addresses (#32568)
+- Added thousand separators to MMPay amount inputs and prevented entering amounts above the maximum purchase limit for fiat (#32593)
+  payment methods.
+- Gate addDeviceSyncEnabled behind minimum version (#32630)
+- Migrated perps charts to Advanced Charts (#31247)
+- Updated the Swaps token input design and added verified token badges for eligible tokens (#32422)
+- Improved the compact header on trader perps positions to show leverage, direction, and a clearer two-row layout separating (#32574)
+  trader context from token price data
+- feat(activity): earn/staking + smart-account-upgrade details (#32492)
+- Added a "Purchases" filter in the Money account activity list that groups card purchases, mUSD cashback, and refunds. (#32516)
+- Updated the candle chart tooltip to show OHLC data inline with the token price header, removing the layout shift that (#32512)
+  previously occurred on press-hold.
+- Snaps now periodically check for over-the-air updates and report improved update metrics (#32459)
+- Added Ramp transactions to the redesigned Activity List and Activity Details experience (#32467)
+- Integrate AUS Perps Watchlist (#31734)
+- Added an option to unlink a Money account from MetaMask Card (#32504)
+- Updated Perps market lists to display the full asset name (e.g. "Bitcoin") instead of the ticker symbol (e.g. "BTC") (#32510)
+- Updated the add-device flow waiting screen to show a loading state while waiting for the extension, and added an error sheet (#32511)
+  when the extension import is cancelled or fails.
+- Added redesigned activity details for Perps and Predict transactions (#32405)
+
+### Fixed
+
+- Fixed a black band behind disclaimer text in the Money deposit projected balance info sheet when Pure Black mode is enabled (#33076)
+- Polished the Perps activity list — cancelled orders are no longer shown in red, limit orders show consistent "$" amounts and the (#32998)
+  correct market logo, losses in the Trades tab are shown in red, order
+  titles use spaced dashes, and the activity filter sheet is more compact.
+- Fixed ramp orders missing from the new Activity list and Buy/Sell filter when using the v2 Ramps controller. (#32996)
+- Improved spacing and hot-token layout on the swap discovery feed zero state. (#33058)
+- Added navigation to the transaction detail page when tapping the Money add funds and send funds toasts (#33028)
+- Fixed an issue on iOS where Terms of Use and Privacy Policy links on the onboarding sheet would open and immediately close. (#33041)
+- Fixed the Money Add funds toast so its copy matches the funding method — "Depositing" for card/Apple Pay, "Adding funds" for (#32967)
+  mUSD, and "Converting crypto" for crypto conversions — instead of always
+  showing "Converting crypto".
+- Fixed the mUSD amount being shown inconsistently across the Add funds sheet, the "Pay with" row, and the deposit amount. (#32992)
+- Fixes the Money Account amount used by Card (#33021)
+- Fixed visible dark bands behind menu rows in the Money More bottom sheet when Pure Black mode is enabled. (#33005)
+- Fixed a bug where "Earn on your crypto" and Card "avail. balance" on the Money Home screen rendered in the user's (#32987)
+  preferred fiat currency instead of USD.
+- Fixed Web Share API and blob/data downloads in the in-app browser on Android, and fixed a crash when sharing images from (#32788)
+  dapps.
+- Fixed a bug on iOS that made the app invisible to VoiceOver and other accessibility tools while no hardware wallet flow (#32973)
+  was active
+- Fixed the tooltip icon in the "Earn on your crypto" section so it is vertically centered with the description text. (#32991)
+- Fixed ETH pooled-staking activity labels to read "Staked Ethereum" and "Unstaked Ethereum" instead of the ambiguous (#32921)
+  "Deposited ETH".
+- Fixed Agentic CLI dashboard approval not rejecting the pending request when the WebView is dismissed before completion. (#32874)
+- Fixed the keyboard auto-correcting and auto-capitalizing text typed into the Perps market search bar (#32948)
+- Fixed the Notifications screen header to use a back arrow instead of a close icon (#32920)
+- Fixed notification list alignment by moving the unread indicator next to the timestamp (#32919)
+- Disable CTA swap button for Tron when no network fees retrieved (#32717)
+- Fix Android flicker when opening Trade wallet actions (#32617)
+- Fixed lending withdrawals showing as "Smart contract interaction" in Activity, and grouped lending activity under the (#32856)
+  Transactions filter (removed the Money filter).
+- Fixed dApp connect view content bleeding under the status bar and home indicator on iOS (#32837)
+- Fixed Predictions claim toasts to use claim-specific success copy and avoid showing claimed winnings for $0 redemptions (#32506)
+- Fixed a confirmation-UI issue where an injected `value` field in a Permit2 signature request could display a "Remove permission" (#32758)
+  screen while granting a token allowance.
+- Fixed a bug that caused pay-flow token amounts (Perps, Predict, Money Account, mUSD) to be shown in the user's preferred fiat (#32631)
+  currency instead of USD.
+- Display foreground notifications on iOS (#32764)
+- Fixed unlock screen showing a raw error message after exceeding Android biometric attempts (#32199)
+- Fixed the "Swap again" button not appearing on Solana and other non-EVM swap activity details. (#32741)
+- Fixed the Predict deposit "Track" toast opening the Transactions tab instead of the Predict tab. (#32730)
+- Fixed a bug where the crash screen Try Again button did nothing in production builds (#31830)
+- Fix alignment of view all button in explore (#32724)
+- Fixed approval or interaction transactions could show undefined undefined in the Activity list. (#31556)
+- Fixed the send flow not respecting the "Show conversion on test networks" setting — testnet assets (e.g. SepoliaETH) no longer (#32687)
+  display fiat values or sort by them unless the setting is enabled
+- Fixed native token asset details header incorrectly showing a zero contract address and copy button (#32695)
+- Show push notifications when app is in foreground state (#32100)
+- Fixed an incorrect "Linking your card" label that appeared when updating the spending limit of an already-linked MetaMask (#32705)
+  Card.
+- Fixed swap transaction details showing a blank screen for some swaps, simplified the account rows so swaps show a single (#32678)
+  Account row instead of duplicate From/To, and fixed "Swap again" opening
+  the swap view with empty tokens.
+- Fix size of icons in money activity details screens (#32712)
+- Update token card background and vertical padding, and size of the flip button. (#32671)
+- Fixed safe area layout on the Perps markets list screen so content scrolls correctly above the home indicator (#32563)
+- Fixed a bug that could let users in unsupported Buy regions enter the crypto purchase flow instead of seeing the unavailable (#31527)
+  region message
+- Fixed the Perps Order Details screen so HIP-3/xyz market orders display the user facing asset ticker (#32621)
+- fix(activity): redesign details polish + filter pill edge clipping (#32557)
+- Fixed the toast shown when withdrawing from Perps or Predictions into the Money account so it confirms funds were added to (#32156)
+  the Money account instead of a generic wallet message.
+- Fixed an issue where funding the money account from the wallet home screen returned the user to the home screen instead of their (#32528)
+  Money Account home.
+- Fixed an issue where the marketing data collection toggle would not stay on for social login user (#32458)
+- Fixed Unified Buy deep links with an amount parameter to prefill the specified amount. (#31525)
+- Correct Predict activity trade amounts (#32351)
+- Fixed a bug where the World Cup Games tab showed a green live indicator even when no matches were in progress (#32542)
+- Fixed the Money account benefits link so it opens in the in-app browser instead of an external browser. (#32530)
+- Fixed campaign details pages showing leaderboard or stats from a different campaign when switching between campaigns. (#32374)
+- Requests from an external browser deeplink, scanned QR code, or a MetaMask SDK / MetaMask Connect / WalletConnect session now (#30547)
+  show "External app" as the request origin instead of an opaque
+  `deeplink` / `qr-code` / connection id, or an unverifiable self-reported
+  domain.
+- fix: keep OIDC token within merge job to avoid cross-job secret redaction (#32533)
+- Fixed Activity list and detail UI formatting issues (#32522)
+- Fixed Card onboarding session revocation to return users to login with an explanation (#32505)
+- Fixed Wallet Home showing two competing primary buttons for new wallets; the Money balance "Add" button now appears as a (#32465)
+  secondary action whenever another funding call-to-action is already
+  primary.
+- Enriched NFT transactions in the redesigned Activity view with the collection name, the amount paid or received, and the NFT (#32441)
+  artwork.
+- Fixed Tron transaction details showing two fee rows both labeled "Network fee"; resource fees (Bandwidth/Energy) are now (#32440)
+  labeled distinctly.
+- Allow commas for decimals in the update spending limit screen (#32403)
+- Fixed trending token filter buttons stretching across the full screen width in Swap and Trending views. (#32443)
+
 ## [8.1.1]
 
 ### Fixed
@@ -12552,7 +12835,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.3.0...HEAD
+[8.3.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.1...v8.3.0
 [8.1.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.0...v8.1.1
 [8.1.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.4...v8.1.0
 [8.0.4]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.3...v8.0.4
