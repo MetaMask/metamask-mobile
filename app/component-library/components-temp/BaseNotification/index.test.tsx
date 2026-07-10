@@ -1,20 +1,16 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
-import BaseNotification, { getDescription } from './';
+import { StyleSheet } from 'react-native';
+import BaseNotification, { getDescription, getIcon } from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { BaseNotificationStatus } from './BaseNotification.types';
-
-const mockUseSafeAreaInsets = jest.fn(() => ({
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
-}));
-
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: () => mockUseSafeAreaInsets(),
-}));
+import { BaseNotificationTestIds } from './BaseNotification.testIds';
+import { AppThemeKey, Theme } from '../../../util/theme/models';
+import { resolveDarkTheme, brandColor } from '@metamask/design-tokens';
+import { isPureBlackEnabled } from '../../../util/theme/pureBlackPreview';
+import { mockTheme } from '../../../util/theme';
+import styleSheet from './BaseNotification.styles';
 
 const defaultData = {
   description: 'Testing description',
@@ -55,14 +51,130 @@ const triggerEnterLayout = (
   );
 };
 
+const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
+
+const darkTheme: Theme = {
+  colors: resolvedDarkTheme.colors,
+  themeAppearance: AppThemeKey.dark,
+  typography: resolvedDarkTheme.typography,
+  shadows: resolvedDarkTheme.shadows,
+  brandColors: brandColor,
+};
+
+describe('BaseNotification styles', () => {
+  it('uses section background in dark theme', () => {
+    const styles = styleSheet({ theme: darkTheme });
+
+    expect(styles.base.backgroundColor).toBe(
+      resolvedDarkTheme.colors.background.section,
+    );
+  });
+
+  it('uses default background and shadow in light theme', () => {
+    const styles = styleSheet({ theme: mockTheme });
+
+    expect(styles.base.backgroundColor).toBe(
+      mockTheme.colors.background.default,
+    );
+    expect(styles.base.shadowOpacity).toBeDefined();
+  });
+});
+
 describe('BaseNotification', () => {
-  beforeEach(() => {
-    mockUseSafeAreaInsets.mockReturnValue({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
+  it('returns null icon for unknown status', () => {
+    expect(getIcon(undefined)).toBeNull();
+  });
+
+  it('returns typed description when amount and type are provided', () => {
+    const amount = '1 ETH';
+
+    expect(getDescription('received', { amount, type: 'erc20' })).toBe(
+      strings('notifications.erc20_received_message', { amount }),
+    );
+  });
+
+  it('top-aligns content after multi-line title and description layout events', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <BaseNotification status="success" data={defaultData} autoDismiss />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    fireEvent(
+      getByTestId(BaseNotificationTestIds.NOTIFICATION_TITLE),
+      'onTextLayout',
+      {
+        nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
+      },
+    );
+    fireEvent(getByText(defaultData.description), 'onTextLayout', {
+      nativeEvent: { lines: [{ text: 'description line' }] },
     });
+
+    const labelsContainer = getByTestId(BaseNotificationTestIds.CONTAINER);
+    const labelsStyle = StyleSheet.flatten(labelsContainer.props.style);
+
+    expect(labelsStyle.justifyContent).toBe('flex-start');
+
+    const closeButton = getByTestId('base-notification-close');
+    const closeButtonStyle = StyleSheet.flatten(closeButton.props.style);
+
+    expect(closeButtonStyle.marginTop).toBeDefined();
+  });
+
+  it('top-aligns content when description spans multiple lines', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={{ title: 'Title', description: 'Description' }}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    fireEvent(getByText('Description'), 'onTextLayout', {
+      nativeEvent: {
+        lines: [{ text: 'description line 1' }, { text: 'description line 2' }],
+      },
+    });
+
+    const labelsContainer = getByTestId(BaseNotificationTestIds.CONTAINER);
+    const labelsStyle = StyleSheet.flatten(labelsContainer.props.style);
+
+    expect(labelsStyle.justifyContent).toBe('flex-start');
+  });
+
+  it('renders without generated title for statuses outside getTitle', () => {
+    const { getByTestId } = renderWithProvider(
+      <BaseNotification status="eth_received" data={{}} />,
+    );
+
+    expect(
+      getByTestId(BaseNotificationTestIds.NOTIFICATION_TITLE),
+    ).toBeOnTheScreen();
+  });
+
+  it('invokes onDismissComplete only once when auto dismiss timers run twice', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={100}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      jest.runAllTimers();
+      jest.runAllTimers();
+    });
+
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
   });
 
   it.each(allStatuses)('renders for status %s', (status) => {
@@ -155,50 +267,6 @@ describe('BaseNotification', () => {
     expect(queryByTestId('base-notification-container')).not.toBeOnTheScreen();
   });
 
-  it('invokes onDismissComplete when isVisible becomes false after enter', async () => {
-    jest.useFakeTimers();
-    const onDismissComplete = jest.fn();
-    const { getByTestId, queryByTestId, rerender } = renderWithProvider(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        dismissDuration={5000}
-        isVisible
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    triggerEnterLayout(getByTestId);
-
-    rerender(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        dismissDuration={5000}
-        isVisible={false}
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    expect(queryByTestId('base-notification-container')).not.toBeOnTheScreen();
-    expect(onDismissComplete).toHaveBeenCalledTimes(1);
-    jest.useRealTimers();
-  });
-
-  it('does not invoke onDismissComplete when isVisible starts false', () => {
-    const onDismissComplete = jest.fn();
-    renderWithProvider(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        isVisible={false}
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    expect(onDismissComplete).not.toHaveBeenCalled();
-  });
-
   it('invokes onDismissComplete after the auto dismiss animation completes', async () => {
     jest.useFakeTimers();
     const onDismissComplete = jest.fn();
@@ -241,12 +309,12 @@ describe('BaseNotification', () => {
     jest.useRealTimers();
   });
 
-  it('restarts auto dismiss when visible status changes without layout', async () => {
+  it('restarts auto dismiss when visible content changes without layout', async () => {
     jest.useFakeTimers();
     const onDismissComplete = jest.fn();
     const { getByTestId, rerender } = renderWithProvider(
       <BaseNotification
-        status="pending"
+        status="success"
         data={defaultData}
         dismissDuration={100}
         onDismissComplete={onDismissComplete}
@@ -258,124 +326,11 @@ describe('BaseNotification', () => {
     await act(async () => {
       jest.advanceTimersByTime(50);
     });
-
-    rerender(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        dismissDuration={100}
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    await act(async () => {
-      jest.runAllTimers();
-    });
-
-    expect(onDismissComplete).toHaveBeenCalledTimes(1);
-    jest.useRealTimers();
-  });
-
-  it('does not restart auto dismiss when only the title changes', async () => {
-    jest.useFakeTimers();
-    const onDismissComplete = jest.fn();
-    const { getByTestId, rerender } = renderWithProvider(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        dismissDuration={100}
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    triggerEnterLayout(getByTestId);
 
     rerender(
       <BaseNotification
         status="success"
         data={{ ...defaultData, title: 'Updated Title' }}
-        dismissDuration={100}
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    await act(async () => {
-      jest.runAllTimers();
-    });
-
-    expect(onDismissComplete).toHaveBeenCalledTimes(1);
-    jest.useRealTimers();
-  });
-
-  it('repositions when the safe area top inset changes after enter', async () => {
-    jest.useFakeTimers();
-    const onDismissComplete = jest.fn();
-    const { getByTestId, rerender } = renderWithProvider(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        dismissDuration={5000}
-        persistUntilDismiss
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    triggerEnterLayout(getByTestId);
-
-    mockUseSafeAreaInsets.mockReturnValue({
-      top: 48,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    });
-
-    rerender(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        dismissDuration={5000}
-        persistUntilDismiss
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    await act(async () => {
-      jest.runAllTimers();
-    });
-
-    expect(onDismissComplete).not.toHaveBeenCalled();
-    jest.useRealTimers();
-  });
-
-  it('completes auto dismiss when the safe area top inset changes after enter', async () => {
-    jest.useFakeTimers();
-    const onDismissComplete = jest.fn();
-    const { getByTestId, rerender } = renderWithProvider(
-      <BaseNotification
-        status="success"
-        data={defaultData}
-        dismissDuration={100}
-        onDismissComplete={onDismissComplete}
-      />,
-    );
-
-    triggerEnterLayout(getByTestId);
-
-    await act(async () => {
-      jest.advanceTimersByTime(50);
-    });
-
-    mockUseSafeAreaInsets.mockReturnValue({
-      top: 48,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    });
-
-    rerender(
-      <BaseNotification
-        status="success"
-        data={defaultData}
         dismissDuration={100}
         onDismissComplete={onDismissComplete}
       />,

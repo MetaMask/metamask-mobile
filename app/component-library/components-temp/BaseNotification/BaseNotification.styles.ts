@@ -1,12 +1,12 @@
 import { Dimensions, StyleSheet } from 'react-native';
-import { Theme } from '../../../util/theme/models';
-
+import { AppThemeKey, Theme } from '../../../util/theme/models';
+import { NOTIFICATION_OVERLAY_ELEVATION } from './BaseNotification.constants';
 const marginWidth = 16;
 const notificationWidth = Dimensions.get('window').width - marginWidth * 2;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { colors } = theme;
+  const { colors, shadows } = theme;
 
   return StyleSheet.create({
     base: {
@@ -14,8 +14,14 @@ const styleSheet = (params: { theme: Theme }) => {
       top: 0,
       left: marginWidth,
       width: notificationWidth,
-      backgroundColor: colors.background.section,
-      borderRadius: 8,
+      zIndex: NOTIFICATION_OVERLAY_ELEVATION,
+      elevation: NOTIFICATION_OVERLAY_ELEVATION,
+      backgroundColor:
+        theme.themeAppearance === AppThemeKey.light
+          ? colors.background.default
+          : colors.background.section,
+      ...(theme.themeAppearance === AppThemeKey.light ? shadows.size.md : {}),
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.border.muted,
       paddingTop: 12,
@@ -24,6 +30,10 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingRight: 16,
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 16,
+    },
+    baseTopAligned: {
+      alignItems: 'flex-start',
     },
     baseWithCloseIconButton: {
       paddingRight: 8,
@@ -32,24 +42,26 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 16,
     },
-    flashIcon: {
-      marginRight: 15,
+    pressableContentTopAligned: {
+      alignItems: 'flex-start',
     },
     flashLabel: {
       flex: 1,
-      flexDirection: 'column',
       justifyContent: 'center',
+    },
+    flashLabelTopAligned: {
+      justifyContent: 'flex-start',
     },
     flashTitle: {
       color: colors.text.default,
-      marginBottom: 2,
-      lineHeight: 18,
     },
     flashText: {
-      flex: 1,
-      lineHeight: 18,
-      color: colors.text.default,
+      marginTop: 2,
+    },
+    closeButton: {
+      marginTop: -4,
     },
   });
 };

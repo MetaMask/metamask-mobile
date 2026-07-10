@@ -73,6 +73,20 @@ const baseProps = {
   animatedTimingStart: jest.fn(),
 };
 
+const renderTransactionNotification = ({
+  status = 'confirmed',
+  smartTransactions = [],
+  props = {},
+} = {}) => {
+  const store = configureStore(createState({ status, smartTransactions }));
+
+  return render(
+    <Provider store={store}>
+      <TransactionNotification {...baseProps} {...props} />
+    </Provider>,
+  );
+};
+
 describe('TransactionNotification', () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -88,21 +102,12 @@ describe('TransactionNotification', () => {
 
   it('invokes onDismissComplete and renders nothing for submitted smart transactions', async () => {
     const onDismissComplete = jest.fn();
-    const store = configureStore(
-      createState({
-        status: 'submitted',
-        smartTransactions: [{ txHash: TRANSACTION_HASH }],
-      }),
-    );
 
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <TransactionNotification
-          {...baseProps}
-          onDismissComplete={onDismissComplete}
-        />
-      </Provider>,
-    );
+    const { queryByTestId } = renderTransactionNotification({
+      status: 'submitted',
+      smartTransactions: [{ txHash: TRANSACTION_HASH }],
+      props: { onDismissComplete },
+    });
 
     await waitFor(() => {
       expect(onDismissComplete).toHaveBeenCalledTimes(1);
@@ -113,16 +118,11 @@ describe('TransactionNotification', () => {
 
   it('passes dismiss props to BaseNotification for standard transactions', async () => {
     const onDismissComplete = jest.fn();
-    const store = configureStore(createState({ status: 'confirmed' }));
 
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <TransactionNotification
-          {...baseProps}
-          onDismissComplete={onDismissComplete}
-        />
-      </Provider>,
-    );
+    const { getByTestId } = renderTransactionNotification({
+      status: 'confirmed',
+      props: { onDismissComplete },
+    });
 
     await waitFor(() => {
       expect(getByTestId('base-notification')).toBeOnTheScreen();
@@ -132,5 +132,31 @@ describe('TransactionNotification', () => {
 
     expect(notification.props.onDismissComplete).toBe(onDismissComplete);
     expect(notification.props.dismissDuration).toBe(4000);
+  });
+
+  it('keeps submitted notifications visible when no matching smart transaction exists', async () => {
+    const { getByTestId } = renderTransactionNotification({
+      status: 'submitted',
+      smartTransactions: [],
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('base-notification')).toBeOnTheScreen();
+    });
+  });
+
+  it('invokes onClose after mount for standard transactions', async () => {
+    const onClose = jest.fn();
+
+    renderTransactionNotification({
+      status: 'confirmed',
+      props: { onClose },
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

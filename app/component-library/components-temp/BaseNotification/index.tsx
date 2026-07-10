@@ -1,8 +1,15 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Dimensions,
   LayoutChangeEvent,
   StyleProp,
+  TextLayoutEvent,
   TouchableOpacity,
   View,
   ViewStyle,
@@ -33,12 +40,12 @@ import {
 
 import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../hooks';
-import { ToastSelectorsIDs } from '../../components/Toast/ToastModal.testIds';
 import {
   NOTIFICATION_SPRING_CONFIG,
   NOTIFICATION_TOP_PADDING,
   NOTIFICATION_VISIBILITY_DURATION,
 } from './BaseNotification.constants';
+import { BaseNotificationTestIds } from './BaseNotification.testIds';
 
 import styleSheet from './BaseNotification.styles';
 import {
@@ -144,6 +151,12 @@ export const getDescription = (
   return strings(`notifications.${status}_message`);
 };
 
+/**
+ * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react/src/components/Toast/Toast.tsx}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#toast-component Migration docs}
+ */
 const BaseNotification: React.FC<BaseNotificationProps> = ({
   status,
   data,
@@ -159,6 +172,10 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const { top: topInset } = useSafeAreaInsets();
   const safeData: BaseNotificationData = data ?? {};
   const { description = null, title = null } = safeData;
+  const [descriptionLineCount, setDescriptionLineCount] = useState<
+    number | null
+  >(null);
+  const [titleLineCount, setTitleLineCount] = useState<number | null>(null);
 
   const notificationHeight = useSharedValue(screenHeight);
   const translateYProgress = useSharedValue(
@@ -176,6 +193,10 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const resolvedDescription = !description
     ? getDescription(status, safeData)
     : description;
+  const hasDescription = resolvedDescription.length > 0;
+  const shouldTopAlign =
+    (titleLineCount !== null && titleLineCount > 1 && hasDescription) ||
+    (descriptionLineCount !== null && descriptionLineCount > 1);
   const animatedStyle = useAnimatedStyle(() => ({
     top: topInsetOffset.value,
     transform: [{ translateY: translateYProgress.value }],
@@ -183,16 +204,35 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   const baseStyle: StyleProp<ViewStyle> = useMemo(
     () => [
       styles.base,
+      shouldTopAlign && styles.baseTopAligned,
       hasCloseIconButton && styles.baseWithCloseIconButton,
       animatedStyle,
     ],
     [
       styles.base,
+      styles.baseTopAligned,
       styles.baseWithCloseIconButton,
       animatedStyle,
       hasCloseIconButton,
+      shouldTopAlign,
     ],
   );
+
+  const handleTitleTextLayout = (event: TextLayoutEvent) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setTitleLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
+
+  const handleDescriptionTextLayout = (event: TextLayoutEvent) => {
+    const lineCount = event.nativeEvent.lines.length;
+
+    setDescriptionLineCount((current) =>
+      current === lineCount ? current : lineCount,
+    );
+  };
 
   const handleDismissComplete = useCallback(() => {
     if (dismissCompleteCalledRef.current) {
@@ -257,6 +297,9 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   }, [topInset, topInsetOffset]);
 
   useEffect(() => {
+    setDescriptionLineCount(null);
+    setTitleLineCount(null);
+
     const statusChanged = prevStatusRef.current !== status;
     const visibilityChanged = prevIsVisibleRef.current !== isVisible;
     const wasVisible = prevIsVisibleRef.current;
@@ -293,10 +336,12 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
 
     startEnterAnimation(measuredHeightRef.current);
   }, [
+    description,
     handleDismissComplete,
     isVisible,
     startEnterAnimation,
     status,
+    title,
     translateYProgress,
   ]);
 
@@ -368,29 +413,42 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       testID="base-notification-container"
     >
       <TouchableOpacity
-        style={styles.pressableContent}
+        style={[
+          styles.pressableContent,
+          shouldTopAlign && styles.pressableContentTopAligned,
+        ]}
         onPress={onPress}
         activeOpacity={0.8}
         disabled={!onPress}
       >
-        <View style={styles.flashIcon}>{getIcon(status)}</View>
-        <View style={styles.flashLabel}>
+        <View>{getIcon(status)}</View>
+        <View
+          style={[
+            styles.flashLabel,
+            shouldTopAlign && styles.flashLabelTopAligned,
+          ]}
+          testID={BaseNotificationTestIds.CONTAINER}
+        >
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
+            fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             style={styles.flashTitle}
-            testID={ToastSelectorsIDs.NOTIFICATION_TITLE}
+            testID={BaseNotificationTestIds.NOTIFICATION_TITLE}
+            onTextLayout={handleTitleTextLayout}
           >
             {!title ? getTitle(status, safeData) : title}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextDefault}
-            style={styles.flashText}
-          >
-            {resolvedDescription}
-          </Text>
+          {hasDescription ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              style={styles.flashText}
+              onTextLayout={handleDescriptionTextLayout}
+            >
+              {resolvedDescription}
+            </Text>
+          ) : null}
         </View>
       </TouchableOpacity>
       {autoDismiss && (
@@ -398,6 +456,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
           iconName={IconName.Close}
           size={ButtonIconSize.Md}
           onPress={handleManualDismiss}
+          style={shouldTopAlign ? styles.closeButton : undefined}
           testID="base-notification-close"
         />
       )}
