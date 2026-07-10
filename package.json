@@ -234,6 +234,7 @@
     "@ethersproject/abi": "^5.7.0",
     "@expensify/react-native-wallet": "^0.1.15",
     "@expo/fingerprint": "~0.16.7",
+    "@expo/metro-config": "~55.0.23",
     "@expo/repack-app": "^0.2.9",
     "@keystonehq/bc-ur-registry-eth": "^0.21.0",
     "@keystonehq/ur-decoder": "^0.12.2",

@@ -35689,6 +35689,7 @@ __metadata:
     "@ethersproject/providers": "npm:^5.7.2"
     "@expensify/react-native-wallet": "npm:^0.1.15"
     "@expo/fingerprint": "npm:~0.16.7"
+    "@expo/metro-config": "npm:~55.0.23"
     "@expo/repack-app": "npm:^0.2.9"
     "@google/generative-ai": "npm:^0.24.1"
     "@img/sharp-darwin-arm64": "npm:^0.34.3"
