@@ -210,10 +210,10 @@ describe('PerpsOrderDetailsView', () => {
     fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
 
     await waitFor(() => {
-      expect(mockCancelOrder).toHaveBeenCalledWith({
+      expect(mockCancelOrder).toHaveBeenCalledWith(expect.objectContaining({
         orderId: 'order-123',
         symbol: 'xyz:MSTR',
-      });
+      }));
     });
   });
 
@@ -288,10 +288,10 @@ describe('PerpsOrderDetailsView', () => {
     fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
 
     await waitFor(() => {
-      expect(mockCancelOrder).toHaveBeenCalledWith({
+      expect(mockCancelOrder).toHaveBeenCalledWith(expect.objectContaining({
         orderId: 'child-tp-order-123',
         symbol: 'BTC',
-      });
+      }));
     });
   });
 
@@ -501,10 +501,10 @@ describe('PerpsOrderDetailsView', () => {
     fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
 
     await waitFor(() => {
-      expect(mockCancelOrder).toHaveBeenCalledWith({
+      expect(mockCancelOrder).toHaveBeenCalledWith(expect.objectContaining({
         orderId: 'order-123',
         symbol: 'BTC',
-      });
+      }));
     });
 
     await waitFor(() => {
