@@ -11,7 +11,6 @@ import {
   getSubPaneHeightRatio,
   registerStudy,
   setChartReady,
-  setStudyPaneIndex,
   setWidget,
 } from '../../../core/state';
 import type {
@@ -21,6 +20,7 @@ import type {
 
 const makeChart = (
   heights: number[],
+  studyPaneMap: Record<string, number> = {},
 ): {
   chart: TVActiveChart;
   setAll: jest.Mock;
@@ -29,6 +29,13 @@ const makeChart = (
   const chart = {
     getAllPanesHeight: () => heights,
     setAllPanesHeight: setAll,
+    getStudyById: jest.fn().mockImplementation((id: string) => {
+      const paneIdx = studyPaneMap[id];
+      if (paneIdx !== undefined) {
+        return { paneIndex: () => paneIdx };
+      }
+      return null;
+    }),
   } as unknown as TVActiveChart;
   return { chart, setAll };
 };
@@ -37,14 +44,30 @@ describe('hasActiveSubPaneIndicators', () => {
   beforeEach(() => __resetStateForTests());
 
   it('false when no studies registered', () => {
+    const { chart } = makeChart([300]);
+    setWidget({
+      activeChart: () => chart,
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
     expect(hasActiveSubPaneIndicators()).toBe(false);
   });
 
-  it('true when a study has a pane index entry', () => {
+  it('true when a study has paneIndex > 0', () => {
+    const { chart } = makeChart([300, 100], { 'sid-1': 1 });
+    setWidget({
+      activeChart: () => chart,
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
     registerStudy('active', 'MACD', 'sid-1');
-    setStudyPaneIndex('MACD', 1);
     expect(hasActiveSubPaneIndicators()).toBe(true);
-    __resetStateForTests();
+  });
+
+  it('false when study is on main pane (paneIndex 0)', () => {
+    const { chart } = makeChart([300], { 'sid-2': 0 });
+    setWidget({
+      activeChart: () => chart,
+    } as unknown as TVChartingLibraryWidget);
+    setChartReady(true);
     registerStudy('active', 'BOL', 'sid-2');
     expect(hasActiveSubPaneIndicators()).toBe(false);
   });
@@ -67,13 +90,12 @@ describe('handleSetSubPaneLayout', () => {
   });
 
   it('applies the ratio to an active chart when a sub-pane study exists', () => {
-    const { chart, setAll } = makeChart([400, 100]);
+    const { chart, setAll } = makeChart([400, 100], { 'sid-1': 1 });
     setWidget({
       activeChart: () => chart,
     } as unknown as TVChartingLibraryWidget);
     setChartReady(true);
     registerStudy('active', 'MACD', 'sid-1');
-    setStudyPaneIndex('MACD', 1);
 
     handleSetSubPaneLayout({ heightRatio: 0.2 });
 

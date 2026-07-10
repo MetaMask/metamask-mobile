@@ -52,8 +52,6 @@ interface CoreState {
   hasExplicitCurrentPriceLine: boolean;
   /** Sequence counter for setResolution callbacks; stale callbacks bail when mismatched. */
   hotReloadSeq: number;
-  /** Indicator name → pane index (0 = main). Only sub-pane studies are tracked. */
-  studyPaneIndex: Map<string, number>;
   /** SLB scoping flag — activates Strategy C (bulk back-fill) pagination. */
   slbMode: boolean;
   /**
@@ -101,7 +99,6 @@ const state: CoreState = {
   rnBackedPagination: { enabled: false },
   hasExplicitCurrentPriceLine: false,
   hotReloadSeq: 0,
-  studyPaneIndex: new Map(),
   slbMode: false,
   slbCenteringPending: false,
   legendOwnsLayoutSettle: false,
@@ -351,36 +348,6 @@ export function getHotReloadSeq(): number {
   return state.hotReloadSeq;
 }
 
-// ----- Study pane index (sub-pane tracking) -----------------------------------
-
-export function getStudyPaneIndex(name: string): number | undefined {
-  return state.studyPaneIndex.get(name);
-}
-
-export function setStudyPaneIndex(name: string, idx: number): void {
-  state.studyPaneIndex.set(name, idx);
-}
-
-export function deleteStudyPaneIndex(name: string): void {
-  state.studyPaneIndex.delete(name);
-}
-
-export function getStudyPaneIndexMap(): Map<string, number> {
-  return state.studyPaneIndex;
-}
-
-/**
- * After a sub-pane is removed, TradingView renumbers panes. Decrement all
- * tracked indices above the removed pane so they stay in sync.
- */
-export function reindexPanesAfterRemoval(removedPaneIndex: number): void {
-  for (const [name, idx] of state.studyPaneIndex) {
-    if (idx > removedPaneIndex) {
-      state.studyPaneIndex.set(name, idx - 1);
-    }
-  }
-}
-
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 
 export function getSlbMode(): boolean {
@@ -448,7 +415,6 @@ export function __resetStateForTests(): void {
   state.rnBackedPagination = { enabled: false };
   state.hasExplicitCurrentPriceLine = false;
   state.hotReloadSeq = 0;
-  state.studyPaneIndex = new Map();
   state.slbMode = false;
   state.slbCenteringPending = false;
   state.legendOwnsLayoutSettle = false;

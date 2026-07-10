@@ -16,7 +16,6 @@ import {
   registerStudy,
   setChartReady,
   setLegendOwnsLayoutSettle,
-  setStudyPaneIndex,
   setTheme,
   setVolumeStudyId,
   setWidget,
@@ -78,14 +77,25 @@ const makeExportData = (
 const makeChart = (
   exportDataResult?: TVExportData | Error,
   paneHeights: number[] = [300],
+  studyPaneMap: Record<string, number> = {},
 ): { chart: TVActiveChart; exportData: jest.Mock } => {
   const exportData =
     exportDataResult instanceof Error
       ? jest.fn().mockRejectedValue(exportDataResult)
       : jest.fn().mockResolvedValue(exportDataResult ?? makeExportData([], []));
+  const getStudyById = jest.fn().mockImplementation((id: string) => {
+    const paneIdx = studyPaneMap[id];
+    if (paneIdx !== undefined) {
+      return {
+        paneIndex: () => paneIdx,
+        onDataLoaded: () => ({ subscribe: jest.fn() }),
+      };
+    }
+    return null;
+  });
   const chart = {
     exportData,
-    getStudyById: jest.fn().mockReturnValue(null),
+    getStudyById,
     getAllPanesHeight: jest.fn().mockReturnValue(paneHeights),
   } as unknown as TVActiveChart;
   return { chart, exportData };
@@ -1164,13 +1174,14 @@ describe('legend', () => {
       setupReadyWidget(chart);
     };
 
-    it('routes sub-pane pills to a dedicated overlay when studyPaneIndex is set', async () => {
-      const { chart } = makeChart(rsiMacdData, [300, 100, 100]);
+    it('routes sub-pane pills to a dedicated overlay when paneIndex() returns > 0', async () => {
+      const { chart } = makeChart(rsiMacdData, [300, 100, 100], {
+        'sid-rsi': 1,
+        'sid-macd': 2,
+      });
       setupWithConfig(chart, subPaneColors);
       registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
       registerStudy('active', 'MACD', 'sid-macd' as StudyId);
-      setStudyPaneIndex('RSI', 1);
-      setStudyPaneIndex('MACD', 2);
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1178,17 +1189,17 @@ describe('legend', () => {
       const mainOverlay = document.getElementById(OVERLAY_ID) as HTMLElement;
       expect(mainOverlay.querySelectorAll('.legend-pill').length).toBe(0);
 
-      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-1`);
+      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-RSI`);
       expect(rsiOverlay).not.toBeNull();
       expect(rsiOverlay?.innerHTML).toContain('RSI(14)');
 
-      const macdOverlay = document.getElementById(`${OVERLAY_ID}-pane-2`);
+      const macdOverlay = document.getElementById(`${OVERLAY_ID}-pane-MACD`);
       expect(macdOverlay).not.toBeNull();
       expect(macdOverlay?.innerHTML).toContain('MACD(12,26)');
     });
 
-    it('falls back to main overlay when studyPaneIndex is not set', async () => {
-      const { chart } = makeChart(rsiMacdData);
+    it('falls back to main overlay when paneIndex() returns 0 (main pane)', async () => {
+      const { chart } = makeChart(rsiMacdData, [300], { 'sid-rsi': 0 });
       setupWithConfig(chart, subPaneColors);
       registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
 
@@ -1197,25 +1208,25 @@ describe('legend', () => {
 
       const mainOverlay = document.getElementById(OVERLAY_ID) as HTMLElement;
       expect(mainOverlay.innerHTML).toContain('RSI(14)');
-      expect(document.getElementById(`${OVERLAY_ID}-pane-1`)).toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-RSI`)).toBeNull();
     });
 
     it('removes stale sub-pane overlays when their indicators are gone', async () => {
-      const { chart } = makeChart(rsiMacdData, [300, 100, 100]);
+      const { chart } = makeChart(rsiMacdData, [300, 100, 100], {
+        'sid-rsi': 1,
+        'sid-macd': 2,
+      });
       setupWithConfig(chart, subPaneColors);
       registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
       registerStudy('active', 'MACD', 'sid-macd' as StudyId);
-      setStudyPaneIndex('RSI', 1);
-      setStudyPaneIndex('MACD', 2);
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
-      expect(document.getElementById(`${OVERLAY_ID}-pane-1`)).not.toBeNull();
-      expect(document.getElementById(`${OVERLAY_ID}-pane-2`)).not.toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-RSI`)).not.toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).not.toBeNull();
 
       __resetStateForTests();
       registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
-      setStudyPaneIndex('RSI', 1);
 
       const rsiOnlyData = makeExportData(
         [
@@ -1224,14 +1235,16 @@ describe('legend', () => {
         ],
         [[1000, 65.0]],
       );
-      const { chart: rsiChart } = makeChart(rsiOnlyData, [300, 100]);
+      const { chart: rsiChart } = makeChart(rsiOnlyData, [300, 100], {
+        'sid-rsi': 1,
+      });
       setupReadyWidget(rsiChart);
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
 
-      expect(document.getElementById(`${OVERLAY_ID}-pane-1`)).not.toBeNull();
-      expect(document.getElementById(`${OVERLAY_ID}-pane-2`)).toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-RSI`)).not.toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).toBeNull();
     });
 
     it('uses RN-supplied config over fallback presets', async () => {
@@ -1270,15 +1283,16 @@ describe('legend', () => {
     });
 
     it('sub-pane overlay positions use absolute top from cumulative pane heights', async () => {
-      const { chart } = makeChart(rsiMacdData, [300, 100, 100]);
+      const { chart } = makeChart(rsiMacdData, [300, 100, 100], {
+        'sid-rsi': 1,
+      });
       setupWithConfig(chart, subPaneColors);
       registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
-      setStudyPaneIndex('RSI', 1);
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
 
-      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-1`);
+      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-RSI`);
       expect(rsiOverlay).not.toBeNull();
       expect(rsiOverlay?.style.top).toBe('304px');
     });
@@ -1292,11 +1306,10 @@ describe('legend', () => {
         ],
         [[1000, 42.0, 65.0]],
       );
-      const { chart } = makeChart(mixedData, [300, 100]);
+      const { chart } = makeChart(mixedData, [300, 100], { 'sid-rsi': 1 });
       setupWithConfig(chart, subPaneColors);
       registerStudy('ma', 'MA5', 'sid-ma5' as StudyId);
       registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
-      setStudyPaneIndex('RSI', 1);
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
@@ -1305,39 +1318,37 @@ describe('legend', () => {
       expect(mainOverlay.innerHTML).toContain('MA(5)');
       expect(mainOverlay.innerHTML).not.toContain('RSI(14)');
 
-      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-1`);
+      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-RSI`);
       expect(rsiOverlay?.innerHTML).toContain('RSI(14)');
     });
 
     it('__resetLegendForTests clears sub-pane overlays', () => {
-      const { chart } = makeChart(rsiMacdData);
+      const { chart } = makeChart(rsiMacdData, [300, 100], { 'sid-rsi': 1 });
       setupWithConfig(chart, subPaneColors);
       registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
-      setStudyPaneIndex('RSI', 1);
 
       refreshStudyLegendFromExport();
 
       __resetLegendForTests();
 
-      expect(document.getElementById(`${OVERLAY_ID}-pane-1`)).toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-RSI`)).toBeNull();
     });
 
     it('clears sub-pane overlays when all studies are removed', async () => {
-      const { chart } = makeChart(rsiMacdData, [300, 100]);
+      const { chart } = makeChart(rsiMacdData, [300, 100], { 'sid-macd': 1 });
       setupWithConfig(chart, subPaneColors);
       registerStudy('active', 'MACD', 'sid-macd' as StudyId);
-      setStudyPaneIndex('MACD', 1);
 
       refreshStudyLegendFromExport();
       await Promise.resolve();
-      expect(document.getElementById(`${OVERLAY_ID}-pane-1`)).not.toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).not.toBeNull();
 
       __resetStateForTests();
       setupReadyWidget(chart);
 
       refreshStudyLegendFromExport();
 
-      expect(document.getElementById(`${OVERLAY_ID}-pane-1`)).toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).toBeNull();
       const mainOverlay = document.getElementById(OVERLAY_ID) as HTMLElement;
       expect(mainOverlay.innerHTML).toBe('');
     });

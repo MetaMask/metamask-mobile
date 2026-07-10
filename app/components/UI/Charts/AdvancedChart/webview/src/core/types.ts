@@ -219,6 +219,7 @@ export type StudyId = string; // NOSONAR — intentional semantic alias for Trad
 export interface TVStudy {
   onDataLoaded(): TVSubscription;
   applyOverrides?(overrides: Record<string, unknown>): void;
+  paneIndex?(): number;
 }
 
 export interface TVExportSchemaField {

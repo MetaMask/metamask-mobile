@@ -19,7 +19,6 @@ import {
   getActiveStudies,
   getLegendStudyOrder,
   getMaStudies,
-  getStudyPaneIndexMap,
   getTheme,
   getVolumeStudyId,
   getWidget,
@@ -50,8 +49,8 @@ let legendOverlayEnabled = false;
 let indicatorColors: IndicatorColors | undefined;
 /** Typed legend config from RN; when present, replaces the hardcoded buildPresetMap(). */
 let legendConfig: Record<string, LegendIndicatorCfg> | undefined;
-/** Sub-pane overlay elements keyed by pane index. */
-const subPaneOverlays = new Map<number, HTMLDivElement>();
+/** Sub-pane overlay elements keyed by indicator name. */
+const subPaneOverlays = new Map<string, HTMLDivElement>();
 
 // ----- Lifecycle ---------------------------------------------------------
 
@@ -382,24 +381,29 @@ function scheduleRetry(gen: number): void {
 
 function renderOverlay(entries: StudyDataEntry[]): void {
   const presets = getPresetMap();
-  const paneIndexMap = getStudyPaneIndexMap();
+  const widget = getWidget();
+  const chart = widget?.activeChart();
+  const activeStudies = getActiveStudies();
 
   const mainEntries: StudyDataEntry[] = [];
-  const subPaneGroups = new Map<number, StudyDataEntry[]>();
+  const subPaneEntries: {
+    name: string;
+    paneIdx: number;
+    entry: StudyDataEntry;
+  }[] = [];
 
   for (const entry of entries) {
     const cfg = presets[entry.name];
-    const paneIdx = paneIndexMap.get(entry.name);
-    if (cfg?.subPaneLegend && paneIdx !== undefined) {
-      let group = subPaneGroups.get(paneIdx);
-      if (!group) {
-        group = [];
-        subPaneGroups.set(paneIdx, group);
+    if (cfg?.subPaneLegend && chart) {
+      const studyId = activeStudies.get(entry.name);
+      const study = studyId ? chart.getStudyById(studyId) : null;
+      const paneIdx = study?.paneIndex?.();
+      if (paneIdx !== undefined && paneIdx > 0) {
+        subPaneEntries.push({ name: entry.name, paneIdx, entry });
+        continue;
       }
-      group.push(entry);
-    } else {
-      mainEntries.push(entry);
     }
+    mainEntries.push(entry);
   }
 
   const mainOverlay = document.getElementById(OVERLAY_ID);
@@ -407,17 +411,14 @@ function renderOverlay(entries: StudyDataEntry[]): void {
     mainOverlay.innerHTML = buildHTML(mainEntries);
   }
 
-  const widget = getWidget();
-  const chart = widget?.activeChart();
-
-  const activePanes = new Set(subPaneGroups.keys());
-  for (const paneIdx of subPaneOverlays.keys()) {
-    if (!activePanes.has(paneIdx)) removeSubPaneOverlay(paneIdx);
+  const activeNames = new Set(subPaneEntries.map((s) => s.name));
+  for (const name of subPaneOverlays.keys()) {
+    if (!activeNames.has(name)) removeSubPaneOverlay(name);
   }
 
-  for (const [paneIdx, group] of subPaneGroups) {
-    const overlay = ensureSubPaneOverlay(paneIdx, chart ?? undefined);
-    if (overlay) overlay.innerHTML = buildHTML(group);
+  for (const { name, paneIdx, entry } of subPaneEntries) {
+    const overlay = ensureSubPaneOverlay(name, paneIdx, chart ?? undefined);
+    if (overlay) overlay.innerHTML = buildHTML([entry]);
   }
 
   updateLegendOverlayLayout();
@@ -553,8 +554,8 @@ export function subscribeStudyDataLoaded(
 
 // ----- Sub-pane overlay management ----------------------------------------
 
-function subPaneOverlayId(paneIndex: number): string {
-  return `${OVERLAY_ID}-pane-${paneIndex}`;
+function subPaneOverlayId(name: string): string {
+  return `${OVERLAY_ID}-pane-${name}`;
 }
 
 function getSubPaneTopPx(paneIndex: number, chart: TVActiveChart): number {
@@ -567,32 +568,33 @@ function getSubPaneTopPx(paneIndex: number, chart: TVActiveChart): number {
 }
 
 function ensureSubPaneOverlay(
+  name: string,
   paneIndex: number,
   chart?: TVActiveChart,
 ): HTMLDivElement | null {
-  const existing = subPaneOverlays.get(paneIndex);
+  const existing = subPaneOverlays.get(name);
   if (existing && document.contains(existing)) return existing;
 
   const container = document.getElementById('tv_chart_container');
   if (!container) return null;
 
   const div = document.createElement('div');
-  div.id = subPaneOverlayId(paneIndex);
+  div.id = subPaneOverlayId(name);
   const topPx = chart ? getSubPaneTopPx(paneIndex, chart) : 0;
   div.style.cssText =
     `position:absolute;top:${topPx}px;left:${OVERLAY_LEFT_PX}px;z-index:5;` +
     `pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-start;` +
     `column-gap:8px;row-gap:2px;`;
   container.appendChild(div);
-  subPaneOverlays.set(paneIndex, div);
+  subPaneOverlays.set(name, div);
   return div;
 }
 
-export function removeSubPaneOverlay(paneIndex: number): void {
-  const el = subPaneOverlays.get(paneIndex);
+export function removeSubPaneOverlay(name: string): void {
+  const el = subPaneOverlays.get(name);
   if (el) {
     el.remove();
-    subPaneOverlays.delete(paneIndex);
+    subPaneOverlays.delete(name);
   }
 }
 
@@ -602,8 +604,14 @@ function removeAllSubPaneOverlays(): void {
 }
 
 function repositionSubPaneOverlays(chart: TVActiveChart): void {
-  for (const [paneIdx, el] of subPaneOverlays) {
-    el.style.top = `${getSubPaneTopPx(paneIdx, chart)}px`;
+  const activeStudies = getActiveStudies();
+  for (const [name, el] of subPaneOverlays) {
+    const studyId = activeStudies.get(name);
+    const study = studyId ? chart.getStudyById(studyId) : null;
+    const paneIdx = study?.paneIndex?.();
+    if (paneIdx !== undefined && paneIdx > 0) {
+      el.style.top = `${getSubPaneTopPx(paneIdx, chart)}px`;
+    }
   }
 }
 

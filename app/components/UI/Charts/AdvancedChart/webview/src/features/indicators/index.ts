@@ -8,15 +8,11 @@
 
 import { postToRN, reportErrorToRN } from '../../core/bridge';
 import {
-  deleteStudyPaneIndex,
   getActiveStudies,
   getMaStudies,
-  getStudyPaneIndex,
   getWidget,
   isChartReady,
   registerStudy,
-  reindexPanesAfterRemoval,
-  setStudyPaneIndex,
   unregisterStudy,
 } from '../../core/state';
 import type { ChartConfig, StudyId, TVActiveChart } from '../../core/types';
@@ -79,8 +75,6 @@ export function handleAddIndicator(
     .then((studyId) => {
       registerStudy('active', name, studyId);
       if (isSubPanePreset(preset)) {
-        const paneIdx = chart.getAllPanesHeight().length - 1;
-        setStudyPaneIndex(name, paneIdx);
         applySubPaneHeightRatio(chart);
       }
       subscribeStudyDataLoaded(chart, studyId);
@@ -109,17 +103,18 @@ export function handleRemoveIndicator(
   const studyId = unregisterStudy(name);
   if (!studyId) return;
 
-  const removedPaneIdx = getStudyPaneIndex(name);
-  const wasSubPane = removedPaneIdx !== undefined;
-  if (wasSubPane) {
-    removeSubPaneOverlay(removedPaneIdx);
-    deleteStudyPaneIndex(name);
-    reindexPanesAfterRemoval(removedPaneIdx);
-  }
-
   try {
     const chart = widget.activeChart();
+    const study = chart.getStudyById(studyId);
+    const paneIdx = study?.paneIndex?.();
+    const wasSubPane = paneIdx !== undefined && paneIdx > 0;
+
+    if (wasSubPane) {
+      removeSubPaneOverlay(name);
+    }
+
     chart.removeEntity(studyId);
+
     scheduleLegendRefresh();
     postToRN('INDICATOR_REMOVED', { name });
     if (wasSubPane && hasActiveSubPaneIndicators()) {

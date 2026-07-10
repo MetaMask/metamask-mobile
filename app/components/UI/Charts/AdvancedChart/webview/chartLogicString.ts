@@ -166,7 +166,6 @@ const state = {
     rnBackedPagination: { enabled: false },
     hasExplicitCurrentPriceLine: false,
     hotReloadSeq: 0,
-    studyPaneIndex: new Map(),
     slbMode: false,
     slbCenteringPending: false,
     legendOwnsLayoutSettle: false,
@@ -351,30 +350,6 @@ function bumpHotReloadSeq() {
 function getHotReloadSeq() {
     return state.hotReloadSeq;
 }
-// ----- Study pane index (sub-pane tracking) -----------------------------------
-function getStudyPaneIndex(name) {
-    return state.studyPaneIndex.get(name);
-}
-function setStudyPaneIndex(name, idx) {
-    state.studyPaneIndex.set(name, idx);
-}
-function deleteStudyPaneIndex(name) {
-    state.studyPaneIndex.delete(name);
-}
-function getStudyPaneIndexMap() {
-    return state.studyPaneIndex;
-}
-/**
- * After a sub-pane is removed, TradingView renumbers panes. Decrement all
- * tracked indices above the removed pane so they stay in sync.
- */
-function reindexPanesAfterRemoval(removedPaneIndex) {
-    for (const [name, idx] of state.studyPaneIndex) {
-        if (idx > removedPaneIndex) {
-            state.studyPaneIndex.set(name, idx - 1);
-        }
-    }
-}
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 function getSlbMode() {
     return state.slbMode;
@@ -431,7 +406,6 @@ function __resetStateForTests() {
     state.rnBackedPagination = { enabled: false };
     state.hasExplicitCurrentPriceLine = false;
     state.hotReloadSeq = 0;
-    state.studyPaneIndex = new Map();
     state.slbMode = false;
     state.slbCenteringPending = false;
     state.legendOwnsLayoutSettle = false;
@@ -2781,7 +2755,7 @@ let legendOverlayEnabled = false;
 let indicatorColors;
 /** Typed legend config from RN; when present, replaces the hardcoded buildPresetMap(). */
 let legendConfig;
-/** Sub-pane overlay elements keyed by pane index. */
+/** Sub-pane overlay elements keyed by indicator name. */
 const subPaneOverlays = new Map();
 // ----- Lifecycle ---------------------------------------------------------
 /** Called once on chart-ready to set up the DOM container. */
@@ -3085,39 +3059,37 @@ function scheduleRetry(gen) {
 }
 function renderOverlay(entries) {
     const presets = getPresetMap();
-    const paneIndexMap = getStudyPaneIndexMap();
+    const widget = getWidget();
+    const chart = widget?.activeChart();
+    const activeStudies = getActiveStudies();
     const mainEntries = [];
-    const subPaneGroups = new Map();
+    const subPaneEntries = [];
     for (const entry of entries) {
         const cfg = presets[entry.name];
-        const paneIdx = paneIndexMap.get(entry.name);
-        if (cfg?.subPaneLegend && paneIdx !== undefined) {
-            let group = subPaneGroups.get(paneIdx);
-            if (!group) {
-                group = [];
-                subPaneGroups.set(paneIdx, group);
+        if (cfg?.subPaneLegend && chart) {
+            const studyId = activeStudies.get(entry.name);
+            const study = studyId ? chart.getStudyById(studyId) : null;
+            const paneIdx = study?.paneIndex?.();
+            if (paneIdx !== undefined && paneIdx > 0) {
+                subPaneEntries.push({ name: entry.name, paneIdx, entry });
+                continue;
             }
-            group.push(entry);
         }
-        else {
-            mainEntries.push(entry);
-        }
+        mainEntries.push(entry);
     }
     const mainOverlay = document.getElementById(OVERLAY_ID);
     if (mainOverlay) {
         mainOverlay.innerHTML = buildHTML(mainEntries);
     }
-    const widget = getWidget();
-    const chart = widget?.activeChart();
-    const activePanes = new Set(subPaneGroups.keys());
-    for (const paneIdx of subPaneOverlays.keys()) {
-        if (!activePanes.has(paneIdx))
-            removeSubPaneOverlay(paneIdx);
+    const activeNames = new Set(subPaneEntries.map((s) => s.name));
+    for (const name of subPaneOverlays.keys()) {
+        if (!activeNames.has(name))
+            removeSubPaneOverlay(name);
     }
-    for (const [paneIdx, group] of subPaneGroups) {
-        const overlay = ensureSubPaneOverlay(paneIdx, chart ?? undefined);
+    for (const { name, paneIdx, entry } of subPaneEntries) {
+        const overlay = ensureSubPaneOverlay(name, paneIdx, chart ?? undefined);
         if (overlay)
-            overlay.innerHTML = buildHTML(group);
+            overlay.innerHTML = buildHTML([entry]);
     }
     updateLegendOverlayLayout();
     if (chart)
@@ -3238,8 +3210,8 @@ function subscribeStudyDataLoaded(chart, studyId) {
     scheduleLegendRefresh();
 }
 // ----- Sub-pane overlay management ----------------------------------------
-function subPaneOverlayId(paneIndex) {
-    return \`\${OVERLAY_ID}-pane-\${paneIndex}\`;
+function subPaneOverlayId(name) {
+    return \`\${OVERLAY_ID}-pane-\${name}\`;
 }
 function getSubPaneTopPx(paneIndex, chart) {
     const heights = chart.getAllPanesHeight();
@@ -3249,29 +3221,29 @@ function getSubPaneTopPx(paneIndex, chart) {
     }
     return top + 4;
 }
-function ensureSubPaneOverlay(paneIndex, chart) {
-    const existing = subPaneOverlays.get(paneIndex);
+function ensureSubPaneOverlay(name, paneIndex, chart) {
+    const existing = subPaneOverlays.get(name);
     if (existing && document.contains(existing))
         return existing;
     const container = document.getElementById('tv_chart_container');
     if (!container)
         return null;
     const div = document.createElement('div');
-    div.id = subPaneOverlayId(paneIndex);
+    div.id = subPaneOverlayId(name);
     const topPx = chart ? getSubPaneTopPx(paneIndex, chart) : 0;
     div.style.cssText =
         \`position:absolute;top:\${topPx}px;left:\${OVERLAY_LEFT_PX}px;z-index:5;\` +
             \`pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-start;\` +
             \`column-gap:8px;row-gap:2px;\`;
     container.appendChild(div);
-    subPaneOverlays.set(paneIndex, div);
+    subPaneOverlays.set(name, div);
     return div;
 }
-function removeSubPaneOverlay(paneIndex) {
-    const el = subPaneOverlays.get(paneIndex);
+function removeSubPaneOverlay(name) {
+    const el = subPaneOverlays.get(name);
     if (el) {
         el.remove();
-        subPaneOverlays.delete(paneIndex);
+        subPaneOverlays.delete(name);
     }
 }
 function removeAllSubPaneOverlays() {
@@ -3280,8 +3252,14 @@ function removeAllSubPaneOverlays() {
     subPaneOverlays.clear();
 }
 function repositionSubPaneOverlays(chart) {
-    for (const [paneIdx, el] of subPaneOverlays) {
-        el.style.top = \`\${getSubPaneTopPx(paneIdx, chart)}px\`;
+    const activeStudies = getActiveStudies();
+    for (const [name, el] of subPaneOverlays) {
+        const studyId = activeStudies.get(name);
+        const study = studyId ? chart.getStudyById(studyId) : null;
+        const paneIdx = study?.paneIndex?.();
+        if (paneIdx !== undefined && paneIdx > 0) {
+            el.style.top = \`\${getSubPaneTopPx(paneIdx, chart)}px\`;
+        }
     }
 }
 // ----- Layout ------------------------------------------------------------
@@ -3375,7 +3353,17 @@ function scheduleChartWidgetResize() {
 
 const MIN_MAIN_PX = 72;
 function hasActiveSubPaneIndicators() {
-    return getStudyPaneIndexMap().size > 0;
+    const widget = getWidget();
+    if (!widget)
+        return false;
+    const chart = widget.activeChart();
+    for (const studyId of getActiveStudies().values()) {
+        const study = chart.getStudyById(studyId);
+        const paneIdx = study?.paneIndex?.();
+        if (paneIdx !== undefined && paneIdx > 0)
+            return true;
+    }
+    return false;
 }
 function applySubPaneHeightRatio(chart) {
     const ratio = getSubPaneHeightRatio();
@@ -3600,8 +3588,6 @@ function handleAddIndicator(payload, config) {
         .then((studyId) => {
         registerStudy('active', name, studyId);
         if (isSubPanePreset(preset)) {
-            const paneIdx = chart.getAllPanesHeight().length - 1;
-            setStudyPaneIndex(name, paneIdx);
             applySubPaneHeightRatio(chart);
         }
         subscribeStudyDataLoaded(chart, studyId);
@@ -3628,15 +3614,14 @@ function handleRemoveIndicator(payload) {
     const studyId = unregisterStudy(name);
     if (!studyId)
         return;
-    const removedPaneIdx = getStudyPaneIndex(name);
-    const wasSubPane = removedPaneIdx !== undefined;
-    if (wasSubPane) {
-        removeSubPaneOverlay(removedPaneIdx);
-        deleteStudyPaneIndex(name);
-        reindexPanesAfterRemoval(removedPaneIdx);
-    }
     try {
         const chart = widget.activeChart();
+        const study = chart.getStudyById(studyId);
+        const paneIdx = study?.paneIndex?.();
+        const wasSubPane = paneIdx !== undefined && paneIdx > 0;
+        if (wasSubPane) {
+            removeSubPaneOverlay(name);
+        }
         chart.removeEntity(studyId);
         scheduleLegendRefresh();
         postToRN('INDICATOR_REMOVED', { name });
