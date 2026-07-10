@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
-import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
@@ -688,29 +687,35 @@ const PermissionsSummary = ({
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
             <View style={styles.actionButtonsContainer}>
-              <StyledButton
-                type={'cancel'}
+              <Button
+                variant={ButtonVariant.Secondary}
                 onPress={cancel}
-                containerStyle={[styles.buttonPositioning, styles.cancelButton]}
+                size={ButtonSize.Lg}
+                style={{
+                  ...styles.buttonPositioning,
+                  ...styles.cancelButton,
+                }}
                 testID={CommonSelectorsIDs.CANCEL_BUTTON}
               >
                 {strings('permissions.cancel')}
-              </StyledButton>
-              <StyledButton
-                type={isMaliciousDapp ? 'danger' : 'confirm'}
+              </Button>
+              <Button
+                variant={ButtonVariant.Primary}
                 onPress={confirm}
-                disabled={
+                isDanger={isMaliciousDapp}
+                isDisabled={
                   !isNetworkSwitch &&
                   (accountAddresses.length === 0 || networkAvatars.length === 0)
                 }
-                containerStyle={[
-                  styles.buttonPositioning,
-                  styles.confirmButton,
-                ]}
+                size={ButtonSize.Lg}
+                style={{
+                  ...styles.buttonPositioning,
+                  ...styles.confirmButton,
+                }}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
                 {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
-              </StyledButton>
+              </Button>
             </View>
           )}
           {isNonDappNetworkSwitch && (
