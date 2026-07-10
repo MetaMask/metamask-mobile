@@ -1054,7 +1054,7 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Top Traders",
+      "title": "Weekly Top Traders",
       "chain_filter": {
         "all": "All",
         "tokens": "Tokens",
@@ -1062,6 +1062,7 @@
       }
     },
     "feed": {
+      "title": "Top Traders",
       "tabs": {
         "leaderboard": "Leaderboard",
         "feed": "Feed"

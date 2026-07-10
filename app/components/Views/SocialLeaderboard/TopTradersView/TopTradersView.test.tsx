@@ -293,12 +293,12 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Top Traders title in the scrollable title section', () => {
+  it('renders the Weekly Top Traders title in the scrollable title section', () => {
     renderWithProvider(<TopTradersView />);
 
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.TITLE),
-    ).toHaveTextContent('Top Traders');
+    ).toHaveTextContent('Weekly Top Traders');
   });
 
   it('connects the scrollable title section to the compact header', () => {
@@ -316,7 +316,7 @@ describe('TopTradersView', () => {
 
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.HEADER_TITLE),
-    ).toHaveTextContent('Top Traders');
+    ).toHaveTextContent('Weekly Top Traders');
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props.onScroll,
     ).toEqual(expect.any(Function));

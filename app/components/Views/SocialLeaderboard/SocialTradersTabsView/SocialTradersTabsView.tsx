@@ -148,7 +148,7 @@ const SocialTradersTabsView: React.FC = () => {
           color={TextColor.TextDefault}
           testID={SocialTradersTabsViewSelectorsIDs.TITLE}
         >
-          {strings('social_leaderboard.top_traders_view.title')}
+          {strings('social_leaderboard.feed.title')}
         </Text>
       </Box>
 

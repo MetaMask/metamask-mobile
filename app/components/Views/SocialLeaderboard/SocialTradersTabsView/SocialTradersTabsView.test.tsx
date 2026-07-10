@@ -73,6 +73,14 @@ describe('SocialTradersTabsView', () => {
     expect(screen.getByTestId('mock-feed')).toBeOnTheScreen();
   });
 
+  it('renders the tabbed screen title from the feed i18n key', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    expect(
+      screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
+    ).toHaveTextContent('social_leaderboard.feed.title');
+  });
+
   it('plays a selection haptic when switching to a different tab', () => {
     renderWithProvider(<SocialTradersTabsView />);
 
