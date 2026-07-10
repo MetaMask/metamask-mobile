@@ -50,6 +50,9 @@ import { PredictMarketDetailsSelectorsIDs } from '../Predict.testIds';
 import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PredictDismissalMethod } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
+import PredictRegTimeTag from '../components/PredictRegTimeTag';
+import { getBuyOutcomeImage } from '../utils/sports';
+import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
 
 // Registration stack of sheet-mode providers — multiple providers can be
 // mounted simultaneously (e.g. HomeTabs + PredictScreenStack when the user
@@ -162,6 +165,19 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
     </Box>
   );
 };
+
+const getBuySheetTitle = (params: PredictBuyPreviewParams) =>
+  [
+    params.outcomeToken?.title,
+    params.outcome?.groupItemTitle || params.outcome?.title,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+const getBuySheetSubtitle = (params: PredictBuyPreviewParams) =>
+  params.outcomeToken
+    ? `${strings('predict.odds')} ${formatCents(params.outcomeToken.price ?? 0)}`
+    : undefined;
 
 interface PredictPreviewSheetContextValue {
   openBuySheet: (params: PredictBuyPreviewParams) => void;
@@ -277,6 +293,14 @@ export const PredictPreviewSheetProvider: React.FC<
    */
   const providerIdRef = useRef<number | null>(null);
   const hasBuyParams = useCallback(() => lastBuyParamsRef.current !== null, []);
+  const {
+    showRegTimeTag: showBuyRegTimeTag,
+    onRegTimeInfoPress: handleRegTimeInfoPress,
+    regTimeInfoSheet,
+  } = usePredictRegTimeBuyAccessory({
+    game: buyParams?.market.game,
+    sportsMarketType: buyParams?.outcome.sportsMarketType,
+  });
 
   useEffect(() => {
     if (!disableBottomSheet) {
@@ -503,16 +527,16 @@ export const PredictPreviewSheetProvider: React.FC<
         <PredictPreviewSheet
           ref={buySheetRef}
           isFullscreen={false}
-          title={[
-            buyParams.outcomeToken?.title,
-            buyParams.outcome?.groupItemTitle || buyParams.outcome?.title,
-          ]
-            .filter(Boolean)
-            .join(' · ')}
-          image={buyParams.outcome?.image}
-          subtitle={
-            buyParams.outcomeToken
-              ? `${strings('predict.odds')} ${formatCents(buyParams.outcomeToken.price ?? 0)}`
+          title={getBuySheetTitle(buyParams)}
+          image={getBuyOutcomeImage({
+            outcome: buyParams.outcome,
+            outcomeToken: buyParams.outcomeToken,
+            game: buyParams.market.game,
+          })}
+          subtitle={getBuySheetSubtitle(buyParams)}
+          renderRightComponent={
+            showBuyRegTimeTag
+              ? () => <PredictRegTimeTag onPress={handleRegTimeInfoPress} />
               : undefined
           }
           onDismiss={onBuyDismiss}
@@ -540,6 +564,7 @@ export const PredictPreviewSheetProvider: React.FC<
           )}
         </PredictPreviewSheet>
       )}
+      {regTimeInfoSheet}
     </PredictPreviewSheetContext.Provider>
   );
 };
