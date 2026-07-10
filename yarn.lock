@@ -7905,7 +7905,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^10.0.1, @metamask/assets-controller@npm:^10.2.1":
+"@metamask/assets-controller@npm:^10.0.1, @metamask/assets-controller@npm:^10.2.0, @metamask/assets-controller@npm:^10.2.1":
   version: 10.2.1
   resolution: "@metamask/assets-controller@npm:10.2.1"
   dependencies:
@@ -7939,43 +7939,6 @@ __metadata:
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
   checksum: 10/71eeb11283abbf76d459530b9ec31c693976f622621661ae1bbeacd019b16d2676d6ae6f0b37dc75418e4097114da166e29696b86306242c4a10996faadba118
-  languageName: node
-  linkType: hard
-
-"@metamask/assets-controller@npm:^9.1.0":
-  version: 9.1.0
-  resolution: "@metamask/assets-controller@npm:9.1.0"
-  dependencies:
-    "@ethereumjs/util": "npm:^9.1.0"
-    "@ethersproject/abi": "npm:^5.7.0"
-    "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/account-tree-controller": "npm:^7.5.3"
-    "@metamask/accounts-controller": "npm:^39.0.3"
-    "@metamask/assets-controllers": "npm:^109.2.2"
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/client-controller": "npm:^1.0.1"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/core-backend": "npm:^6.3.3"
-    "@metamask/keyring-api": "npm:^23.3.0"
-    "@metamask/keyring-controller": "npm:^27.1.0"
-    "@metamask/keyring-internal-api": "npm:^11.0.1"
-    "@metamask/keyring-snap-client": "npm:^9.0.2"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/network-controller": "npm:^33.0.0"
-    "@metamask/network-enablement-controller": "npm:^5.4.0"
-    "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/phishing-controller": "npm:^17.2.0"
-    "@metamask/polling-controller": "npm:^16.0.7"
-    "@metamask/preferences-controller": "npm:^23.1.0"
-    "@metamask/snaps-controllers": "npm:^19.0.0"
-    "@metamask/snaps-utils": "npm:^12.1.2"
-    "@metamask/transaction-controller": "npm:^68.1.1"
-    "@metamask/utils": "npm:^11.11.0"
-    async-mutex: "npm:^0.5.0"
-    bignumber.js: "npm:^9.1.2"
-    lodash: "npm:^4.17.21"
-    p-limit: "npm:^3.1.0"
-  checksum: 10/c46357539608a0e46dbd0fb4d987ac07047e64d56cc5a6e1084d0fde0d24d68cfb848f0da383d4bac34140d8a104cf373478845774fdd762844e3acdf1a1f251
   languageName: node
   linkType: hard
 
@@ -8036,7 +7999,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^109.2.2, @metamask/assets-controllers@npm:^109.4.1":
+"@metamask/assets-controllers@npm:^109.4.1":
   version: 109.4.1
   resolution: "@metamask/assets-controllers@npm:109.4.1"
   dependencies:
@@ -9641,7 +9604,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^5.3.0, @metamask/network-enablement-controller@npm:^5.4.0, @metamask/network-enablement-controller@npm:^5.4.1, @metamask/network-enablement-controller@npm:^5.5.0":
+"@metamask/network-enablement-controller@npm:5.4.1":
+  version: 5.4.1
+  resolution: "@metamask/network-enablement-controller@npm:5.4.1"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/keyring-api": "npm:^23.3.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/multichain-network-controller": "npm:^3.2.1"
+    "@metamask/network-controller": "npm:^34.0.0"
+    "@metamask/slip44": "npm:^4.3.0"
+    "@metamask/transaction-controller": "npm:^68.2.2"
+    "@metamask/utils": "npm:^11.11.0"
+    reselect: "npm:^5.1.1"
+  checksum: 10/376bf51243e0976b1003690cc883112493650f44126f1be925ad4c31016929da8680d6b5b4b47e92db738c54513016bce3c5fe26db1993b32e53b0fd0f59c999
+  languageName: node
+  linkType: hard
+
+"@metamask/network-enablement-controller@npm:^5.5.0":
   version: 5.5.0
   resolution: "@metamask/network-enablement-controller@npm:5.5.0"
   dependencies:
@@ -9656,6 +9637,24 @@ __metadata:
     "@metamask/utils": "npm:^11.11.0"
     reselect: "npm:^5.1.1"
   checksum: 10/b293d3e2f9063698a4c4283a5155897e17d79b67803ce11c33687210bb7c91dbaba71d52ccbd2ecaea9f960810ef1374594ce55407f3e4db8d140a1ed586655e
+  languageName: node
+  linkType: hard
+
+"@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch":
+  version: 5.4.1
+  resolution: "@metamask/network-enablement-controller@patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch::version=5.4.1&hash=bef511"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/keyring-api": "npm:^23.3.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/multichain-network-controller": "npm:^3.2.1"
+    "@metamask/network-controller": "npm:^34.0.0"
+    "@metamask/slip44": "npm:^4.3.0"
+    "@metamask/transaction-controller": "npm:^68.2.2"
+    "@metamask/utils": "npm:^11.11.0"
+    reselect: "npm:^5.1.1"
+  checksum: 10/b3576bad9b7ded5123520c29b02f69042fdb56435563908c02a02c43390aa74ac9d9b7aa12f95981593f0a7b81fc351af606e37fb48523563eee756a014049ca
   languageName: node
   linkType: hard
 
@@ -35677,7 +35676,7 @@ __metadata:
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
-    "@metamask/assets-controller": "npm:^9.1.0"
+    "@metamask/assets-controller": "npm:^10.2.0"
     "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A109.4.0#~/.yarn/patches/@metamask-assets-controllers-npm-109.4.0-25a362106e.patch"
     "@metamask/authenticated-user-storage": "npm:^3.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
@@ -35753,7 +35752,7 @@ __metadata:
     "@metamask/multichain-transactions-controller": "npm:^7.1.0"
     "@metamask/native-utils": "npm:^0.8.0"
     "@metamask/network-controller": "npm:^34.0.0"
-    "@metamask/network-enablement-controller": "npm:^5.3.0"
+    "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
     "@metamask/notification-services-controller": "npm:^24.3.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
