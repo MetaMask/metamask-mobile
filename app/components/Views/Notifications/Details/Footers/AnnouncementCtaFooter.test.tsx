@@ -95,7 +95,7 @@ describe('AnnouncementCtaFooter', () => {
       expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/test');
     });
 
-    it('tracks an external_link detail click when pressed', () => {
+    it('tracks a cta_button detail click when pressed', () => {
       const props = {
         type: ModalFooterType.ANNOUNCEMENT_CTA,
         externalLink: {
@@ -116,7 +116,7 @@ describe('AnnouncementCtaFooter', () => {
             notification_id: props.notification.id,
             notification_type: props.notification.type,
             notification_subtype: getNotificationSubtype(props.notification),
-            clicked_item: 'external_link',
+            clicked_item: 'cta_button',
           })
           .build(),
       );
@@ -186,7 +186,7 @@ describe('AnnouncementCtaFooter', () => {
       );
     });
 
-    it('tracks an internal_link detail click when pressed', () => {
+    it('tracks a cta_button detail click when pressed', () => {
       const props = {
         type: ModalFooterType.ANNOUNCEMENT_CTA,
         mobileLink: {
@@ -207,7 +207,7 @@ describe('AnnouncementCtaFooter', () => {
             notification_id: props.notification.id,
             notification_type: props.notification.type,
             notification_subtype: getNotificationSubtype(props.notification),
-            clicked_item: 'internal_link',
+            clicked_item: 'cta_button',
           })
           .build(),
       );
