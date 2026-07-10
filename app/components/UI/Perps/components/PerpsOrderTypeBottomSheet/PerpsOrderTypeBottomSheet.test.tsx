@@ -12,7 +12,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 
 jest.mock('@metamask/design-system-react-native', () => {
   const MockReact = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { View, Pressable, Text: RNText } = jest.requireActual('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
 
   const BottomSheet = MockReact.forwardRef(
@@ -20,9 +20,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       {
         children,
         testID,
+        onClose,
+        goBack,
       }: {
         children: React.ReactNode;
         testID?: string;
+        onClose?: () => void;
+        goBack?: () => void;
       },
       ref: React.Ref<{
         onOpenBottomSheet: () => void;
@@ -32,6 +36,8 @@ jest.mock('@metamask/design-system-react-native', () => {
       MockReact.useImperativeHandle(ref, () => ({
         onOpenBottomSheet: jest.fn(),
         onCloseBottomSheet: (callback?: () => void) => {
+          goBack?.();
+          onClose?.();
           callback?.();
         },
       }));
@@ -41,9 +47,23 @@ jest.mock('@metamask/design-system-react-native', () => {
   );
   BottomSheet.displayName = 'BottomSheet';
 
+  const BottomSheetHeader = ({
+    children,
+    onClose,
+  }: {
+    children: React.ReactNode;
+    onClose?: () => void;
+  }) => (
+    <View testID="bottom-sheet-header">
+      {typeof children === 'string' ? <RNText>{children}</RNText> : children}
+      <Pressable testID="close-button" onPress={onClose} />
+    </View>
+  );
+
   return {
     ...actual,
     BottomSheet,
+    BottomSheetHeader,
   };
 });
 
@@ -195,6 +215,37 @@ describe('PerpsOrderTypeBottomSheet', () => {
       rerender(<PerpsOrderTypeBottomSheet {...defaultProps} isVisible />);
 
       expect(screen.getByText('Order Type')).toBeOnTheScreen();
+    });
+
+    it('calls onClose once when header close button is pressed', () => {
+      const onClose = jest.fn();
+
+      render(<PerpsOrderTypeBottomSheet {...defaultProps} onClose={onClose} />);
+
+      fireEvent.press(screen.getByTestId('close-button'));
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onClose once when header close button is pressed with external sheetRef', () => {
+      const onClose = jest.fn();
+      const sheetRef: React.RefObject<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      } | null> = { current: null };
+
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          onClose={onClose}
+          sheetRef={sheetRef}
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('close-button'));
+
+      expect(sheetRef.current?.onCloseBottomSheet).toBeDefined();
+      expect(onClose).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -45,8 +45,8 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   }, [isVisible, externalSheetRef, sheetRef]);
 
   const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(onClose);
-  }, [onClose, sheetRef]);
+    sheetRef.current?.onCloseBottomSheet();
+  }, [sheetRef]);
 
   const orderTypes = [
     {
