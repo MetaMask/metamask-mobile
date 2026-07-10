@@ -74,6 +74,21 @@ describe('PotentialEarningsTokenRow', () => {
     expect(getByText('USD Coin')).toBeOnTheScreen();
   });
 
+  it('falls back to the token symbol when name is empty', () => {
+    const noNameToken = makeToken({ name: '', symbol: 'USDC' });
+    const { getByText } = render(
+      <PotentialEarningsTokenRow
+        token={noNameToken}
+        hasSubsidizedFee={false}
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+      />,
+    );
+
+    expect(getByText('USDC')).toBeOnTheScreen();
+  });
+
   it('renders the token fiat balance', () => {
     const { getByText } = render(
       <PotentialEarningsTokenRow
