@@ -63,11 +63,5 @@ export const createStyles = (params: { theme: Theme }) => {
     destTokenArea: {
       // marginTop: 16,
     },
-    keypadBottomSheet: {
-      marginBottom: -1,
-      marginHorizontal: -1,
-      borderColor: theme.colors.border.muted,
-      borderBottomColor: theme.colors.background.default,
-    },
   });
 };
