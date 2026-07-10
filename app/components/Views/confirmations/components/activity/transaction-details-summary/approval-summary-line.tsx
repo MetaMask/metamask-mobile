@@ -3,6 +3,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
+import { getMusdDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
 import { TransactionSummaryLine } from './transaction-summary-line';
 
 export function ApprovalSummaryLine({
@@ -17,9 +18,11 @@ export function ApprovalSummaryLine({
     transactionMeta.chainId,
   );
 
-  const title = token?.symbol
+  const approveSymbol = getMusdDisplaySymbol(tokenAddress, token?.symbol);
+
+  const title = approveSymbol
     ? strings('transaction_details.summary_title.bridge_approval', {
-        approveSymbol: token.symbol,
+        approveSymbol,
       })
     : strings('transaction_details.summary_title.bridge_approval_loading');
 

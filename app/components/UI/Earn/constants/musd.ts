@@ -51,6 +51,16 @@ export const isMusdToken = (address?: string): boolean => {
 };
 
 /**
+ * mUSD may be registered in the token registry with the uppercase symbol
+ * "MUSD" (e.g. via token detection); canonicalise it to the branded "mUSD"
+ * so UI never leaks the registry casing.
+ */
+export const getMusdDisplaySymbol = (
+  address?: string,
+  symbol?: string,
+): string | undefined => (isMusdToken(address) ? MUSD_TOKEN.symbol : symbol);
+
+/**
  * Like {@link isMusdToken} but also requires `chainId` to be a chain where
  * mUSD is actually deployed. Prevents a same-address token on an unsupported
  * chain from being misclassified as mUSD.
