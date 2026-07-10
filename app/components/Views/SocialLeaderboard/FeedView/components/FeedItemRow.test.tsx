@@ -27,6 +27,8 @@ const spotItem: FeedSpotItem = {
   subHeader: '$120K at $900K MC',
   valueLabel: '$123,000.5',
   pnlLabel: '+12%',
+  hasValueData: true,
+  hasPnlData: true,
   isPnlPositive: true,
 };
 
@@ -45,6 +47,8 @@ const perpItem: FeedPerpItem = {
   subHeader: '$50.6K at $1,701.24',
   valueLabel: '$88,000.5',
   pnlLabel: '+12%',
+  hasValueData: true,
+  hasPnlData: true,
   isPnlPositive: true,
 };
 
@@ -62,6 +66,23 @@ describe('FeedItemRow', () => {
     expect(screen.getByText('PEPE')).toBeOnTheScreen();
     expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
     expect(screen.getByText('dutchiono')).toBeOnTheScreen();
+  });
+
+  it('renders muted "no data" labels when position value and PnL are missing', () => {
+    const item: FeedSpotItem = {
+      ...spotItem,
+      valueLabel: 'social_leaderboard.feed.no_data',
+      pnlLabel: 'social_leaderboard.feed.no_data',
+      hasValueData: false,
+      hasPnlData: false,
+      isPnlPositive: false,
+    };
+
+    renderWithProvider(<FeedItemRow item={item} onTradePress={jest.fn()} />);
+
+    expect(screen.getAllByText('social_leaderboard.feed.no_data')).toHaveLength(
+      2,
+    );
   });
 
   it('calls onTradePress with the item when Trade is pressed', () => {
@@ -84,5 +105,24 @@ describe('FeedItemRow', () => {
     expect(
       screen.getByTestId('feed-item-perp-badges-perp-1'),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('feed-item-perp-badges-perp-1-leverage'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the leverage pill when leverage is null', () => {
+    renderWithProvider(
+      <FeedItemRow
+        item={{ ...perpItem, leverage: null }}
+        onTradePress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('feed-item-perp-badges-perp-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('feed-item-perp-badges-perp-1-leverage'),
+    ).toBeNull();
   });
 });

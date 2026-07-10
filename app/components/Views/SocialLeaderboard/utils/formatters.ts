@@ -101,6 +101,16 @@ export function formatSignedAbbreviatedUsd(
 }
 
 /**
+ * Unsigned USD with K/M/B/T abbreviation for ≥$1K values and two decimals below
+ * that (e.g. `$137.28`, `$1.1K`, `$10.3K`). Use for compact monetary labels
+ * like a trade's size where no +/- direction applies.
+ */
+export function formatAbbreviatedUsd(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  return shortenAbsCurrency(Math.abs(value));
+}
+
+/**
  * Formats a raw token quantity for display in list rows.
  * - Values >= 1,000 are abbreviated with K/M/B/T suffixes (e.g. 216.65M).
  * - Smaller values are capped at 4 decimal places, with "< 0.00001" for dust.

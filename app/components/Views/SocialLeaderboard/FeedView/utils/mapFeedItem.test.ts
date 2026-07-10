@@ -1,6 +1,10 @@
 import { mapFeedItem } from './mapFeedItem';
 import { mockPerpFeedItem, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+}));
+
 describe('mapFeedItem', () => {
   it('maps an open spot buy to a spot UI item with CAIP + hex chain', () => {
     const result = mapFeedItem(mockSpotFeedItem());
@@ -45,6 +49,52 @@ describe('mapFeedItem', () => {
       direction: 'long',
       leverage: 8,
     });
+  });
+
+  it('falls back to the triggering trade leverage when the position omits it', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        perpLeverage: null,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: 5,
+            usdCost: 88000,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 5,
+          },
+        ],
+      }),
+    );
+
+    expect(result).toMatchObject({ type: 'perps', leverage: 5 });
+  });
+
+  it('leaves leverage null when neither the position nor trade provides it', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        perpLeverage: null,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: 5,
+            usdCost: 88000,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: null,
+          },
+        ],
+      }),
+    );
+
+    expect(result).toMatchObject({ type: 'perps', leverage: null });
   });
 
   it('strips the HIP-3 DEX prefix from the displayed symbol but keeps it for navigation', () => {
@@ -123,6 +173,21 @@ describe('mapFeedItem', () => {
     // usdCost 120000 -> "$120K"; price 120000/1000 = 120 -> "at $120.00".
     expect(result?.subHeader).toContain('$120K');
     expect(result?.subHeader).toContain('at');
+  });
+
+  it('shows "no data" when open-position value and PnL fields are missing', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        currentValueUSD: null,
+        pnlPercent: null,
+        pnlValueUsd: null,
+      }),
+    );
+
+    expect(result?.valueLabel).toBe('social_leaderboard.feed.no_data');
+    expect(result?.pnlLabel).toBe('social_leaderboard.feed.no_data');
+    expect(result?.hasValueData).toBe(false);
+    expect(result?.hasPnlData).toBe(false);
   });
 
   it('marks negative PnL as not positive', () => {

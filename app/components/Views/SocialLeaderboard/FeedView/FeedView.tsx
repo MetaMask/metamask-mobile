@@ -74,7 +74,9 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   const { colors } = useTheme();
   const navigation = useNavigation();
 
-  const [audience, setAudience] = useState<FeedAudience>('all');
+  // Default to "Following": the backend "leaderboard" scope isn't implemented
+  // yet, so the feed opens on the Following scope (the only one the API serves).
+  const [audience, setAudience] = useState<FeedAudience>('following');
   const [typeFilter, setTypeFilter] = useState<FeedTypeFilter>('all');
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 

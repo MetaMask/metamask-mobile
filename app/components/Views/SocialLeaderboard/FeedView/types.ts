@@ -37,6 +37,10 @@ interface FeedItemBase {
   valueLabel: string;
   /** Pre-formatted P&L, e.g. "+12%". */
   pnlLabel: string;
+  /** Whether the API supplied a value for the top-right figure. */
+  hasValueData: boolean;
+  /** Whether the API supplied a P&L percent for the bottom-right figure. */
+  hasPnlData: boolean;
   /** Whether the P&L is positive (green) or negative (red). */
   isPnlPositive: boolean;
 }
@@ -75,8 +79,8 @@ export interface FeedPerpItem extends FeedItemBase {
    */
   tradeSymbol: string;
   direction: FeedPerpDirection;
-  /** Leverage multiplier (e.g. `8` → "8x"). */
-  leverage: number;
+  /** Leverage multiplier (e.g. `8` → "8x"). `null` hides the leverage badge. */
+  leverage: number | null;
 }
 
 export type FeedItem = FeedSpotItem | FeedPerpItem;

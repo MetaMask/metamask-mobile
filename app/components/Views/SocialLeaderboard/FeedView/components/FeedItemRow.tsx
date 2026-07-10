@@ -78,7 +78,10 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
             >
               {item.username}
             </Text>
-            {` ${actionLabel} \u00b7 ${timeLabel}`}
+            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+              {` ${actionLabel}`}
+            </Text>
+            {` \u00b7 ${timeLabel}`}
           </Text>
         </Box>
 
@@ -139,15 +142,24 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+            color={
+              item.hasValueData
+                ? TextColor.TextDefault
+                : TextColor.TextAlternative
+            }
             numberOfLines={1}
           >
             {item.valueLabel}
           </Text>
           <Text
             variant={TextVariant.BodySm}
+            color={item.hasPnlData ? undefined : TextColor.TextAlternative}
             twClassName={
-              item.isPnlPositive ? 'text-success-default' : 'text-error-default'
+              item.hasPnlData
+                ? item.isPnlPositive
+                  ? 'text-success-default'
+                  : 'text-error-default'
+                : undefined
             }
             numberOfLines={1}
           >

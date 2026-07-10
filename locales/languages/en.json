@@ -1091,7 +1091,8 @@
       "error": {
         "title": "Couldn't load the feed",
         "retry": "Try again"
-      }
+      },
+      "no_data": "No data"
     },
     "notification_preferences": {
       "title": "Top traders",

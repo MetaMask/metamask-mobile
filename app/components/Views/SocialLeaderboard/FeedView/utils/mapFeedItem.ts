@@ -3,10 +3,7 @@ import type {
   Trade,
 } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import {
-  caipChainIdToHex,
-  formatCompactUsd,
-} from '../../../../UI/Rewards/utils/formatUtils';
+import { caipChainIdToHex } from '../../../../UI/Rewards/utils/formatUtils';
 import {
   getPerpPositionDirection,
   getSupportedXyzPerpMarketSymbol,
@@ -14,12 +11,19 @@ import {
   isPerpPosition,
 } from '../../utils/perp';
 import { chainNameToId } from '../../utils/chainMapping';
+import { strings } from '../../../../../../locales/i18n';
 import {
+  formatAbbreviatedUsd,
   formatPercent,
   formatSignedUsd,
   formatUsd,
 } from '../../utils/formatters';
 import type { FeedAction, FeedItem } from '../types';
+
+const feedNoDataLabel = () => strings('social_leaderboard.feed.no_data');
+
+const isPresentNumber = (value: number | null | undefined): value is number =>
+  value != null && Number.isFinite(value);
 
 /** Trade timestamps from the social API may be in seconds or milliseconds. */
 const toMs = (timestamp: number): number =>
@@ -77,7 +81,7 @@ function buildSubHeader(trade: Trade | undefined): string {
     return '';
   }
 
-  const size = formatCompactUsd(Math.abs(trade.usdCost));
+  const size = formatAbbreviatedUsd(Math.abs(trade.usdCost));
   const price =
     trade.tokenAmount > 0 ? Math.abs(trade.usdCost / trade.tokenAmount) : null;
 
@@ -122,11 +126,22 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
         : null
       : (coreItem.pnlPercent ?? null);
 
-  const valueLabel = isClosed
-    ? formatSignedUsd(pnlValue ?? null)
-    : formatUsd(coreItem.currentValueUSD ?? null);
-  const pnlLabel = formatPercent(pnlPercent);
-  const isPnlPositive = (pnlValue ?? 0) >= 0;
+  const hasValueData = isClosed
+    ? isPresentNumber(pnlValue)
+    : isPresentNumber(coreItem.currentValueUSD);
+  const hasPnlData = isPresentNumber(pnlPercent);
+
+  const valueLabel = hasValueData
+    ? isClosed
+      ? formatSignedUsd(pnlValue)
+      : formatUsd(coreItem.currentValueUSD)
+    : feedNoDataLabel();
+  const pnlLabel = hasPnlData ? formatPercent(pnlPercent) : feedNoDataLabel();
+  const pnlSignSource = isClosed
+    ? pnlValue
+    : (coreItem.pnlValueUsd ?? pnlPercent);
+  const isPnlPositive =
+    hasPnlData && isPresentNumber(pnlSignSource) && pnlSignSource >= 0;
 
   const base = {
     id: `${coreItem.positionId}-${timestamp}`,
@@ -138,6 +153,8 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
     subHeader,
     valueLabel,
     pnlLabel,
+    hasValueData,
+    hasPnlData,
     isPnlPositive,
   };
 
@@ -154,7 +171,10 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
       marketName: displaySymbol,
       tradeSymbol: targetSymbol,
       direction: getPerpPositionDirection(coreItem) ?? 'long',
-      leverage: coreItem.perpLeverage ?? 1,
+      // Prefer the position leverage, fall back to the triggering trade's, and
+      // leave `null` when neither is present so the badge is hidden rather than
+      // showing a misleading "1x" (parity with PositionRow / TradeRow).
+      leverage: coreItem.perpLeverage ?? trade?.perpLeverage ?? null,
     };
   }
 
