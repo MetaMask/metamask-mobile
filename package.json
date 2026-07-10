@@ -219,7 +219,8 @@
     "@metamask/accounts-controller": "^39.0.3",
     "expo-web-browser@npm:~55.0.16": "55.0.16",
     "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
-    "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch"
+    "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch",
+    "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -311,7 +312,7 @@
     "@metamask/multichain-transactions-controller": "^7.1.0",
     "@metamask/native-utils": "^0.8.0",
     "@metamask/network-controller": "^34.0.0",
-    "@metamask/network-enablement-controller": "^5.3.0",
+    "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@metamask/notification-services-controller": "^25.0.0",
     "@metamask/permission-controller": "^13.1.1",
     "@metamask/perps-controller": "^9.2.1",
