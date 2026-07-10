@@ -99,6 +99,7 @@ export interface ChartConfig {
   features?: ChartFeaturesConfig;
   indicatorColors?: IndicatorColors;
   useSubscriptPriceFormat?: boolean;
+  priceDecimals?: number | null;
   visualOverrides?: VisualOverridesConfigInline;
   legendOverlay?: LegendOverlayConfig;
   /** Optional sub-pane height ratio in (0, 1] for RSI/MACD sub-panes. */

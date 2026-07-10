@@ -17,6 +17,7 @@ import {
   clearMoneyAccountDepositIntent,
   getMoneyAccountDepositIntent,
 } from './useMoneyAccount';
+import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import Routes from '../../../../constants/navigation/Routes';
@@ -33,6 +34,10 @@ jest.mock('./useMoneyAccount', () => ({
   __esModule: true,
   getMoneyAccountDepositIntent: jest.fn(),
   clearMoneyAccountDepositIntent: jest.fn(),
+}));
+
+jest.mock('../utils/firstTimeDeposit', () => ({
+  shouldShowMoneyFirstTimeDepositAnimation: jest.fn(() => false),
 }));
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -174,6 +179,7 @@ const buildTxMeta = (overrides: Partial<TransactionMeta>): TransactionMeta =>
 
 describe('useMoneyTransactionStatus', () => {
   const mockShowToast = jest.fn();
+  const mockCloseToast = jest.fn();
 
   const baseInProgressToast = {
     variant: ToastVariants.Icon as const,
@@ -262,6 +268,7 @@ describe('useMoneyTransactionStatus', () => {
     Object.assign(NavigationService.navigation, { navigate: mockNavigate });
     mockUseMoneyToasts.mockReturnValue({
       showToast: mockShowToast,
+      closeToast: mockCloseToast,
       MoneyToastOptions: moneyToastOptions,
     });
   });
@@ -434,6 +441,138 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositSuccessFn).toHaveBeenCalledWith(
         expect.objectContaining({ intent: 'addMusd' }),
       );
+    });
+
+    it('suppresses the success toast when the first-time deposit animation will show', () => {
+      jest
+        .mocked(shouldShowMoneyFirstTimeDepositAnimation)
+        .mockReturnValueOnce(true);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_FIRST_DEPOSIT',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(depositSuccessFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('closes the displayed in-progress toast when the success toast is suppressed', () => {
+      jest
+        .mocked(shouldShowMoneyFirstTimeDepositAnimation)
+        .mockReturnValueOnce(true);
+
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+      expect(depositSuccessFn).not.toHaveBeenCalled();
+    });
+
+    it('does not close the toast when the in-progress toast never displayed', () => {
+      jest
+        .mocked(shouldShowMoneyFirstTimeDepositAnimation)
+        .mockReturnValueOnce(true);
+
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        }),
+      });
+
+      // Confirmation arrives before the in-progress deferral elapses.
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(mockCloseToast).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('still clears the batch intent when the success toast is suppressed', () => {
+      jest
+        .mocked(shouldShowMoneyFirstTimeDepositAnimation)
+        .mockReturnValueOnce(true);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_FIRST_DEPOSIT',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_FIRST_DEPOSIT',
+      );
+    });
+
+    it('shows the success toast when the animation will not show', () => {
+      jest
+        .mocked(shouldShowMoneyFirstTimeDepositAnimation)
+        .mockReturnValueOnce(false);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_LATER_DEPOSIT',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledWith(baseSuccessToast);
     });
 
     it('forwards intent to deposit.failed on failed', () => {
