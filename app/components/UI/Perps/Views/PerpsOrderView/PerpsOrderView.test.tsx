@@ -480,6 +480,20 @@ jest.mock(
   }),
 );
 
+// Controllable pay-quote state for the trade-quote-received coverage tests.
+let mockIsPayQuoteLoading = false;
+let mockPayTotals: unknown;
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
+  () => ({
+    ...jest.requireActual(
+      '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
+    ),
+    useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
+    useTransactionPayTotals: () => mockPayTotals,
+  }),
+);
+
 jest.mock(
   '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount',
   () => ({
@@ -4436,6 +4450,91 @@ describe('PerpsOrderView', () => {
       // the configured cap must NOT reach the order execution path. (The toast
       // copy and event payload are verified separately by the slippage recipe and the `eventNames` constants tests.)
       expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('transaction considered + trade quote received', () => {
+    let captured: { eventName: unknown; props: Record<string, unknown> }[];
+
+    beforeEach(() => {
+      captured = [];
+      mockIsPayQuoteLoading = false;
+      mockPayTotals = undefined;
+      mockCreateEventBuilder.mockImplementation((eventName?: unknown) => {
+        const builder: { addProperties: jest.Mock; build: jest.Mock } = {
+          addProperties: jest.fn((props: Record<string, unknown>) => {
+            captured.push({ eventName, props });
+            return builder;
+          }),
+          build: jest.fn(() => ({})),
+        };
+        return builder;
+      });
+    });
+
+    const eventsOf = (name: unknown) =>
+      captured.filter((e) => e.eventName === name);
+
+    it('emits PERPS_TRANSACTION_CONSIDERED once the filled order form settles (1s debounce)', () => {
+      jest.useFakeTimers();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Nothing before the 1s debounce window elapses.
+      act(() => {
+        jest.advanceTimersByTime(999);
+      });
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED),
+      ).toHaveLength(0);
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+      const considered = eventsOf(
+        MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED,
+      );
+      expect(considered).toHaveLength(1);
+      expect(considered[0].props).toEqual(
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ORDER_CONTEXT]: 'trade',
+          [PERPS_EVENT_PROPERTY.ACTION]:
+            PERPS_EVENT_VALUE.ACTION.CREATE_POSITION,
+          [PERPS_EVENT_PROPERTY.ORDER_SIZE]: 11,
+          [PERPS_EVENT_PROPERTY.INPUT_METHOD]: 'default',
+          [PERPS_EVENT_PROPERTY.ASSET]: 'ETH',
+          [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: 'market',
+          [PERPS_EVENT_PROPERTY.ORDER_HAS_TP]: false,
+          [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: false,
+          [PERPS_EVENT_PROPERTY.LEVERAGE]: 3,
+          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+        }),
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('emits PERPS_TRADE_QUOTE_RECEIVED with quote_latency_ms when a pay-token quote completes', () => {
+      // Quote request in flight (custom pay token selected by default).
+      mockIsPayQuoteLoading = true;
+      const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Quote resolves: loading transitions true -> false with totals present.
+      mockIsPayQuoteLoading = false;
+      mockPayTotals = { fees: {} };
+      act(() => {
+        rerender(<PerpsOrderView />);
+      });
+
+      const quotes = eventsOf(MetaMetricsEvents.PERPS_TRADE_QUOTE_RECEIVED);
+      expect(quotes).toHaveLength(1);
+      expect(quotes[0].props).toEqual(
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ASSET]: 'ETH',
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
+          [PERPS_EVENT_PROPERTY.QUOTE_LATENCY_MS]: expect.any(Number),
+        }),
+      );
     });
   });
 
