@@ -86,7 +86,7 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
     {
       urlEndpoint: assetsWatchlistUrl,
       responseCode: 200,
-      response: [],
+      response: { assets: [], version: 1 },
     },
   ],
   PUT: [
@@ -136,6 +136,11 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
     },
     {
       urlEndpoint: multichainGroupsUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint: assetsWatchlistUrl,
       responseCode: 200,
       response: 'OK',
     },
