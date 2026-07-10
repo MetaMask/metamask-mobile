@@ -341,6 +341,7 @@ function TradeWalletActions() {
           onPress={onBatchSell}
           testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
           isDisabled={!isSwapsEnabled}
+          style={tw.style('bg-transparent')}
         />
       )}
       {AppConstants.SWAPS.ACTIVE && (
@@ -351,6 +352,7 @@ function TradeWalletActions() {
           onPress={goToSwaps}
           testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
           isDisabled={!isSwapsEnabled}
+          style={tw.style('bg-transparent')}
         />
       )}
       {isPerpsEnabled && (
@@ -361,6 +363,7 @@ function TradeWalletActions() {
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
+          style={tw.style('bg-transparent')}
         />
       )}
       {isPredictEnabled && (
@@ -371,6 +374,7 @@ function TradeWalletActions() {
           onPress={onPredict}
           testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
           isDisabled={!canSignTransactions}
+          style={tw.style('bg-transparent')}
         />
       )}
       {isEarnWalletActionEnabled && isEarnEligible && (
@@ -381,6 +385,7 @@ function TradeWalletActions() {
           onPress={onEarn}
           testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
           isDisabled={!canSignTransactions}
+          style={tw.style('bg-transparent')}
         />
       )}
     </>
