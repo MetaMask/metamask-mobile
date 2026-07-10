@@ -3362,4 +3362,67 @@ describe('PerpsClosePositionView', () => {
       );
     });
   });
+
+  describe('position_close entry action (button_clicked)', () => {
+    const expectScreenViewed = (expected: Record<string, unknown>) =>
+      expect(defaultPerpsEventTrackingMock.track).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.POSITION_CLOSE,
+          ...expected,
+        }),
+      );
+
+    it('reports button_clicked=reduce_exposure when opened via the reduce-exposure entry', () => {
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+        },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+      });
+    });
+
+    it('reports button_clicked=close when opened via a plain close entry', () => {
+      useRouteMock.mockReturnValue({
+        params: {
+          position: defaultPerpsPositionMock,
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
+        },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.ORDER_BOOK,
+      });
+    });
+
+    it('defaults button_clicked=close when no entry action is provided', () => {
+      useRouteMock.mockReturnValue({
+        params: { position: defaultPerpsPositionMock },
+      });
+
+      renderWithProvider(<PerpsClosePositionView />);
+
+      expectScreenViewed({
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+      });
+    });
+  });
 });

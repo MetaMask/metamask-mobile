@@ -131,6 +131,8 @@ export type PerpsNavigationParamList = {
   PerpsClosePosition: {
     position: Position;
     source?: string;
+    buttonClicked?: string;
+    buttonLocation?: string;
   };
 
   PerpsAdjustMargin: {

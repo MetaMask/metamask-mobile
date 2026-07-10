@@ -890,6 +890,10 @@ describe('PerpsOrderBookView', () => {
       expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
         mockLongPosition,
         'order_book',
+        {
+          buttonClicked: 'close',
+          buttonLocation: 'order_book',
+        },
       );
     });
 

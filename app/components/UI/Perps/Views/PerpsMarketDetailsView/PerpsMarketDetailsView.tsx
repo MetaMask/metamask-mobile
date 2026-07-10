@@ -1018,6 +1018,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigateToClosePosition(
         existingPosition,
         PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+        {
+          buttonClicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+          buttonLocation: PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS,
+        },
       );
     });
   }, [gate, existingPosition, navigateToClosePosition, isEligible, track]);

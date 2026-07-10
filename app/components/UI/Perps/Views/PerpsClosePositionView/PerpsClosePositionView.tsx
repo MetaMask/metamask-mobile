@@ -88,9 +88,16 @@ const PerpsClosePositionView: React.FC = () => {
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsClosePosition'>>();
-  const { position, source: routeSource } = route.params as {
+  const {
+    position,
+    source: routeSource,
+    buttonClicked: entryButtonClicked,
+    buttonLocation: entryButtonLocation,
+  } = route.params as {
     position: Position;
     source?: string;
+    buttonClicked?: string;
+    buttonLocation?: string;
   };
 
   const inputMethodRef = useRef<InputMethod>('default');
@@ -346,11 +353,14 @@ const PerpsClosePositionView: React.FC = () => {
       [PERPS_EVENT_PROPERTY.UNREALIZED_PNL_PERCENT]: unrealizedPnlPercent,
       [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
       [PERPS_EVENT_PROPERTY.RECEIVED_AMOUNT]: receiveAmount,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: isPartialClose
-        ? PERPS_EVENT_VALUE.BUTTON_CLICKED.REDUCE_EXPOSURE
-        : PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
+      // The entry CTA (close vs reduce_exposure) is passed via the navigation
+      // route param — closePercentage defaults to 100 at open, so isPartialClose
+      // can't identify which CTA opened this screen. isPartialClose still drives
+      // later interaction events, just not this entry screen-view.
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        entryButtonClicked ?? PERPS_EVENT_VALUE.BUTTON_CLICKED.CLOSE,
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
+        entryButtonLocation ?? PERPS_EVENT_VALUE.BUTTON_LOCATION.SCREEN,
     },
   });
 
