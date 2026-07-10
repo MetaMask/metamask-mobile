@@ -85,11 +85,17 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     const navigation = useNavigation();
     const isDeFiEnabled = useSelector(selectDeFiPositionsSectionEnabled);
 
+    const lastDeFiPollRef = useRef<number | null>(null);
     useFocusEffect(
       useCallback(() => {
-        if (!isDeFiEnabled) {
+        if (!isDeFiEnabled) return;
+        const now = Date.now();
+        if (
+          lastDeFiPollRef.current !== null &&
+          now - lastDeFiPollRef.current < 300_000
+        )
           return;
-        }
+        lastDeFiPollRef.current = now;
         Engine.context.DeFiPositionsController?._executePoll()?.catch(
           () => undefined,
         );

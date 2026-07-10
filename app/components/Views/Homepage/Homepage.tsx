@@ -123,8 +123,17 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }, [areAllPopularNetworksEnabled, enableAllPopularNetworks]),
     );
 
+    const lastNftDetectRef = useRef<number | null>(null);
     useFocusEffect(
       useCallback(() => {
+        const now = Date.now();
+        if (
+          lastNftDetectRef.current !== null &&
+          now - lastNftDetectRef.current < 300_000
+        )
+          return;
+        lastNftDetectRef.current = now;
+
         detectNfts().catch(() => {
           // AbortError is expected when detection is cancelled on blur
         });
