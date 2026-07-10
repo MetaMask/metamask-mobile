@@ -1,0 +1,48 @@
+diff --git a/dist/AssetsContractController.cjs b/dist/AssetsContractController.cjs
+index bbdc0ed81a0e5c68caacf4c1d2a3276ae765e398..1444bc7c2d6f790dd03617d83d44506517c6a8b2 100644
+--- a/dist/AssetsContractController.cjs
++++ b/dist/AssetsContractController.cjs
+@@ -50,6 +50,7 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+     [assetsUtil_1.SupportedTokenDetectionNetworks.PolygonZkevm]: '0x6aa75276052d96696134252587894ef5ffa520af',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.Moonbeam]: '0x6aa75276052d96696134252587894ef5ffa520af',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.Moonriver]: '0x6aa75276052d96696134252587894ef5ffa520af',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.Robinhood]: '0x1C0b2428d5C520EF51310dd1f93fBA6B58b47dA6',
+ };
+ exports.STAKING_CONTRACT_ADDRESS_BY_CHAINID = {
+     [assetsUtil_1.SupportedStakedBalanceNetworks.Mainnet]: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+diff --git a/dist/AssetsContractController.mjs b/dist/AssetsContractController.mjs
+index 546c20346da1aa55b63372d7759fb766de138ac9..846016d0c8d837a1a6e7d84c26ca498434e33078 100644
+--- a/dist/AssetsContractController.mjs
++++ b/dist/AssetsContractController.mjs
+@@ -51,6 +51,7 @@ export const SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+     [SupportedTokenDetectionNetworks.PolygonZkevm]: '0x6aa75276052d96696134252587894ef5ffa520af',
+     [SupportedTokenDetectionNetworks.Moonbeam]: '0x6aa75276052d96696134252587894ef5ffa520af',
+     [SupportedTokenDetectionNetworks.Moonriver]: '0x6aa75276052d96696134252587894ef5ffa520af',
++    [SupportedTokenDetectionNetworks.Robinhood]: '0x1C0b2428d5C520EF51310dd1f93fBA6B58b47dA6',
+ };
+ export const STAKING_CONTRACT_ADDRESS_BY_CHAINID = {
+     [SupportedStakedBalanceNetworks.Mainnet]: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+diff --git a/dist/assetsUtil.cjs b/dist/assetsUtil.cjs
+index bc9ba89a8a78ee52259de01f859d77967b2dd308..ff1241de28e113da39528564bce74f82e31f0fce 100644
+--- a/dist/assetsUtil.cjs
++++ b/dist/assetsUtil.cjs
+@@ -137,6 +137,7 @@ var SupportedTokenDetectionNetworks;
+     SupportedTokenDetectionNetworks["MonadMainnet"] = "0x8f";
+     SupportedTokenDetectionNetworks["Hyperevm"] = "0x3e7";
+     SupportedTokenDetectionNetworks["Arc"] = "0x13b2";
++    SupportedTokenDetectionNetworks["Robinhood"] = "0x1237";
+ })(SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = SupportedTokenDetectionNetworks = {}));
+ /**
+  * Networks where staked balance is supported - Values are in hex format
+diff --git a/dist/assetsUtil.mjs b/dist/assetsUtil.mjs
+index 8325a1b97fdcf617882621f09a3d62e34a19173e..e0d3ffefbaccff24f2fe6facb2da55a6e9f341bd 100644
+--- a/dist/assetsUtil.mjs
++++ b/dist/assetsUtil.mjs
+@@ -134,6 +134,7 @@ export var SupportedTokenDetectionNetworks;
+     SupportedTokenDetectionNetworks["MonadMainnet"] = "0x8f";
+     SupportedTokenDetectionNetworks["Hyperevm"] = "0x3e7";
+     SupportedTokenDetectionNetworks["Arc"] = "0x13b2";
++    SupportedTokenDetectionNetworks["Robinhood"] = "0x1237";
+ })(SupportedTokenDetectionNetworks || (SupportedTokenDetectionNetworks = {}));
+ /**
+  * Networks where staked balance is supported - Values are in hex format

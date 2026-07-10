@@ -54,12 +54,23 @@ function isPerpsFundingKind(type: ActivityKind): boolean {
   return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
 }
 
+/**
+ * Perps trade fills, whose amount is realized PnL (gains green, losses red).
+ * Excludes orders, funds, and funding — they show a notional and stay neutral.
+ */
+function isPerpsPnlKind(type: ActivityKind): boolean {
+  return (
+    type.startsWith('perps') &&
+    !isPerpsFundsKind(type) &&
+    !isPerpsFundingKind(type)
+  );
+}
+
 function isPerpsTradeKind(type: ActivityKind): boolean {
   return (
-    (type.startsWith('perps') &&
-      !isPerpsFundsKind(type) &&
-      !isPerpsFundingKind(type)) ||
+    isPerpsPnlKind(type) ||
     type.startsWith('market') ||
+    type.startsWith('limit') ||
     type.startsWith('stopMarket')
   );
 }
@@ -276,10 +287,10 @@ function withDomainStatusSuffix(
   status: ActivityListItem['status'],
 ): string {
   if (status === 'failed') {
-    return `${title}—${strings('transaction.failed')}`;
+    return `${title} — ${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.canceled')}`;
+    return `${title} — ${strings('transaction.canceled')}`;
   }
   return title;
 }
@@ -1206,5 +1217,6 @@ export function useActivityListItemRowContent(
     secondaryToken,
     primaryAmount,
     secondaryAmount,
+    isPnlAmount: isPerpsPnlKind(item.type),
   };
 }

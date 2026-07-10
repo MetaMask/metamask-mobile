@@ -2,6 +2,7 @@ import React from 'react';
 import { BigNumber } from 'bignumber.js';
 import { render, fireEvent } from '@testing-library/react-native';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
+import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
@@ -234,5 +235,45 @@ describe('PotentialEarningsTokenRow', () => {
       expect.any(BigNumber),
       'usd',
     );
+  });
+
+  it('renders the real balance and projected values when privacyMode is false', () => {
+    const { getByTestId } = render(
+      <PotentialEarningsTokenRow
+        token={MOCK_USDC}
+        hasSubsidizedFee={false}
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+        privacyMode={false}
+      />,
+    );
+
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+    ).toHaveTextContent('$5000.00');
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.PROJECTED),
+    ).toHaveTextContent('+$1000.00');
+  });
+
+  it('masks the balance and projected values when privacyMode is true', () => {
+    const { getByTestId } = render(
+      <PotentialEarningsTokenRow
+        token={MOCK_USDC}
+        hasSubsidizedFee={false}
+        apyDecimal={0.2}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
+        privacyMode
+      />,
+    );
+
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+    ).toHaveTextContent('•'.repeat(9));
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.PROJECTED),
+    ).toHaveTextContent('•'.repeat(6));
   });
 });

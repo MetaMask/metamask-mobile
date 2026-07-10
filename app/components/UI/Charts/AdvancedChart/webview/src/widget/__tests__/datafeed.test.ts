@@ -22,7 +22,12 @@ jest.mock('../../pagination/priceApi', () => ({
 jest.mock('../../pagination/rnBacked', () => ({
   requestOlderBarsFromRN: jest.fn(),
 }));
-import type { PeriodParams, SymbolInfo, TVResolution } from '../../core/types';
+import type {
+  ChartConfig,
+  PeriodParams,
+  SymbolInfo,
+  TVResolution,
+} from '../../core/types';
 
 const stubSymbolInfo = { name: 'X' } as unknown as SymbolInfo;
 
@@ -70,6 +75,7 @@ describe('customDatafeed', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    delete (window as unknown as { CONFIG?: ChartConfig }).CONFIG;
   });
 
   it('onReady reports supported resolutions and flags', () => {
@@ -90,6 +96,21 @@ describe('customDatafeed', () => {
     expect(info.name).toBe('BTC/USD');
     expect(info.type).toBe('crypto');
     expect(info.has_intraday).toBe(true);
+    expect(info.pricescale).toBe(100);
+    expect(info.variable_tick_size).toContain('0.01 10000 0.1');
+  });
+
+  it('resolveSymbol uses high-precision scale and Perps tick sizes when priceDecimals is configured', () => {
+    (window as unknown as { CONFIG: Partial<ChartConfig> }).CONFIG = {
+      priceDecimals: 4,
+    };
+    const onResolve = jest.fn();
+    customDatafeed.resolveSymbol('LIT/USD', onResolve, jest.fn());
+    jest.runAllTimers();
+    const info = onResolve.mock.calls[0][0];
+
+    expect(info.pricescale).toBe(10000000000);
+    expect(info.variable_tick_size).toContain('0.0001 10000 1');
   });
 
   it('getBars returns bars from filterBarsForRange when in-range', () => {
