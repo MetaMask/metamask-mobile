@@ -826,6 +826,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const succeeded = Boolean(payTotals) && !blockingNoQuoteAlert;
 
     if (!payTotals && !blockingNoQuoteAlert) {
+      payQuoteStartRef.current = null;
       return;
     }
 
@@ -837,6 +838,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     });
 
     if (lastEmittedPayQuoteKeyRef.current === quoteKey) {
+      payQuoteStartRef.current = null;
       return;
     }
 
