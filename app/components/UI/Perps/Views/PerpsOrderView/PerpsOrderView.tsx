@@ -140,6 +140,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { willFlipPosition } from '../../utils/orderUtils';
+import { derivePerpsTradeAction } from '../../utils/deriveTradeAction';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import {
   calculateRoEForPrice,
@@ -763,7 +764,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // No ORDER_CONTEXT value enum exists; 'trade' denotes the open-order
         // screen (the close screen would be 'close').
         [PERPS_EVENT_PROPERTY.ORDER_CONTEXT]: 'trade',
-        [PERPS_EVENT_PROPERTY.ACTION]: PERPS_EVENT_VALUE.ACTION.CREATE_POSITION,
+        [PERPS_EVENT_PROPERTY.ACTION]: derivePerpsTradeAction(
+          currentMarketPosition,
+          orderForm.direction,
+        ),
         [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderSize,
         [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethodRef.current,
         [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
@@ -793,6 +797,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.leverage,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
+    currentMarketPosition,
     hasCustomTokenSelected,
     payToken,
     track,
@@ -1414,9 +1419,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ...(feeResults.protocolFeeRate !== undefined
               ? { hlFeeRate: feeResults.protocolFeeRate }
               : {}),
-            tradeAction: currentMarketPosition
-              ? 'increase_exposure'
-              : 'create_position',
+            tradeAction: derivePerpsTradeAction(
+              currentMarketPosition,
+              orderForm.direction,
+            ),
             tradeWithToken: hasCustomTokenSelected,
             ...(hasCustomTokenSelected &&
               payToken && {
