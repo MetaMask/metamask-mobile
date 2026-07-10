@@ -247,7 +247,7 @@
     "@metamask/approval-controller": "^9.0.0",
     "@metamask/assets-controller": "^10.2.0",
     "@metamask/assets-controllers": "^109.4.0",
-    "@metamask/authenticated-user-storage": "^3.0.0",
+    "@metamask/authenticated-user-storage": "^3.0.1",
     "@metamask/base-controller": "^9.0.1",
     "@metamask/bitcoin-wallet-snap": "^1.14.2",
     "@metamask/bitcoin-wallet-standard": "^1.0.0",
