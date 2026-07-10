@@ -1,7 +1,7 @@
 import {
   BRIDGE_MM_FEE_RATE,
   DiscountType,
-  QuoteResponse,
+  QuoteResponseV2,
 } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useMemo } from 'react';
@@ -20,15 +20,12 @@ import { strings } from '../../../../../locales/i18n';
 export const useFeeDisclaimer = ({
   activeQuote,
 }: {
-  activeQuote?: QuoteResponse | null;
+  activeQuote?: QuoteResponseV2 | null;
 }) => {
-  // @ts-expect-error: controller types are not up to date yet
   const baseBpsFee = activeQuote?.quote.feeData.metabridge?.baseBpsFee;
   const baseFeePercentage = !isNullOrUndefined(baseBpsFee)
     ? baseBpsFee / 100
     : BRIDGE_MM_FEE_RATE;
-  // TODO: remove this once controller types are updated
-  // @ts-expect-error: controller types are not up to date yet
   const quoteBpsFee = activeQuote?.quote.feeData.metabridge?.quoteBpsFee;
   const feePercentage = !isNullOrUndefined(quoteBpsFee)
     ? quoteBpsFee / 100
