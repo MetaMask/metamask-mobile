@@ -18,7 +18,7 @@ interface LivePriceHeaderProps {
   testIDPrice?: string;
   testIDChange?: string;
   throttleMs?: number;
-  /** Current price from candle stream - syncs header with chart */
+  /** Fallback price when live subscription hasn't delivered data yet */
   currentPrice: number;
 }
 
@@ -33,7 +33,8 @@ const styleSheet = () =>
 
 /**
  * Component that displays live price and change for header
- * Uses currentPrice prop from candle stream, subscribes to price stream for 24h change only
+ * Subscribes to price stream for real-time updates of both price and 24h change.
+ * Falls back to currentPrice prop when subscription hasn't delivered data yet.
  */
 const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   symbol,
@@ -43,13 +44,24 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   currentPrice,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  // Subscribe to price stream only for 24h change percentage
+  // Subscribe to price stream for real-time price and 24h change percentage
   const prices = usePerpsLivePrices({
     symbols: [symbol],
     throttleMs,
   });
 
   const priceData = prices[symbol];
+
+  // Use live price from subscription when available, fall back to prop
+  const displayPrice = useMemo(() => {
+    if (priceData?.price) {
+      const parsed = Number.parseFloat(priceData.price);
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+    return currentPrice;
+  }, [priceData, currentPrice]);
 
   // Use null to indicate loading state - only use actual values (including 0) when available
   // When we have live price data, only use percentChange from that data - don't fall back
@@ -71,19 +83,19 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   // Format price display with edge case handling
   const formattedPrice = useMemo(() => {
     // Handle invalid or edge case values
-    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
+    if (!displayPrice || displayPrice <= 0 || !Number.isFinite(displayPrice)) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
     try {
-      return formatPerpsFiat(currentPrice, {
+      return formatPerpsFiat(displayPrice, {
         ranges: PRICE_RANGES_UNIVERSAL,
       });
     } catch {
       // Fallback if formatPrice throws
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
-  }, [currentPrice]);
+  }, [displayPrice]);
 
   const formattedChange = useMemo(() => {
     // If displayChange is null, we're still loading - show loading indicator
@@ -91,7 +103,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       return PERPS_CONSTANTS.FallbackPercentageDisplay;
     }
 
-    if (!currentPrice || currentPrice <= 0 || !Number.isFinite(currentPrice)) {
+    if (!displayPrice || displayPrice <= 0 || !Number.isFinite(displayPrice)) {
       return PERPS_CONSTANTS.FallbackPercentageDisplay;
     }
 
@@ -100,7 +112,7 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
     } catch {
       return PERPS_CONSTANTS.FallbackPercentageDisplay;
     }
-  }, [currentPrice, displayChange]);
+  }, [displayPrice, displayChange]);
 
   return (
     <View style={styles.container}>
