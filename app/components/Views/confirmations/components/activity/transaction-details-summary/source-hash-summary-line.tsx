@@ -11,7 +11,7 @@ import { TransactionSummaryLine } from './transaction-summary-line';
 import { hasTransactionType } from '../../../utils/transaction';
 import { POLYGON_PUSD } from '../../../constants/predict';
 import { ARBITRUM_USDC } from '../../../constants/perps';
-import { getMusdDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
+import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';
 
 export function SourceHashSummaryLine({
   parentTransaction,
@@ -43,7 +43,7 @@ export function SourceHashSummaryLine({
   const chainId =
     isPredictWithdraw || isPerpsWithdraw ? targetChainId : sourceTokenChainId;
 
-  const sourceSymbol = getMusdDisplaySymbol(
+  const sourceSymbol = getTokenDisplaySymbol(
     sourceTokenAddress,
     sourceToken?.symbol,
   );

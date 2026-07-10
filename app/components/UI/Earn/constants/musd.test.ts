@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
-  getMusdDisplaySymbol,
+  getTokenDisplaySymbol,
   isMusdOnMoneyAccountChain,
   isMusdToken,
   isMusdTokenOnChain,
@@ -52,11 +52,11 @@ describe('isMusdToken', () => {
   });
 });
 
-describe('getMusdDisplaySymbol', () => {
+describe('getTokenDisplaySymbol', () => {
   const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
 
   it('returns the branded mUSD symbol for the mUSD address with registry symbol MUSD', () => {
-    const result = getMusdDisplaySymbol(MUSD_ADDRESS, 'MUSD');
+    const result = getTokenDisplaySymbol(MUSD_ADDRESS, 'MUSD');
 
     expect(result).toBe(MUSD_TOKEN.symbol);
   });
@@ -64,7 +64,7 @@ describe('getMusdDisplaySymbol', () => {
   it('returns the branded mUSD symbol for the mUSD address with mixed case', () => {
     const mixedCaseAddress = '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA';
 
-    const result = getMusdDisplaySymbol(mixedCaseAddress, 'MUSD');
+    const result = getTokenDisplaySymbol(mixedCaseAddress, 'MUSD');
 
     expect(result).toBe('mUSD');
   });
@@ -72,13 +72,13 @@ describe('getMusdDisplaySymbol', () => {
   it('passes the symbol through for a non-mUSD address', () => {
     const otherAddress = '0x1234567890123456789012345678901234567890';
 
-    const result = getMusdDisplaySymbol(otherAddress, 'USDC');
+    const result = getTokenDisplaySymbol(otherAddress, 'USDC');
 
     expect(result).toBe('USDC');
   });
 
   it('passes the symbol through for an undefined address', () => {
-    const result = getMusdDisplaySymbol(undefined, 'USDC');
+    const result = getTokenDisplaySymbol(undefined, 'USDC');
 
     expect(result).toBe('USDC');
   });
@@ -86,7 +86,7 @@ describe('getMusdDisplaySymbol', () => {
   it('returns undefined for a non-mUSD address without a symbol', () => {
     const otherAddress = '0x1234567890123456789012345678901234567890';
 
-    const result = getMusdDisplaySymbol(otherAddress, undefined);
+    const result = getTokenDisplaySymbol(otherAddress, undefined);
 
     expect(result).toBeUndefined();
   });
