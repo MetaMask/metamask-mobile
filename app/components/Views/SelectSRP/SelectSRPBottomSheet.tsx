@@ -11,22 +11,16 @@ import SelectSRP from './SelectSRP';
 import { strings } from '../../../../locales/i18n';
 import { SelectSRPBottomSheetTestIds } from './SelectSRPBottomSheet.testIds';
 import { goBackIfFocused } from './SelectSRPBottomSheet.utils';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 export const SelectSRPBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const surfaceClass = useElevatedSurface();
   const goBack = useCallback(() => {
     goBackIfFocused(navigation);
   }, [navigation]);
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      goBack={goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={bottomSheetRef} goBack={goBack}>
       <BottomSheetHeader
         onBack={goBack}
         backButtonProps={{

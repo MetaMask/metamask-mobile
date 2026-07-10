@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 import GoogleIcon from 'images/google.svg';
 import AppleIcon from 'images/apple.svg';
@@ -58,7 +57,7 @@ const OnboardingSheet = () => {
     onPressContinueWithTelegram,
     createWallet = false,
   } = params ?? {};
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
   const onPressCreateAction = () => {
     if (onPressCreate) {
@@ -110,16 +109,10 @@ const OnboardingSheet = () => {
     goTo(url, strings('onboarding.privacy_notice'));
   };
 
-  const { themeAppearance } = useTheme();
-  const surfaceClass = useElevatedSurface();
   const isDark = themeAppearance === AppThemeKey.dark;
 
   return (
-    <BottomSheet
-      goBack={navigation.goBack}
-      ref={sheetRef}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet goBack={navigation.goBack} ref={sheetRef}>
       <Box
         flexDirection={BoxFlexDirection.Column}
         alignItems={BoxAlignItems.Center}
