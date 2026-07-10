@@ -256,7 +256,16 @@ describe('HardwareWalletProvider', () => {
 
     describe('connect (internal, via bottom sheet props)', () => {
       it('connects to device', async () => {
-        renderWithActions();
+        const { result } = renderWithActions();
+
+        // The bottom sheet only mounts once the flow leaves the Disconnected
+        // state, so start scanning before reading its props.
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
 
         const internalConnect = capturedBottomSheetProps.connect as (
           deviceId: string,
@@ -349,9 +358,7 @@ describe('HardwareWalletProvider', () => {
         });
 
         await waitFor(() => {
-          expect(capturedBottomSheetProps.walletType).toBe(
-            HardwareWalletType.Qr,
-          );
+          expect(result.current.actions.walletType).toBe(HardwareWalletType.Qr);
         });
       });
 
@@ -374,9 +381,7 @@ describe('HardwareWalletProvider', () => {
         });
 
         await waitFor(() => {
-          expect(capturedBottomSheetProps.walletType).toBe(
-            HardwareWalletType.Qr,
-          );
+          expect(result.current.actions.walletType).toBe(HardwareWalletType.Qr);
         });
 
         expect(
@@ -396,7 +401,7 @@ describe('HardwareWalletProvider', () => {
             ([address]) => address === '0xqr',
           ),
         ).toHaveLength(0);
-        expect(capturedBottomSheetProps.walletType).toBe(HardwareWalletType.Qr);
+        expect(result.current.actions.walletType).toBe(HardwareWalletType.Qr);
       });
     });
   });
@@ -470,6 +475,15 @@ describe('HardwareWalletProvider', () => {
     describe('selectDevice', () => {
       it('updates selected device in state', async () => {
         const { result } = renderWithActions();
+
+        // The bottom sheet only mounts once the flow leaves the Disconnected
+        // state, so start scanning before reading its props.
+        act(() => {
+          result.current.actions.ensureDeviceReady();
+        });
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        });
 
         const mockDevice = { id: 'device-1', name: 'Nano X' };
 
@@ -844,6 +858,7 @@ describe('HardwareWalletProvider', () => {
       const useTestActions = () => {
         const hw = useHardwareWallet();
         return {
+          actions: hw,
           state: {
             connectionState: hw.connectionState,
           },
@@ -854,6 +869,15 @@ describe('HardwareWalletProvider', () => {
         wrapper: ({ children }: { children: React.ReactNode }) => (
           <HardwareWalletProvider>{children}</HardwareWalletProvider>
         ),
+      });
+
+      // The bottom sheet only mounts once the flow leaves the Disconnected
+      // state, so start scanning before reading its props.
+      act(() => {
+        result.current.actions.ensureDeviceReady();
+      });
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
       });
 
       const internalConnect = capturedBottomSheetProps.connect as (
