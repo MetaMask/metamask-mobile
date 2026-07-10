@@ -1,7 +1,7 @@
 import { DeviceEventEmitter } from 'react-native';
-import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { strings } from '../../../locales/i18n';
+import Routes from '../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../NavigationService/types';
 import {
   ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
   showExtensionCancelledErrorSheet,

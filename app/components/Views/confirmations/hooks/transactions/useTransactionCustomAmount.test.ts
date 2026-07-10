@@ -1105,6 +1105,198 @@ describe('useTransactionCustomAmount', () => {
     });
   });
 
+  describe('money account deposit max precision', () => {
+    const depositTransactionMeta = {
+      type: TransactionType.moneyAccountDeposit,
+      batchId: '0xtestbatchid' as Hex,
+    };
+
+    beforeEach(() => {
+      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
+    });
+
+    it('updateTokenAmount uses full-precision amount from balanceRaw for 100% deposit', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '2.246912',
+          balanceRaw: '1123456',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      await act(async () => {
+        result.current.updateTokenAmount();
+      });
+
+      // Should use balanceRaw-derived value (1123456 × 10^-6 = 1.123456),
+      // NOT the lossy fiat roundtrip (2.24 ÷ 2 = 1.12)
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.123456');
+    });
+
+    it('updateTokenAmount uses fiat-derived amount for sub-100% deposit', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '2.246912',
+          balanceRaw: '1123456',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      await act(async () => {
+        result.current.updateTokenAmount();
+      });
+
+      // 50% of 2.246912 rounded down = 1.12, ÷ 2 (fiat rate) = 0.56
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('0.56');
+    });
+
+    it('manual input clears the deposit max override', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '2.246912',
+          balanceRaw: '1123456',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('7');
+      });
+
+      await act(async () => {
+        result.current.updateTokenAmount();
+      });
+
+      // Manual input clears depositMaxHumanRef → uses fiat-derived amount
+      // amountFiat = 7, amountHuman = 7 ÷ 2 = 3.5
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('3.5');
+    });
+
+    it('does not set deposit max for non-deposit types at 100%', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '2.246912',
+          balanceRaw: '1123456',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook(); // default = simpleSend
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      await act(async () => {
+        result.current.updateTokenAmount();
+      });
+
+      // Non-deposit type → no depositMaxHumanRef → fiat-derived amount
+      // 100% of 2.246912 rounded down = 2.24, ÷ 2 = 1.12
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.12');
+    });
+
+    it('resets deposit max when payToken changes', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '2.246912',
+          balanceRaw: '1123456',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result, rerender } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      // Switch to a different token
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: '0xdifferent0000000000000000000000000000000' as Hex,
+          balanceUsd: '2.246912',
+          balanceRaw: '1123456',
+          decimals: 6,
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      await act(async () => {
+        rerender({});
+      });
+
+      await act(async () => {
+        result.current.updateTokenAmount();
+      });
+
+      // payToken change resets depositMaxHumanRef → uses fiat-derived amount
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.12');
+    });
+
+    it('defaults to 6 decimals when payToken.decimals is undefined', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '2.246912',
+          balanceRaw: '1123456',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook({
+        transactionMeta: depositTransactionMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      await act(async () => {
+        result.current.updateTokenAmount();
+      });
+
+      // decimals defaults to 6: 1123456 × 10^-6 = 1.123456
+      expect(updateTransactionPayAmountMock).toHaveBeenCalledWith('1.123456');
+    });
+  });
+
   it('resets isMax to false when updating amount while isMaxAmount is true', async () => {
     useTransactionPayIsMaxAmountMock.mockReturnValue(true);
 
