@@ -76,6 +76,11 @@ const styleSheet = (params: { theme: Theme }) => {
     trailingActionButton: {
       alignSelf: 'center',
     },
+    pressableContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
   });
 };
 

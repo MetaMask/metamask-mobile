@@ -59,6 +59,7 @@ interface BaseToastVariants {
    * retained for backward compatibility during top-placement migration.
    */
   customBottomOffset?: number;
+  onPress?: () => void;
 }
 
 export type ToastCloseButtonOptions =
