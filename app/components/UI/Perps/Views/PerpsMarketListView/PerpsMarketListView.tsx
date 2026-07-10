@@ -244,6 +244,7 @@ const PerpsMarketListView = ({
     null,
   );
   const lastEmittedSearchQueryRef = useRef<string>('');
+  const lastEmittedSearchResultsCountRef = useRef<number>(0);
   useEffect(() => {
     const trimmedQuery = searchQuery.trim();
     if (!trimmedQuery) {
@@ -251,9 +252,11 @@ const PerpsMarketListView = ({
         track(MetaMetricsEvents.PERPS_SEARCH_ABANDONED, {
           [PERPS_EVENT_PROPERTY.SEARCH_QUERY]:
             lastEmittedSearchQueryRef.current,
-          [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,
+          [PERPS_EVENT_PROPERTY.RESULTS_COUNT]:
+            lastEmittedSearchResultsCountRef.current,
         });
         lastEmittedSearchQueryRef.current = '';
+        lastEmittedSearchResultsCountRef.current = 0;
       }
       return;
     }
@@ -264,6 +267,7 @@ const PerpsMarketListView = ({
 
     searchResultTimerRef.current = setTimeout(() => {
       lastEmittedSearchQueryRef.current = trimmedQuery;
+      lastEmittedSearchResultsCountRef.current = filteredMarkets.length;
       track(MetaMetricsEvents.PERPS_SEARCH_QUERY, {
         [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: trimmedQuery,
         [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,

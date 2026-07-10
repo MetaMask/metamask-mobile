@@ -1877,10 +1877,10 @@ describe('PerpsMarketListView', () => {
 
       await waitFor(() => {
         expect(mockTrack).toHaveBeenCalledWith(
-          expect.anything(),
+          MetaMetricsEvents.PERPS_SEARCH_QUERY,
           expect.objectContaining({
-            [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.SEARCH_CLICKED,
-            [PEP.RESULT_COUNT]: 1,
+            [PEP.SEARCH_QUERY]: 'bitcoin',
+            [PEP.RESULTS_COUNT]: 1,
           }),
         );
       });
