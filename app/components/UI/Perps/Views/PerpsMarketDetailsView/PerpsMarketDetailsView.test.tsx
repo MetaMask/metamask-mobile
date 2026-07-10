@@ -403,7 +403,7 @@ jest.mock('../../../../../core/Engine', () => ({
 // Mock for usePerpsMarkets that can be modified per test
 const mockUsePerpsMarketsImpl = jest.fn<
   ReturnType<typeof import('../../hooks/usePerpsMarkets').usePerpsMarkets>,
-  []
+  [import('../../hooks/usePerpsMarkets').UsePerpsMarketsOptions | undefined]
 >(() => ({
   markets: [],
   isLoading: false,
@@ -414,7 +414,9 @@ const mockUsePerpsMarketsImpl = jest.fn<
 
 // Mock the direct import path for usePerpsMarkets
 jest.mock('../../hooks/usePerpsMarkets', () => ({
-  usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+  usePerpsMarkets: (
+    options?: import('../../hooks/usePerpsMarkets').UsePerpsMarketsOptions,
+  ) => mockUsePerpsMarketsImpl(options),
 }));
 
 const mockRefreshMarketStats = jest.fn();
@@ -558,7 +560,9 @@ jest.mock('../../hooks', () => ({
     closePosition: jest.fn(),
     isClosing: false,
   })),
-  usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+  usePerpsMarkets: (
+    options?: import('../../hooks/usePerpsMarkets').UsePerpsMarketsOptions,
+  ) => mockUsePerpsMarketsImpl(options),
   usePerpsMarketData: jest.fn(() => ({
     marketData: null,
     isLoading: false,
@@ -598,11 +602,11 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
-// Mock usePerpsABTest to return default variant
-jest.mock('../../utils/abTesting/usePerpsABTest', () => ({
-  usePerpsABTest: () => ({
-    variantName: 'semantic',
-    isEnabled: false,
+// Mock useABTest to return default (control/white) variant
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => ({
+    variantName: 'control',
+    isActive: false,
   }),
 }));
 
@@ -1079,6 +1083,187 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(getPerpsRelatedMarketsSelector.tile('xyz:MSFT')),
     ).toBeOnTheScreen();
+  });
+
+  it('fetches markets for related markets visibility when enrichment is skipped', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return true;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
+      return undefined;
+    });
+    const aaplMarket: PerpsMarketData = {
+      symbol: 'xyz:AAPL',
+      name: 'AAPL',
+      price: '$6.00',
+      change24h: '+$0.10',
+      change24hPercent: '+1.00%',
+      volume: '$1M',
+      maxLeverage: '20x',
+      marketType: 'stock',
+      isHip3: true,
+    };
+    mockRouteParams.market = aaplMarket;
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [
+        {
+          ...aaplMarket,
+          volumeNumber: 1000000,
+        },
+        {
+          symbol: 'xyz:MSFT',
+          name: 'MSFT',
+          price: '$0.50',
+          change24h: '+$0.01',
+          change24hPercent: '+2.00%',
+          volume: '$2M',
+          maxLeverage: '10x',
+          marketType: 'stock',
+          isHip3: true,
+          volumeNumber: 2000000,
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith({
+      skipInitialFetch: false,
+    });
+    expect(getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL)).toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsRelatedMarketsSelector.tile('xyz:MSFT')),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides related markets section when market has no category peers', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return true;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
+      return undefined;
+    });
+    const aaplMarket: PerpsMarketData = {
+      symbol: 'xyz:AAPL',
+      name: 'AAPL',
+      price: '$6.00',
+      change24h: '+$0.10',
+      change24hPercent: '+1.00%',
+      volume: '$1M',
+      maxLeverage: '20x',
+      marketType: 'stock',
+      isHip3: true,
+    };
+    mockRouteParams.market = aaplMarket;
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [
+        {
+          ...aaplMarket,
+          volumeNumber: 1000000,
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(
+      queryByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId('perps-home-section-related-markets')).toBeNull();
+  });
+
+  it('hides related markets section while markets are loading', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return true;
+      }
+      if (selector === selectPerpsAdvancedChartEnabledFlag) {
+        return false;
+      }
+      return undefined;
+    });
+    const aaplMarket: PerpsMarketData = {
+      symbol: 'xyz:AAPL',
+      name: 'AAPL',
+      price: '$6.00',
+      change24h: '+$0.10',
+      change24hPercent: '+1.00%',
+      volume: '$1M',
+      maxLeverage: '20x',
+      marketType: 'stock',
+      isHip3: true,
+    };
+    mockRouteParams.market = aaplMarket;
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: true,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(
+      queryByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId('perps-home-section-related-markets')).toBeNull();
   });
 
   it('shows tooltip when Open Interest info icon is clicked', async () => {
