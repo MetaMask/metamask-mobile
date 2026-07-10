@@ -1,6 +1,7 @@
 import { act, fireEvent } from '@testing-library/react-native';
 import { BackHandler } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
@@ -360,9 +361,17 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
+let mockIsPureBlack = false;
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  ...jest.requireActual('@metamask/design-system-twrnc-preset'),
+  usePureBlack: () => mockIsPureBlack,
+}));
+
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsPureBlack = false;
     mockParentCanGoBack = true;
     jest
       .spyOn(global, 'requestAnimationFrame')
@@ -433,6 +442,42 @@ describe('TradeWalletActions', () => {
     // Feature flag is disabled by default
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders a bottom cutout stroke when pure black is enabled', () => {
+    mockIsPureBlack = true;
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
+    ).toBeTruthy();
+  });
+
+  it('does not render the bottom cutout stroke when pure black is disabled', () => {
+    mockIsPureBlack = false;
+
+    const { queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
     ).toBeNull();
   });
 
@@ -825,6 +870,9 @@ describe('TradeWalletActions', () => {
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
+        },
       });
     });
 

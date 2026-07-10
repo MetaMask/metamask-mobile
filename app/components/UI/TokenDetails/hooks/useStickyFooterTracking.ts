@@ -1,7 +1,9 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getUsdAmountRange } from '../../../../util/analytics/usdAmountRange';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 
 export type StickyFooterButtonAction = 'swap' | 'buy' | 'quick_buy';
 
@@ -10,6 +12,7 @@ interface TrackStickyBottomCtaClickedParams {
   balanceFiatUsd: number | undefined;
   tokenAddress: string;
   chainId: string;
+  indicatorsActive?: string[];
 }
 
 /**
@@ -19,6 +22,9 @@ interface TrackStickyBottomCtaClickedParams {
  */
 export function useStickyFooterTracking() {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const isTechnicalIndicatorsEnabled = useSelector(
+    selectTokenDetailsTechnicalIndicatorsEnabled,
+  );
 
   return useCallback(
     ({
@@ -26,18 +32,26 @@ export function useStickyFooterTracking() {
       balanceFiatUsd,
       tokenAddress,
       chainId,
+      indicatorsActive,
     }: TrackStickyBottomCtaClickedParams) => {
+      const properties: Record<string, unknown> = {
+        cta_type: ctaType,
+        usd_amount_range: getUsdAmountRange(balanceFiatUsd),
+        token_address: tokenAddress,
+        chain_id: chainId,
+      };
+
+      // Only add indicators_active when feature flag is enabled
+      if (isTechnicalIndicatorsEnabled) {
+        properties.indicators_active = indicatorsActive ?? [];
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CTA_CLICKED)
-          .addProperties({
-            cta_type: ctaType,
-            usd_amount_range: getUsdAmountRange(balanceFiatUsd),
-            token_address: tokenAddress,
-            chain_id: chainId,
-          })
+          .addProperties(properties)
           .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, isTechnicalIndicatorsEnabled],
   );
 }

@@ -92,23 +92,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  identity-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeIdentity')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: identity-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeIdentity'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   network-abstraction-android-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions')
     strategy:
@@ -160,23 +143,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  prediction-market-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokePredictions')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: prediction-market-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokePredictions'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   money-android-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeMoney')
     strategy:
@@ -205,23 +171,6 @@ jobs:
       test-suite-name: multichain-api-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: 'SmokeMultiChainAPI'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  seedless-onboarding-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: seedless-onboarding-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeSeedlessOnboarding'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
@@ -265,20 +214,26 @@ jobs:
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
+    # Appium migration: skip rollup when every Detox shard is skipped (e.g. AI selects
+    # an Appium-only tag like SmokeAccounts). Non-empty tags still trigger this workflow.
+    if: >-
+      ${{
+        !cancelled() &&
+        (
+          contains(toJSON(needs), '"result":"success"') ||
+          contains(toJSON(needs), '"result":"failure"')
+        )
+      }}
     needs:
       - swap-android-smoke
       - stake-android-smoke
       - perps-android-smoke
       - wallet-platform-android-smoke
-      - identity-android-smoke
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
       - confirmations-android-smoke
-      - prediction-market-android-smoke
       - money-android-smoke
       - multichain-api-android-smoke
-      - seedless-onboarding-android-smoke
       - browser-android-smoke
       - snaps-android-smoke
     steps:

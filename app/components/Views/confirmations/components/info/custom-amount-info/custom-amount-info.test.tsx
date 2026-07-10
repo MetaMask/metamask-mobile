@@ -1,9 +1,11 @@
 import React, { act } from 'react';
 import { merge, noop } from 'lodash';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
   CustomAmountInfo,
   CustomAmountInfoProps,
+  AdvancedCustomAmountInfoSkeleton,
   CustomAmountInfoSkeleton,
 } from './custom-amount-info';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
@@ -43,10 +45,14 @@ import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
+import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
+import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
+jest.mock('../../../hooks/ui/useMMPayNavigation');
+jest.mock('../../../hooks/alerts/useAccountNoFundsAlert');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
@@ -76,8 +82,15 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 }));
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
+jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+jest.mock('../../rows/perps-account-picker-row', () => ({
+  PerpsAccountPickerRow: () => null,
+}));
+jest.mock('../../rows/predict-account-picker-row', () => ({
+  PredictAccountPickerRow: () => null,
+}));
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
-jest.mock('../../../../../../util/Logger');
+
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -177,32 +190,42 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
 const TOKEN_ADDRESS_MOCK = '0x123' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
 
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
+
 function render(
   props: CustomAmountInfoProps & { transactionType?: TransactionType } = {},
 ) {
-  return renderWithProvider(<CustomAmountInfo {...props} />, {
-    state: merge(
-      {},
-      simpleSendTransactionControllerMock,
-      transactionApprovalControllerMock,
-      otherControllersMock,
-      {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                {
-                  type:
-                    props.transactionType ||
-                    TransactionType.contractInteraction,
-                },
-              ],
+  return renderWithProvider(
+    <ToastContext.Provider value={{ toastRef: mockToastRef } as never}>
+      <CustomAmountInfo {...props} />
+    </ToastContext.Provider>,
+    {
+      state: merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        otherControllersMock,
+        {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    type:
+                      props.transactionType ||
+                      TransactionType.contractInteraction,
+                  },
+                ],
+              },
             },
           },
         },
-      },
-    ),
-  });
+      ),
+    },
+  );
 }
 
 describe('CustomAmountInfo', () => {
@@ -255,12 +278,17 @@ describe('CustomAmountInfo', () => {
     useClearConfirmationOnBackSwipe,
   );
   const useMoneyNoFeeTokensMock = jest.mocked(useMoneyNoFeeTokens);
+  const usePayWithMoneyAccountSectionMock = jest.mocked(
+    usePayWithMoneyAccountSection,
+  );
   const setIsConfirmationSubmittingMock = jest.fn();
+  const useAccountNoFundsAlertMock = jest.mocked(useAccountNoFundsAlert);
 
   const useRouteMock = jest.mocked(useRoute);
 
   beforeEach(() => {
     jest.resetAllMocks();
+    mockShowToast.mockReset();
 
     mockUseRampsUserRegion.mockReturnValue({
       userRegion: { regionCode: 'us-ca' },
@@ -302,12 +330,14 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: jest.fn(),
     });
 
     useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
@@ -354,6 +384,8 @@ describe('CustomAmountInfo', () => {
     } as never);
 
     useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: false });
+    usePayWithMoneyAccountSectionMock.mockReturnValue(null);
+    useAccountNoFundsAlertMock.mockReturnValue([]);
   });
 
   it('renders amount', () => {
@@ -459,6 +491,24 @@ describe('CustomAmountInfo', () => {
     ).toBeDefined();
   });
 
+  it('does not render buy button when money account is available', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    usePayWithMoneyAccountSectionMock.mockReturnValue({
+      id: 'money-account',
+      title: '',
+      testID: 'pay-with-section-money-account',
+      rows: [],
+    });
+
+    const { queryByText } = render();
+
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
+  });
+
   it('navigates to ramps if buy button pressed', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [],
@@ -512,6 +562,34 @@ describe('CustomAmountInfo', () => {
     },
   );
 
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'renders "Send" confirm label for %s from Money Account',
+    async (transactionType) => {
+      useRouteMock.mockReturnValue({
+        key: 'mock-route',
+        name: 'MockScreen',
+        params: { payWithOption: 'money_account' },
+      } as never);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByText, findByText } = render({ transactionType });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        await findByText(
+          strings('confirm.deposit_edit_amount_money_account_send'),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
   it('hides PayTokenAmount when hidePayTokenAmount is true', () => {
     const { queryByText } = render({ hidePayTokenAmount: true });
 
@@ -542,6 +620,7 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -577,13 +656,10 @@ describe('CustomAmountInfo', () => {
     expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
 
-  it('still runs UI cleanup and logs the error when updateTokenAmount rejects on Done', async () => {
+  it('shows toast, keeps keyboard open, and skips onAmountSubmit when updateTokenAmount rejects on Done', async () => {
     const error = new Error('update failed');
     const updateTokenAmountMock = jest.fn().mockRejectedValue(error);
     const mockOnAmountSubmit = jest.fn();
-    const loggerErrorMock = jest.mocked(Logger.error);
-    loggerErrorMock.mockClear();
-
     useTransactionCustomAmountMock.mockReturnValue({
       amountFiat: '123.45',
       amountHuman: '0',
@@ -591,23 +667,30 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
     });
 
-    const { getByText } = render({ onAmountSubmit: mockOnAmountSubmit });
+    const { getByText, queryByText } = render({
+      onAmountSubmit: mockOnAmountSubmit,
+    });
 
     await act(async () => {
       fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
-    expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
-    expect(loggerErrorMock).toHaveBeenCalledWith(
-      error,
-      expect.stringContaining('Failed to apply custom amount on Done press'),
+    // onAmountSubmit must NOT be called — keep keyboard visible for retry
+    expect(mockOnAmountSubmit).not.toHaveBeenCalled();
+    // Toast must be shown with the transaction-update title
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({ labelOptions: expect.any(Array) }),
     );
+    // Keyboard stays open: Done button still present
+    expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
   });
 
   it('renders PayAccountSelector when supportAccountSelection is true', () => {
@@ -674,15 +757,19 @@ describe('CustomAmountInfo', () => {
     expect(queryByTestId('pay-account-selector')).toBeNull();
   });
 
-  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', () => {
+  it('renders PayAccountSelector for moneyAccountDeposit when supportAccountSelection is true', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.moneyAccountDeposit,
       txParams: { from: '0x123' },
     } as never);
 
-    const { getByTestId } = render({
+    const { getByTestId, getByText } = render({
       supportAccountSelection: true,
       transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
     });
 
     expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
@@ -698,6 +785,7 @@ describe('CustomAmountInfo', () => {
         amountFiatDebounced: '0',
         hasInput: false,
         isInputChanged: false,
+        isPrefillPending: false,
         updatePendingAmount: noop,
         updatePendingAmountPercentage: noop,
         updateTokenAmount: jest.fn(),
@@ -932,10 +1020,9 @@ describe('CustomAmountInfo', () => {
       );
     });
 
-    it('does not fire RAMPS_ORDER_PROPOSED when applying the amount throws on Done', async () => {
+    it('does not fire RAMPS_ORDER_PROPOSED and shows toast when applying the amount throws on Done', async () => {
       setMoneyFlow();
       const error = new Error('update failed');
-      const loggerErrorMock = jest.mocked(Logger.error);
       useTransactionCustomAmountMock.mockReturnValue({
         ...useTransactionCustomAmountMock(),
         updateTokenAmount: jest.fn().mockRejectedValue(error),
@@ -949,12 +1036,9 @@ describe('CustomAmountInfo', () => {
         fireEvent.press(getByText(strings('confirm.edit_amount_done')));
       });
 
-      // The Done handler's catch suppresses the commit but logs the error.
+      // The Done handler's catch shows a toast and returns early without committing.
       expect(emittedPayloadFor('RAMPS_ORDER_PROPOSED')).toBeUndefined();
-      expect(loggerErrorMock).toHaveBeenCalledWith(
-        error,
-        expect.stringContaining('Failed to apply custom amount on Done press'),
-      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
     // Regression guard for FIX 2 (no double emission). Renders the REAL money
@@ -1018,6 +1102,139 @@ describe('CustomAmountInfo', () => {
       expect(mockRampsTrackEvent).not.toHaveBeenCalled();
     });
   });
+
+  describe('PayWithRow visibility for moneyAccountDeposit', () => {
+    it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('pay-with')).toBeOnTheScreen();
+    });
+  });
+
+  describe('no-funds account with accountOverride', () => {
+    function setupNoFundsWithOverride() {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      useAccountNoFundsAlertMock.mockReturnValue([
+        {
+          key: AlertKeys.AccountNoFunds,
+          title: 'No funds',
+          message: 'No funds available',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+
+      useTransactionAccountOverrideMock.mockReturnValue('0xoverride' as never);
+    }
+
+    it('hides transaction detail rows when account has no funds and override is present', async () => {
+      setupNoFundsWithOverride();
+
+      const { getByText, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(queryByTestId('bridge-fee-row')).toBeNull();
+    });
+
+    it('hides buy section when account has no funds and override is present', async () => {
+      setupNoFundsWithOverride();
+
+      const { getByText, queryByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
+
+    it('hides buy section during loading when override is present (prevents flash)', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      useIsTransactionPayLoadingMock.mockReturnValue(true);
+      useTransactionAccountOverrideMock.mockReturnValue('0xoverride' as never);
+      useAccountNoFundsAlertMock.mockReturnValue([]);
+
+      const { queryByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(
+        queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
+  });
+
+  describe('buy section without accountOverride', () => {
+    it('shows buy section when account has no funds but no override', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+
+      useAccountNoFundsAlertMock.mockReturnValue([
+        {
+          key: AlertKeys.AccountNoFunds,
+          title: 'No funds',
+          message: 'No funds available',
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ]);
+
+      useTransactionAccountOverrideMock.mockReturnValue(undefined);
+
+      const { getByText } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        getByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeOnTheScreen();
+    });
+  });
 });
 
 describe('CustomAmountInfoSkeleton', () => {
@@ -1032,5 +1249,25 @@ describe('CustomAmountInfoSkeleton', () => {
     });
 
     expect(queryByTestId('account-selector-skeleton')).toBeNull();
+  });
+});
+
+describe('AdvancedCustomAmountInfoSkeleton', () => {
+  it('renders skeleton with AccountSelectorSkeleton', () => {
+    const { getByTestId } = renderWithProvider(
+      <AdvancedCustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(getByTestId('account-selector-skeleton')).toBeTruthy();
+    expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
+    expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
   });
 });

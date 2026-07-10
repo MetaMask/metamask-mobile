@@ -4,10 +4,11 @@ import React, {
   useRef,
   useCallback,
   useContext,
+  useMemo,
 } from 'react';
 import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -92,7 +93,6 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -100,7 +100,11 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
 interface KeyringState {
   type: string;
@@ -113,9 +117,12 @@ interface KeyringControllerState {
 
 interface ExtendedKeyringController {
   state: KeyringControllerState;
-  exportAccount: (password: string, account: string) => Promise<string>;
+  exportAccount: (
+    credentials: { password: string },
+    account: string,
+  ) => Promise<string>;
   addNewAccount: () => Promise<void>;
-  exportSeedPhrase: (password: string) => Promise<Uint8Array>;
+  exportSeedPhrase: (credentials: { password: string }) => Promise<Uint8Array>;
   importAccountWithStrategy: (
     strategy: AccountImportStrategy,
     args: string[],
@@ -133,8 +140,16 @@ const ChoosePassword = () => {
   const dispatch = useDispatch();
   const metrics = useAnalytics();
 
-  const [isSelected, setIsSelected] = useState(() =>
-    getDefaultMarketingOptInChecked(route.params?.oauthLoginSuccess === true),
+  const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
+  const geoLocation = useSelector(selectGeolocationLocation);
+  const hasKnownGeolocation =
+    geoLocation != null && geoLocation !== UNKNOWN_LOCATION;
+  const [isSelected, setIsSelected] = useState(false);
+  const [marketingOptInTouched, setMarketingOptInTouched] = useState(false);
+  const [resolvedGeolocationLocation, setResolvedGeolocationLocation] =
+    useState<string | undefined>(hasKnownGeolocation ? geoLocation : undefined);
+  const [isGeolocationResolved, setIsGeolocationResolved] = useState(
+    !isSocialLoginUser || hasKnownGeolocation,
   );
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -150,10 +165,81 @@ const ChoosePassword = () => {
   const keyringControllerPasswordSet = useRef(false);
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
 
+  const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const { shouldShowQuestionnaire } =
+    useOnboardingInterestQuestionnaireEligibility();
+
   const getOauth2LoginSuccess = useCallback(
     () => route.params?.oauthLoginSuccess,
     [route.params?.oauthLoginSuccess],
   );
+
+  useEffect(() => {
+    if (!isSocialLoginUser) {
+      return;
+    }
+
+    if (geoLocation && geoLocation !== UNKNOWN_LOCATION) {
+      setResolvedGeolocationLocation(geoLocation);
+      setIsGeolocationResolved(true);
+      return;
+    }
+
+    let cancelled = false;
+    setIsGeolocationResolved(false);
+
+    Promise.resolve(
+      Engine.context.GeolocationController?.refreshGeolocation?.(),
+    )
+      .then((location) => {
+        if (!cancelled) {
+          setResolvedGeolocationLocation(location);
+          setIsGeolocationResolved(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setResolvedGeolocationLocation(undefined);
+          setIsGeolocationResolved(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSocialLoginUser, geoLocation]);
+
+  const marketingOptInChecked = useMemo(() => {
+    if (isSocialLoginUser) {
+      if (marketingOptInTouched) {
+        return isSelected;
+      }
+
+      return getDefaultMarketingOptInChecked(true, resolvedGeolocationLocation);
+    }
+
+    return isSelected;
+  }, [
+    isSocialLoginUser,
+    marketingOptInTouched,
+    isSelected,
+    resolvedGeolocationLocation,
+  ]);
+
+  const setSelection = useCallback(() => {
+    setMarketingOptInTouched(true);
+    setIsSelected((prev) => {
+      if (!marketingOptInTouched) {
+        const defaultChecked = isSocialLoginUser
+          ? getDefaultMarketingOptInChecked(true, resolvedGeolocationLocation)
+          : false;
+
+        return !defaultChecked;
+      }
+
+      return !prev;
+    });
+  }, [marketingOptInTouched, isSocialLoginUser, resolvedGeolocationLocation]);
 
   const track = useCallback(
     (event: IMetaMetricsEvent | ITrackingEvent, properties?: JsonMap) => {
@@ -169,14 +255,11 @@ const ChoosePassword = () => {
     [dispatch],
   );
 
-  const setSelection = useCallback(() => {
-    setIsSelected((prev) => !prev);
-  }, []);
-
   const tryExportSeedPhrase = useCallback(async (pwd: string) => {
     const context = Engine.context;
-    const uint8ArrayMnemonic =
-      await context.KeyringController.exportSeedPhrase(pwd);
+    const uint8ArrayMnemonic = await context.KeyringController.exportSeedPhrase(
+      { password: pwd },
+    );
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   }, []);
 
@@ -188,8 +271,9 @@ const ChoosePassword = () => {
       const keychainPassword = keyringControllerPasswordSet.current
         ? password
         : '';
-      const seedPhraseUint8 =
-        await context.KeyringController.exportSeedPhrase(keychainPassword);
+      const seedPhraseUint8 = await context.KeyringController.exportSeedPhrase({
+        password: keychainPassword,
+      });
       const seedPhrase = uint8ArrayToMnemonic(seedPhraseUint8, wordlist);
       let importedAccounts: string[] = [];
       // Get imported accounts
@@ -200,7 +284,10 @@ const ChoosePassword = () => {
         for (const simpleKeyring of simpleKeyrings) {
           const simpleKeyringAccounts = await Promise.all(
             simpleKeyring.accounts.map((account) =>
-              keyringController.exportAccount(keychainPassword, account),
+              keyringController.exportAccount(
+                { password: keychainPassword },
+                account,
+              ),
             ),
           );
           importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
@@ -316,68 +403,29 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
+  const onContinueNavigation = useCallback(() => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: Routes.ONBOARDING.SUCCESS_FLOW,
+          params: {
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+            },
+          },
+        },
+      ],
+    });
+  }, [navigation]);
+
   const handlePostWalletCreation = useCallback(
-    async (authType: AuthData) => {
+    async (authType: AuthData, marketingOptInChecked: boolean) => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
-      if (authType.oauth2Login) {
-        endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
-        endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-        dispatch(setDataCollectionForMarketing(isSelected));
-        OAuthLoginService.updateMarketingOptInStatus(isSelected).catch(
-          (err) => {
-            Logger.error(err);
-          },
-        );
-
-        const oauthProvider = route.params?.provider;
-        const socialAccountType =
-          oauthProvider !== undefined
-            ? getSocialAccountType(oauthProvider, false)
-            : undefined;
-
-        try {
-          metrics.trackEvent(
-            metrics
-              .createEventBuilder(
-                MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-              )
-              .addProperties({
-                [UserProfileProperty.HAS_MARKETING_CONSENT]:
-                  Boolean(isSelected),
-                is_metrics_opted_in: true,
-                location: 'onboarding_choosePassword',
-                updated_after_onboarding: false,
-                ...(socialAccountType && { account_type: socialAccountType }),
-              })
-              .build(),
-          );
-
-          await metrics.identify({
-            ...generateDeviceAnalyticsMetaData(),
-            ...generateUserSettingsAnalyticsMetaData(),
-          });
-        } catch (analyticsError) {
-          Logger.error(analyticsError as Error);
-        }
-
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
-              params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-                },
-              },
-            },
-          ],
-        });
-      } else {
+      if (!authType.oauth2Login) {
         const seedPhrase = await tryExportSeedPhrase(password);
         (
           navigation as unknown as {
@@ -388,14 +436,67 @@ const ChoosePassword = () => {
           backupFlow: false,
           settingsBackup: false,
         });
+        return;
+      }
+
+      endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      dispatch(setDataCollectionForMarketing(marketingOptInChecked));
+      OAuthLoginService.updateMarketingOptInStatus(marketingOptInChecked).catch(
+        (err) => {
+          Logger.error(err);
+        },
+      );
+
+      const oauthProvider = route.params?.provider;
+      const socialAccountType =
+        oauthProvider !== undefined
+          ? getSocialAccountType(oauthProvider, false)
+          : undefined;
+
+      try {
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+            .addProperties({
+              [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+                marketingOptInChecked,
+              ),
+              is_metrics_opted_in: true,
+              location: 'onboarding_choosePassword',
+              updated_after_onboarding: false,
+              ...(socialAccountType && { account_type: socialAccountType }),
+            })
+            .build(),
+        );
+
+        await metrics.identify({
+          ...generateDeviceAnalyticsMetaData(),
+          ...generateUserSettingsAnalyticsMetaData(),
+        });
+      } catch (analyticsError) {
+        Logger.error(analyticsError as Error);
+      }
+
+      const accountType = reduxAccountType;
+      if (shouldShowQuestionnaire) {
+        navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+          onComplete: onContinueNavigation,
+          ...(accountType && { accountType }),
+        });
+      } else {
+        onContinueNavigation();
       }
     },
     [
       dispatch,
-      isSelected,
-      metrics,
-      navigation,
       route.params?.provider,
+      metrics,
+      reduxAccountType,
+      shouldShowQuestionnaire,
+      navigation,
+      onContinueNavigation,
       tryExportSeedPhrase,
       password,
     ],
@@ -506,7 +607,8 @@ const ChoosePassword = () => {
       await handleWalletCreation(authType, previous_screen);
 
       foxRiveLoaderRef.current?.stop();
-      await handlePostWalletCreation(authType);
+
+      await handlePostWalletCreation(authType, marketingOptInChecked);
 
       track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(biometryType),
@@ -515,8 +617,9 @@ const ChoosePassword = () => {
 
       let walletSetupAttributionProps = {};
       if (isSocialLogin) {
-        walletSetupAttributionProps =
-          getWalletSetupAttributionPropsFromStore(isSelected);
+        walletSetupAttributionProps = getWalletSetupAttributionPropsFromStore(
+          marketingOptInChecked,
+        );
       }
 
       track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
@@ -526,9 +629,6 @@ const ChoosePassword = () => {
         ...walletSetupAttributionProps,
       });
 
-      if (isSocialLogin) {
-        dispatch(clearAttribution());
-      }
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
@@ -544,8 +644,7 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
-    isSelected,
-    dispatch,
+    marketingOptInChecked,
   ]);
 
   const onPasswordChange = useCallback(
@@ -641,7 +740,10 @@ const ChoosePassword = () => {
       password.length < MIN_PASSWORD_LENGTH;
     let canSubmit;
     if (getOauth2LoginSuccess()) {
-      canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
+      canSubmit =
+        passwordsMatch &&
+        password.length >= MIN_PASSWORD_LENGTH &&
+        isGeolocationResolved;
     } else {
       canSubmit =
         passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
@@ -673,7 +775,6 @@ const ChoosePassword = () => {
         ) : (
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
-            resetScrollToCoords={{ x: 0, y: 0 }}
             keyboardShouldPersistTaps="handled"
           >
             <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
@@ -856,7 +957,7 @@ const ChoosePassword = () => {
                 >
                   <Checkbox
                     onChange={setSelection}
-                    isSelected={isSelected}
+                    isSelected={marketingOptInChecked}
                     testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID

@@ -9,9 +9,11 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Hex } from '@metamask/utils';
 import { selectLocalTransactions } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
+import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectAllTokens } from '../../../../selectors/tokensController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -29,6 +31,13 @@ const BRIDGE_FAIL_STATUSES = [
   TransactionStatus.dropped,
   TransactionStatus.rejected,
 ] as string[];
+
+const QUEUE_BLOCKING_STATUSES = new Set<string>([
+  TransactionStatus.submitted,
+  TransactionStatus.signed,
+  'approved',
+  'unapproved',
+]);
 
 /**
  * Checks whether a transaction is a TransactionMeta (vs SmartTransaction).
@@ -67,6 +76,7 @@ function computeIsEarliestNonce(
 
   return !allLocalTxs.some((other) => {
     if (other.id === tx.id) return false;
+    if (!QUEUE_BLOCKING_STATUSES.has(other.status)) return false;
     const otherNonce = Number(other.txParams?.nonce);
     return (
       other.txParams?.from?.toLowerCase() === from &&
@@ -153,12 +163,56 @@ function getBridgeActivityStatus(
 }
 
 /**
- * Derives source+destination token enrichment from swap metadata stored on TransactionMeta.
+ * Builds a {@link TokenAmount} from a bridge/swaps quote asset. Requires only a
+ * symbol (so it still resolves a leg whose atomic amount isn't populated yet);
+ * amount/decimals/assetId are included when present.
+ */
+function tokenFromQuoteAsset(
+  direction: TokenAmount['direction'],
+  asset: { symbol?: string; decimals?: number; assetId?: string } | undefined,
+  amount: string | undefined,
+): TokenAmount | undefined {
+  if (!asset?.symbol) {
+    return undefined;
+  }
+  return {
+    direction,
+    symbol: asset.symbol,
+    ...(amount ? { amount } : {}),
+    ...(asset.decimals === undefined ? {} : { decimals: asset.decimals }),
+    ...(asset.assetId ? { assetId: asset.assetId } : {}),
+  };
+}
+
+/**
+ * Derives source+destination token enrichment for a swap.
+ *
+ * Unified swaps store their token metadata in the bridge/swaps quote, not on the
+ * legacy TransactionMeta fields, so on-device resolution (`sourceTokenSymbol` /
+ * `swapMetaData` / native fallback) can miss a leg — most visibly a native
+ * destination — leaving the row as `swapIncomplete` (empty "You received", no
+ * fees, no "Swap again") until the indexer backfills a full copy. Prefer the
+ * quote (symbol always, amount/decimals/assetId when present) so the row resolves
+ * to a complete swap immediately and reactively; fall back to the legacy
+ * on-device fields for older SwapsController transactions with no bridge quote.
  */
 function getSwapTokenEnrichment(
   tx: TransactionMeta,
   nativeSymbol: string | undefined,
+  bridgeHistoryItem: BridgeHistoryItem | undefined,
 ): { sourceToken?: TokenAmount; destinationToken?: TokenAmount } {
+  const quote = bridgeHistoryItem?.quote;
+  const quoteSourceToken = tokenFromQuoteAsset(
+    'out',
+    quote?.srcAsset,
+    quote?.srcTokenAmount,
+  );
+  const quoteDestinationToken = tokenFromQuoteAsset(
+    'in',
+    quote?.destAsset,
+    quote?.destTokenAmount ?? quote?.minDestTokenAmount,
+  );
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const meta = tx as any;
   const srcSymbol: string | undefined =
@@ -171,16 +225,19 @@ function getSwapTokenEnrichment(
     srcSymbol ??
     (meta.destinationTokenAddress && nativeSymbol ? nativeSymbol : undefined);
 
-  if (!effectiveSrcSymbol && !dstSymbol) return {};
-
-  const sourceToken: TokenAmount | undefined = effectiveSrcSymbol
+  const legacySourceToken: TokenAmount | undefined = effectiveSrcSymbol
     ? { direction: 'out', symbol: effectiveSrcSymbol }
     : undefined;
-  const destinationToken: TokenAmount | undefined = dstSymbol
+  const legacyDestinationToken: TokenAmount | undefined = dstSymbol
     ? { direction: 'in', symbol: dstSymbol }
     : undefined;
 
-  return { sourceToken, destinationToken };
+  // The quote is strictly richer than the legacy symbol-only fallback, so it
+  // wins when present.
+  return {
+    sourceToken: quoteSourceToken ?? legacySourceToken,
+    destinationToken: quoteDestinationToken ?? legacyDestinationToken,
+  };
 }
 
 export function useLocalActivityItems(): ActivityListItem[] {
@@ -238,6 +295,15 @@ export function useLocalActivityItems(): ActivityListItem[] {
         }
       }
 
+      // Bridge/swaps history item for this tx — carries the quote used to
+      // enrich swap tokens (and status) when the local TransactionMeta doesn't.
+      const bridgeHistoryItem = findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        transactionActionId: tx.actionId,
+        transactionHash: tx.hash,
+      });
+
       // Bridge activity status override
       const activityStatus = getBridgeActivityStatus(tx, bridgeHistory);
 
@@ -245,6 +311,7 @@ export function useLocalActivityItems(): ActivityListItem[] {
       const { sourceToken, destinationToken } = getSwapTokenEnrichment(
         tx,
         nativeAssetSymbol,
+        bridgeHistoryItem,
       );
 
       const isEarliestNonce = computeIsEarliestNonce(tx, transactionMetaList);

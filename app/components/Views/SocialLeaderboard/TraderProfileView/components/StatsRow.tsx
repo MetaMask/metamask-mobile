@@ -12,8 +12,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { TraderStats } from '@metamask/social-controllers';
-import { formatSignedFullUsdNoDecimals } from '../../utils/formatters';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
+import { getTraderHeadlineStatsDisplay } from '../utils/getTraderHeadlineStatsDisplay';
 
 export interface StatsRowProps {
   stats: TraderStats;
@@ -43,15 +43,8 @@ function formatHoldTime(minutes: number): string {
 }
 
 const StatsRow: React.FC<StatsRowProps> = ({ stats, holdTimeMinutes }) => {
-  const winRate =
-    stats.winRate7d != null
-      ? `${Math.round(stats.winRate7d * 100)}%`
-      : '\u2014';
-  const isWinRatePositive = (stats.winRate7d ?? 0) > 0;
-
-  const hasPnl = stats.pnl7d != null;
-  const pnl = formatSignedFullUsdNoDecimals(stats.pnl7d);
-  const isPnlPositive = stats.pnl7d != null && stats.pnl7d >= 0;
+  const { winRate, isWinRatePositive, pnl, hasPnl, isPnlPositive } =
+    getTraderHeadlineStatsDisplay(stats);
 
   return (
     <Box

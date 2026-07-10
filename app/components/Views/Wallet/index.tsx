@@ -27,12 +27,14 @@ import {
   StyleSheet as RNStyleSheet,
   unstable_batchedUpdates,
   View,
+  type LayoutChangeEvent,
 } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Reanimated, {
+  runOnUI,
   useSharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
@@ -117,17 +119,14 @@ import {
 } from '../../../selectors/notifications';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
-import { getIsNetworkOnboarded } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
-import usePrevious from '../../hooks/usePrevious';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
-import { selectWalletHomeOnboardingStepsEnabled } from '../../../selectors/featureFlagController/homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -343,15 +342,11 @@ const Wallet = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
-  const isWalletHomeOnboardingStepsEnabled = useSelector(
-    selectWalletHomeOnboardingStepsEnabled,
-  );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
 
-  const inWalletHomePostOnboardingFlow =
-    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
+  const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 
   const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
 
@@ -430,8 +425,6 @@ const Wallet = ({
 
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
 
-  const prevChainId = usePrevious(chainId);
-
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
@@ -477,10 +470,13 @@ const Wallet = ({
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => resolve());
       });
-    } finally {
+    } catch (error) {
       setPostOnboardingExitAnimating(false);
       walletHomePostOnboardingExitInProgressRef.current = false;
+      throw error;
     }
+    setPostOnboardingExitAnimating(false);
+    walletHomePostOnboardingExitInProgressRef.current = false;
   }, [dispatch]);
 
   const onReceive = useCallback(() => {
@@ -554,8 +550,6 @@ const Wallet = ({
   const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
-
-  const currentToast = toastRef?.current;
 
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
@@ -677,8 +671,9 @@ const Wallet = ({
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
+    const toast = toastRef?.current;
     storePrivacyPolicyShownDate();
-    currentToast?.showToast({
+    toast?.showToast({
       variant: ToastVariants.Plain,
       labelOptions: [
         {
@@ -691,14 +686,14 @@ const Wallet = ({
         variant: ButtonVariants.Primary,
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
+          toast?.closeToast();
         },
       },
       linkButtonOptions: {
         label: strings(`privacy_policy.toast_read_more`),
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
+          toast?.closeToast();
           Linking.openURL(CONSENSYS_PRIVACY_POLICY);
         },
       },
@@ -708,15 +703,8 @@ const Wallet = ({
     storePrivacyPolicyShownDate,
     shouldShowNewPrivacyToast,
     storePrivacyPolicyClickedOrClosed,
-    currentToast,
+    toastRef,
   ]);
-
-  /**
-   * Network onboarding state
-   */
-  const networkOnboardingState = useSelector(
-    (state: RootState) => state.networkOnboarded.networkOnboardedState,
-  );
 
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -757,31 +745,6 @@ const Wallet = ({
     }
     checkIfNotificationsAreEnabled();
   });
-
-  /**
-   * Check to see if we need to show What's New modal
-   */
-  useEffect(() => {
-    // TODO: [SOLANA] Revisit this before shipping, we need to check if this logic supports non evm networks
-    const networkOnboarded = getIsNetworkOnboarded(
-      chainId,
-      networkOnboardingState,
-    );
-
-    if (!networkOnboarded && prevChainId !== chainId) {
-      // Do not check since it will conflict with the onboarding and/or network onboarding
-      return;
-    }
-  }, [
-    navigation,
-    chainId,
-    // TODO: Is this providerConfig.rpcUrl needed in this useEffect dependencies?
-    providerConfig.rpcUrl,
-    networkOnboardingState,
-    prevChainId,
-    // TODO: Is this accountBalanceByChainId?.balance needed in this useEffect dependencies?
-    accountBalanceByChainId?.balance,
-  ]);
 
   const { variantName: discoveryTabsVariantName } = useABTest(
     HUB_PAGE_DISCOVERY_TABS_AB_KEY,
@@ -842,6 +805,20 @@ const Wallet = ({
       opacity: h > 0 ? Math.max(0, 1 + walletHeaderTranslateY.value / h) : 1,
     };
   });
+
+  const handleWalletHeaderLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      const h = e.nativeEvent.layout.height;
+      if (h > 0) {
+        setHeaderHeight(h);
+        runOnUI((height: number) => {
+          'worklet';
+          sharedHeaderHeight.value = height;
+        })(h);
+      }
+    },
+    [sharedHeaderHeight],
+  );
 
   const isFocused = useIsFocused();
 
@@ -913,20 +890,21 @@ const Wallet = ({
     refreshInProgressRef.current = true;
     setRefreshing(true);
 
+    const refreshHomepage = isDiscoveryTabsTreatment
+      ? homepageDiscoveryTabsRef.current?.refresh()
+      : homepageRef.current?.refresh();
+
     try {
-      const refreshHomepage = isDiscoveryTabsTreatment
-        ? homepageDiscoveryTabsRef.current?.refresh()
-        : homepageRef.current?.refresh();
       await Promise.all([refreshBalance(), refreshHomepage]);
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
-    } finally {
-      refreshInProgressRef.current = false;
+    }
 
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        setRefreshing(false);
-      }
+    refreshInProgressRef.current = false;
+
+    // Only update state if component is still mounted
+    if (isMountedRef.current) {
+      setRefreshing(false);
     }
   }, [refreshBalance, isDiscoveryTabsTreatment]);
 
@@ -1121,13 +1099,7 @@ const Wallet = ({
                 <HeaderRoot
                   onLayout={
                     isDiscoveryTabsTreatment
-                      ? (e) => {
-                          const h = e.nativeEvent.layout.height;
-                          if (h > 0) {
-                            setHeaderHeight(h);
-                            sharedHeaderHeight.value = h;
-                          }
-                        }
+                      ? handleWalletHeaderLayout
                       : undefined
                   }
                   testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}

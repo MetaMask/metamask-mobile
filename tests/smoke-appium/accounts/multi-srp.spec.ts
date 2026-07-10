@@ -1,6 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
-import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
+import {
+  loginAndOpenAccountList,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
@@ -18,7 +21,6 @@ import {
 import { createUserStorageController } from '../../smoke/identity/utils/mocks.js';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../../smoke/identity/utils/constants.js';
 import ImportSrpView from '../../page-objects/importSrp/ImportSrpView.js';
-import Assertions from '../../framework/Assertions.js';
 import { identityFixtureOptions } from './identity-fixture-options.js';
 
 appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
@@ -71,10 +73,7 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
           await openImportSrpFromAccountList();
           await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
           await ImportSrpView.tapImportButton();
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description: 'Wallet should be visible after SRP import',
-            timeout: 20_000,
-          });
+          await waitForWalletHomePlaywright(20_000);
 
           await WalletView.tapIdenticon();
           await waitUntilSyncedAccountsNumberEquals(3);
@@ -106,10 +105,7 @@ appiumTest.describe(SmokeAccounts('Account syncing - Multiple SRPs'), () => {
         await openImportSrpFromAccountList();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet should be visible after second SRP import',
-          timeout: 20_000,
-        });
+        await waitForWalletHomePlaywright(20_000);
 
         await WalletView.tapIdenticon();
         for (const [accountName, count] of Object.entries({

@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React, { ReactElement, ReactNode } from 'react';
 import { Pressable } from 'react-native';
 import {
   Box,
@@ -10,17 +10,23 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../../locales/i18n';
-import { PayWithRowConfig } from '../../modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
+import {
+  PayWithRowConfig,
+  PayWithRowTagRenderer,
+} from '../../modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 
 export type PaymentMethodRowProps = PayWithRowConfig;
+
+const renderFirstTag = (
+  tagRenderers: PayWithRowTagRenderer[] | undefined,
+): ReactNode =>
+  tagRenderers?.reduce<ReactNode>((found, render) => found ?? render(), null) ??
+  null;
 
 const renderTrailing = (
   trailingElement: PayWithRowConfig['trailingElement'],
@@ -61,8 +67,7 @@ const PaymentMethodRow = ({
   title,
   subtitle,
   isSelected,
-  isLastUsed,
-  isNoFee,
+  tagRenderers,
   trailingElement,
   onPress,
   disabled,
@@ -70,7 +75,9 @@ const PaymentMethodRow = ({
 }: PaymentMethodRowProps) => {
   const tw = useTailwind();
   const resolvedTestID = testID ?? `payment-method-row-${id}`;
+  const rowBackgroundClass = isSelected ? 'bg-section' : 'bg-transparent';
   const iconSlotTestID = `${resolvedTestID}-icon-slot`;
+  const tag = renderFirstTag(tagRenderers);
 
   const content = (
     <>
@@ -98,21 +105,7 @@ const PaymentMethodRow = ({
           >
             {title}
           </Text>
-          {isNoFee ? (
-            <Tag
-              severity={TagSeverity.Info}
-              testID={`${resolvedTestID}-no-fee-tag`}
-            >
-              {strings('money.potential_earnings.no_fee')}
-            </Tag>
-          ) : isLastUsed ? (
-            <Tag
-              severity={TagSeverity.Info}
-              testID={`${resolvedTestID}-last-used-tag`}
-            >
-              {strings('confirm.pay_with_bottom_sheet.last_used')}
-            </Tag>
-          ) : null}
+          {tag}
         </Box>
         {subtitle ? (
           <Text
@@ -139,9 +132,9 @@ const PaymentMethodRow = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName={`px-4 py-3 ${
-          isSelected ? 'bg-section' : 'bg-default'
-        } ${disabled ? 'opacity-50' : ''}`}
+        twClassName={`px-4 py-3 ${rowBackgroundClass} ${
+          disabled ? 'opacity-50' : ''
+        }`}
         testID={resolvedTestID}
       >
         {content}
@@ -158,7 +151,7 @@ const PaymentMethodRow = ({
       style={({ pressed }) =>
         tw.style(
           'flex-row items-center px-4 py-3',
-          isSelected ? 'bg-section' : 'bg-default',
+          rowBackgroundClass,
           pressed && !disabled ? 'bg-pressed' : '',
           disabled ? 'opacity-50' : '',
         )

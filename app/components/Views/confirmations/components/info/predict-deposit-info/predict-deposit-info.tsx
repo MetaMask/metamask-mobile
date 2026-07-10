@@ -16,7 +16,7 @@ export function PredictDepositInfo() {
   const { payWithOption } = useParams<ConfirmationParams>({});
   const title =
     payWithOption === PayWithOption.MoneyAccount
-      ? strings('predict.transfer_to_predictions')
+      ? strings('predict.send_to_predictions')
       : strings('confirm.title.predict_deposit');
 
   useNavbar(title);

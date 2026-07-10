@@ -7,7 +7,9 @@ import {
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import { useEffect, useRef } from 'react';
+import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
@@ -35,8 +37,10 @@ import {
   isMoneyAccountTx,
   isMoneyDepositTx,
   isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
   nestedTxWithType,
   perpsPredictServiceFamily,
+  resolveMoneyDepositIntent,
 } from '../utils/moneyTransactionGuards';
 import useMoneyToasts from './useMoneyToasts';
 import {
@@ -147,10 +151,38 @@ export function formatMusdAmountForToast(amountWei: bigint): string {
   return moneyFormatFiat(musdDecimal.times(rate), currentCurrency);
 }
 
+function formatMetamaskPayFiat(value: unknown): string | undefined {
+  const fiat = Number(value);
+  if (Number.isNaN(fiat) || fiat <= 0) return undefined;
+  return moneyFormatFiat(
+    new BigNumber(fiat),
+    selectCurrentCurrency(store.getState()),
+  );
+}
+
+function navigateToMoneyTransactionDetails(transactionId: string) {
+  NavigationService.navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+    transactionId,
+  });
+}
+
 const IN_PROGRESS_KEY = 'in-progress';
 const FAILED_KEY = 'failed';
 const CONFIRMED_KEY = 'confirmed';
 export const IN_PROGRESS_DELAY_MS = 1500;
+
+// Reads the freshest copy of a transaction from controller state. The deferred
+// in-progress toast derives deposit intent from `metamaskPay`, which can be
+// populated after the `approved` event that scheduled the toast without another
+// status change re-delivering the meta — so the captured snapshot is unsafe for
+// derivation.
+function latestTransactionMeta(
+  transactionId: string,
+): TransactionMeta | undefined {
+  return Engine.context.TransactionController.state.transactions.find(
+    (tx) => tx.id === transactionId,
+  );
+}
 
 export const useMoneyTransactionStatus = () => {
   const { showToast, MoneyToastOptions } = useMoneyToasts();
@@ -190,18 +222,28 @@ export const useMoneyTransactionStatus = () => {
       return toastKey;
     };
 
+    // Prefer the intent captured when the deposit was initiated; fall back to
+    // deriving it from the transaction's own payment data when it's missing.
+    const resolveDepositIntent = (transactionMeta: TransactionMeta) =>
+      getMoneyAccountDepositIntent(transactionMeta.batchId) ??
+      resolveMoneyDepositIntent(transactionMeta);
+
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
       if (pendingInProgress.has(transactionMeta.id)) return;
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
       const timeoutId = setTimeout(() => {
         pendingInProgress.delete(transactionMeta.id);
         if (isSend) {
-          showToast(MoneyToastOptions.send.inProgress());
+          showToast(MoneyToastOptions.send.inProgress({ onPress }));
         } else if (isMoneyDepositTx(transactionMeta)) {
-          const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-          showToast(MoneyToastOptions.deposit.inProgress({ intent }));
+          const freshMeta =
+            latestTransactionMeta(transactionMeta.id) ?? transactionMeta;
+          const intent = resolveDepositIntent(freshMeta);
+          showToast(MoneyToastOptions.deposit.inProgress({ intent, onPress }));
         } else {
           showToast(MoneyToastOptions.withdraw.inProgress());
         }
@@ -214,11 +256,13 @@ export const useMoneyTransactionStatus = () => {
       if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
       if (isSend) {
-        showToast(MoneyToastOptions.send.failed());
+        showToast(MoneyToastOptions.send.failed({ onPress }));
       } else if (isMoneyDepositTx(transactionMeta)) {
-        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-        showToast(MoneyToastOptions.deposit.failed({ intent }));
+        const intent = resolveDepositIntent(transactionMeta);
+        showToast(MoneyToastOptions.deposit.failed({ intent, onPress }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());
@@ -228,26 +272,41 @@ export const useMoneyTransactionStatus = () => {
 
     const showConfirmedFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
+      const isReceive = isPerpsPredictMoneyWithdraw(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
 
       if (isSend) {
-        const fiat = Number(transactionMeta.metamaskPay?.totalFiat);
-        const amountFiat =
-          !Number.isNaN(fiat) && fiat > 0
-            ? moneyFormatFiat(
-                new BigNumber(fiat),
-                selectCurrentCurrency(store.getState()),
-              )
-            : undefined;
+        const amountFiat = formatMetamaskPayFiat(
+          transactionMeta.metamaskPay?.targetFiat,
+        );
         const family = perpsPredictServiceFamily(transactionMeta);
         const destination = strings(
           family === 'predict'
             ? 'money.toasts.send_destination_predict'
             : 'money.toasts.send_destination_perps',
         );
-        showToast(MoneyToastOptions.send.success({ amountFiat, destination }));
+        showToast(
+          MoneyToastOptions.send.success({ amountFiat, destination, onPress }),
+        );
+        scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
+        return;
+      }
+
+      if (isReceive) {
+        const amountFiat = formatMetamaskPayFiat(
+          transactionMeta.metamaskPay?.targetFiat,
+        );
+        showToast(
+          MoneyToastOptions.deposit.success({
+            amountFiat,
+            intent: 'addMusd',
+            onPress,
+          }),
+        );
         scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
         return;
       }
@@ -274,8 +333,10 @@ export const useMoneyTransactionStatus = () => {
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
-        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-        showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
+        const intent = resolveDepositIntent(transactionMeta);
+        showToast(
+          MoneyToastOptions.deposit.success({ amountFiat, intent, onPress }),
+        );
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         const destination =

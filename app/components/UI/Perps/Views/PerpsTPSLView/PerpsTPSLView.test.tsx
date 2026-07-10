@@ -411,33 +411,21 @@ describe('PerpsTPSLView', () => {
     ])(
       'handles focus and blur events for %s input',
       (_description, getInput, focusHandler, blurHandler) => {
-        jest.useFakeTimers();
-        try {
-          const mockFocusHandler = jest.fn();
-          const mockBlurHandler = jest.fn();
-          renderView({
-            handlers: {
-              ...defaultMockReturn.handlers,
-              [focusHandler]: mockFocusHandler,
-              [blurHandler]: mockBlurHandler,
-            },
-          });
+        const mockFocusHandler = jest.fn();
+        const mockBlurHandler = jest.fn();
+        renderView({
+          handlers: {
+            ...defaultMockReturn.handlers,
+            [focusHandler]: mockFocusHandler,
+            [blurHandler]: mockBlurHandler,
+          },
+        });
 
-          fireEvent(getInput(), 'focus');
+        fireEvent(getInput(), 'focus');
+        fireEvent(getInput(), 'blur');
 
-          // Flush the iOS programmatic-dismiss guard (rAF + 150ms setTimeout)
-          // so isProgrammaticDismissRef resets to false before the blur fires.
-          act(() => {
-            jest.advanceTimersByTime(200);
-          });
-
-          fireEvent(getInput(), 'blur');
-
-          expect(mockFocusHandler).toHaveBeenCalled();
-          expect(mockBlurHandler).toHaveBeenCalled();
-        } finally {
-          jest.useRealTimers();
-        }
+        expect(mockFocusHandler).toHaveBeenCalled();
+        expect(mockBlurHandler).toHaveBeenCalled();
       },
     );
 
@@ -457,44 +445,50 @@ describe('PerpsTPSLView', () => {
         'handleStopLossPercentageFocus',
       ],
     ])(
-      // Regression test for iOS focus/blur race: on iOS, when the user moves
-      // focus directly from the price field to the % field, the new field's
-      // onFocus fires before the old field's onBlur. The input-scoped
-      // programmaticDismissInputRef must NOT suppress the price field's blur
-      // in this scenario — only the focused field's own programmatic blur is
-      // suppressed.
-      'delivers %s price blur even when iOS dismiss guard is active for the percentage field',
+      // Regression: when the user moves focus from the price field to the %
+      // field, the price blur must be delivered regardless of the order in
+      // which focus/blur events arrive, so that hook focus state stays accurate.
+      'delivers %s price blur when focus moves from price to percentage field',
       (_description, getPriceInput, getPctInput, priceBlurHandler) => {
-        jest.useFakeTimers();
-        try {
-          const mockPriceBlur = jest.fn();
-          renderView({
-            handlers: {
-              ...defaultMockReturn.handlers,
-              [priceBlurHandler]: mockPriceBlur,
-            },
-          });
+        const mockPriceBlur = jest.fn();
+        renderView({
+          handlers: {
+            ...defaultMockReturn.handlers,
+            [priceBlurHandler]: mockPriceBlur,
+          },
+        });
 
-          // Step 1: focus the price input to set it as the active field.
-          fireEvent(getPriceInput(), 'focus');
+        fireEvent(getPriceInput(), 'focus');
+        fireEvent(getPctInput(), 'focus');
+        fireEvent(getPriceInput(), 'blur');
 
-          // Step 2: immediately focus the % input WITHOUT flushing the
-          // dismiss-guard timer (simulates iOS focus/blur ordering where
-          // new-field onFocus fires before old-field onBlur). The guard is
-          // now set to the % input's id.
-          fireEvent(getPctInput(), 'focus');
-
-          // Step 3: now the price input fires its onBlur. The guard is scoped
-          // to the % input's id, NOT the price input's id, so the price blur
-          // handler must still be called and tpPriceInputFocused must clear.
-          fireEvent(getPriceInput(), 'blur');
-
-          expect(mockPriceBlur).toHaveBeenCalled();
-        } finally {
-          jest.useRealTimers();
-        }
+        expect(mockPriceBlur).toHaveBeenCalled();
       },
     );
+
+    it.each([
+      ['take profit price', () => getTakeProfitPriceInput()],
+      ['take profit percentage', () => getTakeProfitPercentageInput()],
+      ['stop loss price', () => getStopLossPriceInput()],
+      ['stop loss percentage', () => getStopLossPercentageInput()],
+    ])(
+      'renders %s input with showSoftInputOnFocus={false}',
+      (_description, getInput) => {
+        renderView();
+        expect(getInput().props.showSoftInputOnFocus).toBe(false);
+      },
+    );
+
+    it('does not call Keyboard.dismiss when an input is focused', () => {
+      const { Keyboard } = jest.requireActual('react-native');
+      const dismissSpy = jest.spyOn(Keyboard, 'dismiss');
+      renderView();
+
+      fireEvent(getTakeProfitPriceInput(), 'focus');
+
+      expect(dismissSpy).not.toHaveBeenCalled();
+      dismissSpy.mockRestore();
+    });
   });
 
   // ==================== Display Hook Data ====================

@@ -24,6 +24,7 @@ import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl'
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../handleSwapUrl';
 import { handleBatchSellUrl } from '../handleBatchSellUrl';
+import { handleAssetUrl } from '../handleAssetUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
@@ -56,6 +57,7 @@ jest.mock('../handleRampReturnUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBatchSellUrl');
+jest.mock('../handleAssetUrl');
 jest.mock('../handleBrowserUrl');
 jest.mock('../handleDappUrl', () => {
   const actual = jest.requireActual('../handleDappUrl');
@@ -495,6 +497,61 @@ describe('handleUniversalLink', () => {
 
       expect(handleRampReturnUrl).toHaveBeenCalledWith({
         rampReturnPath: onRampPath,
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.ASSET', () => {
+    it('calls handleAssetUrl with the path after the action', async () => {
+      const assetPath = '?assetId=eip155:1/erc20:0xabc';
+      const assetUrl = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.ASSET}${assetPath}`;
+      const assetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: assetUrl,
+        pathname: `/${ACTIONS.ASSET}`,
+        search: assetPath,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: assetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: assetUrl,
+        source: 'test-source',
+      });
+
+      expect(handleAssetUrl).toHaveBeenCalledWith({
+        assetPath,
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('does not show interstitial modal for ASSET action (whitelisted)', async () => {
+      const assetPath = '?assetId=eip155:1/erc20:0xabc';
+      const assetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.ASSET}${assetPath}`;
+      const assetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: assetUrl,
+        pathname: `/${ACTIONS.ASSET}`,
+        search: assetPath,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: assetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: assetUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleAssetUrl).toHaveBeenCalledWith({
+        assetPath,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -1251,7 +1308,32 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({ id: undefined });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('forwards the id query param to _handleWhatsHappening', async () => {
+      const id = 'a3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}?id=${id}`;
+      const whatsHappeningUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: whatsHappeningUrl,
+        pathname: `/${ACTIONS.WHATS_HAPPENING}`,
+        search: `?id=${id}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: whatsHappeningUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: whatsHappeningUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith({ id });
       expect(handled).toHaveBeenCalled();
     });
   });

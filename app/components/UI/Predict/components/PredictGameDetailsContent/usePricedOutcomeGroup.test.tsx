@@ -86,7 +86,7 @@ describe('usePricedOutcomeGroup', () => {
     );
   });
 
-  it('applies sell prices to pollable group outcomes', () => {
+  it('applies ask (buy) prices to pollable group outcomes', () => {
     const group = createGroup({
       key: 'points',
       outcomes: [
@@ -128,7 +128,7 @@ describe('usePricedOutcomeGroup', () => {
         ],
       }),
     );
-    expect(result.current?.outcomes[0].tokens[0].price).toBe(0.72);
+    expect(result.current?.outcomes[0].tokens[0].price).toBe(0.71);
   });
 
   it('re-targets price queries when selected group changes', () => {
@@ -276,10 +276,10 @@ describe('usePricedOutcomeGroup', () => {
       }),
     );
     expect(result.current?.subgroups?.[0].outcomes[0].tokens[0].price).toBe(
-      0.68,
+      0.67,
     );
     expect(result.current?.subgroups?.[0].outcomes[0].tokens[1].price).toBe(
-      0.32,
+      0.31,
     );
     expect(result.current?.subgroups?.[1].outcomes[0].tokens[0].price).toBe(
       0.6,

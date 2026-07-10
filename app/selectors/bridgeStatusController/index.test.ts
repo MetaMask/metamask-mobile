@@ -89,6 +89,7 @@ describe('selectBatchSellHistoryItemsForTxHash', () => {
       backgroundState: {
         ...initialState.engine.backgroundState,
         BridgeStatusController: {
+          quoteUpdateStatusStore: {},
           txHistory: {
             [batchTxId]: createBatchSellHistoryItem(
               batchTxId,
@@ -136,6 +137,7 @@ describe('selectBatchSellHistoryItemsForTxHash', () => {
         backgroundState: {
           ...batchSellState.engine.backgroundState,
           BridgeStatusController: {
+            quoteUpdateStatusStore: {},
             txHistory: {
               [batchTxId]: {
                 ...createBatchSellHistoryItem(

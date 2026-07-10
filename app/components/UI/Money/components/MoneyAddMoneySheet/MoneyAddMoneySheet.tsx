@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
@@ -34,7 +34,7 @@ import {
   type InitiateDepositOptions,
 } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
 import { selectTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import MoneySheetOptionsList, {
@@ -50,6 +50,7 @@ import {
   COMPONENT_NAMES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 
 const log = createProjectLogger('money-add-money-sheet');
 
@@ -57,11 +58,9 @@ const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
 
   const {
     fiatBalanceAggregated,
-    fiatBalanceAggregatedFormatted,
     hasMusdBalanceOnAnyChain,
     tokenBalanceAggregated,
     tokenBalanceByChain,
@@ -70,6 +69,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const transactions = useSelector(selectTransactions);
+  const regionHasNativeFiatProvider = useRegionHasNativeFiatProvider();
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
@@ -147,7 +147,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    startDeposit();
+    startDeposit({ intent: 'convert' });
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
@@ -191,9 +191,10 @@ const MoneyAddMoneySheet: React.FC = () => {
     Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
   const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
 
-  const moveMusdAmount = hasParsedFiatBalance
-    ? fiatBalanceAggregatedFormatted
-    : new BigNumber(tokenBalanceAggregated).toFixed(2);
+  const moveMusdAmount = useMemo(
+    () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
+    [tokenBalanceAggregated],
+  );
   const moveMusdLabel = hasMusdBalance
     ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
     : strings('money.add_money_sheet.add_musd');
@@ -206,10 +207,14 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled
+    ...(isFiatDepositEnabled && regionHasNativeFiatProvider
       ? [
           {
-            label: strings('money.add_money_sheet.deposit_funds'),
+            label: strings(
+              Platform.OS === 'android'
+                ? 'fiat_on_ramp.debit_card'
+                : 'money.add_money_sheet.deposit_funds',
+            ),
             icon: IconName.Card,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
@@ -249,7 +254,6 @@ const MoneyAddMoneySheet: React.FC = () => {
       goBack={handleGoBack}
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

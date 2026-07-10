@@ -15,19 +15,65 @@ import {
 import { selectMoneyDepositMinBalance } from '../selectors/featureFlags';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 
 const isEvmToken = (token: AssetType) =>
   Boolean(token.accountType?.includes('eip155'));
 
 /**
- * Money deposits ALWAYS convert TO Monad mUSD. The no-fee tag must match a
+ * Converts a token's `fiat.balance` (assumed to be in the user's preferred
+ * currency) to USD. Fails loud: drops `fiat` rather than showing a value in
+ * the wrong currency when the USD rate can't be resolved.
+ */
+const toUsdToken = (
+  token: AssetType,
+  currencyRates: ReturnType<typeof selectCurrencyRates>,
+  networkConfigurationsByChainId: ReturnType<
+    typeof selectNetworkConfigurations
+  >,
+): AssetType => {
+  if (token.fiat?.balance === undefined) {
+    return token;
+  }
+
+  const usdBalance = calcUsdAmountFromFiat({
+    tokenFiatValue: token.fiat.balance,
+    chainId: token.chainId,
+    networkConfigurationsByChainId,
+    evmMultiChainCurrencyRates: currencyRates,
+  });
+
+  return {
+    ...token,
+    fiat:
+      usdBalance === undefined
+        ? undefined
+        : { ...token.fiat, balance: usdBalance, currency: 'usd' },
+  };
+};
+
+/**
+ * Money deposits ALWAYS convert TO Monad mUSD. The no-fee tag matches a
  * subsidized route whose TARGET is Monad mUSD — NOT merely a token that is a
- * subsidized source on some other route (e.g. a withdraw mUSD->USDC route).
+ * subsidized source on some other route (e.g. a USDC -> Linea mUSD deposit or
+ * a Monad mUSD -> USDC withdraw), which would mislabel tokens that have no
+ * subsidized route into Monad mUSD.
  */
 const MONAD_MUSD_TARGET = {
   address: MUSD_TOKEN_ADDRESS,
   chainId: CHAIN_IDS.MONAD,
 };
+
+/**
+ * Monad mUSD -> Monad mUSD needs no swap or bridge, so the fixed-spread SSOT
+ * flag omits it; depositing Monad mUSD still incurs no Relay fee, so it is
+ * tagged no-fee explicitly.
+ */
+const isMonadMusd = (address: string, chainId: string) =>
+  chainId?.toLowerCase() === MONAD_MUSD_TARGET.chainId.toLowerCase() &&
+  address?.toLowerCase() === MONAD_MUSD_TARGET.address.toLowerCase();
 
 /**
  * Returns tokens the user holds that are eligible for Money account deposits
@@ -43,15 +89,23 @@ const MONAD_MUSD_TARGET = {
  *
  * Sort: fiat balance descending.
  *
- * isNoFeeToken: true only when the token has a subsidized route whose target
- * is Monad mUSD (i.e. the deposit destination). Source-only matching is
- * intentionally avoided — see MONAD_MUSD_TARGET above.
+ * isNoFeeToken: true when the token has a subsidized route whose target is
+ * Monad mUSD, or when the token IS Monad mUSD (see isMonadMusd above).
+ *
+ * @param options.overrideToUsd - When true, converts each returned token's
+ * `fiat.balance` to USD. Defaults to false.
  */
-export const useMoneyEarnableTokens = () => {
+export const useMoneyEarnableTokens = ({
+  overrideToUsd = false,
+}: { overrideToUsd?: boolean } = {}) => {
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const minBalance = useSelector(selectMoneyDepositMinBalance);
   const allTokens = useAccountTokens({ includeNoBalance: false });
+  const currencyRates = useSelector(selectCurrencyRates);
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
 
   const mmPayBlocked = useMemo(
     () =>
@@ -63,16 +117,18 @@ export const useMoneyEarnableTokens = () => {
   );
 
   const isNoFeeToken = useCallback(
-    (token: AssetType) =>
-      Boolean(token.chainId) &&
-      isSubsidizedRoute(
-        relayFixedSpread,
-        {
-          address: token.address,
-          chainId: safeFormatChainIdToHex(token.chainId as string),
-        },
-        MONAD_MUSD_TARGET,
-      ),
+    (token: AssetType) => {
+      if (!token.chainId) return false;
+      const chainId = safeFormatChainIdToHex(token.chainId as string);
+      return (
+        isMonadMusd(token.address, chainId) ||
+        isSubsidizedRoute(
+          relayFixedSpread,
+          { address: token.address, chainId },
+          MONAD_MUSD_TARGET,
+        )
+      );
+    },
     [relayFixedSpread],
   );
 
@@ -86,18 +142,31 @@ export const useMoneyEarnableTokens = () => {
     [minBalance],
   );
 
-  const tokens = useMemo(
-    () =>
-      allTokens
-        .filter(
-          (t) =>
-            isEvmToken(t) &&
-            !isTokenBlocked(t, mmPayBlocked) &&
-            meetsMinBalance(t),
-        )
-        .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0)),
-    [allTokens, mmPayBlocked, meetsMinBalance],
-  );
+  const tokens = useMemo(() => {
+    const filtered = allTokens
+      .filter(
+        (t) =>
+          isEvmToken(t) &&
+          !isTokenBlocked(t, mmPayBlocked) &&
+          meetsMinBalance(t),
+      )
+      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
+
+    if (!overrideToUsd) {
+      return filtered;
+    }
+
+    return filtered.map((token) =>
+      toUsdToken(token, currencyRates, networkConfigurationsByChainId),
+    );
+  }, [
+    allTokens,
+    mmPayBlocked,
+    meetsMinBalance,
+    overrideToUsd,
+    currencyRates,
+    networkConfigurationsByChainId,
+  ]);
 
   return { tokens, isNoFeeToken };
 };

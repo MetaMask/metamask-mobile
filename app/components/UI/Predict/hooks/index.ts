@@ -45,3 +45,17 @@ export {
   type UsePredictWorldCupAvailableTabsOptions,
   type PredictWorldCupAvailableTab,
 } from './usePredictWorldCup';
+
+export {
+  usePredictWorldCupGamesSections,
+  usePredictWorldCupWinnerMarket,
+  type PredictWorldCupStageSection,
+  type UsePredictWorldCupGamesSectionsResult,
+  type UsePredictWorldCupWinnerMarketResult,
+} from './usePredictWorldCupHub';
+
+export {
+  usePredictWorldCupFeedSession,
+  type UsePredictWorldCupFeedSessionOptions,
+  type UsePredictWorldCupFeedSessionResult,
+} from './usePredictWorldCupFeedSession';

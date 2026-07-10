@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { useTokenChartPreferences } from '../../AssetOverview/Price/hooks/useTokenChartPreferences';
 import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -114,6 +115,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const { indicators: indicatorsActive } = useTokenChartPreferences();
 
   const useErrorAccent = useAmbientColor && isPricePositive === false;
 
@@ -293,6 +296,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onSwap,
@@ -325,6 +329,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onBuy,
@@ -349,6 +354,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onQuickBuyPress,

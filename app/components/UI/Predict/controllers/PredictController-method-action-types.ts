@@ -76,7 +76,6 @@ export type PredictControllerGetUnrealizedPnLAction = {
 /**
  * Track Predict trade transaction analytics event
  * Uses a single consolidated event with status discriminator
- *
  * @public
  */
 export type PredictControllerTrackPredictOrderEventAction = {
@@ -132,6 +131,11 @@ export type PredictControllerTrackFeedViewedAction = {
 export type PredictControllerTrackBannerActionAction = {
   type: `PredictController:trackBannerAction`;
   handler: PredictController['trackBannerAction'];
+};
+
+export type PredictControllerTrackCategoryClickedAction = {
+  type: `PredictController:trackCategoryClicked`;
+  handler: PredictController['trackCategoryClicked'];
 };
 
 export type PredictControllerTrackShareActionAction = {
@@ -365,6 +369,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackBannerActionAction
+  | PredictControllerTrackCategoryClickedAction
   | PredictControllerTrackShareActionAction
   | PredictControllerTrackSearchInteractedAction
   | PredictControllerTrackBetslipDismissedAction

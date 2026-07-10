@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { ReactTestInstance } from 'react-test-renderer';
-import { View, Button, Text } from 'react-native';
+import { View, Button } from 'react-native';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -64,6 +64,7 @@ jest.mock('../../../../../components/UI/QRHardware/AnimatedQRScanner', () => ({
     onScanError,
     onScanSuccess,
     visible,
+    coverScreen,
   }: {
     hideModal: () => void;
     onModalHideComplete?: () => void;
@@ -71,6 +72,7 @@ jest.mock('../../../../../components/UI/QRHardware/AnimatedQRScanner', () => ({
     onScanError: (error: string) => void;
     onScanSuccess: (ur: { cbor: string; type: string }) => void;
     visible: boolean;
+    coverScreen?: boolean;
   }) => {
     const ActualReact = jest.requireActual('react');
     const prevVisibleRef = ActualReact.useRef(visible);
@@ -84,7 +86,10 @@ jest.mock('../../../../../components/UI/QRHardware/AnimatedQRScanner', () => ({
 
     if (!visible) return null;
     return (
-      <MockView testID="animated-qr-scanner-mock">
+      <MockView
+        testID="animated-qr-scanner-mock"
+        accessibilityLabel={`coverScreen:${String(coverScreen)}`}
+      >
         <MockButton
           testID="scanner-hide-btn"
           title="hideModal"
@@ -373,7 +378,7 @@ describe('AwaitingConfirmationContent', () => {
 
     it('closes scanner via QR cancel callback', () => {
       const onCancel = jest.fn();
-      const { getByTestId, queryByTestId } = renderComponent(
+      const { getByTestId } = renderComponent(
         { deviceType: HardwareWalletType.Qr, onCancel },
         qrSigningOverrides,
       );
@@ -385,6 +390,21 @@ describe('AwaitingConfirmationContent', () => {
       fireEvent.press(getByTestId('scanner-hide-btn'));
 
       expect(onCancel).not.toHaveBeenCalled();
+    });
+
+    it('disables coverScreen so RN Modal can render under FullWindowOverlay on iOS', () => {
+      const { getByTestId } = renderComponent(
+        { deviceType: HardwareWalletType.Qr },
+        qrSigningOverrides,
+      );
+
+      fireEvent.press(
+        getByTestId(AWAITING_CONFIRMATION_QR_GET_SIGN_BUTTON_TEST_ID),
+      );
+
+      expect(
+        getByTestId('animated-qr-scanner-mock').props.accessibilityLabel,
+      ).toBe('coverScreen:false');
     });
   });
 

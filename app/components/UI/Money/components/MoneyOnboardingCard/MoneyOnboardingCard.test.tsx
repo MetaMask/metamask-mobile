@@ -40,6 +40,11 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../MoneyNextBestActionParallax', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));
@@ -107,6 +112,7 @@ interface SetupOptions {
   isAggregatedBalanceLoading?: boolean;
   isBalanceLoading?: boolean;
   tokenTotal?: BigNumber;
+  apyPercent?: number;
 }
 
 const setupDefaultMocks = ({
@@ -119,6 +125,7 @@ const setupDefaultMocks = ({
   isAggregatedBalanceLoading = false,
   isBalanceLoading = false,
   tokenTotal = new BigNumber(0),
+  apyPercent,
 }: SetupOptions = {}) => {
   mockUseOnboardingStep.mockReturnValue({
     currentStep,
@@ -131,6 +138,7 @@ const setupDefaultMocks = ({
   mockUseMoneyAccountBalance.mockReturnValue({
     tokenTotal,
     isBalanceLoading,
+    apyPercent,
   } as ReturnType<typeof useMoneyAccountBalance>);
   (mockUseMoneyAccountCardLinkage as jest.Mock).mockReturnValue({
     startLinkFlow: mockStartLinkFlow,
@@ -201,24 +209,34 @@ describe('MoneyOnboardingCard', () => {
       expect(mockIncrementStep).not.toHaveBeenCalled();
     });
 
-    it('renders the step 1 title', () => {
+    it('renders the APY step 1 title and description when APY is available', () => {
+      setupDefaultMocks({ currentStep: 0, apyPercent: 4 });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
+        strings('money.onboarding.step_1.title', { apy: 4 }),
+      );
+      expect(
+        getByTestId('money-onboarding-card-description'),
+      ).toHaveTextContent(
+        strings('money.onboarding.step_1.description', { apy: 4 }),
+      );
+    });
+
+    it('falls back to the no-APY step 1 copy when APY is unavailable', () => {
       setupDefaultMocks({ currentStep: 0 });
 
       const { getByTestId } = render(<MoneyOnboardingCard />);
 
       expect(getByTestId('money-onboarding-card-title')).toHaveTextContent(
-        strings('money.onboarding.step_1.title'),
+        strings('money.onboarding.step_1.title_no_apy'),
       );
-    });
-
-    it('renders the step 1 description', () => {
-      setupDefaultMocks({ currentStep: 0 });
-
-      const { getByTestId } = render(<MoneyOnboardingCard />);
-
       expect(
         getByTestId('money-onboarding-card-description'),
-      ).toHaveTextContent(strings('money.onboarding.step_1.description'));
+      ).toHaveTextContent(
+        strings('money.onboarding.step_1.description_no_apy'),
+      );
     });
 
     it('renders the Add funds primary CTA', () => {

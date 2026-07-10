@@ -46,6 +46,14 @@ export const POLYGON_EIP7702_CONTRACT_ADDRESS =
 export const SPURS_PELICANS_POSITION_ID =
   '110743925263777693447488608878982152642205002490046349037358337248548507433643';
 
+// Predict position ID for Celtics vs. Nets (open-position flow)
+export const CELTICS_NETS_POSITION_ID =
+  '51851880223290407825872150827934296608070009371891114025629582819868766043137';
+
+// Predict position ID for Blue Jays vs. Mariners (claim winnings flow)
+export const BLUE_JAYS_MARINERS_POSITION_ID =
+  '42939601076825532550105235762150970758026025994237741085435131668957359315522';
+
 // EIP-7702 format: 0xef01 (magic byte) + 00 (padding) + 20-byte contract address
 // This format indicates an EOA is upgraded with EIP-7702
 export const EIP7702_CODE_FORMAT = (contractAddress: string): string => {

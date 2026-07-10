@@ -1,18 +1,20 @@
 import { useCallback, useRef } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import {
   normalizeProviderCode,
+  RampsOrderStatus,
   type TransakBuyQuote,
 } from '@metamask/ramps-controller';
-import { REDIRECTION_URL } from '../Deposit/constants';
-import { generateThemeParameters } from '../Deposit/utils';
-import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
-import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
+import { REDIRECTION_URL } from '../constants';
+import { generateThemeParameters } from '../utils/depositUtils';
+import type {
+  AddressFormData,
+  BasicInfoFormData,
+} from '../types/transakNativeForms';
 import { createCheckoutNavDetails } from '../Views/Checkout';
 import { createV2EnterEmailNavDetails } from '../Views/NativeFlow/EnterEmail';
 import { createKycWebviewNavDetails } from '../Views/NativeFlow/KycWebview';
@@ -37,6 +39,7 @@ import {
 import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
+import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -143,7 +146,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     },
     [baseRoute, baseRouteParams],
   );
-  const navigation = useNavigation<StackNavigationProp<RampStackParamList>>();
+  const navigation = useNavigation<NavigationProp<RampStackParamList>>();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
   const processingOrderIdRef = useRef<string | null>(null);
@@ -535,29 +538,40 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           // type returned by `getParent()`.
           navigation.getParent()?.pop();
 
-          trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-            ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
-            ramp_surface: rampSurface,
-            amount_source: Number(rampsOrder.fiatAmount),
-            amount_destination: Number(rampsOrder.cryptoAmount),
-            exchange_rate: Number(rampsOrder.exchangeRate),
-            gas_fee: rampsOrder.networkFees
-              ? Number(rampsOrder.networkFees)
-              : 0,
-            processing_fee: rampsOrder.partnerFees
-              ? Number(rampsOrder.partnerFees)
-              : 0,
-            total_fee: Number(rampsOrder.totalFeesFiat),
-            payment_method_id: rampsOrder.paymentMethod?.id || '',
-            country: regionIsoCode,
-            region: regionIsoCode,
-            chain_id: rampsOrder.network?.chainId || '',
-            currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
-            currency_destination_symbol:
-              rampsOrder.cryptoCurrency?.symbol || '',
-            currency_destination_network: rampsOrder.network?.name || '',
-            currency_source: rampsOrder.fiatCurrency?.symbol || '',
-          });
+          // TRAM-3691: a widget payment that came back terminal-failed must NOT
+          // report as confirmed/placed. Emit the terminal failure instead — the
+          // order is terminal so polling never observes it, and the headless
+          // context set above tags it HEADLESS.
+          if (
+            rampsOrder.status === RampsOrderStatus.Failed ||
+            rampsOrder.status === RampsOrderStatus.IdExpired
+          ) {
+            emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+          } else {
+            trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+              ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
+              ramp_surface: rampSurface,
+              amount_source: Number(rampsOrder.fiatAmount),
+              amount_destination: Number(rampsOrder.cryptoAmount),
+              exchange_rate: Number(rampsOrder.exchangeRate),
+              gas_fee: rampsOrder.networkFees
+                ? Number(rampsOrder.networkFees)
+                : 0,
+              processing_fee: rampsOrder.partnerFees
+                ? Number(rampsOrder.partnerFees)
+                : 0,
+              total_fee: Number(rampsOrder.totalFeesFiat),
+              payment_method_id: rampsOrder.paymentMethod?.id || '',
+              country: regionIsoCode,
+              region: regionIsoCode,
+              chain_id: rampsOrder.network?.chainId || '',
+              currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
+              currency_destination_symbol:
+                rampsOrder.cryptoCurrency?.symbol || '',
+              currency_destination_network: rampsOrder.network?.name || '',
+              currency_source: rampsOrder.fiatCurrency?.symbol || '',
+            });
+          }
         } catch (error) {
           processingOrderIdRef.current = null;
           Logger.error(error as Error, {

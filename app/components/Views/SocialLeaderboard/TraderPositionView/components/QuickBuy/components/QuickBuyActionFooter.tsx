@@ -1,24 +1,25 @@
-import React from 'react';
 import {
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Text,
-  TextVariant,
-  TextColor,
-  AvatarTokenSize,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import QuickBuyBanners from '../QuickBuyBanners';
+import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
+import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyActionFooter: React.FC = () => {
@@ -38,7 +39,6 @@ const QuickBuyActionFooter: React.FC = () => {
     sourceToken,
     sourceBalanceFiat,
     destBalanceFiat,
-    destToken,
     selectedDestStable,
     features,
     setActiveScreen,
@@ -49,7 +49,7 @@ const QuickBuyActionFooter: React.FC = () => {
     tradeMode === 'sell' ? destBalanceFiat : sourceBalanceFiat;
 
   return (
-    <Box twClassName="px-4 pb-4">
+    <Box twClassName="px-4">
       {/* Slider — reduced top padding to tighten gap with the amount section */}
       <Box twClassName="pt-2 pb-3">
         <QuickBuyPercentageSlider
@@ -59,6 +59,12 @@ const QuickBuyActionFooter: React.FC = () => {
           onDragEnd={handleSliderDragEnd}
         />
       </Box>
+
+      {features.quickAmountPills ? (
+        <Box twClassName="pb-3">
+          <QuickBuyQuickAmounts />
+        </Box>
+      ) : null}
 
       {/* Pay with / Receive with row */}
       <Box

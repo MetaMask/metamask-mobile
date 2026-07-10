@@ -1,30 +1,31 @@
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
-  BoxAlignItems,
   AvatarToken,
   AvatarTokenSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../../UI/Perps/utils/formatUtils';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
 import PerpBadges from '../../components/PerpBadges';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import { formatPercent } from '../../utils/formatters';
 import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface TraderTokenInfoRowProps {
@@ -87,7 +88,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            twClassName="shrink leading-none"
           >
             {symbol}
           </Text>
@@ -99,11 +100,13 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             />
           ) : null}
           {canCopyTokenAddress ? (
-            <Icon
-              name={IconName.Copy}
-              size={IconSize.Sm}
-              color={IconColor.PrimaryDefault}
-            />
+            <Box twClassName="translate-y-0.5">
+              <Icon
+                name={IconName.Copy}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Box>
           ) : null}
         </Box>
         {pricePercentChange != null ? (
@@ -116,7 +119,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             }
             numberOfLines={1}
           >
-            {`${pricePercentChange >= 0 ? '+' : ''}${pricePercentChange.toFixed(1)}% `}
+            {formatPercent(pricePercentChange)}{' '}
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}

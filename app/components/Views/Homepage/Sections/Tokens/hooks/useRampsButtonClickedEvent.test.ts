@@ -22,12 +22,6 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => mockUseRampsButtonClickData(),
 }));
 
-const mockUseRampsUnifiedV2Enabled = jest.fn();
-jest.mock('../../../../../UI/Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV2Enabled(),
-}));
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (...args: unknown[]) => unknown) =>
     selector({} as never),
@@ -48,10 +42,9 @@ describe('useRampsButtonClickedEvent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRampsButtonClickData.mockReturnValue(defaultButtonClickData);
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
   });
 
-  it('fires RAMPS_BUTTON_CLICKED with ramp_type BUY when unified V2 is off', () => {
+  it('fires RAMPS_BUTTON_CLICKED with ramp_type UNIFIED_BUY_2', () => {
     const { result } = renderHook(() => useRampsButtonClickedEvent());
 
     act(() => {
@@ -64,7 +57,7 @@ describe('useRampsButtonClickedEvent', () => {
     expect(mockAddProperties).toHaveBeenCalledWith({
       button_text: 'Buy',
       location: 'TokensSection',
-      ramp_type: 'BUY',
+      ramp_type: 'UNIFIED_BUY_2',
       region: 'US',
       is_authenticated: false,
       preferred_provider: undefined,
@@ -95,20 +88,6 @@ describe('useRampsButtonClickedEvent', () => {
 
     expect(mockAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({ asset_symbol: undefined }),
-    );
-  });
-
-  it('fires with ramp_type UNIFIED_BUY_2 when V2 is enabled', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-
-    const { result } = renderHook(() => useRampsButtonClickedEvent());
-
-    act(() => {
-      result.current.trackBuyButtonClicked();
-    });
-
-    expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({ ramp_type: 'UNIFIED_BUY_2' }),
     );
   });
 

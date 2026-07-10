@@ -67,7 +67,6 @@ export function useMoneyAccountDeposit() {
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
       const preferredPaymentToken = options?.preferredPaymentToken;
-      const intent: MoneyAccountDepositIntent = options?.intent ?? 'convert';
       if (!vaultConfig) {
         throw new Error(`${LOG_TAG} Missing vault config`);
       }
@@ -92,9 +91,15 @@ export function useMoneyAccountDeposit() {
       }
 
       const networkClientId = resolveNetworkClientId(chainIdHex);
+      const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
 
       const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
-      depositIntentByBatchId.set(batchId.toLowerCase(), intent);
+      // Only record an explicit funding intent (card / addMusd). Generic deposits
+      // (e.g. the home "Add" button) are left unset so the toast derives the
+      // intent from the transaction's actual payment method instead of a guess.
+      if (options?.intent) {
+        depositIntentByBatchId.set(batchId.toLowerCase(), options.intent);
+      }
 
       const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
         amount: BigInt(0),
@@ -108,7 +113,7 @@ export function useMoneyAccountDeposit() {
 
       // Navigate early for better UX; recover on failure below.
       navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
+        loader: ConfirmationLoader.AdvancedCustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
@@ -120,13 +125,14 @@ export function useMoneyAccountDeposit() {
         // so `from` must be the money account and `networkClientId` its chain.
         await addTransactionBatch({
           batchId,
-          from: primaryMoneyAccount.address as Hex,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          isInternal: true,
           disableHook: true,
           disableSequential: true,
-          transactions: [approveTx, depositTx],
+          disableUpgrade: true,
+          from: primaryMoneyAccount.address as Hex,
+          isGasFeeSponsored,
+          isInternal: true,
+          networkClientId,
+          origin: ORIGIN_METAMASK,
           requiredAssets: [
             {
               address: getMoneyAccountDepositAssetAddress(chainIdHex),
@@ -134,6 +140,8 @@ export function useMoneyAccountDeposit() {
               standard: 'erc20',
             },
           ],
+          skipInitialGasEstimate: isGasFeeSponsored,
+          transactions: [approveTx, depositTx],
         });
       } catch (error) {
         depositIntentByBatchId.delete(batchId.toLowerCase());
@@ -178,6 +186,7 @@ export function useMoneyAccountWithdrawal() {
     }
 
     const networkClientId = resolveNetworkClientId(chainIdHex);
+    const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
 
     // Placeholder amount — MM Pay re-encodes both calls via
     // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
@@ -193,19 +202,21 @@ export function useMoneyAccountWithdrawal() {
 
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     try {
       await addTransactionBatch({
-        from: primaryMoneyAccount.address as Hex,
-        networkClientId,
-        origin: ORIGIN_METAMASK,
-        isInternal: true,
         disableHook: true,
         disableSequential: true,
-        isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
+        disableUpgrade: true,
+        from: primaryMoneyAccount.address as Hex,
+        isGasFeeSponsored,
+        isInternal: true,
+        networkClientId,
+        origin: ORIGIN_METAMASK,
+        skipInitialGasEstimate: isGasFeeSponsored,
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {

@@ -14,7 +14,7 @@ import PerpsModifyActionSheet, {
   type ModifyAction,
 } from '../../components/PerpsModifyActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { type BottomSheetRef } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
@@ -45,6 +45,14 @@ const PerpsSelectModifyActionView: React.FC<
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
+
+  const handleClose = useCallback(() => {
+    if (externalSheetRef) {
+      onExternalClose?.();
+    } else {
+      navigation.goBack();
+    }
+  }, [navigation, externalSheetRef, onExternalClose]);
 
   const handleActionSelect = useCallback(
     (action: ModifyAction) => {
@@ -129,9 +137,7 @@ const PerpsSelectModifyActionView: React.FC<
       }
 
       // Close bottom sheet AFTER navigation is triggered
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
+      sheetRef.current?.onCloseBottomSheet(handleClose);
     },
     [
       position,
@@ -139,21 +145,11 @@ const PerpsSelectModifyActionView: React.FC<
       navigateToClosePosition,
       onReversePosition,
       sheetRef,
-      onExternalClose,
+      handleClose,
       trackEvent,
       createEventBuilder,
     ],
   );
-
-  const handleClose = useCallback(() => {
-    if (externalSheetRef) {
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
-    } else {
-      navigation.goBack();
-    }
-  }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
   return (
     <PerpsModifyActionSheet

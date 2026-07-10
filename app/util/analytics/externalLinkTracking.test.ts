@@ -36,7 +36,6 @@ describe('externalLinkTracking', () => {
       name: 'External Link Clicked',
       properties: mockProperties,
       sensitiveProperties: {},
-      saveDataRecording: false,
       isAnonymous: false,
       hasProperties: true,
     } as ITrackingEvent);

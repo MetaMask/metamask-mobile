@@ -4,6 +4,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
+  applyMoneyAccountOverride,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
   getRequiredBalance,
@@ -25,6 +26,7 @@ import { AssetType, TokenStandard } from '../types/token';
 import {
   TransactionPayRequiredToken,
   TransactionPaymentToken,
+  PaymentOverride,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import type {
@@ -32,6 +34,7 @@ import type {
   BlockedTokensConfig,
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/transaction-controller', () => ({
   updateAtomicBatchData: jest.fn(),
@@ -40,6 +43,18 @@ jest.mock('../../../../util/transaction-controller', () => ({
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      TransactionPayController: {
+        setTransactionConfig: jest.fn(),
+        updateFiatPayment: jest.fn(),
+      },
+    },
+  },
 }));
 
 const CHAIN_ID_MOCK = '0x1';
@@ -857,6 +872,70 @@ describe('Transaction Pay Utils', () => {
 
       expect(result).toBe(OVERRIDE);
       expect(result?.address).not.toBe(MUSD_TOKEN_ADDRESS);
+    });
+  });
+
+  describe('applyMoneyAccountOverride', () => {
+    const TRANSACTION_ID = 'tx-override-1';
+    const MONEY_ADDRESS = '0xabc1111111111111111111111111111111111111';
+
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+    const updateFiatPaymentMock = jest.mocked(
+      Engine.context.TransactionPayController.updateFiatPayment,
+    );
+
+    it('sets PaymentOverride.MoneyAccount with refundTo for deposit', () => {
+      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, false);
+
+      expect(setTransactionConfigMock).toHaveBeenCalledWith(
+        TRANSACTION_ID,
+        expect.any(Function),
+      );
+
+      const config: Record<string, unknown> = {};
+      setTransactionConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.refundTo).toBe(MONEY_ADDRESS);
+    });
+
+    it('sets PaymentOverride.MoneyAccount without refundTo for withdraw', () => {
+      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, true);
+
+      const config: Record<string, unknown> = {};
+      setTransactionConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('omits refundTo when moneyAccountAddress is undefined', () => {
+      applyMoneyAccountOverride(TRANSACTION_ID, undefined, false);
+
+      const config: Record<string, unknown> = {};
+      setTransactionConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.refundTo).toBeUndefined();
+    });
+
+    it('clears selectedPaymentMethodId via updateFiatPayment', () => {
+      applyMoneyAccountOverride(TRANSACTION_ID, MONEY_ADDRESS, false);
+
+      expect(updateFiatPaymentMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        callback: expect.any(Function),
+      });
+
+      const fp = { selectedPaymentMethodId: 'some-method' } as Record<
+        string,
+        unknown
+      >;
+      updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
+
+      expect(fp.selectedPaymentMethodId).toBeUndefined();
     });
   });
 });

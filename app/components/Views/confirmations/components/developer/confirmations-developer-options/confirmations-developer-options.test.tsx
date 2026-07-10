@@ -6,6 +6,7 @@ import React from 'react';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
 import { selectDefaultEndpointByChainId } from '../../../../../../selectors/networkController';
 import { addTransactionBatch } from '../../../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../../../util/transactions';
@@ -38,6 +39,13 @@ jest.mock('../../../../../../component-library/hooks', () => ({
 jest.mock('../../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../../selectors/accountsController'),
   selectSelectedInternalAccountAddress: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual(
+    '../../../../../../selectors/multichainAccounts/accounts',
+  ),
+  selectSelectedInternalAccountByScope: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/networkController', () => ({
@@ -88,6 +96,9 @@ describe('ConfirmationsDeveloperOptions', () => {
   const mockSelectSelectedInternalAccountAddress = jest.mocked(
     selectSelectedInternalAccountAddress,
   );
+  const mockSelectSelectedInternalAccountByScope = jest.mocked(
+    selectSelectedInternalAccountByScope,
+  );
   const mockSelectDefaultEndpointByChainId = jest.mocked(
     selectDefaultEndpointByChainId,
   );
@@ -114,6 +125,9 @@ describe('ConfirmationsDeveloperOptions', () => {
     } as never);
 
     mockSelectSelectedInternalAccountAddress.mockReturnValue(MOCK_ACCOUNT);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue((() => ({
+      address: MOCK_ACCOUNT,
+    })) as never);
     mockSelectDefaultEndpointByChainId.mockReturnValue({
       networkClientId: MOCK_NETWORK_CLIENT_ID,
     } as never);

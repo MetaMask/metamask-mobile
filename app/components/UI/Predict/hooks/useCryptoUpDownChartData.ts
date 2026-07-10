@@ -21,6 +21,33 @@ const MIN_LIVE_POINT_DELTA_SECS = 0.001;
 const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
 const CONNECTION_ERROR_TIMEOUT_MS = 12000;
 
+// Circuit breaker for the historical-candle poll. When the endpoint is
+// unreachable we don't want to keep hammering it every 10s indefinitely, so the
+// interval backs off as consecutive failures accumulate and eventually stops.
+// React Query resets `fetchFailureCount` to 0 on the first successful fetch,
+// which automatically restores the normal cadence once the endpoint recovers.
+const POLL_INTERVAL_MS = 10000;
+const POLL_BACKOFF_30S_MS = 30000;
+const POLL_BACKOFF_60S_MS = 60000;
+const POLL_BACKOFF_30S_THRESHOLD = 3; // 3rd consecutive failure -> 30s
+const POLL_BACKOFF_60S_THRESHOLD = 5; // 5th consecutive failure -> 60s
+const POLL_DISABLE_THRESHOLD = 7; // 7th consecutive failure -> stop polling
+
+export const getHistoricalPollInterval = (
+  fetchFailureCount: number,
+): number | false => {
+  if (fetchFailureCount >= POLL_DISABLE_THRESHOLD) {
+    return false;
+  }
+  if (fetchFailureCount >= POLL_BACKOFF_60S_THRESHOLD) {
+    return POLL_BACKOFF_60S_MS;
+  }
+  if (fetchFailureCount >= POLL_BACKOFF_30S_THRESHOLD) {
+    return POLL_BACKOFF_30S_MS;
+  }
+  return POLL_INTERVAL_MS;
+};
+
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
   liveData: LivelinePoint[],
@@ -270,6 +297,13 @@ export const useCryptoUpDownChartData = (
   const wsSymbol =
     enabled && shouldStreamLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
+  // The live-data WebSocket streams real-time ticks while healthy, so the HTTP
+  // query only needs its initial historical baseline in that case. Interval
+  // polling is gated on `liveStreamStale` (see `refetchInterval` below) rather
+  // than this hook's `isConnected` flag: `isConnected` latches true on the first
+  // tick and never flips back on a silent RTDS drop, whereas `liveStreamStale`
+  // flips back to true when ticks stop arriving — correctly resuming HTTP
+  // polling as a fallback.
   useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
 
   const historyStartDate =
@@ -278,6 +312,23 @@ export const useCryptoUpDownChartData = (
   const historyEndDate = options.historicalWindow
     ? options.historicalWindow.endDate
     : liveHistoryEndDate;
+
+  // Counts consecutive failed historical-poll cycles. React Query's
+  // `fetchFailureCount` only counts retries *within a single fetch* and resets
+  // to 0 at the start of every fetch, so it cannot drive a backoff across
+  // separate interval polls. We track the count ourselves: increment on each
+  // settled error and reset on the next successful fetch (and on market change).
+  const consecutivePollFailuresRef = useRef(0);
+
+  // A fresh live stream is a recovery signal: reset the polling circuit breaker
+  // so that if the socket later drops (stream goes stale again), HTTP polling
+  // resumes from the base cadence instead of staying latched at the disabled
+  // threshold.
+  useEffect(() => {
+    if (!liveStreamStale) {
+      consecutivePollFailuresRef.current = 0;
+    }
+  }, [liveStreamStale]);
 
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
@@ -290,7 +341,23 @@ export const useCryptoUpDownChartData = (
     keepPreviousData: true,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
-    refetchInterval: shouldStreamLive ? 10000 : false,
+    onError: () => {
+      consecutivePollFailuresRef.current += 1;
+    },
+    onSuccess: () => {
+      consecutivePollFailuresRef.current = 0;
+    },
+    // Only poll while streaming live AND the live stream is not currently
+    // delivering fresh ticks (`liveStreamStale`). `refetchOnMount` still seeds
+    // the historical baseline once; while the socket streams real-time ticks the
+    // interval poll is redundant, but it resumes automatically if ticks stop.
+    // When polling is active, the interval backs off (and ultimately stops) as
+    // consecutive failures accumulate so an unreachable endpoint is not hit
+    // every 10s indefinitely.
+    refetchInterval: () =>
+      shouldStreamLive && liveStreamStale
+        ? getHistoricalPollInterval(consecutivePollFailuresRef.current)
+        : false,
   });
 
   const historicalData = historicalQuery.data ?? EMPTY_DATA;
@@ -395,6 +462,7 @@ export const useCryptoUpDownChartData = (
       connectionErrorTimerRef.current = undefined;
     }
     setConnectionError(false);
+    consecutivePollFailuresRef.current = 0;
   }, [market.id]);
 
   const isAwaitingLiveData =

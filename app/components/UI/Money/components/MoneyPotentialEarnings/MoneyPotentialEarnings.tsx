@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -18,7 +17,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
@@ -30,18 +28,15 @@ const VISIBLE_TOKENS_COUNT = 5;
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
   /**
-   * APY expressed as a percentage (e.g. 3 for 3%) used together with the
+   * APY expressed as a decimal (e.g. 0.03 for 3%) used together with the
    * shared projection horizon to compute the projected earnings displayed
    * alongside each token and in the description.
    */
-  apy: number | undefined;
+  apyDecimal: number | undefined;
   /**
    * Returns true when the given token qualifies for a subsidised (no-fee)
-   * deposit into the Money account (target: Monad mUSD). Used to render the
-   * "No fee" badge on each token row. Sourced from the
-   * `confirmations_relay_fixed_spread` remote feature flag via
-   * useMoneyEarnableTokens — only tokens with a directional route to Monad
-   * mUSD are tagged.
+   * deposit into the Money account. Used to render the "No fee" badge on
+   * each token row.
    */
   isNoFeeToken?: (token: AssetType) => boolean;
   onTokenCardPress?: (
@@ -65,7 +60,7 @@ interface MoneyPotentialEarningsProps {
 
 const MoneyPotentialEarnings = ({
   tokens,
-  apy,
+  apyDecimal = 0,
   isNoFeeToken = () => false,
   onTokenCardPress,
   onTokenButtonPress,
@@ -73,15 +68,12 @@ const MoneyPotentialEarnings = ({
   onHeaderPress,
   onInfoPress,
 }: MoneyPotentialEarningsProps) => {
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const apyPercent = apy ?? 0;
-
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
   // the visible five would contradict that affordance.
-  const { eligibleTokens, totalAssetsFiat, projectedAmount } =
-    useProjectedEarnings(tokens, apyPercent);
+  const { eligibleTokens, totalAssetsFiat, projectedAmount, currency } =
+    useProjectedEarnings(tokens, apyDecimal);
   const visibleTokens = useMemo(
     () => eligibleTokens.slice(0, VISIBLE_TOKENS_COUNT),
     [eligibleTokens],
@@ -106,6 +98,21 @@ const MoneyPotentialEarnings = ({
     return null;
   }
 
+  const infoIcon = onInfoPress ? (
+    <>
+      {' '}
+      <Text twClassName="align-middle">
+        <Icon
+          testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+          onPress={onInfoPress}
+        />
+      </Text>
+    </>
+  ) : null;
+
   return (
     <Box testID={MoneyPotentialEarningsTestIds.CONTAINER}>
       <Box twClassName="px-4 py-3 gap-3">
@@ -127,7 +134,7 @@ const MoneyPotentialEarnings = ({
               {
                 total: moneyFormatFiat(
                   new BigNumber(totalAssetsFiat),
-                  currentCurrency,
+                  currency,
                 ),
               },
             )} `}
@@ -136,24 +143,12 @@ const MoneyPotentialEarnings = ({
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
             >
-              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
             </Text>
             {` ${strings(
               'money.potential_earnings.description_with_amounts_suffix',
             )}`}
-            {onInfoPress && (
-              <>
-                {' '}
-                <Icon
-                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  style={{ transform: [{ translateY: 3 }] }}
-                  onPress={onInfoPress}
-                />
-              </>
-            )}
+            {infoIcon}
           </Text>
         ) : (
           <Text
@@ -162,19 +157,7 @@ const MoneyPotentialEarnings = ({
             color={TextColor.TextAlternative}
           >
             {strings('money.potential_earnings.description')}
-            {onInfoPress && (
-              <>
-                {' '}
-                <Icon
-                  testID={MoneyPotentialEarningsTestIds.INFO_BUTTON}
-                  onPress={onInfoPress}
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                  style={{ transform: [{ translateY: 3 }] }}
-                />
-              </>
-            )}
+            {infoIcon}
           </Text>
         )}
       </Box>
@@ -185,7 +168,7 @@ const MoneyPotentialEarnings = ({
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
-            apyPercent={apyPercent}
+            apyDecimal={apyDecimal}
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
           />

@@ -31,12 +31,14 @@ import Logger from '../../../../../../util/Logger';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
+import { toAssetId } from '../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import {
   isSameAsset,
   selectDefaultSourceToken,
 } from '../../../utils/tokenSelection';
+import { useDestTokenExchangeRate } from './hooks/useDestTokenExchangeRate';
 import { usePayWithTokens } from './hooks/usePayWithTokens';
 import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
 import { useQuickBuyController } from './hooks/useQuickBuyController';
@@ -73,8 +75,23 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockTrackAmountSelected = jest.fn();
+const mockGoToBuy = jest.fn().mockResolvedValue(undefined);
 const mockTrackTradeSubmitted = jest.fn();
 const mockTrackTradeCompleted = jest.fn();
+const mockTrackQuoteSelected = jest.fn();
+const mockTrackPayWithSelected = jest.fn();
+const mockTrackReceiveTokenSelected = jest.fn();
+const mockTrackSlippageChanged = jest.fn();
+
+jest.mock('../../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
+  toAssetId: jest.fn(
+    () => 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+  ),
+}));
+
+jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
+}));
 
 jest.mock('./hooks/useQuickBuyAnalytics', () => ({
   useQuickBuyAnalytics: () => ({
@@ -87,6 +104,10 @@ jest.mock('./hooks/useQuickBuyAnalytics', () => ({
     },
     trackAmountSelected: mockTrackAmountSelected,
     trackTradeModeToggled: jest.fn(),
+    trackQuoteSelected: mockTrackQuoteSelected,
+    trackPayWithSelected: mockTrackPayWithSelected,
+    trackReceiveTokenSelected: mockTrackReceiveTokenSelected,
+    trackSlippageChanged: mockTrackSlippageChanged,
     trackTradeSubmitted: mockTrackTradeSubmitted,
     trackTradeCompleted: mockTrackTradeCompleted,
     markTradeSubmitted: jest.fn(),
@@ -107,6 +128,10 @@ jest.mock('./hooks/useReceiveTokens', () => ({
 
 jest.mock('./hooks/usePositionTokenBalance', () => ({
   usePositionTokenBalance: jest.fn().mockReturnValue(undefined),
+}));
+
+jest.mock('./hooks/useDestTokenExchangeRate', () => ({
+  useDestTokenExchangeRate: jest.fn().mockReturnValue(undefined),
 }));
 
 jest.mock('./hooks/useQuickBuyQuotes', () => ({
@@ -400,6 +425,7 @@ const setupDefaultMocks = () => {
 
   (useReceiveTokens as jest.Mock).mockReturnValue([]);
   (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+  (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
   (usePayWithTokens as jest.Mock).mockReturnValue({
     options: [createSourceToken()],
     isLoading: false,
@@ -438,6 +464,10 @@ const setupDefaultMocks = () => {
   (buildQuickBuyToastOptions as jest.Mock).mockImplementation(
     (kind: string) => ({ kind }),
   );
+  (toAssetId as jest.Mock).mockReturnValue(
+    'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+  );
+  mockGoToBuy.mockResolvedValue(undefined);
 };
 
 describe('useQuickBuyController', () => {
@@ -554,6 +584,7 @@ describe('useQuickBuyController', () => {
       const { result } = renderHook(() =>
         useQuickBuyController(createTarget(), jest.fn()),
       );
+      mockTrackAmountSelected.mockClear();
 
       act(() => {
         result.current.handleSliderChange(48);
@@ -563,6 +594,26 @@ describe('useQuickBuyController', () => {
 
       expect(result.current.sliderPercent).toBe(51);
       expect(mockTrackAmountSelected).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('sheet open defaults', () => {
+    it('defaults the slider to 50% when spendable balance is available', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.sliderPercent).toBe(50);
+      expect(Number(result.current.fiatAmount)).toBe(50);
     });
   });
 
@@ -580,6 +631,7 @@ describe('useQuickBuyController', () => {
       const { result } = renderHook(() =>
         useQuickBuyController(createTarget(), jest.fn()),
       );
+      mockTrackAmountSelected.mockClear();
 
       act(() => {
         result.current.handleSliderChange(48);
@@ -592,6 +644,13 @@ describe('useQuickBuyController', () => {
 
       expect(result.current.sliderPercent).toBe(51);
       expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+      expect(mockTrackAmountSelected).toHaveBeenCalledWith(
+        expect.any(Number),
+        'slider',
+        expect.any(String),
+        51,
+        undefined,
+      );
     });
 
     it('deduplicates identical commit values (Tap + Pan double-fire guard)', () => {
@@ -617,6 +676,138 @@ describe('useQuickBuyController', () => {
     });
   });
 
+  describe('handleQuickAmountPress', () => {
+    it('commits the fiat amount, syncs the slider, and tracks PRESET analytics', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '10',
+        atomicBalance: '10000000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 200 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(50, 50);
+      });
+
+      expect(result.current.fiatAmount).toBe('50.00');
+      expect(result.current.sliderPercent).toBe(3);
+      expect(mockTrackAmountSelected).toHaveBeenCalledWith(
+        expect.any(Number),
+        'preset',
+        expect.any(String),
+        undefined,
+        undefined,
+        50,
+      );
+    });
+
+    it('enables Add Funds when a pill exceeds the available balance', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(250, 250);
+      });
+
+      expect(result.current.fiatAmount).toBe('250.00');
+      expect(result.current.sliderPercent).toBe(100);
+      expect(result.current.getButtonLabel()).toBe(
+        'social_leaderboard.quick_buy.add_funds',
+      );
+      expect(result.current.isConfirmDisabled).toBe(false);
+    });
+
+    it('routes to Ramp buy when Add Funds is confirmed', async () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+      const onClose = jest.fn();
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), onClose),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(250, 250);
+      });
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockGoToBuy).toHaveBeenCalledWith(
+        expect.objectContaining({ assetId: expect.any(String) }),
+        { buyFlowOrigin: 'tokenInfo' },
+      );
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('does not close the sheet when pay-with asset id cannot be resolved', async () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '0.1',
+        atomicBalance: '100000000000000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 2000 });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+      const onClose = jest.fn();
+      (toAssetId as jest.Mock).mockImplementation((address: string) =>
+        address === sourceWithRate.address
+          ? undefined
+          : 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+      );
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), onClose),
+      );
+
+      act(() => {
+        result.current.handleQuickAmountPress(250, 250);
+      });
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockGoToBuy).not.toHaveBeenCalled();
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('exposes usdToCurrentCurrencyRate from native currency rates', () => {
+      (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+        ETH: { conversionRate: 1000, usdConversionRate: 1200 },
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      expect(result.current.usdToCurrentCurrencyRate).toBeCloseTo(1000 / 1200);
+    });
+  });
+
   describe('user-currency (non-USD)', () => {
     it('formats the headline in the user currency while emitting amount_usd in USD', () => {
       // EUR display currency; native ETH worth €1,000 / $1,200 → USD = EUR * 1.2.
@@ -636,6 +827,7 @@ describe('useQuickBuyController', () => {
       const { result } = renderHook(() =>
         useQuickBuyController(createTarget(), jest.fn()),
       );
+      mockTrackAmountSelected.mockClear();
 
       act(() => {
         result.current.handleAmountChange('20');
@@ -808,6 +1000,31 @@ describe('useQuickBuyController', () => {
       expect(result.current.selectedSourceToken).toEqual(usdt);
       expect(result.current.fiatAmount).toBe('');
       expect(result.current.sliderPercent).toBe(0);
+    });
+
+    it('tracks pay_with_selected when the user picks a different token', () => {
+      const usdc = createSourceToken({
+        symbol: 'USDC',
+        currencyExchangeRate: 1,
+      });
+      const usdt = createSourceToken({
+        symbol: 'USDT',
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        currencyExchangeRate: 1,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [usdc, usdt],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSelectSourceToken(usdt);
+      });
+
+      expect(mockTrackPayWithSelected).toHaveBeenCalledWith('USDT', 'USDC');
     });
   });
 
@@ -1503,6 +1720,97 @@ describe('useQuickBuyController', () => {
 
       expect(result.current.formattedExchangeRate).toMatch(/^1 SOL = /);
       expect(result.current.formattedExchangeRate).not.toMatch(/^1 GIGA = /);
+    });
+
+    it('shows the pre-quote rate from the balance-independent lookup when the user holds no balance of the buy token', () => {
+      const solToken = createSourceToken({
+        symbol: 'SOL',
+        currencyExchangeRate: 150,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [solToken],
+        isLoading: false,
+      });
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: '0xDEST',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'GIGA',
+          name: 'Gigachad',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      // User holds no balance of GIGA, so the position-token rate is undefined…
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+      // …but the display-only lookup still resolves a price for it.
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(0.006375);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget({ tokenSymbol: 'GIGA' }), jest.fn()),
+      );
+
+      expect(result.current.formattedExchangeRate).toMatch(/^1 SOL = /);
+    });
+
+    it('shows the pre-quote rate from the host-supplied token price when the user holds no balance and no market data exists', () => {
+      const solToken = createSourceToken({
+        symbol: 'SOL',
+        currencyExchangeRate: 150,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [solToken],
+        isLoading: false,
+      });
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: '0x1',
+        destToken: {
+          address: '0xDEST',
+          chainId: '0x1',
+          decimals: 18,
+          symbol: 'GIGA',
+          name: 'Gigachad',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      // No balance and no cached market-data rate…
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
+
+      // …but the host passes the chart price for the buy token.
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({ tokenSymbol: 'GIGA' }),
+          jest.fn(),
+          {
+            tokenPriceFiat: 0.95625,
+          },
+        ),
+      );
+
+      expect(result.current.formattedExchangeRate).toMatch(/^1 SOL = /);
+    });
+
+    it('does not render a pre-quote rate when neither the lookup nor the held balance resolves a price', () => {
+      const solToken = createSourceToken({
+        symbol: 'SOL',
+        currencyExchangeRate: 150,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [solToken],
+        isLoading: false,
+      });
+      (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
+      (useDestTokenExchangeRate as jest.Mock).mockReturnValue(undefined);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget({ tokenSymbol: 'GIGA' }), jest.fn()),
+      );
+
+      expect(result.current.formattedExchangeRate).toBeUndefined();
     });
   });
 
@@ -2663,6 +2971,170 @@ describe('useQuickBuyController', () => {
       rerender(props);
 
       expect(result.current.selectedQuoteRequestId).toBeUndefined();
+    });
+
+    it('tracks quote_selected with index when user selects a quote', () => {
+      const sortedQuotes = [
+        quoteWithRequestId('quote-a'),
+        quoteWithRequestId('quote-b'),
+      ];
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSelectQuote('quote-b');
+      });
+
+      expect(mockTrackQuoteSelected).toHaveBeenCalledWith(1, 2);
+      expect(result.current.selectedQuoteRequestId).toBe('quote-b');
+    });
+
+    it('drops a manual selection when the next refresh returns a new quote batch', () => {
+      let sortedQuotes = [
+        quoteWithRequestId('quote-a'),
+        quoteWithRequestId('quote-b'),
+      ];
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      }));
+
+      const props = { target: createTarget(), onClose: jest.fn() };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      // Lock onto a genuinely different provider (index 1).
+      act(() => {
+        result.current.handleSelectQuote('quote-b');
+      });
+      expect(result.current.selectedQuoteRequestId).toBe('quote-b');
+
+      // Auto-refresh is never paused, so the next batch (new requestIds) drops
+      // the selection and the active quote falls back to the recommended.
+      sortedQuotes = [
+        quoteWithRequestId('quote-c'),
+        quoteWithRequestId('quote-d'),
+      ];
+      rerender(props);
+      expect(result.current.selectedQuoteRequestId).toBeUndefined();
+    });
+
+    it('never asks the quotes hook to pause auto-refresh', () => {
+      const sortedQuotes = [quoteWithRequestId('quote-a')];
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.setSelectedQuoteRequestId('quote-a');
+      });
+
+      // Selecting a quote must not pass a `pauseAutoRefresh` flag — refresh
+      // always runs (streams terminate on their own via the server `complete`).
+      const lastCall = (useQuickBuyQuotes as jest.Mock).mock.calls.at(-1)?.[0];
+      expect(lastCall).not.toHaveProperty('pauseAutoRefresh');
+    });
+  });
+
+  describe('quick buy interacted analytics', () => {
+    it('does not track slippage_changed on initial mount', () => {
+      renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
+      expect(mockTrackSlippageChanged).not.toHaveBeenCalled();
+    });
+
+    it('tracks slippage_changed when slippage updates after mount', () => {
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      (selectSlippage as unknown as jest.Mock).mockReturnValue('2');
+      rerender(props);
+
+      expect(mockTrackSlippageChanged).toHaveBeenCalledWith('2', '0.5');
+    });
+
+    it('tracks receive_token_selected when the user picks a receive token', () => {
+      const usdc = createSourceToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        currencyExchangeRate: 1,
+      });
+      const eth = createSourceToken({
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        currencyExchangeRate: 2000,
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdc, eth]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      const previousSymbol = result.current.selectedDestStable?.symbol;
+      const nextToken = previousSymbol === 'USDC' ? eth : usdc;
+
+      act(() => {
+        result.current.handleSelectDestStable(nextToken);
+      });
+
+      expect(mockTrackReceiveTokenSelected).toHaveBeenCalledWith(
+        nextToken.symbol,
+        previousSymbol ?? '',
+      );
     });
   });
 

@@ -281,6 +281,41 @@ describe('ContactForm', () => {
     });
   });
 
+  it('shows Custom when editing a contact whose network was deleted', async () => {
+    const stateWithDeletedContactNetwork = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AddressBookController: {
+            addressBook: {
+              '0x2a': {
+                [MOCK_ADDRESS]: {
+                  address: MOCK_ADDRESS,
+                  name: 'Deleted Network Contact',
+                  chainId: '0x2a',
+                  memo: 'Saved on a deleted network',
+                  isEns: false,
+                },
+              },
+            },
+          },
+        } as EngineState,
+      },
+      user: initialState.user,
+    };
+
+    const { findByText } = renderContactForm(
+      {
+        mode: 'edit',
+        address: MOCK_ADDRESS,
+      },
+      stateWithDeletedContactNetwork,
+    );
+
+    expect(await findByText(strings('address_book.custom'))).toBeOnTheScreen();
+  });
+
   it('handles ENS names correctly', async () => {
     const validateAddressOrENSMock = jest.requireMock(
       '../../../../../util/address',

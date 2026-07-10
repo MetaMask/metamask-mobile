@@ -151,6 +151,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.AGENTIC_CLI,
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
+  SUPPORTED_ACTIONS.ASSET,
 ];
 
 const interstitialWhitelistUrls = [] as const;
@@ -761,7 +762,8 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.WHATS_HAPPENING: {
-      handleWhatsHappeningUrl();
+      const { params: whatsHappeningParams } = extractURLParams(urlObj.href);
+      handleWhatsHappeningUrl({ id: whatsHappeningParams?.id });
       break;
     }
     case SUPPORTED_ACTIONS.TOP_TRADERS: {

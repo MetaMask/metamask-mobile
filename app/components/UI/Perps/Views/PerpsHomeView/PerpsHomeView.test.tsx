@@ -6,6 +6,8 @@ import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
+  selectPerpsRecentlyAddedEnabledFlag,
+  selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
@@ -119,6 +121,19 @@ jest.mock('../../hooks', () => ({
 jest.mock('../../hooks/usePerpsCategories', () => ({
   usePerpsCategories: jest.fn(() => []),
 }));
+
+jest.mock('../../hooks/usePerpsTopMovers', () => ({
+  usePerpsTopMovers: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+  })),
+  isPerpsTopMoversSectionVisible: jest.requireActual(
+    '../../hooks/usePerpsTopMovers',
+  ).isPerpsTopMoversSectionVisible,
+}));
+
+const mockUsePerpsTopMovers = jest.requireMock('../../hooks/usePerpsTopMovers')
+  .usePerpsTopMovers as jest.Mock;
 
 // Mock direct import of usePerpsHomeActions (component imports it directly now)
 jest.mock('../../hooks/usePerpsHomeActions', () => ({
@@ -473,6 +488,7 @@ describe('PerpsHomeView', () => {
     stocksMarkets: [],
     commoditiesMarkets: [],
     forexMarkets: [],
+    recentlyAddedMarkets: [],
     hasMarkets: false,
     recentActivity: [],
     sortBy: 'name',
@@ -491,6 +507,10 @@ describe('PerpsHomeView', () => {
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsTopMovers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         totalBalance: '0',
@@ -500,6 +520,11 @@ describe('PerpsHomeView', () => {
         returnOnEquity: '0',
       },
       isInitialLoading: false,
+    });
+    (useDiscoveryScrollManager as jest.Mock).mockReturnValue({
+      scrollHandler: mockPerpsScrollHandler,
+      onTabEnter: mockPerpsOnTabEnter,
+      headerHidden: false,
     });
   });
 
@@ -772,10 +797,13 @@ describe('PerpsHomeView', () => {
   });
 
   it('renders main sections', () => {
-    // Arrange & Act
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      isLoading: { ...mockDefaultData.isLoading, activity: true },
+    });
+
     const { UNSAFE_getByType } = render(<PerpsHomeView />);
 
-    // Assert
     expect(UNSAFE_getByType('PerpsMarketBalanceActions' as never)).toBeTruthy();
     expect(UNSAFE_getByType('PerpsRecentActivityList' as never)).toBeTruthy();
   });
@@ -805,18 +833,76 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
-  it('renders watchlist component with empty markets array', () => {
-    // Arrange
+  it('does not render watchlist when markets and suggestions are empty', () => {
     mockUsePerpsHomeData.mockReturnValue({
       ...mockDefaultData,
       watchlistMarkets: [],
+      suggestedWatchlistMarkets: [],
     });
 
-    // Act
+    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+  });
+
+  it('does not render watchlist when only suggested markets exist and redesign flag is off', () => {
+    mockUseSelector.mockReturnValue(false);
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      watchlistMarkets: [],
+      suggestedWatchlistMarkets: [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$50000',
+          change24h: '+$1250',
+          change24hPercent: '+2.5%',
+          volume: '$1.2B',
+          volumeNumber: 1200000000,
+          maxLeverage: '50',
+        },
+      ],
+    });
+
+    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+  });
+
+  it('renders watchlist when only suggested markets exist and redesign flag is on', () => {
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsWatchlistEnabledFlag,
+    );
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      watchlistMarkets: [],
+      suggestedWatchlistMarkets: [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$50000',
+          change24h: '+$1250',
+          change24hPercent: '+2.5%',
+          volume: '$1.2B',
+          volumeNumber: 1200000000,
+          maxLeverage: '50',
+        },
+      ],
+    });
+
     const { UNSAFE_getByType } = render(<PerpsHomeView />);
 
-    // Assert - Component is rendered, it handles empty state internally
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+  });
+
+  it('passes enabled: false to usePerpsTopMovers when top movers flag is off', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    render(<PerpsHomeView />);
+
+    expect(mockUsePerpsTopMovers).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 
   describe('Feedback Feature', () => {
@@ -979,7 +1065,7 @@ describe('PerpsHomeView', () => {
         (() => void) | null
       >;
       const newOnTabEnter = jest.fn();
-      (useDiscoveryScrollManager as jest.Mock).mockReturnValueOnce({
+      (useDiscoveryScrollManager as jest.Mock).mockReturnValue({
         scrollHandler: mockPerpsScrollHandler,
         onTabEnter: newOnTabEnter,
         headerHidden: false,
@@ -1202,10 +1288,48 @@ describe('PerpsHomeView', () => {
       expect(properties?.sections_displayed).not.toContain('products');
     });
 
-    it('includes top_movers when enabled and markets exist', () => {
+    it('includes top_movers when enabled and top movers feed has data', () => {
       mockUseSelector.mockImplementation(
         (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
       );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [{ symbol: 'BTC' }],
+        isLoading: false,
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('top_movers');
+    });
+
+    it('includes top_movers when enabled and top movers feed is loading', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: true,
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('top_movers');
+    });
+
+    it('excludes top_movers when enabled but top movers feed is empty and loaded', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: false,
+      });
       mockUsePerpsHomeData.mockReturnValue({
         ...mockDefaultData,
         hasMarkets: true,
@@ -1217,36 +1341,17 @@ describe('PerpsHomeView', () => {
       const properties = getBaseEventProperties(
         mockUsePerpsEventTracking.mock.calls,
       );
-      expect(properties?.sections_displayed).toContain('top_movers');
+      expect(properties?.sections_displayed).not.toContain('top_movers');
     });
 
-    it('includes top_movers when enabled and only HIP-3 markets exist (explore slices empty)', () => {
+    it('excludes top_movers when enabled but top movers feed is empty', () => {
       mockUseSelector.mockImplementation(
         (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
       );
-      // Simulate: all four home explore slices are empty, but a HIP-3 market
-      // (e.g. an unclassified type) appears in the full market set.
-      mockUsePerpsHomeData.mockReturnValue({
-        ...mockDefaultData,
-        hasMarkets: true,
-        perpsMarkets: [],
-        commoditiesMarkets: [],
-        stocksMarkets: [],
-        forexMarkets: [],
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: false,
       });
-
-      render(<PerpsHomeView />);
-
-      const properties = getBaseEventProperties(
-        mockUsePerpsEventTracking.mock.calls,
-      );
-      expect(properties?.sections_displayed).toContain('top_movers');
-    });
-
-    it('excludes top_movers when enabled but no markets exist', () => {
-      mockUseSelector.mockImplementation(
-        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
-      );
       mockUsePerpsHomeData.mockReturnValue({ ...mockDefaultData });
 
       render(<PerpsHomeView />);
@@ -1255,6 +1360,81 @@ describe('PerpsHomeView', () => {
         mockUsePerpsEventTracking.mock.calls,
       );
       expect(properties?.sections_displayed).not.toContain('top_movers');
+    });
+
+    it('excludes recently_added when the feature flag is off even though data is present', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('recently_added');
+    });
+
+    it('includes recently_added when the feature flag is on and data is present', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('recently_added');
+    });
+  });
+
+  describe('Recently Added header navigation', () => {
+    it('navigates to the market list filtered to new markets when the header is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(
+        getByTestId(PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER),
+      );
+
+      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+        defaultMarketTypeFilter: 'new',
+        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
     });
   });
 });
