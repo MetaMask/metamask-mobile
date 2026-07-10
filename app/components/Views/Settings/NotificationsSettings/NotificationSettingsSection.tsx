@@ -46,8 +46,10 @@ const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
   {
     walletActivity: 'wallet_activity',
     perps: 'perps',
+    agenticCli: 'agentic_cli',
     socialAI: 'social_ai',
     marketing: 'marketing',
+    priceAlerts: 'price_alerts',
   };
 
 const CHANNEL_BY_KEY: Record<
