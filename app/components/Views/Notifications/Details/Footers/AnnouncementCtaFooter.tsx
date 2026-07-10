@@ -18,12 +18,12 @@ export default function AnnouncementCtaFooter(
   const { styles } = useStyles();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const callEvent = (clickedItem: 'external_link' | 'internal_link') => {
+  const callEvent = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
         .addProperties({
           ...notificationAnalyticsProperties(props.notification),
-          clicked_item: clickedItem,
+          clicked_item: 'cta_button',
         })
         .build(),
     );
@@ -34,7 +34,6 @@ export default function AnnouncementCtaFooter(
       const { externalLinkUrl, externalLinkText } = props.externalLink;
       return {
         label: externalLinkText,
-        clickedItem: 'external_link' as const,
         onPress: () =>
           Linking.openURL(externalLinkUrl).catch((error) =>
             Logger.error(error as Error, 'Error opening external URL'),
@@ -46,7 +45,6 @@ export default function AnnouncementCtaFooter(
       const { mobileLinkUrl, mobileLinkText } = props.mobileLink;
       return {
         label: mobileLinkText,
-        clickedItem: 'internal_link' as const,
         onPress: () =>
           SharedDeeplinkManager.parse(mobileLinkUrl, {
             origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
@@ -69,7 +67,7 @@ export default function AnnouncementCtaFooter(
       isFullWidth
       style={styles.ctaBtn}
       onPress={() => {
-        callEvent(linkConfig.clickedItem);
+        callEvent();
         linkConfig.onPress();
       }}
     >

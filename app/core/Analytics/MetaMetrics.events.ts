@@ -569,10 +569,10 @@ enum EVENT_NAME {
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
-  NOTIFICATIONS_MENU_OPENED = 'Notifications Menu Opened',
-  NOTIFICATION_CLICKED = 'Notification Clicked',
-  NOTIFICATIONS_MARKED_ALL_AS_READ = 'Notifications Marked All as Read',
-  NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
+  NOTIFICATIONS_MENU_OPENED = 'InApp Notifications Menu Opened',
+  NOTIFICATION_CLICKED = 'InApp Notification Clicked',
+  NOTIFICATIONS_MARKED_ALL_AS_READ = 'InApp Notifications Marked All as Read',
+  NOTIFICATION_DETAIL_CLICKED = 'InApp Notification Detail Clicked',
 
   // Push Notifications
   PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
