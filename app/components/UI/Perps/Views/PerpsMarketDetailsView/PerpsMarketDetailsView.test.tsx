@@ -1606,7 +1606,7 @@ describe('PerpsMarketDetailsView', () => {
       );
     });
 
-    it('passes YearToDate pagination to advanced chart and uses its latest price for the header', async () => {
+    it('passes YearToDate pagination to advanced chart and shows live price in the header', async () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
         '../../selectors/perpsController',
@@ -1637,6 +1637,16 @@ describe('PerpsMarketDetailsView', () => {
       expect(advancedChart.props.paginationDuration).toBe(
         TimeDuration.YearToDate,
       );
+
+      // Update both the live price subscription and advanced chart price to 47000.
+      // LivePriceHeader now uses the live subscription as its primary price source
+      // (falling back to the currentPrice prop only before the first subscription delivery).
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          markPrice: '47000',
+          price: '47000',
+        },
+      });
 
       act(() => {
         advancedChart.props.onLatestPriceChange(47000);
