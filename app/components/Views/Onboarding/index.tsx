@@ -150,6 +150,14 @@ interface OnboardingRouteParams {
   showErrorReportSentToast?: boolean;
 }
 
+const styles = StyleSheet.create({
+  androidNotificationOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+    elevation: 999,
+  },
+});
+
 const Onboarding = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const onboardingVersion = useMemo(
@@ -1094,23 +1102,42 @@ const Onboarding = () => {
             description: strings('onboarding.your_wallet'),
           };
 
+      const notificationContent = (
+        <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+          <BaseNotification
+            isVisible={onboardingNotificationVisible}
+            dismissDuration={4000}
+            onDismissComplete={() => setOnboardingNotificationVisible(false)}
+            status="success"
+            data={notificationData}
+          />
+        </View>
+      );
+
+      if (Platform.OS === 'ios') {
+        return (
+          <FullWindowOverlay>
+            {/*
+              iOS: portal to a UIWindow so top-anchored animation is not
+              affected by onboarding layout siblings lower in the tree.
+            */}
+            {notificationContent}
+          </FullWindowOverlay>
+        );
+      }
+
       return (
-        <FullWindowOverlay>
+        <View
+          pointerEvents="box-none"
+          style={styles.androidNotificationOverlay}
+        >
           {/*
-            Portal the toast to a UIWindow so BaseNotification's top-anchored
-            animation is not affected by onboarding layout siblings (fox
-            animation, fast onboarding sheet) lower in the tree.
+            Android: FullWindowOverlay stays in the normal view hierarchy, so
+            keep the toast as the last SafeAreaView child with absolute fill
+            and elevation to render above the ScrollView.
           */}
-          <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
-            <BaseNotification
-              isVisible={onboardingNotificationVisible}
-              dismissDuration={4000}
-              onDismissComplete={() => setOnboardingNotificationVisible(false)}
-              status="success"
-              data={notificationData}
-            />
-          </View>
-        </FullWindowOverlay>
+          {notificationContent}
+        </View>
       );
     }, [
       route?.params?.delete,
@@ -1185,7 +1212,6 @@ const Onboarding = () => {
         })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
-        {handleSimpleNotification()}
         <ScrollView
           style={tw.style('flex-1')}
           contentContainerStyle={tw.style('flex-1')}
@@ -1230,6 +1256,8 @@ const Onboarding = () => {
           onPressImport={onPressImport}
           onPressCreate={onPressCreate}
         />
+
+        {handleSimpleNotification()}
       </SafeAreaView>
     </ErrorBoundary>
   );
