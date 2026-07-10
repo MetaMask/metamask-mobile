@@ -36,7 +36,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [SolScope.Mainnet]: 'Solana',
   [BtcScope.Mainnet]: 'BTC',
   [TrxScope.Mainnet]: 'Tron',
-  [XlmScope.Mainnet]: 'Stellar',
+  [XlmScope.Pubnet]: 'Stellar',
 };
 
 export const BRIDGE_API_BASE_URL =

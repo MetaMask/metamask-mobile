@@ -3,6 +3,7 @@ import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import {
   isBtcMainnetAddress,
+  isStellarAddress,
   isTronAddress,
 } from '../../../../core/Multichain/utils';
 
@@ -32,6 +33,13 @@ export const derivePredefinedRecipientParams = (address: string) => {
     return {
       address,
       chainType: ChainType.TRON,
+    };
+  }
+
+  if (isStellarAddress(address)) {
+    return {
+      address,
+      chainType: ChainType.STELLAR,
     };
   }
 
