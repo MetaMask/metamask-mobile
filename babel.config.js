@@ -85,7 +85,9 @@ module.exports = {
     // babel-preset-expo define them correctly.
     [
       'transform-inline-environment-variables',
-      { exclude: ['JEST_WORKER_ID', 'EXPO_OS', 'EXPO_SERVER', 'EXPO_BASE_URL'] },
+      {
+        exclude: ['JEST_WORKER_ID', 'EXPO_OS', 'EXPO_SERVER', 'EXPO_BASE_URL'],
+      },
     ],
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
