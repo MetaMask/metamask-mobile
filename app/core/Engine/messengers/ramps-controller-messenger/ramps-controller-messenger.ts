@@ -46,6 +46,10 @@ export function getRampsControllerMessenger(
       // Spread the package-owned required list so new service actions
       // (e.g. getDefaultRedirectCallbackUrl) cannot be forgotten at upgrade.
       ...RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
+      'UserStorageController:getState',
+      'UserStorageController:performGetStorageAllFeatureEntries',
+      'UserStorageController:performBatchSetStorage',
+      'AuthenticationController:isSignedIn',
     ],
     events: [],
   });
