@@ -291,6 +291,44 @@ describe('MoneyActivityView', () => {
     expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
   });
 
+  describe('date headers', () => {
+    function mockSettledTransactionAt(time: number) {
+      const settled = MOCK_DEPOSITS.filter(
+        (tx) => tx.id === 'money-tx-converted',
+      ).map((tx) => ({ ...tx, time }));
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: settled,
+        deposits: settled,
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+    }
+
+    it('renders the date header in the design format (Jan 26, 2026)', () => {
+      mockSettledTransactionAt(Date.UTC(2026, 0, 26, 12, 0, 0));
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.DATE_HEADER),
+      ).toHaveTextContent('Jan 26, 2026');
+    });
+
+    it('labels the header with the same UTC day the row was bucketed under', () => {
+      // 02:00 UTC on Jan 26 is still Jan 25 in the jest timezone
+      // (America/Toronto); the header must name the UTC bucket day.
+      mockSettledTransactionAt(Date.UTC(2026, 0, 26, 2, 0, 0));
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.DATE_HEADER),
+      ).toHaveTextContent('Jan 26, 2026');
+    });
+  });
+
   it('shows only deposit rows when the Deposits filter is selected', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneyActivityView />,
