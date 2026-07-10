@@ -691,8 +691,6 @@
     "lint-staged": "10.5.4",
     "listr2": "^8.0.2",
     "liveline": "0.0.7",
-    "metro-react-native-babel-preset": "~0.76.9",
-    "metro-react-native-babel-transformer": "~0.76.9",
     "nock": "^14.0.11",
     "nyc": "^15.1.0",
     "openai": "^6.25.0",

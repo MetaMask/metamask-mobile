@@ -76,7 +76,6 @@ ignores:
   - 'chromedriver'
   - 'execa'
   - 'jetifier'
-  - 'metro-react-native-babel-preset'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
   - 'prettier-2'
