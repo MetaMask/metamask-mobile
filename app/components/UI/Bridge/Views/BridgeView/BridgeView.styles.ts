@@ -53,7 +53,6 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     scrollViewContent: {
       flexGrow: 1,
-      paddingBottom: 16,
     },
     loadingContainer: {
       paddingTop: 8,
