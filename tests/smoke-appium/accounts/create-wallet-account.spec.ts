@@ -52,7 +52,7 @@ appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
               timeout: 15_000,
             },
           );
-          await AccountListBottomSheet.tapAccountByNameV2('Account 3', true);
+          await AccountListBottomSheet.tapAccountByNameV2('Account 3');
           await waitForWalletHomePlaywright();
 
           await WalletView.tapIdenticon();
