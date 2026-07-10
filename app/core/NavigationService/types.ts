@@ -65,6 +65,7 @@ import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/type
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
+import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
@@ -287,8 +288,10 @@ type SocialLoginRouteParams = AccountStatusParams & {
 
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
-  previous_screen: string;
-  onboardingTraceCtx: TraceContext;
+  previous_screen?: string;
+  onboardingTraceCtx?: TraceContext;
+  initialStep?: number;
+  qrSyncImport?: boolean;
 }
 
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
@@ -465,7 +468,7 @@ export type RootStackParamList = {
   LedgerMessageSignModal: LedgerMessageSignModalParams | undefined;
   LedgerTransactionModal: LedgerTransactionModalParams | undefined;
   QRSigningTransactionModal: undefined;
-  QRTabSwitcher: undefined;
+  QRTabSwitcher: QRTabSwitcherParams | undefined;
 
   // Misc top-level routes
   OptionsSheet: OptionsSheetParams | undefined;
