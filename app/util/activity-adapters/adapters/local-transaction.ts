@@ -279,6 +279,58 @@ export function mapLocalTransaction(
         })
       : undefined;
   };
+  // The deposited token is the underlying asset (USDC/USDT/…), NOT the pool the
+  // tx is sent to. Deriving the token from `txParams.to` (the pool) leaves the
+  // row with no resolvable symbol/icon and no amount, so resolve the real token
+  // from simulation data first, then the outgoing Transfer log, and only fall
+  // back to the pool address to preserve the prior behavior.
+  const getLendingDepositSourceToken = () => {
+    const suppliedTokenBalanceChange =
+      initialTransaction.simulationData?.tokenBalanceChanges?.find(
+        ({ isDecrease, standard }) => isDecrease && standard === 'erc20',
+      );
+
+    if (suppliedTokenBalanceChange) {
+      return getContractToken({
+        amount: BigInt(suppliedTokenBalanceChange.difference).toString(),
+        transaction: initialTransaction,
+        direction: 'out',
+        contractAddress: suppliedTokenBalanceChange.address,
+      });
+    }
+
+    // Post-confirmation fallback: the outgoing Transfer log (token sent FROM the
+    // user). Mirrors getLendingWithdrawalDestinationToken but matches on the
+    // sender (topics[1]) instead of the recipient (topics[2]).
+    const fromAddress = from.toLowerCase();
+    const sentTokenLog = (initialTransaction.txReceipt?.logs ?? []).find(
+      ({ topics: [eventTopic, logFrom] = [] }) => {
+        const senderAddress = logFrom
+          ? `0x${logFrom.slice(-40)}`.toLowerCase()
+          : undefined;
+
+        return (
+          eventTopic?.toLowerCase() === environment.tokenTransferLogTopicHash &&
+          senderAddress === fromAddress
+        );
+      },
+    );
+
+    if (sentTokenLog) {
+      return getContractToken({
+        amount: BigInt(String(sentTokenLog.data)).toString(),
+        transaction: initialTransaction,
+        direction: 'out',
+        contractAddress: sentTokenLog.address,
+      });
+    }
+
+    return getContractToken({
+      transaction: initialTransaction,
+      direction: 'out',
+      contractAddress: initialTransaction.txParams.to,
+    });
+  };
   const getDirectWrappedTokenActivity = (): ActivityListItem | undefined => {
     if (!methodId) {
       return undefined;
@@ -694,11 +746,7 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          sourceToken: getContractToken({
-            transaction: initialTransaction,
-            direction: 'out',
-            contractAddress: initialTransaction.txParams.to,
-          }),
+          sourceToken: getLendingDepositSourceToken(),
           ...(fees ? { fees } : {}),
         },
       };

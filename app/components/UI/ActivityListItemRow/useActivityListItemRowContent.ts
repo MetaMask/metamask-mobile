@@ -371,6 +371,26 @@ function enrichSpendingCapToken(
   };
 }
 
+function enrichTokenFromApi(
+  token: TokenAmount | undefined,
+  dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
+): TokenAmount | undefined {
+  if (!token?.assetId) {
+    return token;
+  }
+  const listToken = dataByAssetId[token.assetId.toLowerCase()];
+  if (!listToken) {
+    return token;
+  }
+  const symbol = token.symbol ?? listToken.symbol;
+  const decimals = token.decimals ?? listToken.decimals;
+  return {
+    ...token,
+    ...(symbol ? { symbol } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
+  };
+}
+
 function areSameDisplayToken(
   sourceToken: TokenAmount | undefined,
   destinationToken: TokenAmount | undefined,
@@ -1131,17 +1151,37 @@ export function useActivityListItemRowContent(
         )
       : undefined;
 
+  const isLending =
+    item.type === 'lendingDeposit' || item.type === 'lendingWithdrawal';
+  const lendingAssetIds: string[] = [];
+  if (isLending) {
+    if (
+      'destinationToken' in item.data &&
+      item.data.destinationToken?.assetId
+    ) {
+      lendingAssetIds.push(item.data.destinationToken.assetId);
+    }
+    if ('sourceToken' in item.data && item.data.sourceToken?.assetId) {
+      lendingAssetIds.push(item.data.sourceToken.assetId);
+    }
+  }
+  const lendingTokenData = useTokensData(lendingAssetIds);
+
   const content = resolveCoreContent(item, bridgeHistoryItem);
   const primaryToken = enrichStablecoinTokenMetadata(
     isSpendingCap
       ? spendingCapToken?.amount
         ? spendingCapToken
         : undefined
-      : content.primaryToken,
+      : isLending
+        ? enrichTokenFromApi(content.primaryToken, lendingTokenData)
+        : content.primaryToken,
     networkChainId,
   );
   const secondaryToken = enrichStablecoinTokenMetadata(
-    content.secondaryToken,
+    isLending
+      ? enrichTokenFromApi(content.secondaryToken, lendingTokenData)
+      : content.secondaryToken,
     networkChainId,
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
@@ -1210,7 +1250,9 @@ export function useActivityListItemRowContent(
     avatarTokens:
       isSpendingCap && spendingCapToken
         ? [spendingCapToken]
-        : resolveAvatarTokens(item, bridgeHistoryItem),
+        : isLending && primaryToken
+          ? [primaryToken]
+          : resolveAvatarTokens(item, bridgeHistoryItem),
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
     primaryToken,
