@@ -17,12 +17,10 @@ import {
 import { BatchSellQuoteDetails } from './BatchSellQuoteDetails';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellQuoteDetailsModal() {
   const navigation = useNavigation<AppStackNavigationProp>();
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
-  const surfaceClass = useElevatedSurface();
   const batchSellQuoteData = useBatchSellQuoteData({
     shouldUpdateBatchSellTrades: false,
   });
@@ -49,7 +47,7 @@ export function BatchSellQuoteDetailsModal() {
     <BottomSheet
       testID={BatchSellQuoteDetailsModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
+     
     >
       <BottomSheetHeader
         onClose={navigation.goBack}

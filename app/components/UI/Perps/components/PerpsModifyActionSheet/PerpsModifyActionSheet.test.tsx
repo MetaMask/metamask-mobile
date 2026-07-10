@@ -4,10 +4,6 @@ import PerpsModifyActionSheet from './PerpsModifyActionSheet';
 import { type Position } from '@metamask/perps-controller';
 import { PerpsModifyActionSheetSelectorsIDs } from '../../Perps.testIds';
 
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const MockReact = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');

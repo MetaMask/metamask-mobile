@@ -42,7 +42,6 @@ import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse'
 import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
 // internal dependencies
 import createStyles from './CustomNetworkSelector.styles';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 import {
   CustomNetworkItem,
@@ -65,7 +64,6 @@ const CustomNetworkSelector = ({
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, {});
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -168,7 +166,6 @@ const CustomNetworkSelector = ({
               caipChainId,
               isSelected,
             )}
-            style={tw.style(surfaceClass)}
           >
             {(!isTestNet(chainId) || showFiatOnTestnets) && (
               <AccountGroupBalancePerChain caipChainId={caipChainId} />
@@ -185,7 +182,6 @@ const CustomNetworkSelector = ({
       createAvatarProps,
       selectedChainIdCaip,
       showFiatOnTestnets,
-      surfaceClass,
       tw,
     ],
   );

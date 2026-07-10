@@ -24,6 +24,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useTheme } from '../../../util/theme';
+import { AppThemeKey } from '../../../util/theme/models';
 import { useParams } from '../../../util/navigation/navUtils';
 
 import {
@@ -39,10 +40,7 @@ import {
   usePureBlack,
   useTailwind,
 } from '@metamask/design-system-twrnc-preset';
-import {
-  getElevatedSurfaceColor,
-  useElevatedSurface,
-} from '../../../util/theme/themeUtils';
+import { getElevatedSurfaceColor } from '../../../util/theme/themeUtils';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import {
   useSafeAreaFrame,
@@ -118,10 +116,13 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const isPureBlack = usePureBlack();
   const theme = useTheme();
   const { colors } = theme;
+  const surfaceClass =
+    isPureBlack && theme.themeAppearance === AppThemeKey.dark
+      ? 'bg-alternative'
+      : 'bg-default';
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({

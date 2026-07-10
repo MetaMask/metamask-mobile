@@ -1,7 +1,4 @@
-import React from 'react';
 import { brandColor, darkTheme, lightTheme } from '@metamask/design-tokens';
-import { renderHook } from '@testing-library/react-native';
-import { ThemeContext } from './index';
 import { AppThemeKey, Theme } from './models';
 
 let mockIsPureBlackEnabled = false;
@@ -12,11 +9,7 @@ jest.mock('./pureBlackPreview', () => ({
   },
 }));
 
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-  useElevatedSurface,
-} from './themeUtils';
+import { getElevatedSurfaceColor, isPureBlackEnabled } from './themeUtils';
 
 const createTheme = (
   themeAppearance: AppThemeKey.light | AppThemeKey.dark,
@@ -31,11 +24,6 @@ const createTheme = (
     brandColors: brandColor,
   };
 };
-
-const createWrapper =
-  (theme: Theme) =>
-  ({ children }: { children: React.ReactNode }) =>
-    React.createElement(ThemeContext.Provider, { value: theme }, children);
 
 describe('isPureBlackEnabled re-export', () => {
   it('re-exports the pure black preview flag as a boolean', () => {
@@ -72,43 +60,5 @@ describe('getElevatedSurfaceColor', () => {
     const result = getElevatedSurfaceColor(theme);
 
     expect(result).toBe(theme.colors.background.default);
-  });
-});
-
-describe('useElevatedSurface', () => {
-  beforeEach(() => {
-    mockIsPureBlackEnabled = false;
-  });
-
-  it('returns bg-default when pure black preview is off', () => {
-    const theme = createTheme(AppThemeKey.dark);
-
-    const { result } = renderHook(() => useElevatedSurface(), {
-      wrapper: createWrapper(theme),
-    });
-
-    expect(result.current).toBe('bg-default');
-  });
-
-  it('returns bg-alternative for dark mode when pure black preview is on', () => {
-    mockIsPureBlackEnabled = true;
-    const theme = createTheme(AppThemeKey.dark);
-
-    const { result } = renderHook(() => useElevatedSurface(), {
-      wrapper: createWrapper(theme),
-    });
-
-    expect(result.current).toBe('bg-alternative');
-  });
-
-  it('returns bg-default for light mode when pure black preview is on', () => {
-    mockIsPureBlackEnabled = true;
-    const theme = createTheme(AppThemeKey.light);
-
-    const { result } = renderHook(() => useElevatedSurface(), {
-      wrapper: createWrapper(theme),
-    });
-
-    expect(result.current).toBe('bg-default');
   });
 });

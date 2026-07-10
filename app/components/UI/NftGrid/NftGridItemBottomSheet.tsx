@@ -14,7 +14,6 @@ import { strings } from '../../../../locales/i18n';
 import { Nft } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
 interface NftGridItemBottomSheetProps {
   isVisible: boolean;
@@ -28,7 +27,6 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
   nft,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
 
   const handleSheetClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -80,7 +78,7 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
         <BottomSheet
           ref={sheetRef}
           onClose={onClose}
-          twClassName={surfaceClass}
+         
         >
           <BottomSheetHeader onClose={handleSheetClose}>
             <Text variant={TextVariant.HeadingMd}>
