@@ -51,6 +51,17 @@ export const isMusdToken = (address?: string): boolean => {
 };
 
 /**
+ * Resolves the display symbol for a token, special-casing tokens whose
+ * registry symbol differs from the branded casing. mUSD may be registered
+ * with the uppercase symbol "MUSD" (e.g. via token detection); canonicalise
+ * it to the branded "mUSD" so UI never leaks the registry casing.
+ */
+export const getTokenDisplaySymbol = (
+  address?: string,
+  symbol?: string,
+): string | undefined => (isMusdToken(address) ? MUSD_TOKEN.symbol : symbol);
+
+/**
  * Like {@link isMusdToken} but also requires `chainId` to be a chain where
  * mUSD is actually deployed. Prevents a same-address token on an unsupported
  * chain from being misclassified as mUSD.

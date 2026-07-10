@@ -120,6 +120,7 @@ import { usePerpsConnection } from '../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
+import { useABTest } from '../../../../../hooks/useABTest';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
@@ -127,12 +128,13 @@ import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
-  selectPerpsButtonColorTestVariant,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
-import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import {
+  BUTTON_COLOR_VARIANTS,
+  PERPS_BUTTON_COLOR_AB_TEST_KEY,
+} from '../../abTestConfig';
 import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -350,10 +352,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // A/B Testing: Button color test (TAT-1937)
   const {
     variantName: buttonColorVariant,
-    isEnabled: isButtonColorTestEnabled,
-  } = usePerpsABTest({
-    test: BUTTON_COLOR_TEST,
-    featureFlagSelector: selectPerpsButtonColorTestVariant,
+    isActive: isButtonColorTestEnabled,
+  } = useABTest(PERPS_BUTTON_COLOR_AB_TEST_KEY, BUTTON_COLOR_VARIANTS, {
+    experimentName: 'Long/Short Button Color Test',
+    variationNames: { control: 'White/White', colors: 'Green/Red' },
   });
 
   // Markets data for navigation
@@ -411,9 +413,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
     [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
       isServiceInterruptionBannerEnabled,
-    ...(isButtonColorTestEnabled && {
-      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-    }),
   };
 
   usePerpsEventTracking({
@@ -1088,7 +1087,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderForm.direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
         });
       }
 
@@ -1304,7 +1302,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       feeResults.estimatedPoints,
       source,
       isButtonColorTestEnabled,
-      buttonColorVariant,
       isTradeWithAnyTokenEnabled,
       depositAmount,
       activeTransactionMeta,
@@ -1872,27 +1869,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
           />
 
-          {buttonColorVariant === 'monochrome' ? (
-            <DSButton
-              variant={ButtonVariant.Primary}
-              size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
-              onPress={() => handlePlaceOrder()}
-              isDisabled={
-                !orderValidation.isValid ||
-                isPlacingOrder ||
-                doesStopLossRiskLiquidation ||
-                hasInvalidTPSL ||
-                isAtOICap ||
-                shouldBlockBecauseOfFeesLoading ||
-                hasBlockingPayAlerts
-              }
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </DSButton>
-          ) : (
+          {buttonColorVariant === 'colors' ? (
             <ButtonSemantic
               severity={
                 orderForm.direction === 'long'
@@ -1916,6 +1893,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             >
               {placeOrderLabel}
             </ButtonSemantic>
+          ) : (
+            <DSButton
+              variant={ButtonVariant.Primary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              isFullWidth
+              onPress={() => handlePlaceOrder()}
+              isDisabled={
+                !orderValidation.isValid ||
+                isPlacingOrder ||
+                doesStopLossRiskLiquidation ||
+                hasInvalidTPSL ||
+                isAtOICap ||
+                shouldBlockBecauseOfFeesLoading ||
+                hasBlockingPayAlerts
+              }
+              isLoading={isPlacingOrder}
+              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
+            >
+              {placeOrderLabel}
+            </DSButton>
           )}
         </View>
       )}

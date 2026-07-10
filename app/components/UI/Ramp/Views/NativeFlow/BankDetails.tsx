@@ -233,6 +233,7 @@ const V2BankDetails = () => {
 
       trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
         ramp_type: 'DEPOSIT',
+        provider_order_id: order.providerOrderId,
         amount_source: Number(order.fiatAmount),
         amount_destination: Number(order.cryptoAmount),
         exchange_rate: Number(order.exchangeRate),
