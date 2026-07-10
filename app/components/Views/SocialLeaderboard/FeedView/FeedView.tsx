@@ -16,6 +16,8 @@ import type { PerpsMarketData } from '@metamask/perps-controller';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  RefreshControl,
+  ScrollView,
   SectionList,
   type SectionListData,
   type SectionListRenderItemInfo,
@@ -23,6 +25,8 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
+import Logger from '../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 import {
   QuickBuy,
@@ -84,6 +88,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     null,
   );
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const {
     sections,
@@ -95,6 +100,30 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     error,
     refresh,
   } = useTraderFeed({ audience, enabled: isActive });
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Hold the spinner for a beat so a fast refetch doesn't flicker.
+      const minDuration = new Promise<void>((resolve) =>
+        setTimeout(resolve, 1000),
+      );
+      await Promise.all([refresh(), minDuration]);
+    } catch (err) {
+      Logger.error(
+        err as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'trader_feed',
+          operation: 'pull_to_refresh',
+          extraMessage: 'Trader feed pull-to-refresh failed',
+          source: 'FeedView',
+          error: err,
+        }),
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -173,18 +202,20 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
     }
   }, [hasNextPage, loadMore]);
 
-  const content = useMemo(() => {
-    if (isLoading && items.length === 0) {
-      return (
-        <Box twClassName="flex-1" testID={FeedViewSelectorsIDs.LOADING}>
-          {SKELETON_KEYS.map((key) => (
-            <FeedItemRowSkeleton key={key} />
-          ))}
-        </Box>
-      );
-    }
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        colors={[colors.primary.default]}
+        tintColor={colors.icon.default}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+      />
+    ),
+    [colors.primary.default, colors.icon.default, refreshing, handleRefresh],
+  );
 
-    if (error && items.length === 0) {
+  const renderListEmpty = useCallback(() => {
+    if (error) {
       return (
         <Box
           alignItems={BoxAlignItems.Center}
@@ -212,8 +243,24 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
       );
     }
 
-    if (items.length === 0) {
-      return <FollowingEmptyState audience={audience} />;
+    return <FollowingEmptyState audience={audience} />;
+  }, [error, refresh, audience]);
+
+  const content = useMemo(() => {
+    if (isLoading && items.length === 0) {
+      return (
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('pb-6')}
+          showsVerticalScrollIndicator={false}
+          refreshControl={refreshControl}
+          testID={FeedViewSelectorsIDs.LOADING}
+        >
+          {SKELETON_KEYS.map((key) => (
+            <FeedItemRowSkeleton key={key} />
+          ))}
+        </ScrollView>
+      );
     }
 
     return (
@@ -224,20 +271,21 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         renderSectionHeader={renderSectionHeader}
         ItemSeparatorComponent={renderItemSeparator}
         ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderListEmpty}
         stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        contentContainerStyle={tw.style('pb-6')}
+        contentContainerStyle={tw.style('pb-6 flex-grow')}
+        refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
     );
   }, [
     isLoading,
     items.length,
-    error,
-    refresh,
-    audience,
+    refreshControl,
+    renderListEmpty,
     sections,
     renderItem,
     renderSectionHeader,

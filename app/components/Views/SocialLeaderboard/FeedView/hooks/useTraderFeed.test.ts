@@ -136,6 +136,40 @@ describe('useTraderFeed', () => {
     expect(mockCall).toHaveBeenCalledTimes(1);
   });
 
+  it('resets to the first page and refetches the newest activity on refresh', async () => {
+    mockCall
+      .mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()], 'cursor-1'))
+      .mockResolvedValueOnce(mockFeedResponse([mockPerpFeedItem()]));
+
+    const { result } = renderHook(() => useTraderFeed({ audience: 'all' }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+    mockCall.mockClear();
+    mockCall.mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()]));
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // Only the newest (first) page is refetched, without the older cursor.
+    expect(mockCall).toHaveBeenCalledTimes(1);
+    expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
+      scope: 'leaderboard',
+      limit: 30,
+    });
+    // Older paginated pages are dropped, leaving just the fresh first page.
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+  });
+
   it('surfaces a normalised error message and no items on failure', async () => {
     mockCall.mockRejectedValue(new Error('boom'));
 

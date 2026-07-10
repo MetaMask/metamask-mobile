@@ -2,6 +2,8 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   useInfiniteQuery,
+  useQueryClient,
+  type InfiniteData,
   type UseInfiniteQueryOptions,
 } from '@tanstack/react-query';
 import type {
@@ -49,8 +51,8 @@ export interface UseTraderFeedResult {
   loadMore: () => void;
   /** Normalised error message, or `null`. */
   error: string | null;
-  /** Refetch from the first page. */
-  refresh: () => void;
+  /** Reset to the first page and refetch the newest activity. */
+  refresh: () => Promise<void>;
 }
 
 const EMPTY_ITEMS: FeedItem[] = [];
@@ -91,8 +93,14 @@ export const useTraderFeed = (
   const scope: FeedScope =
     audience === 'following' ? 'following' : 'leaderboard';
 
+  const queryClient = useQueryClient();
+  const queryKey = useMemo(
+    () => ['SocialService:fetchFeed', { scope }],
+    [scope],
+  );
+
   const query = useInfiniteQuery({
-    queryKey: ['SocialService:fetchFeed', { scope }],
+    queryKey,
     queryFn: ({ pageParam }: { pageParam?: string }) => {
       // Call as a member expression so the messenger keeps its `this` binding;
       // aliasing `.call` into a local detaches it and breaks action lookup.
@@ -140,12 +148,30 @@ export const useTraderFeed = (
     queryParams: { scope },
   });
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError } = query;
+  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } =
+    query;
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
       fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
+
+  const refresh = useCallback(async () => {
+    // Reset to the newest activity from the top. Refetch only the first page
+    // (the stale list stays visible meanwhile, so no skeleton flash), then drop
+    // any older pages that were loaded via pagination.
+    await refetch({
+      refetchPage: (_page: FeedResponse, index: number) => index === 0,
+    } as Parameters<typeof refetch>[0]);
+    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
+      old
+        ? {
+            pages: old.pages.slice(0, 1),
+            pageParams: old.pageParams.slice(0, 1),
+          }
+        : old,
+    );
+  }, [queryClient, queryKey, refetch]);
 
   return {
     sections,
@@ -157,6 +183,6 @@ export const useTraderFeed = (
     hasNextPage: hasNextPage === true && !isError,
     loadMore,
     error: formatSocialQueryErrorMessage(error),
-    refresh: query.refetch,
+    refresh,
   };
 };

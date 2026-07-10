@@ -13,7 +13,7 @@ import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 const mockNavigate = jest.fn();
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockLoadMore = jest.fn();
-const mockRefresh = jest.fn();
+const mockRefresh = jest.fn().mockResolvedValue(undefined);
 
 const spotItem: FeedItem = {
   id: 'feed-1',
@@ -136,7 +136,7 @@ describe('FeedView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows the empty state when there are no items', () => {
+  it('shows the empty state inside the (still pullable) list when there are no items', () => {
     mockFeedResult = buildResult({ items: [] });
 
     renderWithProvider(<FeedView />);
@@ -144,9 +144,8 @@ describe('FeedView', () => {
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(FeedViewSelectorsIDs.LIST),
-    ).not.toBeOnTheScreen();
+    // The list stays mounted so pull-to-refresh works even when empty.
+    expect(screen.getByTestId(FeedViewSelectorsIDs.LIST)).toBeOnTheScreen();
   });
 
   it('shows an error state with a retry that refetches', () => {
@@ -198,5 +197,42 @@ describe('FeedView', () => {
     });
 
     expect(mockLoadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes a RefreshControl on the list whose onRefresh triggers a refresh', async () => {
+    jest.useFakeTimers();
+    try {
+      renderWithProvider(<FeedView />);
+
+      const list = screen.getByTestId(FeedViewSelectorsIDs.LIST);
+      const { refreshControl } = list.props;
+      expect(refreshControl).toBeTruthy();
+      expect(refreshControl.props.refreshing).toBe(false);
+      expect(typeof refreshControl.props.onRefresh).toBe('function');
+
+      await act(async () => {
+        refreshControl.props.onRefresh();
+      });
+
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('exposes a RefreshControl on the skeleton loading state', () => {
+    mockFeedResult = buildResult({ items: [], isLoading: true });
+
+    renderWithProvider(<FeedView />);
+
+    const loading = screen.getByTestId(FeedViewSelectorsIDs.LOADING);
+    expect(loading.props.refreshControl).toBeTruthy();
+    expect(typeof loading.props.refreshControl.props.onRefresh).toBe(
+      'function',
+    );
   });
 });
