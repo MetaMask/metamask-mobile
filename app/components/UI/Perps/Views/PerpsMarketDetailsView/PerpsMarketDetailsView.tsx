@@ -122,7 +122,10 @@ import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
-import { hasRelatedMarketsCategory } from '../../utils/relatedMarkets';
+import {
+  getRelatedMarketsForMarket,
+  hasRelatedMarketsCategory,
+} from '../../utils/relatedMarkets';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import {
   MarketInsightsEntryCard,
@@ -216,8 +219,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     typeof routeMarket?.maxLeverage === 'string' &&
     routeMarket.maxLeverage.endsWith('x');
   const needsEnrichment = !hasFormattedMaxLeverage;
+  const needsMarketsForRelated =
+    isRelatedMarketsEnabled && hasRelatedMarketsCategory(routeMarket);
   const { markets } = usePerpsMarkets({
-    skipInitialFetch: !needsEnrichment,
+    skipInitialFetch: !needsEnrichment && !needsMarketsForRelated,
   });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
@@ -1290,8 +1295,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { styles } = useStyles(createStyles, {});
 
   const isRelatedMarketsVisible = useMemo(
-    () => isRelatedMarketsEnabled && hasRelatedMarketsCategory(market),
-    [isRelatedMarketsEnabled, market],
+    () =>
+      isRelatedMarketsEnabled &&
+      getRelatedMarketsForMarket(market, markets) !== null,
+    [isRelatedMarketsEnabled, market, markets],
   );
 
   const shouldShowPerpsMarketInsightsSection = useMemo(
@@ -1386,6 +1393,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       },
       {
         key: 'related-markets',
+        // Mirrors PerpsRelatedMarkets' own render gate (no peers -> null) so
+        // PerpsHomeSectionList does not render an orphan divider.
         visible: isRelatedMarketsVisible,
         content: market ? <PerpsRelatedMarkets currentMarket={market} /> : null,
       },
