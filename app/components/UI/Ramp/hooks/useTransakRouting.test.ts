@@ -1712,7 +1712,11 @@ describe('useTransakRouting', () => {
       // ramp_surface is undefined here.
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_TRANSACTION_CONFIRMED',
-        expect.objectContaining({ ramp_type: 'HEADLESS', region: 'us-ca' }),
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          region: 'us-ca',
+          provider_order_id: 'order-hs',
+        }),
       );
       expect(mockReset).not.toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1751,6 +1755,7 @@ describe('useTransakRouting', () => {
           ramp_type: 'HEADLESS',
           ramp_surface: 'money_account',
           region: 'us-ca',
+          provider_order_id: 'order-hs',
         }),
       );
       // Writes the headless context for the terminal-failed subscriber
@@ -1928,6 +1933,8 @@ describe('useTransakRouting', () => {
           ramp_surface: 'money_account',
           region: 'us-ca',
           error_message: expect.any(String),
+          // orderId from the callback URL is the provider order id (TRAM-3696).
+          provider_order_id: 'order-hs',
         }),
       );
     });
@@ -2012,6 +2019,7 @@ describe('useTransakRouting', () => {
           ramp_type: 'HEADLESS',
           ramp_surface: 'money_account',
           region: 'us-ca',
+          provider_order_id: 'order-bank-1',
         }),
       );
       // Manual-bank headless branch also writes the terminal-failed context

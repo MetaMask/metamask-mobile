@@ -3,21 +3,10 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
-  isVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import type { RootState } from '../../../../../reducers';
-import type { ButtonColorVariantName } from '../../utils/abTesting/types';
 import { hasProperty } from '@metamask/utils';
 import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
-
-/**
- * Valid variants for button color A/B test (TAT-1937)
- * Used for runtime validation of LaunchDarkly responses
- */
-const VALID_BUTTON_COLOR_VARIANTS: readonly ButtonColorVariantName[] = [
-  'control',
-  'monochrome',
-];
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -143,6 +132,7 @@ export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
 );
 
 /**
+<<<<<<< HEAD
  * Selector for Recently Viewed rail feature flag.
  * Controls visibility of the "Recently viewed" markets rail on the Perps
  * market list screen.
@@ -223,6 +213,8 @@ export const selectPerpsButtonColorTestVariant = createSelector(
 );
 
 /**
+=======
+>>>>>>> main
  * Selector for HIP-3 configuration version
  * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
  *
@@ -409,6 +401,23 @@ export const selectPerpsTopMoversEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.perpsTopMoversEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for Perps Recently Added feature flag.
+ * Controls visibility of the Recently Added section on the Perps home screen,
+ * independently of the Terminal backend flag that supplies `listedAt` data.
+ *
+ * @returns boolean - true if the Recently Added section should be shown, false otherwise
+ */
+export const selectPerpsRecentlyAddedEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRecentlyAddedEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
