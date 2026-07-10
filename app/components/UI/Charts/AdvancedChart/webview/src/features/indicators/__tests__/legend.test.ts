@@ -23,6 +23,7 @@ import {
 import type {
   ChartTheme,
   IndicatorColors,
+  LegendIndicatorCfg,
   StudyId,
   TVActiveChart,
   TVChartingLibraryWidget,
@@ -108,12 +109,109 @@ const setupReadyWidget = (chart: TVActiveChart): void => {
   setChartReady(true);
 };
 
+const defaultTestConfig: Record<string, LegendIndicatorCfg> = {
+  MACD: {
+    subPaneLegend: true,
+    plots: [
+      { tvTitle: 'MACD', label: 'MACD(12,26)', color: null },
+      { tvTitle: 'Signal', label: 'Signal', color: null },
+      { tvTitle: 'Histogram', label: 'Hist', color: null },
+    ],
+    useIndex: true,
+  },
+  RSI: {
+    subPaneLegend: true,
+    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: null }],
+    useIndex: true,
+  },
+  BOL: {
+    combineInOnePill: true,
+    title: 'BB(20,2)',
+    plots: [
+      { tvTitle: 'Upper', label: 'U:', color: null },
+      { tvTitle: 'Median', label: 'M:', color: null },
+      { tvTitle: 'Lower', label: 'L:', color: null },
+    ],
+    useIndex: true,
+  },
+  Volume: {
+    plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
+    useIndex: true,
+  },
+  MA5: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: null }],
+  },
+  MA10: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: null }],
+  },
+  MA20: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: null }],
+  },
+  MA50: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: null }],
+  },
+  MA200: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: null }],
+  },
+};
+
+const buildTestConfig = (
+  colors?: IndicatorColors,
+): Record<string, LegendIndicatorCfg> => {
+  if (!colors) return defaultTestConfig;
+  const macd = colors.MACD ?? {};
+  const rsi = colors.RSI ?? {};
+  return {
+    ...defaultTestConfig,
+    MACD: {
+      ...defaultTestConfig.MACD,
+      plots: [
+        {
+          tvTitle: 'MACD',
+          label: 'MACD(12,26)',
+          color: (macd as Record<string, string>).macd ?? null,
+        },
+        {
+          tvTitle: 'Signal',
+          label: 'Signal',
+          color: (macd as Record<string, string>).signal ?? null,
+        },
+        {
+          tvTitle: 'Histogram',
+          label: 'Hist',
+          color: (macd as Record<string, string>).histogramPositive ?? null,
+        },
+      ],
+    },
+    RSI: {
+      ...defaultTestConfig.RSI,
+      plots: [
+        {
+          tvTitle: 'Plot',
+          label: 'RSI(14)',
+          color: (rsi as Record<string, string>).plot ?? null,
+        },
+      ],
+    },
+  };
+};
+
 const enableOverlayWithStudies = (
   chart: TVActiveChart,
   colors?: IndicatorColors,
 ): void => {
   installContainer();
-  setupLegendOverlay({ enabled: true }, colors);
+  setupLegendOverlay({ enabled: true, config: buildTestConfig(colors) });
   setupReadyWidget(chart);
 };
 
@@ -140,19 +238,19 @@ describe('legend', () => {
   describe('setupLegendOverlay', () => {
     it('is a no-op when config is undefined', () => {
       installContainer();
-      setupLegendOverlay(undefined, undefined);
+      setupLegendOverlay(undefined);
       expect(document.getElementById(OVERLAY_ID)).toBeNull();
     });
 
     it('is a no-op when enabled is false', () => {
       installContainer();
-      setupLegendOverlay({ enabled: false }, undefined);
+      setupLegendOverlay({ enabled: false });
       expect(document.getElementById(OVERLAY_ID)).toBeNull();
     });
 
     it('creates the overlay element inside tv_chart_container', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       const overlay = document.getElementById(OVERLAY_ID);
       expect(overlay).not.toBeNull();
       expect(overlay?.parentElement).toBe(container);
@@ -160,26 +258,26 @@ describe('legend', () => {
 
     it('sets container position to relative', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       expect(container.style.position).toBe('relative');
     });
 
     it('replaces an existing overlay if called twice', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay({ enabled: true });
       expect(document.querySelectorAll(`#${OVERLAY_ID}`).length).toBe(1);
     });
 
     it('does nothing when tv_chart_container is missing', () => {
       document.body.innerHTML = '';
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       expect(document.getElementById(OVERLAY_ID)).toBeNull();
     });
 
     it('injects a style element to hide TV legend buttons', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       const style = document.getElementById('mm-hide-legend-buttons');
       expect(style).not.toBeNull();
       expect(style?.textContent).toContain('display:none!important');
@@ -187,8 +285,8 @@ describe('legend', () => {
 
     it('does not duplicate the CSS style on second setup call', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay({ enabled: true });
       expect(document.querySelectorAll('#mm-hide-legend-buttons').length).toBe(
         1,
       );
@@ -203,7 +301,7 @@ describe('legend', () => {
 
     it('subscribes to panes_height_changed and triggers layout update', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       let handler: (() => void) | undefined;
       const widget = {
         subscribe: jest.fn((_event: string, cb: () => void) => {
@@ -251,13 +349,13 @@ describe('legend', () => {
 
     it('is a no-op when widget is null', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       expect(() => refreshStudyLegendFromExport()).not.toThrow();
     });
 
     it('is a no-op when chart is not ready', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       const { chart } = makeChart();
       setWidget({
         activeChart: () => chart,
@@ -794,7 +892,7 @@ describe('legend', () => {
 
     it('sets fallback max-width when no price-axis is found', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       updateLegendOverlayLayout();
       const overlay = document.getElementById(OVERLAY_ID);
       expect(overlay?.style.maxWidth).toBe('calc(100% - 56px)');
@@ -984,7 +1082,7 @@ describe('legend', () => {
   describe('updateLegendOverlayLayout with price-axis', () => {
     it('computes pixel max-width from price-axis left boundary', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       const axisNode = document.createElement('div');
       axisNode.classList.add('price-axis-container');
       container.appendChild(axisNode);
@@ -1023,7 +1121,7 @@ describe('legend', () => {
 
     it('uses fallback max-width when container clientWidth is 0', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       const axisNode = document.createElement('div');
       axisNode.classList.add('price-axis-container');
       container.appendChild(axisNode);
@@ -1062,7 +1160,7 @@ describe('legend', () => {
 
     it('uses fallback when price-axis is too small (width < 2)', () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       const axisNode = document.createElement('div');
       axisNode.classList.add('price-axis-container');
       container.appendChild(axisNode);
@@ -1126,51 +1224,48 @@ describe('legend', () => {
       colors?: IndicatorColors,
     ) => {
       installContainer();
-      setupLegendOverlay(
-        {
-          enabled: true,
-          config: {
-            MACD: {
-              subPaneLegend: true,
-              plots: [
-                {
-                  tvTitle: 'MACD',
-                  label: 'MACD(12,26)',
-                  color: colors?.MACD?.macd ?? null,
-                },
-                {
-                  tvTitle: 'Signal',
-                  label: 'Signal',
-                  color: colors?.MACD?.signal ?? null,
-                },
-                {
-                  tvTitle: 'Histogram',
-                  label: 'Hist',
-                  color: colors?.MACD?.histogramPositive ?? null,
-                },
-              ],
-              useIndex: true,
-            },
-            RSI: {
-              subPaneLegend: true,
-              plots: [
-                {
-                  tvTitle: 'Plot',
-                  label: 'RSI(14)',
-                  color: colors?.RSI?.plot ?? null,
-                },
-              ],
-              useIndex: true,
-            },
-            MA5: {
-              isMA: true,
-              useIndex: true,
-              plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: null }],
-            },
+      setupLegendOverlay({
+        enabled: true,
+        config: {
+          MACD: {
+            subPaneLegend: true,
+            plots: [
+              {
+                tvTitle: 'MACD',
+                label: 'MACD(12,26)',
+                color: colors?.MACD?.macd ?? null,
+              },
+              {
+                tvTitle: 'Signal',
+                label: 'Signal',
+                color: colors?.MACD?.signal ?? null,
+              },
+              {
+                tvTitle: 'Histogram',
+                label: 'Hist',
+                color: colors?.MACD?.histogramPositive ?? null,
+              },
+            ],
+            useIndex: true,
+          },
+          RSI: {
+            subPaneLegend: true,
+            plots: [
+              {
+                tvTitle: 'Plot',
+                label: 'RSI(14)',
+                color: colors?.RSI?.plot ?? null,
+              },
+            ],
+            useIndex: true,
+          },
+          MA5: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: null }],
           },
         },
-        colors,
-      );
+      });
       setupReadyWidget(chart);
     };
 
@@ -1270,7 +1365,7 @@ describe('legend', () => {
       );
       const { chart } = makeChart(data);
       installContainer();
-      setupLegendOverlay({ enabled: true, config: customConfig }, undefined);
+      setupLegendOverlay({ enabled: true, config: customConfig });
       setupReadyWidget(chart);
       registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
 
@@ -1357,7 +1452,7 @@ describe('legend', () => {
   describe('__resetLegendForTests', () => {
     it('resets state so overlay can be re-enabled', () => {
       installContainer();
-      setupLegendOverlay({ enabled: true }, undefined);
+      setupLegendOverlay({ enabled: true });
       expect(document.getElementById(OVERLAY_ID)).not.toBeNull();
       __resetLegendForTests();
       refreshStudyLegendFromExport();

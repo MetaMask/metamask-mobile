@@ -2736,7 +2736,7 @@ function __resetVisibleRangeForTests() {
 // The overlay is a \`<div id="study-legend-overlay">\` injected into
 // #tv_chart_container that holds one \`.legend-pill\` per active indicator.
 // Theme-aware text colors are computed from CONFIG.theme; per-plot colors
-// come from CONFIG.indicatorColors.
+// come from the legend config supplied by RN.
 //
 // \`LEGEND_RENDERED\` is posted to RN once the overlay has settled (either
 // real values returned by chart.exportData() or after the retry timeout).
@@ -2752,16 +2752,14 @@ let exportGeneration = 0;
 let retryCount = 0;
 let timeoutId = null;
 let legendOverlayEnabled = false;
-let indicatorColors;
-/** Typed legend config from RN; when present, replaces the hardcoded buildPresetMap(). */
+/** Typed legend config from RN — the single source of truth for legend rendering. */
 let legendConfig;
 /** Sub-pane overlay elements keyed by indicator name. */
 const subPaneOverlays = new Map();
 // ----- Lifecycle ---------------------------------------------------------
 /** Called once on chart-ready to set up the DOM container. */
-function setupLegendOverlay(config, colors) {
+function setupLegendOverlay(config) {
     legendOverlayEnabled = Boolean(config?.enabled);
-    indicatorColors = colors;
     legendConfig = config?.config;
     if (!legendOverlayEnabled)
         return;
@@ -2825,79 +2823,11 @@ function injectHideLegendButtonsCSS() {
 }
 // ----- Legend rebuild ---------------------------------------------------
 /**
- * Returns the per-indicator legend config. When RN supplied a typed config via
- * legendOverlay.config (the single source of truth), use it directly.
- * Otherwise fall back to a minimal built-in map derived from indicatorColors.
+ * Returns the per-indicator legend config supplied by RN via legendOverlay.config.
+ * Consumers must pass their own config — there is no built-in fallback.
  */
 function getPresetMap() {
-    if (legendConfig)
-        return legendConfig;
-    return buildFallbackPresetMap();
-}
-function buildFallbackPresetMap() {
-    const macd = indicatorColors?.MACD ?? {};
-    const rsi = indicatorColors?.RSI ?? {};
-    const bol = indicatorColors?.BOL ?? {};
-    const ma = indicatorColors?.MA ?? {};
-    return {
-        MACD: {
-            subPaneLegend: true,
-            plots: [
-                { tvTitle: 'MACD', label: 'MACD(12,26)', color: macd.macd ?? null },
-                { tvTitle: 'Signal', label: 'Signal', color: macd.signal ?? null },
-                {
-                    tvTitle: 'Histogram',
-                    label: 'Hist',
-                    color: macd.histogramPositive ?? null,
-                },
-            ],
-            useIndex: true,
-        },
-        RSI: {
-            subPaneLegend: true,
-            plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: rsi.plot ?? null }],
-            useIndex: true,
-        },
-        BOL: {
-            combineInOnePill: true,
-            title: 'BB(20,2)',
-            plots: [
-                { tvTitle: 'Upper', label: 'U:', color: bol.upper ?? null },
-                { tvTitle: 'Median', label: 'M:', color: bol.basis ?? null },
-                { tvTitle: 'Lower', label: 'L:', color: bol.lower ?? null },
-            ],
-            useIndex: true,
-        },
-        Volume: {
-            plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
-            useIndex: true,
-        },
-        MA5: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: ma.MA5 ?? null }],
-        },
-        MA10: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: ma.MA10 ?? null }],
-        },
-        MA20: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: ma.MA20 ?? null }],
-        },
-        MA50: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: ma.MA50 ?? null }],
-        },
-        MA200: {
-            isMA: true,
-            useIndex: true,
-            plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: ma.MA200 ?? null }],
-        },
-    };
+    return legendConfig ?? {};
 }
 function getLegendAltColor() {
     const theme = getTheme();
@@ -3308,7 +3238,6 @@ function __resetLegendForTests() {
     retryCount = 0;
     clearTimer();
     legendOverlayEnabled = false;
-    indicatorColors = undefined;
     legendConfig = undefined;
     removeAllSubPaneOverlays();
 }
@@ -5045,7 +4974,7 @@ function bootstrap() {
                         flushPendingTheme();
                         applyScaleLayout();
                         applyVisualOverrides(config.visualOverrides);
-                        setupLegendOverlay(config.legendOverlay, config.indicatorColors);
+                        setupLegendOverlay(config.legendOverlay);
                         const chart = widget.activeChart();
                         // Match legacy onChartReady: when no explicit visible range
                         // was passed, pin a 2-bar gap on the right. TV's default is
