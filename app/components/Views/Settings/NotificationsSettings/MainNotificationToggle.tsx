@@ -35,7 +35,7 @@ export const MainNotificationToggle = () => {
         })
         .build(),
     );
-  }, [onToggle, value, trackEvent, createEventBuilder]);
+  }, [value, trackEvent, createEventBuilder]);
 
   return (
     <>
