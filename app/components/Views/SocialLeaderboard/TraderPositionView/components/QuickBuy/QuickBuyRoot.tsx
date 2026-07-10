@@ -17,7 +17,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 import { QuickBuyEventProperties, QuickBuyEventValues } from './analytics';
 import { useSocialLeaderboardAnalytics } from '../../../analytics';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
@@ -95,7 +94,6 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   // with the sheet instead of running its horizontal screen-exit transition.
   const [isClosing, setIsClosing] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const surfaceClass = useElevatedSurface();
 
   const directionSV = useSharedValue<ScreenDirection>(1);
   // Suppresses the enter animation on the initial screen when the sheet opens;
@@ -177,11 +175,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
 
   return (
-    <BottomSheetDialog
-      ref={bottomSheetRef}
-      onClose={onClose}
-      twClassName={surfaceClass}
-    >
+    <BottomSheetDialog ref={bottomSheetRef} onClose={onClose}>
       {isContentReady ? (
         <QuickBuyProvider
           target={target}
