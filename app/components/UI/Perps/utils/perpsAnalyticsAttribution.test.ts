@@ -1,11 +1,14 @@
 import {
+  getPerpsUtmAttributionProperties,
   hasPerpsUtmAttribution,
   parsePerpsUtmFromPath,
   setPerpsUtmAttribution,
   toPerpsEntryAttribution,
 } from './perpsAnalyticsAttribution';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 const mockSetAttributionContext = jest.fn();
+const mockMergeAttributionContext = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -14,9 +17,16 @@ jest.mock('../../../../core/Engine', () => ({
       PerpsController: {
         setAttributionContext: (...args: unknown[]) =>
           mockSetAttributionContext(...args),
+        mergeAttributionContext: (...args: unknown[]) =>
+          mockMergeAttributionContext(...args),
       },
     },
   },
+}));
+
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
 }));
 
 describe('perpsAnalyticsAttribution', () => {
@@ -88,6 +98,26 @@ describe('perpsAnalyticsAttribution', () => {
     it('skips controller call when no utm fields', () => {
       setPerpsUtmAttribution({});
       expect(mockSetAttributionContext).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getPerpsUtmAttributionProperties', () => {
+    it('returns the controller merged attribution props', () => {
+      mockMergeAttributionContext.mockReturnValue({ utm_source: 'twitter' });
+      expect(getPerpsUtmAttributionProperties()).toEqual({
+        utm_source: 'twitter',
+      });
+    });
+
+    it('returns {} and logs instead of throwing when the lookup fails', () => {
+      mockMergeAttributionContext.mockImplementation(() => {
+        throw new Error('controller unavailable');
+      });
+      // Best-effort: the caller (every PERPS_SCREEN_VIEWED build) must still get
+      // a usable object so the screen-view emit is never taken down.
+      expect(() => getPerpsUtmAttributionProperties()).not.toThrow();
+      expect(getPerpsUtmAttributionProperties()).toEqual({});
+      expect(DevLogger.log).toHaveBeenCalled();
     });
   });
 });

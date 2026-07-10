@@ -9,6 +9,7 @@ import type {
   TrackingData,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 export interface PerpsEntryAttributionInput {
   source?: string;
@@ -94,7 +95,21 @@ export function setPerpsUtmAttribution(context: PerpsAttributionContext): void {
  * Snapshot the stored UTM attribution as analytics event properties.
  * Delegates to the controller's canonical merge so UTM keys map to their
  * PERPS_EVENT_PROPERTY names; returns only the defined UTM keys.
+ *
+ * Best-effort by design: this enriches every client PERPS_SCREEN_VIEWED, so a
+ * throwing Engine/controller lookup must never take down the screen-view emit
+ * itself. On failure we log and return no UTM props rather than propagate —
+ * the sanctioned exception to no-swallowed-exceptions (expected, recoverable,
+ * logged), mirroring the best-effort handling in handlePerpsUrl.
  */
 export function getPerpsUtmAttributionProperties(): PerpsAnalyticsProperties {
-  return Engine.context.PerpsController.mergeAttributionContext();
+  try {
+    return Engine.context.PerpsController.mergeAttributionContext();
+  } catch (error) {
+    DevLogger.log(
+      '[perpsAnalyticsAttribution] UTM attribution lookup failed; emitting without UTM props',
+      error,
+    );
+    return {};
+  }
 }

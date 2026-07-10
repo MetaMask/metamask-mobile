@@ -1431,6 +1431,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               }),
             vipTier: vipTier ?? undefined,
             vipDiscount: feeResults.feeDiscountPercentage,
+            // Cast needed only because the installed perps-controller 9.2.1
+            // TradeAction type is narrow (create_position | increase_exposure)
+            // and does not yet include the flip values. The next release widens
+            // it, after which this cast can be dropped.
           } as OrderParams['trackingData'],
         };
 
