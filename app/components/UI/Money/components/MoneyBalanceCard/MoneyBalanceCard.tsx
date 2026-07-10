@@ -17,6 +17,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SensitiveText,
+  SensitiveTextLength,
   Skeleton,
   Text,
   TextColor,
@@ -25,6 +27,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -70,6 +73,7 @@ const MoneyBalanceCard = () => {
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectHasWalletFundingPrimaryCta,
   );
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const {
     trackButtonClicked,
@@ -253,14 +257,16 @@ const MoneyBalanceCard = () => {
       );
     }
     return (
-      <Text
+      <SensitiveText
         variant={TextVariant.HeadingMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
+        isHidden={privacyMode}
+        length={SensitiveTextLength.Medium}
         testID={MoneyBalanceCardTestIds.BALANCE}
       >
         {balanceText}
-      </Text>
+      </SensitiveText>
     );
   };
 

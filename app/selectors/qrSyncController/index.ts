@@ -33,6 +33,39 @@ export const selectQrSyncPrimaryMnemonic = createSelector(
     )?.value ?? null,
 );
 
+/** Primary mnemonic when flagged; otherwise first mnemonic (extension often omits isPrimary). */
+export const selectQrSyncExistingUserImportMnemonic = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) => {
+    const pendingSecretImports = qrSyncState.pendingSecretImports;
+    if (!pendingSecretImports?.length) {
+      return null;
+    }
+
+    const primaryMnemonic = pendingSecretImports.find(
+      (entry) => entry.type === QrSyncSecretTypes.MNEMONIC && entry.isPrimary,
+    )?.value;
+
+    if (primaryMnemonic) {
+      return primaryMnemonic;
+    }
+
+    return (
+      pendingSecretImports.find(
+        (entry) => entry.type === QrSyncSecretTypes.MNEMONIC,
+      )?.value ?? null
+    );
+  },
+);
+
+export const selectQrSyncImportMnemonic = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) =>
+    qrSyncState.pendingSecretImports?.find(
+      (entry) => entry.type === QrSyncSecretTypes.MNEMONIC,
+    )?.value ?? null,
+);
+
 export const selectQrSyncHasPendingSecrets = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
