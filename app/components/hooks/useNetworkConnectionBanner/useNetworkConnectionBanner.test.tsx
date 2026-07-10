@@ -9,7 +9,10 @@ import Engine from '../../../core/Engine';
 import { useMessenger } from '../../../hooks/useMessenger';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
+import {
+  selectNetworkConnectionBannerStatus,
+  selectNetworkConnectionBannerNetwork,
+} from '../../../selectors/networkConnectionBanner';
 import Routes from '../../../constants/navigation/Routes';
 import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
 import {
@@ -45,7 +48,29 @@ const mockToastRef = {
 
 const mockMessengerCall = jest.fn(async () => undefined);
 
-const selectorMock = jest.mocked(selectNetworkConnectionBannerState);
+const statusMock = jest.mocked(selectNetworkConnectionBannerStatus);
+const networkMock = jest.mocked(selectNetworkConnectionBannerNetwork);
+
+/**
+ * Configure the mocked controller selectors to describe a failing network.
+ *
+ * @param overrides - Partial `FailedNetwork` fields to override the defaults.
+ * @returns The full failing-network object the selector will return.
+ */
+function mockFailedNetwork(overrides: Record<string, unknown> = {}) {
+  const network = {
+    networkClientId: 'test-client',
+    name: 'Ethereum Mainnet',
+    rpcUrl: 'https://mainnet.infura.io/v3/test-infura-project-id',
+    chainId: '0x1',
+    isInfuraEndpoint: true,
+    switchableInfuraNetworkClientId: null,
+    ...overrides,
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  networkMock.mockReturnValue(network as any);
+  return network;
+}
 
 describe('useNetworkConnectionBanner', () => {
   let mockTrackEvent: jest.Mock;
@@ -55,6 +80,9 @@ describe('useNetworkConnectionBanner', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    statusMock.mockReturnValue('available');
+    networkMock.mockReturnValue(null);
 
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
     jest.mocked(isPublicEndpointUrl).mockReturnValue(true);
@@ -93,30 +121,20 @@ describe('useNetworkConnectionBanner', () => {
     });
   };
 
-  it('returns the banner state from the selector', () => {
-    selectorMock.mockReturnValue({ visible: false });
+  it('returns the banner state from the controller selectors', () => {
     const { result } = renderHookWithProviders();
-    expect(result.current.networkConnectionBannerState).toStrictEqual({
-      visible: false,
-    });
+    expect(result.current.status).toBe('available');
+    expect(result.current.network).toBeNull();
   });
 
-  it('refreshes enabled-network metadata on mount', () => {
-    selectorMock.mockReturnValue({ visible: false });
+  it('refreshes enabled network metadata on mount', () => {
     renderHookWithProviders();
     expect(Engine.lookupEnabledNetworks).toHaveBeenCalledTimes(1);
   });
 
-  it('fires the banner-shown analytics event when the banner becomes visible', () => {
-    selectorMock.mockReturnValue({
-      visible: true,
-      chainId: '0x1',
-      status: 'degraded',
-      networkName: 'Ethereum Mainnet',
-      rpcUrl: 'https://mainnet.infura.io/v3/test-infura-project-id',
-      isInfuraEndpoint: true,
-      canSwitchToInfura: false,
-    });
+  it('fires the banner shown analytics event when the banner becomes visible', () => {
+    statusMock.mockReturnValue('degraded');
+    mockFailedNetwork();
 
     renderHookWithProviders();
 
@@ -133,18 +151,22 @@ describe('useNetworkConnectionBanner', () => {
   });
 
   it('does not fire analytics when the banner is hidden', () => {
-    selectorMock.mockReturnValue({ visible: false });
     renderHookWithProviders();
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   describe('updateRpc', () => {
-    it('navigates to the edit-network screen and tracks the click event', () => {
-      selectorMock.mockReturnValue({ visible: false });
+    it('navigates to the edit network screen and tracks the click event', () => {
+      statusMock.mockReturnValue('degraded');
+      mockFailedNetwork({
+        name: 'Polygon Mainnet',
+        rpcUrl: 'https://polygon-rpc.com',
+        chainId: '0x89',
+      });
       const { result } = renderHookWithProviders();
 
       act(() => {
-        result.current.updateRpc('https://polygon-rpc.com', 'degraded', '0x89');
+        result.current.updateRpc();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.EDIT_NETWORK, {
@@ -166,15 +188,16 @@ describe('useNetworkConnectionBanner', () => {
 
     it('records the RPC as "custom" when the URL is not public', () => {
       jest.mocked(isPublicEndpointUrl).mockReturnValue(false);
-      selectorMock.mockReturnValue({ visible: false });
+      statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork({
+        rpcUrl: 'https://my-private-rpc.example',
+        chainId: '0x1',
+        isInfuraEndpoint: false,
+      });
       const { result } = renderHookWithProviders();
 
       act(() => {
-        result.current.updateRpc(
-          'https://my-private-rpc.example',
-          'unavailable',
-          '0x1',
-        );
+        result.current.updateRpc();
       });
 
       expect(mockAddProperties).toHaveBeenCalledWith(
@@ -188,7 +211,6 @@ describe('useNetworkConnectionBanner', () => {
 
   describe('switchToInfura', () => {
     it('is a no-op when the banner is not visible', async () => {
-      selectorMock.mockReturnValue({ visible: false });
       const { result } = renderHookWithProviders();
 
       await act(async () => {
@@ -199,14 +221,13 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     it('is a no-op when no Infura endpoint is available', async () => {
-      selectorMock.mockReturnValue({
-        visible: true,
-        chainId: '0x89',
-        status: 'degraded',
-        networkName: 'Polygon Mainnet',
+      statusMock.mockReturnValue('degraded');
+      mockFailedNetwork({
+        name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        chainId: '0x89',
         isInfuraEndpoint: false,
-        canSwitchToInfura: false,
+        switchableInfuraNetworkClientId: null,
       });
       const { result } = renderHookWithProviders();
 
@@ -218,14 +239,13 @@ describe('useNetworkConnectionBanner', () => {
     });
 
     it('delegates to the controller, fires analytics, and shows a success toast', async () => {
-      selectorMock.mockReturnValue({
-        visible: true,
-        chainId: '0x89',
-        status: 'unavailable',
-        networkName: 'Polygon Mainnet',
+      statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork({
+        name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        chainId: '0x89',
         isInfuraEndpoint: false,
-        canSwitchToInfura: true,
+        switchableInfuraNetworkClientId: 'mainnet',
       });
       const { result } = renderHookWithProviders();
 
@@ -250,15 +270,17 @@ describe('useNetworkConnectionBanner', () => {
 
     it('does not show the toast when the controller rejects', async () => {
       mockMessengerCall.mockRejectedValueOnce(new Error('boom'));
-      selectorMock.mockReturnValue({
-        visible: true,
-        chainId: '0x89',
-        status: 'unavailable',
-        networkName: 'Polygon Mainnet',
+      statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork({
+        name: 'Polygon Mainnet',
         rpcUrl: 'https://polygon-rpc.com',
+        chainId: '0x89',
         isInfuraEndpoint: false,
-        canSwitchToInfura: true,
+        switchableInfuraNetworkClientId: 'mainnet',
       });
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
       const { result } = renderHookWithProviders();
 
       await act(async () => {
@@ -266,6 +288,7 @@ describe('useNetworkConnectionBanner', () => {
       });
 
       expect(mockShowToast).not.toHaveBeenCalled();
+      consoleErrorSpy.mockRestore();
     });
   });
 });

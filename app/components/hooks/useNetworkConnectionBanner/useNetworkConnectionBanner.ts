@@ -2,17 +2,20 @@ import { useCallback, useContext, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { hexToNumber } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
+import type {
+  FailedNetwork,
+  NetworkConnectionBannerStatus,
+} from '@metamask/network-connection-banner-controller';
+import {
+  selectNetworkConnectionBannerStatus,
+  selectNetworkConnectionBannerNetwork,
+} from '../../../selectors/networkConnectionBanner';
 import { useMessenger } from '../../../hooks/useMessenger';
 import Engine from '../../../core/Engine';
 import type { RouteMessengerInstance } from '../../Views/Wallet/messenger';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import type {
-  NetworkConnectionBannerState,
-  NetworkConnectionBannerStatus,
-} from '../../UI/NetworkConnectionBanner/types';
 import { isPublicEndpointUrl } from '../../../core/Engine/controllers/network-controller/utils';
 import onlyKeepHost from '../../../util/onlyKeepHost';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
@@ -32,12 +35,9 @@ function sanitizeRpcUrl(rpcUrl: string) {
 }
 
 const useNetworkConnectionBanner = (): {
-  networkConnectionBannerState: NetworkConnectionBannerState;
-  updateRpc: (
-    rpcUrl: string,
-    status: NetworkConnectionBannerStatus,
-    chainId: string,
-  ) => void;
+  status: NetworkConnectionBannerStatus;
+  network: FailedNetwork | null;
+  updateRpc: () => void;
   /**
    * Switch the default RPC endpoint to Infura for the current unavailable network.
    * Only available when the network has an Infura endpoint to switch to.
@@ -49,9 +49,8 @@ const useNetworkConnectionBanner = (): {
   const messenger = useMessenger<RouteMessengerInstance>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
-  const networkConnectionBannerState = useSelector(
-    selectNetworkConnectionBannerState,
-  );
+  const status = useSelector(selectNetworkConnectionBannerStatus);
+  const network = useSelector(selectNetworkConnectionBannerNetwork);
 
   // Refresh connectivity metadata for every enabled network when the banner
   // mounts. NetworkController only keeps the selected network's metadata fresh
@@ -63,72 +62,66 @@ const useNetworkConnectionBanner = (): {
   // Fire analytics whenever the banner is visible. The banner's show/hide
   // and 5s/30s escalation are driven by NetworkConnectionBannerController.
   useEffect(() => {
-    if (networkConnectionBannerState.visible) {
-      const sanitizedUrl = sanitizeRpcUrl(networkConnectionBannerState.rpcUrl);
+    if ((status === 'degraded' || status === 'unavailable') && network) {
+      const sanitizedUrl = sanitizeRpcUrl(network.rpcUrl);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN)
           .addProperties({
-            banner_type: networkConnectionBannerState.status,
-            chain_id_caip: `eip155:${hexToNumber(
-              networkConnectionBannerState.chainId,
-            )}`,
+            banner_type: status,
+            chain_id_caip: `eip155:${hexToNumber(network.chainId)}`,
             rpc_endpoint_url: sanitizedUrl,
             rpc_domain: sanitizedUrl,
           })
           .build(),
       );
     }
-  }, [networkConnectionBannerState, trackEvent, createEventBuilder]);
+  }, [status, network, trackEvent, createEventBuilder]);
 
-  const updateRpc = useCallback(
-    (
-      rpcUrl: string,
-      status: NetworkConnectionBannerStatus,
-      chainId: string,
-    ) => {
-      navigation.navigate(Routes.EDIT_NETWORK, {
-        network: rpcUrl,
-        shouldNetworkSwitchPopToWallet: false,
-        shouldShowPopularNetworks: false,
-        trackRpcUpdateFromBanner: true,
-      });
+  const updateRpc = useCallback(() => {
+    if ((status !== 'degraded' && status !== 'unavailable') || !network) {
+      return;
+    }
 
-      const sanitizedUrl = sanitizeRpcUrl(rpcUrl);
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
-        )
-          .addProperties({
-            banner_type: status,
-            chain_id_caip: `eip155:${hexToNumber(chainId)}`,
-            // @deprecated: will be removed in a future release
-            rpc_endpoint_url: sanitizedUrl,
-            rpc_domain: sanitizedUrl,
-          })
-          .build(),
-      );
-    },
-    [navigation, trackEvent, createEventBuilder],
-  );
+    navigation.navigate(Routes.EDIT_NETWORK, {
+      network: network.rpcUrl,
+      shouldNetworkSwitchPopToWallet: false,
+      shouldShowPopularNetworks: false,
+      trackRpcUpdateFromBanner: true,
+    });
+
+    const sanitizedUrl = sanitizeRpcUrl(network.rpcUrl);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
+      )
+        .addProperties({
+          banner_type: status,
+          chain_id_caip: `eip155:${hexToNumber(network.chainId)}`,
+          // @deprecated: will be removed in a future release
+          rpc_endpoint_url: sanitizedUrl,
+          rpc_domain: sanitizedUrl,
+        })
+        .build(),
+    );
+  }, [status, network, navigation, trackEvent, createEventBuilder]);
 
   const switchToInfura = useCallback(async () => {
-    if (!networkConnectionBannerState.visible) {
+    if (
+      (status !== 'degraded' && status !== 'unavailable') ||
+      !network ||
+      network.switchableInfuraNetworkClientId === null
+    ) {
       return;
     }
 
-    const { chainId, status, canSwitchToInfura } = networkConnectionBannerState;
-    if (!canSwitchToInfura) {
-      return;
-    }
-
-    const sanitizedUrl = sanitizeRpcUrl(networkConnectionBannerState.rpcUrl);
+    const sanitizedUrl = sanitizeRpcUrl(network.rpcUrl);
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED,
       )
         .addProperties({
           banner_type: status,
-          chain_id_caip: `eip155:${hexToNumber(chainId)}`,
+          chain_id_caip: `eip155:${hexToNumber(network.chainId)}`,
           rpc_endpoint_url: sanitizedUrl,
           rpc_domain: sanitizedUrl,
         })
@@ -138,7 +131,7 @@ const useNetworkConnectionBanner = (): {
     try {
       await messenger.call(
         'NetworkConnectionBannerController:switchToDefaultInfuraRpcEndpoint',
-        chainId,
+        network.chainId,
       );
 
       toastRef?.current?.showToast({
@@ -160,16 +153,11 @@ const useNetworkConnectionBanner = (): {
         error,
       );
     }
-  }, [
-    networkConnectionBannerState,
-    messenger,
-    trackEvent,
-    createEventBuilder,
-    toastRef,
-  ]);
+  }, [status, network, messenger, trackEvent, createEventBuilder, toastRef]);
 
   return {
-    networkConnectionBannerState,
+    status,
+    network,
     updateRpc,
     switchToInfura,
   };

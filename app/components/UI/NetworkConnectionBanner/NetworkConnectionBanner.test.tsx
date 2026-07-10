@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import type { FailedNetwork } from '@metamask/network-connection-banner-controller';
 
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 import NetworkConnectionBanner from './NetworkConnectionBanner';
@@ -36,6 +37,24 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 const useNetworkConnectionBannerMock = jest.mocked(useNetworkConnectionBanner);
 
+/**
+ * Build a `FailedNetwork` for the hook mock.
+ *
+ * @param overrides - Partial `FailedNetwork` fields to override the defaults.
+ * @returns The failing-network object.
+ */
+function makeNetwork(overrides: Partial<FailedNetwork> = {}): FailedNetwork {
+  return {
+    networkClientId: 'test-client',
+    name: 'Polygon Mainnet',
+    rpcUrl: 'https://polygon-rpc.com',
+    chainId: '0x89',
+    isInfuraEndpoint: false,
+    switchableInfuraNetworkClientId: null,
+    ...overrides,
+  };
+}
+
 describe('NetworkConnectionBanner', () => {
   const mockUpdateRpc = jest.fn();
 
@@ -44,9 +63,23 @@ describe('NetworkConnectionBanner', () => {
   });
 
   describe('when banner is not visible', () => {
-    it('does not render when visible is false', () => {
+    it('does not render when the status is available', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
-        networkConnectionBannerState: { visible: false },
+        status: 'available',
+        network: null,
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      const { root } = renderWithProvider(<NetworkConnectionBanner />);
+
+      expect(root).toBeUndefined();
+    });
+
+    it('does not render when there is no failing network', () => {
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'degraded',
+        network: null,
         updateRpc: mockUpdateRpc,
         switchToInfura: jest.fn(),
       });
@@ -86,15 +119,8 @@ describe('NetworkConnectionBanner', () => {
       'renders the banner with correct structure for $status status with custom network',
       ({ status, expectedMessage, updateRpcButtonText }) => {
         useNetworkConnectionBannerMock.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x89',
-            status,
-            networkName: 'Polygon Mainnet',
-            rpcUrl: 'https://polygon-rpc.com',
-            isInfuraEndpoint: false,
-            canSwitchToInfura: false,
-          },
+          status,
+          network: makeNetwork(),
           updateRpc: mockUpdateRpc,
           switchToInfura: jest.fn(),
         });
@@ -113,15 +139,13 @@ describe('NetworkConnectionBanner', () => {
       'renders the banner with correct structure for $status status with Infura network',
       ({ status, expectedMessage }) => {
         useNetworkConnectionBannerMock.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-            networkName: 'Ethereum Mainnet',
+          status,
+          network: makeNetwork({
+            name: 'Ethereum Mainnet',
             rpcUrl: 'https://mainnet.infura.io/v3/test',
+            chainId: '0x1',
             isInfuraEndpoint: true,
-            canSwitchToInfura: false,
-          },
+          }),
           updateRpc: mockUpdateRpc,
           switchToInfura: jest.fn(),
         });
@@ -141,15 +165,8 @@ describe('NetworkConnectionBanner', () => {
       'calls updateRpc when Update RPC button is pressed for $status status',
       ({ status, updateRpcButtonText }) => {
         useNetworkConnectionBannerMock.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x89',
-            status,
-            networkName: 'Polygon Mainnet',
-            rpcUrl: 'https://polygon-rpc.com',
-            isInfuraEndpoint: false,
-            canSwitchToInfura: false,
-          },
+          status,
+          network: makeNetwork(),
           updateRpc: mockUpdateRpc,
           switchToInfura: jest.fn(),
         });
@@ -159,11 +176,7 @@ describe('NetworkConnectionBanner', () => {
         const updateButton = getByText(updateRpcButtonText);
         fireEvent.press(updateButton);
 
-        expect(mockUpdateRpc).toHaveBeenCalledWith(
-          'https://polygon-rpc.com',
-          status,
-          '0x89',
-        );
+        expect(mockUpdateRpc).toHaveBeenCalled();
       },
     );
   });
@@ -184,15 +197,13 @@ describe('NetworkConnectionBanner', () => {
       'handles network with empty name for $status status',
       ({ status, expectedMessage }) => {
         useNetworkConnectionBannerMock.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-            networkName: '',
+          status,
+          network: makeNetwork({
+            name: '',
             rpcUrl: 'https://mainnet.infura.io/v3/test',
+            chainId: '0x1',
             isInfuraEndpoint: true,
-            canSwitchToInfura: false,
-          },
+          }),
           updateRpc: mockUpdateRpc,
           switchToInfura: jest.fn(),
         });
@@ -205,15 +216,11 @@ describe('NetworkConnectionBanner', () => {
 
     it('limits primary message to 2 lines for long network names', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x89',
-          status: 'unavailable',
-          networkName: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
+        status: 'unavailable',
+        network: makeNetwork({
+          name: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
           rpcUrl: 'https://custom-rpc.example.com',
-          isInfuraEndpoint: false,
-          canSwitchToInfura: false,
-        },
+        }),
         updateRpc: mockUpdateRpc,
         switchToInfura: jest.fn(),
       });
@@ -228,15 +235,8 @@ describe('NetworkConnectionBanner', () => {
 
     it('handles multiple rapid button presses', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x89',
-          status: 'degraded',
-          networkName: 'Polygon Mainnet',
-          rpcUrl: 'https://polygon-rpc.com',
-          isInfuraEndpoint: false,
-          canSwitchToInfura: false,
-        },
+        status: 'degraded',
+        network: makeNetwork(),
         updateRpc: mockUpdateRpc,
         switchToInfura: jest.fn(),
       });
@@ -251,11 +251,6 @@ describe('NetworkConnectionBanner', () => {
       fireEvent.press(updateButton);
 
       expect(mockUpdateRpc).toHaveBeenCalledTimes(3);
-      expect(mockUpdateRpc).toHaveBeenCalledWith(
-        'https://polygon-rpc.com',
-        'degraded',
-        '0x89',
-      );
     });
   });
 });
