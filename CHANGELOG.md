@@ -1,5 +1,4 @@
 # Changelog
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -8,16 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [8.1.1]
-
 ### Fixed
-
 - Fixed a failed swap when smart account upgrade is required (#33000)
 - Fixed Web Share API and blob/data downloads in the in-app browser on Android, and fixed a crash when sharing images from dapps (#33001)
 
 ## [8.1.0]
-
 ### Added
-
 - Add missing Component View Tests on Price Alerts (#32301)
 - Added interactive price charts to the Social Trading trader position view — buy/sell trade markers on the price line, (#32293)
   tap-to-focus between the chart and the trades list, and a day-grouped
@@ -47,7 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added check for price alerts supported networks (#32010)
 
 ### Changed
-
 - Revert "feat(networking): integrate nitro-fetch with startup prefetching" (#31206)
 - Improved QuickBuy and Weekly Top Traders interactions (#32392)
 - chore: migrate StackNavigationProp types to native-stack equivalents (#32119)
@@ -83,7 +77,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Force-hide MAX button for Arc USDC swap/bridge (#32135)
 
 ### Fixed
-
 - Fixed moving average indicators rendering at incorrect positions on the token details chart after navigating back to the same (#32275)
   token.
 - Fixed an issue where a Predict bet paid with another token could be submitted with no available swap route, causing the (#32032)
@@ -130,53 +123,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: show correct decimal places when managing price alerts (#31986)
 
 ## [8.0.4]
-
 ### Fixed
-
 - Fixed missing English translations in the 8.0.x OTA release. (#32750)
 
 ## [8.0.3]
-
 ### Changed
-
 - Reverted money.onboarding.step_1 copy to 8.0.0 state; apy variable is not used. (#32739)
 
 ### Fixed
-
 - Fixed failed order preview for Polymarket markets using non-standard tick sizes (e.g. World Cup match predictions) (#32720)
 
 ## [8.0.2]
-
 ### Added
-
 - Added World Cup "Extra Time?" and "Penalty Shootout?" markets to the game details page. (#32609)
 - Added a Regulation Time tag and contextual info for applicable World Cup prediction markets. (#32610)
 - Added World Cup-specific market labels and tooltip info for Predict moneyline and team-to-advance markets. (#32573)
 
 ### Changed
-
 - Removed World Cup shortcut pills from the Predict empty state. (#32600)
 - Improved Money account deeplink handling to surface accurate unavailability messages for maintenance, gradual rollout exclusion, and version-gate states. (#32622)
 
 ### Fixed
-
 - Fixed a bug that could show flipped odds chart labels. (#32597)
 - Fixed Predict deposit-wallet address resolution for new Polymarket BeaconProxy wallets while preserving existing wallets. (#32614)
 
 ## [8.0.1]
-
 ### Added
-
 - Added a Wimbledon tab to Predict and fixed sports home/away ordering consistency in scoreboards. (#32546)
 
 ### Changed
-
 - Replaced faulty money first time deposit animation and removed parallax effect. (#32535)
 
 ## [8.0.0]
-
 ### Added
-
 - Added Bitcoin Wallet Standard connectivity support for compatible dapps (#27071)
 - After completing a Transak purchase in unified buy, the app now opens Ramps Order Details with the order resolved from the (#29623)
 - Added a Related markets rail on Perps market details for easier market discovery (#30728)
@@ -207,7 +186,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add validation when depositing into Perps/Predict when Money account total value exceeds balance. (#32313)
 
 ### Changed
-
 - chore: sync stable into release/8.0.0 (#32389)
 - chore: sync stable into release/8.0.0 (#32192)
 - Show batch-sell activity list item label (#32184)
@@ -287,7 +265,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Check and display withdrawable balance for Money accounts. (#32452)
 
 ### Fixed
-
 - Fixed the Send flow incorrectly rejecting valid Ethereum addresses whose casing did not match the EIP-55 checksum. (#31639)
 - Fixed the Card screen navigation animation so it matches its entry point, and allowed Money Account linking to continue (#31909)
 - Excluded zero-OI markets by default (#29761)
@@ -380,15 +357,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed formatting for high precision APY values; cleaned up projection surfaces to use apyDecimal. (#32419)
 
 ## [7.82.1]
-
 ### Added
-
 - Added support for Predict the Pitch campaign deeplink (#32266)
 
 ## [7.82.0]
-
 ### Added
-
 - VIP rewards surfaces (home VIP icon, VIP splash page) and VIP controller endpoints (getVIPDashboard, getVipTierForAccount, getPerpsDiscountForAccount) are now gated behind the vipProgramEnabled feature flag. (#31531)
 - Improved deep link routing to support direct startup navigation for Perps, Swap, Predict, and Trending flows. (#31160)
 - Migrate zkSync Era default RPC to Infura (#31562)
@@ -421,7 +394,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded pressable region to make selecting token easier in batch sell. (#31673)
 
 ### Changed
-
 - chore(pure-black): elevate ActionModal surface; remove orphan CustomAlert and CollectibleContractInformation (#31178)
 - Bump `@metamask/assets-controllers` from 108.4.0 to 109.0.0 (#31508)
 - chore: remove unused CollectiblesDetails route and CollectibleModal (#31482)
@@ -437,7 +409,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added feature flag for watchlist. (#31581)
 
 ### Fixed
-
 - Updated the Sei network and token logos to fix sizing and use the correct brand treatment. (#31108)
 - Fixed Batch Sell final review showing a disabled "Sell all" button with no explanation when network fees fail to load (#31224)
 - Fixed the World Cup events count shown in the homepage Predictions discovery row. (#31465)
@@ -462,32 +433,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed incorrect Predict bet submission labels and icons for moneyline markets. (#31648)
 
 ## [7.81.2]
-
 ### Changed
-
 - Enhance PredictMarketRowItem with endAccessory prop and remove NBA champion discovery references. (#31923)
 
 ### Fixed
-
 - Fix odds prices stale on feed cards and event page during live markets (#31922)
 - Fix extended sports outcome grouping, spread ordering, and live pricing (#31934)
 
 ## [7.81.1]
-
 ### Added
-
 - Adds Swap/Bridge feature to ARC mainnet. (#31413)
 
 ### Fixed
-
 - Fixed the MetaMask Card section on the Money screen so the "Link card" option and funding token placeholders are only shown when the card spending token is enabled in the card feature configuration. (#31611)
 - Removed the trailing slash from the Arc explorer URL defined in app/util/networks/customNetworks.tsx so now the URL is correctly generated. (#31718)
 - Fixed Arc native token support, included patches for MetaMask/core#9006 and MetaMask/core#9007 (#31662)
 
 ## [7.81.0]
-
 ### Added
-
 - Add Arc as Default Network (network/native logo + native price + multicall) (#30879)
 - Adds top movers section to perps home (#30897)
 - Added QR login flow for MetaMask Agent CLI, including OTP pairing and dashboard project selection in a WebView. (#30911)
@@ -562,7 +525,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Track explore conversions in swaps (#30720)
 
 ### Changed
-
 - Updated the Sei native token icon to Sei's maroon token mark. (#31038)
 - Updated the Sei network and token logo to Sei's new brand mark. (#30892)
 - Improve crypto movers section in explore (#30809)
@@ -570,7 +532,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore(pure-black): use background.section for bottom sheets that disappear against pure black (#30411)
 
 ### Fixed
-
 - Fixed token balances not updating immediately after a swap when the unified assets state is enabled. (#31091)
 - Fixed a crash during social login onboarding when completing wallet creation (#31076)
 - Added an "Earn up to X% APY" prompt on the Money account input screen empty state. (#31064)
@@ -651,9 +612,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore(pure black): fix elevated surface token use background.alternative for first-level sheets (#30696)
 
 ## [7.80.0]
-
 ### Added
-
 - Track explore conversions in swaps (#30720)
 - Added metrics to explore search V2 (#30376)
 - Add forward-looking CODEOWNERS glob for mobile assets namespace. (#30305)
@@ -662,7 +621,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add claude.md file to wrap agents.md (#30395)
 
 ### Changed
-
 - Bumped bitcoin snap v1.11.0 (#30705)
 - Simplify explore v2 implementation (#30643)
 - chore(release): sync stable to main for version 7.78.0 (#30568)
@@ -680,22 +638,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the Palm network from the popular networks picker. (#30371)
 
 ### Fixed
-
 - chore(pure black): fix elevated surface token use background.alternative for first-level sheets (#30696)
 - Show even zero APY values on money home (#30630)
 - chore(pure-black): use background.section for bottom sheets that disappear against pure black (#30411)
 - Fixed a bug that could allow prediction orders on markets that are no longer accepting bets. (#30403)
 
 ## [7.79.1]
-
 ### Fixed
-
 - Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
 
 ## [7.79.0]
-
 ### Added
-
 - Polished the Money Account Home with the spendable mUSD balance in the token row subtitle, a "No fee" badge and "Add" button on (#30437)
   Earn Crypto rows, a hidden "Add your $X mUSD" entry on the Add money
   sheet when the balance is zero, a refreshed "How it works" description
@@ -790,7 +743,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a postonboarding checklist on the wallet home when balance is empty (#28851)
 
 ### Fixed
-
 - No-changelog (#30498)
 - Prefer the selected EVM account when resolving Perps account state and compliance-gated actions. (#30253)
 - Fixed stale Predict markets appearing in discovery feeds and search results. (#30405)
@@ -844,9 +796,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - @metamask/mobile - Fixed: Add CMAKE_VERSION override to build.yml to fix Android CI build after RN 0.81.5 upgrade (#29899)
 
 ## [7.78.1]
-
 ### Added
-
 - Updated the onboarding interest questionnaire layout to a two-column grid with refreshed option labels. (#30753)
 - Show transfers in the money account account activity list (#30537)
 - Added the client version to the transaction metadata (#30726)
@@ -941,7 +891,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Money Account from the card (revoke USDC allowance).
 
 ### Fixed
-
 - Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
 - Fixed the "Add mUSD" option in the Money account "Add money" sheet so it opens the deposit flow with mUSD pre-selected, and (#30741)
   corrected the in-progress / success / failed toast copy for both the
@@ -1003,9 +952,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug that caused Predict pay-with-any-token alerts to flicker while quotes were loading (#30108)
 
 ## [7.78.0]
-
 ### Added
-
 - Added a Braze-driven promotional banner to the wallet home screen. (#29301)
 - Added a Money Account onboarding flow. (#30137)
 - Added a postonboarding checklist on the wallet home shown when the balance is empty. (#28851)
@@ -1024,7 +971,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Displayed the total benefits count on the Rewards benefits preview header. (#30063)
 
 ### Changed
-
 - Updated the primary CTA on the Money Account onboarding stepper to read "Add funds". (#29909)
 - Updated Predict buy previews to include market fees in totals and balance checks. (#29881)
 - Updated Bridge navigation to use the native stack with in-screen headers for Bridge, token selection, and quote selection. (#29829)
@@ -1037,7 +983,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed gas alerts from the confirmation modal in gasless flows and updated the 10 MON minimum-reserve alert copy. (#29835)
 
 ### Fixed
-
 - Fixed a regression where gas estimate alerts had stopped showing in confirmations. (#30266)
 - Fixed underline positioning in the React Native Scrollable Tab View. (#30133)
 - Fixed a bug where failed builder fee approval was permanently cached, causing subsequent Perps orders to fail. (#30095)
@@ -1050,25 +995,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where EIP-7702 authorization signatures with leading zero bytes in `r` or `s` could be rejected by relays and public RPCs. (#29717)
 
 ## [7.77.2]
-
 ### Fixed
-
 - Fixed Hyperliquid perps `deposit-and-order` transactions not routing through the correct Relay deposit flow. (#30407)
 
 ## [7.77.1]
-
 ### Added
-
 - Added support for cross-chain withdrawals through MetaMask Pay in Predict for users with a Polymarket Deposit Wallet, while keeping the existing "withdrawals unavailable" sheet for users who do not have the feature enabled. (#29953)
 
 ### Fixed
-
 - Fixed a bug that caused a user's first Predict deposit to fail while their Polymarket Deposit Wallet was still being registered. (#30267)
 
 ## [7.77.0]
-
 ### Added
-
 - Added the Rewards Perps Trading Campaign with a details page, stats page, leaderboard, prize pool, tour, and opt-in flow. (#29323)
 - Added a Money balance card to the wallet home screen showing the user's Money Account balance, vault APY, and a quick action to add funds. (#29724)
 - Added an explore page v2 behind a feature flag. (#29473)
@@ -1085,7 +1023,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Disabled tx management on the Tempo testnet (Moderato). (#29425)
 
 ### Changed
-
 - Removed the sites arrow column from the sites tab. (#29861)
 - Updated the Card feature to display "mUSD back" instead of "cashback" in all user-facing text. (#29683)
 - Improved the Money home experience behind the feature flag by wiring real navigation (sheets, Card flows, potential earnings, and conversion), replacing the Activity tab when the flag is enabled, and showing projected earnings using live APY and balance data. (#29454)
@@ -1096,7 +1033,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Aligned the data fetch on stocks. (#29795)
 
 ### Fixed
-
 - Fixed a bug where the "Your balance" heading on the Money Hub stayed pinned to the top of the screen instead of scrolling with the content. (#29863)
 - Fixed open order trigger/limit prices showing only 2 decimals instead of market-appropriate precision. (#29799)
 - Fixed NFT details not showing the collection name. (#29551)
@@ -1125,22 +1061,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cleared the gas sponsorship flag for hardware wallet transactions. (#30023)
 
 ## [7.76.3]
-
 ### Added
-
 - Added Predict transaction publishing hooks to support the Polymarket Deposit Wallet flow. (#29914)
 - Added support for depositing to a Polymarket Deposit Wallet in Predict, while preserving legacy Safe behavior for users with existing Polymarket activity. (#29917)
 - Added Polymarket Deposit Wallet order placement support in Predict. (#29933)
 - Added support for claiming Predict positions through the Polymarket Deposit Wallet. (#29936)
 
 ### Fixed
-
 - Disabled Predict withdrawals for Polymarket Deposit Wallet users with a temporary "withdrawals unavailable" bottom sheet, while legacy Safe users keep the existing flow. (#29941)
 
 ## [7.76.0]
-
 ### Added
-
 - Added the Tempo chain to the additional networks list. (#29515)
 - Added security trust badges in the token list. (#29509)
 - Added a new "Add money" bottom sheet to the Money Account homepage with Convert crypto, Deposit funds, Move mUSD, and Receive from external wallet options. (#29336)
@@ -1156,7 +1087,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a warning flow in bridge quotes when token price data is unavailable. (#29250)
 
 ### Changed
-
 - Enabled Suspicious and Malicious security badges on tokens in the Swaps/Bridge asset picker. (#29570)
 - Updated the description under the "Smart account requests from dapps" setting to clarify that MetaMask will only upgrade to our audited smart account. (#29211)
 - Updated Predict confirmations to display pUSD as the Predict token. (#29450)
@@ -1171,7 +1101,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adjusted spacing for money activity filters. (#29463)
 
 ### Fixed
-
 - Fixed a bug where the -1%/-2% limit price preset buttons only applied on the first press. (#29373)
 - Fixed Card Home flickering during refresh and kept Add funds available for frozen cards. (#29513)
 - Fixed a bug that caused the MetaMask Card spending limit screen to default to full access when a custom limit was already set. (#29517)
@@ -1189,15 +1118,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hid the sponsored label on cross-chain bridge with insufficient balance. (#29490)
 
 ## [7.75.1]
-
 ### Fixed
-
 - Fixed Hyperliquid withdraw showing $0 and being blocked for users on Unified Account mode. (#29492)
 
 ## [7.75.0]
-
 ### Added
-
 - Added support for ENS v2 (#29258)
 - Added a Rive-based animated fox splash screen in place of the static loading spinner for a smoother app launch experience (#29003)
 - Hid multichain Activity entries involving tokens flagged as malicious by security scanning, consistent with how malicious tokens are handled on the assets overview (#29239)
@@ -1214,7 +1139,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a migration that resets the native balance to 0 on Tempo chains (#28869)
 
 ### Changed
-
 - Hid token warnings in the Swaps asset picker temporarily (#29278)
 - Improved MetaMask Card login fields to use the design-system `TextField` with correct username/password autocomplete hints for accessibility and password managers (#29215)
 - Moved the Cashback action on Card Home directly under Change asset; the Change asset row no longer shows a trailing chevron in the bottom sheet (#29219)
@@ -1229,7 +1153,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Settings copy so the IPFS gateway is described under Security and privacy instead of Advanced (#29045)
 
 ### Fixed
-
 - Fixed featured carousel showing secondary markets instead of the match winner for sports events (#29001)
 - Fixed featured carousel showing sports games that had already ended (#29000)
 - Fixed Tempo transactions to fall back to a classic transaction when contract deployment is required (#29078)
@@ -1254,27 +1177,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed missing token icons in the predictions pay-with picker for zero-balance tokens (#27702)
 
 ## [7.74.3]
-
 ### Fixed
-
 - Fix polymarket adapter contract addresses for Android
 
 ## [7.74.2]
-
 ### Fixed
-
 - Updated Polymarket adapter contracts so Polymarket prediction transactions continue working after the relayer migration. (#29573)
 
 ## [7.74.1]
-
 ### Fixed
-
 - Fixed the environmental issue that push notifications not received on Android
 
 ## [7.74.0]
-
 ### Added
-
 - Added an unfunded state on the Card home screen (#28891)
 - Added realized PnL percentage display on closed positions (#28875)
 - Added reward campaign deeplinks for mUSD (#28802)
@@ -1286,7 +1201,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a Leaderboard profile page (#28583)
 
 ### Changed
-
 - Updated chart layout spacing on legacy and advanced charts (#28920)
 - Removed geo-restrictions for RWA tokens in the Stocks view (#28872)
 - Updated badge color and position (#28857)
@@ -1299,7 +1213,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the network filter from the Money (mUSD) tokens view (#28673)
 
 ### Fixed
-
 - Fixed the outline pill showing on advanced charts when the chart head is visible on old history (#28837)
 - Fixed blank advanced charts by falling back to the legacy chart when the new OHLCV API returns an empty result (#28728)
 - Fixed a crash in the featured carousel when sport team alias data was missing (#28937)
@@ -1327,26 +1240,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the info icon color next to the "Your bonus" heading and in the mUSD conversion navbar to match the design spec (#28718)
 
 ## [7.73.2]
-
 ### Added
-
 - Added Polymarket CLOB v2 support (#29076)
 
 ### Fixed
-
 - Fixed Perps $0 balance display for accounts funded via HyperLiquid spot USDC (#29110)
 - Fixed Perps balance not refreshing after trades, funding, or transfers for HyperLiquid users, and corrected total balance inflation on Unified-mode accounts (#29226)
 
 ## [7.73.1]
-
 ### Fixed
-
 - Fixed google and Apple login issue
 
 ## [7.73.0]
-
 ### Added
-
 - Added runway production workflows (#27887)
 - Added feature-flagged "withdraw to any token" flow for Perps, allowing users to withdraw Perps funds to any supported token via MetaMask Pay (#28265)
 - Added a token safety banner and warning modal in Swaps that alerts users when the destination token is flagged as suspicious or malicious before proceeding with a swap (#27834)
@@ -1362,13 +1268,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Import SRP screens always show BIP39 word suggestions when the keyboard is open, with no remote feature flag (#28139)
 
 ### Changed
-
 - Updated Swaps and Bridge error messaging with specific, actionable error banners when a quote stream ends with a known failure reason (#28127)
 - Updated how the ramp provider is selected (#27942)
 - Improved analytics consistency during social login onboarding (#28015)
 
 ### Fixed
-
 - Fixed Transaction Finalized tracking by deriving mm_pay metrics from controller state (#28164)
 - Fixed Bitcoin PSBT build errors to include the underlying cause for better diagnostics (#28282)
 - Fixed stuck pending withdraw (#26537)
@@ -1398,15 +1302,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Ondo campaign opt-in to respect cutoff date (#28000)
 
 ## [7.72.1]
-
 ### Fixed
-
 - Fixed a bug where users in restricted regions could open perps positions from the Market Insights page (#28688)
 
 ## [7.72.0]
-
 ### Added
-
 - Card Spending limit screen analytics include Linea mUSD fiat balance, top card-supported asset by fiat, and top wallet-wide asset by fiat when the screen is viewed (#27981)
 - Upgrade @metamask/seedless-onboarding-controller to v9.0.0 (#27859)
 - Added new workflow runway_ios_rc_workflow (#27662)
@@ -1430,7 +1330,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Braze SDK integration for push notification delivery (#28143)
 
 ### Changed
-
 - Changed the default in-app browser search engine to Brave Search for a privacy-focused, ad-free browsing experience (#26356)
 - Updated ERC-20 token balance loading to resolve balances via an API call instead of cache-only reads (#27611)
 - Improved Predict withdraw token list load performance (#27735)
@@ -1457,7 +1356,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved cross-chain bridge activity visibility on the destination chain (#27536)
 
 ### Fixed
-
 - fix: replace static hex colors with design tokens in test files (#26396)
 - Fixed Perps PnL comma formatting (#27815)
 - Fixed incorrect aggregated PnL and order size for multi-fill trades on Perps market and home (#27906)
@@ -1482,15 +1380,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed token details sticky swap actions to use balance-aware defaults (#28151)
 
 ## [7.71.1]
-
 ### Changed
-
 - Pointed Market Insights digest fallback URL at the production endpoint when `DIGEST_API_URL` is not set at build time (#28098)
 
 ## [7.71.0]
-
 ### Added
-
 - Added backend-provided intent typedData for signing intent swap txs (#25913)
 - Added Security & Trust section to Token Details page showing risk level, contract security features, buy/sell tax, token distribution, and official links powered by Blockaid (#27073)
 - Added a "Withdraw" button to the unstaked TRX banner so users can claim TRX that has completed the lock period (#27076)
@@ -1517,14 +1411,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated mUSD aggregated balance row to redirect to the Cash tokens list when the user holds mUSD on any network (#27703)
 
 ### Changed
-
 - Removed deprecated payment request (#27519)
 - Updated earn balance row layout (logo size, badge size, balance/percentage placement) and added privacy mode support for StakingBalance and EarnLendingBalance (#27457)
 - Refactored Card onboarding to use the `useRegions` hook instead of Redux `selectedCountry` for region/country data (#27539)
 - Adjusted spacing in homepage (#27637)
 
 ### Fixed
-
 - Fixed a bug where closing the "Token not available" modal left the user in a stuck state instead of navigating back to the token selection screen (#27277)
 - Fixed false "Token Not Available" errors during Buy flow when payment methods are still loading after provider change; fixed missing "Token Not Available" modal in home buy flow; fixed crash when navigating back from "Token Not Available" modal in token info buy flow (#27448)
 - Fixed token row display on homepage to show price and variation separated by a dot for consistency with token list items (#27449)
@@ -1545,16 +1437,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed miscategorization of BRENTOIL and other non-crypto instruments appearing in the "Explore Crypto" section on Perps Home (#27699)
 
 ## [7.70.1]
-
 ### Fixed
-
 - Fixed stale perpetuals data and missing 24h price change after returning from background (#27530)
 - Fixed a bug where closing positions on HIP-3 markets (e.g., xyz:BRENTOIL) failed with "Asset ID not found" when navigating via the Perps tab (#27854)
 
 ## [7.70.0]
-
 ### Added
-
 - Add auth header to bridge getToken calls (#26191)
 - Add a Contact Support button on CardHome (#27421)
 - Added an mUSD bonus calculator to the Rewards tab (#27398)
@@ -1575,7 +1463,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a live blinking cursor to the Ramp Buy and Sell amount input screens for a more intuitive input experience (#27292)
 
 ### Changed
-
 - Updated the mUSD conversion flow to redirect users to the home page if they've "Max" converted their last eligible token (#27383)
 - Updated Bridge token selector balance sizing and color hierarchy (#27197)
 - Improved RPC URL display in Networks Management to hide protocol and API keys, matching Network Selector (#27067)
@@ -1591,7 +1478,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated View more card styling with background color and updated Perps View more to navigate to market list (#27078)
 
 ### Fixed
-
 - Fixed Ledger connect screen image being cut off on iOS after using the keyboard. (#27665)
 - Fixed a bug where tapping perpetuals items on the homepage did not show the tutorial for first-time users (#27423)
 - Fixed UI styling on perps, explore and predictions (#26890)
@@ -1629,16 +1515,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed missing block explorer link on "Receive mUSD" row for Linea USDT and DAI conversions using aggregator routes (#27022)
 
 ## [7.69.1]
-
 ### Fixed
-
 - Fixed root pages scrollable behavior with SafeAreaView, standardizing safe area and header inset handling across main tab views (#27446)
 - Fixed token prices in the wallet list displaying without thousand-separator commas and with too many decimal places (#27485)
 
 ## [7.69.0]
-
 ### Added
-
 - Add network logo for Tempo mainnet (#26904)
 - Added the "refundTo" param for postQuote transactions, so refunds from Relay will be refunded back to Predict balance (#27065)
 - Added MYX Finance as a second perpetuals provider with provider+network switching UI and validated market data (#26553)
@@ -1652,7 +1534,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added blue claim button to the homepage Predictions section for users with claimable winnings (#26650)
 
 ### Changed
-
 - Updated mUSD conversion flow copy to replace boost with bonus (#26453)
 - Removed showing OTA modal when users are on onboarding screen (#26839)
 - Inlined perps "Add funds" flow in the pay-with token filter so the Pay With modal no longer depends on a deposit callback from the parent (#26543)
@@ -1667,7 +1548,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed territory field for unified formatting (#26623)
 
 ### Fixed
-
 - Refactored Ramp buyability to add batched useTokensBuyability with keyed results and keep useTokenBuyability as a backward-compatible wrapper, reducing redundant legacy token-cache fetches for multi-token checks (#25539)
 - Fixed incorrect error message shown when there is not enough native token to cover gas fees during a withdrawal (#27001)
 - Fixed missing Ramps Button Clicked analytics event when tapping Buy on the homepage token empty state (#27058)
@@ -1693,28 +1573,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue that could cause repeated Bridge RPC balance calls and improved how quickly source balances appear after token selection (#25952)
 
 ## [7.68.3]
-
 ### Fixed
-
 - Fixed seedless onboarding vault decryption crash by handling both vault formats in encryptorAdapter (#27393)
 - Fixed OTA environment variable configuration to use new build flag (#26668)
 
 ## [7.68.2]
-
 ### Fixed
-
 - Fixed a bug that permanently locked some seedless onboarding users out of their wallets after a background token refresh (#27382)
 
 ## [7.68.1]
-
 ### Added
-
 - Add support for additional icon colors in Snaps `Icon` component (#27335)
 
 ## [7.68.0]
-
 ### Added
-
 - Implemented mUSD Cashback on the Card dashboard (#26586)
 - Added a persistent "Submitting your trade" toast during Perps order placement (#26432)
 - Added mUSD Quick Convert flow (#26581)
@@ -1741,7 +1613,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added network pill overflow with "+X more" button in the bridge token selector (#25893)
 
 ### Changed
-
 - Updated prediction buy fee details UI to improve readability and updated fee breakdown copy (#26524)
 - Updated Predict withdraw toast to show the actual token symbol and amount instead of hardcoded USDC (#26418)
 - Updated full-screen confirmation/loading for mUSD Quick Convert to use the bottom-sheet flow (#26437)
@@ -1760,7 +1631,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated mUSD claim bonus subtitle copy (#26019)
 
 ### Fixed
-
 - Fixed pull-to-refresh gesture intercepting taps on buttons near the top of the page in the in-app browser (#26373)
 - Fixed Perps failure tightly coupled to trending feature (#26549)
 - Fixed a potential decompression bomb vulnerability in the deeplink connection flow by adding streaming output size limits (#26542)
@@ -1798,18 +1668,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed keyboard not hiding when scrolling in explore search (#26577)
 
 ## [7.67.3]
-
 ### Fixed
-
 - Fixed an issue with running Snaps (#26992)
 - Improve reliability of persistence (#26979
 - Fixed Perps WebSocket not reconnecting after app resume from background or WiFi/network toggle (#26780)
 - Remove duplicate AppState listener causing reconnection race (#26982)
 
 ## [7.67.0]
-
 ### Uncategorized
-
 - chore: merge stable into release 7.67.0 branch (#26496)
 - chore: make OTA Version Display more robust (#26295)
 - Bump new assets controller to v2.0.0 (#26166)
@@ -1834,7 +1700,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore(release): sync stable to main for version 7.66.0 (#25802)
 
 ### Added
-
 - Gas sponsorship UI (#26252)
 - Replaced webview-based Veriff KYC flow with native Veriff SDK integration, featuring MetaMask-branded UI with dynamic (#26138)
   light/dark theme support, custom fonts, and fox logo
@@ -1884,7 +1749,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Base setup for in-app provisioning (#25669)
 
 ### Fixed
-
 - Adds analytics instrumentation for Token Details V2 layout A/B test (#25844)
 - Fix issues with balance rounding, localization formatting and decimal representation on source swap asset balance. (#26267)
 - Keypad bottom border is visible occasionally on Android (#26229)
@@ -1939,15 +1803,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pass assetID to the on ramp buy screen. (#25709)
 
 ## [7.66.1]
-
 ### Fixed
-
 - remove process.env spread (#26528)
 
 ## [7.66.0]
-
 ### Added
-
 - Adds a page for changing preferred ramp provider (#25860)
 - Add asset overview deeplinks (#25447)
 - Restored the previously selected "Pay with" token when returning to the Perps order view within 5 minutes. (#25938)
@@ -2008,7 +1868,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced transaction details modal with bottom sheet for improved UX consistency (#25400)
 
 ### Fixed
-
 - Remove deeplink interstitial on dApp deeplinks (#25963)
 - Multiple fixes on import token flow (#25962)
 - Fixed decimal precision calculation for Tron's staked balance (#25430)
@@ -2064,9 +1923,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   push the search input off screen.
 
 ## [7.65.0]
-
 ### Added
-
 - Added WebSocket connection health toast notification for Perps trading to show real-time connection status with manual retry (#25022)
   option
 - Update the look of the "Earn %" CTA displayed for ETH and Tron staking products to tag style (#25722)
@@ -2137,7 +1994,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new swaps asset picker (#22712)
 
 ### Fixed
-
 - Fixes padding in add chain approval bottom sheet (#25671)
 - Refactored (#25613)
 - N/a (#25642)
@@ -2201,15 +2057,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed swaps network filtering logic to only filter source networks (#25092)
 
 ## [7.64.1]
-
 ### Fixed
-
 - fix: check chainRanking against ALLOWED_BRIDGE_CHAIN_IDS (#25808)
 
 ## [7.64.0]
-
 ### Added
-
 - Change CardHome button colors (#25737)
 - Added one-click trading for Perps, allowing users to deposit funds and execute trades seamlessly within the order view (#24964)
 - Update slippage UI, adding option for users to set a custom slippage (#25124)
@@ -2283,7 +2135,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added replaces active tab if max tabs are open and request comes from trending (#24555)
 
 ### Fixed
-
 - Fixed a bug where the currently selected swap asset would be pinned to the top of the asset picker list even when it didn't (#25395)
   match the search query
 - Enables the “Got it” button in an alert (#25368)
@@ -2350,17 +2201,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed a bug where TextField components could wrap text to multiple lines even when multiline={false} (#24584)
 
 ## [7.63.1]
-
 ### Fixed
-
 - fix: Android ANR bug (#25596)
 - fix(analytics): cp-7.63.1 correct capitalization in Deep link event name (#25599)
 - feat(perps): sdk reconnect on native socket event (#25022, #25573)
 
 ## [7.63.0]
-
 ### Added
-
 - Added "Claim bonus" CTA on token list items for tokens with claimable mUSD bonuses, with automatic scroll to claim section on (#24982)
   asset details page
 - Removed unnecessary security alerts when revoking token permissions from malicious addresses (#24592)
@@ -2483,7 +2330,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   significantly from spot price
 
 ### Fixed
-
 - Fixed "Get 3% Stablecoins" heading being rendered on 3 lines. (#25052)
 - Fixed `Stake` button showing for assets in the Tron network that were not native TRX (#25043)
 - Updated design of perps SortBy bottomSheet (#24970)
@@ -2643,22 +2489,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent any dialogs for multichain wallet Snaps (Solana, Bitcoin, Tron) (#23218)
 
 ## [7.62.2]
-
 ### Fixed
-
 - fix: cherry-pick 429 rate limiting fix with coin naming convention (#25443)
 - fix(perps): potential rate limit on close positions (#25456)
 
 ## [7.62.1]
-
 ### Fixed
-
 - fix: update selectedGasFeeToken when payment token is selected for gasless flow (#25273)
 
 ## [7.62.0]
-
 ### Added
-
 - Add first iteration of mUSD conversion segment events (#24457)
 - Added Perps Discovery Banner on spot asset detail screens to help users discover perpetual trading options (#24512)
 - Adopted new ramp controller variable names (#24280)
@@ -2742,7 +2582,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   significantly from spot price
 
 ### Fixed
-
 - Fixed a bug where quotes would attempt to refresh even while a swap was being actively submitted (#24552)
 - None (#24548)
 - Adds predict sports primitives (#24506)
@@ -2874,9 +2713,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prevent any dialogs for multichain wallet Snaps (Solana, Bitcoin, Tron) (#23218)
 
 ## [7.61.6]
-
 ### Fixed
-
 - fix: fix apr issue display value cp-7.61.6 (#24382)
 - chore: bump @metamask/tron-wallet-snap to version 1.19.0 cp-7.61.6 (#24378)
 - fix(tron): max energy and bandwidth incorrectly set to 1 instead of 0 cp-7.61.6 (#24376)
@@ -2885,22 +2722,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: fix apr issue with znon-zero values cp-7.61.6 (#24261)
 
 ## [7.61.5]
-
 ### Fixed
-
 - fix: robustness deeplinking (#24227)
 - chore: refine hardware signing flow (#24228)
 
 ## [7.61.4]
-
 ### Fixed
-
 - chore: robust implementation dapp connection (#24222)
 
 ## [7.61.3]
-
 ### Fixed
-
 - feat: add Tron stakeComputeFee and other improvements (#24209)
 - feat: NWNT-681: Add useTronStakeApy hook (#24206)
 - feat: add support for accountChanged for Tron network (#24207)
@@ -2913,22 +2744,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: connection updates and improvements (#24215)
 
 ## [7.61.2]
-
 ### Fixed
-
 - fix: Fix bug where EIP-1559 compatibility check was skipped in some circumstances (#24166)
 
 ## [7.61.1]
-
 ### Fixed
-
 - fix: fix rounding issue (#24032)
 - fix(ramp): enable WebView scrolling in Checkout on Android cp-7.61.1 (#24081)
 
 ## [7.61.0]
-
 ### Added
-
 - feat: previous season summary (#23329)
 - feat: MUSD-108 Pre-select payment token for mUSD conversion flow (#23225)
 - feat: add stop loss prompt banner to PerpsMarketDetailsView (#23325)
@@ -3129,7 +2954,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Add geo-blocking analytics tracking (#22126)
 
 ### Fixed
-
 - fix: fix recipient account icons cp-7.60.0 (#23362)
 - fix: Reset recipient when existing asset selected but new one picked (#23312)
 - fix: update staking UI (#23169)
@@ -3413,15 +3237,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: styling for backup and sync toggle. (#22128)
 
 ## [7.60.4]
-
 ### Fixed
-
 - fix(perps): add fallback subscriptions for missing HyperLiquid API fields cp-7.60.4 (#23753)
 
 ## [7.60.3]
-
 ### Fixed
-
 - chore(runway): cherry-pick feat: add megaeth to additional networks (#23599)
 - chore(runway): cherry-pick fix: select megaeth when all popular network selected cp-7.60.3 (#23609)
 - chore(runway): cherry-pick fix: Prevent interstitial from appearing on barebones deeplinks (#23651)
@@ -3429,22 +3249,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore(runway): cherry-pick chore: Fix to only bypass 'Redirect' modal for in-app signed links (#23702)
 
 ## [7.60.2]
-
 ### Fixed
-
 - chore(runway): cherry-pick fix: cp-7.60.2 overwrite account upgrade in metamask pay (#23542)
 - chore(runway): cherry-pick feat(predict): cp-7.60.2 add auto-refresh polling when country is missing (#23518)
 
 ## [7.60.1]
-
 ### Fixed
-
 - chore(runway): cherry-pick fix: bump bitcoin (#23493)
 
 ## [7.60.0]
-
 ### Added
-
 - feat: Add all entry points for Predict feed (#22659)
 - feat: updated transaction details for predict claim and withdraw (#22370)
 - feat: predict claim gas station (#22553)
@@ -3495,7 +3309,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Add geo-blocking analytics tracking (#22126)
 
 ### Fixed
-
 - fix: cp-7.59.1 cp-7.60.0 add mon to the currency list (#23269)
 - fix: trim whitespace from amount input in PaymentRequest component (#22608)
 - fix: code cleanup (#22648)
@@ -3569,9 +3382,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: perps withdraw page copy (#22082)
 
 ## [7.59.0]
-
 ### Added
-
 - feat: Make Sentry logs searchable (#22079)
 - feat: enhance Predict trade action analytics (#22108)
 - feat: update bitcoin snap version to 1.4.4 (#22180)
@@ -3628,7 +3439,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: onboarding success animation (#21302)
 
 ### Fixed
-
 - fix: cp-7.59.0 metamask pay with non-evm token filter (#22696)
 - fix: accountByChainId of undefined bug (#22663)
 - fix: Skip `No MM fee` badge on `PayWithModal` assets (#22614)
@@ -3733,13 +3543,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: fixed issue where button is cutt off and keyboard aware scroll d… (#21389)
 
 ## [7.58.3]
-
 ### Changed
-
 - chore: Update Spanish strings for Card onboarding flow cp-7.58.3 (#22740)
 
 ### Fixed
-
 - fix(card): cp-7.58.3 physical address consent issue + undefined balances (#22737)
 - fix(card): cp-7.59.0 wrong zero balances on SelectAsset BottomSheet (#22658)
 - fix(card): cp-7.59.0 accept other chars on zip code input (#22635)
@@ -3747,9 +3554,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(card): cp-7.59.0 delegation refresh issue (#22549)
 
 ## [7.58.2]
-
 ### Fixed
-
 - fix(card): cp-7.58.2 delegation issues ([#22476](https://github.com/MetaMask/metamask-mobile/pull/22476)
 - fix: pressability measureAsyncOnUI only running on Android cp-7.58.2 ([#22464](https://github.com/MetaMask/metamask-mobile/pull/22464)
 - fix(card): cp-7.58.2 CardHome and SpendingLimit UI issues ([#22448](https://github.com/MetaMask/metamask-mobile/pull/22448)
@@ -3757,13 +3562,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: cp-7.58.2 update close position calculation with funding fees and live data ([#22344](https://github.com/MetaMask/metamask-mobile/pull/22344)
 
 ## [7.58.1]
-
 ### Changed
-
 - refactor(card): sonarcloud maintainability issues (#22268)
 
 ### Fixed
-
 - fix: Android In-App Browser Crash (#22269)
 - fix: cp-75.8.1 remove selected network reference from bridge getBridgeERC20Allowance handler (#22230)
 - fix(card): add temporary fix for crashing KYC webview on Android (#22238)
@@ -3771,9 +3573,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(card): delegation issues (#22249)
 
 ## [7.58.0]
-
 ### Added
-
 - feat(predict): Predict details outcome / status improvements (#21486)
 - feat(card): disable swaps if selected address is different from priority token owner address (#21454)
 - feat(card): OTP Authentication (#21451)
@@ -3966,7 +3766,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: implement reassure (#19010)
 
 ### Changed
-
 - chore: Update @metamask/signature-controller (#20202)
 - chore: remove old reward animations (#21299)
 - chore: update phishing-controller to version 14.1.2 and add migration for urlScanCache reset (#21417)
@@ -4090,7 +3889,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: yarn v3 breaking changes (#19213)
 
 ### Fixed
-
 - fix(predict): empty state (#21479)
 - fix(perps): balance display without full decimals cp-7.58.0 (#21355)
 - fix(predict): fee collector address for prod environment (#21444)
@@ -4507,28 +4305,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: Replace hostname with origin in SDK connection JSON RPC pipeline (#19542)
 
 ## [7.57.2]
-
 ### Added
-
 - feat: Implement extra validations and alert when sending burn address in EVM transfer transactions (#22018)
 - feat: Accurate opt out translations for rewards cp-7.57.2 (#22021)
 
 ### Fixed
-
 - fix: cp-7.58.0 formatTimeRemaining to correctly display time remaining (#21868)
 - fix: remove currency rates multichain (#22022)
 
 ## [7.57.1]
-
 ### Fixed
-
 - fix: show edit account bottomsheet on android when its behind the keyboard (#21477)
 - fix: Patch touchable issue in React Native (#21568)
 
 ## [7.57.0]
-
 ### Added
-
 - feat(SDKConnectV2): UX improvements (#19984)
 - feat(perps): align sentry performance events (#20301)
 - feat(predict): initial predict details view with chart (#20480)
@@ -4632,7 +4423,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: implement reassure (#19010)
 
 ### Changed
-
 - chore: rewards show stale state when error (#20637)
 - chore: filters out Tron energy and bandwidth (#20685)
 - chore: rewards splash screen (#20604)
@@ -4727,7 +4517,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: migrate to new SafeAreaView (#19747)
 
 ### Fixed
-
 - fix(card): card home viewed metric returning NaN error (#20707)
 - fix(rewards): added reset rewards state call in useDeleteWallet hook (#20656)
 - fix(deposit): add missing paymentMethod parameter to createOrder (#20595)
@@ -4919,35 +4708,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: Replace hostname with origin in SDK connection JSON RPC pipeline (#19542)
 
 ## [7.56.5]
-
 ### Fixed
-
 - fix: use SharedDeeplinkManager to parse instead of Linking API (#20960)
 
 ## [7.56.4]
-
 ### Fixed
-
 - fix: address feature flag config issue
 
 ## [7.56.3]
-
 ### Fixed
-
 - fix: remove unintended metrics from transaction finalised event (#20733)
 - fix: force rendering on token list when order changes (#20771)
 - fix: add contentful max version number segmentation (#20769)
 
 ## [7.56.2]
-
 ### Fixed
-
 - fix: address feature flag config issue
 
 ## [7.56.1]
-
 ### Fixed
-
 - fix: in recipient validations for internal accounts (#20694)
 - feat: iOS Rehydration Flow Update to release/7.56.1 (#20681)
 - feat: social login success screen added for social login users and ios platform. (#20679)
@@ -4957,9 +4736,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: Temp Revert page-level scroll for Wallet (\#20579) ([9022244](https://github.com/MetaMask/metamask-mobile/commit/902224410fbdf37250b990c75986eb7a948fb5ec))
 
 ## [7.56.0]
-
 ### Added
-
 - feat(perps): unify perps deeplink with single entry point (#19693)
 - feat(perps): improve perps skeleton styles to be vertically aligned (#19670)
 - feat(ramp): Update Ramps sdk to 2.1.11 (#19684)
@@ -5210,7 +4987,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - test: add default mocks (#18384)
 
 ### Fixed
-
 - fix(perps): race condition on account switching (#19651)
 - fix(perps): remaining issues on perps UI (#19667)
 - fix(perps): final design/ux issues (#19624)
@@ -5522,15 +5298,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore: bitcoin v0.19.3 (#18493)
 
 ## [7.55.1]
-
 ### Fixed
-
 - fix: deep link perps (#20338)
 
 ## [7.55.0]
-
 ### Added
-
 - feat(perps): replace close position bottom sheet with full-screen view (#18815)
 - feat(perps): Add data lake API integration for order tracking (#18817)
 - feat(INFRA-2864): add rca needed label removal workflow (#18829)
@@ -5693,7 +5465,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Updated wallet header (#17712)
 
 ### Fixed
-
 - fix(INFRA-2864): add permissions to rca needed label removal workflow (#18877)
 - Fix: Internet connection not available check added during social onboarding. (#18706)
 - fix(reveal-srp): adjust styles for better layout and icon positioning on password input screen (#18816)
@@ -6087,9 +5858,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: refactor recreatevault -> change password cp-7.53.0 (#17642)
 
 ## [7.54.2]
-
 ### Fixed
-
 - fix(deposit): disable Base & Linea USDT (#19557)
 - fix(deposit): get started mUSD (#19552)
 - fix(deposit): add force update and fix faulty data migration (#19541)
@@ -6097,21 +5866,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: left aligned account picker in all cases for wallet homepage (#19617)
 
 ## [7.54.1]
-
 ### Added
-
 - Added auto-create-release-pr workflow to automatically create release (#19254)
 - fix: add logging to get more info around blocking login biometrics: (#19274)
 
 ### Fixed
-
 - update solana to 2.3.6 (#19241)
 - fix: stable sync secret (#19252)
 
 ## [7.54.0]
-
 ### Added
-
 - feat(4173): Send flow with contextual chain selector (#13938)
 - feat(TAT-575): add fixture to import random generated accounts (#17849)
 - feat(bridge): add deep link support for bridge functionality (#17187)
@@ -6194,7 +5958,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: wallet selector (#17502)
 
 ### Fixed
-
 - fix: updated asset hooks to fetch enabled networks only when feature flag on (#18280)
 - fix: SDK Deeplink Hotfix (#17370)
 - fix(deposit): start dob picker with value (#18031)
@@ -6243,17 +6006,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: yml formatting causing error (#14277)
 
 ## [7.53.1]
-
 ### Fixed
-
 - fix: WC universal links (#18843)
 - fix: Updated MainActionItem and bottom nav's TabItem to reduce padding for small screens (#18821)
 - chore: Additional polish for Homepage Redesign (#18787)
 
 ## [7.53.0]
-
 ### Added
-
 - feat: move quote validation to on fetch (#17757)
 - feat: TAT-1234 implement region check for unsupported regions (#17763)
 - feat: perps close position (#17604)
@@ -6387,7 +6146,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(deposit): Unsupported region modal copy & design update (#16819)
 
 ### Fixed
-
 - fix: 17498 fix the close icon disappear in QR scan screen. cp-7.52.0 (#17571)
 - fix: Reset send flow on transaction confirm (#17768)
 - fix: changes BaseAccountDetails container to ScrollView (#17767)
@@ -6516,9 +6274,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(deposit): use token exchange rate (#16891)
 
 ## [7.51.4]
-
 ### Fixed
-
 - fix: Bump expo patch version to fix Android crasher - cp-7.53.0 (#18359, #18321)
 - fix: cp-7.51.4 skip bridge and bridgeApproval tx types in STX (#18238)
 - fix: cp-7.51.4 wipe smart transactions on account reset (#18194)
@@ -6527,32 +6283,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: cp-7.51.4 clean up existing smartTransactions state since we don't persist new ones anymore (#18200)
 
 ## [7.51.3]
-
 ### Fixed
-
 - fix: copied to clipboard alert not dismissable (#18047)
 
 ## [7.51.2]
-
 ### Fixed
-
 - fix: scroll behavior on Solana New Feature view (#[17807](https://github.com/MetaMask/metamask-mobile/pull/17807))
 
 ## [7.51.1]
-
 ### Added
-
 - feat: migrate BSC network RPC to bsc-mainnet.infura.io (#16824)
 - feat: allow multiple provider connections (#16699)
 
 ### Fixed
-
 - fix: cp-7.51.1 fox size adjustments (#17569)
 
 ## [7.51.0]
-
 ### Added
-
 - feat(smart-transactions): enable Arbitrum for Smart Transactions (#16624)
 - feat(deposit): updates region list to flat list to fix android scroll bug (#16809)
 - feat(deposit): adds interfaces for deposit analytics events (#16820)
@@ -6627,7 +6374,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: Analytics/track earn events (#16477)
 
 ### Fixed
-
 - fix(ramps): adds error message if user tries to sell zero balance token (#16417)
 - fix(permissions): fixed issue where the network badges doesn't show Solana and cannot select Solana (#16386)
 - fix(identity): un-quarantine contact-syncing sync-new-user.spec.ts (#16592)
@@ -6647,9 +6393,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(snaps): Add fix for missing Snap permission labels (#15265)
 
 ## [7.50.2]
-
 ### Fixed
-
 - fix: undefined formatNetworkRpcUrl (#17308)
 - fix: ensure info network modal is focused to render content (#17279)
 - fix: Remove hardware wallets (#17264)
@@ -6657,15 +6401,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: Patch `CronjobController` (#17266)
 
 ## [7.50.1]
-
 ### Fixed
-
 - fix: default to main code fence and opt-in for beta/ (#16599)
 
 ## [7.50.0]
-
 ### Added
-
 - feat: add new segment events for onboarding (#16493)
 - feat: Stake 1033 add aave v 3 receipt tokens to mobile token list by default (#16440)
 - feat: signature verification for private deeplinks (#16262)
@@ -6772,7 +6512,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: create solana account and call discoverAccounts during creation and import of hd keyring (#14775)
 
 ### Fixed
-
 - fix: changelog (#17021)
 - fix: changelog issue (#17018)
 - fix: remove identity E2Es test specific mock server ports (#16904)
@@ -7014,30 +6753,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: login message (#15247)
 
 ## [7.47.3]
-
 ### Fixed
-
 - chore(runway): cherry-pick fix(bridge): fix: cp-7.47.3 prevent crash when viewing Solana asset details (#16776)
 
 ## [7.47.2]
-
 ### Fixed
-
 - chore(runway): cherry-pick chore: bump pbkdf (#16629)
 - chore(runway): cherry-pick fix: cp-7.47.2 migrate caip permission to include sessionProperties value (#16643)
 - chore(runway): cherry-pick fix: account address missmatch with identity (#16683)
 - chore(runway): cherry-pick fix: Remove delay for dispatch of INIT_BG_STATE_KEY (#16703)
 
 ## [7.47.1]
-
 ### Fixed
-
 - fix: ensure inpage provider retries any pending requests sent before BackgroundBridge fully initialized (#16349)
 
 ## [7.47.0]
-
 ### Added
-
 - feat(bridge): fetch all tokens for bridge input (#15993)
 - feat(bridge): add "hardware wallets not supported" error when attempting Solana swap/bridge (#15743)
 - feat: migrate eth_accounts and permittedChains to CAIP-25 endowment (#13970)
@@ -7070,7 +6801,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: add "hardware wallets not supported" error when attempting Solana [#15743](https://github.com/MetaMask/metamask-mobile/pull/15743)
 
 ### Fixed
-
 - fix(bridge): prevent quote polling when "quote expired" modal is open (#15602)
 - fix(bridge): don't show currency value unless amount is above zero (#15798)
 - fix(bridge): fix default swap destination token when source is USDC (#15611)
@@ -7138,21 +6868,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: add loader if account balance is not defined [#16011](https://github.com/MetaMask/metamask-mobile/pull/16011)
 
 ## [7.46.2]
-
 ### Fixed
-
 - fix: Json rpc and invalid transaction type envelope errors ([#15538](https://github.com/MetaMask/metamask-mobile/pull/15538)
 
 ## [7.46.1]
-
 ### Fixed
-
 - fix: capture exception with Sentry instead throwing the error (#15469)
 
 ## [7.46.0]
-
 ### Added
-
 - fix(bridge): prevent quote polling when "quote expired" modal is open (#15602)
 - feat(bridge): improve bridge screen layout and user experience (#15425)
 - fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue (#13394)
@@ -7178,7 +6902,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: feat: AccountConnect and AccountApproval use dapp scanning (#14514)
 
 ### Changed
-
 - feat(bridge): Handle Solana vs EVM swap and bridge routing (#14614)
 - fix(multi-srp): allow a user to select srp when creating a multichain account (#14644)
 - fix(multi-srp): display errors only after all the words are have been entered (#14607)
@@ -7188,7 +6911,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Fixed
-
 - fix(bridge): keyboard not appearing when error banner is displayed (#14862)
 - fix(bridge): fix not switching networks when selecting source token (#14712)
 - fix: updates a padding style specifically for Android devices (#14725)
@@ -7200,22 +6922,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(confirmations): fix the send crash when user puts unexpected address into recipient input([#15308](https://github.com/MetaMask/metamask-mobile/pull/15308))
 
 ## [7.45.2]
-
 ### Fixed
-
 - fix: 15108 create a wrapper for toChecksumAddress to prevent app crash (#15202)
 - chore(runway): cherry-pick fix: base-x audit issue (#15216)
 
 ## [7.45.1]
-
 ### Fixed
-
 - fix: update patch to use old AccountTrackerController data structures ([dfc076c](https://github.com/MetaMask/metamask-mobile/commit/dfc076cee12aab974720b2dd1e8a145b3fafd484))
 
 ## [7.45.0]
-
 ### Added
-
 - feat(4213-2) update network icons (#14069)
 - feat(ramp): add backpress handler to expanded quotes view (#14210)
 - feat(ramp): paymentMethods refactor for sdk evolution (#13464)
@@ -7252,14 +6968,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: upgrade to brand evolution colors (#14218)
 
 ### Changed
-
 - fix(multi-srp): display errors only after all the words are have been entered (#14607)
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 - fix(multi-srp): display errors only after all the words are have been entered (#14607)
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Fixed
-
 - fix(swaps): set default slippage when source or destination token is not stablecoin (#14730)
 - fix: cp-7.45.0 fix block explorer link for default networks on trx detail modal. (#14498)
 - fix(14255): invalid url on account list (#14259)
@@ -7315,9 +7029,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(swaps): set default slippage when source or destination token is not stablecoin (#14730)
 
 ## [7.44.0]
-
 ### Added
-
 - feat(ramp): add backpress handler to expanded quotes view (#14210)
 - feat(4213-3): network badge positioning (#14071)
 - feat(4213-1): rounded square network icons (#14065)
@@ -7353,7 +7065,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: integrate blockaid alert into the Alert System (#13744)
 
 ### Fixed
-
 - fix: reduce tests worker for only performance tests (#14051)
 - fix: scroll for the confirmation screen (#14269)
 - fix: STAKE-964: bumped @metamask/earn-controller dependency to resolve pooled-staking geo-block for fresh installs (#14257)
@@ -7389,9 +7100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(bridge): hide staked native assets from token selectors (#14457)
 
 ## [7.43.0]
-
 ### Added
-
 - feat(ramp): estimate gasLimit for ERC20 transfers (sell feature) (#12467)
 - feat(snaps): Add Snap UI Skeleton component integration and mapping (#13966)
 - feat(snaps): Add icon next to SnapUILink (#13878)
@@ -7424,7 +7133,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: add `GeneralAlertBanner` component (#13627)
 
 ### Fixed
-
 - fix(close bug report action): target branch name has been renamed stable (#13755)
 - fix(sentry sampling): reduce by 25% our sentry trace sample rate to avoid exceeding our quota (#13745)
 - fix(deps): unpin ethereumjs-abi@0.6,x ethereumjs-util@6.x (#11972)
@@ -7470,16 +7178,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: fixes ramp quote selection test (#13756)
 
 ## [7.42.1]
-
 ### Fixed
-
 - fix: Manage order for app services initialization (#13912)
 - fix: #9487 Remove false vault back up failure log (#14038)
 
 ## [7.42.0]
-
 ### Added
-
 - feat(snaps): Add Snap UI Banner component (#13735)
 - feat(ramps): adds some properties to ramp quote analytics events (#13754)
 - feat(ramps): adds most reliable tag to ramp quotes (#13495)
@@ -7520,7 +7224,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: enable STX by default with migration and notification (#12857)
 
 ### Fixed
-
 - fix(action): Improve bug report creation (#13562)
 - fix(action): revert recent change, due to impossibility to indicate working directory for reusable workflows from github-tools repo (#13629)
 - fix(13492): background shapes animation stories and centering fix (#13503)
@@ -7563,9 +7266,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: IPFS gateway down in settings (#13357)
 
 ## [7.41.0]
-
 ### Added
-
 - feat(action): Improve bug report creation (#13397)
 - feat(ramp): sorts ramp quotes by price (#13339)
 - feat(ramps): updates useQuotes interface to include some quotes metadata (#13335)
@@ -7589,7 +7290,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: shared-platform rls process (#13280)
 
 ### Fixed
-
 - fix: typed sign message display in dark mode (#13479)
 - fix(13491): update wallet creation flow styles (#13501)
 - fix(action): indicate working directory (#13419)
@@ -7616,9 +7316,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: metrics call during onboarding (#13226)
 
 ## [7.40.0]
-
 ### Added
-
 - [#12983](https://github.com/MetaMask/metamask-mobile/pull/12983): feat: `NftGrid` view (#12983)
 - [#13198](https://github.com/MetaMask/metamask-mobile/pull/13198): feat(network): validate RPC URL for popular networks on add network from dapp connection (#13198)
 - [#13099](https://github.com/MetaMask/metamask-mobile/pull/13099): feat: add the ability for all networks to be pre-selected in the checkbox list on initial connect to a dapp. (#13099)
@@ -7636,7 +7334,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12938](https://github.com/MetaMask/metamask-mobile/pull/12938): feat: MMPD-1528 - View recents and favorites in browser URL modal (#12938)
 
 ### Changed
-
 - [#13272](https://github.com/MetaMask/metamask-mobile/pull/13272): test: Added back ramps smoke tests to Bitrise (#13272)
 - [#13058](https://github.com/MetaMask/metamask-mobile/pull/13058): chore: Remove device constraint from isPortfolioViewEnabled feature flag (#13058)
 - [#13039](https://github.com/MetaMask/metamask-mobile/pull/13039): chore: Scope PortfolioView feature flag to iOS devices only (#13039)
@@ -7662,7 +7359,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#13157](https://github.com/MetaMask/metamask-mobile/pull/13157): chore: upgrading to design tokens v5.0.0 (#13157)
 
 ### Fixed
-
 - [#13126](https://github.com/MetaMask/metamask-mobile/pull/13126): fix: Fix assert e2e test for `Address advanced gas fees` test (#13126)
 - [#12926](https://github.com/MetaMask/metamask-mobile/pull/12926): fix: ensure marketing consent is explicitly tracked as boolean (#12926)
 - [#13166](https://github.com/MetaMask/metamask-mobile/pull/13166): fix: Blockaid banner momentarily visible on benign request opened after malicious one (#13166)
@@ -7702,9 +7398,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#13119](https://github.com/MetaMask/metamask-mobile/pull/13119): fix: Fix Samsung freeze by reverting reanimated version and bump expo-dev-client (#13119)
 
 ## [7.39.0]
-
 ### Added
-
 - [#13030](https://github.com/MetaMask/metamask-mobile/pull/13030): feat: ""Unlimited"" value Decoding Simulation and account and message modal UI/UX updates (#13030)
 - [#12994](https://github.com/MetaMask/metamask-mobile/pull/12994): feat: Redesign Signature Decoding Simulation (#12994)
 - [#12606](https://github.com/MetaMask/metamask-mobile/pull/12606): feat: Create Permit Simulation (#12606)
@@ -7722,7 +7416,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12811](https://github.com/MetaMask/metamask-mobile/pull/12811): feat: add detected tokens automatically (#12811)
 
 ### Changed
-
 - [#12984](https://github.com/MetaMask/metamask-mobile/pull/12984): chore: Update assets and accounts packages (#12984)
 - [#12822](https://github.com/MetaMask/metamask-mobile/pull/12822): chore: Improve Keyring/Accounts error handling and logs (#12822)
 - [#13026](https://github.com/MetaMask/metamask-mobile/pull/13026): test: Redesign Signature Decoding Simulation (#13026)
@@ -7770,7 +7463,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12643](https://github.com/MetaMask/metamask-mobile/pull/12643): chore(ramp): upgrade sdk to 1.28.8 (#12643)
 
 ### Fixed
-
 - [#13027](https://github.com/MetaMask/metamask-mobile/pull/13027): fix: Fix disappearing security alert response (#13027)
 - [#12694](https://github.com/MetaMask/metamask-mobile/pull/12694): fix: small refactoring of the latest migration script + add a new migration case (#12694)
 - [#12929](https://github.com/MetaMask/metamask-mobile/pull/12929): fix: Keep latest 50 history instead of first 50 (#12929)
@@ -7821,15 +7513,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12853](https://github.com/MetaMask/metamask-mobile/pull/12853): fix(12849): alert toast blocking tab navigation (#12853)
 
 ## [7.38.1]
-
 ### Fixed
-
 - [#13067](https://github.com/MetaMask/metamask-mobile/pull/13067)fix: remove expo changes (#13067)
 
 ## [7.38.0]
-
 ### Added
-
 - [#12427](https://github.com/MetaMask/metamask-mobile/pull/12427): feat: implement remote feature flag controller (#12427)
 - [#12507](https://github.com/MetaMask/metamask-mobile/pull/12507): feat: activate portfolio view (#12507)
 - [#12540](https://github.com/MetaMask/metamask-mobile/pull/12540): feat: migrate Base network RPC from https://mainnet.base.org to base-… (#12540)
@@ -7846,7 +7534,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12431](https://github.com/MetaMask/metamask-mobile/pull/12431): feat: multi chain asset list (#12431)
 
 ### Changed
-
 - [#12623](https://github.com/MetaMask/metamask-mobile/pull/12623): chore: update bug template to include feature branches (#12623)
 - [#12538](https://github.com/MetaMask/metamask-mobile/pull/12538): chore: Chore/12435 mvp handle engine does not exist (#12538)
 - [#12617](https://github.com/MetaMask/metamask-mobile/pull/12617): docs: Update README.md with new expo instructions (#12617)
@@ -7878,7 +7565,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12551](https://github.com/MetaMask/metamask-mobile/pull/12551): chore: Bump Snaps packages (#12551)
 
 ### Fixed
-
 - [#12650](https://github.com/MetaMask/metamask-mobile/pull/12650): fix: fix swaps button on asset overview page for multichain feature (#12650)
 - [#12659](https://github.com/MetaMask/metamask-mobile/pull/12659): fix: fix token details navigation (#12659)
 - [#12624](https://github.com/MetaMask/metamask-mobile/pull/12624): fix: add new translations (#12624)
@@ -7902,17 +7588,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12630](https://github.com/MetaMask/metamask-mobile/pull/12630): fix: hide tokens without balance for multichain (#12630)
 
 ## [7.37.1]
-
 ### Fixed
-
 - [#12577](https://github.com/MetaMask/metamask-mobile/pull/12577): chore: bump {gas-fee,network,selected-network,notification-services,profile-sync,signature}-controller (#12577)
 - [#12694](https://github.com/MetaMask/metamask-mobile/pull/12694): fix: small refactoring of the latest migration script + add a new migration case (#12694)
 - [#12664](https://github.com/MetaMask/metamask-mobile/pull/12664): fix: mark transactions as failed for cancelled / unknown smart transactions (#12664)
 
 ## [7.37.0]
-
 ### Added
-
 - [#12091](https://github.com/MetaMask/metamask-mobile/pull/12091): feat: 2020 Add a performance test for iOS in Bitrise (#12091)
 - [#12148](https://github.com/MetaMask/metamask-mobile/pull/12148): feat: Enable smart transactions for new users (#12148)
 - [#12442](https://github.com/MetaMask/metamask-mobile/pull/12442): test: add a new unit test to cover for multichain feature flags ON (#12442)
@@ -7933,7 +7615,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12452](https://github.com/MetaMask/metamask-mobile/pull/12452): feat: updated staking events to use withMetaMetrics helper (#12337, #12452)
 
 ### Changed
-
 - [#12356](https://github.com/MetaMask/metamask-mobile/pull/12356): chore: Remove unnecessary event prop (#12356)
 - [#12425](https://github.com/MetaMask/metamask-mobile/pull/12425): ci: create ci workflow for multichain flow (#12425)
 - [#12350](https://github.com/MetaMask/metamask-mobile/pull/12350): chore: Bump Snaps packages (#12350)
@@ -7954,7 +7635,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12334](https://github.com/MetaMask/metamask-mobile/pull/12334): chore: updating filter icon (#12334)
 
 ### Fixed
-
 - [#12313](https://github.com/MetaMask/metamask-mobile/pull/12313): fix: Remove run all tests section (#12313)
 - [#12489](https://github.com/MetaMask/metamask-mobile/pull/12489): fix: replace end of navigation init and UIStartup span (#12489)
 - [#12331](https://github.com/MetaMask/metamask-mobile/pull/12331): fix: tags pending approvals receiving undefined (#12331)
@@ -7974,9 +7654,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12375](https://github.com/MetaMask/metamask-mobile/pull/12375): fix: breaking selector due to missing controller state (#12375)
 
 ## [7.36.0]
-
 ### Added
-
 - [#12015](https://github.com/MetaMask/metamask-mobile/pull/12015): feat: 1957 crash screen redesign (#12015)
 - [#12110](https://github.com/MetaMask/metamask-mobile/pull/12110): feat: display staking transaction methods (#12110)
 - [#12290](https://github.com/MetaMask/metamask-mobile/pull/12290): feat: STAKE-827: track additional pooled staking events (#12290)
@@ -7999,7 +7677,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11836](https://github.com/MetaMask/metamask-mobile/pull/11836): feat: upgrade @metamask/eth-ledger-bridge-keyring (#11836)
 
 ### Changed
-
 - [#11898](https://github.com/MetaMask/metamask-mobile/pull/11898): chore: New Crowdin translations by Github Action (#11898)
 - [#12292](https://github.com/MetaMask/metamask-mobile/pull/12292): chore: Allow for higher versions of ruby (#12292)
 - [#12291](https://github.com/MetaMask/metamask-mobile/pull/12291): chore: Remove notifications logic from wallet view (#12276, #12291)
@@ -8024,7 +7701,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12225](https://github.com/MetaMask/metamask-mobile/pull/12225): chore: bump `@metamask/ppom-validator` to `0.35.1` (#12225)
 
 ### Fixed
-
 - [#12166](https://github.com/MetaMask/metamask-mobile/pull/12166): fix: remove SmokeNotifications tests for android on smoke tests pipeline (#12166)
 - [#12217](https://github.com/MetaMask/metamask-mobile/pull/12217): fix: e2e: use different wallet SRP for non accounts tests (#12217)
 - [#12197](https://github.com/MetaMask/metamask-mobile/pull/12197): fix: E2E: quarantine import-wallet-account tests (#12197)
@@ -8045,15 +7721,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12282](https://github.com/MetaMask/metamask-mobile/pull/12282): fix: Lock ruby version to 3.1.6 and bump pod to 1.16.2 (#12282)
 
 ## [7.35.1]
-
 ### Fixed
-
 - [#12331](https://github.com/MetaMask/metamask-mobile/pull/12331): fix: tags pending approvals receiving undefined (#12331)
 
 ## [7.35.0]
-
 ### Added
-
 - [#12107](https://github.com/MetaMask/metamask-mobile/pull/12107): feat: Add re-simulation feature (#12107)
 - [#11770](https://github.com/MetaMask/metamask-mobile/pull/11770): feat: enable Security Alerts API (#11770)
 - [#11812](https://github.com/MetaMask/metamask-mobile/pull/11812): feat: network value component for re-designed confirmation pages (#11812)
@@ -8080,7 +7752,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11451](https://github.com/MetaMask/metamask-mobile/pull/11451): feat: Remove Account Snap Warning (Flask) (#11451)
 
 ### Changed
-
 - [#11911](https://github.com/MetaMask/metamask-mobile/pull/11911): chore: upgrade signature controller to remove message managers (#11911)
 - [#12150](https://github.com/MetaMask/metamask-mobile/pull/12150): chore: upgrade nodejs to v20.17 (#12150)
 - [#12135](https://github.com/MetaMask/metamask-mobile/pull/12135): test: Move files to Settings folder (#12135)
@@ -8127,7 +7798,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11983](https://github.com/MetaMask/metamask-mobile/pull/11983): test: Refactor EditAccountNameView.js & EnableSecurityChecksView.js files to follow page object model (#11983)
 
 ### Fixed
-
 - [#11768](https://github.com/MetaMask/metamask-mobile/pull/11768): fix: fix non regression tests (#11768)
 - [#11947](https://github.com/MetaMask/metamask-mobile/pull/11947): fix: Fiat value displayed only for the native token in simulations (#11947)
 - [#12126](https://github.com/MetaMask/metamask-mobile/pull/12126): fix: Reuse main logic for migration52 (#12126)
@@ -8162,17 +7832,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11769](https://github.com/MetaMask/metamask-mobile/pull/11769): fix: Fix the mobile crash due to ledger bluetooth relative exception (#11769)
 
 ## [7.34.1]
-
 ### Fixed
-
 - [#12205](https://github.com/MetaMask/metamask-mobile/pull/12205): fix: add contractBalances as dependency
 - [#12236](https://github.com/MetaMask/metamask-mobile/pull/12236): fix: Add migration to fix NotificationServicesController bug (#12236)
 - [#12228](https://github.com/MetaMask/metamask-mobile/pull/12228): fix: Update transaction-controller version
 
 ## [7.34.0]
-
 ### Added
-
 - [#11578](https://github.com/MetaMask/metamask-mobile/pull/11578): feat: 1653 first feature flag poc (#11578)
 - [#11705](https://github.com/MetaMask/metamask-mobile/pull/11705): feat: Transition from Multiple Networks with Same ChainID to Unique Networks with Distinct ChainIDs and Multiple RPC URLs (#11705)
 - [#11685](https://github.com/MetaMask/metamask-mobile/pull/11685): feat: multi rpc modal (#11685)
@@ -8197,7 +7863,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11127](https://github.com/MetaMask/metamask-mobile/pull/11127): feat(1702): enhanced onboarding settings config (#11127)
 
 ### Changed
-
 - [#11852](https://github.com/MetaMask/metamask-mobile/pull/11852): chore: readd date time picker (#11852)
 - [#11831](https://github.com/MetaMask/metamask-mobile/pull/11831): chore: Add conditional for api specification test (#11831)
 - [#11838](https://github.com/MetaMask/metamask-mobile/pull/11838): chore: revert tags commit (#11838)
@@ -8239,7 +7904,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11617](https://github.com/MetaMask/metamask-mobile/pull/11617): chore: chore/7.33.0-Changelog (#11617)
 
 ### Fixed
-
 - [#11787](https://github.com/MetaMask/metamask-mobile/pull/11787): fix: non deterministic date in test (#11787)
 - [#11762](https://github.com/MetaMask/metamask-mobile/pull/11762): fix: snapshot of test to enable ci (#11762)
 - [#11632](https://github.com/MetaMask/metamask-mobile/pull/11632): fix: add custom and add popular network detox test (#11632)
@@ -8269,21 +7933,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11431](https://github.com/MetaMask/metamask-mobile/pull/11431): fix: refactor notifications unit tests (#11431)
 
 ## [7.33.2]
-
 ### Fixed
-
 - [#10952](https://github.com/MetaMask/metamask-mobile/pull/10952): refactor(ramp): update ramp copy (#10952)
 
 ## [7.33.1]
-
 ### Fixed
-
 - [#12073](https://github.com/MetaMask/metamask-mobile/pull/12073): feat: Simulation re-trigger (#12073)
 
 ## [7.33.0]
-
 ### Added
-
 - [#11507](https://github.com/MetaMask/metamask-mobile/pull/11507): feat: 10550 Re-introduce test for measuring cold app start + JS bundle load time (#11507)
 - [#11318](https://github.com/MetaMask/metamask-mobile/pull/11318): feat: app event manager and attribution id parameters (#11318)
 - [#11445](https://github.com/MetaMask/metamask-mobile/pull/11445): feat: add the abilty to hide the disconnect all button as well as showing and hiding the accounts row when necessary (#11445)
@@ -8309,7 +7967,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11069](https://github.com/MetaMask/metamask-mobile/pull/11069): feat: react native fast crypto for notifications (#11069)
 
 ### Changed
-
 - [#11379](https://github.com/MetaMask/metamask-mobile/pull/11379): refactor: rename the feature flag since it had a typo (#11379)
 - [#11615](https://github.com/MetaMask/metamask-mobile/pull/11615): chore: exclude temporarily sentry SDK advisory (#11615)
 - [#11577](https://github.com/MetaMask/metamask-mobile/pull/11577): ci: disable swaps e2e workflow (#11577)
@@ -8365,7 +8022,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11352](https://github.com/MetaMask/metamask-mobile/pull/11352): chore(deps): Bump `@metamask/accounts-controller` to `^18.2.1`
 
 ### Fixed
-
 - [#11512](https://github.com/MetaMask/metamask-mobile/pull/11512): fix: android firebase docs template (#11512)
 - [#11430](https://github.com/MetaMask/metamask-mobile/pull/11430): fix: refactor Logger usage (#11430)
 - [#11250](https://github.com/MetaMask/metamask-mobile/pull/11250): fix: push notifications (#11250)
@@ -8389,9 +8045,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11518](https://github.com/MetaMask/metamask-mobile/pull/11518): fix(11482): incorrect QR code error (#11518)
 
 ## [7.32.0]
-
 ### Added
-
 - [#10294](https://github.com/MetaMask/metamask-mobile/pull/10294): feat: create redux slice for featureFlags (#10294)
 - [#11314](https://github.com/MetaMask/metamask-mobile/pull/11314): feat: reject connection properly (#11314)
 - [#11132](https://github.com/MetaMask/metamask-mobile/pull/11132): feat: Add performance tracing infrastructure (#11132)
@@ -8408,7 +8062,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11175](https://github.com/MetaMask/metamask-mobile/pull/11175): feat: add product announcements toggle (#11175)
 
 ### Changed
-
 - [#11148](https://github.com/MetaMask/metamask-mobile/pull/11148): chore: remove animation and add new splash screen (#11148)
 - [#11306](https://github.com/MetaMask/metamask-mobile/pull/11306): chore: update @sentry/react-native to version 5.33.0 (#11306)
 - [#11144](https://github.com/MetaMask/metamask-mobile/pull/11144): test: E2E Mocking Setup For Detox Tests (#11144)
@@ -8442,7 +8095,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10821](https://github.com/MetaMask/metamask-mobile/pull/10821): chore(deps): bump `accounts-controller` to v18.1.0 and `keyring-api` to v8.1.0 (#10821)
 
 ### Fixed
-
 - [#11117](https://github.com/MetaMask/metamask-mobile/pull/11117): fix: add feat flag (#11117)
 - [#11084](https://github.com/MetaMask/metamask-mobile/pull/11084): fix: locks api spec version for api spec tests (#11084)
 - [#11310](https://github.com/MetaMask/metamask-mobile/pull/11310): fix: quick fix on feature flag & notification state (#11310)
@@ -8475,15 +8127,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#11098](https://github.com/MetaMask/metamask-mobile/pull/11098): fix: badge count and ui polishing (#11098)
 
 ## [7.31.1]
-
 ### Fixed
-
 - [#11631](https://github.com/MetaMask/metamask-mobile/pull/11631): fix: Fixes UI issue in token details (#11631)
 
 ## [7.31.0]
-
 ### Added
-
 - [#10747](https://github.com/MetaMask/metamask-mobile/pull/10747): feat: 2805 grant permission to network with missmatching rpc url (#10747)
 - [#10715](https://github.com/MetaMask/metamask-mobile/pull/10715): feat: 2795 disconnect all account permission multichain edit account screen (#10715)
 - [#10347](https://github.com/MetaMask/metamask-mobile/pull/10347): feat: refactor WalletConnect v2 and add unit tests (#10347)
@@ -8495,7 +8143,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10727](https://github.com/MetaMask/metamask-mobile/pull/10727): feat: add ledger live deviation path support (#10727)
 
 ### Changed
-
 - [#10749](https://github.com/MetaMask/metamask-mobile/pull/10749): chore(deps): bump rexml from 3.3.3 to 3.3.6 in the bundler group across 1 directory (#10749)
 - [#10794](https://github.com/MetaMask/metamask-mobile/pull/10794): Release-update-BS-URL (#10794)
 - [#11088](https://github.com/MetaMask/metamask-mobile/pull/11088): chore: add new track events for enabling/disabling basic functionality (#11088)
@@ -8541,7 +8188,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10714](https://github.com/MetaMask/metamask-mobile/pull/10714): test: Refactor AccountListView Page object (#10714)
 
 ### Fixed
-
 - [#10518](https://github.com/MetaMask/metamask-mobile/pull/10518): fix: refactor blockaid utils sync functions to async (#10518)
 - [#11020](https://github.com/MetaMask/metamask-mobile/pull/11020): fix: Fix broken unit test in `Sendflow` tests (#11020)
 - [#10385](https://github.com/MetaMask/metamask-mobile/pull/10385): fix: no insufficient funds warning (#10385)
@@ -8583,9 +8229,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10792](https://github.com/MetaMask/metamask-mobile/pull/10792): fix: refactor notifications utils (#10792)
 
 ## [7.30.0]
-
 ### Added
-
 - [#10748](https://github.com/MetaMask/metamask-mobile/pull/10748): feat: Add yarn flipper script (#10748)
 - [#10739](https://github.com/MetaMask/metamask-mobile/pull/10739): feat: Feat/add redux debugger (#10739)
 - [#10589](https://github.com/MetaMask/metamask-mobile/pull/10589): feat: Feat/10521 react-native-performance mvp for measuring app start + JS bundle load times (#10589)
@@ -8601,7 +8245,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9950](https://github.com/MetaMask/metamask-mobile/pull/9950): feat: QR-based add NGRAVE ZERO Hardware (#9950)
 
 ### Changed
-
 - [#10746](https://github.com/MetaMask/metamask-mobile/pull/10746): chore: fix another batch of TS errors (#10746)
 - [#10735](https://github.com/MetaMask/metamask-mobile/pull/10735): chore: Add E2E folders to sonar exclusion list (#10735)
 - [#10697](https://github.com/MetaMask/metamask-mobile/pull/10697): chore: Add more typescript fixes (#10697)
@@ -8657,7 +8300,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10539](https://github.com/MetaMask/metamask-mobile/pull/10539): chore: enhance Source Detection Logic in Analytics Parameters (#10539)
 
 ### Fixed
-
 - [#10649](https://github.com/MetaMask/metamask-mobile/pull/10649): fix: Update test dapp favorite selector (#10649)
 - [#10641](https://github.com/MetaMask/metamask-mobile/pull/10641): fix: Add missing pod lock changes (#10641)
 - [#10613](https://github.com/MetaMask/metamask-mobile/pull/10613): fix: useBlockExplorer hook (#10613)
@@ -8683,22 +8325,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10693](https://github.com/MetaMask/metamask-mobile/pull/10693): fix: notification second round fixes (#10693)
 
 ## [7.29.2]
-
 ### Fixed
-
 - [#10965](https://github.com/MetaMask/metamask-mobile/pull/10965): fix: gas never loading during send + high gas fee after deep link (#10965)
 - [#11005](https://github.com/MetaMask/metamask-mobile/pull/11005): fix: Add missing allowedAction NetworkController:findNetworkClientIdByChainId to transactionController (#11005)
 
 ## [7.29.1]
-
 ### Fixed
-
 - [#10831](https://github.com/MetaMask/metamask-mobile/pull/10831): feat: Update Polygon from MATIC to POL (#10831)
 
 ## [7.29.0]
-
 ### Added
-
 - [#9578](https://github.com/MetaMask/metamask-mobile/pull/9578): feat: type `renderHookWithProvider` (#9578)
 - [#10277](https://github.com/MetaMask/metamask-mobile/pull/10277): feat: New nft details page (#10277)
 - [#9469](https://github.com/MetaMask/metamask-mobile/pull/9469): feat: nft + swap metrics (#9469)
@@ -8714,7 +8350,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10363](https://github.com/MetaMask/metamask-mobile/pull/10363): feat: add notifications UI components to be used by Views (#10363)
 
 ### Changed
-
 - [#10531](https://github.com/MetaMask/metamask-mobile/pull/10531): chore: fix release action (#10531)
 - [#10471](https://github.com/MetaMask/metamask-mobile/pull/10471): chore: Typescript type coverage util lib folders (#10471)
 - [#10507](https://github.com/MetaMask/metamask-mobile/pull/10507): chore: core related files selectors refactor (#10507)
@@ -8744,7 +8379,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9589](https://github.com/MetaMask/metamask-mobile/pull/9589): test(ramp): add `useApplePay` tests (#9589)
 
 ### Fixed
-
 - [#9744](https://github.com/MetaMask/metamask-mobile/pull/9744): fix: fix/9350 Use consistent commit hash on Bitrise e2e smoke tests (#9744)
 - [#10511](https://github.com/MetaMask/metamask-mobile/pull/10511): fix: crash on reload fix by patch (#10511)
 - [#10481](https://github.com/MetaMask/metamask-mobile/pull/10481): fix: Added parse errors to be caught on vault corruption flow (#10481)
@@ -8763,16 +8397,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10303](https://github.com/MetaMask/metamask-mobile/pull/10303): fix: page navigation during QR accounts selection (#10303)
 
 ## [7.28.1]
-
 ### Fixed
-
 - [#10637](https://github.com/MetaMask/metamask-mobile/pull/10637): fix: swap button blocked by SwapsController polling issue (#10637)
 - [#10654](https://github.com/MetaMask/metamask-mobile/pull/10654): fix: hot fix for ledger account select screen to provide disclaimer copy information. (#10654)
 
 ## [7.28.0]
-
 ### Added
-
 - [#10252](https://github.com/MetaMask/metamask-mobile/pull/10252): feat: regression label (#10252)
 - [#10214](https://github.com/MetaMask/metamask-mobile/pull/10214): feat: Partially local WebView for Snaps (#10214)
 - [#10103](https://github.com/MetaMask/metamask-mobile/pull/10103): feat: update walletconnect se-sdk (#10103)
@@ -8782,7 +8412,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10109](https://github.com/MetaMask/metamask-mobile/pull/10109): feat: multiple accounts support in ledger (#10109)
 
 ### Changed
-
 - [#10278](https://github.com/MetaMask/metamask-mobile/pull/10278): chore: disable snaps feat from main temporarily (#10278)
 - [#10329](https://github.com/MetaMask/metamask-mobile/pull/10329): test: Disable bitrise slack notification step (#10329)
 - [#10172](https://github.com/MetaMask/metamask-mobile/pull/10172): chore: changelog release automation (#10172)
@@ -8806,7 +8435,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10274](https://github.com/MetaMask/metamask-mobile/pull/10274): chore: New Crowdin translations by Github Action (#10274)
 
 ### Fixed
-
 - [#10308](https://github.com/MetaMask/metamask-mobile/pull/10308): fix: correctly get current PR number in bitrise e2e workflow (#10308)
 - [#10232](https://github.com/MetaMask/metamask-mobile/pull/10232): fix: fixes missing analytics data for non-web dapps that don't have a url (no… (#10232)
 - [#10264](https://github.com/MetaMask/metamask-mobile/pull/10264): fix: skip blockaid validations for users internal accounts (#10264)
@@ -8814,15 +8442,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10279](https://github.com/MetaMask/metamask-mobile/pull/10279): fix: use ACTIONS_WRITE_TOKEN in attributions workflow (#10279)
 
 ## [7.27.1]
-
 ### Fixed
-
 - [#10438](https://github.com/MetaMask/metamask-mobile/pull/10438): cherry-pick: update @blockaid/ppom_release package to version 1.5.1#10438 (#10435)
 
 ## [7.27.0]
-
 ### Added
-
 - [#7759](https://github.com/MetaMask/metamask-mobile/pull/7759): feat: upgrade react-native-webview (#7759)
 - [#10000](https://github.com/MetaMask/metamask-mobile/pull/10000): feat: support security alerts API (#10000)
 - [#10039](https://github.com/MetaMask/metamask-mobile/pull/10039): feat: enable transaction simulations (#10039)
@@ -8839,7 +8463,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10086](https://github.com/MetaMask/metamask-mobile/pull/10086): feat: Add team label to pr (#10086)
 
 ### Changed
-
 - [#10153](https://github.com/MetaMask/metamask-mobile/pull/10153): chore: Migrate AsyncStorage to mmkv (#10153)
 - [#10071](https://github.com/MetaMask/metamask-mobile/pull/10071): chore: New Crowdin translations by Github Action (#10071)
 - [#9441](https://github.com/MetaMask/metamask-mobile/pull/9441): chore: Convert initial background state to typed background state (#9441)
@@ -8865,7 +8488,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10063](https://github.com/MetaMask/metamask-mobile/pull/10063): chore: Refactor Snaps integration (#10063)
 
 ### Fixed
-
 - [#10168](https://github.com/MetaMask/metamask-mobile/pull/10168): fix: convert Sentry messages to log (#10168)
 - [#9918](https://github.com/MetaMask/metamask-mobile/pull/9918): fix: hide amount in simulations for testnets if its opt out (#9918)
 - [#10164](https://github.com/MetaMask/metamask-mobile/pull/10164): fix: Stop running fencing logic on `node_modules` (#10164)
@@ -8892,15 +8514,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#10064](https://github.com/MetaMask/metamask-mobile/pull/10064): fix: Always mark the STX Opt In modal as seen (#10064)
 
 ## [7.26.1]
-
 ### Fixed
-
 - [#9724](https://github.com/MetaMask/metamask-mobile/pull/9724): feat: remove selectIdentities in favour of selectInternalAccounts
 
 ## [7.26.0]
-
 ### Added
-
 - [#9937](https://github.com/MetaMask/metamask-mobile/pull/9937): feat: modification of the network bottom sheet to use the new UI redesign by adding the popular network section as additional network (#9937)
 - [#9856](https://github.com/MetaMask/metamask-mobile/pull/9856): feat: new attribution github workflow (#9856)
 - [#9768](https://github.com/MetaMask/metamask-mobile/pull/9768): feat: add MetaMetrics delete on Wallet delete (#9768)
@@ -8920,7 +8538,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9473](https://github.com/MetaMask/metamask-mobile/pull/9473): feat: notifications details screen (#9473)
 
 ### Changed
-
 - [#9884](https://github.com/MetaMask/metamask-mobile/pull/9884): chore(pr template + readme): add link to contributor docs (#9884)
 - [#9863](https://github.com/MetaMask/metamask-mobile/pull/9863): chore: Revert ""fix: swaps quote nan to bnjs"" (#9848, #9863)
 - [#9915](https://github.com/MetaMask/metamask-mobile/pull/9915): test: 1454 refactor modal pages batch 4 (#9915)
@@ -8959,7 +8576,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9234](https://github.com/MetaMask/metamask-mobile/pull/9234): chore: update the 'CODEOWNERS' file to include directories relevant to the 'sdk-devs' team (#9234)
 
 ### Fixed
-
 - [#9903](https://github.com/MetaMask/metamask-mobile/pull/9903): fix: upgrade test failure fix for 7.24.0 release branch (#9903)
 - [#9844](https://github.com/MetaMask/metamask-mobile/pull/9844): fix: confirmations failing ci tests (#9844)
 - [#9831](https://github.com/MetaMask/metamask-mobile/pull/9831): fix: Fix audit ci (#9831)
@@ -9000,33 +8616,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9755](https://github.com/MetaMask/metamask-mobile/pull/9755): fix: display the DApp URL in connect screen for MetaMask IOS-SDK (#9755)
 
 ## [7.24.4]
-
 ### Fixed
-
 - [10064](https://github.com/MetaMask/metamask-mobile/pull/10064) fix: Always mark the STX Opt In modal as seen
 - [10088](https://github.com/MetaMask/metamask-mobile/pull/10088) fix: Swap with unapproved token
 - [10099](https://github.com/MetaMask/metamask-mobile/pull/10099) fix: stx on ramps missing origin
 
 ## [7.24.3]
-
 ### Fixed
-
 - [#10045](https://github.com/MetaMask/metamask-mobile/pull/10045): fix: Update ppom package to 1.4.8 (#10041)
 
 ## [7.24.2]
-
 ### Added
-
 - [#9687](https://github.com/MetaMask/metamask-mobile/pull/9687): feat: adds "data collection for marketing" toggles
 
 ### Fixed
-
 - [#9905](https://github.com/MetaMask/metamask-mobile/pull/9905): fix: remove metametrics redundant calls and improve compliance
 
 ## [7.24.1]
-
 ### Fixed
-
 - [#9943](https://github.com/MetaMask/metamask-mobile/pull/9943): fix: Remove duplicate accounts (#9943)
 - [#10006](https://github.com/MetaMask/metamask-mobile/pull/10006): fix: Fix order of accounts (#10006)
 - [#10004](https://github.com/MetaMask/metamask-mobile/pull/10004): fix: Synchronize account names (#10004)
@@ -9034,9 +8641,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9980](https://github.com/MetaMask/metamask-mobile/pull/9980): fix: Fix initialization crash / login error "Engine does not exist (#9980)
 
 ## [7.24.0]
-
 ### Added
-
 - [#9767](https://github.com/MetaMask/metamask-mobile/pull/9767): feat: push Privacy policy date to 2024 Jun 18 12:00 UTC (#9767)
 - [#9707](https://github.com/MetaMask/metamask-mobile/pull/9707): feat: adds strings for the opt in toggles (#9707)
 - [#9661](https://github.com/MetaMask/metamask-mobile/pull/9661): feat: smart-tx opt in modal 2 (#9661)
@@ -9052,7 +8657,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9572](https://github.com/MetaMask/metamask-mobile/pull/9572): feat: notifications onboarding wizard - [8 of 10] (#9572)
 
 ### Changed
-
 - [#9612](https://github.com/MetaMask/metamask-mobile/pull/9612): revert: feat(swaps): enable Base for swaps (#9286, #9612)
 - [#9735](https://github.com/MetaMask/metamask-mobile/pull/9735): chore: add swaps team to swaps domain folder (#9735)
 - [#9683](https://github.com/MetaMask/metamask-mobile/pull/9683): refactor: the network name and image utils into selectors (#9683)
@@ -9076,7 +8680,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9712](https://github.com/MetaMask/metamask-mobile/pull/9712): chore: remove unnecessary patch imports and change the patch branch name (#9712)
 
 ### Fixed
-
 - [#9301](https://github.com/MetaMask/metamask-mobile/pull/9301): fix: flaky tests issues template skip 2 (#9301)
 - [#9774](https://github.com/MetaMask/metamask-mobile/pull/9774): fix: unit tests (#9774)
 - [#9706](https://github.com/MetaMask/metamask-mobile/pull/9706): fix: QR scanner crash when user dismisses camera view in web view (#9706)
@@ -9103,9 +8706,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9616](https://github.com/MetaMask/metamask-mobile/pull/9616): fix: fix the issue 9560 which QR code accounts has been reappeared aftter user `remove wallets` (#9616)
 
 ## [7.23.0]
-
 ### Added
-
 - [#9595](https://github.com/MetaMask/metamask-mobile/pull/9595): feat: Upgrade to react-native-svg to 15.2.0 (#9595)
 - [#9305](https://github.com/MetaMask/metamask-mobile/pull/9305): feat: Update SignatureController v6.1.3 + LoggingController v2.0.0 (#9305)
 - [#9546](https://github.com/MetaMask/metamask-mobile/pull/9546): feat: fix logs for 1709 (#9546)
@@ -9128,7 +8729,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9401](https://github.com/MetaMask/metamask-mobile/pull/9401): feat: updated styling in badgenetwork (#9401)
 
 ### Changed
-
 - [#9571](https://github.com/MetaMask/metamask-mobile/pull/9571): chore: revert feat: notifications onboarding wizard (#9392, #9571)
 - [#9610](https://github.com/MetaMask/metamask-mobile/pull/9610): test: Fix flakiness caused by the notification permission dialog which caused confirmation test flakiness (#9610)
 - [#9577](https://github.com/MetaMask/metamask-mobile/pull/9577): chore: Chore/1742 remove vault recreation log in (#9577)
@@ -9158,7 +8758,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8557](https://github.com/MetaMask/metamask-mobile/pull/8557): chore: remove unused @metamask/oss-attribution-generator (#8557)
 
 ### Fixed
-
 - [#9525](https://github.com/MetaMask/metamask-mobile/pull/9525): fix: fix regression tests (#9525)
 - [#9411](https://github.com/MetaMask/metamask-mobile/pull/9411): fix: refactor mechanism for sending analytics events (#9411)
 - [#9575](https://github.com/MetaMask/metamask-mobile/pull/9575): fix: Add missing wallet_addEthereumChain to unrestricted list (#9575)
@@ -9188,9 +8787,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9143](https://github.com/MetaMask/metamask-mobile/pull/9143): fix: Yarn 1.22.22 (#9143)
 
 ## [7.22.0]
-
 ### Added
-
 - [#9329](https://github.com/MetaMask/metamask-mobile/pull/9329): feat: Added log to capture failing exception for getItem (#9329)
 - [#9271](https://github.com/MetaMask/metamask-mobile/pull/9271): feat: update phishing controller v8.0.0 (#9271)
 - [#9254](https://github.com/MetaMask/metamask-mobile/pull/9254): feat: Update Gas fee controller v10 (#9254)
@@ -9214,7 +8811,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9030](https://github.com/MetaMask/metamask-mobile/pull/9030): feat: Extend blockaid validations to base network (#9030)
 
 ### Changed
-
 - [#9393](https://github.com/MetaMask/metamask-mobile/pull/9393): test: Fix failing regression test basic fun feat (#9393)
 - [#9386](https://github.com/MetaMask/metamask-mobile/pull/9386): chore: Revert #9263 feat: add notifications onboarding wizard (#9386)
 - [#8909](https://github.com/MetaMask/metamask-mobile/pull/8909): test: 1453 refactor modal pages batch 3 (#8909)
@@ -9233,7 +8829,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9093](https://github.com/MetaMask/metamask-mobile/pull/9093): refactor: migrate Encryptor to TypeScript and increase PBKDF2 iterations number (#9093)
 
 ### Fixed
-
 - [#9302](https://github.com/MetaMask/metamask-mobile/pull/9302): fix: e2e test permission problem (#9302)
 - [#9395](https://github.com/MetaMask/metamask-mobile/pull/9395): fix(translations): Fix hard coded repo name left from testing in diff repo (#9395)
 - [#9337](https://github.com/MetaMask/metamask-mobile/pull/9337): fix: show banner alert if account balance is insufficient (#9337)
@@ -9267,9 +8862,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9283](https://github.com/MetaMask/metamask-mobile/pull/9283): fix: missing walletConnect prop (#9283)
 
 ## [7.21.0]
-
 ### Added
-
 - [#9065](https://github.com/MetaMask/metamask-mobile/pull/9065): feat: Update network controller to version 13.0.1 (#9065)
 - [#9166](https://github.com/MetaMask/metamask-mobile/pull/9166): feat: signature controller update to v6.0.0 (#9166)
 - [#9194](https://github.com/MetaMask/metamask-mobile/pull/9194): feat: 7.19.1 (#9194)
@@ -9285,7 +8878,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8701](https://github.com/MetaMask/metamask-mobile/pull/8701): feat: notifications (#8701)
 
 ### Changed
-
 - [#9199](https://github.com/MetaMask/metamask-mobile/pull/9199): chore: Chore/resolve xcode changes (#9199)
 - [#9197](https://github.com/MetaMask/metamask-mobile/pull/9197): test: Change instances of messages to enContent while importing from locales (#9197)
 - [#9181](https://github.com/MetaMask/metamask-mobile/pull/9181): test: fix rpc test on Ci for Android (#9181)
@@ -9308,7 +8900,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5093](https://github.com/MetaMask/metamask-mobile/pull/5093): chore: Bump pify from 4.0.1 to 6.1.0 (#5093)
 
 ### Fixed
-
 - [#8958](https://github.com/MetaMask/metamask-mobile/pull/8958): fix: unit test metametrics at app startup (#8958)
 - [#9206](https://github.com/MetaMask/metamask-mobile/pull/9206): fix: fix nfts displayed on account and refactor collectibles component (#9206)
 - [#9174](https://github.com/MetaMask/metamask-mobile/pull/9174): fix: change CUSTOM_TOKEN_IMPORTED tracking mode (#9174)
@@ -9323,15 +8914,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#9075](https://github.com/MetaMask/metamask-mobile/pull/9075): fix: Send ppom metrics when transaction is cancelled. (#9075)
 
 ## [7.20.1]
-
 ### Fixed
-
 - [#9092](https://github.com/MetaMask/metamask-mobile/pull/9092): fix: check HD keyring
 
 ## [7.20.0]
-
 ### Added
-
 - [#8982](https://github.com/MetaMask/metamask-mobile/pull/8982): feat: Update gas fee controller to version 6.1.2
 - [#9079](https://github.com/MetaMask/metamask-mobile/pull/9079): feat: Update controller utils to 5.0.2
 - [#9036](https://github.com/MetaMask/metamask-mobile/pull/9036): feat: Adding blockaid validations for sepolia network
@@ -9347,7 +8934,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8986](https://github.com/MetaMask/metamask-mobile/pull/8986): feat: Updated Assets Controllers to v11.1.0
 
 ### Changed
-
 - [#8967](https://github.com/MetaMask/metamask-mobile/pull/8967): chore: Handle async migrations & add migration tests
 - [#8826](https://github.com/MetaMask/metamask-mobile/pull/8826): refactor: update Ledger connection instructions
 - [#9038](https://github.com/MetaMask/metamask-mobile/pull/9038): chore: Consolidate and simplify isTest condition
@@ -9366,7 +8952,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8959](https://github.com/MetaMask/metamask-mobile/pull/8959): chore: Migrate another (3/3) batch of unit tests away from enzyme
 
 ### Fixed
-
 - [#9000](https://github.com/MetaMask/metamask-mobile/pull/9000): fix: Revert "test: [android] run tests on the first emulator in your list …
 - [#8998](https://github.com/MetaMask/metamask-mobile/pull/8998): fix: Revert "fix: hardcode emulator name to fix failing android tests on C…
 - [#8995](https://github.com/MetaMask/metamask-mobile/pull/8995): fix: hardcode emulator name to fix failing android tests on CI
@@ -9389,15 +8974,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8932](https://github.com/MetaMask/metamask-mobile/pull/8932): fix: breaking change from `@metamask/transaction-controller` regarding Ledger transactions
 
 ## [7.19.1]
-
 ### Fixed
-
 - [#9193](https://github.com/MetaMask/metamask-mobile/pull/9193): fix(ramp): default networks state to array
 
 ## [7.19.0]
-
 ### Added
-
 - [#8935](https://github.com/MetaMask/metamask-mobile/pull/8935): feat: Remove powered by blockaid line
 - [#8908](https://github.com/MetaMask/metamask-mobile/pull/8908): feat: add linea sepolia network and deprecate Linea Goerli network
 - [#8881](https://github.com/MetaMask/metamask-mobile/pull/8881): feat: patch for assets controller v11.0.1
@@ -9413,7 +8994,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8768](https://github.com/MetaMask/metamask-mobile/pull/8768): feat: state logs in the exported file with app version and build number
 
 ### Changed
-
 - [#8789](https://github.com/MetaMask/metamask-mobile/pull/8789): ci: 8253 - Add fitness function action for enzyme imports
 - [#8919](https://github.com/MetaMask/metamask-mobile/pull/8919): chore: Include env variable copying into yarn setup command
 - [#8964](https://github.com/MetaMask/metamask-mobile/pull/8964): chore: added platform team as codeowner to component-lib, patches, bitrise.yml
@@ -9449,7 +9029,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8802](https://github.com/MetaMask/metamask-mobile/pull/8802): chore: Remove `glob` resolution
 
 ### Fixed
-
 - [#8774](https://github.com/MetaMask/metamask-mobile/pull/8774): fix: normalize transaction parameters before PPOM validation
 - [#8838](https://github.com/MetaMask/metamask-mobile/pull/8838): fix: Rename DAPP_VISITED to DAPP_VIEWED
 - [#8784](https://github.com/MetaMask/metamask-mobile/pull/8784): fix: update usage of OP goerli to OP Sepolia
@@ -9478,9 +9057,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8496](https://github.com/MetaMask/metamask-mobile/pull/8496): fix: redirection issue after chain switch on sign request
 
 ## [7.18.0]
-
 ### Added
-
 - [#8729](https://github.com/MetaMask/metamask-mobile/pull/8729): feat(ramp): add event when user expands quotes
 - [#8787](https://github.com/MetaMask/metamask-mobile/pull/8787): feat: add MetaMetrics custom flush vars and log
 - [#8680](https://github.com/MetaMask/metamask-mobile/pull/8680): feat(ramp): add previously used tag
@@ -9514,7 +9091,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8673](https://github.com/MetaMask/metamask-mobile/pull/8673): feat: new trackErrorAsAnalytics for segment
 
 ### Changed
-
 - [#8803](https://github.com/MetaMask/metamask-mobile/pull/8803): chore: Remove unnecessary resolutions
 - [#8792](https://github.com/MetaMask/metamask-mobile/pull/8792): test: Fix tag in regression test
 - [#8791](https://github.com/MetaMask/metamask-mobile/pull/8791): test: add contact us e2e
@@ -9531,7 +9107,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8644](https://github.com/MetaMask/metamask-mobile/pull/8644): test: Refactor settings page object
 
 ### Fixed
-
 - [#8801](https://github.com/MetaMask/metamask-mobile/pull/8801): fix(ramp): undefined payment method
 - [#8798](https://github.com/MetaMask/metamask-mobile/pull/8798): fix: remove unnecessary post message stream patch
 - [#8572](https://github.com/MetaMask/metamask-mobile/pull/8572): fix: fake native tokens need better UX error handling
@@ -9557,16 +9132,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8615](https://github.com/MetaMask/metamask-mobile/pull/8615): fix: Fix add custom rpc detox test script
 
 ## [7.17.1]
-
 ### Fixed
-
 - [#8870](https://github.com/MetaMask/metamask-mobile/pull/8870): fix: update PPOM to v1.4.4
 - [#8892](https://github.com/MetaMask/metamask-mobile/pull/8892): fix: Tokens disappearing
 
 ## [7.17.0]
-
 ### Added
-
 - [#8520](https://github.com/MetaMask/metamask-mobile/pull/8520): feat: Feature/1300 dapp visit event
 - [#8354](https://github.com/MetaMask/metamask-mobile/pull/8354): feat(ramp): add Terms of Service provider link to quotes
 - [#8579](https://github.com/MetaMask/metamask-mobile/pull/8579): feat: translate fake native tokens need better UX error handling
@@ -9588,7 +9159,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8413](https://github.com/MetaMask/metamask-mobile/pull/8413): feat: Update SES lockdown options
 
 ### Changed
-
 - [#8457](https://github.com/MetaMask/metamask-mobile/pull/8457): refactor(ramp): add routes folder
 - [#8510](https://github.com/MetaMask/metamask-mobile/pull/8510): chore: upgrading design tokens package and typescript conventions
 - [#8478](https://github.com/MetaMask/metamask-mobile/pull/8478): chore: bumping code coverage thresholds
@@ -9601,7 +9171,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8514](https://github.com/MetaMask/metamask-mobile/pull/8514): chore(ramp): upgrade sdk to 1.26.2
 
 ### Fixed
-
 - [#8348](https://github.com/MetaMask/metamask-mobile/pull/8348): fix: update nft metadata on page refresh
 - [#8556](https://github.com/MetaMask/metamask-mobile/pull/8556): fix: improve native balance fetch logic on the UX
 - [#8605](https://github.com/MetaMask/metamask-mobile/pull/8605): fix: Update ppom_release to fix fail ppom security validation check
@@ -9635,9 +9204,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8476](https://github.com/MetaMask/metamask-mobile/pull/8476): fix: Fix title color type in settings drawer
 
 ## [7.16.0]
-
 ### Added
-
 - [#8093](https://github.com/MetaMask/metamask-mobile/pull/8093): feat: decouple account selector from qr code connector
 - [#8383](https://github.com/MetaMask/metamask-mobile/pull/8383): feat: add translation for privacy toggle
 - [#8412](https://github.com/MetaMask/metamask-mobile/pull/8412): feat: Blockaid experimental settings should be visible on all networks
@@ -9654,7 +9221,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8030](https://github.com/MetaMask/metamask-mobile/pull/8030): feat: New Crowdin translations by Github Action
 
 ### Changed
-
 - [#8452](https://github.com/MetaMask/metamask-mobile/pull/8452): refactor: Replace SheetBottom with BottomSheet in WalletActions
 - [#8451](https://github.com/MetaMask/metamask-mobile/pull/8451): refactor: Replace SheetBottom with BottomSheet in ShowIpfsGatewaySheet
 - [#8450](https://github.com/MetaMask/metamask-mobile/pull/8450): refactor: Replace SheetBottom with BottomSheet in ShowDisplayNFTMediaSheet
@@ -9700,7 +9266,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8272](https://github.com/MetaMask/metamask-mobile/pull/8272): chore: adds snapController selector and initial state
 
 ### Fixed
-
 - [#8460](https://github.com/MetaMask/metamask-mobile/pull/8460): fix: typos in en.json
 - [#8453](https://github.com/MetaMask/metamask-mobile/pull/8453): fix: show only blockaid multichain on whats new
 - [#8421](https://github.com/MetaMask/metamask-mobile/pull/8421): fix: patch handling of missing token price
@@ -9730,9 +9295,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8247](https://github.com/MetaMask/metamask-mobile/pull/8247): fix: fix inconsistency in the popular tab
 
 ## [7.15.0]
-
 ### Added
-
 - [#8080](https://github.com/MetaMask/metamask-mobile/pull/8080): feat(ramp): add sell quick amounts with gas estimations
 - [#8204](https://github.com/MetaMask/metamask-mobile/pull/8204): feat: update blockaid dependency to latest version
 - [#8215](https://github.com/MetaMask/metamask-mobile/pull/8215): feat: Android sdk dapp icon support
@@ -9747,7 +9310,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8097](https://github.com/MetaMask/metamask-mobile/pull/8097): feat(ramp): keep region always up to date
 
 ### Changed
-
 - [#8231](https://github.com/MetaMask/metamask-mobile/pull/8231): test: 1328 refactor modals page batch 1
 - [#8229](https://github.com/MetaMask/metamask-mobile/pull/8229): refactor(ramp): update callback url for dev/staging
 - [#8217](https://github.com/MetaMask/metamask-mobile/pull/8217): test: fixed Swap smoke and regression test failures
@@ -9788,7 +9350,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8044](https://github.com/MetaMask/metamask-mobile/pull/8044): refactor: Updated navigational Navbar Headers with DS components
 
 ### Fixed
-
 - [#8230](https://github.com/MetaMask/metamask-mobile/pull/8230): fix: refresh ownership status for nfts
 - [#8248](https://github.com/MetaMask/metamask-mobile/pull/8248): fix: update PPOM validator version to fix validation after network change
 - [#8233](https://github.com/MetaMask/metamask-mobile/pull/8233): fix: enabling blockaid should be possible only if user is on mainnet
@@ -9815,9 +9376,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8029](https://github.com/MetaMask/metamask-mobile/pull/8029): fix: blockaid analytics code typos
 
 ## [7.14.0]
-
 ### Added
-
 - [#8016](https://github.com/MetaMask/metamask-mobile/pull/8016): feat(ramp): add sell deeplink
 - [#7962](https://github.com/MetaMask/metamask-mobile/pull/7962): feat(ramp): add sell notification texts
 - [#8047](https://github.com/MetaMask/metamask-mobile/pull/8047): feat: Added RadioButton to DS
@@ -9841,7 +9400,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7864](https://github.com/MetaMask/metamask-mobile/pull/7864): feat(ramp): sell what's new modal content
 
 ### Changed
-
 - [#7908](https://github.com/MetaMask/metamask-mobile/pull/7908): chore: tranfer the DeeplinkManager file from JS to TS
 - [#7972](https://github.com/MetaMask/metamask-mobile/pull/7972): chore: Replace local code fence transform with `@metamask/build-utils`
 - [#7925](https://github.com/MetaMask/metamask-mobile/pull/7925): chore: refactor the DeeplinkManager into smaller parts and add unit tests
@@ -9865,7 +9423,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7896](https://github.com/MetaMask/metamask-mobile/pull/7896): test: Remove duplicate methods on Gesture class
 
 ### Fixed
-
 - [#7953](https://github.com/MetaMask/metamask-mobile/pull/7953): fix: correct proptypes array in WebsiteIcon component
 - [#7886](https://github.com/MetaMask/metamask-mobile/pull/7886): fix: Fix `eth_signTypedData` signatures containing `0x`
 - [#7935](https://github.com/MetaMask/metamask-mobile/pull/7935): fix: bitrise cocoapods issue in bitrise
@@ -9888,37 +9445,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7976](https://github.com/MetaMask/metamask-mobile/pull/7976): fix: blockaid mobile performance improvements
 
 ## [7.12.5]
-
 ### Added
-
 - [#8156](https://github.com/MetaMask/metamask-mobile/pull/8156): feat: migrate to latest Token rates controller
 
 ### Fixed
-
 - [#8155](https://github.com/MetaMask/metamask-mobile/pull/8155): fix: OpenSea V1 -> V2 patch
 
 ## [7.12.3]
-
 ### Fixed
-
 - [#8102](https://github.com/MetaMask/metamask-mobile/pull/8102): fix: prevent bad svg urls in react-native-svg
 
 ## [7.12.2]
-
 ### Fixed
-
 - [#8057](https://github.com/MetaMask/metamask-mobile/pull/8057): fix: Disable SES on iOS
 
 ## [7.12.1]
-
 ### Fixed
-
 - [#7991](https://github.com/MetaMask/metamask-mobile/pull/7991): fix: patch for token rates controller with coin gecko endpoint
 
 ## [7.12.0]
-
 ### Added
-
 - [#7037](https://github.com/MetaMask/metamask-mobile/pull/7037): feat(off-ramp): add off-ramp feature
 - [#7734](https://github.com/MetaMask/metamask-mobile/pull/7734): feat: enable code fence capabilities on mobile app.
 - [#7754](https://github.com/MetaMask/metamask-mobile/pull/7754): feat: add a return to app modal only for ios 17 when an sdk operation is done
@@ -9940,7 +9486,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7708](https://github.com/MetaMask/metamask-mobile/pull/7708): feat: configure metro listener port
 
 ### Changed
-
 - [#7860](https://github.com/MetaMask/metamask-mobile/pull/7860): refactor: Updated Toast story
 - [#7391](https://github.com/MetaMask/metamask-mobile/pull/7391): refactor: Convert Button stories to csf format
 - [#7393](https://github.com/MetaMask/metamask-mobile/pull/7393): refactor: Convert Badge stories to csf format
@@ -9967,7 +9512,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7704](https://github.com/MetaMask/metamask-mobile/pull/7704): refactor: logger.js to typescript and optimize for dev
 
 ### Fixed
-
 - [#7859](https://github.com/MetaMask/metamask-mobile/pull/7859): fix: microphone and camera on webview
 - [#7776](https://github.com/MetaMask/metamask-mobile/pull/7776): fix: WalletConnect requests should show loading banner for blockaid
 - [#7838](https://github.com/MetaMask/metamask-mobile/pull/7838): fix: remove unused .tools-versions to prioritize nvm
@@ -10005,9 +9549,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7642](https://github.com/MetaMask/metamask-mobile/pull/7642): fix: action view btn not able translate
 
 ## [7.11.0]
-
 ### Added
-
 - [#7251](https://github.com/MetaMask/metamask-mobile/pull/7251): feat: #999 - RTK consolidate reducers
 - [#7628](https://github.com/MetaMask/metamask-mobile/pull/7628): feat: sdk batch rpc calls
 - [#7655](https://github.com/MetaMask/metamask-mobile/pull/7655): feat: node to version 18.17.1
@@ -10020,7 +9562,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7419](https://github.com/MetaMask/metamask-mobile/pull/7419): feat: Add metrics for provider calls coming from ppom on mobile
 
 ### Changed
-
 - [#7349](https://github.com/MetaMask/metamask-mobile/pull/7349): refactor: Convert Form stories
 - [#7414](https://github.com/MetaMask/metamask-mobile/pull/7414): refactor: Convert List stories to csf format
 - [#7468](https://github.com/MetaMask/metamask-mobile/pull/7468): refactor: Convert Text stories to csf format
@@ -10058,7 +9599,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7574](https://github.com/MetaMask/metamask-mobile/pull/7574): chore: minor bump on react native dev tools to address audit issue
 
 ### Fixed
-
 - [#7692](https://github.com/MetaMask/metamask-mobile/pull/7692): fix: sdk and deeplink init process
 - [#7687](https://github.com/MetaMask/metamask-mobile/pull/7687): fix: refactor selectors and fix request token test
 - [#7491](https://github.com/MetaMask/metamask-mobile/pull/7491): fix: Warn users when connecting to a website on the eth-phishing-detect list on mobile
@@ -10085,9 +9625,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7733](https://github.com/MetaMask/metamask-mobile/pull/7733): fix: silence PollingBlockTracker Sentry
 
 ## [7.10.0]
-
 ### Added
-
 - [#7154](https://github.com/MetaMask/metamask-mobile/pull/7154): feat: incoming transactions by network
 - [#7541](https://github.com/MetaMask/metamask-mobile/pull/7541): feat: Add EIP-6963 Provider
 - [#7256](https://github.com/MetaMask/metamask-mobile/pull/7256): feat: Enable zkSync Era in Swaps
@@ -10099,7 +9637,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7584](https://github.com/MetaMask/metamask-mobile/pull/7584): feat: re-create connect_sign feature
 
 ### Changed
-
 - [#7574](https://github.com/MetaMask/metamask-mobile/pull/7574): chore: minor bump on react native dev tools to address audit issue
 - [#7354](https://github.com/MetaMask/metamask-mobile/pull/7354): chore: New Crowdin translations by Github Action
 - [#7542](https://github.com/MetaMask/metamask-mobile/pull/7542): chore: @metamask/test-dapp@^7.1.0->^7.2.0
@@ -10138,7 +9675,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7364](https://github.com/MetaMask/metamask-mobile/pull/7364): chore: bump Node to v16.20
 
 ### Fixed
-
 - [#7540](https://github.com/MetaMask/metamask-mobile/pull/7540): fix: token decimals fetched from the chain
 - [#7531](https://github.com/MetaMask/metamask-mobile/pull/7531): fix: depcheck@^1.4.5->^1.4.7
 - [#7483](https://github.com/MetaMask/metamask-mobile/pull/7483): fix: android os connection issue
@@ -10163,15 +9699,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7362](https://github.com/MetaMask/metamask-mobile/pull/7362): fix(action): update fetch-depth parameter to fetch only the last commit
 
 ## [7.9.1]
-
 ### Fixed
-
 - [#7653](https://github.com/MetaMask/metamask-mobile/pull/7653): fix: revert nonce logic in transaction controller
 
 ## [7.9.0]
-
 ### Added
-
 - [#7341](https://github.com/MetaMask/metamask-mobile/pull/7341): feat(ramp): add webview debug by env vars
 - [#7345](https://github.com/MetaMask/metamask-mobile/pull/7345): feat: remove unused react-native-webrtc package
 - [#7212](https://github.com/MetaMask/metamask-mobile/pull/7212): feat: extend the time we resume the session without showing OTP
@@ -10181,7 +9713,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7052](https://github.com/MetaMask/metamask-mobile/pull/7052): feat: Ipfs implementation (#6968)
 
 ### Changed
-
 - [#7028](https://github.com/MetaMask/metamask-mobile/pull/7028): chore: New Crowdin translations by Github Action
 - [#7159](https://github.com/MetaMask/metamask-mobile/pull/7159): refactor: custom network component
 - [#7277](https://github.com/MetaMask/metamask-mobile/pull/7277): chore: 5.8.1 Sentry SDK Upgrade
@@ -10198,7 +9729,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7225](https://github.com/MetaMask/metamask-mobile/pull/7225): test: Signatures refactor with fixtures
 
 ### Fixed
-
 - [#7309](https://github.com/MetaMask/metamask-mobile/pull/7309): fix: Fix Podfile.lock versions
 - [#7308](https://github.com/MetaMask/metamask-mobile/pull/7308): fix: Fix e2e smoke tests caused by failed pod install step
 - [#7197](https://github.com/MetaMask/metamask-mobile/pull/7197): fix: Key the address book by chain ID instead of network ID
@@ -10213,9 +9743,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7278](https://github.com/MetaMask/metamask-mobile/pull/7278): fix: Fix console errors upon switching networks
 
 ## [7.8.0]
-
 ### Added
-
 - [#7068](https://github.com/MetaMask/metamask-mobile/pull/7068): feat: Adding blockaid banner to confirmation pages
 - [#7186](https://github.com/MetaMask/metamask-mobile/pull/7186): feat: translation ipfs banner
 - [#7038](https://github.com/MetaMask/metamask-mobile/pull/7038): feat: Blockaid preference
@@ -10223,7 +9751,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7107](https://github.com/MetaMask/metamask-mobile/pull/7107): feat: update README XCode and python instructions
 
 ### Changed
-
 - [#7213](https://github.com/MetaMask/metamask-mobile/pull/7213): chore: Normalize transaction controller patch
 - [#7226](https://github.com/MetaMask/metamask-mobile/pull/7226): chore: add script to patch transaction controller
 - [#7140](https://github.com/MetaMask/metamask-mobile/pull/7140): chore: Update confirmation page layout for Blockaid alerts
@@ -10251,7 +9778,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7100](https://github.com/MetaMask/metamask-mobile/pull/7100): ci: Add type check lint to CI
 
 ### Fixed
-
 - [#7187](https://github.com/MetaMask/metamask-mobile/pull/7187): fix: sonar coverage path
 - [#7106](https://github.com/MetaMask/metamask-mobile/pull/7106): fix: rename signature events and fix failing unit test
 - [#7077](https://github.com/MetaMask/metamask-mobile/pull/7077): fix: Warning when rejecting an approval request with id XYZ not found
@@ -10271,9 +9797,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7096](https://github.com/MetaMask/metamask-mobile/pull/7096): fix: Fix Engine `controllerMessenger` type errors
 
 ## [7.7.0]
-
 ### Added
-
 - [#7090](https://github.com/MetaMask/metamask-mobile/pull/7090): feat: add translations for new contextual sheet display nft media
 - [#6727](https://github.com/MetaMask/metamask-mobile/pull/6727): style: Update Button's pressed and disabled states
 - [#7075](https://github.com/MetaMask/metamask-mobile/pull/7075): feat: incoming transactions translations
@@ -10283,7 +9807,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6983](https://github.com/MetaMask/metamask-mobile/pull/6983): feat: 940 e2e migrate senderc721 test to detox
 
 ### Changed
-
 - [#6998](https://github.com/MetaMask/metamask-mobile/pull/6998): refactor: use block tracker to poll incoming transactions
 - [#6872](https://github.com/MetaMask/metamask-mobile/pull/6872): refactor: Update controller packages to v44
 - [#7091](https://github.com/MetaMask/metamask-mobile/pull/7091): refactor: Simplify Engine constructor
@@ -10302,7 +9825,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6898](https://github.com/MetaMask/metamask-mobile/pull/6898): refactor: Update `@metamask/assets-controllers` patch
 
 ### Fixed
-
 - [#7050](https://github.com/MetaMask/metamask-mobile/pull/7050): fix: Update terms of use header to match new copy
 - [#7086](https://github.com/MetaMask/metamask-mobile/pull/7086): fix: ext contributor SonarCloud
 - [#7029](https://github.com/MetaMask/metamask-mobile/pull/7029): fix: crowdin action upload
@@ -10315,9 +9837,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#7024](https://github.com/MetaMask/metamask-mobile/pull/7024): fix(action): octokit not supported on MetaMask repos
 
 ## [7.6.0]
-
 ### Added
-
 - [#6938](https://github.com/MetaMask/metamask-mobile/pull/6938): feat(release): 7.5.0
 - [#7026](https://github.com/MetaMask/metamask-mobile/pull/7026): feat: new translations for nft media
 - [#6779](https://github.com/MetaMask/metamask-mobile/pull/6779): feat: Add security alerts settings to experimental tab
@@ -10329,7 +9849,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6832](https://github.com/MetaMask/metamask-mobile/pull/6832): feat: add support for template and header on result pages
 
 ### Changed
-
 - [#6913](https://github.com/MetaMask/metamask-mobile/pull/6913): chore: remove unused Jest preprocessor
 - [#6840](https://github.com/MetaMask/metamask-mobile/pull/6840): chore(deps): bump word-wrap from 1.2.3 to 1.2.4
 - [#6930](https://github.com/MetaMask/metamask-mobile/pull/6930): docs: Update QA section in PR template
@@ -10343,7 +9862,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6936](https://github.com/MetaMask/metamask-mobile/pull/6936): chore: remove onBackdropPress for signatures
 
 ### Fixed
-
 - [#6653](https://github.com/MetaMask/metamask-mobile/pull/6653): fix: #893 fix immediate lock timer
 - [#6910](https://github.com/MetaMask/metamask-mobile/pull/6910): fix: remove translations files being pushed up to crowdin
 - [#6947](https://github.com/MetaMask/metamask-mobile/pull/6947): fix: Fix TS errors in `component-library` directory
@@ -10361,9 +9879,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6864](https://github.com/MetaMask/metamask-mobile/pull/6864): fix: custom position logic for badgeWrapper
 
 ## [7.5.0]
-
 ### Added
-
 - [#6865](https://github.com/MetaMask/metamask-mobile/pull/6865): feat: Create a performance E2E test for warm starts
 - [#6187](https://github.com/MetaMask/metamask-mobile/pull/6187): feat: Add guidelines for contributors
 - [#6732](https://github.com/MetaMask/metamask-mobile/pull/6732): feat: add missing `wallet_requestPermissions` and `wallet_getPermissions` to the mobile API.
@@ -10379,7 +9895,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6755](https://github.com/MetaMask/metamask-mobile/pull/6755): feat: sdk protocol update
 
 ### Changed
-
 - [#6884](https://github.com/MetaMask/metamask-mobile/pull/6884): chore: Update `@metamask/controller-utils` to v3.4
 - [#6876](https://github.com/MetaMask/metamask-mobile/pull/6876): chore: Update Jest to v28
 - [#6784](https://github.com/MetaMask/metamask-mobile/pull/6784): refactor: Use selectors for token list controller state access
@@ -10404,7 +9919,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6080](https://github.com/MetaMask/metamask-mobile/pull/6080): refactor: TypeScript ~4.8.4 and ESLint deps upgrades and initial type fixes
 
 ### Fixed
-
 - [#6863](https://github.com/MetaMask/metamask-mobile/pull/6863): fix: misalignment issue for multiselect cells
 - [#6600](https://github.com/MetaMask/metamask-mobile/pull/6600): refactor: accept SignController approval request from frontend
 - [#6844](https://github.com/MetaMask/metamask-mobile/pull/6844): fix: Android filename validation when downloading from browser
@@ -10420,9 +9934,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6903](https://github.com/MetaMask/metamask-mobile/pull/6903): fix: Fix crash when switching to Linea
 
 ## [7.4.0]
-
 ### Added
-
 - [#6805](https://github.com/MetaMask/metamask-mobile/pull/6805): feat(on-ramp): upgrade on-ramp SDK with apple pay support
 - [#6679](https://github.com/MetaMask/metamask-mobile/pull/6679): feat(on-ramp): upgrade on-ramp-sdk to v1.22.0 with abort controller support
 - [#6799](https://github.com/MetaMask/metamask-mobile/pull/6799): feat: prioritize resume over deeplink to accelerate reconnection flow
@@ -10433,7 +9945,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6755](https://github.com/MetaMask/metamask-mobile/pull/6755): feat: sdk protocol update
 
 ### Changed
-
 - [#6804](https://github.com/MetaMask/metamask-mobile/pull/6804): refactor(on-ramp): refactor quotes screen
 - [#6784](https://github.com/MetaMask/metamask-mobile/pull/6784): refactor: Use selectors for token list controller state access
 - [#6758](https://github.com/MetaMask/metamask-mobile/pull/6758): refactor: Use selectors for tokens controller state access
@@ -10442,7 +9953,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6752](https://github.com/MetaMask/metamask-mobile/pull/6752): refactor: Use selectors for currency rate controller state access
 
 ### Fixed
-
 - [#6754](https://github.com/MetaMask/metamask-mobile/pull/6754): fix: sending an ERC20 token with an amount with more decimals than the token decimal, results in nothing
 - [#6790](https://github.com/MetaMask/metamask-mobile/pull/6790): fix: update snapshot for linea mainnet
 - [#6587](https://github.com/MetaMask/metamask-mobile/pull/6587): fix: Improves handling of missing WCv2 Project ID
@@ -10451,15 +9961,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6753](https://github.com/MetaMask/metamask-mobile/pull/6753): fix: Delete collectible media reproductor
 
 ## [7.3.1]
-
 ### Fixed
-
 - [#6833](https://github.com/MetaMask/metamask-mobile/pull/6833): fix: invalid transaction data used for approve transaction
 
 ## [7.3.0]
-
 ### Added
-
 - [#6220](https://github.com/MetaMask/metamask-mobile/pull/6220): feat: Upgrade React Native to 0.71.6
 - [#6596](https://github.com/MetaMask/metamask-mobile/pull/6596): feat: Memoise token balance controler hook
 - [#6639](https://github.com/MetaMask/metamask-mobile/pull/6639): feat: approval flow for add & switch network
@@ -10472,7 +9978,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6499](https://github.com/MetaMask/metamask-mobile/pull/6499): feat: `eth_accounts` return all permitted accounts
 
 ### Changed
-
 - [#6662](https://github.com/MetaMask/metamask-mobile/pull/6662): refactor: Remove dead network controller code
 - [#6664](https://github.com/MetaMask/metamask-mobile/pull/6664): refactor: Simplify `isMainnet` utility function
 - [#6723](https://github.com/MetaMask/metamask-mobile/pull/6723): refactor: Updated checkbox style and icon
@@ -10484,7 +9989,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6641](https://github.com/MetaMask/metamask-mobile/pull/6641): refactor: approve and reject transactions using approval controller
 
 ### Fixed
-
 - [#6741](https://github.com/MetaMask/metamask-mobile/pull/6741): fix: onPress prop added to SelectItem component
 - [#6722](https://github.com/MetaMask/metamask-mobile/pull/6722): fix: WC2 error management and SDK 'authorized' event
 - [#6729](https://github.com/MetaMask/metamask-mobile/pull/6729): fix: update multi select snapshot
@@ -10494,9 +9998,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6637](https://github.com/MetaMask/metamask-mobile/pull/6637): fix: Support Decimal Comma for Token Custom Spend Cap
 
 ## [7.2.0]
-
 ### Added
-
 - [#6632](https://github.com/MetaMask/metamask-mobile/pull/6632): feat: add linea mainnet alert message
 - [#6496](https://github.com/MetaMask/metamask-mobile/pull/6496): feat(551): add Linea Mainnet
 - [#6494](https://github.com/MetaMask/metamask-mobile/pull/6494): feat: Update banner component to show/hide details section
@@ -10513,7 +10015,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6486](https://github.com/MetaMask/metamask-mobile/pull/6486): feat: Add disabled prop on base button
 
 ### Changed
-
 - [#6612](https://github.com/MetaMask/metamask-mobile/pull/6612): chore: approve txn when gas estimation ready
 - [#6054](https://github.com/MetaMask/metamask-mobile/pull/6054): chore: Improve TagURL
 - [#6520](https://github.com/MetaMask/metamask-mobile/pull/6520): chore: improve variable name
@@ -10530,7 +10031,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6357](https://github.com/MetaMask/metamask-mobile/pull/6357): refactor: use approval controller for watch asset confirmation
 
 ### Fixed
-
 - [#6549](https://github.com/MetaMask/metamask-mobile/pull/6549): fix: Networks text alignement
 - [#6634](https://github.com/MetaMask/metamask-mobile/pull/6634): fix: disable next button if custom input is invalid
 - [#6491](https://github.com/MetaMask/metamask-mobile/pull/6491): fix: refactor linea testnet implementation
@@ -10547,9 +10047,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6471](https://github.com/MetaMask/metamask-mobile/pull/6471): fix: Approve default ERC20
 
 ## [7.1.0]
-
 ### Added
-
 - [#6351](https://github.com/MetaMask/metamask-mobile/pull/6351): feat: use thunk to handle processed order side effects
 - [#5829](https://github.com/MetaMask/metamask-mobile/pull/5829): feat: order of browser page load events
 - [#6230](https://github.com/MetaMask/metamask-mobile/pull/6230): feat: Asset Overview / Token Detail view redesign
@@ -10568,7 +10066,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6334](https://github.com/MetaMask/metamask-mobile/pull/6334): feat: Aurora Token Detection
 
 ### Changed
-
 - [#6406](https://github.com/MetaMask/metamask-mobile/pull/6406): chore: Use core signature controller
 - [#6427](https://github.com/MetaMask/metamask-mobile/pull/6427): refactor: Refactor unit tests for React Native 0.71.6 upgrade
 - [#6192](https://github.com/MetaMask/metamask-mobile/pull/6192): chore: Show account balance in signature screen
@@ -10586,7 +10083,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6345](https://github.com/MetaMask/metamask-mobile/pull/6345): chore: es.js file
 
 ### Fixed
-
 - [#6439](https://github.com/MetaMask/metamask-mobile/pull/6439): fix: remove invalid accessibilityRole value
 - [#6442](https://github.com/MetaMask/metamask-mobile/pull/6442): fix(ci): Remove `restore-build` steps
 - [#6311](https://github.com/MetaMask/metamask-mobile/pull/6311): fix: token balance displayed in approval pages
@@ -10594,21 +10090,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6350](https://github.com/MetaMask/metamask-mobile/pull/6350): fix: ENS name displayed on confirm send page
 
 ## [7.0.1]
-
 ### Changed
-
 - [#6558](https://github.com/MetaMask/metamask-mobile/pull/6558): refactor(whats-new-modal): remove onramp content
 
 ## [7.0.0]
-
 ### Added
-
 - [#6536](https://github.com/MetaMask/metamask-mobile/pull/6380): [FEATURE] WalletConnect v2 Integration (#6380)
 
 ## [6.6.0]
-
 ### Added
-
 - [#6325](https://github.com/MetaMask/metamask-mobile/pull/6325): [FEATURE] Add development environment to onramp-sdk
 - [#6165](https://github.com/MetaMask/metamask-mobile/pull/6165): [FEATURE] Edit account name view
 - [#6093](https://github.com/MetaMask/metamask-mobile/pull/6093): [FEATURE] Account actions on wallet view
@@ -10616,14 +10106,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6085](https://github.com/MetaMask/metamask-mobile/pull/6085): [FEATURE] Update account section with card
 
 ### Changed
-
 - [#6228](https://github.com/MetaMask/metamask-mobile/pull/6228): [UPDATE] Checkbox component
 - [#6226](https://github.com/MetaMask/metamask-mobile/pull/6226): [UPDATE] Button's icon props and button org
 - [#6255](https://github.com/MetaMask/metamask-mobile/pull/6255): [UPDATE] Onboarding translation updated
 - [#6210](https://github.com/MetaMask/metamask-mobile/pull/6210): [UPDATE] Extend the readme documentation to cover E2E testing in more detail.
 
 ### Fixed
-
 - [#6249](https://github.com/MetaMask/metamask-mobile/pull/6249): [FIX] Terms of Use checkbox test id
 - [#5866](https://github.com/MetaMask/metamask-mobile/pull/5866): [FIX] sturdier check
 - [#6340](https://github.com/MetaMask/metamask-mobile/pull/6340): [FIX] Missing network name onramp
@@ -10633,9 +10121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6253](https://github.com/MetaMask/metamask-mobile/pull/6253): [FIX] Confirm button should be disabled if account has no balance
 
 ## [6.5.0]
-
 ### Added
-
 - [#5743](https://github.com/MetaMask/metamask-mobile/pull/5743): [FEATURE] On-ramp: Add buy-crypto deeplink
 - [#6166](https://github.com/MetaMask/metamask-mobile/pull/6166): [FEATURE] trigger walletconnect modal using approval controller
 - [#6223](https://github.com/MetaMask/metamask-mobile/pull/6223): [IMPROVEMENT] Update to Node.js v16
@@ -10656,12 +10142,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6056](https://github.com/MetaMask/metamask-mobile/pull/6056): [IMPROVEMENT] Show Identicon for unknown token and if token icon is unknown
 
 ### Changed
-
 - [#6157](https://github.com/MetaMask/metamask-mobile/pull/6157): [REFACTOR] Change Password setting
 - [#6173](https://github.com/MetaMask/metamask-mobile/pull/6173): [REFACTOR] Auto Lock section
 
 ### Fixed
-
 - [#6201](https://github.com/MetaMask/metamask-mobile/pull/6201): [FIX] [SDK] Missing redirect breaking backward compatibility
 - [#6232](https://github.com/MetaMask/metamask-mobile/pull/6232): [FIX] bottom margin for detecting end of the page
 - [#6185](https://github.com/MetaMask/metamask-mobile/pull/6185): [FIX] remove pubnub package and associated sync with extension code
@@ -10669,9 +10153,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6076](https://github.com/MetaMask/metamask-mobile/pull/6076): [BUGFIX] Fixes WalletConnect deep links (wc:// schema) not working properly
 
 ## [6.4.0]
-
 ### Added
-
 - [#6144](https://github.com/MetaMask/metamask-mobile/pull/6144): [FEATURE] New Crowdin translations by Github Action
 - [#6143](https://github.com/MetaMask/metamask-mobile/pull/6143): [UPDATE] Crowdin token to use METAMASKBOT_CROWDIN_TOKEN
 - [#5627](https://github.com/MetaMask/metamask-mobile/pull/5627): [IMPROVEMENT] Refactor remaining `web3-provider-engine` methods
@@ -10690,22 +10172,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6060](https://github.com/MetaMask/metamask-mobile/pull/6060): [IMPROVEMENT] Refactor send transaction v2
 
 ### Changed
-
 - [#6134](https://github.com/MetaMask/metamask-mobile/pull/6134): [REFACTOR] Reveal Private Key section
 - [#6015](https://github.com/MetaMask/metamask-mobile/pull/6015): [UPDATE] sentry version and enable performance metrics
 - [#6081](https://github.com/MetaMask/metamask-mobile/pull/6081): [UPDATE] ESLint rules for scripts
 - [#6006](https://github.com/MetaMask/metamask-mobile/pull/6006): [UPDATE] Upgrade xcode version
 
 ### Fixed
-
 - [#6109](https://github.com/MetaMask/metamask-mobile/pull/6109): [FIX] linea network order in dropdown + remove feature toggle for linea (#6072)
 - [#6058](https://github.com/MetaMask/metamask-mobile/pull/6058): [FIX] broken erc721 approve token link
 - [#6122](https://github.com/MetaMask/metamask-mobile/pull/6122): [FIX] TypeError: undefined is not an object (evaluating 'n.find')
 
 ## [6.3.0]
-
 ### Added
-
 - [#6039](https://github.com/MetaMask/metamask-mobile/pull/6039): [ENHANCEMENT] Improve Android setup instructions
 - [#5996](https://github.com/MetaMask/metamask-mobile/pull/5996): [ENHANCEMENT] Add document to refactor signature request code
 - [#5958](https://github.com/MetaMask/metamask-mobile/pull/5958): [FEATURE] add consensys zkevm (Linea) support
@@ -10723,12 +10201,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5327](https://github.com/MetaMask/metamask-mobile/pull/5327): [FEATURE] Verify Contract Details
 
 ### Changed
-
 - [#5669](https://github.com/MetaMask/metamask-mobile/pull/5669): [UPDATE] http-cache-semantics from 4.1.0 to 4.1.1
 - [#5959](https://github.com/MetaMask/metamask-mobile/pull/5959): [UPDATE] @xmldom/xmldom from 0.8.3 to 0.8.6
 
 ### Fixed
-
 - [#5962](https://github.com/MetaMask/metamask-mobile/pull/5962): [FIX] Remove select address as a prop on App index.js
 - [#5941](https://github.com/MetaMask/metamask-mobile/pull/5941): [FIX] bundle video in app to prevent crash when not available
 - [#5839](https://github.com/MetaMask/metamask-mobile/pull/5839): [FIX] Clear Hex data when Token Transfer reverts ETH
@@ -10738,9 +10214,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#6025](https://github.com/MetaMask/metamask-mobile/pull/6025): [FIX] Add url-parse lib to our MainNavigator
 
 ## [6.2.0]
-
 ### Added
-
 - [#5807](https://github.com/MetaMask/metamask-mobile/pull/5807): [IMPROVEMENT] "preview build" support to Bitrise
 - [#5870](https://github.com/MetaMask/metamask-mobile/pull/5870): [IMPROVEMENT] On-ramp: Add buy crypto home button
 - [#5529](https://github.com/MetaMask/metamask-mobile/pull/5529): [IMPROVEMENT] Network Controller refactor to use the same selector
@@ -10754,7 +10228,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5374](https://github.com/MetaMask/metamask-mobile/pull/5374): [IMPROVEMENT] Authentication refactor
 
 ### Changed
-
 - [#5924](https://github.com/MetaMask/metamask-mobile/pull/5924): [UPDATE] the README setup steps
 - [#5775](https://github.com/MetaMask/metamask-mobile/pull/5775): [UPDATE] Security Privacy Remember me feature
 - [#5803](https://github.com/MetaMask/metamask-mobile/pull/5803): [UPDATE] Sentry: remove DSN value from codebase
@@ -10764,27 +10237,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5901](https://github.com/MetaMask/metamask-mobile/pull/5901): [UPDATE] assets-controllers patch
 
 ### Fixed
-
 - [#5890](https://github.com/MetaMask/metamask-mobile/pull/5890): [FIX] Swap with wallet connect
 - [#5750](https://github.com/MetaMask/metamask-mobile/pull/5750): [FIX] Enable clipboard for private credentials
 
 ## [6.1.2]
-
 ### Fixed
-
 - [#5925](https://github.com/MetaMask/metamask-mobile/pull/5925): [FIX] handle all ios biometric errors and create wallet
 - [#5906](https://github.com/MetaMask/metamask-mobile/pull/5906): [FIX] Add try-catch to recreateVault
 
 ## [6.1.1]
-
 ### Fixed
-
 - [#5848](https://github.com/MetaMask/metamask-mobile/pull/5848): [FIX] Remove default eth sign
 
 ## [6.1.0]
-
 ### Added
-
 - [#5461](https://github.com/MetaMask/metamask-mobile/pull/5461): [IMPROVEMENT] On-ramp: Refactor Payment Methods view to componentization
 - [#5813](https://github.com/MetaMask/metamask-mobile/pull/5813): [FEATURE] Add copy for portfolio button for translations
 - [#5797](https://github.com/MetaMask/metamask-mobile/pull/5797): [IMPROVEMENT] Remove phishing list update engine removal
@@ -10809,11 +10275,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5218](https://github.com/MetaMask/metamask-mobile/pull/5218): [IMPROVEMENT] Improve deeplinks experience
 
 ### Changed
-
 - [#5768](https://github.com/MetaMask/metamask-mobile/pull/5768): [UPGRADE] Segment Analytics 2.13.0
 
 ### Fixed
-
 - [#5657](https://github.com/MetaMask/metamask-mobile/pull/5657): [FIX] fix the RequestTokenFlow E2E test
 - [#5675](https://github.com/MetaMask/metamask-mobile/pull/5675): [FIX] Fix eslint commit hook
 - [#5608](https://github.com/MetaMask/metamask-mobile/pull/5608): [FIX] SRP recover when an error is thrown
@@ -10840,15 +10304,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5729](https://github.com/MetaMask/metamask-mobile/pull/5729): [FIX] Bump react-native-reanimated to 2.14.0
 
 ## [6.0.1]
-
 ### Fixed
-
 - [#5799](https://github.com/MetaMask/metamask-mobile/pull/5799): [FIX] Browser: handle unsupported URLs
 
 ## [6.0.0]
-
 ### Added
-
 - [#5062](https://github.com/MetaMask/metamask-mobile/pull/5062): [FEATURE] Implement Permission System
 - [#5659](https://github.com/MetaMask/metamask-mobile/pull/5659): [IMPROVEMENT] E2E fix tapReminder step
 - [#5641](https://github.com/MetaMask/metamask-mobile/pull/5641): [IMPROVEMENT] Use Set when filtering blocklist
@@ -10864,14 +10324,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5559](https://github.com/MetaMask/metamask-mobile/pull/5559): [ANALYTICS] Add analytics events for SRP reveal
 
 ### Changed
-
 - [#5594](https://github.com/MetaMask/metamask-mobile/pull/5594): [UPGRADE] bumped ua-parser-js to 0.7.33
 - [#5580](https://github.com/MetaMask/metamask-mobile/pull/5580): [UPGRADE] Bump cookiejar from 2.1.2 to 2.1.4
 - [#5471](https://github.com/MetaMask/metamask-mobile/pull/5471): [UPGRADE] Bump luxon from 3.1.1 to 3.2.1
 - [#5450](https://github.com/MetaMask/metamask-mobile/pull/5450): [UPGRADE] Bump json5 from 1.0.1 to 1.0.2
 
 ### Fixed
-
 - [#5626](https://github.com/MetaMask/metamask-mobile/pull/5626): [FIX] SRP Quiz content and translations
 - [#5612](https://github.com/MetaMask/metamask-mobile/pull/5612): [FIX] Make Prettier work in wdio directory
 - [#5605](https://github.com/MetaMask/metamask-mobile/pull/5605): [FIX] Handle ENS Address Error
@@ -10882,9 +10340,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5709](https://github.com/MetaMask/metamask-mobile/pull/5709): [FIX] Settings networks icons were missing
 
 ## [5.14.0]
-
 ### Added
-
 - [#5535](https://github.com/MetaMask/metamask-mobile/pull/5535): [IMPROVEMENT] Add content for "Add friction to revealing SRP"
 - [#5506](https://github.com/MetaMask/metamask-mobile/pull/5506): [IMPROVEMENT] On-ramp: Add NavBar tests to GetStarted and Regions Views
 - [#5495](https://github.com/MetaMask/metamask-mobile/pull/5495): [IMPROVEMENT] Copy update for metamask fee on swaps
@@ -10925,11 +10381,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5430](https://github.com/MetaMask/metamask-mobile/pull/5430): [IMPROVEMENT] Remove Text as any occurrences
 
 ### Changed
-
 - [#5496](https://github.com/MetaMask/metamask-mobile/pull/5496): [REVERT] Onramp - Remove Text as any ocurrences
 
 ### Fixed
-
 - [#5219](https://github.com/MetaMask/metamask-mobile/pull/5219): [FIX] Update selected network when delete network manually inserted
 - [#5440](https://github.com/MetaMask/metamask-mobile/pull/5440): [FIX] Approval error when insufficient balance
 - [#5468](https://github.com/MetaMask/metamask-mobile/pull/5468): [FIX] Screenshot deterrent analytics
@@ -10946,9 +10400,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5444](https://github.com/MetaMask/metamask-mobile/pull/5444): [FIX] Fix unecessary executions of useEffect
 
 ## [5.13.0]
-
 ### Added
-
 - [#5424](https://github.com/MetaMask/metamask-mobile/pull/5424): [IMPROVEMENT] Add Screenshot Warning to ImportPrivateKey
 - [#4670](https://github.com/MetaMask/metamask-mobile/pull/4670): [FEAT] Screenshot Warning
 - [#5376](https://github.com/MetaMask/metamask-mobile/pull/5376): [IMPROVEMENT] Include L1 fee in the Send flow and on the tx detail page for Optimism
@@ -10957,7 +10409,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5083](https://github.com/MetaMask/metamask-mobile/pull/5083): [IMPROVEMENT] Component: Custom Spending Cap
 
 ### Changed
-
 - [#5381](https://github.com/MetaMask/metamask-mobile/pull/5381): [UPDATE] Bumped contract-metadata to 2.1.0
 - [#5422](https://github.com/MetaMask/metamask-mobile/pull/5422): [UPDATE] Add custom network and Import custom token
 - [#5200](https://github.com/MetaMask/metamask-mobile/pull/5200): [UPDATE] Update Controllers to version 33.0.0
@@ -10966,36 +10417,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5351](https://github.com/MetaMask/metamask-mobile/pull/5351): [REMOVE] On-ramp: remove old on-ramp experience
 
 ### Fixed
-
 - [#5400](https://github.com/MetaMask/metamask-mobile/pull/5400): [FIX] jest expect type
 - [#5115](https://github.com/MetaMask/metamask-mobile/pull/5115): [FIX] cancelling transaction when user does not give dapp permission to transfer funds
 
 ## [5.12.3]
-
 ### Changed
-
 - Hotfix version bump for iOS only release, no code changes
 
 ## [5.12.1]
-
 ### Added
-
 - [#5307](https://github.com/MetaMask/metamask-mobile/pull/5307): [IMPROVEMENT] Remove RPC URL, Block Explorer URL, Network Name from metrics
 - [#5355](https://github.com/MetaMask/metamask-mobile/pull/5355): [IMPROVEMENT] Sanitize privacy settings before sending to Sentry
 
 ### Changed
-
 - [#5362](https://github.com/MetaMask/metamask-mobile/pull/5362): [UPDATE] Copy for Opt in metrics screen and enable custom mainnet RPC
 - [#5366](https://github.com/MetaMask/metamask-mobile/pull/5366): [UPDATE] On-ramp Refactor wyre authentication URL approach
 
 ### Fixed
-
 - [#5360](https://github.com/MetaMask/metamask-mobile/pull/5360): [FIX] Onboarding wizard automatic update modal
 
 ## [5.12.0]
-
 ### Added
-
 - [#5335](https://github.com/MetaMask/metamask-mobile/pull/5335): [IMPROVEMENT] On-ramp: Add useRegions hook and fix availablePaymentMethods
 - [#5333](https://github.com/MetaMask/metamask-mobile/pull/5333): [IMPROVEMENT] Only fetch minimum versions if permissions enabled
 - [#5238](https://github.com/MetaMask/metamask-mobile/pull/5238): [IMPROVEMENT] Browser experience
@@ -11010,7 +10452,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5194](https://github.com/MetaMask/metamask-mobile/pull/5194): [FEATURE] Add more granular killswitches for swaps
 
 ### Changed
-
 - [#5237](https://github.com/MetaMask/metamask-mobile/pull/5237): [DEPENDENCIES] Update Segment dependencies
 - [#5220](https://github.com/MetaMask/metamask-mobile/pull/5220): [UPDATE] On-ramp-sdk@1.3.1: Wyre Apple Pay auth support and inAppBrowser hook
 - [#5266](https://github.com/MetaMask/metamask-mobile/pull/5266): [REMOVE] On-ramp: Remove disabled button in amount to buy screen
@@ -11019,7 +10460,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5331](https://github.com/MetaMask/metamask-mobile/pull/5331): [UPDATE] Bump @metamask/swaps-controller
 
 ### Fixed
-
 - [#5264](https://github.com/MetaMask/metamask-mobile/pull/5264): [FIX] Date msBetweenDates test
 - [#5268](https://github.com/MetaMask/metamask-mobile/pull/5268): [FIX] On-Ramp: Fix typos from payment method icon and contact support
 - [#5269](https://github.com/MetaMask/metamask-mobile/pull/5269): [FIX] On-Ramp: Fix 1.3.1 creating undefined custom order ids
@@ -11032,9 +10472,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5337](https://github.com/MetaMask/metamask-mobile/pull/5337): [FIX] Send ERC-20 tokens on legacy networks
 
 ## [5.11.0]
-
 ### Added
-
 - [#5088](https://github.com/MetaMask/metamask-mobile/pull/5088): [IMPROVEMENT] Add no payment methods screen
 - [#5223](https://github.com/MetaMask/metamask-mobile/pull/5223): [IMPROVEMENT] Add payment method icons support
 - [#5198](https://github.com/MetaMask/metamask-mobile/pull/5198): [IMPROVEMENT] Improve loading experience
@@ -11043,9 +10481,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5188](https://github.com/MetaMask/metamask-mobile/pull/5188): [IMPROVEMENT] Networks-flow appium feature file
 
 ## [5.10.0]
-
 ### Added
-
 - [#5202](https://github.com/MetaMask/metamask-mobile/pull/5202): [FEAT] On-Ramp: allow Harmony ONE
 - [#5195](https://github.com/MetaMask/metamask-mobile/pull/5195): [FEAT] Onramp: Add exclude from purchases to onramp aggregator orders
 - [#5158](https://github.com/MetaMask/metamask-mobile/pull/5158): [FEAT] On-Ramp: Provider payment method custom action and custom order ids
@@ -11055,7 +10491,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4888](https://github.com/MetaMask/metamask-mobile/pull/4888): [FEAT] Extend popular network list
 
 ### Changed
-
 - [#5096](https://github.com/MetaMask/metamask-mobile/pull/5096): [UPDATE] Update audit list
 - [#4835](https://github.com/MetaMask/metamask-mobile/pull/4835): [UPDATE] Refactor SendTransaction Component
 - [#5113](https://github.com/MetaMask/metamask-mobile/pull/5113): [UPDATE] avoid using Rinkeby in wallet & import network test
@@ -11064,7 +10499,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5064](https://github.com/MetaMask/metamask-mobile/pull/5064): [UPDATE] Refactor Approve Component
 
 ### Fixed
-
 - [#5142](https://github.com/MetaMask/metamask-mobile/pull/5142): [FIX] Fix high severity audit issues
 - [#4235](https://github.com/MetaMask/metamask-mobile/pull/4235): [FIX] Delete contact on android fixed
 - [#5116](https://github.com/MetaMask/metamask-mobile/pull/5116): [FIX] Updated EditLegacy Component
@@ -11075,15 +10509,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5217](https://github.com/MetaMask/metamask-mobile/pull/5217): [FIX] Send to the wrong address
 
 ## [5.9.1]
-
 ### Fixed
-
 - [#5172](https://github.com/MetaMask/metamask-mobile/pull/5172): [FIX] ENS name being resolved correctly
 
 ## [5.9.0]
-
 ### Added
-
 - [#5077](https://github.com/MetaMask/metamask-mobile/pull/5077): [FEATURE] translations for permission system
 - [#5040](https://github.com/MetaMask/metamask-mobile/pull/5040): [ADD] Component/4721-card
 - [#5065](https://github.com/MetaMask/metamask-mobile/pull/5065): [ENHANCEMENT] added shadows to useAppTheme
@@ -11095,7 +10525,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5025](https://github.com/MetaMask/metamask-mobile/pull/5025): [ENHANCEMENT] Remove all "Ooops" copies
 
 ### Changed
-
 - [#5024](https://github.com/MetaMask/metamask-mobile/pull/5024): [UPDATE] app name for release-to-store step
 - [#5006](https://github.com/MetaMask/metamask-mobile/pull/5006): [UPDATE] Bump @keystonehq/ur-decoder from 0.3.0 to 0.6.1
 - [#5033](https://github.com/MetaMask/metamask-mobile/pull/5033): [UPDATE] default iOS simulator
@@ -11104,7 +10533,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4804](https://github.com/MetaMask/metamask-mobile/pull/4804): [UPDATE] GasPolling refactor UpdateEIP1559Transaction Component
 
 ### Fixed
-
 - [#5035](https://github.com/MetaMask/metamask-mobile/pull/5035): [FIX] On-Ramp: Fix autolock dispatch for apple pay
 - [#5079](https://github.com/MetaMask/metamask-mobile/pull/5079): [FIX] Network switch during QR scan in Send Flow
 - [#5034](https://github.com/MetaMask/metamask-mobile/pull/5034): [FIX] Wallet Connect PR#4934 and PR#4861
@@ -11113,15 +10541,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#5044](https://github.com/MetaMask/metamask-mobile/pull/5044): [FIX] evaluating ‘transaction.status’
 
 ## [5.8.1]
-
 ### Added
-
 - [#4286](https://github.com/MetaMask/metamask-mobile/pull/4286): [ENHANCEMENT] Integrates MetaMask SDK support
 
 ## [5.8.0]
-
 ### Added
-
 - [#4833](https://github.com/MetaMask/metamask-mobile/pull/4833): [ENHANCEMENT] Implement new QA builds for both Android and iOS
 - [#4993](https://github.com/MetaMask/metamask-mobile/pull/4993): [ENHANCEMENT] On-Ramp: Add scrolling to payment methods and make logo property optional
 - [#4997](https://github.com/MetaMask/metamask-mobile/pull/4997): [ENHANCEMENT] SRP Reveal Timestamp
@@ -11135,7 +10559,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4938](https://github.com/MetaMask/metamask-mobile/pull/4938): [ENHANCEMENT] Bump git-clone version to 6 in Bitrise machines
 
 ### Changed
-
 - [#4755](https://github.com/MetaMask/metamask-mobile/pull/4755): [UPDATE] - New template fields added to reflect newer requirements for PRs
 - [#4782](https://github.com/MetaMask/metamask-mobile/pull/4782): [DEPENDENCIES] Detox version bump from 19.6.5 to 19.7.1
 - [#4941](https://github.com/MetaMask/metamask-mobile/pull/4941): [DEPENDENCIES] Replace "@react-native-community/async-storage" for "@react-native-async-storage/async-storage"
@@ -11143,7 +10566,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3438](https://github.com/MetaMask/metamask-mobile/pull/3438): [DEPENDENCIES] Bump metro from 0.59.0 to 0.66.2
 
 ### Fixed
-
 - [#5018](https://github.com/MetaMask/metamask-mobile/pull/5018): [FIX] Vault corruption error log
 - [#4972](https://github.com/MetaMask/metamask-mobile/pull/4972): [FIX] Unable to Speedup/Cancel legacy transactions
 - [#4430](https://github.com/MetaMask/metamask-mobile/pull/4430): [FIX] Keystone: Pagination and missing addresses
@@ -11152,9 +10574,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4958](https://github.com/MetaMask/metamask-mobile/pull/4958): [FIX] WebView Origin Allowlist
 
 ## [5.7.0]
-
 ### Added
-
 - [#4897](https://github.com/MetaMask/metamask-mobile/pull/4897): [IMPROVEMENT] Automatic security checks settings
 - [#4902](https://github.com/MetaMask/metamask-mobile/pull/4902): [IMPROVEMENT] Deprecated networks Alert border fixed
 - [#4885](https://github.com/MetaMask/metamask-mobile/pull/4885): [IMPROVEMENT] Implement warning for deprecated test networks, kovan, ropsten and rinkeby
@@ -11169,14 +10589,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4809](https://github.com/MetaMask/metamask-mobile/pull/4809): [IMPROVEMENT] Component/4779 Audit
 
 ### Changed
-
 - [#4839](https://github.com/MetaMask/metamask-mobile/pull/4839): [DEPENDENCIES] Introduce @testing-library/react-hooks dependency
 - [#4595](https://github.com/MetaMask/metamask-mobile/pull/4595): [DEPENDENCIES] Upgrade react-native-device-info to 9.0.2
 - [#4748](https://github.com/MetaMask/metamask-mobile/pull/4748): [UPGRADE] Patch bump for SoLoader version on Android
 - [#4896](https://github.com/MetaMask/metamask-mobile/pull/4896): [DEPENDENCIES] Upgrade on-ramp-sdk to 1.2.0
 
 ### Fixed
-
 - [#4905](https://github.com/MetaMask/metamask-mobile/pull/4905): [FIX] Update send flow
 - [#4407](https://github.com/MetaMask/metamask-mobile/pull/4407): [FIX] Add browser cookies support on Android
 - [#4898](https://github.com/MetaMask/metamask-mobile/pull/4898): [FIX] Test sanitizeUrlInput error
@@ -11192,16 +10610,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4799](https://github.com/MetaMask/metamask-mobile/pull/4799): [FIX] Reveal SRP or Private Key wrong password error
 
 ## [5.6.1]
-
 ### Uncategorized
-
 - [#4966](https://github.com/MetaMask/metamask-mobile/pull/4966): [FIX] Add http and https protocol to webview origin whitelist
 - [#4967](https://github.com/MetaMask/metamask-mobile/pull/4967): [FIX] Correct url parse
 
 ## [5.6.0]
-
 ### Uncategorized
-
 - [#4821](https://github.com/MetaMask/metamask-mobile/pull/4821): [FIX] Staging env redirection url for onramp
 - [#4742](https://github.com/MetaMask/metamask-mobile/pull/4742): [ADD] On-Ramp generic error view event
 - [#4743](https://github.com/MetaMask/metamask-mobile/pull/4743): [ADD] Payment Method logos
@@ -11221,15 +10635,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4636](https://github.com/MetaMask/metamask-mobile/pull/4636): [FIX] NFT transfer with big token id
 
 ## [5.5.1]
-
 ### Changed
-
 - [UPDATE](https://github.com/MetaMask/dapps/pull/137): [UPDATE] Disable iOS explore links
 
 ## [5.5.0]
-
 ### Uncategorized
-
 - [#4475](https://github.com/MetaMask/metamask-mobile/pull/4475): [IMPROVEMENT] Swaps support for hardware wallet
 - [#4627](https://github.com/MetaMask/metamask-mobile/pull/4627): [IMPROVEMENT] Add typing support for payment methods to be used instead of payment IDs
 - [#4625](https://github.com/MetaMask/metamask-mobile/pull/4625): [FIX] Handle SecureKeychain failed access while passcode enabled
@@ -11247,9 +10657,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4612](https://github.com/MetaMask/metamask-mobile/pull/4612): [IMPROVEMENT] Componentize Token Avatar
 
 ## [5.4.0]
-
 ### Uncategorized
-
 - [#4604](https://github.com/MetaMask/metamask-mobile/pull/4604): [IMPROVEMENT] Change quotes error to individual events
 - [#4497](https://github.com/MetaMask/metamask-mobile/pull/4497): [IMPROVEMENT] Add amount to onramp analytics events
 - [#4496](https://github.com/MetaMask/metamask-mobile/pull/4496): [IMPROVEMENT] Add currency destination symbol to purchase submitted
@@ -11288,9 +10696,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4531](https://github.com/MetaMask/metamask-mobile/pull/4531): [IMPROVEMENT] Add delete wallet step spec
 
 ## [5.3.0]
-
 ### Uncategorized
-
 - [#4506](https://github.com/MetaMask/metamask-mobile/pull/4506): [IMPROVEMENT] Add OnRamp aggregator translations
 - [#4389](https://github.com/MetaMask/metamask-mobile/pull/4389): [FEAT] Easy delete data
 - [#4510](https://github.com/MetaMask/metamask-mobile/pull/4510): [IMPROVEMENT] Update RPC URL for xDai
@@ -11320,9 +10726,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4367](https://github.com/MetaMask/metamask-mobile/pull/4367): [IMPROVEMENT] Make text hex data selectable
 
 ## [5.2.0]
-
 ### Uncategorized
-
 - [#4349](https://github.com/MetaMask/metamask-mobile/pull/4349): [FIX] Subtitle mapping
 - [#4344](https://github.com/MetaMask/metamask-mobile/pull/4344): [FIX] Fix homepage scripts and env import
 - [#4345](https://github.com/MetaMask/metamask-mobile/pull/4345): [FIX] Fix check for empty tokens list
@@ -11342,9 +10746,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4183](https://github.com/MetaMask/metamask-mobile/pull/4183): [FIX] excluded audit because no available patch
 
 ## [5.1.0]
-
 ### Uncategorized
-
 - [#3929](https://github.com/MetaMask/metamask-mobile/pull/3929): [IMPROVEMENT] Defaults to current network if chain id not specified in QR codes
 - [#4159](https://github.com/MetaMask/metamask-mobile/pull/4159): [IMPROVEMENT] - iCloud Backup Restriction
 - [#4035](https://github.com/MetaMask/metamask-mobile/pull/4035): [FIX] Issue #207
@@ -11365,15 +10767,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#4135](https://github.com/MetaMask/metamask-mobile/pull/4135): [IMPROVEMENT]browser improvement
 
 ## [5.0.1]
-
 ### Fixed
-
 - [FIX] iOS Hotfix - Add LinkPresentation library
 
 ## [5.0.0]
-
 ### Uncategorized
-
 - [#3971](https://github.com/MetaMask/metamask-mobile/pull/3971): [FIX] Fix issues releated to deep/universal links
 - [#3925](https://github.com/MetaMask/metamask-mobile/pull/3925): [FEAT] Allow ApplePay in Transak webview.
 - [#4047](https://github.com/MetaMask/metamask-mobile/pull/4047): [FIX] Fix attribution url
@@ -11384,9 +10782,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3948](https://github.com/MetaMask/metamask-mobile/pull/3948): [FIX] Update button on WebviewError
 
 ## [4.4.0]
-
 ### Uncategorized
-
 - [#3910](https://github.com/MetaMask/metamask-mobile/pull/3910): [IMPROVEMENT] Network Specific Asset Education
 - [#3877](https://github.com/MetaMask/metamask-mobile/pull/3877): [IMPROVEMENT] Add OSS attribution
 - [#3731](https://github.com/MetaMask/metamask-mobile/pull/3731): [FIX] Fix formatting of gas price for all conversion currencies
@@ -11396,17 +10792,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3969](https://github.com/MetaMask/metamask-mobile/pull/3969): [FIX] Fix typo in network modal
 
 ## [4.3.1]
-
 ### Fixed
-
 - [#3946](https://github.com/MetaMask/metamask-mobile/pull/3946): [FIX] Fix error boundary SRP
 - [#3947](https://github.com/MetaMask/metamask-mobile/pull/3947): [FIX] Fix gas carousel price estimate
 - [#3940](https://github.com/MetaMask/metamask-mobile/pull/3940): [FIX] Fix browser crash
 
 ## [4.3.0]
-
 ### Uncategorized
-
 - [#3916](https://github.com/MetaMask/metamask-mobile/pull/3916): [FIX] Patch Android clipboard crasher
 - [#3776](https://github.com/MetaMask/metamask-mobile/pull/3776): [IMPROVEMENT] Enable dark mode
 - [#3899](https://github.com/MetaMask/metamask-mobile/pull/3899): [IMPROVEMENT] Improve WalletConnect checks
@@ -11431,9 +10823,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3638](https://github.com/MetaMask/metamask-mobile/pull/3638): [IMPROVEMENT] Upgrade controllers to 25.1.0
 
 ## [4.2.2]
-
 ### Uncategorized
-
 - [#3841](https://github.com/MetaMask/metamask-mobile/pull/3841): [FIX] Fix custom network icons on Wallet Overview
 - [#3839](https://github.com/MetaMask/metamask-mobile/pull/3839): [FIX] Update en.json
 - [#3838](https://github.com/MetaMask/metamask-mobile/pull/3838): [FIX] Fix onramp BUSD address. Add wc_description string
@@ -11459,15 +10849,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3690](https://github.com/MetaMask/metamask-mobile/pull/3690): [FIX] Revert svg crash
 
 ## [4.1.1]
-
 ### Uncategorized
-
 - [3810](https://github.com/MetaMask/metamask-mobile/pull/3810) [FIX] Avalanche token crash
 
 ## [4.1.0]
-
 ### Uncategorized
-
 - [#3741](https://github.com/MetaMask/metamask-mobile/pull/3741): [FIX] Potential error message from missing transactions details
 - [#3738](https://github.com/MetaMask/metamask-mobile/pull/3738): [FIX] Error message for missing chain ID in deeplink
 - [#3725](https://github.com/MetaMask/metamask-mobile/pull/3725): [FIX] Login decrypt bug
@@ -11493,24 +10879,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3672](https://github.com/MetaMask/metamask-mobile/pull/3672): [IMPROVEMENT] Bump simple-get from 2.8.1 to 4.0.1
 
 ## [4.0.1]
-
 ### Fixed
-
 - [#3658](https://github.com/MetaMask/metamask-mobile/pull/3658): [HOTFIX] 4.0.1 - BN crash and NFT Improvement
 
 ## [4.0.0]
-
 ### Uncategorized
-
 - [#3509](https://github.com/MetaMask/metamask-mobile/pull/3509): [IMPROVEMENT] Upgrade to React Native 0.66.3
 - [#3623](https://github.com/MetaMask/metamask-mobile/pull/3623): [FIX] Fix swaps slider button re-rendering
 - [#3481](https://github.com/MetaMask/metamask-mobile/pull/3481): [FIX] Fix confirm button disabled on txn confirmation
 - [#3495](https://github.com/MetaMask/metamask-mobile/pull/3495): [IMPROVEMENT] Reduce png file image weight using TinyPng cli tool
 
 ## [3.8.0]
-
 ### Uncategorized
-
 - [#3457](https://github.com/MetaMask/metamask-mobile/pull/3457): [FEAT] User review prompt
 - [#3465](https://github.com/MetaMask/metamask-mobile/pull/3465): [FIX] 3464 fix login bug
 - [#3430](https://github.com/MetaMask/metamask-mobile/pull/3430): [IMPROVEMENT] Add better initial state for swaps loading tokens
@@ -11522,9 +10902,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3443](https://github.com/MetaMask/metamask-mobile/pull/3443): [UPDATE] Disable Sync with Extension
 
 ## [3.7.0]
-
 ### Uncategorized
-
 - [#3405](https://github.com/MetaMask/metamask-mobile/pull/3405): [FIX] Remove Metric Opt In event
 - [#3412](https://github.com/MetaMask/metamask-mobile/pull/3412): [UPGRADE] Android SDK and dependencies to support SDK 30
 - [#3371](https://github.com/MetaMask/metamask-mobile/pull/3371): [FIX] iOS FaceID Deny Handler
@@ -11540,9 +10918,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3357](https://github.com/MetaMask/metamask-mobile/pull/3357): [FIX] 404 dead links in readme
 
 ## [3.6.0]
-
 ### Uncategorized
-
 - [#3301](https://github.com/MetaMask/metamask-mobile/pull/3301): [FEATURE] ERC-1155 and custom network support
 - [#3343](https://github.com/MetaMask/metamask-mobile/pull/3343): [IMPROVEMENT] Add IPFS support for NFTs
 - [#3352](https://github.com/MetaMask/metamask-mobile/pull/3352): [FIX] Fix rendering issue when viewing data on transaction review screen
@@ -11550,9 +10926,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3290](https://github.com/MetaMask/metamask-mobile/pull/3290): [FIX] Fix lost data when using wallet connect for ERC20 token transaction
 
 ## [3.5.0]
-
 ### Uncategorized
-
 - [#3340](https://github.com/MetaMask/metamask-mobile/pull/3340): [IMPROVEMENT] Reduce persisted data
 - [#3330](https://github.com/MetaMask/metamask-mobile/pull/3330): [IMPROVEMENT] Refactor EngineService
 - [#3325](https://github.com/MetaMask/metamask-mobile/pull/3325): [IMPROVEMENT] Isolate persisted data
@@ -11571,9 +10945,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3271](https://github.com/MetaMask/metamask-mobile/pull/3271): [FIX] Update React Native dependecy links in README.md
 
 ## [3.4.1]
-
 ### Uncategorized
-
 - [#3260](https://github.com/MetaMask/metamask-mobile/pull/3260): [FIX] Turn off token detection by default
 - [#3261](https://github.com/MetaMask/metamask-mobile/pull/3261): [FIX] Fix blank screen on fresh start
 - [#3254](https://github.com/MetaMask/metamask-mobile/pull/3254): [IMPROVEMENT] Isolate LICENSE file
@@ -11603,9 +10975,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3115](https://github.com/MetaMask/metamask-mobile/pull/3115): [IMPROVEMENT] Update README.md
 
 ## [3.3.0]
-
 ### Uncategorized
-
 - [#3099](https://github.com/MetaMask/metamask-mobile/pull/3099): [FEATURE] Transaction state improvement
 - [UPGRADE] react-native-webview 11.0.2 -> 11.13.0
 - [#3101](https://github.com/MetaMask/metamask-mobile/pull/3101): [UPDATE] update swaps-controller and send clientId on fetchSwapsFeatureLiveness
@@ -11627,9 +10997,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#3057](https://github.com/MetaMask/metamask-mobile/pull/3057): [UPDATE] Remove SwapsLiveness checks for non supported networks
 
 ## [3.2.0]
-
 ### Uncategorized
-
 - [#3046](https://github.com/MetaMask/metamask-mobile/pull/3046): [FIX] Token Transfer to address
 - [#2878](https://github.com/MetaMask/metamask-mobile/pull/2878): [2783] Change default account name for ENS reversed-resolved name
 - [#3029](https://github.com/MetaMask/metamask-mobile/pull/3029): [FIX] Video Subtitles Not Loading Properly
@@ -11638,9 +11006,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2718](https://github.com/MetaMask/metamask-mobile/pull/2718): Switched to sslip.io instead of xip.io
 
 ## [3.1.0]
-
 ### Uncategorized
-
 - [#3026](https://github.com/MetaMask/metamask-mobile/pull/3026): [FIX] Fix edit button
 - [#2981](https://github.com/MetaMask/metamask-mobile/pull/2981): [FIX] Delete Message
 - [#3017](https://github.com/MetaMask/metamask-mobile/pull/3017): [FIX] Fix deep links bug related to branch updates
@@ -11658,15 +11024,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2973](https://github.com/MetaMask/metamask-mobile/pull/2973): [FEATURE] On-Ramp: Add on-ramp analytics
 
 ## [3.0.1]
-
 ### Uncategorized
-
 - Patch to fix Wyre and Transak
 
 ## [3.0.0]
-
 ### Uncategorized
-
 - [#2959](https://github.com/MetaMask/metamask-mobile/pull/2959): UI fixes
 - [#2957](https://github.com/MetaMask/metamask-mobile/pull/2957): Fix gas information info modal on swaps
 - [#2955](https://github.com/MetaMask/metamask-mobile/pull/2955): [EIP1559] Improve time estimates
@@ -11683,9 +11045,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2890](https://github.com/MetaMask/metamask-mobile/pull/2890): Bump addressable from 2.7.0 to 2.8.0 in /ios
 
 ## [2.6.0]
-
 ### Uncategorized
-
 - [#2865](https://github.com/MetaMask/metamask-mobile/pull/2865): Added support for custom network gas estimates
 - [#2854](https://github.com/MetaMask/metamask-mobile/pull/2854): Fix time formatting on transactions
 - [#2883](https://github.com/MetaMask/metamask-mobile/pull/2883): Swaps: Fix isZero undefined error
@@ -11693,9 +11053,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2709](https://github.com/MetaMask/metamask-mobile/pull/2709): Remove Picker deprecation warning
 
 ## [2.5.0]
-
 ### Uncategorized
-
 - [#2809](https://github.com/MetaMask/metamask-mobile/pull/2809): Optional chaining dollarBalance
 - [#2776](https://github.com/MetaMask/metamask-mobile/pull/2776): Fix: empty state when using fiat on non-mainnet transactions
 - [#2777](https://github.com/MetaMask/metamask-mobile/pull/2777): Add isInteraction: false
@@ -11721,9 +11079,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2727](https://github.com/MetaMask/metamask-mobile/pull/2727): Add missing required prop in tests
 
 ## [2.4.0]
-
 ### Uncategorized
-
 - [#2618](https://github.com/MetaMask/metamask-mobile/pull/2618): Collectibles experience
 - [#2698](https://github.com/MetaMask/metamask-mobile/pull/2698): bugfix: navigation routeName is null
 - [#2692](https://github.com/MetaMask/metamask-mobile/pull/2692): Fix custom gas crash
@@ -11738,9 +11094,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2628](https://github.com/MetaMask/metamask-mobile/pull/2628): Feature/use toLowerCaseCompare
 
 ## [2.3.0]
-
 ### Uncategorized
-
 - [#2674](https://github.com/MetaMask/metamask-mobile/pull/2674): Fix deploy contract and create token testnets
 - [#2669](https://github.com/MetaMask/metamask-mobile/pull/2669): Key off accounts
 - [#2670](https://github.com/MetaMask/metamask-mobile/pull/2670): Bump hosted-git-info from 2.8.8 to 2.8.9
@@ -11783,9 +11137,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2568](https://github.com/MetaMask/metamask-mobile/pull/2568): resolve isENS without case sensitivity (#2545)
 
 ## [2.2.0]
-
 ### Uncategorized
-
 - [#2547](https://github.com/MetaMask/metamask-mobile/pull/2547): Include decimalsToShow in balanceToFiatNumber
 - [#2554](https://github.com/MetaMask/metamask-mobile/pull/2554): Bug fix/sync import time
 - [#2546](https://github.com/MetaMask/metamask-mobile/pull/2546): Fix analytics try catch
@@ -11812,27 +11164,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2381](https://github.com/MetaMask/metamask-mobile/pull/2381): Display correct number of decimals for 'usd' fiat
 
 ## [2.1.3]
-
 ### Uncategorized
-
 - [#2548](https://github.com/MetaMask/metamask-mobile/pull/2548): Hotfix analytics try catch
 
 ## [2.1.2]
-
 ### Uncategorized
-
 - [#2538](https://github.com/MetaMask/metamask-mobile/pull/2538): fix/connection change handler
 
 ## [2.1.1]
-
 ### Uncategorized
-
 - [#2520](https://github.com/MetaMask/metamask-mobile/pull/2520): Check provider status
 
 ## [2.1.0]
-
 ### Uncategorized
-
 - [#2487](https://github.com/MetaMask/metamask-mobile/pull/2487): Fix/analytics v1 priority1
 - [#2456](https://github.com/MetaMask/metamask-mobile/pull/2456): Analytics v2 (priority 1)
 - [#2408](https://github.com/MetaMask/metamask-mobile/pull/2408): Fix/gas estimations
@@ -11854,9 +11198,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2431](https://github.com/MetaMask/metamask-mobile/pull/2431): Update BN import
 
 ## [2.0.1]
-
 ### Uncategorized
-
 - [#2430](https://github.com/MetaMask/metamask-mobile/pull/2430): Fix/send to style
 - [#2426](https://github.com/MetaMask/metamask-mobile/pull/2426): bugfix/allow seedphrases when locked
 - [#2422](https://github.com/MetaMask/metamask-mobile/pull/2422): bugfix/delete wallet with random password
@@ -11865,9 +11207,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2156](https://github.com/MetaMask/metamask-mobile/pull/2156): Translations with update script
 
 ## [2.0.0]
-
 ### Uncategorized
-
 - [#2383](https://github.com/MetaMask/metamask-mobile/pull/2383): swaps/received destination amount
 - [#2379](https://github.com/MetaMask/metamask-mobile/pull/2379): Swaps/fix decode tx render amounts
 - [#2377](https://github.com/MetaMask/metamask-mobile/pull/2377): bugfix/dont modify local transactions
@@ -11888,9 +11228,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2265](https://github.com/MetaMask/metamask-mobile/pull/2265): Fix input state
 
 ## [1.0.11]
-
 ### Uncategorized
-
 - [#2257](https://github.com/MetaMask/metamask-mobile/pull/2257): bugfix/use bignumber for transfer deeplinks
 - [#2256](https://github.com/MetaMask/metamask-mobile/pull/2256): Fix account list scroll
 - [#2243](https://github.com/MetaMask/metamask-mobile/pull/2243): TransactionController from controllers
@@ -11917,16 +11255,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2142](https://github.com/MetaMask/metamask-mobile/pull/2142): Display boolean values when signing typed data
 
 ## [1.0.10]
-
 ### Uncategorized
-
 - [#2164](https://github.com/MetaMask/metamask-mobile/pull/2164): Initialize NetworkController.provider with chainId (#2164)
 - [#2161](https://github.com/MetaMask/metamask-mobile/pull/2161): chainid migration (#2161)
 
 ## [1.0.9]
-
 ### Uncategorized
-
 - [#2149](https://github.com/MetaMask/metamask-mobile/pull/2149): update tests for new logic
 - [#2145](https://github.com/MetaMask/metamask-mobile/pull/2145): Add missing brew installation steps
 - [#2146](https://github.com/MetaMask/metamask-mobile/pull/2146): @metamask/mobile-provider@2.0.1
@@ -11956,9 +11290,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1994](https://github.com/MetaMask/metamask-mobile/pull/1994): Feature: Initial Swaps amount view (#1994)
 
 ## [1.0.8]
-
 ### Uncategorized
-
 - [#2040](https://github.com/MetaMask/metamask-mobile/pull/2040): Update vault error message (#2040)
 - [#2034](https://github.com/MetaMask/metamask-mobile/pull/2034): Fix asyncstorage limit (#2034)
 - [#2038](https://github.com/MetaMask/metamask-mobile/pull/2038): metamask wc deeplink (#2038)
@@ -11967,9 +11299,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#2008](https://github.com/MetaMask/metamask-mobile/pull/2008): Add Apple Pay correct label (#2008)
 
 ## [1.0.7]
-
 ### Uncategorized
-
 - [#2005](https://github.com/MetaMask/metamask-mobile/pull/2005): Fix activeTabUrl (#2005)
 - [#2003](https://github.com/MetaMask/metamask-mobile/pull/2003): Bugfix/android choose password (#2003)
 - [#1992](https://github.com/MetaMask/metamask-mobile/pull/1992): Android api level (#1992)
@@ -11979,9 +11309,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1967](https://github.com/MetaMask/metamask-mobile/pull/1967): Add Keypad component (#1967)
 
 ## [1.0.6]
-
 ### Uncategorized
-
 - [#1990](https://github.com/MetaMask/metamask-mobile/pull/1990): Fixed importing accounts when reseting password (#1990)
 - [#1988](https://github.com/MetaMask/metamask-mobile/pull/1988): bugfix/protect wallet modal (#1988)
 - [#1985](https://github.com/MetaMask/metamask-mobile/pull/1985): Fix seedphrase handling in QRScanner (#1985)
@@ -12021,21 +11349,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1861](https://github.com/MetaMask/metamask-mobile/pull/1861): Get e2e working for seedphrase and login (#1861)
 
 ## [1.0.5]
-
 ### Uncategorized
-
 - [#1889](https://github.com/MetaMask/metamask-mobile/pull/1889): Fix scientific notation string not convertable to BN (#1889)
 
 ## [1.0.4]
-
 ### Uncategorized
-
 - [#1882](https://github.com/MetaMask/metamask-mobile/pull/1882): Error boundary (#1882)
 
 ## [1.0.3]
-
 ### Uncategorized
-
 - [#1865](https://github.com/MetaMask/metamask-mobile/pull/1865): bugfix/login (#1865)
 - [#1863](https://github.com/MetaMask/metamask-mobile/pull/1863): transak countries update (#1863)
 - [#1829](https://github.com/MetaMask/metamask-mobile/pull/1829): Improvement/browser refactor (#1829)
@@ -12067,22 +11389,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1787](https://github.com/MetaMask/metamask-mobile/pull/1787): Add missing currency conversions (#1787)
 
 ## [1.0.2]
-
 ### Uncategorized
-
 - [#1812](https://github.com/MetaMask/metamask-mobile/pull/1812): Add logger on login (#1812)
 
 ## [1.0.1]
-
 ### Uncategorized
-
 - [#1795](https://github.com/MetaMask/metamask-mobile/pull/1795): Update react native aes crypto forked (#1795)
 - [#1796](https://github.com/MetaMask/metamask-mobile/pull/1796): bugfix/mixpanel android in app notifications (#1796)
 
 ## [1.0.0]
-
 ### Uncategorized
-
 - [#1790](https://github.com/MetaMask/metamask-mobile/pull/1790): Bugfix/payment request and wallet connect origin on tx (#1790)
 - [#1791](https://github.com/MetaMask/metamask-mobile/pull/1791): Fix send receive buttons style (#1791)
 - [#1785](https://github.com/MetaMask/metamask-mobile/pull/1785): Use @metamask/controllers@2.0.5 (#1785)
@@ -12110,9 +11426,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1727](https://github.com/MetaMask/metamask-mobile/pull/1727): Bump json from 2.2.0 to 2.3.1 in /ios (#1727)
 
 ## [0.2.20]
-
 ### Uncategorized
-
 - [#1751](https://github.com/MetaMask/metamask-mobile/pull/1751): bugfix/payment requests & deeplinks (#1751)
 - [#1732](https://github.com/MetaMask/metamask-mobile/pull/1732): Copy edits (#1732)
 - [#1750](https://github.com/MetaMask/metamask-mobile/pull/1750): Don't allow for zero in custom gas price (#1750)
@@ -12164,24 +11478,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1640](https://github.com/MetaMask/metamask-mobile/pull/1640): enable-apple-pay (#1640)
 
 ## [0.2.19]
-
 ### Uncategorized
-
 - [#1661](https://github.com/MetaMask/metamask-mobile/pull/1661): bugfix/Use eth gas API
 - [#1653](https://github.com/MetaMask/metamask-mobile/pull/1653): Add ETH_GAS_STATION_API_KEY (#1653)
 
 ## [0.2.18]
-
 ### Uncategorized
-
 - [#1636](https://github.com/MetaMask/metamask-mobile/pull/1636): Add padding to CustomGas back button (#1636)
 - [#1637](https://github.com/MetaMask/metamask-mobile/pull/1637): Bugfix/incoming notifications (#1637)
 - [#1628](https://github.com/MetaMask/metamask-mobile/pull/1628): Fix network color indicator on transactionHeader for connect screens (#1628)
 
 ## [0.2.17]
-
 ### Uncategorized
-
 - [#1629](https://github.com/MetaMask/metamask-mobile/pull/1629): bugfix/custom gas modal (#1629)
 - [#1625](https://github.com/MetaMask/metamask-mobile/pull/1625): Bugfix/wc connect on app closed (#1625)
 - [#1624](https://github.com/MetaMask/metamask-mobile/pull/1624): Wallet connect update + Support for simple notifications (#1624)
@@ -12218,9 +11526,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1584](https://github.com/MetaMask/metamask-mobile/pull/1584): make sign tests great again (#1584)
 
 ## [0.2.16]
-
 ### Uncategorized
-
 - [#1582](https://github.com/MetaMask/metamask-mobile/pull/1582): Instapay deposit navbar cancel (#1582)
 - [#1570](https://github.com/MetaMask/metamask-mobile/pull/1570): Disable confirm screen edit button when no tokens of a payment request (#1570)
 - [#1574](https://github.com/MetaMask/metamask-mobile/pull/1574): Ensure collectibles that use 'transfer' method show a fee in tx history list (#1574)
@@ -12245,9 +11551,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1524](https://github.com/MetaMask/metamask-mobile/pull/1524): Loosen nvmrc (#1524)
 
 ## [0.2.15]
-
 ### Uncategorized
-
 - [#1529](https://github.com/MetaMask/metamask-mobile/pull/1529): sentry android production (#1529)
 - [#1528](https://github.com/MetaMask/metamask-mobile/pull/1528): Bugfix/sentry in circle ci (#1528)
 - [#1527](https://github.com/MetaMask/metamask-mobile/pull/1527): env to production (#1527)
@@ -12291,9 +11595,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1425](https://github.com/MetaMask/metamask-mobile/pull/1425): Detox: Upate dapp-initated-txn tests (#1425)
 
 ## [0.2.14]
-
 ### Uncategorized
-
 - [#1413](https://github.com/MetaMask/metamask-mobile/pull/1413): Fix accountsChanged notification (#1413)
 - [#1411](https://github.com/MetaMask/metamask-mobile/pull/1411): bugfix: payment request (#1411)
 - [#1410](https://github.com/MetaMask/metamask-mobile/pull/1410): bugfix: ios close icon (#1410)
@@ -12346,18 +11648,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1252](https://github.com/MetaMask/metamask-mobile/pull/1252): Bugfix: cancel and speedup insufficient funds (#1252)
 
 ## [0.2.13]
-
 ### Uncategorized
-
 - [#1250](https://github.com/MetaMask/metamask-mobile/pull/1250): Bump excon from 0.64.0 to 0.71.0 in /ios (#1250)
 - [#1246](https://github.com/MetaMask/metamask-mobile/pull/1246): bugfix: wizard back (#1246)
 - [#1235](https://github.com/MetaMask/metamask-mobile/pull/1235): Detox: Request token flow (#1235)
 - [#1234](https://github.com/MetaMask/metamask-mobile/pull/1234): bump migration version (#1234)
 
 ## [0.2.12]
-
 ### Uncategorized
-
 - [#1224](https://github.com/MetaMask/metamask-mobile/pull/1224): Bugfix: asset ens tx (#1224)
 - [#1225](https://github.com/MetaMask/metamask-mobile/pull/1225): update bug report link (#1225)
 - [#1215](https://github.com/MetaMask/metamask-mobile/pull/1215): Detox: Fix Android e2e Tests (#1215)
@@ -12366,17 +11664,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1214](https://github.com/MetaMask/metamask-mobile/pull/1214): pass metametrics context to homepage (#1214)
 
 ## [0.2.11]
-
 ### Uncategorized
-
 - [#1212](https://github.com/MetaMask/metamask-mobile/pull/1212): Provider missing properties (#1212)
 - [#1207](https://github.com/MetaMask/metamask-mobile/pull/1207): Fix typo on Import Account screen (#1207)
 - [#1198](https://github.com/MetaMask/metamask-mobile/pull/1198): Migrate to SAI (#1198)
 
 ## [0.2.10]
-
 ### Uncategorized
-
 - [#1205](https://github.com/MetaMask/metamask-mobile/pull/1205): Disable speedup instapay (#1205)
 - [#1204](https://github.com/MetaMask/metamask-mobile/pull/1204): Fix injection on Android (#1204)
 - [#1203](https://github.com/MetaMask/metamask-mobile/pull/1203): Update support email (#1203)
@@ -12411,27 +11705,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1146](https://github.com/MetaMask/metamask-mobile/pull/1146): fix instapay logs app version (#1146)
 
 ## [0.2.8]
-
 ### Uncategorized
-
 - [#1145](https://github.com/MetaMask/metamask-mobile/pull/1145): Support URLs on QR code scanner (#1145)
 
 ## [0.2.7]
-
 ### Uncategorized
-
 - [#1143](https://github.com/MetaMask/metamask-mobile/pull/1143): Minor bugfixes (#1143)
 
 ## [0.2.6]
-
 ### Uncategorized
-
 - [#1139](https://github.com/MetaMask/metamask-mobile/pull/1139): Fix onboarding carousel dimensions (#1139)
 
 ## [0.2.5]
-
 ### Uncategorized
-
 - [#1136](https://github.com/MetaMask/metamask-mobile/pull/1136): Select correct profiles (#1136)
 - [#1135](https://github.com/MetaMask/metamask-mobile/pull/1135): Fix fastlane config (#1135)
 - [#1134](https://github.com/MetaMask/metamask-mobile/pull/1134): renew certs if needed (#1134)
@@ -12497,9 +11783,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1044](https://github.com/MetaMask/metamask-mobile/pull/1044): remove uiwebview ocurrences (#1044)
 
 ## [0.2.4]
-
 ### Uncategorized
-
 - [#1038](https://github.com/MetaMask/metamask-mobile/pull/1038): Fix Approval (#1038)
   : [#1037](https://github.com/MetaMask/metamask-mobile/pull/1037): Fix walletconnect :#1037)
 - [#1036](https://github.com/MetaMask/metamask-mobile/pull/1036): Bugfix: browser crash (#1036)
@@ -12519,9 +11803,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#1008](https://github.com/MetaMask/metamask-mobile/pull/1008): bump walletconnect (#1008)
 
 ## [0.2.3]
-
 ### Uncategorized
-
 - [#972](https://github.com/MetaMask/metamask-mobile/pull/972): bump version (#972)
 - [#989](https://github.com/MetaMask/metamask-mobile/pull/989): Bugfix: Fix mobile sync & Security options (#989)
 - [#1000](https://github.com/MetaMask/metamask-mobile/pull/1000): bugfix: tx edit dropdowns in small devices (#1000)

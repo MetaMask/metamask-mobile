@@ -19,6 +19,8 @@
     "lint:fix": "NODE_OPTIONS='--max-old-space-size=12288' eslint '**/*.{js,ts,tsx}' --fix --cache && yarn messenger-action-types:generate",
     "lint:clean": "rm -f .eslintcache",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=12288' tsc --project ./tsconfig.json",
+    "lint:changelog": "./scripts/lint-changelog.sh",
+    "lint:changelog:rc": "auto-changelog validate --rc --repo https://github.com/MetaMask/metamask-mobile",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "format:check": "prettier '**/*.{js,ts,tsx,json}' --check",
     "format:check:changed": "git diff --name-only --diff-filter=ACM HEAD~1 | { grep -E '\\.(js|ts|tsx|json)$' || true; } | xargs --no-run-if-empty prettier --check",

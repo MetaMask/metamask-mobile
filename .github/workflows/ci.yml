@@ -264,6 +264,7 @@ jobs:
         scripts:
           - lint
           - lint:tsc
+          - lint:changelog
           - format:check
           - audit:ci
           - test:depcheck
