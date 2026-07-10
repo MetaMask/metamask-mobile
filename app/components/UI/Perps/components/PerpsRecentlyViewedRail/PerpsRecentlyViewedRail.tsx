@@ -1,22 +1,22 @@
-import React, { memo, useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { SectionHeader } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import {
-  Text,
-  TextColor,
+import Text, {
   TextVariant,
-} from '@metamask/design-system-react-native';
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { PillScrollList } from '../../../Trending/components/PillScrollList';
-import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
-import { PerpsPillItem } from '../PerpsPillItem';
+import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
+import { PerpsLeverage } from '../PerpsLeverage';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsRecentlyViewedRailSelectorsIDs } from '../../Perps.testIds';
-import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
+import styleSheet from './PerpsRecentlyViewedRail.styles';
 
 /** `source_section` value for market-details navigation and analytics originating from this rail. */
 export const RECENTLY_VIEWED_SOURCE_SECTION = 'recently_viewed';
@@ -34,21 +34,65 @@ export interface PerpsRecentlyViewedRailProps {
   onMarketPress: (market: PerpsMarketData, index: number) => void;
 }
 
-const ROW_COUNT = 1;
 /** Mirrors the core `PERPS_CONSTANTS.RecentlyViewedMarketsLimit`; belt-and-suspenders cap. */
-const MAX_PILLS = 10;
+const MAX_TILES = 10;
 
-const styles = StyleSheet.create({
-  rail: {
-    paddingVertical: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-});
+const PerpsRecentlyViewedTile: React.FC<{
+  market: PerpsMarketData;
+  index: number;
+  onPress: (market: PerpsMarketData, index: number) => void;
+}> = ({ market, index, onPress }) => {
+  const { styles } = useStyles(styleSheet, {});
+
+  const handlePress = useCallback(() => {
+    onPress(market, index);
+  }, [onPress, market, index]);
+
+  const isPositiveChange = !market.change24h.startsWith('-');
+  const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+
+  return (
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.7}
+      style={styles.tile}
+      testID={`perps-recently-viewed-tile-${market.symbol}`}
+      accessibilityRole="button"
+      accessibilityLabel={`${market.symbol} recently viewed market`}
+    >
+      <PerpsTokenLogo symbol={market.symbol} size={32} />
+
+      <View style={styles.symbolRow}>
+        <Text
+          variant={TextVariant.BodySMMedium}
+          color={TextColor.Default}
+          numberOfLines={1}
+        >
+          {market.symbol}
+        </Text>
+        <PerpsLeverage maxLeverage={market.maxLeverage} />
+      </View>
+
+      <View style={styles.priceRow}>
+        <Text
+          variant={TextVariant.BodyXS}
+          color={TextColor.Default}
+          style={styles.priceLabel}
+          numberOfLines={1}
+        >
+          {market.price}
+        </Text>
+        <Text
+          variant={TextVariant.BodyXS}
+          color={changeColor}
+          numberOfLines={1}
+        >
+          {market.change24hPercent}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 /**
  * Horizontal rail of the markets the user has most recently viewed
@@ -59,12 +103,8 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   markets,
   onMarketPress,
 }) => {
+  const { styles } = useStyles(styleSheet, {});
   const { track } = usePerpsEventTracking();
-
-  const feedItems: PerpsFeedItem[] = useMemo(
-    () => markets.map((market) => ({ market, isWatchlisted: false })),
-    [markets],
-  );
 
   const handlePress = useCallback(
     (market: PerpsMarketData, index: number) => {
@@ -78,39 +118,31 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
     [onMarketPress, track],
   );
 
-  const renderPill = useCallback(
-    (item: PerpsFeedItem, index: number) => (
-      <PerpsPillItem
-        item={item}
-        onNavigateToMarketDetails={() => handlePress(item.market, index)}
-      />
-    ),
-    [handlePress],
-  );
-
   if (markets.length === 0) {
     return null;
   }
 
+  const visibleMarkets = markets.slice(0, MAX_TILES);
+
   return (
     <View style={styles.rail} testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL}>
-      <View style={styles.header}>
-        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-          {strings('perps.recently_viewed')}
-        </Text>
-      </View>
+      <SectionHeader title={strings('perps.recently_searched')} />
 
-      <PillScrollList<PerpsFeedItem>
-        data={feedItems}
-        isLoading={false}
-        renderItem={renderPill}
-        keyExtractor={(item) => item.market.symbol}
-        Skeleton={SectionPillsSkeleton}
-        rowCount={ROW_COUNT}
-        maxPills={MAX_PILLS}
-        wrapperTwClassName="bg-transparent"
-        listTestId={PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID}
-      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        testID={PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID}
+      >
+        {visibleMarkets.map((market, index) => (
+          <PerpsRecentlyViewedTile
+            key={market.symbol}
+            market={market}
+            index={index}
+            onPress={handlePress}
+          />
+        ))}
+      </ScrollView>
     </View>
   );
 };

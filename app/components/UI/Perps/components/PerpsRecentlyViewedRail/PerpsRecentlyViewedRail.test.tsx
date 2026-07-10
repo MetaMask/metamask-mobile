@@ -3,7 +3,6 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsRecentlyViewedRailSelectorsIDs } from '../../Perps.testIds';
-import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import PerpsRecentlyViewedRail, {
   RECENTLY_VIEWED_EVENT_PROPERTY,
   RECENTLY_VIEWED_MARKET_CLICKED,
@@ -17,62 +16,29 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   }),
 }));
 
-jest.mock('../../../Trending/components/PillScrollList', () => ({
-  PillScrollList: ({
-    data,
-    isLoading,
-    renderItem,
-    keyExtractor,
-    listTestId,
-    maxPills = 10,
-  }: {
-    data: PerpsFeedItem[];
-    isLoading: boolean;
-    renderItem: (item: PerpsFeedItem, index: number) => React.ReactNode;
-    keyExtractor: (item: PerpsFeedItem) => string;
-    listTestId: string;
-    maxPills?: number;
-  }) => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    const displayData = data.slice(0, maxPills);
-    return ReactModule.createElement(
-      View,
-      { testID: listTestId },
-      isLoading
-        ? ReactModule.createElement(View, { testID: 'mock-pill-skeleton' })
-        : displayData.map((item: PerpsFeedItem, index: number) =>
-            ReactModule.createElement(
-              View,
-              { key: keyExtractor(item) },
-              renderItem(item, index),
-            ),
-          ),
-    );
-  },
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    SectionHeader: ({ title, testID }: { title: string; testID?: string }) => (
+      <Text testID={testID}>{title}</Text>
+    ),
+  };
+});
 
-jest.mock('../../../Trending/components/SectionPillsSkeleton', () => ({
-  SectionPillsSkeleton: () => null,
-}));
-
-jest.mock('../PerpsPillItem', () => {
-  const { Text, TouchableOpacity } = jest.requireActual('react-native');
-  const MockPill = ({
-    item,
-    onNavigateToMarketDetails,
-  }: {
-    item: { market: PerpsMarketData };
-    onNavigateToMarketDetails?: (market: PerpsMarketData) => void;
-  }) => (
-    <TouchableOpacity
-      testID={`perps-market-tile-card-${item.market.symbol}`}
-      onPress={() => onNavigateToMarketDetails?.(item.market)}
-    >
-      <Text>{item.market.symbol}</Text>
-    </TouchableOpacity>
+jest.mock('../PerpsTokenLogo/PerpsTokenLogo', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ symbol }: { symbol: string }) => (
+    <View testID={`token-logo-${symbol}`} />
   );
-  return { PerpsPillItem: MockPill };
+});
+
+jest.mock('../PerpsLeverage', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    PerpsLeverage: ({ maxLeverage }: { maxLeverage: string }) => (
+      <Text>{maxLeverage}</Text>
+    ),
+  };
 });
 
 const createMarket = (
@@ -109,7 +75,7 @@ describe('PerpsRecentlyViewedRail', () => {
     ).toBeNull();
   });
 
-  it('renders the header and pills for each recently viewed market', () => {
+  it('renders the header and a tile for each recently viewed market', () => {
     render(
       <PerpsRecentlyViewedRail
         markets={[createMarket('BTC'), createMarket('ETH')]}
@@ -123,9 +89,35 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(
       screen.getByTestId(PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Recently viewed')).toBeOnTheScreen();
-    expect(screen.getByTestId('perps-market-tile-card-BTC')).toBeOnTheScreen();
-    expect(screen.getByTestId('perps-market-tile-card-ETH')).toBeOnTheScreen();
+    expect(screen.getByText('Recently searched')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('perps-recently-viewed-tile-BTC'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('perps-recently-viewed-tile-ETH'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders each market logo, symbol, leverage, price and change', () => {
+    render(
+      <PerpsRecentlyViewedRail
+        markets={[
+          createMarket('BTC', {
+            maxLeverage: '40x',
+            price: '$50,000.00',
+            change24h: '+2.5%',
+            change24hPercent: '+2.5%',
+          }),
+        ]}
+        onMarketPress={mockOnMarketPress}
+      />,
+    );
+
+    expect(screen.getByTestId('token-logo-BTC')).toBeOnTheScreen();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.getByText('40x')).toBeOnTheScreen();
+    expect(screen.getByText('$50,000.00')).toBeOnTheScreen();
+    expect(screen.getByText('+2.5%')).toBeOnTheScreen();
   });
 
   it('preserves the newest-first order passed in via props', () => {
@@ -136,15 +128,12 @@ describe('PerpsRecentlyViewedRail', () => {
       />,
     );
 
-    const grid = screen.getByTestId(
-      PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID,
-    );
-    const symbols = grid.findAllByType(jest.requireActual('react-native').Text);
-    expect(symbols[0].props.children).toBe('SOL');
-    expect(symbols[1].props.children).toBe('BTC');
+    const tiles = screen.getAllByTestId(/^perps-recently-viewed-tile-/);
+    expect(tiles[0].props.testID).toBe('perps-recently-viewed-tile-SOL');
+    expect(tiles[1].props.testID).toBe('perps-recently-viewed-tile-BTC');
   });
 
-  it('caps rendered pills at 10', () => {
+  it('caps rendered tiles at 10', () => {
     const markets = Array.from({ length: 15 }, (_, i) =>
       createMarket(`MKT${i}`),
     );
@@ -156,11 +145,11 @@ describe('PerpsRecentlyViewedRail', () => {
       />,
     );
 
-    const pills = screen.getAllByText(/^MKT\d+$/);
-    expect(pills).toHaveLength(10);
+    const tiles = screen.getAllByTestId(/^perps-recently-viewed-tile-/);
+    expect(tiles).toHaveLength(10);
   });
 
-  it('tracks pill tap with market symbol and 1-based position, then invokes onMarketPress', () => {
+  it('tracks tile tap with market symbol and 1-based position, then invokes onMarketPress', () => {
     const target = createMarket('ETH');
 
     render(
@@ -170,7 +159,7 @@ describe('PerpsRecentlyViewedRail', () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId('perps-market-tile-card-ETH'));
+    fireEvent.press(screen.getByTestId('perps-recently-viewed-tile-ETH'));
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
