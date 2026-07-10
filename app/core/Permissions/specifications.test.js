@@ -25,7 +25,7 @@ describe('PermissionController specifications', () => {
   describe('caveat specifications', () => {
     it('getCaveatSpecifications returns the expected specifications object', () => {
       const caveatSpecifications = getCaveatSpecifications({});
-      expect(Object.keys(caveatSpecifications)).toHaveLength(14);
+      expect(Object.keys(caveatSpecifications)).toHaveLength(15);
       expect(caveatSpecifications[Caip25CaveatType].type).toStrictEqual(
         Caip25CaveatType,
       );
