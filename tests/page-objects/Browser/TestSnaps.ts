@@ -207,19 +207,7 @@ class TestSnaps {
           );
         }
 
-        if (
-          FrameworkDetector.isAppium() &&
-          typeof expectedJson === 'object' &&
-          expectedJson !== null &&
-          !Array.isArray(expectedJson)
-        ) {
-          await Assertions.checkIfObjectContains(
-            actualJson as Record<string, unknown>,
-            expectedJson as Record<string, unknown>,
-          );
-        } else {
-          await Assertions.checkIfJsonEqual(actualJson, expectedJson);
-        }
+        await Assertions.checkIfJsonEqual(actualJson, expectedJson);
       }, options);
     });
   }

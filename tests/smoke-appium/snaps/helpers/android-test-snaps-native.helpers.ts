@@ -187,10 +187,7 @@ export async function assertAndroidTestSnapsJson(
         expectedJson !== null &&
         !Array.isArray(expectedJson)
       ) {
-        await Assertions.checkIfObjectContains(
-          actualJson as Record<string, unknown>,
-          expectedJson as Record<string, unknown>,
-        );
+        await Assertions.checkIfJsonEqual(actualJson, expectedJson);
         return;
       }
 
