@@ -201,6 +201,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={refresh}
+            twClassName="self-center"
             testID={FeedViewSelectorsIDs.RETRY_BUTTON}
           >
             {strings('social_leaderboard.feed.error.retry')}
