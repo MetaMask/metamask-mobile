@@ -26,8 +26,8 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
   const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
-    bottomSheetRef.current?.onCloseBottomSheet(onClose);
-  }, [onClose]);
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const primaryButtonProps = useMemo(
     () => ({

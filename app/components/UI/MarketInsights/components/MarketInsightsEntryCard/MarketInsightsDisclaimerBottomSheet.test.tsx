@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsDisclaimerBottomSheet from './MarketInsightsDisclaimerBottomSheet';
 
-const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
+const mockOnCloseBottomSheet = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -19,10 +19,13 @@ jest.mock('@metamask/design-system-react-native', () => {
         children: React.ReactNode;
         onClose?: () => void;
       },
-      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+      ref: React.Ref<{ onCloseBottomSheet: () => void }>,
     ) => {
       ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: mockOnCloseBottomSheet,
+        onCloseBottomSheet: () => {
+          mockOnCloseBottomSheet();
+          onClose?.();
+        },
         onOpenBottomSheet: jest.fn(),
       }));
 
