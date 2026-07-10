@@ -14,6 +14,7 @@ import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/PerpsTooltipView';
 
+// ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsModalsNavigationParamList = {
   PerpsQuoteExpiredModal: undefined;
@@ -35,19 +36,13 @@ export type PerpsModalsNavigationParamList = {
   };
 };
 
+// ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsClosePositionModalsNavigationParamList = {
   PerpsTooltip: PerpsTooltipViewRouteParams;
 };
 
-/**
- * PERPS navigation parameter types.
- *
- * Declared as a `type` (not `interface`) so it gains an implicit index
- * signature and satisfies React Navigation's `ParamListBase` constraint while
- * `keyof` stays a strict union of route names. The repo's
- * `consistent-type-definitions` rule prefers `interface`, hence the suppression.
- */
+// ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsStackParamList = {
   // Order flow routes
@@ -311,6 +306,7 @@ export type PerpsStackParamList = {
 };
 
 /** Screens inside the Perps stack plus the root `Perps` entry for cross-stack navigation. */
+// Intersection (`&`) requires `type`; `interface` cannot express this.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsNavigationParamList = PerpsStackParamList & {
   Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
