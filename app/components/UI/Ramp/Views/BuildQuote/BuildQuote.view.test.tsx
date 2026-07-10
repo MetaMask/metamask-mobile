@@ -310,7 +310,7 @@ describe('V2 unified-buy BuildQuote', () => {
     });
     wireRampsControllerForStore(result.store);
 
-    const { findByText, getByTestId } = result;
+    const { findByText, findByTestId, getByTestId } = result;
 
     expect(await findByText('Powered by Transak')).toBeOnTheScreen();
 
@@ -327,7 +327,13 @@ describe('V2 unified-buy BuildQuote', () => {
 
     fireEvent.press(await findByText('MoonPay'));
 
-    expect(await findByText(/Buying via MoonPay/)).toBeOnTheScreen();
+    expect(await findByText('Powered by MoonPay')).toBeOnTheScreen();
+    const amountInput = await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+    expect(
+      (amountInput.props.children as unknown[])
+        .filter((child) => typeof child === 'string')
+        .join(''),
+    ).toContain('100');
   });
 
   it('updates the displayed amount when a quick-amount chip is tapped', async () => {
