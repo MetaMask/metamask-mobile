@@ -29,6 +29,21 @@ export interface RelatedMarketsResult {
 }
 
 /**
+ * Whether a market belongs to a category that can show Related markets.
+ * Does not require the full markets list — `PerpsRelatedMarkets` resolves
+ * related tiles once its own `usePerpsMarkets` subscription delivers data.
+ */
+export const hasRelatedMarketsCategory = (
+  currentMarket: PerpsMarketData | null | undefined,
+): boolean => {
+  if (!currentMarket?.symbol) {
+    return false;
+  }
+
+  return getMarketTypeFilter(currentMarket) !== 'all';
+};
+
+/**
  * Resolve the Related markets rail for a given market.
  *
  * Market classification (`getMarketTypeFilter`) and category filtering
