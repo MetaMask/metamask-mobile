@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  NavigationProp,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -29,6 +33,7 @@ import {
   type PerpsPriceChangeDirection,
 } from '../feeds/perps/usePerpsFeed';
 import { usePerpsLiveMovers } from '../feeds/perps/usePerpsLiveMovers';
+import { useExploreActiveTab } from '../ExploreActiveTabContext';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
@@ -88,6 +93,15 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     }
   };
 
+  // Pause the live subscription when the Explore screen isn't focused (e.g.
+  // user navigated to another bottom tab) or the Now tab isn't the active
+  // one (TabsList keeps every tab mounted, so switching tabs doesn't
+  // unmount PerpsBlock on its own).
+  const isScreenFocused = useIsFocused();
+  const activeExploreTab = useExploreActiveTab();
+  const isMoversSubscriptionEnabled =
+    isScreenFocused && activeExploreTab === 'Now';
+
   // Observes live percent-change for every market on a ref between ticks and
   // only commits state when the displayed top-N (matches PillScrollList's
   // default maxPills) actually changes — see usePerpsLiveMovers for why this
@@ -96,6 +110,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     items: perps.data,
     direction: activeMoverDirection,
     maxCount: PERPS_MOVERS_MAX_COUNT,
+    enabled: isMoversSubscriptionEnabled,
   });
   const pillData =
     data.length === 0 &&

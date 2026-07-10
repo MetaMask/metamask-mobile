@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   RouteProp,
@@ -30,6 +30,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
+import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
@@ -134,6 +135,7 @@ export const ExploreFeed: React.FC = () => {
   const sessionManager = TrendingFeedSessionManager.getInstance();
   const previousTabRef = useRef<ExploreTabName>('Now');
   const pendingExploreEntrySourceRef = useRef<string | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<ExploreTabName>('Now');
 
   const handleTabChange = useCallback(({ i }: { i: number }) => {
     const destinationTab = TAB_NAMES[i];
@@ -147,6 +149,7 @@ export const ExploreFeed: React.FC = () => {
       ...(source ? { source } : {}),
     });
     previousTabRef.current = destinationTab;
+    setActiveTab(destinationTab);
   }, []);
 
   // Handle tab navigation from route params
@@ -237,63 +240,69 @@ export const ExploreFeed: React.FC = () => {
         {!isBasicFunctionalityEnabled ? (
           <BasicFunctionalityEmptyState />
         ) : (
-          <TabsList
-            ref={tabsListRef}
-            testID="explore-tabs"
-            tabsListContentTwClassName="px-0 mt-0"
-            onChangeTab={handleTabChange}
-          >
-            <Box
-              key="now"
-              twClassName="flex-1"
-              {...({ tabLabel: strings('trending.tabs.now') } as TabViewProps)}
+          <ExploreActiveTabProvider activeTab={activeTab}>
+            <TabsList
+              ref={tabsListRef}
+              testID="explore-tabs"
+              tabsListContentTwClassName="px-0 mt-0"
+              onChangeTab={handleTabChange}
             >
-              <NowTab {...tabProps} />
-            </Box>
-            <Box
-              key="macro"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.macro'),
-              } as TabViewProps)}
-            >
-              <MacroTab {...tabProps} />
-            </Box>
-            <Box
-              key="rwas"
-              twClassName="flex-1"
-              {...({ tabLabel: strings('trending.tabs.rwas') } as TabViewProps)}
-            >
-              <RwasTab {...tabProps} />
-            </Box>
-            <Box
-              key="crypto"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.crypto'),
-              } as TabViewProps)}
-            >
-              <CryptoTab {...tabProps} />
-            </Box>
-            <Box
-              key="sports"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.sports'),
-              } as TabViewProps)}
-            >
-              <SportsTab {...tabProps} />
-            </Box>
-            <Box
-              key="dapps"
-              twClassName="flex-1"
-              {...({
-                tabLabel: strings('trending.tabs.dapps'),
-              } as TabViewProps)}
-            >
-              <DappsTab {...tabProps} />
-            </Box>
-          </TabsList>
+              <Box
+                key="now"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.now'),
+                } as TabViewProps)}
+              >
+                <NowTab {...tabProps} />
+              </Box>
+              <Box
+                key="macro"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.macro'),
+                } as TabViewProps)}
+              >
+                <MacroTab {...tabProps} />
+              </Box>
+              <Box
+                key="rwas"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.rwas'),
+                } as TabViewProps)}
+              >
+                <RwasTab {...tabProps} />
+              </Box>
+              <Box
+                key="crypto"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.crypto'),
+                } as TabViewProps)}
+              >
+                <CryptoTab {...tabProps} />
+              </Box>
+              <Box
+                key="sports"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.sports'),
+                } as TabViewProps)}
+              >
+                <SportsTab {...tabProps} />
+              </Box>
+              <Box
+                key="dapps"
+                twClassName="flex-1"
+                {...({
+                  tabLabel: strings('trending.tabs.dapps'),
+                } as TabViewProps)}
+              >
+                <DappsTab {...tabProps} />
+              </Box>
+            </TabsList>
+          </ExploreActiveTabProvider>
         )}
       </Box>
     </Box>
