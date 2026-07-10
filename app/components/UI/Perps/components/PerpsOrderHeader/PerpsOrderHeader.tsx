@@ -12,18 +12,16 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
-import { usePerpsLivePrices } from '../../hooks/stream';
+import { usePerpsLiveHeaderPrice } from '../../hooks/stream';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
-// No artificial throttle: unlike PerpsOrderView / PerpsClosePositionView's own
-// price subscription (which drives expensive fee/margin/validation recompute
-// and is deliberately throttled to 1000ms), this subscription only feeds a
-// couple of Text nodes inside a memoized leaf component. Matches the market
-// details header, which is effectively unthrottled (driven directly by chart
-// ticks) — see PerpsMarketTradesList for the same "instant" pattern applied
-// to a different lightweight display.
-const HEADER_PRICE_THROTTLE_MS = 0;
+// No artificial throttle for the % change subscription inside LivePriceHeader:
+// unlike PerpsOrderView / PerpsClosePositionView's own price subscription
+// (which drives expensive fee/margin/validation recompute and is deliberately
+// throttled to 1000ms), this only feeds a lightweight Text node inside a
+// memoized leaf component.
+const HEADER_PERCENT_CHANGE_THROTTLE_MS = 0;
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -49,28 +47,18 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 }) => {
   const navigation = useNavigation();
 
-  // Subscribe to live prices directly in the header instead of relying solely
-  // on the `price` prop. PerpsOrderView / PerpsClosePositionView recompute
-  // fees, margin, liquidation price, and validation on every price tick, so
-  // their own re-render can lag behind the WebSocket feed on lower-end
-  // devices. Because this subscription's state lives inside PerpsOrderHeader
-  // (a small, cheap subtree), its updates render independently of that
-  // heavier parent, keeping the header as responsive as the market details
-  // page. The `price` prop is kept as the value to show until this
-  // subscription delivers its first update.
-  const livePrices = usePerpsLivePrices({
-    symbols: [asset],
-    throttleMs: HEADER_PRICE_THROTTLE_MS,
-  });
-
-  const livePrice = useMemo(() => {
-    const rawPrice = livePrices[asset]?.price;
-    if (!rawPrice) {
-      return undefined;
-    }
-    const parsed = Number.parseFloat(rawPrice);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
-  }, [livePrices, asset]);
+  // Use the same candle-derived, unthrottled price source that makes the
+  // market details header feel instantaneous (see usePerpsLiveHeaderPrice),
+  // instead of relying solely on the `price` prop. PerpsOrderView /
+  // PerpsClosePositionView recompute fees, margin, liquidation price, and
+  // validation on every allMids price tick, so their own re-render can lag
+  // behind the WebSocket feed, and even the allMids feed itself updates less
+  // frequently than the candle stream a chart would use. Because this
+  // subscription's state lives inside PerpsOrderHeader (a small, cheap
+  // subtree), its updates render independently of that heavier parent. The
+  // `price` prop is kept as the value to show until this subscription
+  // delivers its first update.
+  const { price: livePrice } = usePerpsLiveHeaderPrice(asset);
 
   const displayPrice = livePrice ?? price;
 
@@ -111,7 +99,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     () => (
       <LivePriceHeader
         symbol={asset}
-        throttleMs={HEADER_PRICE_THROTTLE_MS}
+        throttleMs={HEADER_PERCENT_CHANGE_THROTTLE_MS}
         currentPrice={displayPrice}
       />
     ),

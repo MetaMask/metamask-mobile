@@ -10,6 +10,7 @@ export { usePerpsLiveAccount } from './usePerpsLiveAccount';
 export { usePerpsTopOfBook } from './usePerpsTopOfBook';
 export { usePerpsLiveCandles } from './usePerpsLiveCandles';
 export { usePerpsLiveOrderBook } from './usePerpsLiveOrderBook';
+export { usePerpsLiveHeaderPrice } from './usePerpsLiveHeaderPrice';
 
 // Export types for convenience
 export type { UsePerpsLivePricesOptions } from './usePerpsLivePrices';
@@ -34,6 +35,7 @@ export type {
   OrderBookData,
   OrderBookLevel,
 } from './usePerpsLiveOrderBook';
+export type { UsePerpsLiveHeaderPriceResult } from './usePerpsLiveHeaderPrice';
 
 // Re-export types from controllers
 export {

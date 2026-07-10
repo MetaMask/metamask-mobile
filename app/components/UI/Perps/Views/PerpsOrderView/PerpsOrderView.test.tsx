@@ -159,6 +159,10 @@ jest.mock('../../hooks/stream', () => ({
     bid: '2999',
     ask: '3001',
   })),
+  // PerpsOrderHeader's own candle-derived price source; defaults to
+  // undefined so the header falls back to the `price` prop derived from
+  // usePerpsLivePrices above, matching existing test expectations.
+  usePerpsLiveHeaderPrice: jest.fn(() => ({ price: undefined })),
 }));
 
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
