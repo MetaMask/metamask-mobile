@@ -85,6 +85,7 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
+import { getTradeMenuBottomShapeDimensions } from './tradeMenuBottomShapeDimensions';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
@@ -318,6 +319,10 @@ function TradeWalletActions() {
   );
 
   const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
+  const bottomShapeDimensions = useMemo(
+    () => getTradeMenuBottomShapeDimensions(buttonLayout.width),
+    [buttonLayout.width],
+  );
 
   const actionList = (
     <>
@@ -413,11 +418,11 @@ function TradeWalletActions() {
             )}
           />
           <BottomShape
-            width={buttonLayout.width * 4}
+            width={bottomShapeDimensions.width}
             height={bottomMaskHeight}
-            peakHeight={16}
-            peakBezierLength={25}
-            baseBezierLength={55}
+            peakHeight={bottomShapeDimensions.peakHeight}
+            peakBezierLength={bottomShapeDimensions.peakBezierLength}
+            baseBezierLength={bottomShapeDimensions.baseBezierLength}
             fill={elevatedSurfaceColor}
           />
           <View
@@ -433,11 +438,11 @@ function TradeWalletActions() {
               testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
             >
               <BottomShape
-                width={buttonLayout.width * 4}
+                width={bottomShapeDimensions.width}
                 height={bottomMaskHeight}
-                peakHeight={16}
-                peakBezierLength={25}
-                baseBezierLength={55}
+                peakHeight={bottomShapeDimensions.peakHeight}
+                peakBezierLength={bottomShapeDimensions.peakBezierLength}
+                baseBezierLength={bottomShapeDimensions.baseBezierLength}
                 strokeOnly
                 pathProps={{
                   stroke: colors.border.muted,

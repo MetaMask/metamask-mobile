@@ -32,11 +32,9 @@ function BottomShape({
     const rightBaseX = centerX + baseBezierLength;
     const rightBaseY = height;
 
-    // strokeOnly builds an open path for the border-muted stroke that traces ONLY
-    // the center cutout curve segment. The flat bottom shoulders on either side
-    // are rendered by the side containers' native `borderBottomWidth`, which avoids
-    // double-stroking and visual thickness inconsistencies where layers overlap.
-    // TradeWalletActions is the only caller; keep this scoped to its bottom notch.
+    // strokeOnly traces ONLY the center cutout curve. Flat shoulders are rendered
+    // by the side containers' native borderBottomWidth. Dimensions from
+    // getTradeMenuBottomShapeDimensions (width = button × 2).
     if (strokeOnly) {
       return `
         M ${rightBaseX} ${rightBaseY}
