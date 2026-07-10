@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
-import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) =>
+const styleSheet = () =>
   StyleSheet.create({
     container: {
       gap: 16,
@@ -11,22 +10,15 @@ const styleSheet = (params: { theme: Theme }) =>
       alignItems: 'center',
       gap: 8,
     },
-    statsRowsContainer: {
-      gap: 1,
+    statisticsGrid: {
+      gap: 12,
     },
-    statsRow: {
-      padding: 12,
-      backgroundColor: params.theme.colors.background.section,
+    statisticsRow: {
+      flexDirection: 'row',
+      gap: 12,
     },
-    statsRowFirst: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
-    },
-    statsRowLast: {
-      padding: 12,
-      backgroundColor: params.theme.colors.background.section,
-      borderBottomLeftRadius: 12,
-      borderBottomRightRadius: 12,
+    statisticsItem: {
+      flex: 1,
     },
     fundingRateContainer: {
       flexDirection: 'row',
@@ -35,27 +27,6 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     fundingCountdown: {
       marginLeft: 2,
-    },
-    labelWithIcon: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    dexTag: {
-      backgroundColor: params.theme.colors.background.default,
-      borderWidth: 1,
-      borderColor: params.theme.colors.border.default,
-    },
-    orderBookRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: 12,
-      backgroundColor: params.theme.colors.background.section,
-    },
-    orderBookRowContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
     },
   });
 

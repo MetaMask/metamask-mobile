@@ -55,91 +55,18 @@ const styleSheet = (params: StyleSheetParams) => {
       justifyContent: 'space-between',
       marginBottom: 16,
     },
-    pnlSection: {
-      flexDirection: 'row',
-      gap: 8,
-      marginBottom: 8,
-    },
-    pnlCard: {
-      flex: 1,
-      backgroundColor: colors.background.section,
-      borderRadius: 8,
-      padding: 12,
-      gap: 4,
-    },
-    pnlCardLeft: {
-      // Left card styling if different
-    },
-    pnlCardRight: {
-      // Right card styling if different
-    },
-    sizeMarginRow: {
-      flexDirection: 'row',
-      gap: 8,
-      marginBottom: 8,
-    },
-    sizeContainer: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: colors.background.section,
-      borderRadius: 8,
-      padding: 12,
-    },
-    sizeLeftContent: {
-      flex: 1,
-      gap: 4,
-    },
-    sizeLabelRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    marginContainer: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: colors.background.section,
-      borderRadius: 8,
-      padding: 12,
-    },
-    marginLeftContent: {
-      flex: 1,
-      gap: 4,
-    },
-    marginLabelRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    autoCloseSection: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: colors.background.section,
-      borderRadius: 8,
-      padding: 12,
+    positionGrid: {
+      gap: 12,
       marginBottom: 12,
     },
-    autoCloseTextContainer: {
+    positionRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    positionItem: {
       flex: 1,
-      gap: 4,
     },
-    autoCloseButton: {
-      alignSelf: 'center',
-      borderRadius: 8,
-    },
-    iconButton: {
-      backgroundColor: colors.background.muted,
-      borderRadius: 8,
-    },
-    iconButtonContainer: {
-      height: '100%',
-      alignItems: 'flex-end',
-    },
-    toggleContainer: {
+    detailsSection: {
       marginLeft: 16,
     },
     toggle: {
@@ -168,30 +95,25 @@ const styleSheet = (params: StyleSheetParams) => {
       alignSelf: 'flex-end',
     },
     detailsSection: {
-      gap: 1,
       marginTop: 20,
     },
     detailsTitle: {
       marginBottom: 16,
     },
-    detailRow: {
-      padding: 12,
+    detailsGrid: {
+      gap: 12,
+    },
+    detailsRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      backgroundColor: colors.background.section,
+      gap: 12,
     },
-    detailRowFirst: {
-      borderTopLeftRadius: 12,
-      borderTopRightRadius: 12,
-    },
-    detailRowLast: {
-      borderBottomLeftRadius: 12,
-      borderBottomRightRadius: 12,
+    detailsItem: {
+      flex: 1,
     },
     liquidationPriceValue: {
       flexDirection: 'row',
       alignItems: 'center',
+      flexWrap: 'wrap',
     },
   });
 };
