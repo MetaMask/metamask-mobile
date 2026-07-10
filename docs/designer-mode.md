@@ -11,9 +11,30 @@ the `DESIGNER_MODE=true` environment variable.
 
 ---
 
-## For designers — enable & use
+## For designers — setup & use
 
-### 1. Run the app with Designer Mode enabled
+Everything you need, in order. Steps 1–2 are one-time setup; day-to-day you only
+do steps 3–4.
+
+### 1. Install the agent skill (once)
+
+The AI-agent side of Designer Mode ships as the `designer-mode` skill. It's
+**experimental**, so a plain `yarn skills` skips it — opt in explicitly:
+
+```bash
+yarn skills --include ui/designer-mode
+```
+
+This installs `.claude/skills/mms-designer-mode/` (and the `.cursor`/`.agents`
+equivalents), which bundles the relay server the agent runs for you.
+
+> The skill lives in the private `Consensys/skills` repo, which `yarn skills`
+> only picks up via the Consensys overlay: clone
+> [`Consensys/skills`](https://github.com/Consensys/skills) and add
+> `CONSENSYS_SKILLS_DIR=/path/to/consensys-skills` to your gitignored
+> `.skills.local` (see `.skills.local.example`), then run the command above.
+
+### 2. Run the app with Designer Mode enabled
 
 The flag is inlined when Metro bundles the JS, so it must be set on the Metro
 (watch) process, and Metro's cache must be cleared when you toggle it.
@@ -42,16 +63,16 @@ yarn watch:clean
 > `yarn watch` runs are fine. The flag stays on for **all** local builds until
 > you remove the line.
 
-### 2. Ask your developer/agent to "enter design mode"
+### 3. Tell your agent to "enter design mode"
 
-In Claude Code (run from the repo root) say:
+In your AI coding assistant (Claude Code, Cursor, …), run from the repo root, say:
 
 > enter design mode
 
 The agent starts the relay server and begins listening. You'll get a confirmation
 message in chat.
 
-### 3. Inspect and request changes
+### 4. Inspect and request changes
 
 1. In the app, tap the **🎨** button (bottom-right) to activate the inspector.
 2. **Tap any component** — the panel opens with its name, file path, layout,
@@ -75,31 +96,16 @@ mode), checking = still probing.
 
 ## How it works
 
-```
-App (🎨 inspector panel)
-    │  POST /api/message  (the tapped component + your edits + message)
-    ▼
-Relay server  (bundled with the designer-mode skill, on the dev machine, port 3334)
-    ▲  the agent blocks on GET /api/wait until a request arrives
-    │
-AI agent (Claude Code)
-    │  reads the request → edits the source files → hot reload
-    │  POST /api/response  ("Done — …")  → app polls GET /api/poll
-    ▼
-App panel shows the agent's reply
-```
+Three pieces: the **inspector** (in the app, behind the `DESIGNER_MODE` flag), a
+**relay server** (a small Node script bundled with the skill, loopback-only on
+port `3334`), and the **agent skill** (tells the agent to run the relay and
+listen). Requests flow app → relay → agent; the agent edits the source, hot
+reload applies it, and its reply flows back to the panel.
 
-There are three pieces:
-
-1. **The inspector** — built into the app, behind the `DESIGNER_MODE` flag.
-2. **The relay server** — a small Node script **bundled with the `designer-mode`
-   skill**. The skill is currently **experimental**, so a plain `yarn skills`
-   skips it — opt in explicitly with `yarn skills --include ui/designer-mode`
-   (the agent starts the relay for you).
-3. **The agent skill** — `.claude/skills/mms-designer-mode/SKILL.md`, which tells the
-   agent to run the relay and **block on `/api/wait`** for each request. This is a
-   pull loop (no stdout-watching/"monitor" tool needed), so it works with any
-   agent that can run a shell command — Claude Code, Cursor, Codex, Aider, Gemini.
+```
+App 🎨 ──request──▶ Relay :3334 ──wait──▶ Agent edits source → hot reload
+App panel ◀──reply── Relay ◀──response── Agent
+```
 
 ---
 
@@ -192,11 +198,14 @@ edit the named `StyleSheet` entries).
 
 ## Configuration
 
-| Variable           | Where                                       | Default  | Purpose                                                                                             |
-| ------------------ | ------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
-| `DESIGNER_MODE`    | Metro / bundle (inline prefix or `.js.env`) | _(off)_  | `true` enables the in-app inspector (cache-clear required when toggled)                             |
-| `DESIGNER_PORT`    | relay server                                | `3334`   | Relay server port                                                                                   |
-| `DESIGNER_WAIT_MS` | relay server                                | `580000` | How long `/api/wait` blocks before re-arming (~10 min; kept just under agents' max command timeout) |
+| Variable           | Where                      | Default  | Purpose                                                                                             |
+| ------------------ | -------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `DESIGNER_MODE`    | Metro / bundle (`.js.env`) | _(off)_  | `true` enables the in-app inspector (cache-clear required when toggled)                             |
+| `DESIGNER_WAIT_MS` | relay server               | `580000` | How long `/api/wait` blocks before re-arming (~10 min; kept just under agents' max command timeout) |
+| `DESIGNER_POLL_MS` | relay server               | `30000`  | How long `/api/poll` (the panel's reply poll) blocks before returning empty                         |
+
+The relay always listens on port `3334` for the mobile flow — the app's relay URL
+is fixed (`relayUrl.ts`), so `DESIGNER_PORT` should not be changed here.
 
 The relay binds **loopback only** (`127.0.0.1`). The app reaches it with a
 per-platform default — `localhost` on the iOS simulator and `10.0.2.2` (the
@@ -215,5 +224,6 @@ exposed on the LAN).
   after the inspector loads. Most are covered; some created very early in startup
   may show only resolved values, not names — the agent can still locate them by
   file path and value.
-- **Physical devices.** The phone and dev machine must be on the same network and
-  able to reach port `3334`. A VPN or firewall on the dev machine can block this.
+- **Physical devices are not supported.** The relay binds loopback only, so it's
+  reachable from the iOS simulator and Android emulator but never from the LAN.
+  Device support (with pairing) is planned as a follow-up.

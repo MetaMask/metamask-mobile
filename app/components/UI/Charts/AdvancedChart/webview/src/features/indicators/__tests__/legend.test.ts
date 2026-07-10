@@ -12,8 +12,10 @@ import {
 } from '../legend';
 import {
   __resetStateForTests,
+  doesLegendOwnLayoutSettle,
   registerStudy,
   setChartReady,
+  setLegendOwnsLayoutSettle,
   setTheme,
   setVolumeStudyId,
   setWidget,
@@ -877,6 +879,204 @@ describe('legend', () => {
       expect(overlay.querySelectorAll('.legend-pill').length).toBe(4);
       const html = overlay.innerHTML;
       expect(html.indexOf('RSI(14)')).toBeLessThan(html.indexOf('MACD(12,26)'));
+    });
+  });
+
+  describe('notifyLegendRendered — legendOwnsLayoutSettle integration', () => {
+    it('posts CHART_LAYOUT_SETTLED and clears the flag when legendOwnsLayoutSettle is true', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      setLegendOwnsLayoutSettle(true);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
+      expect(postToRN).toHaveBeenCalledWith('CHART_LAYOUT_SETTLED', {});
+      expect(doesLegendOwnLayoutSettle()).toBe(false);
+    });
+
+    it('does not post CHART_LAYOUT_SETTLED when legendOwnsLayoutSettle is false', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
+      expect(postToRN).not.toHaveBeenCalledWith(
+        'CHART_LAYOUT_SETTLED',
+        expect.anything(),
+      );
+    });
+
+    it('posts CHART_LAYOUT_SETTLED via timeout fallback when legendOwnsLayoutSettle is true', () => {
+      const { chart } = makeChart(new Error('fail'));
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      setLegendOwnsLayoutSettle(true);
+
+      refreshStudyLegendFromExport();
+      jest.advanceTimersByTime(3000);
+
+      expect(postToRN).toHaveBeenCalledWith('CHART_LAYOUT_SETTLED', {});
+      expect(doesLegendOwnLayoutSettle()).toBe(false);
+    });
+  });
+
+  describe('handleExportData edge cases', () => {
+    it('retries when data has valid schema but empty data array last row', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [],
+      );
+      (data as { data: unknown[] }).data = [undefined as unknown as number[]];
+      const { chart, exportData } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      jest.advanceTimersByTime(100);
+      expect(exportData).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('updateLegendOverlayLayout with price-axis', () => {
+    it('computes pixel max-width from price-axis left boundary', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true }, undefined);
+      const axisNode = document.createElement('div');
+      axisNode.classList.add('price-axis-container');
+      container.appendChild(axisNode);
+
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
+      jest.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+        left: 0,
+        top: 0,
+        right: 400,
+        bottom: 600,
+        width: 400,
+        height: 600,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      });
+      jest.spyOn(axisNode, 'getBoundingClientRect').mockReturnValue({
+        left: 350,
+        top: 0,
+        right: 400,
+        bottom: 600,
+        width: 50,
+        height: 600,
+        x: 350,
+        y: 0,
+        toJSON: () => ({}),
+      });
+
+      updateLegendOverlayLayout();
+      const overlay = document.getElementById(OVERLAY_ID);
+      // boundaryLeft = 350 - 0 = 350; maxWidth = 350 - 8 - 4 = 338px
+      expect(overlay?.style.maxWidth).toBe('338px');
+    });
+
+    it('uses fallback max-width when container clientWidth is 0', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true }, undefined);
+      const axisNode = document.createElement('div');
+      axisNode.classList.add('price-axis-container');
+      container.appendChild(axisNode);
+
+      Object.defineProperty(container, 'clientWidth', {
+        value: 0,
+        configurable: true,
+      });
+      jest.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        width: 0,
+        height: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      });
+      jest.spyOn(axisNode, 'getBoundingClientRect').mockReturnValue({
+        left: 350,
+        top: 0,
+        right: 400,
+        bottom: 600,
+        width: 50,
+        height: 600,
+        x: 350,
+        y: 0,
+        toJSON: () => ({}),
+      });
+
+      updateLegendOverlayLayout();
+      const overlay = document.getElementById(OVERLAY_ID);
+      expect(overlay?.style.maxWidth).toBe('calc(100% - 56px)');
+    });
+
+    it('uses fallback when price-axis is too small (width < 2)', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true }, undefined);
+      const axisNode = document.createElement('div');
+      axisNode.classList.add('price-axis-container');
+      container.appendChild(axisNode);
+
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
+      jest.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+        left: 0,
+        top: 0,
+        right: 400,
+        bottom: 600,
+        width: 400,
+        height: 600,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      });
+      jest.spyOn(axisNode, 'getBoundingClientRect').mockReturnValue({
+        left: 350,
+        top: 0,
+        right: 351,
+        bottom: 600,
+        width: 1,
+        height: 600,
+        x: 350,
+        y: 0,
+        toJSON: () => ({}),
+      });
+
+      updateLegendOverlayLayout();
+      const overlay = document.getElementById(OVERLAY_ID);
+      expect(overlay?.style.maxWidth).toBe('calc(100% - 56px)');
     });
   });
 
