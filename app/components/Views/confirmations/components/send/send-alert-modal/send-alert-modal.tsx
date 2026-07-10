@@ -24,7 +24,6 @@ import {
 } from '../../../../../../component-library/components/Buttons/Button';
 import type { SendAlert } from '../../../hooks/send/alerts/types';
 import { SendAlertModalProps } from './send-alert-modal.types';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 function PageNavigation({
   alerts,
@@ -83,7 +82,6 @@ export const SendAlertModal = ({
   onClose,
 }: SendAlertModalProps) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const alertKeys = alerts.map((a) => a.key).join('|');
@@ -126,11 +124,7 @@ export const SendAlertModal = ({
 
   return (
     <Modal visible transparent animationType="none">
-      <BottomSheet
-        ref={bottomSheetRef}
-        onClose={onClose}
-        twClassName={surfaceClass}
-      >
+      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
         <PageNavigation
           alerts={alerts}
           selectedIndex={safeIndex}
