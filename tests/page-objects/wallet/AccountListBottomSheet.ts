@@ -166,11 +166,19 @@ class AccountListBottomSheet {
         'getAccountElementsByAccountNameV2 is Appium-only. On Detox, assert each cell with `getAccountElementByAccountNameV2(name)` indexed via .atIndex(N).',
       );
     }
-    // CONTAINER testID is empty; fetch actual row content from the next sibling
+    if (PlatformDetector.isAndroid()) {
+      const escapedAccountName = accountName.replace(/'/g, "\\'");
+      // Anchor on the name text, then step up to the tappable row — immune to
+      // the RN view flattening that detaches the row from its CONTAINER.
+      return Matchers.getAllElementsByXPath(
+        `//*[@resource-id='${AccountCellIds.ADDRESS}' and @text='${escapedAccountName}']/ancestor::*[@resource-id='${AccountCellIds.SELECT}'][1]`,
+      );
+    }
+
+    // iOS collapses the row's children, so match the row itself: name is the
+    // testID, label aggregates to the account name.
     return Matchers.getAllElementsByXPath(
-      PlatformDetector.isAndroid()
-        ? `//*[@resource-id='${AccountCellIds.CONTAINER}']/following-sibling::*[1][@content-desc='${accountName}']`
-        : `//*[@name='${AccountCellIds.CONTAINER}']/following-sibling::*[1][@name='${accountName}' or @label='${accountName}']`,
+      `//*[@name='${AccountCellIds.SELECT}' and @label='${accountName}']`,
     );
   }
 
@@ -454,7 +462,7 @@ class AccountListBottomSheet {
               }
 
               const cell = cells[cells.length - 1];
-              for (const direction of ['down', 'up'] as const) {
+              for (const direction of ['up', 'down'] as const) {
                 try {
                   await PlaywrightGestures.scrollIntoView(cell, {
                     scrollParams: { direction },
@@ -607,7 +615,7 @@ class AccountListBottomSheet {
         }
 
         const cell = cells[0];
-        for (const direction of ['down', 'up'] as const) {
+        for (const direction of ['up', 'down'] as const) {
           try {
             await PlaywrightGestures.scrollIntoView(cell, {
               scrollParams: { direction },

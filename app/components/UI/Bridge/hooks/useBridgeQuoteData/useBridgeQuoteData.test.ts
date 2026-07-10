@@ -1862,4 +1862,31 @@ describe('useBridgeQuoteData', () => {
       expect(result.current.willRefresh).toBe(true);
     });
   });
+
+  describe('memoization', () => {
+    it('keeps the same return object reference when inputs do not change', () => {
+      const bridgeQuotes = {
+        recommendedQuote: mockQuoteWithMetadata,
+        alternativeQuotes: [],
+      };
+      (selectBridgeQuotes as unknown as jest.Mock).mockReturnValue(
+        bridgeQuotes,
+      );
+
+      const testState = createBridgeTestState({});
+
+      const { result, rerender } = renderHookWithProvider(
+        () => useBridgeQuoteData(),
+        {
+          state: testState,
+        },
+      );
+
+      const firstResult = result.current;
+
+      rerender({ state: testState });
+
+      expect(result.current).toBe(firstResult);
+    });
+  });
 });
