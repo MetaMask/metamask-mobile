@@ -469,16 +469,13 @@ class TestSnaps {
     });
     await this.blurActiveWebViewInput();
     // On iOS the confirmation is presented as a `transparentModal` over the WebView, so
-    // dismissing the WebView keyboard can leave the sheet's keyboard-avoidance layout
-    // shifting the footer for longer than the default 2s stability window. Wait with a
-    // longer, more forgiving window before tapping so the tap itself doesn't get stuck
-    // retrying against a footer that is still settling.
-    await Utilities.waitForElementToStopMoving(this.confirmSignatureButton, {
-      timeout: 8_000,
-    });
+    // dismissing the WebView keyboard leaves the sheet's keyboard-avoidance layout
+    // repositioning the footer on an ongoing basis rather than settling once. A strict
+    // pixel-exact stability check (checkStability) never finds 3 consecutive identical
+    // frames — even a much longer window still times out — so don't gate the tap on
+    // frame stillness here; visibility + enabled is sufficient for this button.
     await Gestures.tap(this.confirmSignatureButton, {
       elemDescription: 'confirm snap signature',
-      checkStability: true,
     });
   }
 
