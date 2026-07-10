@@ -144,6 +144,7 @@ const PerpsMarketListView = ({
   // query awaiting the debounce (typed but not yet emitted). Flushed
   // on blur/unmount so a mid-debounce exit is never silently lost.
   const pendingSearchQueryRef = useRef<string | null>(null);
+  const flushedUnsettledSearchQueryRef = useRef<string | null>(null);
   // set when a search result is tapped so leaving the screen after a
   // tap is not counted as a search abandonment.
   const searchResultTappedRef = useRef(false);
@@ -337,8 +338,9 @@ const PerpsMarketListView = ({
         : 'browse';
 
     lastEmittedSearchQueryRef.current = normalizedQuery;
+    lastEmittedSearchResultsCountRef.current = resultsSettled ? resultCount : 0;
     if (resultsSettled) {
-      lastEmittedSearchResultsCountRef.current = resultCount;
+      flushedUnsettledSearchQueryRef.current = null;
     }
     searchQueryCountRef.current += 1;
 
@@ -385,6 +387,7 @@ const PerpsMarketListView = ({
       searchResultTimerRef.current = null;
     }
     pendingSearchQueryRef.current = null;
+    flushedUnsettledSearchQueryRef.current = null;
     lastEmittedSearchQueryRef.current = '';
     lastEmittedSearchResultsCountRef.current = 0;
     searchStartTimeRef.current = null;
@@ -402,10 +405,11 @@ const PerpsMarketListView = ({
       searchResultTimerRef.current = null;
     }
     if (pendingSearchQueryRef.current) {
-      emitSearchQueryRef.current(
-        pendingSearchQueryRef.current,
-        !isLoadingMarketsRef.current,
-      );
+      const resultsSettled = !isLoadingMarketsRef.current;
+      emitSearchQueryRef.current(pendingSearchQueryRef.current, resultsSettled);
+      flushedUnsettledSearchQueryRef.current = resultsSettled
+        ? null
+        : pendingSearchQueryRef.current.toLowerCase();
       pendingSearchQueryRef.current = null;
     }
   }, []);
@@ -448,6 +452,10 @@ const PerpsMarketListView = ({
       clearTimeout(searchResultTimerRef.current);
       searchResultTimerRef.current = null;
     }
+    const normalizedQuery = trimmedQuery.toLowerCase();
+    if (flushedUnsettledSearchQueryRef.current !== normalizedQuery) {
+      flushedUnsettledSearchQueryRef.current = null;
+    }
     pendingSearchQueryRef.current = trimmedQuery;
 
     // Wait for results to settle before scheduling the debounced emit so the
@@ -455,6 +463,11 @@ const PerpsMarketListView = ({
     // state. This effect re-runs (and reschedules) when loading completes or the
     // result count changes, so the emitted count reflects the settled results.
     if (isLoadingMarkets) {
+      return;
+    }
+
+    if (flushedUnsettledSearchQueryRef.current === normalizedQuery) {
+      pendingSearchQueryRef.current = null;
       return;
     }
 

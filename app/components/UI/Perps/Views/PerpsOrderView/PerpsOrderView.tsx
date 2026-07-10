@@ -750,6 +750,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     },
   });
 
+  const currentMarketPositionSize = currentMarketPosition?.size;
+  const consideredTradeAction = useMemo(
+    () =>
+      derivePerpsTradeAction(
+        currentMarketPositionSize ? { size: currentMarketPositionSize } : null,
+        orderForm.direction,
+      ),
+    [currentMarketPositionSize, orderForm.direction],
+  );
+
   // Emit "transaction considered" once the user has a stable,
   // meaningful fill. Debounced 1s and reset on each change so it fires once per
   // settled fill instead of on every keystroke.
@@ -764,10 +774,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // No ORDER_CONTEXT value enum exists; 'trade' denotes the open-order
         // screen (the close screen would be 'close').
         [PERPS_EVENT_PROPERTY.ORDER_CONTEXT]: 'trade',
-        [PERPS_EVENT_PROPERTY.ACTION]: derivePerpsTradeAction(
-          currentMarketPosition,
-          orderForm.direction,
-        ),
+        [PERPS_EVENT_PROPERTY.ACTION]: consideredTradeAction,
         [PERPS_EVENT_PROPERTY.ORDER_SIZE]: orderSize,
         [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethodRef.current,
         [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
@@ -797,7 +804,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.leverage,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
-    currentMarketPosition,
+    consideredTradeAction,
     hasCustomTokenSelected,
     payToken,
     track,
