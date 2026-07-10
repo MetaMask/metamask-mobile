@@ -147,11 +147,11 @@ export const RIVE_AVATAR_ASSET_KEYS = [
  */
 export const RIVE_AVATAR_PLACEHOLDERS: readonly number[] = [
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-  require('../../../../images/leaderboard_card_1_avatar-6249125.png'),
+  require('../../../../images/leaderboard_card_1_avatar.png'),
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-  require('../../../../images/leaderboard_card_2_avatar-6249126.png'),
+  require('../../../../images/leaderboard_card_2_avatar.png'),
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-  require('../../../../images/leaderboard_card_3_avatar-6249127.png'),
+  require('../../../../images/leaderboard_card_3_avatar.png'),
 ];
 
 /**
