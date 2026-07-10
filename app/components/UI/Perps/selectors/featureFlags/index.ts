@@ -396,6 +396,23 @@ export const selectPerpsTopMoversEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Recently Added feature flag.
+ * Controls visibility of the Recently Added section on the Perps home screen,
+ * independently of the Terminal backend flag that supplies `listedAt` data.
+ *
+ * @returns boolean - true if the Recently Added section should be shown, false otherwise
+ */
+export const selectPerpsRecentlyAddedEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRecentlyAddedEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Perps Watchlist redesign feature flag
  * Controls whether the redesigned Watchlist UI (empty state, suggested markets,
  * show-more/less, tappable header, animations, 10-asset limit) and the

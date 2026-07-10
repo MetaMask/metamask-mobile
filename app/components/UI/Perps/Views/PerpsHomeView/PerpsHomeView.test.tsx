@@ -6,6 +6,7 @@ import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
+  selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
@@ -1359,6 +1360,81 @@ describe('PerpsHomeView', () => {
         mockUsePerpsEventTracking.mock.calls,
       );
       expect(properties?.sections_displayed).not.toContain('top_movers');
+    });
+
+    it('excludes recently_added when the feature flag is off even though data is present', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [{ symbol: 'BTC' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('recently_added');
+    });
+
+    it('includes recently_added when the feature flag is on and data is present', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('recently_added');
+    });
+  });
+
+  describe('Recently Added header navigation', () => {
+    it('navigates to the market list filtered to new markets when the header is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$50000',
+            change24h: '+$1250',
+            change24hPercent: '+2.5%',
+            volume: '$1.2B',
+            listedAt: Date.now() - 3 * 60 * 60 * 1000,
+          },
+        ],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(
+        getByTestId(PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER),
+      );
+
+      expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+        defaultMarketTypeFilter: 'new',
+        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      });
     });
   });
 });

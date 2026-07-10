@@ -125,6 +125,89 @@ describe('useMMPayNavigation', () => {
     });
   });
 
+  describe('when keyboardEverShown ref is provided', () => {
+    describe('and keyboard was never shown', () => {
+      it('sets mmPayRequestInProgressNavHandler to false', () => {
+        const keyboardEverShown = { current: false };
+        renderHook(() =>
+          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
+        );
+
+        expect(mmPayRef.current).toBe(false);
+      });
+
+      it('enables gesture', () => {
+        const keyboardEverShown = { current: false };
+        renderHook(() =>
+          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
+        );
+
+        expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: true });
+      });
+
+      it('does not register BackHandler', () => {
+        const keyboardEverShown = { current: false };
+        renderHook(() =>
+          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
+        );
+
+        expect(BackHandler.addEventListener).not.toHaveBeenCalled();
+      });
+
+      it('resets ref on cleanup', () => {
+        mmPayRef.current = jest.fn();
+        const keyboardEverShown = { current: false };
+        const { unmount } = renderHook(() =>
+          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
+        );
+
+        unmount();
+
+        expect(mmPayRef.current).toBe(false);
+      });
+    });
+
+    describe('and keyboard was previously shown', () => {
+      it('sets handler to showKeyboard function', () => {
+        const keyboardEverShown = { current: true };
+        const mockSetIsKeyboardVisible = jest.fn();
+        renderHook(() =>
+          useMMPayNavigation(
+            false,
+            mockSetIsKeyboardVisible,
+            keyboardEverShown,
+          ),
+        );
+
+        expect(typeof mmPayRef.current).toBe('function');
+
+        (mmPayRef.current as () => void)();
+        expect(mockSetIsKeyboardVisible).toHaveBeenCalledWith(true);
+      });
+
+      it('disables gesture', () => {
+        const keyboardEverShown = { current: true };
+        renderHook(() =>
+          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
+        );
+
+        expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: false });
+      });
+
+      it('registers BackHandler listener', () => {
+        const keyboardEverShown = { current: true };
+        renderHook(() =>
+          useMMPayNavigation(false, jest.fn(), keyboardEverShown),
+        );
+
+        expect(BackHandler.addEventListener).toHaveBeenCalledWith(
+          'hardwareBackPress',
+          expect.any(Function),
+        );
+      });
+    });
+  });
+
   describe('transitions', () => {
     it('switches from quote state to input state', () => {
       const mockSetIsKeyboardVisible = jest.fn();

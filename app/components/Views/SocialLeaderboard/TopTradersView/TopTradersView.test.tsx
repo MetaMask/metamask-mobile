@@ -493,6 +493,7 @@ describe('TopTradersView', () => {
         traderAddress: fixtureTraders[0].address,
         traderUsername: fixtureTraders[0].username,
         traderRank: 1,
+        traderAvatarUri: fixtureTraders[0].avatarUri,
       }),
     );
   });

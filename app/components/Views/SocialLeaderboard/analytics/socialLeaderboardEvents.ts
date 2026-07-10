@@ -26,6 +26,7 @@ export const SocialLeaderboardEventProperties = {
   SOURCE: 'source',
   TAB: 'tab',
   TRADER_ADDRESS: 'trader_address',
+  TRADER_HAS_PROFILE_PICTURE_SET: 'trader_has_profile_picture_set',
   TRADER_RANK: 'trader_rank',
   TRADER_USERNAME: 'trader_username',
   TRADERS_FOLLOWED_COUNT: 'traders_followed_count',
