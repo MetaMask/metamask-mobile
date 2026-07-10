@@ -1,7 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   type DeepPartial,
@@ -27,7 +27,6 @@ import PerpsMarketDetailsView from '../../../app/components/UI/Perps/Views/Perps
 import PerpsMarketListView from '../../../app/components/UI/Perps/Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsSelectModifyActionView from '../../../app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView';
 import PerpsSelectProviderView from '../../../app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView';
-import PerpsTabView from '../../../app/components/UI/Perps/Views/PerpsTabView/PerpsTabView';
 import PerpsPositionsView from '../../../app/components/UI/Perps/Views/PerpsPositionsView/PerpsPositionsView';
 import PerpsHomeView from '../../../app/components/UI/Perps/Views/PerpsHomeView/PerpsHomeView';
 import PerpsClosePositionView from '../../../app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionView';
@@ -123,7 +122,7 @@ const PerpsTestProviders = ({
   </QueryClientProvider>
 );
 
-/** Minimal account so usePerpsLiveAccount sets isInitialLoading=false; non-zero totalBalance so PerpsTabControlBar shows balance button */
+/** Minimal account so usePerpsLiveAccount sets isInitialLoading=false; non-zero totalBalance so balance UI renders */
 const initialAccount: AccountState = {
   spendableBalance: '1',
   withdrawableBalance: '1',
@@ -143,6 +142,7 @@ const initialMarketData: PerpsMarketData[] = [
     change24h: '$0',
     change24hPercent: '0%',
     volume: '$1M',
+    openInterest: '$500K',
   },
 ];
 
@@ -355,7 +355,7 @@ const DefaultRouteProbe =
  * Renders a Perps view with preset state. State is driven by Redux; use overrides
  * to set e.g. PerpsController.isEligible for geo-restriction tests.
  * Wraps with PerpsConnectionProvider and PerpsStreamProvider so views that use
- * usePerpsStream() (e.g. PerpsTabView, PerpsMarketListView) render without errors.
+ * usePerpsStream() (e.g. PerpsMarketListView) render without errors.
  * When extraRoutes is provided, those routes are registered so navigation can be asserted.
  */
 export function renderPerpsView(
@@ -397,15 +397,15 @@ export function renderPerpsView(
   };
 
   if (extraRoutes?.length) {
-    const Stack = createStackNavigator();
-    const InnerStack = createStackNavigator();
+    const Stack = createNativeStackNavigator();
+    const InnerStack = createNativeStackNavigator();
     const nestedPerpsRoutes = extraRoutes.filter(
       ({ mount }) => mount === 'perps-root',
     );
     const rootRoutes = extraRoutes.filter(
       ({ mount }) => mount !== 'perps-root',
     );
-    // PerpsTabView navigates via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
+    // Some Perps views navigate via navigation.navigate(PERPS.ROOT, { screen: MARKET_LIST }).
     // So we register PERPS.ROOT as a nested stack containing the extra routes; then
     // navigating to ROOT with screen: MARKET_LIST shows the route probe.
     const nestedScreens = (
@@ -523,6 +523,7 @@ const defaultMarketDetailsMarket = {
   change24h: '+$50.00',
   change24hPercent: '+2.5%',
   volume: '$1.5B',
+  openInterest: '$500M',
   maxLeverage: '50x',
   marketType: 'crypto',
 };
@@ -570,17 +571,6 @@ export function renderPerpsMarketListView(
   return renderPerpsView(
     PerpsMarketListView as unknown as React.ComponentType,
     'PerpsMarketListView',
-    options,
-  );
-}
-
-/**
- * Renders PerpsTabView. Use in PerpsTabView.view.test.tsx.
- */
-export function renderPerpsTabView(options: RenderPerpsViewOptions = {}) {
-  return renderPerpsView(
-    PerpsTabView as unknown as React.ComponentType,
-    'PerpsTabView',
     options,
   );
 }
@@ -670,6 +660,7 @@ const defaultOrderBookMarket = {
   change24h: '+$50.00',
   change24hPercent: '+2.5%',
   volume: '$1.5B',
+  openInterest: '$500M',
   maxLeverage: '50x',
   marketType: 'crypto' as const,
 };

@@ -1,8 +1,14 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { SectionList, StyleSheet } from 'react-native';
+import {
+  ScrollView,
+  ActivityIndicator,
+  SectionList,
+  StyleSheet,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import { useSelector } from 'react-redux';
+import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
   BoxAlignItems,
@@ -21,39 +27,83 @@ import {
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import MoneyActivityItem from '../../components/MoneyActivityItem';
-import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { getMoneyActivityDateKeyUtc } from '../../constants/moneyActivityFilters';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
+import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
+import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
+import useMountEffect from '../../hooks/useMountEffect';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { partition } from 'lodash';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  filterScroll: { flexGrow: 0 },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
 });
 
-interface DateSection {
+// Pull roughly a screenful into the active bucket upfront so the list is tall
+// enough for scroll-driven pagination (`onEndReached`) to take over — a
+// short, unscrollable list can never trigger `onEndReached` on its own.
+export const INITIAL_FILL_COUNT = 15;
+
+const FILTER_LABEL_KEYS = {
+  all: 'money.activity.filter_all',
+  deposits: 'money.activity.filter_deposits',
+  transfers: 'money.activity.filter_sends',
+  purchases: 'money.activity.filter_purchases',
+} as const;
+
+interface ActivitySection {
   title: string;
-  data: TransactionMeta[];
+  data: MoneyActivityItem[];
+  /** Marks the in-flight bucket so its header renders distinctly from dates. */
+  isPending?: boolean;
+}
+
+/** True for an in-flight on-chain row. Card spends are never pending. */
+function isPendingItem(item: MoneyActivityItem): boolean {
+  return (
+    item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
+  );
+}
+
+function dateKeyUtc(time: number): string {
+  return new Date(time).toISOString().slice(0, 10);
 }
 
 function groupByDate(
-  transactions: TransactionMeta[],
+  items: MoneyActivityItem[],
   locale: string,
-): DateSection[] {
-  const groups = new Map<string, TransactionMeta[]>();
-  for (const tx of transactions) {
-    const key = getMoneyActivityDateKeyUtc(tx);
+): ActivitySection[] {
+  const groups = new Map<string, MoneyActivityItem[]>();
+  for (const item of items) {
+    const key = dateKeyUtc(item.time);
     const existing = groups.get(key);
     if (existing) {
-      existing.push(tx);
+      existing.push(item);
     } else {
-      groups.set(key, [tx]);
+      groups.set(key, [item]);
     }
   }
   return Array.from(groups.entries()).map(([dateKey, data]) => ({
     title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString(locale, {
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       year: 'numeric',
     }),
@@ -61,69 +111,168 @@ function groupByDate(
   }));
 }
 
+/**
+ * Builds the list sections: a single "Pending" bucket (in-flight rows) on top,
+ * followed by the confirmed/failed rows grouped by date.
+ */
+function buildSections(
+  items: MoneyActivityItem[],
+  locale: string,
+): ActivitySection[] {
+  const [pending, settled] = partition(items, isPendingItem);
+
+  const dateSections = groupByDate(settled, locale);
+  if (pending.length === 0) {
+    return dateSections;
+  }
+  return [
+    {
+      title: strings('money.activity.pending'),
+      data: pending,
+      isPending: true,
+    },
+    ...dateSections,
+  ];
+}
+
 const MoneyActivityView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const privacyMode = useSelector(selectPrivacyMode);
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
+  const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
+    useMoneyAnalytics({
+      screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
+    });
+
+  useMountEffect(trackScreenViewed);
 
   const {
-    allTransactions,
-    deposits,
-    transfers,
+    buckets,
+    loadMore,
+    hasMore,
+    isLoadingMore,
+    isSettling,
+    error,
+    refetch,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyAccountTransactions();
+  } = useMoneyActivityItems({
+    // Auto-fill the active tab's bucket to a screenful; switching tabs
+    // re-evaluates for the new bucket.
+    fill: { bucket: filter, count: INITIAL_FILL_COUNT },
+  });
+
+  const handleFilterPress = useCallback(
+    (
+      filterClicked: MoneyActivityFilter,
+      labelKey: string,
+      componentName: COMPONENT_NAMES,
+    ) => {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.FILTER,
+        label_key: labelKey,
+        component_name: componentName,
+      });
+
+      setFilter(filterClicked);
+    },
+    [trackButtonClicked],
+  );
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleItemPress = useCallback(
-    (transactionId: string) => {
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId },
+    (transaction: TransactionMeta) => {
+      trackActivitySurfaceClicked({
+        transaction,
+        redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
+        component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
+      });
+
+      navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+        transactionId: transaction.id,
       });
     },
-    [navigation],
+    [navigation, trackActivitySurfaceClicked],
   );
 
-  const filtered = useMemo(() => {
-    if (filter === MoneyActivityFilter.All) {
-      return allTransactions;
-    }
-    if (filter === MoneyActivityFilter.Deposits) {
-      return deposits;
-    }
-    return transfers;
-  }, [filter, allTransactions, deposits, transfers]);
+  const filtered = buckets[filter];
 
   const sections = useMemo(
-    () => groupByDate(filtered, I18n.locale),
+    () => buildSections(filtered, I18n.locale),
     [filtered],
   );
 
-  const renderSectionHeader = ({ section }: { section: DateSection }) => (
+  const renderSectionHeader = ({ section }: { section: ActivitySection }) => (
     <Box twClassName="px-4 pt-2 pb-1 bg-default">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
-        testID={MoneyActivityViewTestIds.DATE_HEADER}
+        testID={
+          section.isPending
+            ? MoneyActivityViewTestIds.PENDING_HEADER
+            : MoneyActivityViewTestIds.DATE_HEADER
+        }
       >
         {section.title}
       </Text>
     </Box>
   );
 
-  const renderItem = ({ item }: { item: TransactionMeta }) => (
-    <MoneyActivityItem
-      tx={item}
+  const renderItem = ({ item }: { item: MoneyActivityItem }) => (
+    <MoneyActivityRow
+      item={item}
       moneyAddress={moneyAddress}
       onPress={mockDataEnabled ? undefined : handleItemPress}
+      privacyMode={privacyMode}
     />
   );
+
+  // Pages are shared across all three tabs (one cursor stream), so reaching the
+  // end of any rendered bucket pulls the next page for all of them. The
+  // `isLoadingMore` guard stops momentum-scroll bursts from cancelling and
+  // re-issuing the in-flight fetch.
+  const handleEndReached = useCallback(() => {
+    if (hasMore && !isLoadingMore) {
+      loadMore();
+    }
+  }, [hasMore, isLoadingMore, loadMore]);
+
+  // A failed fetch is terminal (no automatic retries), so surface it: older
+  // pages exist but won't arrive on their own. Retry replays the query.
+  const listFooter = error ? (
+    <Box
+      paddingVertical={4}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2"
+      testID={MoneyActivityViewTestIds.LOAD_ERROR}
+    >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('money.activity.load_error_more')}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        onPress={refetch}
+        testID={MoneyActivityViewTestIds.RETRY_BUTTON}
+      >
+        {strings('money.activity.retry')}
+      </Button>
+    </Box>
+  ) : isLoadingMore ? (
+    <Box
+      paddingVertical={4}
+      testID={MoneyActivityViewTestIds.LOAD_MORE_SPINNER}
+    >
+      <ActivityIndicator color={colors.icon.alternative} />
+    </Box>
+  ) : null;
 
   const isActive = (f: MoneyActivityFilter) => f === filter;
 
@@ -161,11 +310,11 @@ const MoneyActivityView = () => {
         </Text>
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        gap={2}
-        paddingHorizontal={4}
-        paddingBottom={3}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
+        contentContainerStyle={styles.filterRow}
       >
         <Button
           variant={
@@ -174,11 +323,17 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.All)}
+          twClassName="px-3"
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.All,
+              FILTER_LABEL_KEYS.all,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_ALL,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
-          {strings('money.activity.filter_all')}
+          {strings(FILTER_LABEL_KEYS.all)}
         </Button>
         <Button
           variant={
@@ -187,11 +342,17 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.Deposits)}
+          twClassName="px-3"
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Deposits,
+              FILTER_LABEL_KEYS.deposits,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_DEPOSITS,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
-          {strings('money.activity.filter_deposits')}
+          {strings(FILTER_LABEL_KEYS.deposits)}
         </Button>
         <Button
           variant={
@@ -200,20 +361,48 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
-          onPress={() => setFilter(MoneyActivityFilter.Transfers)}
+          twClassName="px-3"
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Transfers,
+              FILTER_LABEL_KEYS.transfers,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_TRANSFERS,
+            )
+          }
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
-          {strings('money.activity.filter_transfers')}
+          {strings(FILTER_LABEL_KEYS.transfers)}
         </Button>
-      </Box>
+        <Button
+          variant={
+            isActive(MoneyActivityFilter.Purchases)
+              ? ButtonVariant.Primary
+              : ButtonVariant.Secondary
+          }
+          size={ButtonSize.Md}
+          twClassName="px-3"
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Purchases,
+              FILTER_LABEL_KEYS.purchases,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_PURCHASES,
+            )
+          }
+          testID={MoneyActivityViewTestIds.FILTER_PURCHASES}
+        >
+          {strings(FILTER_LABEL_KEYS.purchases)}
+        </Button>
+      </ScrollView>
 
-      {sections.length === 0 ? (
+      {isSettling ? (
+        // Keep the skeleton up while the bucket is empty but the fill loop is
+        // still fetching — otherwise an in-flight fetch would flash "No
+        // activity". The hook settles the moment fetching stops, including
+        // when the page budget is spent or the query errors.
+        <MoneyActivityLoading />
+      ) : sections.length === 0 ? (
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6 pb-8"
+          twClassName="flex-1 items-center justify-center px-6 pb-32"
           testID={MoneyActivityViewTestIds.EMPTY_LIST}
         >
           <Text
@@ -221,16 +410,34 @@ const MoneyActivityView = () => {
             color={TextColor.TextAlternative}
             testID={MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE}
           >
-            {strings('money.activity.empty')}
+            {strings(
+              // "No activity" must mean verified-empty, never failed-to-load.
+              error ? 'money.activity.load_error' : 'money.activity.empty',
+            )}
           </Text>
+          {error ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="mt-4"
+              onPress={refetch}
+              testID={MoneyActivityViewTestIds.RETRY_BUTTON}
+            >
+              {strings('money.activity.retry')}
+            </Button>
+          ) : null}
         </Box>
       ) : (
         <SectionList
+          testID={MoneyActivityViewTestIds.LIST}
           sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={listFooter}
         />
       )}
     </Box>

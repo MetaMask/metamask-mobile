@@ -3,23 +3,24 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { lightTheme } from '@metamask/design-tokens';
 
-// External dependencies.
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
-
 // Internal dependencies.
 import {
   WalletActionDetail,
   WalletActionProps,
   WalletActionType,
 } from './WalletAction.types';
+
 import styleSheet from './WalletAction.styles';
 import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const WalletAction = ({
   actionType,
@@ -104,8 +105,10 @@ const WalletAction = ({
         iconColor={colors.background.default}
       />
       <View>
-        <Text variant={TextVariant.BodyLGMedium}>{actionTitle}</Text>
-        <Text variant={TextVariant.BodyMD} style={styles.descriptionLabel}>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+          {actionTitle}
+        </Text>
+        <Text variant={TextVariant.BodyMd} style={styles.descriptionLabel}>
           {actionDescription}
         </Text>
       </View>

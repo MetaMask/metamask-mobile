@@ -16,14 +16,17 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'AccountActivityService',
   'OHLCVService',
   'MultichainAccountService',
+  'SnapAccountService',
   'GeolocationApiService',
   'ProfileMetricsService',
+  'ProofOfOwnershipService',
   'RampsService',
   'TransakService',
   'ComplianceService',
   'SocialService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
+  'ConfigRegistryApiService',
   'ChompApiService',
 ] as const;
 
@@ -36,6 +39,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AppMetadataController:stateChange',
   'AssetsController:stateChange',
   'ConnectivityController:stateChange',
+  'ConfigRegistryController:stateChange',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
@@ -97,6 +101,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
   'SocialController:stateChange',
+  'QrSyncController:stateChange',
 ] as const;
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
@@ -114,19 +119,25 @@ export const MONAD_DISPLAY_NAME = 'Monad';
 export const HYPEREVM_DISPLAY_NAME = 'HyperEVM';
 export const MEGAETH_DISPLAY_NAME = 'MegaETH';
 
+// `NETWORK_CHAIN_ID` is sourced from `customNetworks`, which several test
+// suites mock to a partial object. Guard against an undefined value so that
+// importing this module (e.g. from UI utils consuming `NETWORK_TO_NAME_MAP`)
+// never throws while the map is built at module-eval time.
+const CHAIN_ID = NETWORK_CHAIN_ID ?? ({} as typeof NETWORK_CHAIN_ID);
+
 export const NETWORK_TO_NAME_MAP = {
-  [NETWORK_CHAIN_ID.MAINNET]: MAINNET_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.LINEA_MAINNET]: LINEA_MAINNET_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.POLYGON]: POLYGON_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.AVALANCHE]: AVALANCHE_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.ARBITRUM]: ARBITRUM_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.BSC]: BNB_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.OPTIMISM]: OPTIMISM_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.ZKSYNC_ERA]: ZK_SYNC_ERA_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.BASE]: BASE_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.SEI]: SEI_DISPLAY_NAME,
+  [CHAIN_ID.MAINNET]: MAINNET_DISPLAY_NAME,
+  [CHAIN_ID.LINEA_MAINNET]: LINEA_MAINNET_DISPLAY_NAME,
+  [CHAIN_ID.POLYGON]: POLYGON_DISPLAY_NAME,
+  [CHAIN_ID.AVALANCHE]: AVALANCHE_DISPLAY_NAME,
+  [CHAIN_ID.ARBITRUM]: ARBITRUM_DISPLAY_NAME,
+  [CHAIN_ID.BSC]: BNB_DISPLAY_NAME,
+  [CHAIN_ID.OPTIMISM]: OPTIMISM_DISPLAY_NAME,
+  [CHAIN_ID.ZKSYNC_ERA]: ZK_SYNC_ERA_DISPLAY_NAME,
+  [CHAIN_ID.BASE]: BASE_DISPLAY_NAME,
+  [CHAIN_ID.SEI]: SEI_DISPLAY_NAME,
   // TODO: Update to use CHAIN_IDS.MONAD when it is added to the transaction controller
-  [NETWORK_CHAIN_ID.MONAD]: MONAD_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.HYPE]: HYPEREVM_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: MEGAETH_DISPLAY_NAME,
+  [CHAIN_ID.MONAD]: MONAD_DISPLAY_NAME,
+  [CHAIN_ID.HYPE]: HYPEREVM_DISPLAY_NAME,
+  [CHAIN_ID.MEGAETH_MAINNET]: MEGAETH_DISPLAY_NAME,
 } as const;

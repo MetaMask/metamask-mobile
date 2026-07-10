@@ -72,12 +72,6 @@ const OrderDetails = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   const navigateToSendTransaction = useCallback(() => {
     if (order?.id) {
       navigation.navigate(Routes.RAMP.SEND_TRANSACTION, {

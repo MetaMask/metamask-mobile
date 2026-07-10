@@ -2,12 +2,11 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { formatUnits } from 'ethers/lib/utils';
 import {
-  isSolanaChainId,
   isNonEvmChainId,
   isNativeAddress,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, TrxScope, BtcScope } from '@metamask/keyring-api';
 import type { Hex, CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
@@ -23,14 +22,16 @@ import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
 } from '../../../../../../../selectors/multichain/multichain';
-import { addCurrencySymbol } from '../../../../../../../util/number/bigint';
+import { safeToChecksumAddress } from '../../../../../../../util/address';
+import { formatCurrency } from '../../../../../../UI/Bridge/utils/currencyUtils';
+import { calcTokenFiatRate } from '../../../../../../UI/Bridge/utils/exchange-rates';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import type { QuickBuyTarget } from '../types';
+import { enrichTokenBalance } from './enrichTokenBalance';
 import {
   hasNonZeroHexBalance,
   getCachedNativeBalance,
   getCachedErc20Balance,
-  getTokenPrice,
 } from './tokenBalanceUtils';
 
 /**
@@ -44,8 +45,10 @@ import {
  *
  * Mirrors the behaviour of the Bridge's `useTokensWithBalance` /
  * `calculateEvmBalances`: a held-but-unpriceable token is still surfaced (with
- * `$0.00` fiat and an undefined `currencyExchangeRate`), so downstream flows
- * can let the user act on the token amount instead of hiding it entirely.
+ * a zero fiat value in the user's display currency and an undefined
+ * `currencyExchangeRate`), so downstream flows can let the user act on the
+ * token amount instead of hiding it entirely. `currencyExchangeRate` is a
+ * user-currency-per-token rate (consistent across EVM and non-EVM).
  */
 export const usePositionTokenBalance = (
   target: QuickBuyTarget | null,
@@ -63,6 +66,12 @@ export const usePositionTokenBalance = (
 
   const solanaAccount = useSelector((state: RootState) =>
     selectSelectedInternalAccountByScope(state)(SolScope.Mainnet),
+  );
+  const tronAccount = useSelector((state: RootState) =>
+    selectSelectedInternalAccountByScope(state)(TrxScope.Mainnet),
+  );
+  const bitcoinAccount = useSelector((state: RootState) =>
+    selectSelectedInternalAccountByScope(state)(BtcScope.Mainnet),
   );
   const multichainBalances = useSelector(selectMultichainBalances);
   const multichainRates = useSelector(selectMultichainAssetsRates);
@@ -82,45 +91,101 @@ export const usePositionTokenBalance = (
     // the entire hook for production users.
     const caipChainId = target.chain as CaipChainId;
 
-    const fiatCurrency = currentCurrency as Parameters<
-      typeof addCurrencySymbol
-    >[1];
-    const zeroFiat = addCurrencySymbol('0.00', fiatCurrency);
+    const zeroFiat = formatCurrency(0, currentCurrency);
 
-    // ─── Non-EVM, non-Solana (BTC, Tron) ──────────────────────────
-    // The multichain selectors above (`selectMultichainBalances`,
-    // `selectMultichainAssetsRates`) are chain-agnostic. We early-return here
-    // so the EVM branch's `formatChainIdToHex` doesn't throw "Invalid
-    // cross-chain swaps chainId" and crash the QuickBuy sheet.
-    if (isNonEvmChainId(caipChainId) && !isSolanaChainId(caipChainId)) {
-      return undefined;
-    }
+    // `calcTokenFiatRate` looks up `tokenMarketData` by the raw `token.address`
+    // (keyed by checksummed addresses).
+    const pricedDestToken =
+      isNonEvmChainId(destToken.chainId) || isNativeAddress(destToken.address)
+        ? destToken
+        : {
+            ...destToken,
+            address:
+              safeToChecksumAddress(destToken.address) ?? destToken.address,
+          };
 
-    // ─── Solana branch ─────────────────────────────────────────────────
-    if (isNonEvmChainId(caipChainId) && isSolanaChainId(caipChainId)) {
-      if (!solanaAccount) return undefined;
-      const balanceEntry =
-        multichainBalances?.[solanaAccount.id]?.[destToken.address];
-      const amountStr = balanceEntry?.amount;
-      if (!amountStr) return undefined;
-      const balanceNum = parseFloat(amountStr);
-      if (isNaN(balanceNum) || balanceNum <= 0) return undefined;
+    // The fiat rate is delegated to the canonical `calcTokenFiatRate`, so the
+    // position token shares the wallet-wide user-currency exchange-rate
+    // semantics (EVM native/ERC-20 and non-EVM are all handled there). It
+    // returns a user-currency-per-token rate, or `undefined` when no price is
+    // resolvable — in which case we still surface the held balance with a zero
+    // fiat value, matching the wallet-wide behaviour (see `calculateEvmBalances`).
+    const exchangeRate = calcTokenFiatRate({
+      token: pricedDestToken,
+      evmMultiChainMarketData: tokenMarketData,
+      networkConfigurationsByChainId: (allNetworkConfigs ?? {}) as Record<
+        Hex,
+        { nativeCurrency: string }
+      >,
+      evmMultiChainCurrencyRates: currencyRates,
+      nonEvmMultichainAssetRates: multichainRates as Parameters<
+        typeof calcTokenFiatRate
+      >[0]['nonEvmMultichainAssetRates'],
+    });
+    const hasRate = exchangeRate !== undefined && exchangeRate > 0;
 
-      const rateStr = (
-        multichainRates as Record<string, { rate?: string } | undefined>
-      )?.[destToken.address]?.rate;
-      const rateNum = rateStr ? parseFloat(rateStr) : NaN;
-      const hasRate = !isNaN(rateNum) && rateNum > 0;
-
-      const fiatValue = hasRate ? balanceNum * rateNum : 0;
+    const buildResult = (
+      balanceStr: string,
+      balanceNum: number,
+    ): BridgeToken => {
+      const fiatValue = hasRate ? balanceNum * (exchangeRate as number) : 0;
       return {
         ...destToken,
-        balance: amountStr,
+        balance: balanceStr,
         balanceFiat: hasRate
-          ? addCurrencySymbol(fiatValue.toFixed(2), fiatCurrency)
+          ? formatCurrency(fiatValue, currentCurrency)
           : zeroFiat,
         tokenFiatAmount: fiatValue,
-        currencyExchangeRate: hasRate ? rateNum : undefined,
+        currencyExchangeRate: hasRate ? exchangeRate : undefined,
+      };
+    };
+
+    // ─── Non-EVM branch (Solana, Tron, Bitcoin) ───────────────────────
+    // `enrichTokenBalance` prices all non-EVM assets generically from the
+    // chain-agnostic multichain balance/rate controllers, so it replaces the
+    // bespoke per-chain handling here and keeps the EVM branch's
+    // `formatChainIdToHex` (which throws for non-EVM CAIP ids) out of reach.
+    // It prices via the canonical `calcTokenFiatRate` in the user's display
+    // currency (`currentCurrency`), so Tron/Bitcoin positions are sellable and
+    // shown in the same currency as the EVM branch.
+    //
+    // Lenient mode (`includeZeroBalance`) so a held-but-unpriceable token
+    // (real balance, no resolvable rate) stays sellable — matching the EVM
+    // branch below and the wallet-wide `calculateEvmBalances` behaviour. The
+    // lenient path also returns a zero-balance enrichment for tokens the user
+    // doesn't hold, so we drop those (balance ≤ 0) to preserve the strict
+    // "no balance → not sellable" contract. Unpriced holdings render the
+    // user-currency zero (via `zeroFiat`) rather than a dash, consistent with
+    // the EVM branch.
+    if (isNonEvmChainId(caipChainId)) {
+      const enrichment = enrichTokenBalance(
+        destToken,
+        {
+          accountAddress,
+          accountsByChainId,
+          tokenBalances,
+          tokenMarketData,
+          currencyRates,
+          currentCurrency,
+          allNetworkConfigs,
+          solanaAccount: solanaAccount ?? undefined,
+          tronAccount: tronAccount ?? undefined,
+          bitcoinAccount: bitcoinAccount ?? undefined,
+          multichainBalances,
+          multichainRates: multichainRates as Record<
+            string,
+            { rate?: string } | undefined
+          >,
+        },
+        { includeZeroBalance: true },
+      );
+      if (!enrichment || !(parseFloat(enrichment.balance) > 0)) {
+        return undefined;
+      }
+      return {
+        ...destToken,
+        ...enrichment,
+        balanceFiat: enrichment.balanceFiat ?? zeroFiat,
       };
     }
 
@@ -156,52 +221,14 @@ export const usePositionTokenBalance = (
     const balanceNum = parseFloat(displayBalance);
     if (isNaN(balanceNum) || balanceNum <= 0) return undefined;
 
-    const networkConfig = allNetworkConfigs?.[hexChainId];
-    const nativeTicker = networkConfig?.nativeCurrency;
-    const nativeConversionRate = nativeTicker
-      ? (currencyRates?.[nativeTicker]?.usdConversionRate ?? 0)
-      : 0;
-
-    // Resolve the source token's price in user fiat. If anything's missing we
-    // still return the token with its real balance — downstream flows will
-    // operate on token amounts and render $0.00 for fiat, matching the
-    // wallet-wide behaviour (see `calculateEvmBalances`).
-    let exchangeRate: number | undefined;
-    if (nativeConversionRate > 0) {
-      if (isNativeAddress(target.tokenAddress)) {
-        exchangeRate = nativeConversionRate;
-      } else {
-        const tokenPrice = getTokenPrice(
-          tokenMarketData,
-          hexChainId,
-          target.tokenAddress,
-        );
-        if (tokenPrice !== undefined) {
-          exchangeRate = tokenPrice * nativeConversionRate;
-        }
-      }
-    }
-    if (exchangeRate !== undefined && exchangeRate <= 0) {
-      exchangeRate = undefined;
-    }
-
-    const fiatValue =
-      exchangeRate !== undefined ? balanceNum * exchangeRate : 0;
-    return {
-      ...destToken,
-      balance: displayBalance,
-      balanceFiat:
-        exchangeRate !== undefined
-          ? addCurrencySymbol(fiatValue.toFixed(2), fiatCurrency)
-          : zeroFiat,
-      tokenFiatAmount: fiatValue,
-      currencyExchangeRate: exchangeRate,
-    };
+    return buildResult(displayBalance, balanceNum);
   }, [
     target,
     destToken,
     accountAddress,
     solanaAccount,
+    tronAccount,
+    bitcoinAccount,
     multichainBalances,
     multichainRates,
     accountsByChainId,

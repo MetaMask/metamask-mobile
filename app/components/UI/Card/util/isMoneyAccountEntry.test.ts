@@ -1,76 +1,81 @@
-import type { MoneyAccountControllerState } from '@metamask/money-account-controller';
+import type { CaipChainId } from '@metamask/utils';
 import { isMoneyAccountEntry } from './isMoneyAccountEntry';
+import type { VedaTokenConfig } from './vedaToken';
 
-type MoneyAccountsMap = MoneyAccountControllerState['moneyAccounts'];
+const MONAD_CAIP: CaipChainId = 'eip155:143';
+const VEDA_ADDRESS = '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae';
 
-const makeMoneyAccounts = (addresses: string[]): MoneyAccountsMap =>
-  addresses.reduce<MoneyAccountsMap>((acc, address, idx) => {
-    acc[`account-${idx}`] = {
-      address,
-    } as MoneyAccountsMap[string];
-    return acc;
-  }, {});
+const makeVedaConfig = (
+  overrides: Partial<VedaTokenConfig> = {},
+): VedaTokenConfig => ({
+  caipChainId: MONAD_CAIP,
+  address: VEDA_ADDRESS,
+  decimals: 6,
+  delegationContract: '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb',
+  ...overrides,
+});
 
 describe('isMoneyAccountEntry', () => {
-  it('returns false when walletAddress is undefined', () => {
-    const moneyAccounts = makeMoneyAccounts(['0xabc']);
-    expect(isMoneyAccountEntry(undefined, moneyAccounts)).toBe(false);
-  });
-
-  it('returns false when moneyAccounts is empty', () => {
-    expect(isMoneyAccountEntry('0xabc', {})).toBe(false);
-  });
-
-  it('returns false when no money account matches walletAddress', () => {
-    const moneyAccounts = makeMoneyAccounts([
-      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-      '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-    ]);
+  it('returns false when vedaConfig is null', () => {
     expect(
       isMoneyAccountEntry(
-        '0xcccccccccccccccccccccccccccccccccccccccc',
-        moneyAccounts,
+        { address: VEDA_ADDRESS, caipChainId: MONAD_CAIP },
+        null,
       ),
     ).toBe(false);
   });
 
-  it('returns true when a money account matches walletAddress exactly', () => {
-    const target = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-    const moneyAccounts = makeMoneyAccounts([target]);
-    expect(isMoneyAccountEntry(target, moneyAccounts)).toBe(true);
+  it('returns false when token has no address', () => {
+    expect(
+      isMoneyAccountEntry({ caipChainId: MONAD_CAIP }, makeVedaConfig()),
+    ).toBe(false);
   });
 
-  it('matches case-insensitively when walletAddress has mixed case', () => {
-    const moneyAccounts = makeMoneyAccounts([
-      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    ]);
+  it('returns false when token has no caipChainId', () => {
+    expect(
+      isMoneyAccountEntry({ address: VEDA_ADDRESS }, makeVedaConfig()),
+    ).toBe(false);
+  });
+
+  it('returns true on exact address + chain match', () => {
     expect(
       isMoneyAccountEntry(
-        '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-        moneyAccounts,
+        { address: VEDA_ADDRESS, caipChainId: MONAD_CAIP },
+        makeVedaConfig(),
       ),
     ).toBe(true);
   });
 
-  it('matches case-insensitively when money account address has mixed case', () => {
-    const moneyAccounts = makeMoneyAccounts([
-      '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa',
-    ]);
+  it('matches case-insensitively on address', () => {
     expect(
       isMoneyAccountEntry(
-        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        moneyAccounts,
+        {
+          address: VEDA_ADDRESS.toLowerCase(),
+          caipChainId: MONAD_CAIP,
+        },
+        makeVedaConfig({ address: VEDA_ADDRESS.toUpperCase() }),
       ),
     ).toBe(true);
   });
 
-  it('returns true when walletAddress matches any (not only first) money account', () => {
-    const target = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-    const moneyAccounts = makeMoneyAccounts([
-      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-      target,
-      '0xcccccccccccccccccccccccccccccccccccccccc',
-    ]);
-    expect(isMoneyAccountEntry(target, moneyAccounts)).toBe(true);
+  it('returns false when address matches but chain does not', () => {
+    expect(
+      isMoneyAccountEntry(
+        { address: VEDA_ADDRESS, caipChainId: 'eip155:1' },
+        makeVedaConfig(),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when chain matches but address does not', () => {
+    expect(
+      isMoneyAccountEntry(
+        {
+          address: '0x0000000000000000000000000000000000000001',
+          caipChainId: MONAD_CAIP,
+        },
+        makeVedaConfig(),
+      ),
+    ).toBe(false);
   });
 });

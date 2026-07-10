@@ -31,6 +31,7 @@ export interface UseTopTradersResult {
 
 interface UseTopTradersOptions {
   limit?: number;
+  chains?: string[];
   enabled?: boolean;
 }
 
@@ -39,9 +40,15 @@ export const useTopTraders = (
 ): UseTopTradersResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
 
-  const fetchOptions: FetchLeaderboardOptions | null = options?.limit
-    ? { limit: options.limit }
-    : null;
+  const hasLimit = options?.limit !== undefined;
+  const hasChains = options?.chains !== undefined;
+  const fetchOptions: FetchLeaderboardOptions | null =
+    hasLimit || hasChains
+      ? {
+          ...(hasLimit && { limit: options?.limit }),
+          ...(hasChains && { chains: options?.chains }),
+        }
+      : null;
 
   const queryKey: [string, FetchLeaderboardOptions | null] = [
     'SocialService:fetchLeaderboard',
@@ -55,8 +62,11 @@ export const useTopTraders = (
     });
 
   const leaderboardQueryParams = useMemo(
-    () => ({ limit: options?.limit ?? 0 }),
-    [options?.limit],
+    () => ({
+      limit: options?.limit ?? 0,
+      ...(hasChains && { chains: (options?.chains ?? []).join(',') }),
+    }),
+    [options?.limit, options?.chains, hasChains],
   );
 
   useLogSocialQueryError(error, {
@@ -82,8 +92,10 @@ export const useTopTraders = (
       overallRank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl ?? undefined,
-      percentageChange: (entry.roiPercent30d ?? 0) * 100,
-      pnlValue: entry.pnl30d,
+      // `roiPercent7d` is already a whole-percent value from the API
+      // (e.g. 20.98 → "20.98%"); do not multiply by 100.
+      percentageChange: entry.roiPercent7d ?? 0,
+      pnlValue: entry.pnl7d ?? 0,
       pnlPerChain: entry.pnlPerChain ?? {},
       isFollowing: isFollowing(entry.profileId),
     }));

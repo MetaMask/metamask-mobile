@@ -8,9 +8,12 @@ import {
   appLockStateMachine,
   startAppServices,
   initializeSDKServices,
+  initializeSDKServicesSaga,
   handleDeeplinkSaga,
   handleSnapsRegistry,
+  parseDeeplink,
   parseDeeplinkAfterNavReady,
+  mainNavigatorReadyStateMachine,
   __setMainNavigatorReadyForTesting,
   __resetSDKServicesInitializationForTesting,
   requestAuthOnAppStart,
@@ -33,6 +36,18 @@ import AppConstants from '../../core/AppConstants';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDevAutoUnlockPassword } from '../../util/environment';
+import { saveAttribution } from '../../core/redux/slices/attribution';
+jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
+  getUtmAttributesFromDeeplinkUrl: jest.fn(),
+  persistUtmAttributes: jest.fn(),
+  persistAttributionFromPendingDeeplink: jest.fn(),
+}));
+
+import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
+
+const mockGetUtmAttributesFromDeeplinkUrl = jest.mocked(
+  getUtmAttributesFromDeeplinkUrl,
+);
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -57,13 +72,6 @@ jest.mock('../../core/AppStateEventListener', () => ({
     pendingDeeplink: null,
     pendingDeeplinkSource: null,
     clearPendingDeeplink: jest.fn(),
-  },
-}));
-
-jest.mock('../../core/Analytics', () => ({
-  __esModule: true,
-  MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({}),
   },
 }));
 
@@ -592,6 +600,78 @@ describe('initializeSDKServices', () => {
   });
 });
 
+describe('initializeSDKServicesSaga', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetSDKServicesInitializationForTesting();
+    AppStateEventProcessor.pendingDeeplink = null;
+    AppStateEventProcessor.pendingDeeplinkSource = null;
+  });
+
+  it('starts SDK services on login for an unlocked onboarded user without a pending deeplink', async () => {
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(true);
+
+    await expectSaga(initializeSDKServicesSaga)
+      .withState({
+        ...defaultMockState,
+        onboarding: { completedOnboarding: true },
+      })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+    expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+    expect(AppStateEventProcessor.clearPendingDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('does not start SDK services on login before onboarding is complete', async () => {
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(true);
+
+    await expectSaga(initializeSDKServicesSaga)
+      .withState({
+        ...defaultMockState,
+        onboarding: { completedOnboarding: false },
+      })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
+  });
+
+  it('starts SDK services when onboarding is completed after unlock', async () => {
+    Engine.context.KeyringController.isUnlocked = jest
+      .fn()
+      .mockReturnValue(true);
+
+    await expectSaga(initializeSDKServicesSaga)
+      .withState(defaultMockState)
+      .dispatch(setCompletedOnboarding(true))
+      .silentRun();
+
+    expect(WC2Manager.init).toHaveBeenCalledWith({});
+    expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+  });
+
+  it('does not start SDK services when the wallet is still locked', async () => {
+    await expectSaga(initializeSDKServicesSaga)
+      .withState({
+        ...defaultMockState,
+        onboarding: { completedOnboarding: true },
+      })
+      .dispatch({ type: UserActionType.LOGIN })
+      .silentRun();
+
+    expect(WC2Manager.init).not.toHaveBeenCalled();
+    expect(SDKConnect.init).not.toHaveBeenCalled();
+  });
+});
+
 describe('handleDeeplinkSaga', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -599,6 +679,7 @@ describe('handleDeeplinkSaga', () => {
     __resetSDKServicesInitializationForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
+    mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
   });
 
   describe('without deeplink', () => {
@@ -631,7 +712,7 @@ describe('handleDeeplinkSaga', () => {
       expect(SDKConnect.init).not.toHaveBeenCalled();
     });
 
-    it('starts SDK services when the wallet is unlocked and onboarded', async () => {
+    it('does not warm SDK services without a pending deeplink', async () => {
       Engine.context.KeyringController.isUnlocked = jest
         .fn()
         .mockReturnValue(true);
@@ -641,12 +722,12 @@ describe('handleDeeplinkSaga', () => {
           ...defaultMockState,
           onboarding: { completedOnboarding: true },
         })
-        .dispatch({ type: UserActionType.LOGIN })
+        .dispatch(checkForDeeplink())
         .silentRun();
 
       expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
-      expect(WC2Manager.init).toHaveBeenCalledWith({});
-      expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+      expect(WC2Manager.init).not.toHaveBeenCalled();
+      expect(SDKConnect.init).not.toHaveBeenCalled();
     });
   });
 
@@ -731,10 +812,8 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).toHaveBeenCalledWith({});
-          expect(SDKConnect.init).toHaveBeenCalledWith({
-            context: 'Nav/App',
-          });
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
         });
       });
       describe('when completed onboarding is true in Redux state', () => {
@@ -771,10 +850,33 @@ describe('handleDeeplinkSaga', () => {
           expect(
             AppStateEventProcessor.clearPendingDeeplink,
           ).toHaveBeenCalled();
-          expect(WC2Manager.init).toHaveBeenCalledWith({});
-          expect(SDKConnect.init).toHaveBeenCalledWith({
-            context: 'Nav/App',
-          });
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
+        });
+
+        it('parses non-SDK deeplinks without starting SDK services', async () => {
+          const rewardsLink = 'https://link.metamask.io/rewards';
+          AppStateEventProcessor.pendingDeeplink = rewardsLink;
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(WC2Manager.init).not.toHaveBeenCalled();
+          expect(SDKConnect.init).not.toHaveBeenCalled();
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            rewardsLink,
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            }),
+          );
         });
 
         it('waits for SDK services before parsing SDK/WalletConnect deeplinks', async () => {
@@ -835,10 +937,32 @@ describe('handleDeeplinkSaga', () => {
             .silentRun();
 
           expect(SharedDeeplinkManager.parse).not.toHaveBeenCalled();
+          expect(mockGetUtmAttributesFromDeeplinkUrl).not.toHaveBeenCalled();
         });
       });
 
       describe('when existing user is false', () => {
+        it('persists UTM attributes from pending deeplink before onboarding handling', async () => {
+          const onboardingLink =
+            'https://metamask.io/onboarding?utm_source=e2e&utm_campaign=test';
+          const payload = { utm_source: 'e2e', utm_campaign: 'test' };
+          AppStateEventProcessor.pendingDeeplink = onboardingLink;
+          mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(payload);
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .put(saveAttribution(payload))
+            .dispatch(checkForDeeplink())
+            .silentRun();
+
+          expect(mockGetUtmAttributesFromDeeplinkUrl).toHaveBeenCalledWith(
+            onboardingLink,
+          );
+        });
+
         it('handle onboarding deeplink when completed onboarding is false', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://metamask.io/onboarding?type=google';
@@ -956,6 +1080,23 @@ describe('handleDeeplinkSaga', () => {
   });
 });
 
+describe('parseDeeplink', () => {
+  const TEST_URL = 'https://link.metamask.io/buy';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('parses immediately', async () => {
+    await expectSaga(parseDeeplink, TEST_URL, TEST_ORIGIN).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+});
+
 describe('parseDeeplinkAfterNavReady', () => {
   const TEST_URL = 'https://link.metamask.io/buy';
   const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
@@ -1028,6 +1169,46 @@ describe('parseDeeplinkAfterNavReady', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+});
+
+describe('mainNavigatorReadyStateMachine', () => {
+  const TEST_URL = 'https://link.metamask.io/buy';
+  const TEST_ORIGIN = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __setMainNavigatorReadyForTesting(false);
+  });
+
+  it('latches readiness so a later deeplink parses immediately', async () => {
+    await expectSaga(mainNavigatorReadyStateMachine)
+      .dispatch(mainNavigatorReady())
+      .silentRun();
+
+    // With the latch set, parseDeeplinkAfterNavReady should not wait.
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN).run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
+  });
+
+  it('clears readiness on logout', async () => {
+    __setMainNavigatorReadyForTesting(true);
+
+    await expectSaga(mainNavigatorReadyStateMachine)
+      .dispatch({ type: UserActionType.LOGOUT })
+      .silentRun();
+
+    // Latch cleared: parse must wait for the next MAIN_NAVIGATOR_READY.
+    await expectSaga(parseDeeplinkAfterNavReady, TEST_URL, TEST_ORIGIN)
+      .dispatch(mainNavigatorReady())
+      .run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+    });
   });
 });
 

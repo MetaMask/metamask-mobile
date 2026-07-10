@@ -30,9 +30,10 @@ import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
@@ -60,8 +61,10 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
-import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
-import Logger from '../../../util/Logger';
+import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -82,6 +85,12 @@ const OptinMetrics = () => {
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
 
   // State
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
@@ -94,6 +103,9 @@ const OptinMetrics = () => {
   const [isMarketingChecked, setIsMarketingChecked] = useState(false);
   const [isBasicUsageChecked, setIsBasicUsageChecked] = useState(true);
 
+  const { shouldShowQuestionnaire } =
+    useOnboardingInterestQuestionnaireEligibility();
+
   const isMediumDevice = useMemo(() => Device.isMediumDevice(), []);
   const illustrationSize = useMemo(
     () =>
@@ -102,9 +114,6 @@ const OptinMetrics = () => {
         : { width: 200, height: 180 },
     [isMediumDevice],
   );
-
-  const getShouldShowQuestionnaire =
-    useOnboardingInterestQuestionnaireEligibility();
 
   /**
    * Temporary disabling the back button so users can't go back
@@ -151,6 +160,16 @@ const OptinMetrics = () => {
   const continueNavigation = useCallback(async () => {
     await markMetricsOptInUISeen();
 
+    const successFlow = route?.params?.successFlow;
+    finalizeOnboardingCompletion({
+      successFlow,
+      accountType,
+      isBasicFunctionalityEnabled,
+      walletSetupAttributionProps,
+      dispatch,
+      discoverAccountsLogContext: 'OptinMetrics',
+    });
+
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
     if (onContinue) {
       return onContinue();
@@ -159,7 +178,14 @@ const OptinMetrics = () => {
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
-  }, [navigation, route?.params]);
+  }, [
+    dispatch,
+    navigation,
+    route?.params,
+    accountType,
+    isBasicFunctionalityEnabled,
+    walletSetupAttributionProps,
+  ]);
 
   /**
    * Callback on press confirm
@@ -215,57 +241,36 @@ const OptinMetrics = () => {
 
     // track onboarding events that were stored before user opted in
     // only if the user eventually opts in.
-    if (events?.length) {
-      let delay = 0; // Initialize delay
-      const eventTrackingDelay = 200; // ms delay between each event
-      events.forEach((eventArgs) => {
-        // delay each event to prevent them from
-        // being tracked with the same timestamp
-        // which would cause them to be grouped together
-        // by sentAt time in the Segment dashboard
-        // as precision is only to the milisecond
-        // and loop seems to runs faster than that
-        setTimeout(() => {
-          const event = AnalyticsEventBuilder.createEventBuilder(
-            eventArgs[0],
-          ).build();
-          metrics.trackEvent(event);
-        }, delay);
-        delay += eventTrackingDelay;
+    if (events?.length && isBasicUsageChecked) {
+      const attributionProps =
+        getWalletSetupAttributionPropsFromStore(isMarketingChecked);
+      scheduleBufferedOnboardingEventReplay({
+        events,
+        attributionProps,
+        trackEvent: (event) => metrics.trackEvent(event),
       });
     }
+
     dispatch(clearOnboardingEvents());
 
-    let shouldShowInterestQuestionnaire = false;
-    if (isBasicUsageChecked) {
-      try {
-        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
-      } catch (error) {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      }
-    }
-
-    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+    if (isBasicUsageChecked && shouldShowQuestionnaire) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
       });
     } else {
-      continueNavigation();
+      await continueNavigation();
     }
   }, [
-    isBasicUsageChecked,
-    isMarketingChecked,
-    events,
     metrics,
+    isBasicUsageChecked,
+    shouldShowQuestionnaire,
     dispatch,
-    continueNavigation,
+    isMarketingChecked,
     accountType,
-    getShouldShowQuestionnaire,
+    events,
     navigation,
+    continueNavigation,
   ]);
 
   /**
@@ -384,6 +389,12 @@ const OptinMetrics = () => {
     [tw],
   );
 
+  const goToDefaultSettings = () => {
+    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
+    });
+  };
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
       <ScrollView
@@ -479,6 +490,7 @@ const OptinMetrics = () => {
                 </Text>
               </Text>
             </Pressable>
+
             <Pressable
               style={({ pressed }) =>
                 tw.style(
@@ -489,6 +501,9 @@ const OptinMetrics = () => {
               }
               onPress={handleMarketingToggle}
               disabled={isMarketingDisabled}
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
+              }
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -529,6 +544,20 @@ const OptinMetrics = () => {
                 {strings('privacy_policy.checkbox')}
               </Text>
             </Pressable>
+
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('privacy_policy.settings')}{' '}
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+                onPress={goToDefaultSettings}
+              >
+                {strings('privacy_policy.settings_link')}
+              </Text>
+            </Text>
           </Box>
         </Box>
       </ScrollView>

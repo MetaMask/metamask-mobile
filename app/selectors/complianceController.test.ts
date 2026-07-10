@@ -5,10 +5,12 @@ import {
   selectComplianceLastCheckedAt,
 } from './complianceController';
 
-const BLOCKED_ADDRESS = '0xBLOCKED';
-const BLOCKED_ADDRESS_2 = '0xBLOCKED2';
-const SAFE_ADDRESS = '0xSAFE';
-const SAFE_ADDRESS_2 = '0xSAFE2';
+const BLOCKED_ADDRESS = '0x52908400098527886e0f7030069857d2e4169ee7';
+const MIXED_CASE_BLOCKED_ADDRESS = '0x52908400098527886E0F7030069857D2E4169EE7';
+const BLOCKED_ADDRESS_2 = '0x2222222222222222222222222222222222222222';
+const SAFE_ADDRESS = '0x3333333333333333333333333333333333333333';
+const SAFE_ADDRESS_2 = '0x4444444444444444444444444444444444444444';
+const NON_EVM_ADDRESS = 'solana-address';
 
 function buildState(complianceState?: Record<string, unknown>) {
   return {
@@ -52,6 +54,23 @@ describe('complianceController selectors', () => {
       expect(selectIsWalletBlocked(SAFE_ADDRESS)(state)).toBe(false);
     });
 
+    it('matches EVM addresses case-insensitively', () => {
+      const state = buildState({
+        walletComplianceStatusMap: {
+          [BLOCKED_ADDRESS.toLowerCase()]: {
+            address: BLOCKED_ADDRESS.toLowerCase(),
+            blocked: true,
+            checkedAt: '2025-01-01T00:00:00Z',
+          },
+        },
+        lastCheckedAt: '2025-01-01T00:00:00Z',
+      });
+
+      expect(selectIsWalletBlocked(MIXED_CASE_BLOCKED_ADDRESS)(state)).toBe(
+        true,
+      );
+    });
+
     it('returns false when address is not in walletComplianceStatusMap', () => {
       const state = buildState({
         walletComplianceStatusMap: {},
@@ -91,6 +110,26 @@ describe('complianceController selectors', () => {
 
       expect(
         selectAreAnyWalletsBlocked([SAFE_ADDRESS, BLOCKED_ADDRESS])(state),
+      ).toBe(true);
+    });
+
+    it('matches EVM address sets case-insensitively', () => {
+      const state = buildState({
+        walletComplianceStatusMap: {
+          [BLOCKED_ADDRESS.toLowerCase()]: {
+            address: BLOCKED_ADDRESS.toLowerCase(),
+            blocked: true,
+            checkedAt: '2025-01-01T00:00:00Z',
+          },
+        },
+        lastCheckedAt: null,
+      });
+
+      expect(
+        selectAreAnyWalletsBlocked([
+          NON_EVM_ADDRESS,
+          MIXED_CASE_BLOCKED_ADDRESS,
+        ])(state),
       ).toBe(true);
     });
 

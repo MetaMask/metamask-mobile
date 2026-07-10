@@ -276,7 +276,6 @@ jest.mock('../../core/NotificationManager', () => ({
   watchSubmittedTransaction: jest.fn(),
   getTransactionToView: jest.fn(),
   setTransactionToView: jest.fn(),
-  gotIncomingTransaction: jest.fn(),
   requestPushNotificationsPermission: jest.fn(),
   showSimpleNotification: jest.fn(),
 }));
@@ -468,60 +467,15 @@ jest.mock(
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
 /**
- * Inline Jest mock for `react-native-worklets` when the package is not installed
- * (e.g. older RN/reanimated stacks). Mirrors the critical behavior from the
- * upstream package mock — especially `runOnJS` scheduling via `queueMicrotask`.
+ * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
+ * react-native-worklets, and requiring the real package eagerly initializes its
+ * native part (absent under Jest), throwing "Native part of Worklets doesn't
+ * seem to be initialized". The mock also installs `globalThis._getAnimationTimestamp`
+ * and a timestamp-correct `requestAnimationFrame` that animation tests rely on.
  * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
  */
-jest.mock(
-  'react-native-worklets',
-  () => {
-    const RuntimeKind = { ReactNative: 0 };
-    const NOOP = () => {};
-    const identity = (value) => value;
-
-    const runOnJS =
-      (fun) =>
-      (...args) =>
-        queueMicrotask(() => (args.length ? fun(...args) : fun()));
-
-    return {
-      __esModule: true,
-      RuntimeKind,
-      isShareableRef: () => true,
-      makeShareable: identity,
-      makeShareableCloneOnUIRecursive: identity,
-      makeShareableCloneRecursive: identity,
-      shareableMappingCache: new Map(),
-      getStaticFeatureFlag: () => false,
-      setDynamicFeatureFlag: NOOP,
-      isSynchronizable: () => false,
-      getRuntimeKind: () => RuntimeKind.ReactNative,
-      createWorkletRuntime: () => NOOP,
-      runOnRuntime: identity,
-      runOnRuntimeAsync: async (_runtime, worklet, ...args) => worklet(...args),
-      scheduleOnRuntime: (callback) => callback(),
-      createSerializable: identity,
-      isSerializableRef: identity,
-      serializableMappingCache: new Map(),
-      createSynchronizable: identity,
-      callMicrotasks: NOOP,
-      executeOnUIRuntimeSync: identity,
-      runOnJS,
-      runOnUI:
-        (worklet) =>
-        (...args) => {
-          worklet(...args);
-        },
-      runOnUIAsync: async (worklet, ...args) => worklet(...args),
-      runOnUISync: (callback) => callback(),
-      scheduleOnRN: (fun, ...args) => runOnJS(fun)(...args),
-      scheduleOnUI: (worklet, ...args) => worklet(...args),
-      isWorkletFunction: () => false,
-      WorkletsModule: {},
-    };
-  },
-  { virtual: true },
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/lib/module/mock'),
 );
 
 jest.mock('react-native-mmkv', () => {
@@ -808,14 +762,38 @@ try {
   // Reanimated internals may change — fall through silently
 }
 
-// useAnimatedGestureHandler was removed in react-native-reanimated v4 but is
-// still imported by legacy source code (e.g. ReusableModal). Patch the module
-// so tests that render those components don't crash.
-if (typeof Reanimated.useAnimatedGestureHandler !== 'function') {
-  Reanimated.useAnimatedGestureHandler = jest.fn(() => ({}));
-}
-
 global.__DEV__ = false;
+
+// Mock react-native-screens so @react-navigation/native-stack renders plain
+// views in Jest. The real Screen components attach Animated listeners that
+// throw "Cannot read properties of undefined (reading 'remove')" during unmount
+// under fake timers. Rendering them as Views keeps native-stack navigators
+// (used by renderScreen and migrated test files) working in jsdom.
+jest.mock('react-native-screens', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('react-native-screens');
+
+  const asView = (displayName) => {
+    const Component = React.forwardRef((props, ref) =>
+      React.createElement(View, { ...props, ref }),
+    );
+    Component.displayName = displayName;
+    return Component;
+  };
+
+  return {
+    ...actual,
+    enableScreens: jest.fn(),
+    enableFreeze: jest.fn(),
+    screensEnabled: jest.fn(() => false),
+    Screen: asView('Screen'),
+    ScreenContainer: asView('ScreenContainer'),
+    ScreenStack: asView('ScreenStack'),
+    ScreenStackHeaderConfig: asView('ScreenStackHeaderConfig'),
+    ScreenStackHeaderSubview: asView('ScreenStackHeaderSubview'),
+  };
+});
 
 // Custom snapshot serializer to handle Reanimated shared value proxies.
 expect.addSnapshotSerializer({
@@ -1162,16 +1140,6 @@ jest.mock('@react-native-firebase/messaging', () => {
   };
 
   return module;
-});
-
-jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
-  return {
-    default: {
-      getInstance: jest.fn().mockReturnValue({
-        trackEvent: jest.fn(),
-      }),
-    },
-  };
 });
 
 // Mock whenEngineReady to prevent async Engine access after Jest teardown.

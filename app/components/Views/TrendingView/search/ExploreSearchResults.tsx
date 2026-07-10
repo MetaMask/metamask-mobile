@@ -1,20 +1,27 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   TabEmptyState,
   Text,
   TextVariant,
   TextColor,
-  FontWeight,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
+  SectionDivider,
+  SectionHeader as MMDSSectionHeader,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
@@ -25,6 +32,7 @@ import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
 import { strings } from '../../../../../locales/i18n';
 import {
+  getTotalSectionResultCount,
   trackExploreSearchEvent,
   useScrollTracking,
   type SearchFeedPill,
@@ -34,6 +42,14 @@ import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
 import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
 import type { FlatListItem, ListItemHeader } from './searchTypes';
 import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
+import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from './abTestConfig';
+import { useQuickBuySearchKeyboard } from '../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 
 const POPULAR_ASSETS: TrendingAsset[] = [
   {
@@ -89,10 +105,31 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     selectBasicFunctionalityEnabled,
   );
 
+  const totalResultCount = useMemo(
+    () => getTotalSectionResultCount(sections),
+    [sections],
+  );
+
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+
+  const closeQuickBuy = useCallback(() => {
+    setQuickTradeToken(null);
+  }, []);
+
+  useQuickBuySearchKeyboard(quickTradeToken, closeQuickBuy);
+
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     searchQuery,
-    { tab_name: activeTab },
+    { tab_name: activeTab, result_count: totalResultCount },
   );
 
   useEffect(() => {
@@ -107,6 +144,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         tab_name: section.feedId,
         previous_tab: activeTab,
         comes_from_view_all_tap: true,
+        result_count: section.total ?? section.items.length,
       });
       onViewMore(section.feedId);
     },
@@ -124,58 +162,71 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             section.total,
           );
       return (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="py-2 bg-default"
-        >
-          <Text
-            variant={TextVariant.HeadingSm}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-alternative"
-          >
-            {item.title}
-          </Text>
-          {viewMoreLabel !== null && (
-            <Pressable
-              onPress={() => handleViewMore(section)}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={`${viewMoreLabel} ${item.title}`}
-              style={({ pressed }) => [
-                pressedStyle.pressable,
-                pressed && { opacity: 0.5 },
-              ]}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {viewMoreLabel}
-              </Text>
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </Pressable>
-          )}
+        <Box>
+          {!item.isFirstHeader ? <SectionDivider twClassName="-mx-4" /> : null}
+          <MMDSSectionHeader
+            title={item.title}
+            twClassName="px-0"
+            titleProps={{
+              variant: TextVariant.HeadingSm,
+              color: TextColor.TextAlternative,
+            }}
+            endAccessory={
+              viewMoreLabel !== null ? (
+                <Box twClassName="flex-1 justify-end items-end">
+                  <Pressable
+                    onPress={() => handleViewMore(section)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+                    style={({ pressed }) => [
+                      pressedStyle.pressable,
+                      pressed && { opacity: 0.5 },
+                    ]}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {viewMoreLabel}
+                    </Text>
+                    <Icon
+                      name={IconName.ArrowRight}
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                  </Pressable>
+                </Box>
+              ) : undefined
+            }
+          />
         </Box>
       );
     },
     [handleViewMore, searchQuery],
   );
 
+  const sectionsMap = useMemo(
+    () => new Map(sections.map((s) => [s.feedId, s])),
+    [sections],
+  );
+
   const flatData = useMemo<FlatListItem[]>(() => {
     const result: FlatListItem[] = [];
     const visibleSections = isBasicFunctionalityEnabled ? sections : [];
+    let headerCount = 0;
 
     visibleSections.forEach((section) => {
       const { feedId, title, items, isLoading } = section;
       if (!isLoading && items.length === 0) return;
 
-      result.push({ type: 'header', feedId, title });
+      result.push({
+        type: 'header',
+        feedId,
+        title,
+        isFirstHeader: headerCount === 0,
+      });
+      headerCount += 1;
 
       if (isLoading) {
         for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {
@@ -215,7 +266,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item }) => {
       if (item.type === 'header') {
-        const section = sections.find((s) => s.feedId === item.feedId);
+        const section = sectionsMap.get(item.feedId);
         if (!section) return null;
         return renderSectionHeader(item, section);
       }
@@ -229,10 +280,24 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           index={item.sectionIndex}
           searchQuery={searchQuery}
           tabName={activeTab}
+          resultCount={totalResultCount}
+          onQuickTrade={
+            (item.feedId === 'tokens' || item.feedId === 'stocks') &&
+            quickBuyVariant.showQuickTradeButton
+              ? setQuickTradeToken
+              : undefined
+          }
         />
       );
     },
-    [renderSectionHeader, sections, searchQuery, activeTab],
+    [
+      renderSectionHeader,
+      sectionsMap,
+      searchQuery,
+      activeTab,
+      totalResultCount,
+      quickBuyVariant.showQuickTradeButton,
+    ],
   );
 
   const keyExtractor = useCallback((item: FlatListItem) => {
@@ -249,10 +314,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
     if (!emptyFeedTitle && !allSectionsEmpty) return null;
     const showOtherResults = flatData.length > 0 && !isLoading;
-    const otherResultsCount = sections.reduce(
-      (sum, s) => sum + (s.total ?? s.items.length),
-      0,
-    );
     return (
       <Box twClassName={showOtherResults ? 'mb-4' : ''}>
         <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
@@ -300,14 +361,20 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         {showOtherResults && (
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('trending.showing_all_results_for', {
-              count: otherResultsCount,
+              count: totalResultCount,
               query: searchQuery,
             })}
           </Text>
         )}
       </Box>
     );
-  }, [emptyFeedTitle, searchQuery, flatData.length, sections]);
+  }, [
+    emptyFeedTitle,
+    searchQuery,
+    flatData.length,
+    sections,
+    totalResultCount,
+  ]);
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -325,6 +392,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         ListFooterComponent={renderFooter}
         onScrollBeginDrag={onScrollBeginDrag}
       />
+      <TrendingQuickBuy token={quickTradeToken} onClose={closeQuickBuy} />
     </Box>
   );
 };

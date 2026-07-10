@@ -15,7 +15,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { OnboardingSuccessComponent } from '../OnboardingSuccess';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const hardwareBackPress = () => ({});
@@ -97,7 +97,7 @@ class ManualBackupStep3 extends PureComponent {
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       ).build(),
       this.props.saveOnboardingEvent,

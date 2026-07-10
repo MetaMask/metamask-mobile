@@ -15,6 +15,7 @@ const mockUpdateBatchSellQuoteParams = Object.assign(jest.fn(), {
   cancel: mockCancelBatchSellQuoteParams,
 });
 const mockGetNewQuote = jest.fn();
+const mockTrackBatchSellQuotePageReviewClicked = jest.fn();
 const ethAssetId =
   'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;
 const uniAssetId =
@@ -206,6 +207,15 @@ jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
       return token.balance;
     },
   ),
+  hasValidBatchSellSourceAmounts: jest.fn(
+    (
+      _sourceTokens: BridgeToken[],
+      batchSellSourceTokenAmounts: Record<string, string | undefined>,
+    ) =>
+      Object.values(batchSellSourceTokenAmounts).some(
+        (amount) => amount !== undefined && Number(amount) > 0,
+      ),
+  ),
   useBatchSellQuoteRequest: jest.fn(() => ({
     updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
     getNewQuote: mockGetNewQuote,
@@ -214,6 +224,16 @@ jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
 
 jest.mock('../../hooks/useBatchSellQuoteData', () => ({
   useBatchSellQuoteData: () => mockBatchSellQuoteData,
+}));
+
+jest.mock('../../hooks/useTrackBatchSellQuotePageViewed', () => ({
+  useTrackBatchSellQuotePageViewed: jest.fn(),
+}));
+
+jest.mock('../../hooks/useTrackBatchSellQuotePageReviewClicked', () => ({
+  useTrackBatchSellQuotePageReviewClicked: jest.fn(
+    () => mockTrackBatchSellQuotePageReviewClicked,
+  ),
 }));
 
 describe('BatchSellReview', () => {
@@ -406,6 +426,7 @@ describe('BatchSellReview', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });
+    expect(mockTrackBatchSellQuotePageReviewClicked).toHaveBeenCalled();
   });
 
   it('disables review when no rows have quotes', () => {
@@ -479,6 +500,25 @@ describe('BatchSellReview', () => {
     expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
   });
 
+  it('disables the review button and clears quotes when all source amounts are zero', () => {
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: '0',
+      [uniAssetId]: '0',
+    };
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      hasAnyQuote: false,
+    };
+
+    const { getByTestId } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockUpdateBatchSellQuoteParams).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+    expect(mockCancelBatchSellQuoteParams).toHaveBeenCalled();
+  });
+
   it('shows UNKNOWN when there is no destination token match', () => {
     mockSelectedDestinationToken = undefined;
     mockDestinationTokens = [];
@@ -549,6 +589,7 @@ describe('BatchSellReview', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });
+    expect(mockTrackBatchSellQuotePageReviewClicked).toHaveBeenCalled();
   });
 
   it('shows Get new quote when max refresh expires and fetches fresh quotes', () => {
@@ -565,6 +606,7 @@ describe('BatchSellReview', () => {
     expect(getByText('Get new quote')).toBeOnTheScreen();
     expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
     expect(mockGetNewQuote).toHaveBeenCalledTimes(1);
+    expect(mockTrackBatchSellQuotePageReviewClicked).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });

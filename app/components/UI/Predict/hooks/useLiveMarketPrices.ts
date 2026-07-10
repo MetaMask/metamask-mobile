@@ -74,6 +74,10 @@ export const useLiveMarketPrices = (
 
   const isMountedRef = useRef(true);
   const tokenIdsRef = useRef(tokenIds);
+  // Mirrors the latest `prices` map so we can detect no-op ticks without
+  // adding `prices` to `handlePriceUpdates`' dependencies. Kept in sync inside
+  // every state updater below.
+  const pricesRef = useRef(prices);
 
   // Use JSON.stringify to avoid key collisions if token IDs contain commas
   const tokenIdsKey = useMemo(
@@ -95,11 +99,30 @@ export const useLiveMarketPrices = (
       liveMarketPriceCache.set(update.tokenId, { price: update, updatedAt });
     });
 
+    // Skip the state update entirely when none of the incoming values differ
+    // from what we already have. This prevents a re-render of the whole
+    // subscriber tree for redundant ticks that carry no visible change.
+    const current = pricesRef.current;
+    const hasChange = updates.some((update) => {
+      const existing = current.get(update.tokenId);
+      return (
+        !existing ||
+        existing.price !== update.price ||
+        existing.bestBid !== update.bestBid ||
+        existing.bestAsk !== update.bestAsk
+      );
+    });
+
+    if (!hasChange) {
+      return;
+    }
+
     setPrices((prevPrices) => {
       const newPrices = new Map(prevPrices);
       updates.forEach((update) => {
         newPrices.set(update.tokenId, update);
       });
+      pricesRef.current = newPrices;
       return newPrices;
     });
 
@@ -125,6 +148,7 @@ export const useLiveMarketPrices = (
           nextPrices.set(tokenId, cachedPrice);
         }
       });
+      pricesRef.current = nextPrices;
       return nextPrices;
     });
 

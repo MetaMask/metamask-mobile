@@ -49,7 +49,7 @@ export const chompApiServiceInit: MessengerClientInitFunction<
       'RemoteFeatureFlagController:getState',
     );
     const chompApiConfig = parseChompApiConfig(
-      featureState.remoteFeatureFlags?.earnChompApiConfig,
+      featureState.remoteFeatureFlags?.moneyAccountChompConfig,
     );
 
     if (chompApiConfig) {

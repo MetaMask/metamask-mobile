@@ -27,13 +27,19 @@ jest.mock(
 );
 
 const mockOnLedgerConfirm = jest.fn().mockResolvedValue(undefined);
+const mockUseLedgerConfirm = jest.fn((_options?: unknown) => ({
+  onConfirm: mockOnLedgerConfirm,
+}));
 jest.mock('./useLedgerConfirm', () => ({
-  useLedgerConfirm: () => ({ onConfirm: mockOnLedgerConfirm }),
+  useLedgerConfirm: (options: unknown) => mockUseLedgerConfirm(options),
 }));
 
 const mockOnQrConfirm = jest.fn().mockResolvedValue(undefined);
+const mockUseQrConfirm = jest.fn((_options?: unknown) => ({
+  onConfirm: mockOnQrConfirm,
+}));
 jest.mock('../../../../core/HardwareWallet/hooks/useQrConfirm', () => ({
-  useQrConfirm: () => ({ onConfirm: mockOnQrConfirm }),
+  useQrConfirm: (options: unknown) => mockUseQrConfirm(options),
 }));
 
 const mockIsConfirmationFromQrAccount = jest.requireMock(
@@ -93,6 +99,40 @@ describe('useConfirmAction', () => {
     useTransactionConfirmMock.mockReturnValue({
       onConfirm: jest.fn(),
     });
+  });
+
+  it('passes the confirmation from address to hardware wallet confirmation hooks', () => {
+    renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    expect(mockUseLedgerConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fromAddress: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+      }),
+    );
+    expect(mockUseQrConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fromAddress: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+      }),
+    );
+  });
+
+  it('passes the transaction metadata from address when approval request has no from address', () => {
+    renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    expect(mockUseLedgerConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fromAddress: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+      }),
+    );
+    expect(mockUseQrConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fromAddress: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+      }),
+    );
   });
 
   it('sets signing confirmed and shows scanner when QR signing is in progress', async () => {

@@ -2,12 +2,11 @@ import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsSignedIn } from '../../../selectors/identity';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
-import { selectWalletHomeOnboardingStepsEnabled } from '../../../selectors/featureFlagController/homepage';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import {
   getIsNotificationEnabledByDefaultFeatureFlag,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
@@ -117,9 +116,6 @@ export function useEnableNotificationsByDefaultEffect() {
   const isNotificationsEnabledByDefaultFeatureFlag = useSelector(
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
-  const walletHomeOnboardingStepsRemoteEnabled = useSelector(
-    selectWalletHomeOnboardingStepsEnabled,
-  );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
@@ -130,7 +126,6 @@ export function useEnableNotificationsByDefaultEffect() {
     const run = async () => {
       try {
         const isWalletHomePostOnboardingChecklistActive =
-          walletHomeOnboardingStepsRemoteEnabled &&
           shouldShowWalletHomeOnboardingSteps;
 
         // Wallet home post-onboarding (empty-balance checklist) ends with a dedicated
@@ -163,7 +158,6 @@ export function useEnableNotificationsByDefaultEffect() {
     notificationsEnabled,
     notificationsFlagEnabled,
     shouldShowWalletHomeOnboardingSteps,
-    walletHomeOnboardingStepsRemoteEnabled,
   ]);
 }
 

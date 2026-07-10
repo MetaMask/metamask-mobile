@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import {
   ButtonSize,
   ButtonVariants,
@@ -17,7 +16,12 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { FlashList } from '@shopify/flash-list';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { ImportAsset } from '../../utils/utils';
 import AddAssetTokenRow from '../../components/AddAssetTokenRow/AddAssetTokenRow';
 import Logger from '../../../../../util/Logger';
@@ -45,20 +49,6 @@ const ConfirmAddAsset = () => {
     });
   }, [navigation]);
 
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings(`add_asset.title`),
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
-
   const handleImport = useCallback(async () => {
     if (isImporting) {
       return;
@@ -81,6 +71,12 @@ const ConfirmAddAsset = () => {
       style={tw.style('flex-1 bg-default')}
       testID={ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET}
     >
+      <HeaderStandard
+        title={strings('add_asset.title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+
       <Box twClassName="flex-1 pt-2">
         <Text variant={TextVariant.BodyMd} style={tw.style('text-center px-4')}>
           {selectedAsset.length > 1

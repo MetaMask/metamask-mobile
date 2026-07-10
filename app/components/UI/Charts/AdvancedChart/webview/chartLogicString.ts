@@ -1,4035 +1,5062 @@
-/**
- * AUTO-GENERATED - DO NOT EDIT DIRECTLY
- *
- * This file is generated from chartLogic.js by syncChartLogic.js
- * Edit chartLogic.js instead, then run:
- *   node app/components/UI/Charts/AdvancedChart/webview/syncChartLogic.js
- */
-
-// eslint-disable-next-line import-x/no-default-export
-export default `/**
- * TradingView Chart WebView Logic
- *
- * Generic charting logic for TradingView Advanced Charts.
- * Embedded into the WebView HTML at runtime via chartLogicString.ts.
- *
- * CONFIG is injected before this script runs and contains:
- * - libraryUrl: string
- * - theme: { backgroundColor, borderColor, textColor, successColor, errorColor, primaryColor }
- * - lineChrome: { hideTimeScale, useCustomLineEndMarker, useCustomDashedLastPriceLine,
- *   useCustomPriceLabels }
- *   Single source of truth; \`SET_LINE_CHROME\` replaces it. Missing keys in old HTML fall back in
- *   \`getLineChrome\` via \`LINE_CHROME_DEFAULTS\`.
- */
-
-// ============================================
-// Global State
-// ============================================
-window.chartWidget = null;
-window.ohlcvData = [];
-window.currentSymbol = 'ASSET';
-window.activeStudies = new Map();
-window.positionShapeIds = [];
-window.isChartReady = false;
-window.pendingMessages = [];
-window.libraryLoaded = false;
-window.libraryError = null;
-window.realtimeCallbacks = {};
-/**
- * Pagination state for WebView-side direct fetching.
- * Populated by \`SET_OHLCV_DATA\` when \`payload.pagination\` is present.
- */
-window.ohlcvPagination = {
-  nextCursor: null,
-  hasMore: false,
-  assetId: null,
-  vsCurrency: null,
-};
-/** Bumped on each \`SET_OHLCV_DATA\` so in-flight fetches from a previous series are discarded. */
-window.ohlcvGeneration = 0;
-/** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
-window.visibleFromMs = null;
-/** Visible-range end (ms) from RN; anchors the timeframe \`to\` to the last candle instead of Date.now(). */
-window.visibleToMs = null;
-// Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
-window.currentChartType = 2;
-window.lineLastPriceShapeId = null;
-/** Bumped when \`ohlcvData\` is replaced or last bar changes; visible-range dot refresh ignores stale timers. */
-window.lineChartOhlcvEpoch = 0;
-
-/** Skip \`CHART_INTERACTED\` (zoom / pan) while data/layout updates run. */
-window.__mmSuppressChartInteractUntil = 0;
-/** One \`CHART_INTERACTED\` tooltip per crosshair session (until dismiss). */
-window.__mmTooltipChartInteractSent = false;
-
-function suppressChartUserInteraction(ms) {
-  window.__mmSuppressChartInteractUntil = Date.now() + (ms || 600);
-}
-
-/**
- * When true, we defer \`CHART_LAYOUT_SETTLED\` until the datafeed delivers a post-reload response
- * (see \`beginDeferredLayoutSettleAfterOhlcvReload\`) or until the fallback timer fires.
- */
-window.__mmLayoutSettlePending = false;
-/** Return value of \`setTimeout\` for settle fallback; cleared when settle completes or aborts. */
-window.__mmLayoutSettleFallbackTimer = null;
-
-function bumpLineChartOhlcvEpoch() {
-  window.lineChartOhlcvEpoch = (window.lineChartOhlcvEpoch || 0) + 1;
-}
-
-// ============================================
-// Communication with React Native
-// ============================================
-function sendToReactNative(type, payload) {
-  payload = payload || {};
-  if (window.ReactNativeWebView) {
-    window.ReactNativeWebView.postMessage(
-      JSON.stringify({ type: type, payload: payload }),
-    );
-  }
-}
-
-/**
- * Posts \`CHART_LAYOUT_SETTLED\` to React Native so the native skeleton overlay can hide.
- *
- * Uses two nested \`requestAnimationFrame\` calls so the message runs after the browser has had a
- * chance to apply layout/paint from TradingView’s internal updates (with a \`setTimeout\` fallback
- * if rAF is unavailable).
- *
- * Does not apply chart scale or line overlays — callers that need that run
- * \`applyChartScaleLayout\` / \`refreshLineChartOverlays\` before invoking this (see
- * \`tryCompleteLayoutSettleAfterDataCore\`).
- */
-function scheduleChartLayoutSettledNotify() {
-  try {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        if (window.chartWidget && window.isChartReady) {
-          sendToReactNative('CHART_LAYOUT_SETTLED', {});
-        }
-      });
-    });
-  } catch (e) {
-    try {
-      setTimeout(function () {
-        if (window.chartWidget && window.isChartReady) {
-          sendToReactNative('CHART_LAYOUT_SETTLED', {});
-        }
-      }, 48);
-    } catch (e2) {}
-  }
-}
-
-/** Milliseconds to wait if TradingView never calls \`getBars\` again after \`resetData\` (e.g. same-resolution cache). */
-var LAYOUT_SETTLE_DATA_FALLBACK_MS = 400;
-
-/**
- * Clears the WebView-side fallback timer that would force \`CHART_LAYOUT_SETTLED\` if data delivery
- * never completes. Safe to call when no timer is active.
- */
-function clearMmLayoutSettleFallbackTimer() {
-  if (window.__mmLayoutSettleFallbackTimer != null) {
-    clearTimeout(window.__mmLayoutSettleFallbackTimer);
-    window.__mmLayoutSettleFallbackTimer = null;
-  }
-}
-
-/**
- * Performs the “real” layout settle: applies our scale/line overrides, then notifies RN.
- *
- * - No-ops if \`__mmLayoutSettlePending\` is false (idempotent / avoids double-fire).
- * - Clears the pending flag and the fallback timer, then runs \`applyChartScaleLayout\` and line
- *   overlays when applicable, then \`scheduleChartLayoutSettledNotify\`.
- */
-function tryCompleteLayoutSettleAfterDataCore() {
-  if (!window.__mmLayoutSettlePending) {
-    return;
-  }
-  window.__mmLayoutSettlePending = false;
-  clearMmLayoutSettleFallbackTimer();
-  try {
-    if (window.chartWidget && window.isChartReady) {
-      applyChartScaleLayout(window.currentChartType);
-      if (window.currentChartType === 2) {
-        refreshLineChartOverlays();
-      }
-    }
-  } catch (e) {}
-  scheduleChartLayoutSettledNotify();
-}
-
-/**
- * Defers \`tryCompleteLayoutSettleAfterDataCore\` by two animation frames so TradingView can merge
- * the bars returned from \`getBars\` into the series before we tweak scale and tell RN to hide the
- * skeleton. Falls back to a short timeout if rAF throws.
- */
-function queueTryCompleteLayoutSettleAfterData() {
-  if (!window.__mmLayoutSettlePending) {
-    return;
-  }
-  try {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        tryCompleteLayoutSettleAfterDataCore();
-      });
-    });
-  } catch (e) {
-    setTimeout(tryCompleteLayoutSettleAfterDataCore, 32);
-  }
-}
-
-/**
- * Starts the deferred settle lifecycle after \`resetData()\` / \`setResolution\` or before resolving a
- * deferred \`getBars\` (pagination).
- *
- * **Why:** Firing \`CHART_LAYOUT_SETTLED\` immediately after \`resetData()\` returns is too early —
- * TradingView often loads/refreshes series data asynchronously via \`getBars\`. RN then hides the
- * skeleton while the canvas is still empty or mid-transition (flicker).
- *
- * **Completion paths:**
- * 1. \`getBars\` invokes \`onResult\` with \`periodParams.firstDataRequest === true\` for this reload →
- *    \`queueTryCompleteLayoutSettleAfterData\`.
- * 2. \`finishDeferredGetBars\` (history pagination) calls the pending \`onResult\` → same queue.
- * 3. \`LAYOUT_SETTLE_DATA_FALLBACK_MS\` elapses without (1)/(2) → force complete (same-resolution edge).
- *
- * **Errors:** Use \`abortDeferredLayoutSettleAndNotify\` so RN never stays stuck with the skeleton on.
- */
-function beginDeferredLayoutSettleAfterOhlcvReload() {
-  clearMmLayoutSettleFallbackTimer();
-  window.__mmLayoutSettlePending = true;
-  window.__mmLayoutSettleFallbackTimer = setTimeout(function () {
-    window.__mmLayoutSettleFallbackTimer = null;
-    if (window.__mmLayoutSettlePending) {
-      tryCompleteLayoutSettleAfterDataCore();
-    }
-  }, LAYOUT_SETTLE_DATA_FALLBACK_MS);
-}
-
-/**
- * Clears deferred state and always sends \`CHART_LAYOUT_SETTLED\` (e.g. \`resetData\` threw, \`getBars\`
- * error, or widget teardown). Ensures the native loading skeleton does not remain indefinitely.
- */
-function abortDeferredLayoutSettleAndNotify() {
-  window.__mmLayoutSettlePending = false;
-  clearMmLayoutSettleFallbackTimer();
-  scheduleChartLayoutSettledNotify();
-}
-
-// ============================================
-// Message Handler
-// ============================================
-function handleMessage(event) {
-  try {
-    var message =
-      typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-
-    if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
-      window.pendingMessages.push(message);
-      return;
-    }
-
-    switch (message.type) {
-      case 'SET_OHLCV_DATA':
-        handleSetOHLCVData(message.payload);
-        break;
-      case 'ADD_INDICATOR':
-        handleAddIndicator(message.payload);
-        break;
-      case 'REMOVE_INDICATOR':
-        handleRemoveIndicator(message.payload);
-        break;
-      case 'SET_CHART_TYPE':
-        handleSetChartType(message.payload);
-        break;
-      case 'SET_LINE_CHROME':
-        handleSetLineChrome(message.payload);
-        break;
-      case 'SET_POSITION_LINES':
-        handleSetPositionLines(message.payload);
-        break;
-      case 'REALTIME_UPDATE':
-        handleRealtimeUpdate(message.payload);
-        break;
-      case 'TOGGLE_VOLUME':
-        handleToggleVolume(message.payload);
-        break;
-    }
-  } catch (error) {
-    sendToReactNative('ERROR', { message: error.message });
-  }
-}
-
-window.addEventListener('message', handleMessage);
-document.addEventListener('message', handleMessage);
-
-/** Mirrors \`DEFAULT_LINE_CHROME\` in AdvancedChart.types.ts (WebView cannot import RN modules). */
-var LINE_CHROME_DEFAULTS = {
-  hideTimeScale: false,
-  useCustomLineEndMarker: true,
-  useCustomDashedLastPriceLine: true,
-  useCustomPriceLabels: true,
-};
-
-function lineChromePickBool(lc, key, fallback) {
-  return lc[key] !== undefined ? !!lc[key] : fallback;
-}
-
-/**
- * Effective line chrome: \`CONFIG.lineChrome\` written by the HTML template and \`SET_LINE_CHROME\`.
- */
-function getLineChrome() {
-  var lc = (window.CONFIG && window.CONFIG.lineChrome) || {};
-  return {
-    hideTimeScale: lineChromePickBool(
-      lc,
-      'hideTimeScale',
-      LINE_CHROME_DEFAULTS.hideTimeScale,
-    ),
-    useCustomLineEndMarker: lineChromePickBool(
-      lc,
-      'useCustomLineEndMarker',
-      LINE_CHROME_DEFAULTS.useCustomLineEndMarker,
-    ),
-    useCustomDashedLastPriceLine: lineChromePickBool(
-      lc,
-      'useCustomDashedLastPriceLine',
-      LINE_CHROME_DEFAULTS.useCustomDashedLastPriceLine,
-    ),
-    useCustomPriceLabels: lineChromePickBool(
-      lc,
-      'useCustomPriceLabels',
-      LINE_CHROME_DEFAULTS.useCustomPriceLabels,
-    ),
-  };
-}
-
-/**
- * Normalizes RN \`SET_LINE_CHROME\` payload onto a full boolean quad; any missing key uses default.
- */
-function resolveLineChromeFromPayload(payload) {
-  if (!payload || typeof payload !== 'object') {
-    return null;
-  }
-  return {
-    hideTimeScale:
-      payload.hideTimeScale !== undefined
-        ? !!payload.hideTimeScale
-        : LINE_CHROME_DEFAULTS.hideTimeScale,
-    useCustomLineEndMarker:
-      payload.useCustomLineEndMarker !== undefined
-        ? !!payload.useCustomLineEndMarker
-        : LINE_CHROME_DEFAULTS.useCustomLineEndMarker,
-    useCustomDashedLastPriceLine:
-      payload.useCustomDashedLastPriceLine !== undefined
-        ? !!payload.useCustomDashedLastPriceLine
-        : LINE_CHROME_DEFAULTS.useCustomDashedLastPriceLine,
-    useCustomPriceLabels:
-      payload.useCustomPriceLabels !== undefined
-        ? !!payload.useCustomPriceLabels
-        : LINE_CHROME_DEFAULTS.useCustomPriceLabels,
-  };
-}
-
-function handleSetLineChrome(payload) {
-  var resolved = resolveLineChromeFromPayload(payload);
-  if (!resolved) {
-    return;
-  }
-  window.CONFIG = window.CONFIG || {};
-  window.CONFIG.lineChrome = resolved;
-  if (!resolved.useCustomLineEndMarker) {
-    clearLineEndDotVisibleRangeDebounce();
-  }
-  if (!resolved.useCustomPriceLabels) {
-    window.lastCloseLabelScheduled = false;
-  }
-  if (!window.isChartReady || !window.chartWidget) {
-    return;
-  }
-  applyChartScaleLayout(window.currentChartType);
-  if (window.currentChartType === 2) {
-    refreshLineChartOverlays();
-  } else if (window.currentChartType === 1) {
-    if (getLineChrome().useCustomDashedLastPriceLine) {
-      createLastPriceLine();
-    } else {
-      removeAllLastPriceHorizontalOverlays({
-        hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-      });
-      scheduleLastCloseLabelUpdate();
-    }
-  }
-}
-
-// ============================================
-// Data Handlers
-// ============================================
-var INTERVAL_MS_TO_TV = {
-  60000: '1',
-  180000: '3',
-  300000: '5',
-  900000: '15',
-  1800000: '30',
-  3600000: '60',
-  7200000: '120',
-  14400000: '240',
-  28800000: '480',
-  43200000: '720',
-  86400000: '1D',
-  259200000: '3D',
-  604800000: '1W',
-  2592000000: '1M',
-};
-
-function detectResolution(data) {
-  if (data.length < 2) return '5';
-  // Use median of first few diffs to avoid gaps skewing the result
-  var diffs = [];
-  var len = Math.min(data.length - 1, 10);
-  for (var i = 0; i < len; i++) {
-    diffs.push(data[i + 1].time - data[i].time);
-  }
-  diffs.sort(function (a, b) {
-    return a - b;
-  });
-  var median = diffs[Math.floor(diffs.length / 2)];
-
-  // Find closest match
-  var keys = Object.keys(INTERVAL_MS_TO_TV);
-  var best = '5';
-  var bestDist = Infinity;
-  for (var k = 0; k < keys.length; k++) {
-    var d = Math.abs(Number(keys[k]) - median);
-    if (d < bestDist) {
-      bestDist = d;
-      best = INTERVAL_MS_TO_TV[keys[k]];
-    }
-  }
-  return best;
-}
-
-function handleSetOHLCVData(payload) {
-  if (!payload || !payload.data || payload.data.length === 0) return;
-
-  suppressChartUserInteraction(700);
-
-  window.ohlcvData = payload.data;
-  bumpLineChartOhlcvEpoch();
-  window.ohlcvGeneration++;
-
-  if (payload.pagination) {
-    window.ohlcvPagination = {
-      nextCursor: payload.pagination.nextCursor || null,
-      hasMore: !!payload.pagination.hasMore,
-      assetId: payload.pagination.assetId || null,
-      vsCurrency: payload.pagination.vsCurrency || null,
-    };
-  } else {
-    window.ohlcvPagination = {
-      nextCursor: null,
-      hasMore: false,
-      assetId: null,
-      vsCurrency: null,
-    };
-  }
-
-  var visibleFromMs =
-    payload.visibleFromMs != null ? payload.visibleFromMs : null;
-  window.visibleFromMs = visibleFromMs;
-
-  var visibleToMs = payload.visibleToMs != null ? payload.visibleToMs : null;
-  window.visibleToMs = visibleToMs;
-
-  var newResolution = detectResolution(window.ohlcvData);
-
-  function scheduleVisibleRangeAfterDataLoad(chart) {
-    if (visibleFromMs == null) return;
-    var capturedGeneration = window.ohlcvGeneration;
-    var sub = chart.onDataLoaded();
-    sub.subscribe(null, function onLoaded() {
-      sub.unsubscribe(null, onLoaded);
-      // Discard stale callback if user switched timeframes before load completed
-      if (capturedGeneration !== window.ohlcvGeneration) {
-        return;
-      }
-      var fromSec = Math.floor(visibleFromMs / 1000);
-      var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-      var toSec = lastBar
-        ? Math.ceil(lastBar.time / 1000)
-        : Math.ceil(Date.now() / 1000);
-      // Pad \`to\` forward by 2 bar durations so the end dot clears the price axis.
-      // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
-      var barPadSec = getApproxBarDurationSec() * 2;
-      try {
-        chart.setVisibleRange(
-          { from: fromSec, to: toSec + barPadSec },
-          { percentRightMargin: 0 },
-        );
-      } catch (e) {
-        // setVisibleRange can fail if chart is mid-teardown
-      }
-    });
-  }
-
-  if (window.chartWidget && window.isChartReady) {
-    var previousResolution = window.currentResolution;
-    window.currentResolution = newResolution;
-
-    try {
-      var chart = window.chartWidget.activeChart();
-      if (previousResolution !== newResolution) {
-        chart.setResolution(newResolution, function () {
-          try {
-            chart.resetData();
-            beginDeferredLayoutSettleAfterOhlcvReload();
-            scheduleVisibleRangeAfterDataLoad(chart);
-          } catch (eR) {
-            abortDeferredLayoutSettleAndNotify();
-            return;
-          }
-        });
-      } else {
-        try {
-          chart.resetData();
-          beginDeferredLayoutSettleAfterOhlcvReload();
-          scheduleVisibleRangeAfterDataLoad(chart);
-        } catch (e) {
-          abortDeferredLayoutSettleAndNotify();
-          return;
-        }
-      }
-    } catch (e) {
-      abortDeferredLayoutSettleAndNotify();
-      window.chartWidget.remove();
-      window.chartWidget = null;
-      window.isChartReady = false;
-      window.activeStudies = new Map();
-      window.volumeStudyId = null;
-      window.volumeIsOverlay = null;
-      window.lastPriceShapeId = null;
-      window.lineEndDotShapeId = null;
-      window.lineLastPriceShapeId = null;
-      window.positionShapeIds = [];
-      window.realtimeCallbacks = {};
-      window.currentChartType = 2;
-      initChart();
-    }
-  } else if (window.chartWidget && !window.isChartReady) {
-    window.currentResolution = newResolution;
-  } else if (!window.chartWidget) {
-    window.currentResolution = newResolution;
-    libraryLoadAttempts = 0;
-    initChart();
-  }
-}
-
-// ============================================
-// Realtime Update Handler
-// ============================================
-function handleRealtimeUpdate(payload) {
-  if (!payload || !payload.bar) return;
-
-  var bar = payload.bar;
-
-  // Append or update the last bar in the local data store
-  if (window.ohlcvData.length > 0) {
-    var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-    if (lastBar.time === bar.time) {
-      window.ohlcvData[window.ohlcvData.length - 1] = bar;
-    } else {
-      window.ohlcvData.push(bar);
-    }
-  } else {
-    window.ohlcvData.push(bar);
-  }
-  bumpLineChartOhlcvEpoch();
-
-  // Forward to all active TradingView subscribeBars callbacks
-  var tick = {
-    time: bar.time,
-    open: bar.open,
-    high: bar.high,
-    low: bar.low,
-    close: bar.close,
-    volume: bar.volume,
-  };
-  var guids = Object.keys(window.realtimeCallbacks);
-  for (var i = 0; i < guids.length; i++) {
-    window.realtimeCallbacks[guids[i]](tick);
-  }
-
-  // Update price indicators based on current chart type
-  if (window.currentChartType === 2) {
-    refreshLineChartOverlays();
-  } else if (window.currentChartType === 1) {
-    ensureNoLineChartEndIcons();
-    if (getLineChrome().useCustomDashedLastPriceLine) {
-      createLastPriceLine();
-    } else {
-      removeAllLastPriceHorizontalOverlays({
-        hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-      });
-      scheduleLastCloseLabelUpdate();
-    }
-  }
-}
-
-// ============================================
-// Indicator Handlers
+// AUTO-GENERATED — do not edit manually.
+// Re-generate with: yarn build:advanced-chart-webview
 //
-// Curated subset for Token Details mobile UX. Consumers needing the full
-// TradingView study picker can re-enable header_widget via disabledFeatures
-// prop, which exposes TradingView's native indicator UI.
-// ============================================
-function isOwnStringKey(key) {
-  return (
-    typeof key === 'string' &&
-    key !== '__proto__' &&
-    key !== 'constructor' &&
-    key !== 'prototype'
-  );
-}
+// Source: app/components/UI/Charts/AdvancedChart/webview/src/
 
-function handleAddIndicator(payload) {
-  if (!window.chartWidget || !window.isChartReady) return;
-  if (!payload || !payload.name) return;
+// prettier-ignore
+const chartLogicString = `/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	// The require scope
+/******/ 	var __webpack_require__ = {};
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// ESM COMPAT FLAG
+__webpack_require__.r(__webpack_exports__);
 
-  var indicatorName = payload.name;
-  if (!isOwnStringKey(indicatorName)) return;
-
-  if (window.activeStudies.has(indicatorName)) {
-    return;
-  }
-
-  try {
-    var chart = window.chartWidget.activeChart();
-    var studyName, inputs;
-
-    switch (indicatorName) {
-      case 'MACD':
-        studyName = 'MACD';
-        inputs = { in_0: 12, in_1: 26, in_2: 9 };
-        break;
-      case 'RSI':
-        studyName = 'Relative Strength Index';
-        inputs = { in_0: 14 };
-        break;
-      case 'MA200':
-        studyName = 'Moving Average';
-        inputs = { in_0: 200 };
-        break;
-      default:
-        studyName = indicatorName;
-        inputs = payload.inputs || {};
-        break;
-    }
-
-    chart
-      .createStudy(studyName, false, false, inputs)
-      .then(function (studyId) {
-        window.activeStudies.set(indicatorName, studyId);
-        sendToReactNative('INDICATOR_ADDED', {
-          name: indicatorName,
-          id: String(studyId),
-        });
-      })
-      .catch(function (error) {
-        sendToReactNative('ERROR', {
-          message: 'Failed to add indicator: ' + error.message,
-        });
-      });
-  } catch (error) {
-    sendToReactNative('ERROR', { message: error.message });
-  }
-}
-
-function handleRemoveIndicator(payload) {
-  if (!window.chartWidget || !window.isChartReady) return;
-  if (!payload || !payload.name) return;
-
-  var indicatorName = payload.name;
-  if (!isOwnStringKey(indicatorName)) return;
-  if (!window.activeStudies.has(indicatorName)) return;
-
-  var studyId = window.activeStudies.get(indicatorName);
-  if (!studyId) return;
-
-  try {
-    var chart = window.chartWidget.activeChart();
-    chart.removeEntity(studyId);
-    window.activeStudies.delete(indicatorName);
-    sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
-  } catch (error) {
-    sendToReactNative('ERROR', { message: error.message });
-  }
-}
-
-// ============================================
-// Series Color Helper
-// ============================================
-function generatePaletteShades(hex) {
-  var r = parseInt(hex.slice(1, 3), 16);
-  var g = parseInt(hex.slice(3, 5), 16);
-  var b = parseInt(hex.slice(5, 7), 16);
-  var shades = [];
-  for (var i = 0; i < 19; i++) {
-    var t = i / 18;
-    var sr, sg, sb;
-    if (t < 0.5) {
-      var f = 1 - t * 2;
-      sr = Math.round(r + (255 - r) * f);
-      sg = Math.round(g + (255 - g) * f);
-      sb = Math.round(b + (255 - b) * f);
-    } else {
-      var f2 = (t - 0.5) * 2;
-      sr = Math.round(r * (1 - f2));
-      sg = Math.round(g * (1 - f2));
-      sb = Math.round(b * (1 - f2));
-    }
-    shades.push(
-      '#' + ((1 << 24) + (sr << 16) + (sg << 8) + sb).toString(16).slice(1),
-    );
-  }
-  return shades;
-}
-
-function getSeriesColorOverrides(color) {
-  return {
-    'mainSeriesProperties.lineStyle.color': color,
-    'mainSeriesProperties.lineStyle.colorType': 'solid',
-    'mainSeriesProperties.lineStyle.linewidth': 2,
-    'mainSeriesProperties.lineWithMarkersStyle.color': color,
-    'mainSeriesProperties.lineWithMarkersStyle.colorType': 'solid',
-    'mainSeriesProperties.lineWithMarkersStyle.linewidth': 2,
-    'mainSeriesProperties.areaStyle.linecolor': color,
-    'mainSeriesProperties.areaStyle.linewidth': 2,
-    'mainSeriesProperties.baselineStyle.topLineColor': color,
-    'mainSeriesProperties.baselineStyle.topLineWidth': 2,
-    'mainSeriesProperties.baselineStyle.bottomLineColor': color,
-    'mainSeriesProperties.baselineStyle.bottomLineWidth': 2,
-    'mainSeriesProperties.baselineStyle.topFillColor1': 'rgba(0,0,0,0)',
-    'mainSeriesProperties.baselineStyle.topFillColor2': 'rgba(0,0,0,0)',
-    'mainSeriesProperties.baselineStyle.bottomFillColor1': 'rgba(0,0,0,0)',
-    'mainSeriesProperties.baselineStyle.bottomFillColor2': 'rgba(0,0,0,0)',
-  };
-}
-
-// ============================================
-// Chart Type Handler
-// ============================================
-
-/**
- * Series stroke colors only (no scale chrome). Scale layout is applyChartScaleLayout.
- */
-function applySeriesColors() {
-  if (!window.chartWidget) return;
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
-  try {
-    window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
-    var series = window.chartWidget.activeChart().getSeries();
-    series.setChartStyleProperties(2, {
-      color: color,
-      colorType: 'solid',
-      linewidth: 2,
-    });
-    series.setChartStyleProperties(10, {
-      topLineColor: color,
-      bottomLineColor: color,
-      topLineWidth: 2,
-      bottomLineWidth: 2,
-    });
-  } catch (e) {}
-}
-
-/**
- * Pin main series to the right price scale (line and candles).
- * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ISeriesApi/
- */
-function syncMainSeriesToRightScale() {
-  if (!window.chartWidget || !window.isChartReady) return;
-  try {
-    window.chartWidget.activeChart().getSeries().detachToRight();
-  } catch (e) {}
-}
-
-/**
- * setChartType() can reset scale attachment — re-apply right scale + time-scale offset for line
- * (right offset keeps the end dot off the edge).
- */
-function scheduleLineChartLayoutReflow() {
-  if (window.currentChartType !== 2 || !window.chartWidget) return;
-  function run() {
-    if (!window.chartWidget || window.currentChartType !== 2) return;
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/bridge.ts
+// Typed bridge between the WebView IIFE and React Native.
+//
+// Wraps the same window.ReactNativeWebView.postMessage(...) call shape that
+// legacy chartLogic.js's sendToReactNative() uses, so the RN-side
+// parseWebViewMessage in AdvancedChart.types.ts decodes our messages without
+// any change to its consumers.
+function safeStringify(value) {
     try {
-      syncMainSeriesToRightScale();
-    } catch (e) {}
-  }
-  try {
-    requestAnimationFrame(run);
-  } catch (e) {
-    setTimeout(run, 0);
-  }
-  setTimeout(run, 120);
-}
-
-function applyChartScaleLayout(type) {
-  if (!window.chartWidget) return;
-
-  var theme = window.CONFIG.theme;
-  var isLineChart = type === 2;
-  var lc = getLineChrome();
-  var useCustomLabels = lc.useCustomPriceLabels;
-  var useCustomDashed = lc.useCustomDashedLastPriceLine;
-  /** Match pane background so time/price scale rules disappear; labels use textColor above. */
-  var axisLineColor = theme.backgroundColor || '#131416';
-
-  try {
-    window.chartWidget.applyOverrides({
-      'scalesProperties.showRightScale': true,
-      'scalesProperties.showLeftScale': false,
-      'scalesProperties.showSeriesLastValue': !useCustomLabels,
-      'scalesProperties.showStudyLastValue': false,
-      'scalesProperties.showSymbolLabels': false,
-      'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
-      'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
-      'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
-      'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
-      'scalesProperties.textColor': theme.textColor,
-      'mainSeriesProperties.showPriceLine': !useCustomDashed,
-      'timeScale.borderColor': axisLineColor,
-      'scalesProperties.lineColor': axisLineColor,
-      'paneProperties.separatorColor': theme.backgroundColor,
-      'paneProperties.topMargin': 12,
-      'paneProperties.bottomMargin': 8,
-    });
-  } catch (e) {}
-
-  removeLineChartMarkupStyle();
-  syncMainSeriesToRightScale();
-  if (isLineChart) {
-    scheduleLineChartLayoutReflow();
-  }
-  applyChartContainerOverflowUnclip();
-  scheduleChartDomUnclip();
-  updateCandleVolumeScaleColumnVisibility();
-  applyHidePriceScaleModeButtons();
-  applyLineTimeScaleVisibility(
-    window.currentChartType === 2 ? lc.hideTimeScale : false,
-  );
-  if (!useCustomLabels) {
-    hideCustomCrosshairLabels();
-  } else {
-    scheduleLastCloseLabelUpdate();
-  }
-}
-
-/**
- * Subscript helpers for tiny prices — mirrors app/util/number/subscriptNotation.ts.
- * This file is injected as a standalone script string in the chart WebView (see chartLogicString.ts),
- * not executed in the Metro/RN bundle, so we cannot import or require the shared TS module.
- */
-var SUBSCRIPT_DIGITS_CROSSHAIR = [
-  '₀',
-  '₁',
-  '₂',
-  '₃',
-  '₄',
-  '₅',
-  '₆',
-  '₇',
-  '₈',
-  '₉',
-];
-
-function toSubscriptDigitsCrosshair(n) {
-  return String(n)
-    .split('')
-    .map(function (digit) {
-      return SUBSCRIPT_DIGITS_CROSSHAIR[parseInt(digit, 10)];
-    })
-    .join('');
-}
-
-function formatSubscriptNotationCrosshair(abs) {
-  if (abs > 0 && abs < 0.0001) {
-    var priceStr = abs.toFixed(20);
-    var match = priceStr.match(/^0\\.0*([1-9]\\d*)/);
-    if (match) {
-      var leadingZeros = priceStr.indexOf(match[1]) - 2;
-      if (leadingZeros >= 4) {
-        var sig = match[1];
-        var significantDigits =
-          sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
-        return (
-          '0.0' + toSubscriptDigitsCrosshair(leadingZeros) + significantDigits
-        );
-      }
+        return JSON.stringify(value) ?? 'Unknown error';
     }
-  }
-  return null;
+    catch {
+        return String(value);
+    }
+}
+/**
+ * Posts a typed message to React Native via window.ReactNativeWebView.
+ * Equivalent to legacy \`sendToReactNative(type, payload)\` at chartLogic.js
+ * line ~98. Silently no-ops when window.ReactNativeWebView is absent (e.g.
+ * during unit tests in a jsdom environment without the RN bridge stub).
+ */
+function postToRN(type, payload) {
+    const bridge = window.ReactNativeWebView;
+    if (!bridge) {
+        return;
+    }
+    try {
+        bridge.postMessage(JSON.stringify({ type, payload }));
+    }
+    catch {
+        // postMessage / JSON.stringify failure: nothing to do — the WebView
+        // cannot inform RN of its own bridge failure.
+    }
+}
+/**
+ * Reports a runtime error to React Native via the ERROR channel. Matches the
+ * legacy \`sendToReactNative('ERROR', { message })\` pattern used throughout
+ * chartLogic.js.
+ */
+function reportErrorToRN(error) {
+    let message;
+    if (error instanceof Error) {
+        message = error.message;
+    }
+    else if (typeof error === 'string') {
+        message = error;
+    }
+    else {
+        message = safeStringify(error);
+    }
+    postToRN('ERROR', { message });
+}
+/**
+ * Registers a single inbound listener. React Native posts JSON strings via
+ * webView.postMessage; the WebView receives them on window 'message' on iOS
+ * and document 'message' on Android (see chartLogic.js line ~400). We
+ * subscribe to both so consumers don't have to.
+ *
+ * The returned function unsubscribes — useful for tests; the real bundle
+ * subscribes once at bootstrap and never unsubscribes.
+ */
+function onFromRN(handler) {
+    const dispatch = (event) => {
+        // RN WebView inline HTML: native bridge messages arrive with an empty
+        // or "null" origin. Reject messages from real web origins.
+        const origin = event.origin;
+        if (origin && origin !== 'null' && !origin.startsWith('file:')) {
+            return;
+        }
+        let parsed;
+        try {
+            parsed =
+                typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        }
+        catch (parseError) {
+            reportErrorToRN(parseError);
+            return;
+        }
+        if (!parsed || typeof parsed !== 'object') {
+            return;
+        }
+        const candidate = parsed;
+        if (typeof candidate.type !== 'string') {
+            return;
+        }
+        // Trusting the type narrowing here is fine because messages/handler.ts
+        // re-validates via a switch on candidate.type before dispatching to a
+        // typed handler. Phase 1 only routes SET_THEME_COLORS, but the listener
+        // forwards every well-formed message so the handler can decide.
+        handler(parsed);
+    };
+    // iOS posts arrive on window; Android posts arrive on document. Subscribe
+    // to both to match legacy chartLogic.js handleMessage wiring.
+    window.addEventListener('message', dispatch);
+    document.addEventListener('message', dispatch);
+    return () => {
+        window.removeEventListener('message', dispatch);
+        document.removeEventListener('message', dispatch);
+    };
 }
 
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/state.ts
+// Module-local state container for the AdvancedChart WebView.
+//
+// Replaces the legacy \`window.chartWidget\`, \`window.isChartReady\`,
+// \`window.currentSymbol\`, etc. (chartLogic.js lines ~21-60). Module-scoped
+// variables — not window.* globals — so behaviour is testable and ownership
+// is explicit. Future phases extend this with the OHLCV slice, the indicator
+// slice, and so on; the convention is "core state goes here, feature-local
+// state goes in features/<feature>/state.ts or overlays/<feature>/state.ts".
+const emptyPagination = () => ({
+    nextCursor: null,
+    hasMore: false,
+    assetId: null,
+    vsCurrency: null,
+});
+const state = {
+    widget: null,
+    isChartReady: false,
+    currentSymbol: 'ASSET',
+    currentResolution: '5',
+    currentChartType: 2,
+    theme: null,
+    libraryLoaded: false,
+    libraryError: null,
+    ohlcvData: [],
+    ohlcvGeneration: 0,
+    ohlcvPagination: emptyPagination(),
+    visibleFromMs: null,
+    visibleToMs: null,
+    realtimeCallbacks: {},
+    activeStudies: new Map(),
+    maStudies: new Map(),
+    legendStudyOrder: new Map(),
+    volumeStudyId: null,
+    volumeIsOverlay: null,
+    subPaneHeightRatio: null,
+    rnBackedPagination: { enabled: false },
+    hasExplicitCurrentPriceLine: false,
+    hotReloadSeq: 0,
+    slbMode: false,
+    slbCenteringPending: false,
+    legendOwnsLayoutSettle: false,
+};
+// ----- Widget lifecycle ---------------------------------------------------
+function getWidget() {
+    return state.widget;
+}
+function setWidget(widget) {
+    state.widget = widget;
+}
+function isChartReady() {
+    return state.isChartReady;
+}
+function setChartReady(ready) {
+    state.isChartReady = ready;
+}
+// ----- Symbol + resolution ------------------------------------------------
+function getCurrentSymbol() {
+    return state.currentSymbol;
+}
+function setCurrentSymbol(symbol) {
+    state.currentSymbol = symbol;
+}
+function getCurrentResolution() {
+    return state.currentResolution;
+}
+function setCurrentResolution(resolution) {
+    state.currentResolution = resolution;
+}
+// ----- Theme --------------------------------------------------------------
+function getTheme() {
+    return state.theme;
+}
+function setTheme(theme) {
+    state.theme = theme;
+}
+// ----- Library load -------------------------------------------------------
+function isLibraryLoaded() {
+    return state.libraryLoaded;
+}
+function setLibraryLoaded(loaded) {
+    state.libraryLoaded = loaded;
+}
+function getLibraryError() {
+    return state.libraryError;
+}
+function setLibraryError(error) {
+    state.libraryError = error;
+}
+// ----- Chart type --------------------------------------------------------
+function getCurrentChartType() {
+    return state.currentChartType;
+}
+function setCurrentChartType(type) {
+    state.currentChartType = type;
+}
+// ----- OHLCV data --------------------------------------------------------
+function getOhlcvData() {
+    return state.ohlcvData;
+}
+function setOhlcvData(data) {
+    state.ohlcvData = data;
+}
+function appendOrReplaceLastBar(bar) {
+    const data = state.ohlcvData;
+    const last = data.at(-1);
+    if (data.length > 0 && last?.time === bar.time) {
+        data[data.length - 1] = bar;
+    }
+    else {
+        data.push(bar);
+    }
+}
+function prependOhlcvBars(bars) {
+    state.ohlcvData = bars.concat(state.ohlcvData);
+}
+function getOhlcvGeneration() {
+    return state.ohlcvGeneration;
+}
+function state_bumpOhlcvGeneration() {
+    state.ohlcvGeneration += 1;
+    return state.ohlcvGeneration;
+}
+function getOhlcvPagination() {
+    return state.ohlcvPagination;
+}
+function setOhlcvPagination(pagination) {
+    state.ohlcvPagination = pagination;
+}
+function clearOhlcvPagination() {
+    state.ohlcvPagination = emptyPagination();
+}
+// ----- Visible range ------------------------------------------------------
+function getVisibleFromMs() {
+    return state.visibleFromMs;
+}
+function setVisibleFromMs(ms) {
+    state.visibleFromMs = ms;
+}
+function getVisibleToMs() {
+    return state.visibleToMs;
+}
+function setVisibleToMs(ms) {
+    state.visibleToMs = ms;
+}
+// ----- Realtime tick subscribers ------------------------------------------
+function registerRealtimeCallback(listenerGuid, cb) {
+    state.realtimeCallbacks[listenerGuid] = cb;
+}
+function unregisterRealtimeCallback(listenerGuid) {
+    delete state.realtimeCallbacks[listenerGuid];
+}
+function getRealtimeCallbacks() {
+    return state.realtimeCallbacks;
+}
+// ----- Indicator studies --------------------------------------------------
+function getActiveStudies() {
+    return state.activeStudies;
+}
+function getMaStudies() {
+    return state.maStudies;
+}
+function getLegendStudyOrder() {
+    return state.legendStudyOrder;
+}
+function registerStudy(bucket, name, studyId) {
+    if (bucket === 'active') {
+        state.activeStudies.set(name, studyId);
+    }
+    else {
+        state.maStudies.set(name, studyId);
+    }
+    state.legendStudyOrder.set(name, studyId);
+}
+function unregisterStudy(name) {
+    const fromActive = state.activeStudies.get(name);
+    const fromMA = state.maStudies.get(name);
+    state.activeStudies.delete(name);
+    state.maStudies.delete(name);
+    state.legendStudyOrder.delete(name);
+    return fromActive ?? fromMA;
+}
+// ----- Volume study -------------------------------------------------------
+function getVolumeStudyId() {
+    return state.volumeStudyId;
+}
+function setVolumeStudyId(id) {
+    state.volumeStudyId = id;
+    if (id) {
+        state.legendStudyOrder.set('Volume', id);
+    }
+    else {
+        state.legendStudyOrder.delete('Volume');
+    }
+}
+function getVolumeIsOverlay() {
+    return state.volumeIsOverlay;
+}
+function setVolumeIsOverlay(isOverlay) {
+    state.volumeIsOverlay = isOverlay;
+}
+// ----- Sub-pane height ratio ----------------------------------------------
+function getSubPaneHeightRatio() {
+    return state.subPaneHeightRatio;
+}
+function setSubPaneHeightRatio(ratio) {
+    state.subPaneHeightRatio = ratio;
+}
+// ----- RN-backed pagination --------------------------------------------------
+function getRnBackedPagination() {
+    return state.rnBackedPagination;
+}
+function setRnBackedPagination(config) {
+    state.rnBackedPagination = config;
+}
+// ----- Hot-reload sequence guards --------------------------------------------
+function bumpHotReloadSeq() {
+    state.hotReloadSeq += 1;
+    return state.hotReloadSeq;
+}
+function getHotReloadSeq() {
+    return state.hotReloadSeq;
+}
+// ----- SLB (Social Leaderboard) mode -----------------------------------------
+function getSlbMode() {
+    return state.slbMode;
+}
+function setSlbMode(enabled) {
+    state.slbMode = enabled;
+}
+function isSlbCenteringPending() {
+    return state.slbCenteringPending;
+}
+function setSlbCenteringPending(pending) {
+    state.slbCenteringPending = pending;
+}
+// ----- Legend owns layout settle ---------------------------------------------
+function setLegendOwnsLayoutSettle(owns) {
+    state.legendOwnsLayoutSettle = owns;
+}
+function doesLegendOwnLayoutSettle() {
+    return state.legendOwnsLayoutSettle;
+}
+// ----- Explicit current price line -------------------------------------------
+function getHasExplicitCurrentPriceLine() {
+    return state.hasExplicitCurrentPriceLine;
+}
+function setHasExplicitCurrentPriceLine(has) {
+    state.hasExplicitCurrentPriceLine = has;
+}
 /**
- * Custom crosshair labels (DOM overlay in #chart_surface; built-in TV labels disabled).
- * Number only — no currency symbol.
+ * Resets state to defaults — useful for unit tests. NOT for runtime use; the
+ * WebView is created fresh per mount (the RN side recreates the HTML when
+ * the theme or feature flags change).
+ */
+function __resetStateForTests() {
+    state.widget = null;
+    state.isChartReady = false;
+    state.currentSymbol = 'ASSET';
+    state.currentResolution = '5';
+    state.currentChartType = 2;
+    state.theme = null;
+    state.libraryLoaded = false;
+    state.libraryError = null;
+    state.ohlcvData = [];
+    state.ohlcvGeneration = 0;
+    state.ohlcvPagination = emptyPagination();
+    state.visibleFromMs = null;
+    state.visibleToMs = null;
+    state.realtimeCallbacks = {};
+    state.activeStudies = new Map();
+    state.maStudies = new Map();
+    state.legendStudyOrder = new Map();
+    state.volumeStudyId = null;
+    state.volumeIsOverlay = null;
+    state.subPaneHeightRatio = null;
+    state.rnBackedPagination = { enabled: false };
+    state.hasExplicitCurrentPriceLine = false;
+    state.hotReloadSeq = 0;
+    state.slbMode = false;
+    state.slbCenteringPending = false;
+    state.legendOwnsLayoutSettle = false;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/loadLibrary.ts
+// Loads the TradingView Advanced Charts library from window.CONFIG.libraryUrl
+// by injecting a <script> tag into the document head.
+//
+// Mirrors legacy chartLogic.js \`loadLibrary()\` (lines ~5211-5237) but returns
+// a Promise so callers can \`await\` library readiness in bootstrap.ts.
+
+
+const CHARTING_LIBRARY_FILE = 'charting_library.js';
+let inflightPromise = null;
+/**
+ * Loads the TradingView library script. Subsequent calls resolve immediately
+ * if the library is already loaded; rejected if a previous load failed.
+ * Concurrent calls while the script is still loading share the same promise.
+ */
+function loadLibrary_loadTradingViewLibrary(libraryUrl) {
+    if (isLibraryLoaded()) {
+        return Promise.resolve();
+    }
+    const existingError = getLibraryError();
+    if (existingError) {
+        return Promise.reject(new Error(existingError));
+    }
+    if (inflightPromise) {
+        return inflightPromise;
+    }
+    inflightPromise = new Promise((resolve, reject) => {
+        const scriptUrl = libraryUrl + CHARTING_LIBRARY_FILE;
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = scriptUrl;
+        script.onload = () => {
+            setLibraryLoaded(true);
+            inflightPromise = null;
+            resolve();
+        };
+        script.onerror = () => {
+            const message = \`Failed to load TradingView library. URL: \${scriptUrl}\`;
+            setLibraryError(message);
+            inflightPromise = null;
+            reportErrorToRN(message);
+            reject(new Error(message));
+        };
+        document.head.appendChild(script);
+    });
+    return inflightPromise;
+}
+/** @internal Exported only for unit tests. */
+function __resetLoadLibraryForTests() {
+    inflightPromise = null;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/messages/handler.ts
+// Inbound message dispatcher. Modules register typed handlers for the message
+// types they own; the dispatcher routes incoming messages by \`type\`.
+//
+// Mirrors legacy chartLogic.js \`handleMessage\` (lines ~341-401) but inverts
+// control: instead of a hard-coded switch, modules subscribe via
+// registerHandler. This lets Phase 2/3/5/6 add message types without editing
+// this file.
+//
+// Phase 1 routes SET_THEME_COLORS via widget/theme.ts.
+
+const handlers = new Map();
+/**
+ * Register a handler for a single inbound message type. Subsequent calls
+ * with the same type replace the previous handler (intentional — there's
+ * one owner per message type by convention).
+ */
+function registerHandler(type, handler) {
+    handlers.set(type, handler);
+}
+/**
+ * Dispatches an incoming message to the registered handler. Unknown types
+ * are silently dropped — future phases will add their handlers; the
+ * dispatcher doesn't need to know what's coming.
+ *
+ * Errors inside a handler are forwarded to RN via ERROR.
+ */
+function dispatchInboundMessage(message) {
+    const handler = handlers.get(message.type);
+    if (!handler)
+        return;
+    try {
+        handler(message.payload);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/** Test-only: clear all registered handlers. */
+function __resetHandlersForTests() {
+    handlers.clear();
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/theme.ts
+// Theme application + SET_THEME_COLORS hot-swap handler.
+//
+// Ported from chartLogic.js: getThemeLineColor (line ~1034),
+// getThemeLastPriceLineColor (~1044), getSeriesColorOverrides (~1084),
+// applySeriesStyleProperties (~1114), applySeriesColors (~1134), and
+// handleSetThemeColors (~1158).
+//
+// Phase 1 simplifications vs legacy:
+// - Drops \`useCustomPriceLabels\` branching (custom chrome is being removed;
+//   TV built-in scale + crosshair labels are always used).
+// - Drops in-place shape recolor for line-end dot / dashed last-price / pills
+//   (all chrome shapes that no longer exist).
+// - Volume study recolor is wired through a subscribe callback so Phase 3's
+//   features/volume/ can register without theme.ts knowing about it.
+
+
+const listeners = new Set();
+/**
+ * Subscribe to theme changes. The callback fires whenever
+ * applyThemeColors() updates state.theme. Returns an unsubscribe.
+ */
+function subscribeTheme(listener) {
+    listeners.add(listener);
+    return () => {
+        listeners.delete(listener);
+    };
+}
+/**
+ * Returns the series stroke color. Falls back to successColor when
+ * lineColor is unset (ambient feature off).
+ */
+function getThemeLineColor(theme) {
+    return theme.lineColor || theme.successColor;
+}
+/**
+ * Returns the current-price line color. Honors currentPriceColor when set,
+ * else matches the series line color.
+ */
+function getThemeLastPriceLineColor(theme) {
+    return theme.currentPriceColor || getThemeLineColor(theme);
+}
+/**
+ * Returns the visual color for the current-price line/pill. Falls back
+ * through currentPriceColor → lineColor → successColor.
+ */
+function getCurrentPriceVisualColor(theme) {
+    return theme.currentPriceColor || theme.lineColor || theme.successColor;
+}
+/**
+ * Volume up-bar color. Falls back to the candle success color.
+ */
+function getVolumeSuccessColor(theme) {
+    return theme.volumeSuccessColor || theme.successColor;
+}
+/**
+ * Volume down-bar color. Falls back to the candle error color.
+ */
+function getVolumeErrorColor(theme) {
+    return theme.volumeErrorColor || theme.errorColor;
+}
+/**
+ * Returns the TradingView main-series style overrides for a given line color.
+ */
+function getSeriesColorOverrides(lineColor, lastPriceLineColor) {
+    const pillColor = lastPriceLineColor ?? lineColor;
+    return {
+        'mainSeriesProperties.lineStyle.color': lineColor,
+        'mainSeriesProperties.lineStyle.colorType': 'solid',
+        'mainSeriesProperties.lineStyle.linewidth': 2,
+        'mainSeriesProperties.lineWithMarkersStyle.color': lineColor,
+        'mainSeriesProperties.lineWithMarkersStyle.colorType': 'solid',
+        'mainSeriesProperties.lineWithMarkersStyle.linewidth': 2,
+        'mainSeriesProperties.areaStyle.linecolor': lineColor,
+        'mainSeriesProperties.areaStyle.linewidth': 2,
+        'mainSeriesProperties.baselineStyle.topLineColor': lineColor,
+        'mainSeriesProperties.baselineStyle.topLineWidth': 2,
+        'mainSeriesProperties.baselineStyle.bottomLineColor': lineColor,
+        'mainSeriesProperties.baselineStyle.bottomLineWidth': 2,
+        'mainSeriesProperties.baselineStyle.topFillColor1': 'rgba(0,0,0,0)',
+        'mainSeriesProperties.baselineStyle.topFillColor2': 'rgba(0,0,0,0)',
+        'mainSeriesProperties.baselineStyle.bottomFillColor1': 'rgba(0,0,0,0)',
+        'mainSeriesProperties.baselineStyle.bottomFillColor2': 'rgba(0,0,0,0)',
+        'mainSeriesProperties.priceLineColor': pillColor,
+    };
+}
+/**
+ * Returns the TV built-in scale + crosshair label overrides. With custom
+ * chrome removed, TV's built-ins are always enabled (showSeriesLastValue,
+ * showPriceScaleCrosshairLabel, showTimeScaleCrosshairLabel).
+ */
+function getBuiltInScaleLabelOverrides(theme) {
+    const crosshairBg = theme.crosshairBackgroundColor ||
+        theme.sectionBackgroundColor ||
+        theme.backgroundColor;
+    return {
+        'scalesProperties.textColor': theme.textColor,
+        'scalesProperties.crosshairLabelBgColorDark': crosshairBg,
+        'scalesProperties.crosshairLabelBgColorLight': crosshairBg,
+        'mainSeriesProperties.priceLineColor': getThemeLastPriceLineColor(theme),
+    };
+}
+/**
+ * Returns the candle-style overrides (up/down colors). Applied on init and on
+ * SET_THEME_COLORS.
+ */
+function getCandleStyleOverrides(theme) {
+    return {
+        'mainSeriesProperties.candleStyle.upColor': theme.successColor,
+        'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
+        'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
+        'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
+        'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
+        'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+    };
+}
+/**
+ * Initialize theme state from a CONFIG.theme payload. Called once by
+ * bootstrap before the widget is created. Doesn't touch the widget — it
+ * only seeds state so the widget constructor (and listeners) can read it.
+ */
+function initThemeFromConfig(theme) {
+    setTheme(theme);
+}
+/**
+ * Hot-swap theme colors. Mirrors legacy chartLogic.js handleSetThemeColors
+ * but without the chrome-shape updates (those features are deleted).
+ */
+function applyThemeColors(payload) {
+    const current = getTheme();
+    if (!current)
+        return;
+    const updated = {
+        ...current,
+        ...(payload.lineColor != null && { lineColor: payload.lineColor }),
+        ...(payload.successColor != null && { successColor: payload.successColor }),
+        ...(payload.errorColor != null && { errorColor: payload.errorColor }),
+        ...(payload.currentPriceColor != null && {
+            currentPriceColor: payload.currentPriceColor,
+        }),
+        ...(payload.volumeSuccessColor != null && {
+            volumeSuccessColor: payload.volumeSuccessColor,
+        }),
+        ...(payload.volumeErrorColor != null && {
+            volumeErrorColor: payload.volumeErrorColor,
+        }),
+    };
+    setTheme(updated);
+    const widget = getWidget();
+    if (!widget || !isChartReady()) {
+        notifyListeners(updated);
+        return;
+    }
+    const lineColor = getThemeLineColor(updated);
+    try {
+        widget.applyOverrides({
+            ...getCandleStyleOverrides(updated),
+            ...getSeriesColorOverrides(lineColor, getThemeLastPriceLineColor(updated)),
+            ...getBuiltInScaleLabelOverrides(updated),
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+    applySeriesStyleProperties(widget, lineColor);
+    notifyListeners(updated);
+}
+/**
+ * Re-apply the current theme from state to the widget. Called on chart ready
+ * to flush any SET_THEME_COLORS that arrived before the chart was initialized.
+ * Ensures the first visible frame shows the correct color, not stale CONFIG.
+ */
+function flushPendingTheme() {
+    const theme = getTheme();
+    if (!theme)
+        return;
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    const lineColor = getThemeLineColor(theme);
+    try {
+        widget.applyOverrides({
+            ...getCandleStyleOverrides(theme),
+            ...getSeriesColorOverrides(lineColor, getThemeLastPriceLineColor(theme)),
+            ...getBuiltInScaleLabelOverrides(theme),
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+    applySeriesStyleProperties(widget, lineColor);
+}
+/**
+ * Directly update the live series stroke color for line (2) and baseline (10)
+ * chart styles. \`applyOverrides\` only sets widget-level defaults; this call
+ * ensures the already-rendered series picks up the new color immediately.
+ */
+function applySeriesStyleProperties(widget, lineColor) {
+    try {
+        const series = widget.activeChart().getSeries();
+        series.setChartStyleProperties(2, {
+            color: lineColor,
+            colorType: 'solid',
+            linewidth: 2,
+        });
+        series.setChartStyleProperties(10, {
+            topLineColor: lineColor,
+            bottomLineColor: lineColor,
+            topLineWidth: 2,
+            bottomLineWidth: 2,
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function notifyListeners(theme) {
+    for (const listener of listeners) {
+        try {
+            listener(theme);
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    }
+}
+/** Test-only: clear all subscribers. */
+function __resetThemeForTests() {
+    listeners.clear();
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/dataLifecycle.ts
+// Lightweight event bus for data lifecycle events overlays need to react to.
+//
+// The widget modules (ohlcvIngestion, pagination, visibleRange) publish
+// events after they mutate the OHLCV series or the visible range;
+// overlay modules (tradeMarkers, positionLines) subscribe and re-place
+// their shapes. Keeps overlays decoupled from widget/* — overlays never
+// import from widget/*, matching the ESLint \`no-restricted-paths\`
+// direction described in the plan.
+//
+// The events are intentionally void — subscribers read whatever state
+// they need from core/state.ts. Errors inside a subscriber are logged
+// to RN so a broken overlay doesn't take the widget down with it.
+
+const dataLifecycle_listeners = {
+    ohlcvReset: [],
+    ohlcvPrepended: [],
+    visibleRangeChanged: [],
+};
+function onDataLifecycle(event, listener) {
+    dataLifecycle_listeners[event].push(listener);
+    return () => {
+        const bucket = dataLifecycle_listeners[event];
+        const idx = bucket.indexOf(listener);
+        if (idx !== -1)
+            bucket.splice(idx, 1);
+    };
+}
+function notifyDataLifecycle(event) {
+    const bucket = dataLifecycle_listeners[event];
+    for (const listener of bucket) {
+        try {
+            listener();
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    }
+}
+/** Test-only: clear every listener across every event. */
+function __resetDataLifecycleForTests() {
+    dataLifecycle_listeners.ohlcvReset = [];
+    dataLifecycle_listeners.ohlcvPrepended = [];
+    dataLifecycle_listeners.visibleRangeChanged = [];
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/pagination/priceApi.ts
+// Default OHLCV paginator — fetches older bars from the MetaMask Price API.
+//
+// Used by widget/datafeed.ts when state.ohlcvPagination has a cursor. Phase 6
+// adds pagination/rnBacked.ts as an alternative strategy (consumer-supplied
+// fetchOlderBars callback for Perps' RN-backed candle source).
+//
+// Ported from chartLogic.js \`fetchOlderBars\` (lines ~4991-5072), trimmed of
+// the layout-settle pending machinery and trade-marker refresh hook (those
+// belong to later phases / are gone after Phase 4).
+
+
+
+const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
+/**
+ * Fetches the next page from the Price API and merges new bars into state.
+ * Resolves with the slice strictly older than \`oldestAtDefer\` (TV's getBars
+ * wants only bars before its current visible window). Returns \`noData: true\`
+ * when the cursor is exhausted or the response yields no older bars.
+ *
+ * Aborts with \`noData: true\` when ohlcvGeneration changes mid-flight (a newer
+ * SET_OHLCV_DATA has invalidated this fetch).
+ */
+async function fetchOlderBarsFromPriceApi(request) {
+    const pag = getOhlcvPagination();
+    if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
+        return { olderBars: [], noData: true };
+    }
+    const generation = getOhlcvGeneration();
+    const params = [];
+    params.push(\`nextCursor=\${encodeURIComponent(pag.nextCursor)}\`);
+    if (pag.vsCurrency) {
+        params.push(\`vsCurrency=\${encodeURIComponent(pag.vsCurrency)}\`);
+    }
+    const url = \`\${OHLCV_BASE_URL}/\${pag.assetId}?\${params.join('&')}\`;
+    let response;
+    try {
+        response = await fetch(url);
+    }
+    catch (error) {
+        if (generation !== getOhlcvGeneration()) {
+            return { olderBars: [], noData: true };
+        }
+        reportErrorToRN(error);
+        return { olderBars: [], noData: true };
+    }
+    if (!response.ok) {
+        if (generation !== getOhlcvGeneration()) {
+            return { olderBars: [], noData: true };
+        }
+        reportErrorToRN(new Error(\`OHLCV API error: \${response.status}\`));
+        return { olderBars: [], noData: true };
+    }
+    let parsed;
+    try {
+        parsed = (await response.json());
+    }
+    catch (error) {
+        reportErrorToRN(error);
+        return { olderBars: [], noData: true };
+    }
+    if (generation !== getOhlcvGeneration()) {
+        return { olderBars: [], noData: true };
+    }
+    if (!parsed || !Array.isArray(parsed.data)) {
+        reportErrorToRN(new Error('OHLCV API response: invalid payload'));
+        return { olderBars: [], noData: true };
+    }
+    const newBars = parsed.data.map((c) => ({
+        time: c.timestamp,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+        volume: c.volume,
+    }));
+    setOhlcvPagination({
+        ...pag,
+        nextCursor: parsed.nextCursor ?? null,
+        hasMore: !!parsed.hasNext,
+    });
+    if (newBars.length > 0) {
+        prependOhlcvBars(newBars);
+        notifyDataLifecycle('ohlcvPrepended');
+    }
+    const olderBars = newBars.filter((b) => b.time < request.oldestAtDefer);
+    return { olderBars, noData: olderBars.length === 0 };
+}
+/**
+ * Test-only helper: invalidates any in-flight fetches by bumping the generation.
+ */
+function invalidateInFlightFetches() {
+    bumpOhlcvGeneration();
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/pagination/rnBacked.ts
+// RN-backed pagination: sends FETCH_OLDER_BARS_REQUEST to React Native and
+// resolves the pending getBars callback when FETCH_OLDER_BARS_RESPONSE arrives.
+//
+// Used by Perps whose candle data comes from PerpsController (only accessible
+// from RN, not from the WebView). Replaces the Price API direct-fetch path.
+//
+// Ported from chartLogic.js: pendingOlderBarsCallbacks, olderBarsRequestSeq,
+// handleFetchOlderBarsResponse (~line 5149), resolveAllPendingOlderBarsNoData
+// (~line 5131), and the RN-backed branch of getBars (~line 5412).
+
+
+
+let pendingCallbacks = new Map();
+let requestSeq = 0;
+function requestOlderBarsFromRN(params) {
+    const gen = getOhlcvGeneration();
+    const all = getOhlcvData();
+    const oldestAtDefer = all.length > 0 ? all[0].time : 0;
+    requestSeq += 1;
+    const requestId = 'obr-' + gen + '-' + requestSeq;
+    pendingCallbacks.set(requestId, {
+        onResult: params.onResult,
+        oldestAtDefer,
+        gen,
+    });
+    postToRN('FETCH_OLDER_BARS_REQUEST', {
+        requestId,
+        seriesGeneration: gen,
+        symbol: getCurrentSymbol(),
+        resolution: params.resolution,
+        fromSec: params.fromSec,
+        toSec: params.toSec,
+        ...(params.countBack == null ? {} : { countBack: params.countBack }),
+        oldestLoadedTimeMs: oldestAtDefer,
+    });
+}
+function resolvePendingNoData(pending) {
+    try {
+        pending.onResult([], { noData: true });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function resolveAllPendingOlderBarsNoData() {
+    pendingCallbacks.forEach((pending) => {
+        resolvePendingNoData(pending);
+    });
+    pendingCallbacks = new Map();
+}
+function handleFetchOlderBarsResponse(payload) {
+    if (!payload || typeof payload.requestId !== 'string')
+        return;
+    const pending = pendingCallbacks.get(payload.requestId);
+    if (!pending)
+        return;
+    pendingCallbacks.delete(payload.requestId);
+    if (payload.seriesGeneration !== pending.gen ||
+        payload.seriesGeneration !== getOhlcvGeneration()) {
+        resolvePendingNoData(pending);
+        return;
+    }
+    if (payload.error ||
+        payload.noData ||
+        !Array.isArray(payload.bars) ||
+        payload.bars.length === 0) {
+        pending.onResult([], { noData: true });
+        return;
+    }
+    const existingTimes = new Set();
+    const allData = getOhlcvData();
+    for (const bar of allData) {
+        existingTimes.add(bar.time);
+    }
+    const olderBars = [];
+    for (const bar of payload.bars) {
+        if (bar.time < pending.oldestAtDefer && !existingTimes.has(bar.time)) {
+            existingTimes.add(bar.time);
+            olderBars.push(bar);
+        }
+    }
+    if (olderBars.length > 0) {
+        prependOhlcvBars(olderBars);
+    }
+    pending.onResult(olderBars, { noData: olderBars.length === 0 });
+}
+function registerRnBackedPaginationHandler() {
+    registerHandler('FETCH_OLDER_BARS_RESPONSE', (payload) => {
+        handleFetchOlderBarsResponse(payload);
+    });
+}
+function __resetRnBackedPaginationForTests() {
+    pendingCallbacks = new Map();
+    requestSeq = 0;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timeUtils.ts
+// Time normalization helpers used across modules.
+//
+// Ported from chartLogic.js: normalizeChartUnixSec (line ~3564),
+// chartRawTimeToUnixMs (line ~3573), getApproxBarDurationSec (line ~3587).
+// Phase 2's widget/ohlcvIngestion.ts and pagination/priceApi.ts consume
+// these.
+/**
+ * Convert a timestamp to unix seconds, accepting either ms or seconds.
+ * Values ≥ 1e12 are treated as milliseconds (~Sep 2001 in seconds; safe
+ * threshold). Returns null for non-finite input.
+ */
+function normalizeChartUnixSec(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        return null;
+    }
+    return n >= 1e12 ? Math.floor(n / 1000) : Math.floor(n);
+}
+/**
+ * Convert a raw TradingView timestamp to unix milliseconds. Unlike
+ * normalizeChartUnixSec, keeps sub-second precision when the input is already
+ * in seconds (multiplies by 1000 instead of flooring).
+ */
+function chartRawTimeToUnixMs(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        return null;
+    }
+    if (n >= 1e12) {
+        return n;
+    }
+    return n * 1000;
+}
+const DEFAULT_BAR_DURATION_SEC = 300;
+const MIN_BAR_DURATION_SEC = 60;
+/**
+ * Approximates the bar duration (seconds) for a series of OHLCV bars by
+ * measuring the gap between the last two points. Used for visible-range
+ * alignment and end-icon insets.
+ *
+ * Returns a sensible default when the series is too short.
+ */
+function getApproxBarDurationSec(bars) {
+    if (!bars || bars.length < 2) {
+        return DEFAULT_BAR_DURATION_SEC;
+    }
+    const prev = bars.at(-2);
+    const last = bars.at(-1);
+    if (!prev || !last)
+        return DEFAULT_BAR_DURATION_SEC;
+    const lastMs = Math.abs(last.time - prev.time);
+    return Math.max(MIN_BAR_DURATION_SEC, Math.round(lastMs / 1000));
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/socialLeaderboard/index.ts
+// Social Leaderboard (SLB) viewport centering and back-fill pagination.
+//
+// Implements **Strategy C — SLB bulk back-fill**, the third pagination
+// strategy alongside Strategy A (Price API / Token Details) and Strategy B
+// (RN-backed / Perps).
+//
+// ── How it works ──────────────────────────────────────────────────────────
+//
+//   1. RN pre-loads the complete OHLCV dataset that covers the trade window
+//      (visibleFromMs → visibleToMs) and sends it in one SET_OHLCV_DATA
+//      message with \`slbMode: true\`.
+//
+//   2. The WebView stores the data in core/state and marks viewport centering
+//      as pending (\`slbCenteringPending = true\`).
+//
+//   3. After the TradingView widget finishes its data load cycle, this module
+//      centers the viewport on the trade window so the user sees all relevant
+//      trades immediately (no manual scrolling needed).
+//
+//   4. getBars pagination is a no-op: because RN pre-loaded all data, any
+//      getBars call for a time range outside the in-memory dataset returns
+//      \`{ noData: true }\`. There is no second fetch — the dataset is complete.
+//
+//   5. When the user taps a different trade row, RN re-sends SET_OHLCV_DATA
+//      with updated visibleFromMs / visibleToMs. The centering flag resets,
+//      and step 3 fires again for the new window.
+//
+// ── Why a separate strategy? ──────────────────────────────────────────────
+//
+//   Strategy A (Price API) and Strategy B (RN-backed) both paginate
+//   incrementally — fetching one page at a time as the user scrolls left.
+//   SLB needs the entire trade window visible from the start, so incremental
+//   pagination would cause visible "holes" while pages load. Bulk back-fill
+//   avoids this by having RN send all data upfront.
+//
+// ── Scoping via slbMode ──────────────────────────────────────────────────
+//
+//   All SLB behavior is gated behind the \`slbMode\` flag so it cannot affect
+//   Token Details, Perps, or any other consumer. When \`slbMode\` is false
+//   (or omitted), this module is inert.
+
+
+
+/**
+ * How long (ms) to keep re-asserting the centered visible range for a
+ * historical frame. A one-shot \`setVisibleRange\` issued during the post-load
+ * settle is overridden by TradingView's default "scroll to latest" positioning,
+ * so we re-apply every animation frame for this window — the same thing the
+ * animated focusTime slide does implicitly, which a single auto-center call did
+ * not. Kept short so it never fights a real user gesture.
+ */
+const CENTER_HOLD_MS = 700;
+/** Bumped on each hold so a newer center / fresh series cancels an in-flight hold. */
+let centerHoldGeneration = 0;
+/**
+ * Re-asserts \`setVisibleRange({ from, to })\` every animation frame for
+ * {@link CENTER_HOLD_MS}, defeating TradingView's post-load scroll-to-latest
+ * that clobbers a single call. Generation- and data-guarded so a newer center
+ * or a fresh series stops it; no-ops once the widget is torn down.
+ *
+ * Deliberately omits the \`{ percentRightMargin: 0 }\` option: passing it makes
+ * TradingView anchor to the latest candle and ignore an older from/to, so a
+ * historical frame (an old position's trades) would snap back to "today".
+ */
+function holdCenteredVisibleRange(chart, fromSec, toSec) {
+    centerHoldGeneration += 1;
+    const gen = centerHoldGeneration;
+    const dataGeneration = getOhlcvGeneration();
+    const startTs = Date.now();
+    const apply = () => {
+        if (gen !== centerHoldGeneration)
+            return;
+        if (dataGeneration !== getOhlcvGeneration())
+            return;
+        if (!getWidget() || !isChartReady())
+            return;
+        try {
+            chart.setVisibleRange({ from: fromSec, to: toSec });
+        }
+        catch {
+            // setVisibleRange can throw every frame while the chart is mid-teardown;
+            // swallow silently so the hold window doesn't spam errors to RN.
+        }
+        if (Date.now() - startTs < CENTER_HOLD_MS) {
+            try {
+                requestAnimationFrame(apply);
+            }
+            catch {
+                setTimeout(apply, 16);
+            }
+        }
+    };
+    apply();
+}
+/**
+ * Centers the viewport on the SLB trade window after a data load.
+ *
+ * Called from ohlcvIngestion's \`applyVisibleRange\` when \`slbMode\` is active.
+ * Uses \`visibleFromMs\` / \`visibleToMs\` to frame the viewport, with a 2-bar
+ * padding on each side so the edge candles aren't glued to the chart border.
+ *
+ * The centering flag is cleared after success so subsequent REALTIME_UPDATE
+ * messages don't re-trigger the slide. Only a fresh SET_OHLCV_DATA resets it.
+ *
+ * When \`options.immediate\` is true, applies centering synchronously instead of
+ * waiting for \`onDataLoaded\`. Used after \`setResolution\` where TradingView has
+ * already completed its data cycle by the time the callback fires.
+ */
+function slbCenterViewport(chart, options) {
+    if (!getSlbMode() || !isSlbCenteringPending())
+        return;
+    const fromMs = getVisibleFromMs();
+    const toMs = getVisibleToMs();
+    if (fromMs == null || toMs == null)
+        return;
+    const capturedGeneration = getOhlcvGeneration();
+    const applyCenter = () => {
+        if (capturedGeneration !== getOhlcvGeneration())
+            return;
+        if (!isSlbCenteringPending())
+            return;
+        const data = getOhlcvData();
+        const barPadSec = getApproxBarDurationSec(data) * 2;
+        const fromSec = Math.floor(fromMs / 1000) - barPadSec;
+        const toSec = Math.ceil(toMs / 1000) + barPadSec;
+        // A frame whose right edge sits before the latest loaded bar is a historical
+        // position (an old, closed trade range). TradingView's post-load
+        // scroll-to-latest clobbers a single \`setVisibleRange\`, and
+        // \`percentRightMargin: 0\` re-anchors it to the latest candle — together they
+        // snap the viewport back to "today" and push the trades off-screen. Re-assert
+        // the range across the settle window (without that option) so the historical
+        // frame sticks. A frame ending at/after the latest bar is the trailing window:
+        // TV doesn't fight it, so a single anchored call is enough.
+        const lastBar = data.at(-1);
+        const lastBarSec = lastBar != null ? Math.floor(lastBar.time / 1000) : null;
+        const isHistoricalFrame = lastBarSec != null && Math.ceil(toMs / 1000) < lastBarSec;
+        try {
+            if (isHistoricalFrame) {
+                holdCenteredVisibleRange(chart, fromSec, toSec);
+            }
+            else {
+                chart.setVisibleRange({ from: fromSec, to: toSec }, { percentRightMargin: 0 });
+            }
+            setSlbCenteringPending(false);
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    };
+    if (options?.immediate) {
+        applyCenter();
+        return;
+    }
+    const subscription = chart.onDataLoaded();
+    const onLoaded = () => {
+        subscription.unsubscribe(null, onLoaded);
+        applyCenter();
+    };
+    subscription.subscribe(null, onLoaded);
+}
+/** Test-only: reset the center-hold generation counter between cases. */
+function __resetSocialLeaderboardForTests() {
+    centerHoldGeneration = 0;
+}
+/**
+ * Schedules SLB viewport centering after the initial chart-ready event.
+ *
+ * Called from bootstrap's \`onReady\` callback. Only fires when the chart
+ * loaded with \`slbMode\` active — for all other consumers this is a no-op.
+ */
+function slbScheduleInitialCentering() {
+    if (!getSlbMode() || !isSlbCenteringPending())
+        return;
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    try {
+        const chart = widget.activeChart();
+        slbCenterViewport(chart);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/**
+ * SLB back-fill pagination handler for datafeed.ts getBars.
+ *
+ * In SLB mode, RN has already sent the complete dataset — there is nothing
+ * to fetch. This function simply signals \`noData: true\` to TradingView,
+ * which stops it from requesting more bars.
+ *
+ * Returns \`true\` if it handled the request (caller should return early),
+ * or \`false\` if the caller should fall through to the other strategies.
+ */
+function slbHandleGetBars(onResult) {
+    if (!getSlbMode())
+        return false;
+    onResult([], { noData: true });
+    return true;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/priceFormatter.ts
+// Price formatting for TradingView's \`custom_formatters.priceFormatterFactory\`.
+//
+// Ported from chartLogic.js: SUBSCRIPT_DIGITS_CROSSHAIR / toSubscriptDigitsCrosshair
+// (~line 1328), formatSubscriptNotationCrosshair (~1350), formatCrosshairPrice
+// (~1373), advancedChartPriceFormatterFactory (~1397).
+//
+// This is a TV widget option, not a message handler — the factory returns a
+// { format(price) } object that TV uses to render the price scale + last-value
+// pill. Without it, TV falls back to a plain \`x.xx\` format that ignores our
+// \`useSubscriptPriceFormat\` config.
+const SUBSCRIPT_DIGITS = [
+    '₀',
+    '₁',
+    '₂',
+    '₃',
+    '₄',
+    '₅',
+    '₆',
+    '₇',
+    '₈',
+    '₉',
+];
+function toSubscriptDigits(n) {
+    return String(n)
+        .split('')
+        .map((digit) => SUBSCRIPT_DIGITS[Number.parseInt(digit, 10)] ?? digit)
+        .join('');
+}
+/**
+ * For values strictly between 0 and 0.0001, produces the compact
+ * \`0.0₆12345\` notation. Returns \`null\` when the value doesn't qualify so
+ * callers can fall through to Intl formatting.
+ */
+function formatSubscriptNotation(abs) {
+    if (!(abs > 0 && abs < 0.0001))
+        return null;
+    const priceStr = abs.toFixed(20);
+    const match = /^0\\.0*([1-9]\\d*)/.exec(priceStr);
+    if (!match)
+        return null;
+    const leadingZeros = priceStr.indexOf(match[1]) - 2;
+    if (leadingZeros < 4)
+        return null;
+    const sig = match[1];
+    const significantDigits = sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
+    return \`0.0\${toSubscriptDigits(leadingZeros)}\${significantDigits}\`;
+}
+function getConfiguredPriceDecimals() {
+    const decimals = window.CONFIG?.priceDecimals;
+    if (typeof decimals !== 'number' || !Number.isFinite(decimals)) {
+        return null;
+    }
+    return Math.max(0, Math.floor(decimals));
+}
+function formatPriceWithConfiguredDecimals(price, maxDecimals) {
+    const p = Number(price);
+    if (p === 0) {
+        return '0';
+    }
+    const abs = Math.abs(p);
+    let decimals = maxDecimals;
+    if (abs >= 1) {
+        const integerDigits = Math.floor(Math.log10(abs)) + 1;
+        decimals = Math.min(maxDecimals, Math.max(0, 5 - integerDigits));
+    }
+    const rounded = Number(p.toFixed(decimals));
+    return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals,
+    }).format(rounded);
+}
+/**
+ * Formats a price for the TV built-in price scale + crosshair label. Zero-
+ * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
  */
 function formatCrosshairPrice(price) {
-  if (price === undefined || price === null || isNaN(Number(price))) {
-    return '';
-  }
-  var p = Number(price);
-  if (p === 0) {
-    return '0.00';
-  }
-  var abs = Math.abs(p);
-  var sub = formatSubscriptNotationCrosshair(abs);
-  if (sub) {
-    return p < 0 ? '-' + sub : sub;
-  }
-  return new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: abs >= 1 ? 2 : 4,
-  }).format(p);
+    if (price === undefined || price === null || Number.isNaN(Number(price))) {
+        return '';
+    }
+    const p = Number(price);
+    if (p === 0)
+        return '0.00';
+    const abs = Math.abs(p);
+    const sub = formatSubscriptNotation(abs);
+    if (sub) {
+        return p < 0 ? \`-\${sub}\` : sub;
+    }
+    const configuredPriceDecimals = getConfiguredPriceDecimals();
+    if (configuredPriceDecimals !== null) {
+        return formatPriceWithConfiguredDecimals(p, configuredPriceDecimals);
+    }
+    return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: abs >= 1 ? 2 : 4,
+    }).format(p);
 }
-
-function formatCrosshairTime(timeSeconds) {
-  if (
-    timeSeconds === undefined ||
-    timeSeconds === null ||
-    isNaN(Number(timeSeconds))
-  ) {
-    return '';
-  }
-  var d = new Date(Number(timeSeconds) * 1000);
-  var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  var months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  var w = weekdays[d.getDay()];
-  var day = d.getDate();
-  var mo = months[d.getMonth()];
-  var y = String(d.getFullYear()).slice(-2);
-  var h = String(d.getHours());
-  var min = String(d.getMinutes());
-  if (h.length < 2) {
-    h = '0' + h;
-  }
-  if (min.length < 2) {
-    min = '0' + min;
-  }
-  return w + ' ' + day + ' ' + mo + " '" + y + ' ' + h + ':' + min;
-}
-
-function hideCustomCrosshairLabels() {
-  var elP = document.getElementById('crosshair-price-label');
-  var elT = document.getElementById('crosshair-time-label');
-  if (elP) {
-    elP.style.display = 'none';
-    elP.style.left = '';
-    elP.style.right = '';
-    elP.style.transform = '';
-  }
-  if (elT) {
-    elT.style.display = 'none';
-    elT.style.left = '';
-    elT.style.transform = '';
-  }
-  scheduleLastCloseLabelUpdate();
-}
-
 /**
- * X (px from #custom-crosshair-overlay left) of the **left** edge of the main pane’s
- * \`.price-axis-container\` (smallest \`top\` = main chart price scale). Same as where the plot
- * ends; scale legend text starts inside this column, not on the plot side.
+ * TradingView \`custom_formatters.priceFormatterFactory\`. Returns null (letting
+ * TV fall back to its default) when subscript formatting is disabled or when
+ * the symbol is a volume series. Otherwise returns a formatter that routes
+ * through \`formatCrosshairPrice\`.
  */
-function getMainPriceAxisLeftRelativeToOverlay(overlay) {
-  if (!overlay || !overlay.getBoundingClientRect) {
-    return null;
-  }
-  var orect = overlay.getBoundingClientRect();
-  var bestLeft = null;
-  var bestTop = Infinity;
-  eachChartDocument(function (doc) {
-    var nodes = doc.querySelectorAll('.price-axis-container');
-    var i;
-    for (i = 0; i < nodes.length; i++) {
-      var r = nodes[i].getBoundingClientRect();
-      if (r.width < 2 || r.height < 16) {
-        continue;
-      }
-      if (r.top < bestTop) {
-        bestTop = r.top;
-        bestLeft = r.left - orect.left;
-      }
-    }
-  });
-  if (bestLeft === null || isNaN(bestLeft)) {
-    return null;
-  }
-  var maxW = overlay.clientWidth;
-  if (maxW <= 0) {
-    return null;
-  }
-  return Math.max(0, Math.min(bestLeft, maxW));
-}
-
-/**
- * Place crosshair / last-close pills with the **left** edge on the main-chart / price-scale
- * boundary (same X as \`getMainPriceAxisLeftRelativeToOverlay\`). TradingView’s horizontal
- * crosshair line ends there; anchoring the pill here removes the gap vs right-aligning to
- * legend text (narrow pills like “1.00” sat too far right).
- */
-function positionPricePillAtPlotPriceBoundary(el, overlay, yPx) {
-  if (!el) {
-    return;
-  }
-  el.style.top = yPx + 'px';
-  if (!overlay) {
-    el.style.left = 'auto';
-    el.style.right = '0';
-    el.style.transform = 'translateY(-50%)';
-    return;
-  }
-  var boundaryLeft = getMainPriceAxisLeftRelativeToOverlay(overlay);
-  if (boundaryLeft !== null && !isNaN(boundaryLeft) && boundaryLeft >= 0) {
-    var w = el.offsetWidth;
-    if (!w || w <= 0) {
-      w = 0;
-    }
-    var pillLeft = boundaryLeft + 2; // Adding 2px to the boundary left to ensure the pill is not too close to the boundary.
-    var maxW = overlay.clientWidth;
-    if (maxW > 0) {
-      pillLeft = Math.max(0, Math.min(pillLeft, maxW - w));
-    }
-    el.style.left = pillLeft + 'px';
-    el.style.right = 'auto';
-    el.style.transform = 'translateY(-50%)';
-  } else {
-    el.style.left = 'auto';
-    el.style.right = '0';
-    el.style.transform = 'translateY(-50%)';
-  }
-}
-
-function updateCustomCrosshairLabels(params) {
-  var elP = document.getElementById('crosshair-price-label');
-  var elT = document.getElementById('crosshair-time-label');
-  var overlay = document.getElementById('custom-crosshair-overlay');
-  if (!elP || !elT || !overlay) {
-    return;
-  }
-  if (!getLineChrome().useCustomPriceLabels) {
-    hideCustomCrosshairLabels();
-    return;
-  }
-  var ox = params.offsetX;
-  var oy = params.offsetY;
-  if (ox === undefined || oy === undefined || isNaN(ox) || isNaN(oy)) {
-    hideCustomCrosshairLabels();
-    return;
-  }
-  elP.textContent = formatCrosshairPrice(params.price);
-  var tSec =
-    params.userTime !== undefined && params.userTime !== null
-      ? params.userTime
-      : params.time;
-  elT.textContent = formatCrosshairTime(tSec);
-  elP.style.display = 'flex';
-  elT.style.display = 'flex';
-  function positionPricePill() {
-    positionPricePillAtPlotPriceBoundary(elP, overlay, oy);
-  }
-  positionPricePill();
-  try {
-    requestAnimationFrame(positionPricePill);
-  } catch (e) {}
-  /* Time label: left + translateX(-50%) → center at crosshair X; remeasure after layout. */
-  var ow = overlay.clientWidth;
-  function positionTimeLabel() {
-    var tw = elT.offsetWidth;
-    var halfTw = tw / 2;
-    var clampedOx = Math.max(halfTw, Math.min(ox, ow - halfTw));
-    elT.style.left = clampedOx + 'px';
-    elT.style.transform = 'translateX(-50%)';
-  }
-  positionTimeLabel();
-  try {
-    requestAnimationFrame(positionTimeLabel);
-  } catch (e) {}
-}
-
-// --- Last close price pill (same layout as crosshair labels in AdvancedChartTemplate) ---
-window.lastCloseLabelScheduled = false;
-
-/**
- * Coalesces DOM updates for the right-axis price pills into one animation frame so pan/zoom bursts
- * do not thrash layout. Updates: (1) filled last-close, (2) optional outline visible-edge pill.
- */
-function scheduleLastCloseLabelUpdate() {
-  if (!getLineChrome().useCustomPriceLabels) {
-    return;
-  }
-  if (window.lastCloseLabelScheduled) {
-    return;
-  }
-  window.lastCloseLabelScheduled = true;
-  try {
-    requestAnimationFrame(function () {
-      window.lastCloseLabelScheduled = false;
-      /*
-       * 1) Filled last-close: candle or line when useCustomPriceLabels.
-       * 2) Outline visible-edge: second pill when tail is off-screen (same flag).
-       */
-      updateLastClosePriceLabel();
-      updateVisibleEdgeOutlinePriceLabel();
-    });
-  } catch (e) {
-    window.lastCloseLabelScheduled = false;
-    setTimeout(function () {
-      updateLastClosePriceLabel();
-      updateVisibleEdgeOutlinePriceLabel();
-    }, 0);
-  }
-}
-
-function hideLastClosePriceLabelDom() {
-  var el = document.getElementById('last-close-price-label');
-  if (el) {
-    el.style.display = 'none';
-    el.style.left = '';
-    el.style.right = '';
-    el.style.transform = '';
-  }
-}
-
-/**
- * Hides the outline pill and clears inline positioning set by \`positionPricePillAtPlotPriceBoundary\`.
- * Safe to call when the DOM node is missing (older cached HTML).
- */
-function hideCustomSeriesLastValueLabelDom() {
-  var elC = document.getElementById('custom-series-last-value-label');
-  if (elC) {
-    elC.style.display = 'none';
-    elC.style.left = '';
-    elC.style.right = '';
-    elC.style.transform = '';
-    elC.style.borderColor = '';
-    elC.style.color = '';
-  }
-}
-
-/**
- * Whether to hide the outline price pill: {@link isCustomLineEndMarkerVisibleInPlot} (geometry) plus
- * {@link isSeriesTailOffScreenByData} so panning to old history (newest bar not in visible window) still
- * shows the outline when coordinateToTime alone would wrongly hide it.
- */
-function shouldHideVisibleEdgeOutlinePill(chart, tailSec, ohlcvData) {
-  if (tailSec === null || !isFinite(Number(tailSec))) {
-    return true;
-  }
-  const geo = isCustomLineEndMarkerVisibleInPlot(chart, Number(tailSec));
-  const dataOff = ohlcvData?.length
-    ? isSeriesTailOffScreenByData(chart, ohlcvData)
-    : null;
-  if (geo === false || dataOff === true) {
-    return false;
-  }
-  return true;
-}
-
-/**
- * Outline pill: shown when geometry or data says the series tail is off-screen (see
- * {@link shouldHideVisibleEdgeOutlinePill}).
- */
-function updateVisibleEdgeOutlinePriceLabel() {
-  const elOut = document.getElementById('custom-series-last-value-label');
-  if (!elOut) {
-    return;
-  }
-  const w = window;
-  if (
-    !getLineChrome().useCustomPriceLabels ||
-    !w.chartWidget ||
-    !w.isChartReady ||
-    !w.ohlcvData ||
-    !w.ohlcvData.length
-  ) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  const ct = w.currentChartType;
-  if (ct !== 1 && ct !== 2) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  const chart = w.chartWidget.activeChart();
-  const tailBar = w.ohlcvData[w.ohlcvData.length - 1];
-  const tailSec = normalizeChartUnixSec(tailBar.time);
-  if (shouldHideVisibleEdgeOutlinePill(chart, tailSec, w.ohlcvData)) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  const edgeBar = getVisibleEdgeOutlineBar(chart, w.ohlcvData);
-  if (!edgeBar) {
-    hideCustomSeriesLastValueLabelDom();
-    return;
-  }
-  let price = Number(edgeBar.close);
-  if (ct === 2) {
-    const tEdgeMs = getVisiblePlotRightEdgeTimeMs(chart);
-    if (tEdgeMs !== null) {
-      const pLine = interpolateCloseAlongLineAtTimeMs(w.ohlcvData, tEdgeMs);
-      if (pLine !== null && isFinite(pLine)) {
-        price = pLine;
-      }
-    }
-  }
-  const y = getPriceYForLastCloseOverlay(chart, price);
-  if (y === null || y === undefined || isNaN(y)) {
-    elOut.style.display = 'none';
-    elOut.style.borderColor = '';
-    elOut.style.color = '';
-    return;
-  }
-  const resolvedLast = resolveLineEndOverlayPoint(chart);
-  const lastClosePrice =
-    resolvedLast && isFinite(resolvedLast.price)
-      ? resolvedLast.price
-      : tailBar.close;
-  const yLastClose = getPriceYForLastCloseOverlay(chart, lastClosePrice);
-
-  const theme = (w.CONFIG && w.CONFIG.theme) || {};
-  const upColor = theme.successColor || '#0C9F76';
-  const lineColor = theme.lineColor || upColor;
-  const downColor = theme.errorColor || '#E06470';
-  let outlineColor = ct === 2 ? lineColor : upColor;
-  if (ct === 1) {
-    const o = Number(edgeBar.open);
-    const c = Number(edgeBar.close);
-    if (isFinite(o) && isFinite(c) && c < o) {
-      outlineColor = downColor;
-    }
-  }
-  elOut.style.borderColor = outlineColor;
-  elOut.style.color = outlineColor;
-  elOut.textContent = formatCrosshairPrice(price);
-  elOut.style.display = 'flex';
-  const overlayOut = document.getElementById('custom-crosshair-overlay');
-
-  let yPos = y;
-  positionPricePillAtPlotPriceBoundary(elOut, overlayOut, yPos);
-  const gapPx = 4;
-  const elLast = document.getElementById('last-close-price-label');
-  let hO = elOut.offsetHeight;
-  if (!hO || hO < 8) {
-    hO = 24;
-  }
-  /* Nudge outline if it overlaps last-close pill: higher price → above, else below (ties = below). */
-  if (
-    elLast &&
-    elLast.style.display !== 'none' &&
-    elLast.offsetHeight > 0 &&
-    yLastClose !== null &&
-    yLastClose !== undefined &&
-    !isNaN(yLastClose)
-  ) {
-    const hF = elLast.offsetHeight;
-    const half = (hF + hO) / 2 + gapPx;
-    if (Math.abs(y - yLastClose) < half) {
-      const minCenter = hO / 2 + 2;
-      const maxCenter =
-        overlayOut && overlayOut.clientHeight > 0
-          ? overlayOut.clientHeight - hO / 2 - 2
-          : Infinity;
-      const pOut = Number(price);
-      const pLast = Number(lastClosePrice);
-      const edgeAboveFilled =
-        isFinite(pOut) && isFinite(pLast) ? pOut > pLast : y < yLastClose;
-      if (edgeAboveFilled) {
-        yPos = yLastClose - hF / 2 - gapPx - hO / 2;
-        if (yPos < minCenter) {
-          yPos = minCenter;
-        }
-      } else {
-        yPos = yLastClose + hF / 2 + gapPx + hO / 2;
-        if (yPos > maxCenter) {
-          yPos = Math.max(minCenter, maxCenter);
-        }
-      }
-      positionPricePillAtPlotPriceBoundary(elOut, overlayOut, yPos);
-    }
-  }
-}
-
-/**
- * Y pixel for a price (crosshair overlay space). \`getVisiblePriceRange\` + \`getHeight\` + \`isInverted\`;
- * \`getMode() === 1\` (log) uses log mapping.
- */
-function getPriceYForLastCloseOverlay(chart, price) {
-  if (!chart || price === undefined || price === null || isNaN(Number(price))) {
-    return null;
-  }
-  const p = Number(price);
-  try {
-    const panes = chart.getPanes();
-    if (!panes || !panes.length) return null;
-    const pane = panes[0];
-    const scale = pane.getMainSourcePriceScale();
-    if (!scale) return null;
-
-    const range = scale.getVisiblePriceRange();
-    if (!range || range.from === undefined || range.to === undefined) {
-      return null;
-    }
-    const lo = Math.min(range.from, range.to);
-    const hi = Math.max(range.from, range.to);
-    const h = pane.getHeight();
-    if (!h || h <= 0) return null;
-    const pClamped = Math.min(hi, Math.max(lo, p));
-    const inverted =
-      typeof scale.isInverted === 'function' && scale.isInverted();
-    const mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
-    if (mode === 1 && lo > 0 && hi > 0 && pClamped > 0) {
-      const logLo = Math.log(lo);
-      const logHi = Math.log(hi);
-      const logP = Math.log(pClamped);
-      if (logHi === logLo) {
-        return inverted ? 0 : h / 2;
-      }
-      const t = (logP - logLo) / (logHi - logLo);
-      return inverted ? t * h : (1 - t) * h;
-    }
-    if (inverted) {
-      return ((pClamped - lo) / (hi - lo)) * h;
-    }
-    return ((hi - pClamped) / (hi - lo)) * h;
-  } catch (e) {
-    return null;
-  }
-}
-
-/**
- * Last-close DOM pill when \`useCustomPriceLabels\` (candle or line).
- * Stays visible alongside the crosshair price pill (crosshair stacks above when Y aligns).
- */
-function updateLastClosePriceLabel() {
-  var el = document.getElementById('last-close-price-label');
-  if (!el) {
-    return;
-  }
-  var w = window;
-  if (!getLineChrome().useCustomPriceLabels) {
-    hideLastClosePriceLabelDom();
-    return;
-  }
-  if (
-    !w.chartWidget ||
-    !w.isChartReady ||
-    !w.ohlcvData ||
-    !w.ohlcvData.length
-  ) {
-    hideLastClosePriceLabelDom();
-    return;
-  }
-  var ct = w.currentChartType;
-  if (ct !== 1 && ct !== 2) {
-    hideLastClosePriceLabelDom();
-    return;
-  }
-  var lastBar = w.ohlcvData[w.ohlcvData.length - 1];
-  var chart = w.chartWidget.activeChart();
-  var resolved = resolveLineEndOverlayPoint(chart);
-  var labelPrice =
-    resolved && isFinite(resolved.price) ? resolved.price : lastBar.close;
-  var y = getPriceYForLastCloseOverlay(chart, labelPrice);
-  if (y === null || y === undefined || isNaN(y)) {
-    el.style.display = 'none';
-    return;
-  }
-  el.textContent = formatCrosshairPrice(labelPrice);
-  el.style.display = 'flex';
-  var overlay = document.getElementById('custom-crosshair-overlay');
-  positionPricePillAtPlotPriceBoundary(el, overlay, y);
-}
-
-/**
- * Debounced line-end icon refresh when the time scale pans. Uses \`lineChartOhlcvEpoch\` so a burst
- * of \`onVisibleRangeChanged\` during interval switches does not run after newer \`SET_OHLCV_DATA\`.
- */
-var lineEndDotVisibleRangeDebounce = null;
-
-/** Clears pending visible-range debounce so no \`refreshLineEndDot\` runs after chrome turns off. */
-function clearLineEndDotVisibleRangeDebounce() {
-  if (lineEndDotVisibleRangeDebounce) {
-    clearTimeout(lineEndDotVisibleRangeDebounce);
-    lineEndDotVisibleRangeDebounce = null;
-  }
-}
-
-function scheduleLineEndDotAfterVisibleRangeChange() {
-  if (window.currentChartType !== 2) {
-    return;
-  }
-  if (!getLineChrome().useCustomLineEndMarker) {
-    return;
-  }
-  if (lineEndDotVisibleRangeDebounce) {
-    clearTimeout(lineEndDotVisibleRangeDebounce);
-  }
-  var epochAtSchedule = window.lineChartOhlcvEpoch;
-  lineEndDotVisibleRangeDebounce = setTimeout(function () {
-    lineEndDotVisibleRangeDebounce = null;
-    if (window.lineChartOhlcvEpoch !== epochAtSchedule) {
-      return;
-    }
-    if (
-      window.currentChartType !== 2 ||
-      !window.chartWidget ||
-      !window.isChartReady
-    ) {
-      return;
-    }
-    try {
-      var chart = window.chartWidget.activeChart();
-      if (chart && typeof chart.dataReady === 'function') {
-        chart.dataReady(function () {
-          if (window.lineChartOhlcvEpoch !== epochAtSchedule) {
-            return;
-          }
-          refreshLineEndDot();
-        });
-      } else {
-        refreshLineEndDot();
-      }
-    } catch (e) {}
-  }, 150);
-}
-
-/**
- * Subscribes to anything that changes the visible price level or time window so both the filled
- * last-close pill and the optional outline “visible edge” pill stay aligned with the chart.
- */
-function subscribeLastCloseLabelUpdates() {
-  if (!window.chartWidget) return;
-  var tick = scheduleLastCloseLabelUpdate;
-  function tickIfCustomPriceLabels() {
-    if (getLineChrome().useCustomPriceLabels) {
-      tick();
-    }
-  }
-  try {
-    window.chartWidget.subscribe('series_event', function (ev) {
-      if (ev === 'price_scale_changed') tickIfCustomPriceLabels();
-    });
-  } catch (e) {}
-  try {
-    window.chartWidget.subscribe(
-      'panes_height_changed',
-      tickIfCustomPriceLabels,
-    );
-  } catch (e) {}
-  try {
-    window.chartWidget
-      .activeChart()
-      .onVisibleRangeChanged()
-      .subscribe(null, function () {
-        tickIfCustomPriceLabels();
-        if (getLineChrome().useCustomLineEndMarker) {
-          scheduleLineEndDotAfterVisibleRangeChange();
-        }
-      });
-  } catch (e) {}
-}
-
-/**
- * TradingView adds \`chart-markup-table\` to the root and to inner cells; \`querySelector('.chart-markup-table')\`
- * can return an inner node — pick the outer wrapper.
- */
-function findOuterChartMarkupTable(doc) {
-  if (!doc || !doc.querySelectorAll) {
-    return null;
-  }
-  var list = doc.querySelectorAll('.chart-markup-table');
-  var i;
-  var el;
-  var cn;
-  for (i = 0; i < list.length; i++) {
-    el = list[i];
-    cn = el.className && String(el.className);
-    if (el.classList.contains('pane')) {
-      continue;
-    }
-    if (cn.indexOf('price-axis-container') !== -1) {
-      continue;
-    }
-    if (cn.indexOf('time-axis') !== -1) {
-      continue;
-    }
-    return el;
-  }
-  return list.length ? list[0] : null;
-}
-
-/** Run fn(document) and fn(iframe.contentDocument) when the chart lives in TV’s same-origin iframe. */
-function eachChartDocument(fn) {
-  try {
-    fn(document);
-  } catch (e) {}
-  try {
-    var container = document.getElementById('tv_chart_container');
-    var iframe = container && container.querySelector('iframe');
-    if (iframe && iframe.contentDocument) {
-      fn(iframe.contentDocument);
-    }
-  } catch (e2) {}
-}
-
-var TV_EXTERNAL_BRIDGE_DEBOUNCE_MS = 600;
-
-function isTradingViewExternalHostname(hostname) {
-  if (!hostname) return false;
-  var h = String(hostname).toLowerCase();
-  return (
-    h === 'tradingview.com' ||
-    h === 'www.tradingview.com' ||
-    /\\.tradingview\\.com$/.test(h)
-  );
-}
-
-function isTradingViewExternalHref(href) {
-  if (!href) return false;
-  try {
-    var base =
-      typeof window !== 'undefined' && window.location
-        ? window.location.href
-        : 'https://localhost/';
-    var u = new URL(href, base);
-    return isTradingViewExternalHostname(u.hostname);
-  } catch (e) {
-    return false;
-  }
-}
-
-/**
- * Same-origin chart iframe + Android: WebView often skips shouldOverrideUrlLoading for subframes.
- * Intercept window.open + real <a> navigations here and let RN open the browser (deduped there).
- */
-function installTradingViewExternalOpenBridge() {
-  function sendTvClicked(url) {
-    sendToReactNative('CHART_TRADINGVIEW_CLICKED', url ? { url: url } : {});
-  }
-
-  function handleTradingViewLinkCapture(ev) {
-    var t = ev.target;
-    if (!t || typeof t.closest !== 'function') {
-      return;
-    }
-    var a = t.closest('a');
-    if (!a || !a.href || !isTradingViewExternalHref(a.href)) {
-      return;
-    }
-    var now = Date.now();
-    if (
-      now - (window.__mmLastTvExternalBridgeAt || 0) <
-      TV_EXTERNAL_BRIDGE_DEBOUNCE_MS
-    ) {
-      return;
-    }
-    window.__mmLastTvExternalBridgeAt = now;
-    try {
-      ev.preventDefault();
-      ev.stopPropagation();
-    } catch (e1) {}
-    sendTvClicked(a.href);
-  }
-
-  function patchWindowOpen(win) {
-    if (!win || !win.open || win.__mmTvOpenPatched) {
-      return;
-    }
-    win.__mmTvOpenPatched = true;
-    var origOpen = win.open.bind(win);
-    win.open = function (url, name, specs) {
-      if (url != null && url !== '' && isTradingViewExternalHref(String(url))) {
-        var now2 = Date.now();
-        if (
-          now2 - (window.__mmLastTvExternalBridgeAt || 0) <
-          TV_EXTERNAL_BRIDGE_DEBOUNCE_MS
-        ) {
-          return null;
-        }
-        window.__mmLastTvExternalBridgeAt = now2;
-        sendTvClicked(String(url));
+function advancedChartPriceFormatterFactory(symbolInfo, _minTick) {
+    if (symbolInfo === null || symbolInfo.format === 'volume') {
         return null;
-      }
-      return origOpen(url, name, specs);
-    };
-  }
-
-  function applyAll() {
-    patchWindowOpen(window);
-    eachChartDocument(function (doc) {
-      try {
-        patchWindowOpen(doc.defaultView);
-      } catch (e2) {}
-      if (doc && doc.addEventListener && !doc.__mmTvLinkCaptureInstalled) {
-        doc.__mmTvLinkCaptureInstalled = true;
-        doc.addEventListener('click', handleTradingViewLinkCapture, true);
-      }
-    });
-  }
-
-  applyAll();
-  try {
-    var container = document.getElementById('tv_chart_container');
-    var iframe = container && container.querySelector('iframe');
-    if (iframe) {
-      iframe.addEventListener('load', applyAll);
     }
-  } catch (e3) {}
-  setTimeout(applyAll, 200);
-  setTimeout(applyAll, 800);
-  setTimeout(applyAll, 2000);
-}
-
-function removeInjectedStyleByIdFromChartDocs(styleId) {
-  eachChartDocument(function (d) {
-    var node = d.getElementById(styleId);
-    if (node) {
-      node.remove();
-    }
-  });
-}
-
-/** Remove legacy injected line-chart markup stylesheet (if present). */
-function removeLineChartMarkupStyle() {
-  removeInjectedStyleByIdFromChartDocs('tv-line-chart-markup');
-}
-
-/**
- * Line chart: hide time-axis row via TradingView overrides (if supported) plus DOM fallback
- * (same pattern as tv-candle-volume-markup). No effect on candle mode when hide is false.
- */
-function injectHideTimeAxisStyle() {
-  var paneBg =
-    window.CONFIG && window.CONFIG.theme && window.CONFIG.theme.backgroundColor
-      ? String(window.CONFIG.theme.backgroundColor)
-      : '#131416';
-  eachChartDocument(function (targetDoc) {
-    if (!targetDoc || !targetDoc.getElementById) {
-      return;
-    }
-    var id = 'tv-hide-time-axis';
-    var existing = targetDoc.getElementById(id);
-    if (existing) {
-      existing.remove();
-    }
-    var sel = tvScopedDomSelectors(targetDoc);
-    // Collapse time row — TV keeps chart-markup-table / chart-widget at pane+time height (~204px)
-    // while the main row + .pane stay at ~176px inline; the empty strip is transparent and shows
-    // .chart-container-border .screen-* (rgb(19,20,22)) as a dark band. Fill that strip with the
-    // same surface as the chart and stretch the first row to the full widget height.
-    var hide =
-      'display:none!important;visibility:hidden!important;height:0!important;min-height:0!important;' +
-      'max-height:0!important;overflow:hidden!important;pointer-events:none!important;opacity:0!important;' +
-      'flex:0 0 0!important;margin:0!important;padding:0!important;border:none!important;';
-    var style = targetDoc.createElement('style');
-    style.id = id;
-    style.textContent =
-      sel.widgetSel +
-      '{background-color:' +
-      paneBg +
-      '!important;}' +
-      sel.chartRootSel +
-      '{display:flex!important;flex-direction:column!important;background-color:' +
-      paneBg +
-      '!important;}' +
-      sel.chartRootSel +
-      ' > div{' +
-      'background-color:' +
-      paneBg +
-      '!important;}' +
-      sel.chartRootSel +
-      '>div:last-child{' +
-      hide +
-      '}' +
-      sel.chartRootSel +
-      '>div:last-child .time-axis,' +
-      sel.chartRootSel +
-      '>div:last-child [class*="price-axis-container"]{' +
-      hide +
-      '}' +
-      sel.chartRootSel +
-      '>div:first-child{display:flex!important;flex:1 1 auto!important;height:100%!important;min-height:0!important;' +
-      'max-height:none!important;align-items:stretch!important;align-self:stretch!important;}' +
-      sel.chartRootSel +
-      '>div:first-child > .chart-markup-table.pane,' +
-      sel.chartRootSel +
-      '>div:first-child > .pane,' +
-      sel.chartRootSel +
-      '>div:first-child > .chart-markup-table.price-axis-container{' +
-      'flex:1 1 auto!important;height:100%!important;min-height:100%!important;max-height:none!important;align-self:stretch!important;' +
-      'background-color:' +
-      paneBg +
-      '!important;}' +
-      sel.chartRootSel +
-      '>div:first-child .chart-gui-wrapper{height:100%!important;min-height:100%!important;max-height:none!important;' +
-      'background-color:' +
-      paneBg +
-      '!important;}' +
-      sel.screenSel +
-      '{background:' +
-      paneBg +
-      '!important;}';
-    (targetDoc.head || targetDoc.documentElement).appendChild(style);
-  });
-}
-
-function removeHideTimeAxisStyle() {
-  removeInjectedStyleByIdFromChartDocs('tv-hide-time-axis');
-}
-
-function applyLineTimeScaleVisibility(hide) {
-  if (!window.chartWidget) return;
-  var shouldHide = window.currentChartType === 2 && hide;
-  try {
-    window.chartWidget.applyOverrides({
-      'timeScale.visible': !shouldHide,
-    });
-  } catch (e) {}
-  try {
-    window.chartWidget.applyOverrides({
-      'scalesProperties.hideTimeScale': shouldHide,
-    });
-  } catch (e2) {}
-  if (shouldHide) {
-    injectHideTimeAxisStyle();
-    function nudgeResizeAfterHideTimeAxis() {
-      if (
-        !window.chartWidget ||
-        window.currentChartType !== 2 ||
-        !getLineChrome().hideTimeScale
-      ) {
-        return;
-      }
-      try {
-        window.chartWidget.resize();
-      } catch (e) {}
-    }
-    try {
-      requestAnimationFrame(function () {
-        requestAnimationFrame(nudgeResizeAfterHideTimeAxis);
-      });
-    } catch (e) {
-      setTimeout(nudgeResizeAfterHideTimeAxis, 0);
-    }
-    setTimeout(nudgeResizeAfterHideTimeAxis, 120);
-  } else {
-    removeHideTimeAxisStyle();
-  }
-}
-
-/**
- * TradingView sets overflow:hidden on several layout shells (.chart-container, etc.) and may
- * re-apply after resize — refresh textContent so !important keeps winning. Also open the first
- * price pane + gui wrapper; the watermark ring often straddles the pane bottom.
- */
-function buildChartDomUnclipCss(targetDoc) {
-  var top = targetDoc === document;
-  var p = top ? '#tv_chart_container ' : '';
-  return (
-    p +
-    '.layout__area--center,' +
-    p +
-    '.layout__area--right,' +
-    p +
-    '.js-rootresizer__contents,' +
-    p +
-    '.chart-container,' +
-    p +
-    '.chart-container-border{' +
-    'overflow:visible!important;clip-path:none!important;}' +
-    p +
-    '.chart-widget > .chart-markup-table > div:first-child .pane{' +
-    'overflow:visible!important;clip-path:none!important;}' +
-    p +
-    '.chart-widget > .chart-markup-table > div:first-child .pane .chart-gui-wrapper{' +
-    'overflow:visible!important;clip-path:none!important;}'
-  );
-}
-
-function injectChartContainerOverflowUnclip(targetDoc) {
-  if (!targetDoc || !targetDoc.getElementById) {
-    return;
-  }
-  var id = 'tv-chart-container-unclip';
-  var css = buildChartDomUnclipCss(targetDoc);
-  var node = targetDoc.getElementById(id);
-  if (!node) {
-    node = targetDoc.createElement('style');
-    node.id = id;
-    (targetDoc.head || targetDoc.documentElement).appendChild(node);
-  }
-  node.textContent = css;
-}
-
-function applyChartContainerOverflowUnclip() {
-  eachChartDocument(injectChartContainerOverflowUnclip);
-}
-
-/** TV relayout is async — re-apply unclip after it sets inline overflow again. */
-function scheduleChartDomUnclip() {
-  function run() {
-    applyChartContainerOverflowUnclip();
-  }
-  try {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(run);
-    });
-  } catch (e) {
-    setTimeout(run, 0);
-  }
-  setTimeout(run, 100);
-  setTimeout(run, 280);
-}
-
-/**
- * Locate outer .chart-markup-table (TradingView may host it under #tv_chart_container or in a same-origin iframe).
- */
-function getChartMarkupTableContext() {
-  var container = document.getElementById('tv_chart_container');
-  if (!container) {
-    return null;
-  }
-  var table = findOuterChartMarkupTable(document);
-  var doc = document;
-  if (!table || !container.contains(table)) {
-    table = null;
-  }
-  if (!table) {
-    try {
-      var iframe = container.querySelector('iframe');
-      if (iframe && iframe.contentDocument) {
-        table = findOuterChartMarkupTable(iframe.contentDocument);
-        if (table) {
-          doc = iframe.contentDocument;
-        }
-      }
-    } catch (e) {}
-  }
-  return table ? { doc: doc, table: table } : null;
-}
-
-/** CSS selector prefix: top window uses \`#tv_chart_container \`; chart iframe document uses none. */
-function tvScopedDomSelectors(targetDoc) {
-  var top = targetDoc === document;
-  var p = top ? '#tv_chart_container ' : '';
-  return {
-    overflowRule:
-      buildChartDomUnclipCss(targetDoc) +
-      (top
-        ? '#tv_chart_container{overflow:visible!important;}'
-        : '.chart-widget{overflow:visible!important;}'),
-    chartRootSel: p + '.chart-widget > .chart-markup-table',
-    screenSel: p + '.chart-container-border [class^="screen-"]',
-    widgetSel: p + '.chart-widget',
-  };
-}
-
-/**
- * Mobile Advanced Charts show Auto / Log toggles (DOM: class substring \`priceScaleModeButtons\`).
- * No documented \`disabled_features\` entry matches this; hide the control group in the chart document.
- */
-function injectHidePriceScaleModeButtonsStyle(targetDoc) {
-  if (!targetDoc || !targetDoc.getElementById) {
-    return;
-  }
-  var id = 'tv-hide-price-scale-mode-buttons';
-  if (targetDoc.getElementById(id)) {
-    return;
-  }
-  var style = targetDoc.createElement('style');
-  style.id = id;
-  style.textContent =
-    '[class*="priceScaleModeButtons"]{' +
-    'display:none!important;visibility:hidden!important;pointer-events:none!important;' +
-    'width:0!important;height:0!important;overflow:hidden!important;opacity:0!important;}';
-  (targetDoc.head || targetDoc.documentElement).appendChild(style);
-}
-
-function applyHidePriceScaleModeButtons() {
-  eachChartDocument(injectHidePriceScaleModeButtonsStyle);
-}
-
-function scheduleHidePriceScaleModeButtons() {
-  applyHidePriceScaleModeButtons();
-  try {
-    requestAnimationFrame(function () {
-      requestAnimationFrame(applyHidePriceScaleModeButtons);
-    });
-  } catch (e) {}
-  setTimeout(applyHidePriceScaleModeButtons, 450);
-}
-
-/**
- * Remove injected candle+volume layout stylesheet (surface backgrounds + overflowRule unclip).
- */
-function removeCandleVolumeScaleMarkup() {
-  removeInjectedStyleByIdFromChartDocs('tv-candle-volume-markup');
-}
-
-/**
- * Candle + volume (overlay on single pane): paint widget / screen / chart-root to the theme
- * background. \`overflowRule\` (first) already includes unclip for \`.chart-gui-wrapper\` via
- * \`buildChartDomUnclipCss\`. Older time-scale / error-card DOM patches were removed after QA.
- */
-function updateCandleVolumeScaleColumnVisibility() {
-  removeCandleVolumeScaleMarkup();
-
-  if (!window.chartWidget || !window.isChartReady) {
-    return;
-  }
-  if (window.currentChartType === 2) {
-    return;
-  }
-  if (!window.volumeStudyId) {
-    return;
-  }
-
-  var ctx = getChartMarkupTableContext();
-  if (!ctx) {
-    return;
-  }
-
-  var targetDoc = ctx.doc;
-  var sel = tvScopedDomSelectors(targetDoc);
-  var bg = window.CONFIG.theme.backgroundColor;
-
-  var style = targetDoc.createElement('style');
-  style.id = 'tv-candle-volume-markup';
-
-  style.textContent =
-    sel.overflowRule +
-    sel.widgetSel +
-    '{background:' +
-    bg +
-    '!important;}' +
-    sel.screenSel +
-    '{background:' +
-    bg +
-    '!important;}' +
-    sel.chartRootSel +
-    '{background:' +
-    bg +
-    '!important;}';
-  (targetDoc.head || targetDoc.documentElement).appendChild(style);
-}
-
-function handleSetChartType(payload) {
-  suppressChartUserInteraction(500);
-
-  if (!window.chartWidget) return;
-
-  var type = payload.type;
-  window.currentChartType = type;
-
-  if (!window.isChartReady) return;
-
-  // Immediately remove old indicators when switching types (don't wait for setTimeout)
-  if (type === 2) {
-    removeAllLastPriceHorizontalOverlays({
-      hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-    });
-  } else {
-    ensureNoLineChartEndIcons();
-  }
-
-  try {
-    var ac = window.chartWidget.activeChart();
-    ac.setChartType(type);
-
-    const color =
-      window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
-    var series = ac.getSeries();
-    if (type === 2) {
-      series.setChartStyleProperties(2, {
-        color: color,
-        colorType: 'solid',
-        linewidth: 2,
-      });
-    } else if (type === 10) {
-      series.setChartStyleProperties(10, {
-        topLineColor: color,
-        bottomLineColor: color,
-        topLineWidth: 2,
-        bottomLineWidth: 2,
-      });
-    }
-
-    applyChartScaleLayout(type);
-
-    // Update price indicators after chart type change
-    // Capture type to prevent stale updates if user switches again quickly
-    var capturedType = type;
-    setTimeout(function () {
-      if (window.currentChartType !== capturedType) return;
-
-      if (capturedType === 2) {
-        refreshLineChartOverlays();
-      } else if (capturedType === 1) {
-        createLastPriceLine();
-      }
-    }, 100);
-  } catch (error) {
-    sendToReactNative('ERROR', { message: error.message });
-  }
-}
-
-// ============================================
-// Position Lines (unified SET_POSITION_LINES)
-// ============================================
-
-function clearPositionLines() {
-  if (!window.chartWidget || !window.isChartReady) return;
-
-  try {
-    var chart = window.chartWidget.activeChart();
-    for (var i = 0; i < window.positionShapeIds.length; i++) {
-      try {
-        chart.removeEntity(window.positionShapeIds[i]);
-      } catch (e) {
-        // Shape may already be removed
-      }
-    }
-    window.positionShapeIds = [];
-  } catch (error) {
-    sendToReactNative('ERROR', {
-      message: 'Failed to clear position lines: ' + error.message,
-    });
-  }
-}
-
-function handleSetPositionLines(payload) {
-  if (!window.chartWidget || !window.isChartReady) return;
-
-  // Clear existing lines first
-  clearPositionLines();
-
-  // null or missing position means "clear only"
-  if (!payload || !payload.position) return;
-
-  var position = payload.position;
-  var theme = window.CONFIG.theme;
-
-  try {
-    var chart = window.chartWidget.activeChart();
-    var lines = [];
-
-    if (position.entryPrice) {
-      lines.push({
-        price: position.entryPrice,
-        text: 'Entry',
-        color: '#858585',
-        lineStyle: 2,
-      });
-    }
-    if (position.takeProfitPrice) {
-      lines.push({
-        price: position.takeProfitPrice,
-        text: 'TP',
-        color: theme.successColor,
-        lineStyle: 2,
-      });
-    }
-    if (position.stopLossPrice) {
-      lines.push({
-        price: position.stopLossPrice,
-        text: 'SL',
-        color: '#858585',
-        lineStyle: 2,
-      });
-    }
-    if (position.liquidationPrice) {
-      lines.push({
-        price: position.liquidationPrice,
-        text: 'Liq',
-        color: theme.errorColor,
-        lineStyle: 2,
-      });
-    }
-    // TODO: currentPrice is defined in PositionLines but not yet rendered here.
-    // Add a line for position.currentPrice (e.g. a solid line showing live mark
-    // price) when the Perps integration is ready.
-
-    for (var i = 0; i < lines.length; i++) {
-      (function (line) {
-        chart
-          .createShape(
-            { price: line.price },
-            {
-              shape: 'horizontal_line',
-              lock: true,
-              disableSelection: true,
-              disableSave: true,
-              disableUndo: true,
-              text: line.text,
-              overrides: {
-                linecolor: line.color,
-                linestyle: line.lineStyle,
-                linewidth: 1,
-                showLabel: true,
-                textcolor: line.color,
-                fontsize: 11,
-                horzLabelsAlign: 'right',
-                showPrice: true,
-              },
-            },
-          )
-          .then(function (entityId) {
-            if (entityId) {
-              window.positionShapeIds.push(entityId);
-            }
-          })
-          .catch(function () {
-            // Shape creation can fail silently
-          });
-      })(lines[i]);
-    }
-  } catch (error) {
-    sendToReactNative('ERROR', {
-      message: 'Failed to add position lines: ' + error.message,
-    });
-  }
-}
-
-// ============================================
-// Last close: green dashed horizontal_line (showPrice:false) + DOM pill (#last-close-price-label,
-// same styles as crosshair labels in AdvancedChartTemplate)
-// ============================================
-window.lastPriceShapeId = null;
-/** Invalidates in-flight \`createLineLastPriceLine\` \`createShape\` when a newer refresh runs. */
-window.__lineLastPriceLinePlacementGen = 0;
-
-/**
- * Deletes all horizontal_line drawing shapes except Perps position lines (IDs in
- * positionShapeIds). TradingView createShape is async; rapid REALTIME_UPDATE (e.g.
- * polling) or layout refreshes can create a new last-price line before the previous
- * createShape finishes, leaving an orphan — two green price tags on the Y-axis.
- * This sweep removes duplicates so only one last-price overlay can remain before
- * a fresh createLastPriceLine / createLineLastPriceLine runs.
- */
-function sweepNonPositionHorizontalLines() {
-  if (!window.chartWidget || !window.isChartReady) return;
-  try {
-    var chart = window.chartWidget.activeChart();
-    var shapes = chart.getAllShapes();
-    if (!shapes || !shapes.length) return;
-    var positionIds = window.positionShapeIds || [];
-    for (var i = 0; i < shapes.length; i++) {
-      var id = shapes[i].id;
-      var name = String(shapes[i].name || '');
-      if (!/horizontal|horz/i.test(name)) continue;
-      if (positionIds.indexOf(id) !== -1) continue;
-      try {
-        chart.removeEntity(id);
-      } catch (e) {}
-    }
-  } catch (e) {}
-}
-
-function createLastPriceLine() {
-  if (!window.chartWidget || !window.isChartReady) return;
-  if (window.ohlcvData.length === 0) return;
-
-  // Custom shape duplicates the native last-price UI — only for candlesticks (type 1).
-  if (window.currentChartType !== 1) {
-    removeAllLastPriceHorizontalOverlays();
-    return;
-  }
-
-  if (!getLineChrome().useCustomDashedLastPriceLine) {
-    removeAllLastPriceHorizontalOverlays({
-      hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-    });
-    scheduleLastCloseLabelUpdate();
-    return;
-  }
-
-  removeAllLastPriceHorizontalOverlays();
-
-  var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-  var chart = window.chartWidget.activeChart();
-  var color = window.CONFIG.theme.successColor;
-  var candlePt = getLineEndDotTimeAndPriceFromSeries(chart);
-  var candlePrice =
-    candlePt && isFinite(candlePt.price) ? candlePt.price : lastBar.close;
-
-  chart
-    .createShape(
-      { price: candlePrice },
-      {
-        shape: 'horizontal_line',
-        lock: true,
-        overrides: {
-          linecolor: color,
-          linestyle: 2,
-          linewidth: 1,
-          showLabel: false,
-          showPrice: false,
-          fontsize: 11,
-          horzLabelsAlign: 'right',
-        },
-        disableSelection: true,
-        disableSave: true,
-        disableUndo: true,
-        showInObjectsTree: false,
-        zOrder: 'bottom',
-      },
-    )
-    .then(function (id) {
-      // If type changed while creating, remove the shape
-      if (window.currentChartType !== 1) {
-        if (id) {
-          try {
-            chart.removeEntity(id);
-          } catch (e) {}
-        }
-        return;
-      }
-      window.lastPriceShapeId = id;
-      scheduleLastCloseLabelUpdate();
-    })
-    .catch(function (e) {
-      // Silent catch - shape creation can fail if chart state changes
-    });
-}
-
-/**
- * Clears last-close horizontal_line overlays for both chart modes. Candle mode
- * tracks lastPriceShapeId; line mode tracks lineLastPriceShapeId — same sweep,
- * both refs must be nulled when removing drawings.
- * @param { { hideLastCloseDom?: boolean } } [options] — pass \`hideLastCloseDom: false\` to keep the
- * last-close DOM pill when custom dashed line is off but custom labels stay on.
- */
-function removeAllLastPriceHorizontalOverlays(options) {
-  sweepNonPositionHorizontalLines();
-  window.lastPriceShapeId = null;
-  window.lineLastPriceShapeId = null;
-  var hideDom = true;
-  if (options && options.hideLastCloseDom === false) {
-    hideDom = false;
-  }
-  if (hideDom) {
-    hideLastClosePriceLabelDom();
-  }
-}
-
-function createLineLastPriceLine() {
-  if (!window.chartWidget || !window.isChartReady) return;
-  if (window.ohlcvData.length === 0) return;
-
-  var shouldDrawLineLastPrice =
-    window.currentChartType === 2 &&
-    getLineChrome().useCustomDashedLastPriceLine;
-
-  window.__lineLastPriceLinePlacementGen =
-    (window.__lineLastPriceLinePlacementGen || 0) + 1;
-  var placementGen = window.__lineLastPriceLinePlacementGen;
-
-  removeAllLastPriceHorizontalOverlays();
-
-  if (!shouldDrawLineLastPrice) {
-    return;
-  }
-
-  var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-  var chart = window.chartWidget.activeChart();
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
-  var seriesPt = resolveLineEndOverlayPoint(chart);
-  var linePrice =
-    seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
-
-  chart
-    .createShape(
-      { price: linePrice },
-      {
-        shape: 'horizontal_line',
-        lock: true,
-        overrides: {
-          linecolor: color,
-          linestyle: 2,
-          linewidth: 1,
-          showLabel: false,
-          showPrice: false,
-          fontsize: 11,
-          horzLabelsAlign: 'right',
-        },
-        disableSelection: true,
-        disableSave: true,
-        disableUndo: true,
-        showInObjectsTree: false,
-        zOrder: 'bottom',
-      },
-    )
-    .then(function (id) {
-      if (placementGen !== window.__lineLastPriceLinePlacementGen) {
-        if (id) {
-          try {
-            chart.removeEntity(id);
-          } catch (e) {}
-        }
-        return;
-      }
-      if (
-        window.currentChartType !== 2 ||
-        !getLineChrome().useCustomDashedLastPriceLine
-      ) {
-        if (id) {
-          try {
-            chart.removeEntity(id);
-          } catch (e2) {}
-        }
-        return;
-      }
-      window.lineLastPriceShapeId = id;
-      scheduleLastCloseLabelUpdate();
-    })
-    .catch(function () {});
-}
-
-function refreshLineChartOverlays() {
-  refreshLineEndDot();
-  if (
-    window.currentChartType === 2 &&
-    getLineChrome().useCustomDashedLastPriceLine
-  ) {
-    createLineLastPriceLine();
-  } else {
-    removeAllLastPriceHorizontalOverlays({
-      hideLastCloseDom: !getLineChrome().useCustomPriceLabels,
-    });
-    scheduleLastCloseLabelUpdate();
-  }
-}
-
-// ============================================
-// Line chart end dot (~16px design): native line has no marker size API
-// ============================================
-window.lineEndDotShapeId = null;
-/**
- * Incremented on each \`refreshLineEndDot\` so in-flight \`createShape\` callbacks from an older run
- * discard their shape instead of orphaning a second icon (rapid layout / realtime / dataReady).
- */
-window.__lineEndDotPlacementGen = 0;
-
-/**
- * Bar time from TV \`data().last()\` / \`bars()[n]\` (seconds or ms; same shape as OHLCV tuple).
- */
-function parseTimeFromTvDataLast(last) {
-  if (last === null || last === undefined) {
-    return null;
-  }
-  if (Array.isArray(last)) {
-    var t0 = Number(last[0]);
-    return isFinite(t0) ? t0 : null;
-  }
-  if (typeof last === 'object') {
-    if (last.time !== undefined && last.time !== null) {
-      var nt = Number(last.time);
-      if (isFinite(nt)) {
-        return nt;
-      }
-    }
-    var v = last.value;
-    if (Array.isArray(v) && v.length > 0) {
-      var tv = Number(v[0]);
-      if (isFinite(tv)) {
-        return tv;
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * Close from TV last bar object / OHLCV tuple (index 4).
- */
-function parseCloseFromTvDataLast(last) {
-  if (last === null || last === undefined) {
-    return null;
-  }
-  if (Array.isArray(last)) {
-    if (last.length > 4) {
-      var c = Number(last[4]);
-      if (isFinite(c)) {
-        return c;
-      }
-    }
-    return null;
-  }
-  if (typeof last === 'object') {
-    if (last.close !== undefined && last.close !== null) {
-      var nc = Number(last.close);
-      if (isFinite(nc)) {
-        return nc;
-      }
-    }
-    var v = last.value;
-    if (Array.isArray(v) && v.length > 4) {
-      var nvc = Number(v[4]);
-      if (isFinite(nvc)) {
-        return nvc;
-      }
-    }
-    if (typeof v === 'number' && isFinite(v)) {
-      return v;
-    }
-  }
-  return null;
-}
-
-/**
- * Unix **seconds** and price for line-end \`createShape\`, preferring TradingView main series
- * (\`data().last()\` / \`bars()\`) so the icon matches the native last point; falls back to feed tail.
- */
-function getLineEndDotTimeAndPriceFromSeries(chart) {
-  var fallback = null;
-  if (window.ohlcvData && window.ohlcvData.length > 0) {
-    var b = window.ohlcvData[window.ohlcvData.length - 1];
-    var tr = Number(b.time);
-    var cl = Number(b.close);
-    if (isFinite(tr) && isFinite(cl)) {
-      var trSec = tr >= 1e12 ? Math.floor(tr / 1000) : Math.floor(tr);
-      fallback = { timeSec: trSec, price: cl };
-    }
-  }
-  if (!chart) {
-    return fallback;
-  }
-  try {
-    var series = chart.getSeries();
-    if (!series) {
-      return fallback;
-    }
-    if (typeof series.data === 'function') {
-      var ds = series.data();
-      if (ds && typeof ds.last === 'function') {
-        var last = ds.last();
-        if (last) {
-          var tvT = parseTimeFromTvDataLast(last);
-          var tvC = parseCloseFromTvDataLast(last);
-          if (tvT !== null && isFinite(tvT) && tvC !== null && isFinite(tvC)) {
-            var timeSec =
-              tvT >= 1e12 ? Math.floor(tvT / 1000) : Math.floor(tvT);
-            return { timeSec: timeSec, price: tvC };
-          }
-        }
-      }
-    }
-    if (typeof series.bars === 'function') {
-      var bars = series.bars();
-      if (bars && bars.length) {
-        var lb = bars[bars.length - 1];
-        var tvT2 = parseTimeFromTvDataLast(lb);
-        var tvC2 = parseCloseFromTvDataLast(lb);
-        if (
-          tvT2 !== null &&
-          isFinite(tvT2) &&
-          tvC2 !== null &&
-          isFinite(tvC2)
-        ) {
-          var timeSec2 =
-            tvT2 >= 1e12 ? Math.floor(tvT2 / 1000) : Math.floor(tvT2);
-          return { timeSec: timeSec2, price: tvC2 };
-        }
-      }
-    }
-  } catch (e) {}
-  return fallback;
-}
-
-/**
- * Single resolved last point for line-end dot, dashed last-price line, and DOM last-close pill:
- * prefers TradingView main series when readable, else \`ohlcvData\` tail.
- */
-function resolveLineEndOverlayPoint(chart) {
-  return getLineEndDotTimeAndPriceFromSeries(chart);
-}
-
-/**
- * Normalize TV/chart timestamps to unix **seconds** (library mixes sec/ms in places).
- */
-function normalizeChartUnixSec(t) {
-  const n = Number(t);
-  if (!isFinite(n)) {
-    return null;
-  }
-  return n >= 1e12 ? Math.floor(n / 1000) : Math.floor(n);
-}
-
-/** Raw TV timestamp → unix ms (keeps sub-second precision vs {@link normalizeChartUnixSec}). */
-function chartRawTimeToUnixMs(rawT) {
-  const n = Number(rawT);
-  if (!isFinite(n)) {
-    return null;
-  }
-  if (n >= 1e12) {
-    return n;
-  }
-  return n * 1000;
-}
-
-/**
- * Step between last two OHLCV bars in seconds (for visible-range alignment checks).
- */
-function getApproxBarDurationSec() {
-  const d = window.ohlcvData;
-  if (!d || d.length < 2) {
-    return 300;
-  }
-  const ms = Math.abs(d[d.length - 1].time - d[d.length - 2].time);
-  return Math.max(60, Math.round(ms / 1000));
-}
-
-/** Time-scale inset from right so line-end icon stays on-screen (not under price scale). */
-var LINE_END_ICON_TIME_INSET_PX = 40;
-/** Outline edge sample inset (0 = rightmost pixel; not the line-icon inset). */
-var OUTLINE_EDGE_TIME_INSET_PX = 0;
-var LINE_END_ICON_PROBE_STEP_PX = 8;
-var LINE_END_ICON_MAX_PROBES = 14;
-
-/**
- * Skip extrapolation during interval switches / odd zoom: too few bars, incoherent visible range vs data.
- */
-function shouldSkipLineEndIconTimeExtrapolation(chart, lastBarTimeSec) {
-  const d = window.ohlcvData;
-  if (!d || d.length < 2) {
-    return true;
-  }
-  if (!chart || !isFinite(lastBarTimeSec)) {
-    return true;
-  }
-  try {
-    const br = chart.getVisibleBarsRange();
-    if (!br || br.from === undefined || br.to === undefined) {
-      return true;
-    }
-    const brFromSec = normalizeChartUnixSec(br.from);
-    const brToSec = normalizeChartUnixSec(br.to);
-    if (brFromSec === null || brToSec === null) {
-      return true;
-    }
-    const barDur = getApproxBarDurationSec();
-    const visibleSpan = Math.abs(brToSec - brFromSec);
-    const n = d.length;
-    if (visibleSpan > barDur * Math.max(n, 1) * 96) {
-      return true;
-    }
-    if (lastBarTimeSec > brToSec + barDur * 4) {
-      return true;
-    }
-    if (lastBarTimeSec + barDur * 4 < brToSec) {
-      return true;
-    }
-  } catch (e) {
-    return true;
-  }
-  return false;
-}
-
-function trailingVisibleBarMatchesSeriesLast(chart, lastBarTimeSec) {
-  try {
-    const br = chart.getVisibleBarsRange();
-    if (!br || br.to === undefined || br.to === null) {
-      return false;
-    }
-    const brToSec = normalizeChartUnixSec(br.to);
-    if (brToSec === null) {
-      return false;
-    }
-    const barDur = getApproxBarDurationSec();
-    return (
-      lastBarTimeSec <= brToSec + barDur &&
-      lastBarTimeSec >= brToSec - 2 * barDur
-    );
-  } catch (e) {
-    return false;
-  }
-}
-
-/** Helpers for {@link isCustomLineEndMarkerVisibleInPlot} (time ↔ x on the time scale). */
-
-/**
- * @param {object} ts - \`chart.getTimeScale()\`
- * @param {number} x
- * @returns {number | null} unix seconds
- */
-function timeScaleCoordinateToTimeSec(ts, x) {
-  const raw = ts.coordinateToTime(x);
-  if (raw == null || raw === undefined) {
-    return null;
-  }
-  return normalizeChartUnixSec(raw);
-}
-
-/**
- * Smallest x in [0, maxX] with coordinate time ≥ tNorm (binary search; assumes time increases with x).
- *
- * @returns {number | null}
- */
-function findSmallestXWhereTimeGte(ts, maxX, tNorm) {
-  const tLo = timeScaleCoordinateToTimeSec(ts, 0);
-  const tHi = timeScaleCoordinateToTimeSec(ts, maxX);
-  if (tLo === null || tHi === null) {
-    return null;
-  }
-  if (tHi < tNorm) {
-    return null;
-  }
-  if (tLo >= tNorm) {
-    return 0;
-  }
-  let lo = 0;
-  let hi = maxX;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    const tm = timeScaleCoordinateToTimeSec(ts, mid);
-    if (tm === null) {
-      return null;
-    }
-    if (tm < tNorm) {
-      lo = mid + 1;
-    } else {
-      hi = mid;
-    }
-  }
-  return lo;
-}
-
-/**
- * Single source of truth for “would the custom line-end marker appear in the plot before the chrome
- * inset?” — same horizontal rules as {@link getLineEndIconTimeSec} + {@link LINE_END_ICON_TIME_INSET_PX}
- * (inverse of \`coordinateToTime\` via {@link findSmallestXWhereTimeGte}).
- *
- * @param {object} chart - \`widget.activeChart()\`
- * @param {number} lastBarTimeSec - unix seconds, OHLCV tail (same as line overlay)
- * @returns {boolean | null} true = marker visible in plot (hide outline pill), false = not visible (show outline), null = unknown (hide outline)
- */
-function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
-  if (!chart || lastBarTimeSec == null || !isFinite(Number(lastBarTimeSec))) {
-    return null;
-  }
-  try {
-    const ts = chart.getTimeScale();
-    if (
-      !ts ||
-      typeof ts.coordinateToTime !== 'function' ||
-      typeof ts.width !== 'function'
-    ) {
-      return null;
-    }
-    const plotW = ts.width();
-    if (!(plotW > LINE_END_ICON_TIME_INSET_PX + 4)) {
-      return null;
-    }
-    const markerTimeSec = getLineEndIconTimeSec(chart, Number(lastBarTimeSec));
-    const tNorm = normalizeChartUnixSec(markerTimeSec);
-    if (tNorm === null) {
-      return null;
-    }
-    const xCut = Math.max(
-      0,
-      Math.floor(plotW - LINE_END_ICON_TIME_INSET_PX - 1),
-    );
-    const maxX = Math.max(0, Math.floor(plotW - 1));
-
-    const tMax = timeScaleCoordinateToTimeSec(ts, maxX);
-    const tMin = timeScaleCoordinateToTimeSec(ts, 0);
-    if (tMin === null || tMax === null) {
-      return null;
-    }
-    /* Marker time past the right edge of the plot → not visible (panned off). */
-    if (tNorm > tMax) {
-      return false;
-    }
-    /* Same conservative branch as before: treat as visible for outline (hide pill). */
-    if (tNorm < tMin) {
-      return true;
-    }
-
-    const xFirst = findSmallestXWhereTimeGte(ts, maxX, tNorm);
-    if (xFirst === null) {
-      return null;
-    }
-    return xFirst <= xCut;
-  } catch (e) {
-    return null;
-  }
-}
-
-/**
- * Reads TradingView’s visible time window as **Unix seconds** \`{ lo, hi }\` (\`lo <= hi\`).
- * Prefer \`getVisibleBarsRange()\`; if it is null mid-scroll, fall back to \`getVisibleRange()\`.
- *
- * @param {object} chart - \`widget.activeChart()\`
- * @returns {{ lo: number, hi: number } | null} null if range unavailable or timestamps invalid
- */
-function getVisibleTimeRangeSecFromChart(chart) {
-  let fromSec;
-  let toSec;
-  try {
-    const br = chart.getVisibleBarsRange();
-    if (br?.from !== undefined && br?.to !== undefined) {
-      fromSec = normalizeChartUnixSec(br.from);
-      toSec = normalizeChartUnixSec(br.to);
-      if (fromSec !== null && toSec !== null) {
-        return {
-          lo: Math.min(fromSec, toSec),
-          hi: Math.max(fromSec, toSec),
-        };
-      }
-    }
-  } catch (eBr) {
-    void eBr;
-  }
-  try {
-    const vr = chart.getVisibleRange?.();
-    if (vr?.from !== undefined && vr?.to !== undefined) {
-      fromSec = normalizeChartUnixSec(vr.from);
-      toSec = normalizeChartUnixSec(vr.to);
-      if (fromSec !== null && toSec !== null) {
-        return {
-          lo: Math.min(fromSec, toSec),
-          hi: Math.max(fromSec, toSec),
-        };
-      }
-    }
-  } catch (eVr) {
-    return null;
-  }
-  return null;
-}
-
-/**
- * Among bars in \`data\`, returns the one with the **maximum \`time\`** that still falls inside the
- * visible range (milliseconds, slack from \`getApproxBarDurationSec\`). This is
- * the **rightmost historical bar still drawn** in the viewport—the “visible edge” for the outline
- * pill’s close price.
- *
- * @param {object} chart
- * @param {Array<{ time: number, close: number }>} data - \`window.ohlcvData\`
- * @returns {object | null} bar object or null if none intersect
- */
-function getRightmostOhlcvBarInVisibleTimeRange(chart, data) {
-  const range = getVisibleTimeRangeSecFromChart(chart);
-  if (!range || !data || !data.length) {
-    return null;
-  }
-  const slackSec = getApproxBarDurationSec() * 2;
-  const loMs = (range.lo - slackSec) * 1000;
-  const hiMs = (range.hi + slackSec) * 1000;
-  let best = null;
-  for (let i = 0; i < data.length; i++) {
-    const b = data[i];
-    const t = b.time;
-    if (t >= loMs && t <= hiMs) {
-      if (!best || t > best.time) {
-        best = b;
-      }
-    }
-  }
-  return best;
-}
-
-/**
- * True when the **newest** OHLCV bar is **not** among the bars intersecting the visible time range:
- * the rightmost visible bar is strictly older than the series tail (user panned the tail off-screen).
- *
- * @param {object} chart - \`widget.activeChart()\`
- * @param {Array<{ time: number }>} data - \`window.ohlcvData\`
- * @returns {boolean | null} true = tail off-screen by data, false = tail still in range, null = unknown
- */
-function isSeriesTailOffScreenByData(chart, data) {
-  if (!chart || !data || !data.length) {
-    return null;
-  }
-  const tail = data[data.length - 1];
-  const tailMs = tail.time;
-  const rightmost = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
-  if (!rightmost) {
-    return null;
-  }
-  if (rightmost === tail || rightmost.time === tailMs) {
-    return false;
-  }
-  const barDurMs = getApproxBarDurationSec() * 1000;
-  const halfBarSlackMs = Math.max(1, barDurMs * 0.5);
-  if (tailMs - rightmost.time <= halfBarSlackMs) {
-    return false;
-  }
-  return true;
-}
-
-/**
- * Bar for the outline pill’s price: same as {@link getRightmostOhlcvBarInVisibleTimeRange}, then
- * if that is null (gaps at scroll limits), retry with looser slack so the pill does not vanish
- * when the tail is still off-screen.
- *
- * @param {object} chart
- * @param {Array<{ time: number, close: number }>} data - \`window.ohlcvData\`
- * @returns {object | null}
- */
-function getVisibleEdgeOutlineBar(chart, data) {
-  const primary = getRightmostOhlcvBarInVisibleTimeRange(chart, data);
-  if (primary) {
-    return primary;
-  }
-  const range = getVisibleTimeRangeSecFromChart(chart);
-  if (!range || !data || !data.length) {
-    return null;
-  }
-  const barDur = getApproxBarDurationSec();
-  const looseSlackSec = barDur * 6;
-  const loMs = (range.lo - looseSlackSec) * 1000;
-  const hiMs = (range.hi + looseSlackSec) * 1000;
-  let best = null;
-  for (let i = 0; i < data.length; i++) {
-    const b = data[i];
-    const t = b.time;
-    if (t >= loMs && t <= hiMs) {
-      if (!best || t > best.time) {
-        best = b;
-      }
-    }
-  }
-  return best;
-}
-
-/** \`coordinateToTime\` at plot right edge (see {@link OUTLINE_EDGE_TIME_INSET_PX}); capped to \`visibleRange.to\`. */
-function getVisiblePlotRightEdgeTimeMs(chart) {
-  if (!chart) {
-    return null;
-  }
-  try {
-    const ts = chart.getTimeScale();
-    if (
-      !ts ||
-      typeof ts.coordinateToTime !== 'function' ||
-      typeof ts.width !== 'function'
-    ) {
-      return null;
-    }
-    const w = ts.width();
-    if (!(w > OUTLINE_EDGE_TIME_INSET_PX + 2)) {
-      return null;
-    }
-    const x = Math.max(0, Math.floor(w - OUTLINE_EDGE_TIME_INSET_PX - 1));
-    const rawT = ts.coordinateToTime(x);
-    if (rawT === null || rawT === undefined) {
-      return null;
-    }
-    let tMs = chartRawTimeToUnixMs(rawT);
-    if (tMs === null) {
-      return null;
-    }
-    const vr = chart.getVisibleRange?.();
-    if (vr?.to !== undefined && vr?.to !== null) {
-      const capMs = chartRawTimeToUnixMs(vr.to);
-      if (capMs !== null && tMs > capMs) {
-        tMs = capMs;
-      }
-    }
-    return tMs;
-  } catch (e) {
-    return null;
-  }
-}
-
-/** Interpolate close between consecutive bars (line chart path). */
-function interpolateCloseAlongLineAtTimeMs(data, tMs) {
-  if (!data || !data.length || !isFinite(tMs)) {
-    return null;
-  }
-  const first = data[0];
-  const last = data[data.length - 1];
-  if (tMs <= first.time) {
-    const c0 = Number(first.close);
-    return isFinite(c0) ? c0 : null;
-  }
-  if (tMs >= last.time) {
-    const cL = Number(last.close);
-    return isFinite(cL) ? cL : null;
-  }
-  for (let i = 0; i < data.length - 1; i++) {
-    const t0 = data[i].time;
-    const t1 = data[i + 1].time;
-    if (tMs >= t0 && tMs <= t1) {
-      const a = Number(data[i].close);
-      const b = Number(data[i + 1].close);
-      if (!isFinite(a) || !isFinite(b)) {
+    if (!window.CONFIG ||
+        (!window.CONFIG.useSubscriptPriceFormat &&
+            getConfiguredPriceDecimals() === null)) {
         return null;
-      }
-      if (t1 === t0) {
-        return a;
-      }
-      return a + ((b - a) * (tMs - t0)) / (t1 - t0);
     }
-  }
-  return null;
-}
-
-/**
- * Horizontal position for line-end icon: probe \`timeScale.coordinateToTime(x)\` from the right with
- * inset so the marker sits on the plot (avoids clipping on the price scale). Falls back to bar time.
- */
-function getLineEndIconTimeSec(chart, lastBarTimeSec) {
-  if (!chart || !isFinite(lastBarTimeSec)) {
-    return lastBarTimeSec;
-  }
-  if (
-    shouldSkipLineEndIconTimeExtrapolation(chart, lastBarTimeSec) ||
-    !trailingVisibleBarMatchesSeriesLast(chart, lastBarTimeSec)
-  ) {
-    return lastBarTimeSec;
-  }
-  try {
-    const ts = chart.getTimeScale();
-    if (
-      !ts ||
-      typeof ts.coordinateToTime !== 'function' ||
-      typeof ts.width !== 'function'
-    ) {
-      return lastBarTimeSec;
-    }
-    const w = ts.width();
-    if (!(w > LINE_END_ICON_TIME_INSET_PX + 4)) {
-      return lastBarTimeSec;
-    }
-    const vr = chart.getVisibleRange?.();
-    const capSec =
-      vr?.to !== undefined && vr?.to !== null
-        ? normalizeChartUnixSec(vr.to)
-        : null;
-    for (let k = 0; k < LINE_END_ICON_MAX_PROBES; k++) {
-      const x = Math.max(
-        0,
-        Math.floor(
-          w - LINE_END_ICON_TIME_INSET_PX - k * LINE_END_ICON_PROBE_STEP_PX,
-        ),
-      );
-      const rawT = ts.coordinateToTime(x);
-      if (rawT === null || rawT === undefined) {
-        continue;
-      }
-      const numT = Number(rawT);
-      if (!isFinite(numT)) {
-        continue;
-      }
-      let tNorm = normalizeChartUnixSec(numT);
-      if (tNorm === null) {
-        continue;
-      }
-      if (tNorm < lastBarTimeSec) {
-        continue;
-      }
-      if (capSec !== null && tNorm > capSec) {
-        tNorm = capSec;
-      }
-      return tNorm;
-    }
-  } catch (e) {
-    return lastBarTimeSec;
-  }
-  return lastBarTimeSec;
-}
-
-function removeLineEndDot() {
-  if (!window.lineEndDotShapeId || !window.chartWidget) return;
-  try {
-    window.chartWidget.activeChart().removeEntity(window.lineEndDotShapeId);
-  } catch (e) {}
-  window.lineEndDotShapeId = null;
-}
-
-/**
- * Removes Drawing API \`icon\` shapes on the active chart. Line mode only uses icons for the end
- * dot; stale async \`createShape\` calls can leave orphans with no \`lineEndDotShapeId\` reference.
- */
-function sweepOrphanLineChartIconShapes() {
-  if (
-    window.currentChartType !== 2 ||
-    !window.chartWidget ||
-    !window.isChartReady
-  ) {
-    return;
-  }
-  try {
-    var chart = window.chartWidget.activeChart();
-    var shapes = chart.getAllShapes();
-    if (!shapes || !shapes.length) {
-      return;
-    }
-    for (var i = 0; i < shapes.length; i++) {
-      var name = String(shapes[i].name || '');
-      if (!/icon/i.test(name)) {
-        continue;
-      }
-      try {
-        chart.removeEntity(shapes[i].id);
-      } catch (err) {}
-    }
-  } catch (e) {}
-}
-
-/**
- * Line end marker is a Drawing API \`icon\` shape. Remove by id and sweep getAllShapes — pending
- * createShape promises can leave orphan icons on candle mode after fast toggles.
- */
-function ensureNoLineChartEndIcons() {
-  if (window.currentChartType === 2) return;
-  removeLineEndDot();
-  removeAllLastPriceHorizontalOverlays();
-  window.lineEndDotShapeId = null;
-  if (!window.chartWidget || !window.isChartReady) return;
-  try {
-    var chart = window.chartWidget.activeChart();
-    var shapes = chart.getAllShapes();
-    if (!shapes || !shapes.length) return;
-    for (var i = 0; i < shapes.length; i++) {
-      var name = String(shapes[i].name || '');
-      if (/icon/i.test(name)) {
-        try {
-          chart.removeEntity(shapes[i].id);
-        } catch (err) {}
-      }
-    }
-  } catch (e) {}
-}
-
-function refreshLineEndDot() {
-  window.__lineEndDotPlacementGen = (window.__lineEndDotPlacementGen || 0) + 1;
-  var placementGen = window.__lineEndDotPlacementGen;
-
-  removeLineEndDot();
-  sweepOrphanLineChartIconShapes();
-
-  if (
-    window.currentChartType !== 2 ||
-    !window.chartWidget ||
-    !window.isChartReady ||
-    window.ohlcvData.length === 0
-  ) {
-    return;
-  }
-
-  if (!getLineChrome().useCustomLineEndMarker) {
-    return;
-  }
-
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
-
-  function placeLineEndIcon() {
-    if (placementGen !== window.__lineEndDotPlacementGen) {
-      return;
-    }
-    if (
-      window.currentChartType !== 2 ||
-      !window.chartWidget ||
-      !window.isChartReady
-    ) {
-      return;
-    }
-    var chart = window.chartWidget.activeChart();
-    var pt = resolveLineEndOverlayPoint(chart);
-    if (!pt || !isFinite(pt.timeSec) || !isFinite(pt.price)) {
-      return;
-    }
-    if (placementGen !== window.__lineEndDotPlacementGen) {
-      return;
-    }
-    var iconTimeSec = getLineEndIconTimeSec(chart, pt.timeSec);
-
-    // Drawings API: icon + size matches design (16px); circle tool has no radius override.
-    // https://www.tradingview.com/charting-library-docs/latest/customization/overrides/Drawings-Overrides/
-    chart
-      .createShape(
-        { time: iconTimeSec, price: pt.price },
-        {
-          shape: 'icon',
-          icon: 0xf111,
-          lock: true,
-          overrides: {
-            color: color,
-            size: 16,
-          },
-          disableSelection: true,
-          disableSave: true,
-          disableUndo: true,
-          showInObjectsTree: false,
-          zOrder: 'top',
+    return {
+        format(price) {
+            return formatCrosshairPrice(price);
         },
-      )
-      .then(function (id) {
-        if (placementGen !== window.__lineEndDotPlacementGen) {
-          if (id) {
-            try {
-              chart.removeEntity(id);
-            } catch (e) {}
-          }
-          return;
-        }
-        if (window.currentChartType !== 2) {
-          if (id) {
-            try {
-              chart.removeEntity(id);
-            } catch (e2) {}
-          }
-          return;
-        }
-        if (id) {
-          window.lineEndDotShapeId = id;
-        }
-      })
-      .catch(function () {});
-  }
-
-  try {
-    var chartForReady = window.chartWidget.activeChart();
-    if (chartForReady && typeof chartForReady.dataReady === 'function') {
-      chartForReady.dataReady(placeLineEndIcon);
-    } else {
-      try {
-        requestAnimationFrame(placeLineEndIcon);
-      } catch (eRaf) {
-        setTimeout(placeLineEndIcon, 0);
-      }
-    }
-  } catch (eReady) {
-    placeLineEndIcon();
-  }
-}
-
-// ============================================
-// Volume Helpers
-// ============================================
-window.volumeStudyId = null;
-/** null when hidden; tracks overlay vs two-pane for TOGGLE_VOLUME changes while visible */
-window.volumeIsOverlay = null;
-
-function createVolumeStudy(useOverlay) {
-  if (!window.chartWidget || !window.isChartReady) return;
-  if (window.volumeStudyId) return;
-
-  try {
-    var chart = window.chartWidget.activeChart();
-    var theme = window.CONFIG.theme;
-    var inputs = {
-      'volume ma.display': 0,
-      'volume.color.0': theme.errorColor,
-      'volume.color.1': theme.successColor,
-      'volume.transparency': useOverlay ? 70 : 0,
     };
-    var promise = useOverlay
-      ? chart.createStudy('Volume', true, false, {}, inputs, {
-          priceScale: 'no-scale',
-        })
-      : chart.createStudy('Volume', false, false, {}, inputs);
-
-    promise
-      .then(function (studyId) {
-        window.volumeStudyId = studyId;
-        try {
-          var heights = chart.getAllPanesHeight();
-          if (heights.length === 2) {
-            var total = heights[0] + heights[1];
-            var minVolumePx = 56;
-            var minMainPx = 72;
-            var vol = Math.max(Math.round(total * 0.22), minVolumePx);
-            var main = total - vol;
-            if (main < minMainPx && total > minMainPx + minVolumePx) {
-              main = minMainPx;
-              vol = total - main;
-            } else if (main < minMainPx) {
-              main = Math.max(48, total - minVolumePx);
-              vol = total - main;
-            }
-            chart.setAllPanesHeight([main, vol]);
-          }
-        } catch (e) {}
-        updateCandleVolumeScaleColumnVisibility();
-        try {
-          requestAnimationFrame(function () {
-            requestAnimationFrame(updateCandleVolumeScaleColumnVisibility);
-          });
-        } catch (e) {}
-      })
-      .catch(function () {});
-  } catch (e) {}
 }
 
-function handleToggleVolume(payload) {
-  if (!window.chartWidget || !window.isChartReady || !payload) return;
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/datafeed.ts
+// TradingView UDF datafeed object passed into the widget constructor.
+//
+// Ported from chartLogic.js \`customDatafeed\` (lines ~5074-5203) and its
+// helpers \`filterBarsForRange\` (~4944), \`fetchOlderBars\` (~4991).
+// Phase 2 wires the default Price API paginator; Phase 6 swaps in
+// pagination/rnBacked.ts when consumers opt into the custom strategy.
 
-  suppressChartUserInteraction(600);
 
-  var useOverlay = payload.volumeOverlay === true;
 
-  if (!payload.visible) {
-    if (window.volumeStudyId) {
-      try {
-        window.chartWidget.activeChart().removeEntity(window.volumeStudyId);
-      } catch (e) {}
-      window.volumeStudyId = null;
-    }
-    window.volumeIsOverlay = null;
-    updateCandleVolumeScaleColumnVisibility();
-    return;
-  }
 
-  if (
-    window.volumeStudyId &&
-    window.volumeIsOverlay !== null &&
-    window.volumeIsOverlay !== useOverlay
-  ) {
-    try {
-      window.chartWidget.activeChart().removeEntity(window.volumeStudyId);
-    } catch (e) {}
-    window.volumeStudyId = null;
-  }
 
-  window.volumeIsOverlay = useOverlay;
-  if (!window.volumeStudyId) {
-    createVolumeStudy(useOverlay);
-  }
-}
 
-// ============================================
-// Custom Datafeed Implementation
-// ============================================
-
-/**
- * TradingView variable_tick_size string.
- *
- * Tells TradingView to dynamically adjust pricescale/minmov based on
- * the current price level. Format: "tickSize threshold tickSize threshold …"
- * where each tickSize applies for prices below the next threshold, and
- * the last tickSize applies to all prices above the last threshold.
- *
- * This replaces a manual pricescale computation and adapts automatically
- * as prices change (e.g. meme token pumps from $0.0001 to $1).
- */
-var VARIABLE_TICK_SIZE = [
-  '0.0000000001',
-  '0.000001', // prices < $0.000001 → 10 dp
-  '0.00000001',
-  '0.0001', // prices < $0.0001   →  8 dp
-  '0.000001',
-  '0.01', // prices < $0.01     →  6 dp
-  '0.0001',
-  '1', // prices < $1        →  4 dp
-  '0.01',
-  '10000', // prices < $10000    →  2 dp
-  '0.1', // prices ≥ $10000    →  1 dp
+const SUPPORTED_RESOLUTIONS = [
+    '1',
+    '3',
+    '5',
+    '15',
+    '30',
+    '60',
+    '120',
+    '240',
+    '480',
+    '720',
+    '1D',
+    '3D',
+    '1W',
+    '1M',
+];
+const DEFAULT_VARIABLE_TICK_SIZE = [
+    '0.0000000001',
+    '0.000001',
+    '0.00000001',
+    '0.0001',
+    '0.000001',
+    '0.01',
+    '0.0001',
+    '1',
+    '0.01',
+    '10000',
+    '0.1',
 ].join(' ');
-
-function filterBarsForRange(fromMs, toMs, countBack) {
-  var barsInRange = [];
-  for (var i = 0; i < window.ohlcvData.length; i++) {
-    var b = window.ohlcvData[i];
-    if (b.time >= fromMs && b.time < toMs) {
-      barsInRange.push({
-        time: b.time,
-        open: b.open,
-        high: b.high,
-        low: b.low,
-        close: b.close,
-        volume: b.volume,
-      });
-    }
-  }
-
-  if (barsInRange.length < countBack) {
-    var allBeforeTo = [];
-    for (var j = 0; j < window.ohlcvData.length; j++) {
-      if (window.ohlcvData[j].time < toMs) {
-        allBeforeTo.push(window.ohlcvData[j]);
-      }
-    }
-    var startIdx = Math.max(0, allBeforeTo.length - countBack);
-    barsInRange = [];
-    for (var k = startIdx; k < allBeforeTo.length; k++) {
-      var bar = allBeforeTo[k];
-      barsInRange.push({
+const PERPS_VARIABLE_TICK_SIZE = [
+    '0.0000000001',
+    '0.000001',
+    '0.00000001',
+    '0.0001',
+    '0.000001',
+    '0.01',
+    '0.0001',
+    '10000',
+    '1',
+].join(' ');
+function getVariableTickSize() {
+    return getConfiguredPriceDecimals() !== null
+        ? PERPS_VARIABLE_TICK_SIZE
+        : DEFAULT_VARIABLE_TICK_SIZE;
+}
+function getPriceScale() {
+    return getConfiguredPriceDecimals() !== null ? 10000000000 : 100;
+}
+/** Strips internal fields from an OHLCVBar to the shape TV expects. */
+function toTVBar(bar) {
+    return {
         time: bar.time,
         open: bar.open,
         high: bar.high,
         low: bar.low,
         close: bar.close,
         volume: bar.volume,
-      });
+    };
+}
+/**
+ * Filters the in-memory OHLCV array to the requested time window.
+ * Mirrors legacy \`filterBarsForRange\`: returns bars in [fromMs, toMs); if
+ * fewer than countBack bars match, falls back to the last countBack bars
+ * before toMs.
+ */
+function filterBarsForRange(fromMs, toMs, countBack) {
+    const all = getOhlcvData();
+    const inRange = [];
+    for (const bar of all) {
+        if (bar.time >= fromMs && bar.time < toMs) {
+            inRange.push(toTVBar(bar));
+        }
     }
-  }
-
-  return barsInRange;
+    if (inRange.length >= countBack) {
+        return inRange;
+    }
+    const beforeTo = all.filter((b) => b.time < toMs);
+    const startIdx = Math.max(0, beforeTo.length - countBack);
+    return beforeTo.slice(startIdx).map(toTVBar);
+}
+const customDatafeed = {
+    onReady(callback) {
+        setTimeout(() => {
+            callback({
+                supported_resolutions: SUPPORTED_RESOLUTIONS,
+                supports_marks: false,
+                supports_timescale_marks: false,
+                supports_time: true,
+            });
+        }, 0);
+    },
+    searchSymbols(_userInput, _exchange, _symbolType, onResult) {
+        onResult([]);
+    },
+    resolveSymbol(symbolName, onResolve, _onError) {
+        const info = {
+            name: symbolName,
+            ticker: symbolName,
+            description: symbolName,
+            type: 'crypto',
+            session: '24x7',
+            timezone: 'Etc/UTC',
+            exchange: '',
+            minmov: 1,
+            pricescale: getPriceScale(),
+            variable_tick_size: getVariableTickSize(),
+            has_intraday: true,
+            has_daily: true,
+            has_weekly_and_monthly: true,
+            supported_resolutions: SUPPORTED_RESOLUTIONS,
+            volume_precision: 0,
+            data_status: 'endofday',
+        };
+        setTimeout(() => onResolve(info), 0);
+    },
+    getBars(_symbolInfo, resolution, periodParams, onResult, onError) {
+        try {
+            const fromMs = periodParams.from * 1000;
+            const toMs = periodParams.to * 1000;
+            const { countBack, firstDataRequest } = periodParams;
+            const bars = filterBarsForRange(fromMs, toMs, countBack);
+            if (bars.length > 0) {
+                onResult(bars, { noData: false });
+                return;
+            }
+            const all = getOhlcvData();
+            if (firstDataRequest || all.length === 0) {
+                onResult([], { noData: true });
+                return;
+            }
+            const oldestAtDefer = all[0].time;
+            const pag = getOhlcvPagination();
+            // Strategy C (SLB): all data is pre-loaded by RN — no pagination.
+            if (slbHandleGetBars(onResult))
+                return;
+            // Strategy A (Price API / Token Details):
+            if (pag.assetId) {
+                fetchOlderBarsFromPriceApi({ oldestAtDefer })
+                    .then(({ olderBars, noData }) => {
+                    onResult(olderBars, { noData });
+                })
+                    .catch((error) => {
+                    reportErrorToRN(error);
+                    onResult([], { noData: true });
+                });
+                // Strategy B (RN-backed / Perps):
+            }
+            else if (getRnBackedPagination().enabled) {
+                requestOlderBarsFromRN({
+                    resolution,
+                    fromSec: periodParams.from,
+                    toSec: periodParams.to,
+                    countBack: periodParams.countBack,
+                    onResult,
+                });
+            }
+            else {
+                onResult([], { noData: true });
+            }
+        }
+        catch (error) {
+            let errMsg;
+            if (error instanceof Error) {
+                errMsg = error.message;
+            }
+            else if (typeof error === 'string') {
+                errMsg = error;
+            }
+            else {
+                errMsg = safeStringify(error);
+            }
+            onError(errMsg);
+        }
+    },
+    subscribeBars(_symbolInfo, _resolution, onTick, listenerGuid) {
+        registerRealtimeCallback(listenerGuid, onTick);
+    },
+    unsubscribeBars(listenerGuid) {
+        unregisterRealtimeCallback(listenerGuid);
+    },
+};
+/**
+ * Forward a realtime tick to every TradingView subscribeBars listener.
+ * Called from widget/ohlcvIngestion.ts on REALTIME_UPDATE.
+ */
+function forwardRealtimeTick(tick) {
+    const callbacks = getRealtimeCallbacks();
+    for (const guid of Object.keys(callbacks)) {
+        try {
+            callbacks[guid](tick);
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    }
 }
 
-var OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
+// Maps OHLCV bar intervals (milliseconds) to TradingView resolution strings.
+//
+// Ported verbatim from chartLogic.js INTERVAL_MS_TO_TV + detectResolution
+// (lines ~463-505). Phase 2 consumes this from widget/ohlcvIngestion.ts.
+/** OHLCV bar interval in milliseconds → TradingView resolution code. */
+const INTERVAL_MS_TO_TV = {
+    60000: '1',
+    180000: '3',
+    300000: '5',
+    900000: '15',
+    1800000: '30',
+    3600000: '60',
+    7200000: '120',
+    14400000: '240',
+    28800000: '480',
+    43200000: '720',
+    86400000: '1D',
+    259200000: '3D',
+    604800000: '1W',
+    2592000000: '1M',
+};
+const DEFAULT_RESOLUTION = '5';
+/**
+ * Picks the closest matching TV resolution for an OHLCV bar series.
+ * Uses the median diff over the first few bars so a single gap doesn't skew
+ * the result (matches legacy chartLogic.js detectResolution semantics).
+ */
+function detectResolution(data) {
+    if (data.length < 2) {
+        return DEFAULT_RESOLUTION;
+    }
+    const sampleCount = Math.min(data.length - 1, 10);
+    const diffs = [];
+    for (let i = 0; i < sampleCount; i++) {
+        diffs.push(data[i + 1].time - data[i].time);
+    }
+    diffs.sort((a, b) => a - b);
+    const median = diffs[Math.floor(diffs.length / 2)];
+    let best = DEFAULT_RESOLUTION;
+    let bestDist = Infinity;
+    for (const key of Object.keys(INTERVAL_MS_TO_TV)) {
+        const intervalMs = Number(key);
+        const distance = Math.abs(intervalMs - median);
+        if (distance < bestDist) {
+            bestDist = distance;
+            best = INTERVAL_MS_TO_TV[intervalMs];
+        }
+    }
+    return best;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/ohlcvIngestion.ts
+// SET_OHLCV_DATA and REALTIME_UPDATE inbound handlers.
+//
+// Ported from chartLogic.js: handleSetOHLCVData (~line 507) and
+// handleRealtimeUpdate (~line 658).
+//
+// Phase 2 simplifications vs legacy:
+// - No \`__mmLayoutSettlePending\` / \`beginDeferredLayoutSettleAfterOhlcvReload\`
+//   plumbing — CHART_LAYOUT_SETTLED is emitted on chart ready and on each
+//   data load directly.
+// - No chrome-related branches (\`refreshLineChartOverlays\`, line-end-dot,
+//   custom dashed price line) — those features are deleted in Phase 4.
+// - No trade-marker / indicator-state clear paths — Phase 5 / Phase 3 own
+//   those overlays and they hook into their own message types, not into
+//   SET_OHLCV_DATA's reset path.
+
+
+
+
+
+
+
+
+let firstDataCallback = null;
+let firstDataDelivered = false;
+/**
+ * When active indicators exist, defers the CHART_LAYOUT_SETTLED signal to the
+ * legend module so it fires after the first successful legend render — not on
+ * the premature 2-rAF timer in emitLayoutSettled.
+ */
+function claimLegendSettleOwnership() {
+    if (getActiveStudies().size > 0 || getMaStudies().size > 0) {
+        setLegendOwnsLayoutSettle(true);
+    }
+}
+/**
+ * Registers the callback invoked the first time SET_OHLCV_DATA arrives.
+ * Bootstrap wires this to widget creation (loads the TV library if needed,
+ * then calls createChartWidget).
+ */
+function onFirstOhlcvData(cb) {
+    firstDataCallback = cb;
+}
+function handleSetOHLCVData(payload) {
+    if (!payload?.data || payload.data.length === 0) {
+        return;
+    }
+    resolveAllPendingOlderBarsNoData();
+    setOhlcvData(payload.data);
+    state_bumpOhlcvGeneration();
+    if (payload.rnBackedPagination) {
+        setRnBackedPagination(payload.rnBackedPagination);
+    }
+    const slb = !!payload.slbMode;
+    setSlbMode(slb);
+    if (slb) {
+        setSlbCenteringPending(true);
+    }
+    if (payload.pagination) {
+        setOhlcvPagination({
+            nextCursor: payload.pagination.nextCursor ?? null,
+            hasMore: !!payload.pagination.hasMore,
+            assetId: payload.pagination.assetId ?? null,
+            vsCurrency: payload.pagination.vsCurrency ?? null,
+        });
+    }
+    else {
+        clearOhlcvPagination();
+    }
+    setVisibleFromMs(payload.visibleFromMs ?? null);
+    setVisibleToMs(payload.visibleToMs ?? null);
+    const newResolution = detectResolution(payload.data);
+    const previousResolution = getCurrentResolution();
+    setCurrentResolution(newResolution);
+    const widget = getWidget();
+    if (widget && isChartReady()) {
+        try {
+            const chart = widget.activeChart();
+            if (previousResolution === newResolution) {
+                // Same resolution — TV won't re-fetch via getBars, so we must
+                // resetData to force it to pick up the new bars from the datafeed.
+                resetDatafeedCacheBeforeHotReload(widget);
+                chart.resetData();
+                resetMainPriceScaleAutoScale(chart);
+                notifyDataLifecycle('ohlcvReset');
+                applyVisibleRange(chart);
+                emitLayoutSettled();
+            }
+            else {
+                // Different resolution — let setResolution handle the transition
+                // naturally. TV calls getBars internally, the datafeed returns the
+                // new bars (already stored via setOhlcvData above), and TV renders
+                // them smoothly without a blank frame. No resetData needed.
+                claimLegendSettleOwnership();
+                const seq = bumpHotReloadSeq();
+                chart.setResolution(newResolution, () => {
+                    if (getHotReloadSeq() !== seq) {
+                        return;
+                    }
+                    resetMainPriceScaleAutoScale(chart);
+                    applyVisibleRange(chart, { dataAlreadyLoaded: true });
+                    emitLayoutSettled();
+                });
+            }
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+        return;
+    }
+    if (!widget && firstDataCallback && !firstDataDelivered) {
+        firstDataDelivered = true;
+        try {
+            firstDataCallback();
+        }
+        catch (error) {
+            firstDataDelivered = false;
+            reportErrorToRN(error);
+        }
+    }
+}
+function handleRealtimeUpdate(payload) {
+    if (!payload?.bar)
+        return;
+    const bar = payload.bar;
+    appendOrReplaceLastBar(bar);
+    forwardRealtimeTick({
+        time: bar.time,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        volume: bar.volume,
+    });
+}
+function applyVisibleRange(chart, options) {
+    // Strategy C (SLB): center the viewport on the trade window using both
+    // visibleFromMs and visibleToMs. Handled by the socialLeaderboard overlay
+    // which subscribes to onDataLoaded and frames the exact trade window.
+    if (getSlbMode()) {
+        slbCenterViewport(chart, { immediate: options?.dataAlreadyLoaded });
+        return;
+    }
+    const fromMs = getVisibleFromMs();
+    if (fromMs == null) {
+        try {
+            chart.getTimeScale().setRightOffset(2);
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+        return;
+    }
+    // Strategy A / B: anchor the visible range from \`visibleFromMs\` to the
+    // last bar + 2-bar padding. This one-sided framing works because Token
+    // Details and Perps always want the right edge near the latest candle.
+    const capturedGeneration = getOhlcvGeneration();
+    const subscription = chart.onDataLoaded();
+    const onLoaded = () => {
+        subscription.unsubscribe(null, onLoaded);
+        if (capturedGeneration !== getOhlcvGeneration()) {
+            return;
+        }
+        const data = getOhlcvData();
+        const lastBar = data.at(-1);
+        const toSec = lastBar
+            ? Math.ceil(lastBar.time / 1000)
+            : Math.ceil(Date.now() / 1000);
+        const barPadSec = getApproxBarDurationSec(data) * 2;
+        try {
+            chart.setVisibleRange({ from: Math.floor(fromMs / 1000), to: toSec + barPadSec }, { percentRightMargin: 0 });
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    };
+    subscription.subscribe(null, onLoaded);
+}
+function emitLayoutSettled() {
+    if (doesLegendOwnLayoutSettle()) {
+        return;
+    }
+    const send = () => {
+        if (getWidget() && isChartReady()) {
+            postToRN('CHART_LAYOUT_SETTLED', {});
+        }
+    };
+    try {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(send);
+        });
+    }
+    catch {
+        setTimeout(send, 48);
+    }
+}
+function resetMainPriceScaleAutoScale(chart) {
+    try {
+        if (typeof chart.getPanes !== 'function')
+            return;
+        const panes = chart.getPanes?.();
+        const mainPane = panes?.[0];
+        if (!mainPane || typeof mainPane.getMainSourcePriceScale !== 'function') {
+            return;
+        }
+        const priceScale = mainPane.getMainSourcePriceScale();
+        if (typeof priceScale?.setAutoScale === 'function') {
+            priceScale.setAutoScale(true);
+        }
+    }
+    catch {
+        // Best-effort; failures are non-critical
+    }
+}
+function resetDatafeedCacheBeforeHotReload(widget) {
+    try {
+        if (typeof widget.resetCache === 'function') {
+            widget.resetCache();
+        }
+    }
+    catch {
+        // Best-effort; failures are non-critical
+    }
+}
+/** Test-only: clear the first-data trigger and the delivery flag. */
+function __resetOhlcvIngestionForTests() {
+    firstDataCallback = null;
+    firstDataDelivered = false;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/scaleLayout.ts
+// Centralised price-scale + pane-layout overrides.
+//
+// Ported from chartLogic.js \`applyChartScaleLayout\` (~line 1270). Applied on
+// every chart-type switch and once on chart-ready so candle and line charts
+// share the same visible Y range. Without paneProperties.topMargin /
+// bottomMargin, TV auto-fits the line series tighter than the candle series
+// (close-only vs high/low) and the line chart looks zoomed in.
+//
+// Phase 2 simplifications vs legacy:
+// - Drops chrome-related toggles (showSeriesLastValue/CrosshairLabel
+//   conditionals — TV built-in always on now)
+// - Drops DOM overflow unclip / hide-price-scale-buttons (no chrome to hide)
+
+
+
+const PANE_TOP_MARGIN = 12;
+const PANE_BOTTOM_MARGIN = 8;
+function buildScaleLayoutOverrides() {
+    const theme = getTheme();
+    if (!theme)
+        return {};
+    const gridLineColor = theme.gridLineColor || 'transparent';
+    const hidePaneSeparator = window.CONFIG?.features?.hidePaneSeparator === true;
+    const separatorColor = hidePaneSeparator
+        ? theme.backgroundColor
+        : theme.borderColor;
+    return {
+        'scalesProperties.showRightScale': true,
+        'scalesProperties.showLeftScale': false,
+        'scalesProperties.showSeriesLastValue': true,
+        'scalesProperties.showStudyLastValue': false,
+        'scalesProperties.showSymbolLabels': false,
+        'scalesProperties.showPriceScaleCrosshairLabel': true,
+        'scalesProperties.showTimeScaleCrosshairLabel': true,
+        'mainSeriesProperties.showPriceLine': !getHasExplicitCurrentPriceLine(),
+        'paneProperties.vertGridProperties.color': gridLineColor,
+        'paneProperties.horzGridProperties.color': gridLineColor,
+        'paneProperties.topMargin': PANE_TOP_MARGIN,
+        'paneProperties.bottomMargin': PANE_BOTTOM_MARGIN,
+        ...(theme?.backgroundColor
+            ? {
+                'timeScale.borderColor': theme.backgroundColor,
+                'scalesProperties.lineColor': theme.backgroundColor,
+            }
+            : {}),
+        ...(separatorColor
+            ? { 'paneProperties.separatorColor': separatorColor }
+            : {}),
+        ...(theme
+            ? {
+                'mainSeriesProperties.priceLineColor': getThemeLastPriceLineColor(theme),
+            }
+            : {}),
+    };
+}
+/**
+ * Apply the scale-layout overrides plus re-attach the main series to the
+ * right price scale. Safe to call multiple times. Errors are forwarded to RN.
+ */
+function applyScaleLayout(_type) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    try {
+        widget.applyOverrides(buildScaleLayoutOverrides());
+    }
+    catch (error) {
+        reportErrorToRN(error);
+        return;
+    }
+    syncMainSeriesToRightScale(widget);
+}
+function syncMainSeriesToRightScale(widget) {
+    try {
+        widget.activeChart().getSeries().detachToRight();
+    }
+    catch {
+        // detachToRight can fail mid-teardown; safe to ignore.
+    }
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/types.ts
+// Shared types for the AdvancedChart WebView modules.
+//
+// These types are local to the WebView bundle. Cross-bridge payload shapes that
+// must match the RN side live in messages/contract.ts and mirror the unions in
+// app/components/UI/Charts/AdvancedChart/AdvancedChart.types.ts.
+/** Chart type integers used by TradingView's setChartType / currentChartType. */
+var ChartType;
+(function (ChartType) {
+    ChartType[ChartType["Candles"] = 1] = "Candles";
+    ChartType[ChartType["Line"] = 2] = "Line";
+})(ChartType || (ChartType = {}));
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/chartType.ts
+// SET_CHART_TYPE handler — switches between candle (1) and line (2) types.
+//
+// Ported from chartLogic.js handleSetChartType (~line 2457). After
+// setChartType, the legacy code calls applyChartScaleLayout to re-apply
+// pane margins + right-scale binding; without it the line chart auto-fits
+// to close-only and looks "zoomed in" vs the candle chart's high/low range.
+
+
+
+function handleSetChartType(payload) {
+    const widget = getWidget();
+    if (!widget) {
+        // Widget not built yet; persist the desired type so initChart picks it up.
+        setCurrentChartType(payload.type);
+        return;
+    }
+    setCurrentChartType(payload.type);
+    if (!isChartReady()) {
+        return;
+    }
+    try {
+        widget.activeChart().setChartType(payload.type);
+        applyScaleLayout(payload.type);
+        // TradingView may rebind scales asynchronously after a type switch; the
+        // legacy code re-applies on the next animation frame for the line chart.
+        // Doing it for both types is safe.
+        requestAnimationFrame(() => applyScaleLayout(payload.type));
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/visualOverrides.ts
+// Visual override application — grid colour, pane separator, current-price
+// line colour. Driven from CONFIG.visualOverrides (set by the consumer's
+// \`visualOverrides\` prop on the RN side).
+//
+// New module in Phase 2 — there was no single legacy equivalent; the legacy
+// code spread these overrides across init + theme + series style branches.
+// Centralising here lets Perps (Phase 6) feed surface-specific overrides via
+// the same path.
+
 
 /**
- * Fetches the next page of OHLCV history directly from the Price API inside the WebView.
- * Called from \`getBars\` when \`window.ohlcvPagination\` has a cursor, avoiding the RN round-trip.
+ * Builds the TradingView override object from a VisualOverridesConfig.
+ * Returned shape is suitable for passing into TradingView's \`applyOverrides\`.
  */
-function fetchOlderBars(pending) {
-  var pag = window.ohlcvPagination;
-
-  if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
-    pending.onResult([], { noData: true });
-    if (window.__mmLayoutSettlePending) {
-      queueTryCompleteLayoutSettleAfterData();
+function buildVisualOverrides(config) {
+    if (!config)
+        return {};
+    const overrides = {};
+    if (config.gridLineColor != null) {
+        overrides['paneProperties.vertGridProperties.color'] = config.gridLineColor;
+        overrides['paneProperties.horzGridProperties.color'] = config.gridLineColor;
     }
-    return;
-  }
-
-  var gen = window.ohlcvGeneration;
-  // Build URL using the same approach as RN: construct then add query params
-  // AssetId contains "/" which should be preserved in the path
-  var url = OHLCV_BASE_URL + '/' + pag.assetId;
-  var queryParams = [];
-  queryParams.push('nextCursor=' + encodeURIComponent(pag.nextCursor));
-  if (pag.vsCurrency) {
-    queryParams.push('vsCurrency=' + encodeURIComponent(pag.vsCurrency));
-  }
-  url = url + '?' + queryParams.join('&');
-
-  fetch(url)
-    .then(function (response) {
-      if (!response.ok) {
-        throw new Error('OHLCV API error: ' + response.status);
-      }
-      return response.json();
-    })
-    .then(function (result) {
-      if (gen !== window.ohlcvGeneration) {
-        return;
-      }
-
-      if (!result || !Array.isArray(result.data)) {
-        throw new Error('OHLCV API response: invalid payload');
-      }
-
-      var newBars = [];
-      for (var i = 0; i < result.data.length; i++) {
-        var c = result.data[i];
-        newBars.push({
-          time: c.timestamp,
-          open: c.open,
-          high: c.high,
-          low: c.low,
-          close: c.close,
-          volume: c.volume,
-        });
-      }
-
-      window.ohlcvPagination.nextCursor = result.nextCursor || null;
-      window.ohlcvPagination.hasMore = !!result.hasNext;
-
-      if (newBars.length > 0) {
-        window.ohlcvData = newBars.concat(window.ohlcvData);
-      }
-
-      var olderBars = [];
-      for (var j = 0; j < newBars.length; j++) {
-        if (newBars[j].time < pending.oldestAtDefer) {
-          olderBars.push(newBars[j]);
-        }
-      }
-
-      pending.onResult(olderBars, { noData: olderBars.length === 0 });
-      if (window.__mmLayoutSettlePending) {
-        queueTryCompleteLayoutSettleAfterData();
-      }
-    })
-    .catch(function (err) {
-      if (gen !== window.ohlcvGeneration) {
-        return;
-      }
-      pending.onResult([], { noData: true });
-      if (window.__mmLayoutSettlePending) {
-        queueTryCompleteLayoutSettleAfterData();
-      }
-      sendToReactNative('DEBUG', {
-        message: 'fetchOlderBars error: ' + (err.message || String(err)),
-      });
-    });
+    if (config.hidePaneSeparator) {
+        overrides['paneProperties.separatorColor'] = 'rgba(0,0,0,0)';
+    }
+    if (config.currentPriceLineColor != null) {
+        overrides['mainSeriesProperties.priceLineColor'] =
+            config.currentPriceLineColor;
+    }
+    return overrides;
 }
-
-var customDatafeed = {
-  onReady: function (callback) {
-    setTimeout(function () {
-      callback({
-        supported_resolutions: [
-          '1',
-          '3',
-          '5',
-          '15',
-          '30',
-          '60',
-          '120',
-          '240',
-          '480',
-          '720',
-          '1D',
-          '3D',
-          '1W',
-          '1M',
-        ],
-        supports_marks: false,
-        supports_timescale_marks: false,
-        supports_time: true,
-      });
-    }, 0);
-  },
-
-  searchSymbols: function (userInput, exchange, symbolType, onResult) {
-    onResult([]);
-  },
-
-  resolveSymbol: function (symbolName, onResolve) {
-    setTimeout(function () {
-      onResolve({
-        name: symbolName,
-        ticker: symbolName,
-        description: symbolName,
-        type: 'crypto',
-        session: '24x7',
-        timezone: 'Etc/UTC',
-        exchange: '',
-        minmov: 1,
-        pricescale: 100,
-        variable_tick_size: VARIABLE_TICK_SIZE,
-        has_intraday: true,
-        has_daily: true,
-        has_weekly_and_monthly: true,
-        supported_resolutions: [
-          '1',
-          '3',
-          '5',
-          '15',
-          '30',
-          '60',
-          '120',
-          '240',
-          '480',
-          '720',
-          '1D',
-          '3D',
-          '1W',
-          '1M',
-        ],
-        volume_precision: 0,
-        data_status: 'endofday',
-      });
-    }, 0);
-  },
-
-  getBars: function (symbolInfo, resolution, periodParams, onResult, onError) {
+/**
+ * Apply visual overrides to a live widget. Safe to call before chart-ready —
+ * TradingView queues overrides internally. Errors are forwarded to RN.
+ */
+function applyVisualOverrides(config) {
+    const widget = getWidget();
+    if (!widget)
+        return;
+    const overrides = buildVisualOverrides(config);
+    if (Object.keys(overrides).length === 0)
+        return;
     try {
-      var fromMs = periodParams.from * 1000;
-      var toMs = periodParams.to * 1000;
-      var countBack = periodParams.countBack;
-      var firstRequest = periodParams.firstDataRequest;
-
-      /**
-       * Invokes TradingView’s callback, then completes deferred layout settle when this response is
-       * the main load for the visible range (\`firstDataRequest\`), matching \`resetData\` / new OHLCV.
-       */
-      function deliverBars(bars, meta) {
-        onResult(bars, meta);
-        if (window.__mmLayoutSettlePending && periodParams.firstDataRequest) {
-          queueTryCompleteLayoutSettleAfterData();
-        }
-      }
-
-      var bars = filterBarsForRange(fromMs, toMs, countBack);
-
-      if (bars.length > 0) {
-        deliverBars(bars, { noData: false });
-        return;
-      }
-
-      if (firstRequest || window.ohlcvData.length === 0) {
-        deliverBars([], { noData: true });
-        return;
-      }
-
-      var oldestTs = window.ohlcvData[0].time;
-
-      fetchOlderBars({
-        onResult: onResult,
-        oldestAtDefer: oldestTs,
-      });
-    } catch (error) {
-      abortDeferredLayoutSettleAndNotify();
-      onError(error && error.message ? error.message : String(error));
+        widget.applyOverrides(overrides);
     }
-  },
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
 
-  subscribeBars: function (symbolInfo, resolution, onTick, listenerGuid) {
-    window.realtimeCallbacks[listenerGuid] = onTick;
-  },
-
-  unsubscribeBars: function (listenerGuid) {
-    delete window.realtimeCallbacks[listenerGuid];
-  },
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timezone.ts
+// User-timezone resolution for TradingView's \`timezone\` widget option.
+//
+// Ported from chartLogic.js (~line 5299-5417). TradingView only accepts a
+// fixed set of IANA timezone IDs. \`Intl.DateTimeFormat().resolvedOptions()\`
+// on device returns the canonical zone; we map a small set of legacy
+// aliases and fall back to Etc/UTC when the zone isn't in TV's list.
+/** IANA identifiers TradingView's Advanced Charts library accepts. */
+const TV_SUPPORTED_TIMEZONES = [
+    'Etc/UTC',
+    'Africa/Cairo',
+    'Africa/Casablanca',
+    'Africa/Johannesburg',
+    'Africa/Lagos',
+    'Africa/Nairobi',
+    'Africa/Tunis',
+    'America/Anchorage',
+    'America/Argentina/Buenos_Aires',
+    'America/Bogota',
+    'America/Caracas',
+    'America/Chicago',
+    'America/El_Salvador',
+    'America/Halifax',
+    'America/Juneau',
+    'America/Lima',
+    'America/Los_Angeles',
+    'America/Mexico_City',
+    'America/New_York',
+    'America/Phoenix',
+    'America/Santiago',
+    'America/Sao_Paulo',
+    'America/Toronto',
+    'America/Vancouver',
+    'Asia/Astana',
+    'Asia/Ashkhabad',
+    'Asia/Bahrain',
+    'Asia/Bangkok',
+    'Asia/Chongqing',
+    'Asia/Colombo',
+    'Asia/Dhaka',
+    'Asia/Dubai',
+    'Asia/Ho_Chi_Minh',
+    'Asia/Hong_Kong',
+    'Asia/Jakarta',
+    'Asia/Jerusalem',
+    'Asia/Karachi',
+    'Asia/Kabul',
+    'Asia/Kathmandu',
+    'Asia/Kolkata',
+    'Asia/Kuala_Lumpur',
+    'Asia/Kuwait',
+    'Asia/Manila',
+    'Asia/Muscat',
+    'Asia/Nicosia',
+    'Asia/Qatar',
+    'Asia/Riyadh',
+    'Asia/Seoul',
+    'Asia/Shanghai',
+    'Asia/Singapore',
+    'Asia/Taipei',
+    'Asia/Tehran',
+    'Asia/Tel_Aviv',
+    'Asia/Tokyo',
+    'Asia/Yangon',
+    'Atlantic/Azores',
+    'Atlantic/Reykjavik',
+    'Australia/Adelaide',
+    'Australia/Brisbane',
+    'Australia/Perth',
+    'Australia/Sydney',
+    'Europe/Amsterdam',
+    'Europe/Athens',
+    'Europe/Belgrade',
+    'Europe/Berlin',
+    'Europe/Bratislava',
+    'Europe/Brussels',
+    'Europe/Bucharest',
+    'Europe/Budapest',
+    'Europe/Copenhagen',
+    'Europe/Dublin',
+    'Europe/Helsinki',
+    'Europe/Istanbul',
+    'Europe/Lisbon',
+    'Europe/London',
+    'Europe/Luxembourg',
+    'Europe/Madrid',
+    'Europe/Malta',
+    'Europe/Moscow',
+    'Europe/Oslo',
+    'Europe/Paris',
+    'Europe/Riga',
+    'Europe/Rome',
+    'Europe/Stockholm',
+    'Europe/Tallinn',
+    'Europe/Vienna',
+    'Europe/Vilnius',
+    'Europe/Warsaw',
+    'Europe/Zurich',
+    'Pacific/Auckland',
+    'Pacific/Chatham',
+    'Pacific/Fakaofo',
+    'Pacific/Honolulu',
+    'Pacific/Norfolk',
+    'US/Mountain',
+];
+/**
+ * Intl canonical names → TradingView legacy aliases. Intl returns
+ * \`America/Denver\` but TradingView expects \`US/Mountain\`. Add here as
+ * new devices report unmapped canonicals.
+ */
+const CANONICAL_TO_TV = {
+    'America/Denver': 'US/Mountain',
+    'Asia/Ashgabat': 'Asia/Ashkhabad',
+    'Asia/Almaty': 'Asia/Astana',
 };
-
-// ============================================
-// Library Loading
-// ============================================
-var libraryLoadAttempts = 0;
-var maxLibraryLoadAttempts = 50;
-
-function loadLibrary() {
-  var scriptUrl = window.CONFIG.libraryUrl + 'charting_library.js';
-
-  var script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = scriptUrl;
-  script.onload = function () {
-    window.libraryLoaded = true;
-    if (window.ohlcvData.length > 0) {
-      initChart();
+/**
+ * Resolves the device timezone to a TV-supported IANA identifier. Falls back
+ * to \`Etc/UTC\` when Intl fails or the resolved zone isn't in TV's list.
+ */
+function resolveUserTimezone() {
+    try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
+        const mapped = CANONICAL_TO_TV[tz] ?? tz;
+        return TV_SUPPORTED_TIMEZONES.includes(mapped) ? mapped : 'Etc/UTC';
     }
-  };
-  script.onerror = function () {
-    window.libraryError =
-      'Failed to load TradingView library. URL: ' + scriptUrl;
-    document.getElementById('loading-overlay').innerHTML =
-      '<div style="text-align:center;padding:20px;">' +
-      '<p style="color:#FF6B6B;margin-bottom:10px;">Failed to load chart library</p>' +
-      '<p style="font-size:12px;color:#888;">URL: ' +
-      scriptUrl +
-      '</p>' +
-      '<p style="font-size:12px;color:#888;">Check S3 access or CORS configuration.</p>' +
-      '</div>';
-    sendToReactNative('ERROR', { message: window.libraryError });
-  };
-  document.head.appendChild(script);
-}
-
-// ============================================
-// Chart Initialization
-// ============================================
-function initChart() {
-  if (window.chartWidget) {
-    return;
-  }
-
-  if (typeof TradingView === 'undefined') {
-    libraryLoadAttempts++;
-    if (libraryLoadAttempts >= maxLibraryLoadAttempts) {
-      var errorMsg =
-        'TradingView library failed to initialize after ' +
-        maxLibraryLoadAttempts * 100 +
-        'ms';
-      document.getElementById('loading-overlay').textContent = errorMsg;
-      sendToReactNative('ERROR', { message: errorMsg });
-      return;
-    }
-    setTimeout(initChart, 100);
-    return;
-  }
-
-  if (window.ohlcvData.length === 0) {
-    return;
-  }
-
-  try {
-    var theme = window.CONFIG.theme;
-    var features = window.CONFIG.features || {};
-    var lcInit = getLineChrome();
-    var initCustomLabels = lcInit.useCustomPriceLabels;
-    var initCustomDashed = lcInit.useCustomDashedLastPriceLine;
-
-    // Disabled features are passed from React Native via CONFIG.features.disabledFeatures.
-    // Defaults are set in DEFAULT_DISABLED_FEATURES (AdvancedChart.types.ts) and are
-    // optimized for the Token Details mobile UX. Consumers needing TradingView's
-    // native UI (e.g. Perps) can override via the disabledFeatures prop.
-    var disabledFeatures = (features.disabledFeatures || []).slice();
-
-    if (!features.enableDrawingTools) {
-      disabledFeatures.push('left_toolbar');
-      disabledFeatures.push('context_menus');
-    }
-
-    var visibleToSec = Math.ceil(
-      (window.visibleToMs != null ? window.visibleToMs : Date.now()) / 1000,
-    );
-    // Pad \`to\` by 2 bar durations so the end dot clears the price axis.
-    // 1 bar was not enough for the 16px dot marker to fully clear the right edge.
-    var initBarPadSec = getApproxBarDurationSec() * 2;
-    var tfOption =
-      window.visibleFromMs != null
-        ? {
-            type: 'time-range',
-            from: Math.floor(window.visibleFromMs / 1000),
-            to: visibleToSec + initBarPadSec,
-          }
-        : undefined;
-
-    // TradingView only supports a fixed set of IANA timezone IDs.
-    // If the device returns an unsupported ID we fall back to Etc/UTC.
-    // List of supported timezones:  https://www.tradingview.com/charting-library-docs/latest/ui_elements/timezones#supported-time-zones
-    var TV_SUPPORTED_TIMEZONES = [
-      'Etc/UTC',
-      'Africa/Cairo',
-      'Africa/Casablanca',
-      'Africa/Johannesburg',
-      'Africa/Lagos',
-      'Africa/Nairobi',
-      'Africa/Tunis',
-      'America/Anchorage',
-      'America/Argentina/Buenos_Aires',
-      'America/Bogota',
-      'America/Caracas',
-      'America/Chicago',
-      'America/El_Salvador',
-      'America/Halifax',
-      'America/Juneau',
-      'America/Lima',
-      'America/Los_Angeles',
-      'America/Mexico_City',
-      'America/New_York',
-      'America/Phoenix',
-      'America/Santiago',
-      'America/Sao_Paulo',
-      'America/Toronto',
-      'America/Vancouver',
-      'Asia/Astana',
-      'Asia/Ashkhabad',
-      'Asia/Bahrain',
-      'Asia/Bangkok',
-      'Asia/Chongqing',
-      'Asia/Colombo',
-      'Asia/Dhaka',
-      'Asia/Dubai',
-      'Asia/Ho_Chi_Minh',
-      'Asia/Hong_Kong',
-      'Asia/Jakarta',
-      'Asia/Jerusalem',
-      'Asia/Karachi',
-      'Asia/Kabul',
-      'Asia/Kathmandu',
-      'Asia/Kolkata',
-      'Asia/Kuala_Lumpur',
-      'Asia/Kuwait',
-      'Asia/Manila',
-      'Asia/Muscat',
-      'Asia/Nicosia',
-      'Asia/Qatar',
-      'Asia/Riyadh',
-      'Asia/Seoul',
-      'Asia/Shanghai',
-      'Asia/Singapore',
-      'Asia/Taipei',
-      'Asia/Tehran',
-      'Asia/Tokyo',
-      'Asia/Yangon',
-      'Atlantic/Azores',
-      'Atlantic/Reykjavik',
-      'Australia/Adelaide',
-      'Australia/Brisbane',
-      'Australia/Perth',
-      'Australia/Sydney',
-      'Europe/Amsterdam',
-      'Europe/Athens',
-      'Europe/Belgrade',
-      'Europe/Berlin',
-      'Europe/Bratislava',
-      'Europe/Brussels',
-      'Europe/Bucharest',
-      'Europe/Budapest',
-      'Europe/Copenhagen',
-      'Europe/Dublin',
-      'Europe/Helsinki',
-      'Europe/Istanbul',
-      'Europe/Lisbon',
-      'Europe/London',
-      'Europe/Luxembourg',
-      'Europe/Madrid',
-      'Europe/Malta',
-      'Europe/Moscow',
-      'Europe/Oslo',
-      'Europe/Paris',
-      'Europe/Prague',
-      'Europe/Riga',
-      'Europe/Rome',
-      'Europe/Stockholm',
-      'Europe/Tallinn',
-      'Europe/Vienna',
-      'Europe/Vilnius',
-      'Europe/Warsaw',
-      'Europe/Zurich',
-      'Pacific/Auckland',
-      'Pacific/Chatham',
-      'Pacific/Fakaofo',
-      'Pacific/Honolulu',
-      'Pacific/Norfolk',
-      'US/Mountain',
-    ];
-
-    // Intl returns canonical IANA names, but TradingView uses some legacy aliases.
-    var CANONICAL_TO_TV = {
-      'America/Denver': 'US/Mountain',
-      'Asia/Ashgabat': 'Asia/Ashkhabad',
-      'Asia/Almaty': 'Asia/Astana',
-    };
-
-    var userTimezone = (function () {
-      try {
-        var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
-        var mapped = CANONICAL_TO_TV[tz] || tz;
-        return TV_SUPPORTED_TIMEZONES.indexOf(mapped) !== -1
-          ? mapped
-          : 'Etc/UTC';
-      } catch (_e) {
+    catch {
         return 'Etc/UTC';
-      }
-    })();
-    window.chartWidget = new TradingView.widget({
-      symbol: window.currentSymbol,
-      interval: window.currentResolution || '5',
-      timeframe: tfOption,
-      container: 'tv_chart_container',
-      datafeed: customDatafeed,
-      library_path: window.CONFIG.libraryUrl,
-      locale: 'en',
-      timezone: userTimezone,
-      fullscreen: false,
-      autosize: true,
-      theme: 'Dark',
+    }
+}
 
-      disabled_features: disabledFeatures.concat(
-        'use_localstorage_for_settings',
-      ),
-      // Keep default logo placement on the *bottom* pane so it stays in the same corner when
-      // toggling line (single pane) vs candle + volume (logo on volume strip). Forcing
-      // move_logo_to_main_pane shifts the mark into the price pane and it jumps above volume.
-      enabled_features: ['study_templates', 'iframe_loading_same_origin'],
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/tvDomHelpers.ts
+// Pure DOM traversal helpers for TradingView's same-origin iframe layout.
+//
+// Ported from chartLogic.js: findOuterChartMarkupTable (~line 1977) and
+// eachChartDocument (~line 2003). Used by externalLinkBridge and (in later
+// phases) by indicator legend overlay layout calculations.
+/**
+ * Find the outermost \`.chart-markup-table\` element in a document — the
+ * container that wraps the price + time axes. Skips inner panes and axis
+ * containers so consumers can reason about chart bounds.
+ */
+function findOuterChartMarkupTable(doc) {
+    if (!doc) {
+        return null;
+    }
+    const list = doc.querySelectorAll('.chart-markup-table');
+    for (const el of Array.from(list)) {
+        const className = el.className ? String(el.className) : '';
+        if (el.classList.contains('pane'))
+            continue;
+        if (className.includes('price-axis-container'))
+            continue;
+        if (className.includes('time-axis'))
+            continue;
+        return el;
+    }
+    return list.length ? list[0] : null;
+}
+/**
+ * Run \`fn(document)\` and \`fn(iframe.contentDocument)\` for the TradingView
+ * same-origin iframe. TradingView's chart can mount in either the host doc
+ * or a same-origin iframe depending on \`iframe_loading_same_origin\`; helpers
+ * that traverse DOM should hit both.
+ */
+function eachChartDocument(fn) {
+    try {
+        fn(document);
+    }
+    catch {
+        // Continue to the iframe document.
+    }
+    try {
+        const container = document.getElementById('tv_chart_container');
+        const iframe = container?.querySelector('iframe');
+        if (iframe?.contentDocument) {
+            fn(iframe.contentDocument);
+        }
+    }
+    catch {
+        // No-op — iframe access can fail for cross-origin or detached frames.
+    }
+}
 
-      custom_themes: {
-        dark: {
-          color1: generatePaletteShades(theme.successColor),
-          color3: generatePaletteShades(theme.errorColor),
-        },
-      },
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/externalLinkBridge.ts
+// Intercepts in-iframe TradingView link clicks and forwards them to React
+// Native via CHART_TRADINGVIEW_CLICKED, so the user opens links in the
+// system browser instead of letting the iframe navigate.
+//
+// Ported from chartLogic.js: TV_EXTERNAL_BRIDGE_DEBOUNCE_MS,
+// isTradingViewExternalHostname, isTradingViewExternalHref,
+// installTradingViewExternalOpenBridge (lines ~2016-2122).
 
-      overrides: Object.assign(
-        {
-          'paneProperties.background': theme.backgroundColor,
-          'paneProperties.backgroundType': 'solid',
-          'paneProperties.vertGridProperties.color': 'transparent',
-          'paneProperties.horzGridProperties.color': 'transparent',
-          'scalesProperties.textColor': theme.textColor,
-          'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
-          'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
-          'scalesProperties.fontSize': 12,
-          'scalesProperties.showStudyLastValue': false,
-          'scalesProperties.showSeriesLastValue': !initCustomLabels,
-          'scalesProperties.showSymbolLabels': false,
-          'scalesProperties.showRightScale': true,
-          'scalesProperties.showLeftScale': false,
-          'scalesProperties.showPriceScaleCrosshairLabel': !initCustomLabels,
-          'scalesProperties.showTimeScaleCrosshairLabel': !initCustomLabels,
-          'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
-          'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
-          'mainSeriesProperties.showPriceLine': !initCustomDashed,
 
-          'mainSeriesProperties.candleStyle.upColor': theme.successColor,
-          'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
-          'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
-          'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
-          'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
-          'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
-        },
-        getSeriesColorOverrides(theme.lineColor || theme.successColor),
-      ),
-
-      loading_screen: {
-        backgroundColor: theme.backgroundColor,
-        foregroundColor: theme.successColor,
-      },
+const TV_EXTERNAL_BRIDGE_DEBOUNCE_MS = 600;
+// Module-local debounce timestamp; replaces window.__mmLastTvExternalBridgeAt.
+let lastBridgeAt = 0;
+function isTradingViewExternalHostname(hostname) {
+    if (!hostname)
+        return false;
+    const h = String(hostname).toLowerCase();
+    return (h === 'tradingview.com' ||
+        h === 'www.tradingview.com' ||
+        h.endsWith('.tradingview.com'));
+}
+function isTradingViewExternalHref(href) {
+    if (!href)
+        return false;
+    try {
+        const base = window.location?.href ?? 'https://localhost/';
+        const u = new URL(href, base);
+        return isTradingViewExternalHostname(u.hostname);
+    }
+    catch {
+        return false;
+    }
+}
+function sendTradingViewClicked(url) {
+    postToRN('CHART_TRADINGVIEW_CLICKED', url ? { url } : {});
+}
+function handleTradingViewLinkCapture(ev) {
+    const target = ev.target;
+    if (!target || typeof target.closest !== 'function')
+        return;
+    const anchor = target.closest('a');
+    if (!anchor?.href || !isTradingViewExternalHref(anchor.href)) {
+        return;
+    }
+    const now = Date.now();
+    if (now - lastBridgeAt < TV_EXTERNAL_BRIDGE_DEBOUNCE_MS)
+        return;
+    lastBridgeAt = now;
+    try {
+        ev.preventDefault();
+        ev.stopPropagation();
+    }
+    catch {
+        // preventDefault on a passive listener throws; safe to ignore.
+    }
+    sendTradingViewClicked(anchor.href);
+}
+function patchWindowOpen(win) {
+    if (!win?.open || win.__mmTvOpenPatched)
+        return;
+    win.__mmTvOpenPatched = true;
+    const origOpen = win.open.bind(win);
+    win.open = function patchedOpen(url, target, features) {
+        if (url != null && url !== '' && isTradingViewExternalHref(String(url))) {
+            const now = Date.now();
+            if (now - lastBridgeAt < TV_EXTERNAL_BRIDGE_DEBOUNCE_MS) {
+                return null;
+            }
+            lastBridgeAt = now;
+            sendTradingViewClicked(String(url));
+            return null;
+        }
+        return origOpen(url, target, features);
+    };
+}
+function applyAllOnce() {
+    patchWindowOpen(window);
+    eachChartDocument((doc) => {
+        try {
+            patchWindowOpen(doc.defaultView);
+        }
+        catch {
+            // defaultView access can fail in detached iframes.
+        }
+        const flagged = doc;
+        if (doc?.addEventListener && !flagged.__mmTvLinkCaptureInstalled) {
+            flagged.__mmTvLinkCaptureInstalled = true;
+            doc.addEventListener('click', handleTradingViewLinkCapture, true);
+        }
     });
-
-    window.chartWidget.onChartReady(function () {
-      suppressChartUserInteraction(1500);
-      window.isChartReady = true;
-      window.__mmLayoutSettlePending = false;
-      clearMmLayoutSettleFallbackTimer();
-      document.getElementById('loading-overlay').classList.add('hidden');
-
-      // Apply RN messages (e.g. SET_CHART_TYPE) before drawing last-price shape so
-      // currentChartType and TradingView overrides stay in sync.
-      window.pendingMessages.forEach(function (msg) {
-        handleMessage({ data: msg });
-      });
-      window.pendingMessages = [];
-
-      applySeriesColors();
-      applyChartScaleLayout(window.currentChartType);
-
-      scheduleHidePriceScaleModeButtons();
-
-      // Initialize price indicators based on chart type
-      if (window.currentChartType === 2) {
-        refreshLineChartOverlays();
-      } else {
-        ensureNoLineChartEndIcons();
-        createLastPriceLine();
-      }
-
-      // Prevent series selection (blue dots) by clearing any selection immediately
-      try {
-        window.chartWidget
-          .activeChart()
-          .selection()
-          .onChanged()
-          .subscribe(null, function () {
-            window.chartWidget.activeChart().selection().clear();
-          });
-      } catch (e) {}
-
-      // After zoom/pan, TV may reset time-scale and re-apply overflow on layout shells.
-      var chartTimeScaleLayoutDebounce = null;
-      try {
-        window.chartWidget
-          .activeChart()
-          .getTimeScale()
-          .barSpacingChanged()
-          .subscribe(null, function () {
-            if (chartTimeScaleLayoutDebounce) {
-              clearTimeout(chartTimeScaleLayoutDebounce);
-            }
-            chartTimeScaleLayoutDebounce = setTimeout(function () {
-              chartTimeScaleLayoutDebounce = null;
-              if (!window.chartWidget) return;
-              try {
-                applyChartContainerOverflowUnclip();
-                scheduleLastCloseLabelUpdate();
-                if (window.currentChartType === 2) {
-                  try {
-                    requestAnimationFrame(refreshLineChartOverlays);
-                  } catch (rafDot) {}
-                }
-              } catch (err) {}
-            }, 80);
-          });
-      } catch (e) {}
-
-      subscribeLastCloseLabelUpdates();
-
-      sendToReactNative('CHART_READY', {});
-
-      installTradingViewExternalOpenBridge();
-
-      // Chart interaction analytics: zoom vs pan (tooltip handled with crosshair).
-      window.__mmChartInteractZoomDebounce = null;
-      window.__mmChartInteractPanDebounce = null;
-      window.__mmChartInteractZoomLastFired = 0;
-
-      // Count a zoom: user changed bar width (pinch or zoom). We wait 450ms and send one event.
-      // We store when that happened so we do not also count a pan for the same finger action.
-      function scheduleChartInteractZoom() {
-        if (Date.now() < window.__mmSuppressChartInteractUntil) {
-          return;
+}
+/**
+ * Installs the bridge. Safe to call multiple times — each document is
+ * tagged with __mmTvLinkCaptureInstalled to avoid duplicate listeners.
+ *
+ * Reapplies on the iframe \`load\` event and after 200ms / 800ms / 2000ms
+ * because TradingView creates the iframe asynchronously and may swap its
+ * contentDocument; we don't have a reliable single signal for "fully loaded".
+ */
+function installTradingViewExternalOpenBridge() {
+    applyAllOnce();
+    try {
+        const container = document.getElementById('tv_chart_container');
+        const iframe = container?.querySelector('iframe');
+        if (iframe) {
+            iframe.addEventListener('load', applyAllOnce);
         }
-        if (window.__mmChartInteractZoomDebounce) {
-          clearTimeout(window.__mmChartInteractZoomDebounce);
+    }
+    catch {
+        // No-op — container/iframe may not exist yet on early calls.
+    }
+    setTimeout(applyAllOnce, 200);
+    setTimeout(applyAllOnce, 800);
+    setTimeout(applyAllOnce, 2000);
+}
+/** Test-only: reset module state between tests. */
+function __resetExternalLinkBridgeForTests() {
+    lastBridgeAt = 0;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/initChart.ts
+// TradingView widget creation and onChartReady orchestration.
+//
+// Ported from chartLogic.js initChart() / onChartReady (lines ~5242-5601),
+// stripped of:
+//   - chrome-related branches (useCustomLabels / useCustomDashed) — Phase 4
+//   - data-dependent gating (\`window.ohlcvData.length === 0\`) — Phase 2 calls
+//     this function only once data is in
+//   - custom crosshair listener + chart-interaction analytics — Phase 2
+//     (interaction/) will own this
+//   - line-end overlays / last-price overlays / legend overlay refresh —
+//     Phase 4 deletes the first two; Phase 3 owns the legend
+//
+// Phase 1's job is the constructor call + onChartReady hook + library load
+// orchestration. Phase 2 wires the datafeed.
+
+
+
+
+
+
+
+/**
+ * Generates a 19-shade palette from a base hex color, light→base→dark.
+ * Used for TradingView \`custom_themes.dark.color{1,3}\`. Ported verbatim
+ * from chartLogic.js \`generatePaletteShades\` (~line 999).
+ */
+function generatePaletteShades(hex) {
+    const r = Number.parseInt(hex.slice(1, 3), 16);
+    const g = Number.parseInt(hex.slice(3, 5), 16);
+    const b = Number.parseInt(hex.slice(5, 7), 16);
+    const shades = [];
+    for (let i = 0; i < 19; i++) {
+        const t = i / 18;
+        let sr;
+        let sg;
+        let sb;
+        if (t < 0.5) {
+            const f = 1 - t * 2;
+            sr = Math.round(r + (255 - r) * f);
+            sg = Math.round(g + (255 - g) * f);
+            sb = Math.round(b + (255 - b) * f);
         }
-        window.__mmChartInteractZoomDebounce = setTimeout(function () {
-          window.__mmChartInteractZoomDebounce = null;
-          if (Date.now() < window.__mmSuppressChartInteractUntil) {
-            return;
-          }
-          if (!window.chartWidget || !window.isChartReady) {
-            return;
-          }
-          sendToReactNative('CHART_INTERACTED', {
-            interaction_type: 'zoom',
-          });
-          window.__mmChartInteractZoomLastFired = Date.now();
-        }, 450);
-      }
-
-      // Count a pan: user slid the chart sideways. We wait 450ms and send one event.
-      // Right after a zoom we skip for 500ms, because zoom already shifts what you see on screen.
-      function scheduleChartInteractPan() {
-        if (Date.now() < window.__mmSuppressChartInteractUntil) {
-          return;
+        else {
+            const f2 = (t - 0.5) * 2;
+            sr = Math.round(r * (1 - f2));
+            sg = Math.round(g * (1 - f2));
+            sb = Math.round(b * (1 - f2));
         }
-        if (Date.now() - window.__mmChartInteractZoomLastFired < 500) {
-          return;
+        shades.push('#' + ((1 << 24) + (sr << 16) + (sg << 8) + sb).toString(16).slice(1));
+    }
+    return shades;
+}
+const BASE_ENABLED_FEATURES = [
+    'study_templates',
+    'iframe_loading_same_origin',
+];
+function resolveEnabledFeatures(features) {
+    const list = [...BASE_ENABLED_FEATURES];
+    if (features.showBuiltInLegend) {
+        list.push('always_show_legend_values_on_mobile');
+    }
+    return list;
+}
+function resolveDisabledFeatures(features) {
+    const list = (features.disabledFeatures ?? []).slice();
+    if (!features.enableDrawingTools) {
+        list.push('left_toolbar', 'context_menus');
+    }
+    if (!features.showBuiltInLegend) {
+        list.push('legend_widget');
+    }
+    list.push('use_localstorage_for_settings');
+    return list;
+}
+function buildWidgetOverrides(theme, features) {
+    const gridLineColor = theme.gridLineColor || 'transparent';
+    const showLegend = features?.showBuiltInLegend === true;
+    return {
+        'paneProperties.background': theme.backgroundColor,
+        'paneProperties.backgroundType': 'solid',
+        'paneProperties.vertGridProperties.color': gridLineColor,
+        'paneProperties.horzGridProperties.color': gridLineColor,
+        'scalesProperties.lineColor': theme.backgroundColor,
+        'scalesProperties.textColor': theme.textColor,
+        'timeScale.borderColor': theme.backgroundColor,
+        'scalesProperties.fontSize': 12,
+        'scalesProperties.showStudyLastValue': false,
+        'scalesProperties.showSeriesLastValue': true,
+        'scalesProperties.showSymbolLabels': false,
+        'scalesProperties.showRightScale': true,
+        'scalesProperties.showLeftScale': false,
+        'scalesProperties.showPriceScaleCrosshairLabel': true,
+        'scalesProperties.showTimeScaleCrosshairLabel': true,
+        'paneProperties.legendProperties.showSeriesTitle': false,
+        'paneProperties.legendProperties.showSeriesOHLC': showLegend,
+        'paneProperties.legendProperties.showBarChange': showLegend,
+        'paneProperties.legendProperties.showVolume': showLegend,
+        'paneProperties.legendProperties.showBackground': false,
+        'paneProperties.legendProperties.showStudyTitles': showLegend,
+        'paneProperties.legendProperties.showStudyArguments': showLegend,
+        'paneProperties.legendProperties.showStudyValues': showLegend,
+        'mainSeriesProperties.showPriceLine': !getHasExplicitCurrentPriceLine(),
+        'mainSeriesProperties.priceLineColor': getThemeLastPriceLineColor(theme),
+        // Pane margins keep candle (high/low fit) and line (close-only fit) charts
+        // visually consistent. Without them, line auto-fits tighter and looks
+        // zoomed in vs the candle chart for the same OHLCV.
+        'paneProperties.topMargin': 12,
+        'paneProperties.bottomMargin': 8,
+        ...getCandleStyleOverrides(theme),
+        ...getSeriesColorOverrides(getThemeLineColor(theme), getThemeLastPriceLineColor(theme)),
+        ...getBuiltInScaleLabelOverrides(theme),
+    };
+}
+/**
+ * Builds the TradingView widget. Returns the widget; the caller is expected
+ * to store it via setWidget(). Emits CHART_READY + CHART_LAYOUT_SETTLED to
+ * RN when the widget reports onChartReady.
+ */
+function createChartWidget(config, options) {
+    const TradingView = window.TradingView;
+    if (!TradingView) {
+        throw new Error('TradingView library not loaded');
+    }
+    const theme = getTheme();
+    if (!theme) {
+        throw new Error('Theme not initialised — call initThemeFromConfig first');
+    }
+    const features = config.features ?? {};
+    const disabledFeatures = resolveDisabledFeatures(features);
+    const widget = new TradingView.widget({
+        symbol: getCurrentSymbol(),
+        interval: getCurrentResolution(),
+        timeframe: options.timeframe,
+        container: 'tv_chart_container',
+        datafeed: options.datafeed,
+        library_path: config.libraryUrl,
+        locale: 'en',
+        custom_formatters: options.customFormatters,
+        timezone: options.timezone ?? resolveUserTimezone(),
+        fullscreen: false,
+        autosize: true,
+        theme: 'Dark',
+        disabled_features: disabledFeatures,
+        enabled_features: resolveEnabledFeatures(features),
+        custom_themes: {
+            dark: {
+                color1: generatePaletteShades(theme.successColor),
+                color3: generatePaletteShades(theme.errorColor),
+            },
+        },
+        overrides: buildWidgetOverrides(theme, features),
+        loading_screen: {
+            backgroundColor: theme.backgroundColor,
+            foregroundColor: theme.successColor,
+        },
+    });
+    setWidget(widget);
+    widget.onChartReady(() => {
+        setChartReady(true);
+        // Apply the stored chart type before revealing the chart. RN sends
+        // SET_CHART_TYPE before SET_OHLCV_DATA, so the state already holds
+        // the user's selection by the time onChartReady fires. Applying it
+        // here prevents the brief candlestick flash for line-chart users.
+        const storedType = getCurrentChartType();
+        if (storedType !== ChartType.Candles) {
+            try {
+                widget.activeChart().setChartType(storedType);
+            }
+            catch (e) {
+                reportErrorToRN(e);
+            }
         }
-        if (window.__mmChartInteractPanDebounce) {
-          clearTimeout(window.__mmChartInteractPanDebounce);
+        hideLoadingOverlay();
+        installTradingViewExternalOpenBridge();
+        postToRN('CHART_READY', {});
+        scheduleChartLayoutSettledNotify();
+        if (options.onReady) {
+            try {
+                options.onReady(widget);
+            }
+            catch (error) {
+                reportErrorToRN(error);
+            }
         }
-        window.__mmChartInteractPanDebounce = setTimeout(function () {
-          window.__mmChartInteractPanDebounce = null;
-          if (Date.now() < window.__mmSuppressChartInteractUntil) {
-            return;
-          }
-          if (Date.now() - window.__mmChartInteractZoomLastFired < 500) {
-            return;
-          }
-          if (!window.chartWidget || !window.isChartReady) {
-            return;
-          }
-          sendToReactNative('CHART_INTERACTED', {
-            interaction_type: 'pan',
-          });
-        }, 450);
-      }
+    });
+    return widget;
+}
+function hideLoadingOverlay() {
+    try {
+        const el = document.getElementById('loading-overlay');
+        el?.classList.add('hidden');
+    }
+    catch {
+        // Loading overlay may be absent in non-template contexts (e.g. tests).
+    }
+}
+/**
+ * Posts CHART_LAYOUT_SETTLED after two rAF ticks so RN's skeleton overlay
+ * can hide once TradingView has actually laid out. Mirrors legacy
+ * scheduleChartLayoutSettledNotify (~line 118).
+ */
+function scheduleChartLayoutSettledNotify() {
+    const send = () => {
+        if (getWidget()) {
+            postToRN('CHART_LAYOUT_SETTLED', {});
+        }
+    };
+    try {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(send);
+        });
+    }
+    catch {
+        setTimeout(send, 48);
+    }
+}
+/**
+ * Ensures library is loaded, then awaits caller-provided pre-widget setup.
+ * Phase 2's ohlcvIngestion calls this once SET_OHLCV_DATA arrives.
+ */
+async function ensureLibraryLoaded(libraryUrl) {
+    await loadTradingViewLibrary(libraryUrl);
+}
 
-      try {
-        window.chartWidget
-          .activeChart()
-          .getTimeScale()
-          .barSpacingChanged()
-          .subscribe(null, function () {
-            scheduleChartInteractZoom();
-          });
-      } catch (e) {}
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/crosshair.ts
+// Crosshair → CROSSHAIR_MOVE message bridge + short-tap dismiss.
+//
+// Subscribes to TradingView's crossHairMoved() and posts the nearest OHLCV
+// bar to RN. RN side's parseWebViewMessage routes this to onCrosshairMove,
+// and AdvancedChart.tsx's OHLCVBar component reads \`payload.data\`.
+//
+// Also subscribes to mouse_down / mouse_up so a short tap (< 400ms) after a
+// visible crosshair session dismisses the OHLCV bar — matches legacy
+// chartLogic.js (~lines 5742-5779). Without this the OHLCV bar lingers
+// forever after a long-press shows it.
+//
+// Ported from chartLogic.js (~line 5672) but simplified:
+// - No custom DOM crosshair-label drawing (Phase 4 deleted that)
+// - No marker hit-test bookkeeping (Phase 5's overlays/tradeMarkers owns it)
 
-      try {
-        window.chartWidget
-          .activeChart()
-          .onVisibleRangeChanged()
-          .subscribe(null, function () {
-            scheduleChartInteractPan();
-          });
-      } catch (e) {}
 
-      // Set up crosshair move listener for OHLC overlay
-      // TradingView activates crosshair on long-press internally.
-      // We forward all crosshair data and dismiss on short tap.
-      try {
-        window.ohlcvBarVisible = false;
-        window.ohlcvBarShownAt = 0;
-        window.ohlcvDismissUntil = 0;
-        window.__mmTooltipChartInteractSent = false;
-
-        window.chartWidget
-          .activeChart()
-          .crossHairMoved()
-          .subscribe(null, function (params) {
-            if (
-              !params ||
-              params.price === undefined ||
-              params.time === undefined
-            ) {
-              hideCustomCrosshairLabels();
-              return;
+const session = {
+    visible: false,
+    shownAt: 0,
+    dismissUntil: 0,
+    tooltipInteractSent: false,
+    mouseDownAt: 0,
+};
+const SHORT_TAP_MS = 400;
+const SYNTHETIC_CLICK_GUARD_MS = 500;
+const DISMISS_WINDOW_MS = 800;
+const DISMISS_RN_DELAY_MS = 50;
+function nearestBar(timeSec, data) {
+    if (data.length === 0)
+        return null;
+    const targetMs = timeSec * 1000;
+    let best = null;
+    let bestDiff = Infinity;
+    for (const bar of data) {
+        const diff = Math.abs(bar.time - targetMs);
+        if (diff < bestDiff) {
+            bestDiff = diff;
+            best = bar;
+        }
+    }
+    return best;
+}
+function toCrosshairData(bar) {
+    if (!bar)
+        return null;
+    return {
+        time: bar.time,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        volume: bar.volume,
+    };
+}
+/**
+ * Subscribes the chart's crosshair-move event. Each tick posts CROSSHAIR_MOVE
+ * with the nearest OHLCV bar shaped as CrosshairData, or null when the
+ * crosshair dismisses or when we're inside the post-tap dismiss window.
+ */
+function attachCrosshairListener(chart) {
+    try {
+        const subscription = chart.crossHairMoved();
+        subscription.subscribe(null, (params) => {
+            if (params?.price === undefined || params?.time === undefined) {
+                postToRN('CROSSHAIR_MOVE', { data: null });
+                return;
             }
-
-            if (Date.now() < window.ohlcvDismissUntil) {
-              hideCustomCrosshairLabels();
-              return;
+            if (Date.now() < session.dismissUntil) {
+                postToRN('CROSSHAIR_MOVE', { data: null });
+                return;
             }
-
-            updateCustomCrosshairLabels(params);
-
-            if (!window.ohlcvBarVisible) {
-              window.ohlcvBarShownAt = Date.now();
+            const bar = nearestBar(params.time, getOhlcvData());
+            if (!session.visible) {
+                session.shownAt = Date.now();
             }
-            window.ohlcvBarVisible = true;
-
-            var targetTime = params.time * 1000;
-            var closestBar = null;
-            var minDiff = Infinity;
-            for (var i = 0; i < window.ohlcvData.length; i++) {
-              var diff = Math.abs(window.ohlcvData[i].time - targetTime);
-              if (diff < minDiff) {
-                minDiff = diff;
-                closestBar = window.ohlcvData[i];
-              }
+            session.visible = true;
+            if (bar && !session.tooltipInteractSent) {
+                postToRN('CHART_INTERACTED', { interaction_type: 'tooltip' });
+                session.tooltipInteractSent = true;
             }
-            if (closestBar) {
-              if (!window.__mmTooltipChartInteractSent) {
-                sendToReactNative('CHART_INTERACTED', {
-                  interaction_type: 'tooltip',
-                });
-                window.__mmTooltipChartInteractSent = true;
-              }
-              sendToReactNative('CROSSHAIR_MOVE', {
-                data: {
-                  time: closestBar.time,
-                  open: closestBar.open,
-                  high: closestBar.high,
-                  low: closestBar.low,
-                  close: closestBar.close,
-                  volume: closestBar.volume,
+            postToRN('CROSSHAIR_MOVE', { data: toCrosshairData(bar) });
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/**
+ * Subscribes mouse_down / mouse_up so a short tap after a long-press-shown
+ * crosshair dismisses the OHLCV bar on the RN side. TV's built-in crosshair
+ * line will stay on the chart (no TV API for programmatic dismiss); only the
+ * RN-side OHLCV bar reads \`CROSSHAIR_MOVE { data: null }\` to hide itself.
+ */
+function attachTapDismiss(widget) {
+    try {
+        widget.subscribe('mouse_down', () => {
+            session.mouseDownAt = Date.now();
+            session.dismissUntil = 0;
+        });
+        widget.subscribe('mouse_up', () => {
+            if (!session.visible)
+                return;
+            const pressDuration = Date.now() - session.mouseDownAt;
+            if (pressDuration >= SHORT_TAP_MS)
+                return;
+            // Avoid dismissing the bar in response to the synthetic mouse-up that
+            // fires when a long-press finally releases — only dismiss if the bar
+            // has been visible long enough to be a deliberate "second tap".
+            if (Date.now() - session.shownAt < SYNTHETIC_CLICK_GUARD_MS)
+                return;
+            session.visible = false;
+            session.shownAt = 0;
+            session.dismissUntil = Date.now() + DISMISS_WINDOW_MS;
+            setTimeout(() => {
+                session.tooltipInteractSent = false;
+                postToRN('CROSSHAIR_MOVE', { data: null });
+            }, DISMISS_RN_DELAY_MS);
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/** Test-only: reset the module-local crosshair session state. */
+function __resetCrosshairForTests() {
+    session.visible = false;
+    session.shownAt = 0;
+    session.dismissUntil = 0;
+    session.tooltipInteractSent = false;
+    session.mouseDownAt = 0;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/visibleRange.ts
+// Visible-range / bar-spacing → CHART_INTERACTED analytics.
+//
+// Subscribes to TradingView's barSpacingChanged (zoom) and
+// onVisibleRangeChanged (pan), debouncing each by 450ms and skipping pan
+// events that fire within 500ms of a zoom (the same finger gesture often
+// triggers both).
+//
+// Ported from chartLogic.js zoom/pan debounce code in onChartReady
+// (~lines 5587-5661), trimmed of the legacy \`__mmSuppressChartInteractUntil\`
+// suppression (which gated analytics during OHLCV reloads — we emit
+// CHART_LAYOUT_SETTLED on each reload directly, so analytics can ignore
+// that gate).
+
+
+
+const DEBOUNCE_MS = 450;
+const PAN_SKIP_AFTER_ZOOM_MS = 500;
+const debounce = {
+    zoomTimer: null,
+    panTimer: null,
+    zoomLastFiredAt: 0,
+};
+function fireZoom() {
+    if (!getWidget() || !isChartReady())
+        return;
+    postToRN('CHART_INTERACTED', { interaction_type: 'zoom' });
+    debounce.zoomLastFiredAt = Date.now();
+}
+function firePan() {
+    if (!getWidget() || !isChartReady())
+        return;
+    if (Date.now() - debounce.zoomLastFiredAt < PAN_SKIP_AFTER_ZOOM_MS) {
+        return;
+    }
+    postToRN('CHART_INTERACTED', { interaction_type: 'pan' });
+}
+function scheduleZoom() {
+    if (debounce.zoomTimer)
+        clearTimeout(debounce.zoomTimer);
+    debounce.zoomTimer = setTimeout(() => {
+        debounce.zoomTimer = null;
+        fireZoom();
+    }, DEBOUNCE_MS);
+}
+function schedulePan() {
+    if (Date.now() - debounce.zoomLastFiredAt < PAN_SKIP_AFTER_ZOOM_MS)
+        return;
+    if (debounce.panTimer)
+        clearTimeout(debounce.panTimer);
+    debounce.panTimer = setTimeout(() => {
+        debounce.panTimer = null;
+        firePan();
+    }, DEBOUNCE_MS);
+}
+/**
+ * Subscribes zoom (barSpacingChanged) and pan (onVisibleRangeChanged) to the
+ * debounced CHART_INTERACTED emitters. Safe to call once per chart-ready.
+ */
+function attachVisibleRangeListeners(chart) {
+    try {
+        chart.getTimeScale().barSpacingChanged().subscribe(null, scheduleZoom);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+    try {
+        chart.onVisibleRangeChanged().subscribe(null, () => {
+            // Notify overlays (trade markers etc.) immediately so panned-in
+            // shapes get re-placed without waiting on the analytics debounce.
+            notifyDataLifecycle('visibleRangeChanged');
+            schedulePan();
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/** Test-only: reset the debounce state between cases. */
+function __resetVisibleRangeForTests() {
+    if (debounce.zoomTimer)
+        clearTimeout(debounce.zoomTimer);
+    if (debounce.panTimer)
+        clearTimeout(debounce.panTimer);
+    debounce.zoomTimer = null;
+    debounce.panTimer = null;
+    debounce.zoomLastFiredAt = 0;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/legend.ts
+// DOM legend overlay for active indicator studies.
+//
+// Ported from chartLogic.js: createStudyLegendOverlay (~4365),
+// refreshStudyLegendFromExport (~4644), buildLegendHTML (~4497),
+// updateLegendOverlayLayout (~4401), legend retry/timeout machinery
+// (~4630-4785), getMainPriceAxisLeftRelativeTo (~1472).
+//
+// The overlay is a \`<div id="study-legend-overlay">\` injected into
+// #tv_chart_container that holds one \`.legend-pill\` per active indicator.
+// Theme-aware text colors are computed from CONFIG.theme; per-plot colors
+// come from CONFIG.indicatorColors.
+//
+// \`LEGEND_RENDERED\` is posted to RN once the overlay has settled (either
+// real values returned by chart.exportData() or after the retry timeout).
+
+
+
+const OVERLAY_ID = 'study-legend-overlay';
+const OVERLAY_LEFT_PX = 8;
+const MAX_RETRIES = 10;
+const RETRY_DELAY_MS = 100;
+const RENDER_TIMEOUT_MS = 3000;
+let exportGeneration = 0;
+let retryCount = 0;
+let timeoutId = null;
+let legendOverlayEnabled = false;
+let indicatorColors;
+// ----- Lifecycle ---------------------------------------------------------
+/** Called once on chart-ready to set up the DOM container. */
+function setupLegendOverlay(config, colors) {
+    legendOverlayEnabled = Boolean(config?.enabled);
+    indicatorColors = colors;
+    if (!legendOverlayEnabled)
+        return;
+    createOverlayElement();
+    injectHideLegendButtonsCSS();
+}
+/**
+ * Subscribes to the widget's \`panes_height_changed\` event so the overlay
+ * max-width is recomputed whenever a pane resize (e.g. after adding MACD
+ * or RSI) shifts the price-axis boundary.
+ */
+function attachLegendResizeListener(widget) {
+    try {
+        widget.subscribe('panes_height_changed', () => {
+            const el = document.getElementById(OVERLAY_ID);
+            if (el)
+                updateLegendOverlayLayout();
+        });
+    }
+    catch {
+        // TV may throw if subscribe isn't ready; safe to ignore.
+    }
+}
+function createOverlayElement() {
+    const existing = document.getElementById(OVERLAY_ID);
+    if (existing)
+        existing.remove();
+    const container = document.getElementById('tv_chart_container');
+    if (!container)
+        return;
+    const div = document.createElement('div');
+    div.id = OVERLAY_ID;
+    div.style.cssText =
+        \`position:absolute;top:1px;left:\${OVERLAY_LEFT_PX}px;z-index:5;\` +
+            \`pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-start;\` +
+            \`column-gap:8px;row-gap:2px;\`;
+    container.style.position = 'relative';
+    container.appendChild(div);
+}
+function injectHideLegendButtonsCSS() {
+    const styleId = 'mm-hide-legend-buttons';
+    if (document.getElementById(styleId))
+        return;
+    let targetDoc = document;
+    eachChartDocument((doc) => {
+        if (targetDoc === document && doc !== document)
+            targetDoc = doc;
+    });
+    const style = targetDoc.createElement('style');
+    style.id = styleId;
+    style.textContent =
+        '.chart-controls-bar .apply-common-tooltip,' +
+            '.legendElement .showHide,' +
+            '.legendElement button[data-name="legend-show-hide-action"],' +
+            '.legendElement button[data-name="legend-settings-action"],' +
+            '.legendElement button[data-name="legend-delete-action"],' +
+            '.legendElement .buttons-wrapper,' +
+            '.legendElement .buttonsWrapper{display:none!important;}';
+    targetDoc.head.appendChild(style);
+}
+function getMACDColors() {
+    return indicatorColors?.MACD ?? {};
+}
+function getRSIColors() {
+    return indicatorColors?.RSI ?? {};
+}
+function getBOLColors() {
+    return indicatorColors?.BOL ?? {};
+}
+function getMAColors() {
+    return indicatorColors?.MA ?? {};
+}
+function buildPresetMap() {
+    const macd = getMACDColors();
+    const rsi = getRSIColors();
+    const bol = getBOLColors();
+    const ma = getMAColors();
+    return {
+        MACD: {
+            plots: [
+                { tvTitle: 'MACD', label: 'MACD(12,26)', color: macd.macd ?? null },
+                { tvTitle: 'Signal', label: 'Signal', color: macd.signal ?? null },
+                {
+                    tvTitle: 'Histogram',
+                    label: 'Hist',
+                    color: macd.histogramPositive ?? null,
                 },
-              });
+            ],
+            useIndex: true,
+        },
+        RSI: {
+            plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: rsi.plot ?? null }],
+            useIndex: true,
+        },
+        BOL: {
+            combineInOnePill: true,
+            title: 'BB(20,2)',
+            plots: [
+                { tvTitle: 'Upper', label: 'U:', color: bol.upper ?? null },
+                { tvTitle: 'Median', label: 'M:', color: bol.basis ?? null },
+                { tvTitle: 'Lower', label: 'L:', color: bol.lower ?? null },
+            ],
+            useIndex: true,
+        },
+        Volume: {
+            plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
+            useIndex: true,
+        },
+        MA5: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: ma.MA5 ?? null }],
+        },
+        MA10: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: ma.MA10 ?? null }],
+        },
+        MA20: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: ma.MA20 ?? null }],
+        },
+        MA50: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: ma.MA50 ?? null }],
+        },
+        MA200: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: ma.MA200 ?? null }],
+        },
+    };
+}
+function getLegendAltColor() {
+    const theme = getTheme();
+    return (theme?.legendTextColor ??
+        theme?.textAlternativeColor ??
+        theme?.textColor ??
+        'rgb(133,136,152)');
+}
+function isEmptyValue(v) {
+    return !v || v === '' || v === 'n/a' || v === '∅';
+}
+function plotValue(cfg, plotCfg, plotIndex, values) {
+    if (cfg.useIndex && plotIndex < values.length) {
+        return values[plotIndex].value;
+    }
+    const match = values.find((v) => v.title === plotCfg.tvTitle);
+    return match?.value ?? '';
+}
+function wrapPill(innerHtml, color) {
+    const style = color ? \` style="color:\${color};"\` : '';
+    return \`<span class="legend-pill"\${style}>\${innerHtml}</span>\`;
+}
+function buildHTML(entries) {
+    const altColor = getLegendAltColor();
+    const presets = buildPresetMap();
+    const successColor = getTheme()?.successColor ?? 'rgb(38,166,154)';
+    const pills = [];
+    for (const entry of entries) {
+        const cfg = presets[entry.name];
+        if (!cfg)
+            continue;
+        if (cfg.isMA) {
+            const ma = cfg.plots[0];
+            const val = plotValue(cfg, ma, 0, entry.values);
+            if (isEmptyValue(val))
+                continue;
+            pills.push(wrapPill(\`\${ma.label} \${val}\`, ma.color ?? undefined));
+            continue;
+        }
+        if (cfg.combineInOnePill) {
+            const labelColor = cfg.plots[0].color ?? successColor;
+            let inner = \`<span style="color:\${labelColor}">\${cfg.title ?? cfg.plots[0].label}</span>\`;
+            let hasValues = false;
+            cfg.plots.forEach((plot, idx) => {
+                const v = plotValue(cfg, plot, idx, entry.values);
+                if (isEmptyValue(v))
+                    return;
+                hasValues = true;
+                inner +=
+                    \`<span style="color:\${labelColor}">&nbsp;\${plot.label}</span>\` +
+                        \`<span style="color:\${altColor}">&nbsp;\${v}</span>\`;
+            });
+            if (hasValues)
+                pills.push(wrapPill(inner));
+            continue;
+        }
+        cfg.plots.forEach((plot, idx) => {
+            const v = plotValue(cfg, plot, idx, entry.values);
+            if (isEmptyValue(v))
+                return;
+            const color = plot.color ?? successColor;
+            const inner = \`<span style="color:\${color}">\${plot.label}</span>\` +
+                \`<span style="color:\${altColor}">&nbsp;\${v}</span>\`;
+            pills.push(wrapPill(inner));
+        });
+    }
+    return pills.join('');
+}
+// ----- Refresh from chart.exportData() ----------------------------------
+function collectStudyIdMap() {
+    const map = {};
+    for (const [name, id] of getActiveStudies().entries()) {
+        map[String(id)] = name;
+    }
+    for (const [name, id] of getMaStudies().entries()) {
+        map[String(id)] = name;
+    }
+    const vol = getVolumeStudyId();
+    if (vol)
+        map[String(vol)] = 'Volume';
+    return map;
+}
+function buildOrderedEntries(byStudy) {
+    const result = [];
+    for (const [name, studyId] of getLegendStudyOrder().entries()) {
+        const sid = String(studyId);
+        const values = byStudy[sid];
+        if (values)
+            result.push({ name, values });
+    }
+    return result;
+}
+function formatLegendValue(num) {
+    if (!Number.isFinite(num))
+        return '';
+    const abs = Math.abs(num);
+    if (abs >= 1e9)
+        return \`\${(num / 1e9).toFixed(2)}B\`;
+    if (abs >= 1e6)
+        return \`\${(num / 1e6).toFixed(2)}M\`;
+    if (abs >= 1e4)
+        return \`\${(num / 1e3).toFixed(1)}K\`;
+    if (abs >= 1000)
+        return num.toFixed(2);
+    if (abs >= 1)
+        return num.toFixed(2);
+    if (abs >= 0.01)
+        return num.toFixed(4);
+    return num.toPrecision(4);
+}
+function hasAnyEmpty(entries) {
+    for (const entry of entries) {
+        for (const v of entry.values) {
+            if (isEmptyValue(v.value))
+                return true;
+        }
+    }
+    return false;
+}
+function notifyLegendRendered() {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            postToRN('LEGEND_RENDERED', {});
+            if (doesLegendOwnLayoutSettle()) {
+                setLegendOwnsLayoutSettle(false);
+                postToRN('CHART_LAYOUT_SETTLED', {});
             }
-          });
-
-        var mouseDownTime = 0;
-
-        window.chartWidget.subscribe('mouse_down', function () {
-          mouseDownTime = Date.now();
-          window.ohlcvDismissUntil = 0;
         });
-
-        window.chartWidget.subscribe('mouse_up', function () {
-          if (!window.ohlcvBarVisible) return;
-          var pressDuration = Date.now() - mouseDownTime;
-          if (pressDuration < 400) {
-            // Short tap — only dismiss if bar has been visible long enough
-            // to avoid synthetic click events on long-press release
-            if (Date.now() - window.ohlcvBarShownAt < 500) return;
-            window.ohlcvBarVisible = false;
-            window.ohlcvBarShownAt = 0;
-            window.ohlcvDismissUntil = Date.now() + 800;
-            hideCustomCrosshairLabels();
-            setTimeout(function () {
-              window.__mmTooltipChartInteractSent = false;
-              sendToReactNative('CROSSHAIR_MOVE', { data: null });
-            }, 50);
-          }
-        });
-      } catch (e) {
-        // Crosshair subscription not critical
-      }
     });
-  } catch (error) {
-    var errMsg = error && error.message ? String(error.message) : String(error);
-    sendToReactNative('ERROR', {
-      message: 'Failed to initialize chart: ' + errMsg,
+}
+function clearTimer() {
+    if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+    }
+}
+function startTimeout(gen) {
+    clearTimer();
+    timeoutId = setTimeout(() => {
+        if (gen !== exportGeneration)
+            return;
+        retryCount = 0;
+        clearTimer();
+        notifyLegendRendered();
+    }, RENDER_TIMEOUT_MS);
+}
+function scheduleRetry(gen) {
+    if (retryCount >= MAX_RETRIES) {
+        retryCount = 0;
+        clearTimer();
+        notifyLegendRendered();
+        return;
+    }
+    retryCount += 1;
+    setTimeout(() => {
+        if (gen === exportGeneration)
+            refreshStudyLegendFromExport();
+    }, RETRY_DELAY_MS);
+}
+function renderOverlay(entries) {
+    const overlay = document.getElementById(OVERLAY_ID);
+    if (!overlay)
+        return;
+    overlay.innerHTML = buildHTML(entries);
+    updateLegendOverlayLayout();
+}
+function refreshStudyLegendFromExport() {
+    if (!legendOverlayEnabled)
+        return;
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    const overlay = document.getElementById(OVERLAY_ID);
+    if (!overlay)
+        return;
+    const studyIdMap = collectStudyIdMap();
+    const studyIds = Object.keys(studyIdMap);
+    if (studyIds.length === 0) {
+        overlay.innerHTML = '';
+        retryCount = 0;
+        clearTimer();
+        return;
+    }
+    const gen = ++exportGeneration;
+    if (retryCount === 0)
+        startTimeout(gen);
+    const chart = widget.activeChart();
+    chart
+        .exportData({
+        includeSeries: false,
+        includedStudies: studyIds,
+    })
+        .then((data) => {
+        if (gen !== exportGeneration)
+            return;
+        handleExportData(data, gen);
+    })
+        .catch(() => scheduleRetry(gen));
+}
+function isValidExportData(data) {
+    return Boolean(data?.schema && data.data && data.data.length > 0);
+}
+function resolveDisplayValue(rawVal, colIndex, displayedData) {
+    let displayVal = rawVal !== undefined && !Number.isNaN(rawVal)
+        ? formatLegendValue(rawVal)
+        : '';
+    if (displayedData && displayedData.length > 0) {
+        const dispRow = displayedData.at(-1);
+        if (dispRow?.[colIndex])
+            displayVal = dispRow[colIndex];
+    }
+    return displayVal;
+}
+function buildStudyMap(data, lastRow) {
+    const byStudy = {};
+    for (let s = 0; s < data.schema.length; s++) {
+        const field = data.schema[s];
+        if (field.type === 'time' || field.type === 'userTime')
+            continue;
+        const sid = field.sourceId ? String(field.sourceId) : '';
+        if (!sid)
+            continue;
+        if (!byStudy[sid])
+            byStudy[sid] = [];
+        const displayVal = resolveDisplayValue(lastRow[s], s, data.displayedData);
+        byStudy[sid].push({ title: field.plotTitle ?? '', value: displayVal });
+    }
+    return byStudy;
+}
+function handleExportData(data, gen) {
+    if (!isValidExportData(data)) {
+        scheduleRetry(gen);
+        return;
+    }
+    const lastRow = data.data.at(-1);
+    if (!lastRow) {
+        scheduleRetry(gen);
+        return;
+    }
+    const byStudy = buildStudyMap(data, lastRow);
+    const entries = buildOrderedEntries(byStudy);
+    if (hasAnyEmpty(entries) && retryCount < MAX_RETRIES) {
+        scheduleRetry(gen);
+        return;
+    }
+    retryCount = 0;
+    renderOverlay(entries);
+    clearTimer();
+    notifyLegendRendered();
+}
+/**
+ * Used by indicator handlers to request a legend rebuild after a study has
+ * been added/removed. Two rAFs to wait for TV's internal layout pass.
+ */
+function scheduleLegendRefresh() {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => refreshStudyLegendFromExport());
     });
-  }
+}
+/**
+ * Subscribes to a study's onDataLoaded event so the legend refreshes once
+ * the study's calculation finishes. Falls back to immediate refresh when
+ * the subscription API isn't available.
+ */
+function subscribeStudyDataLoaded(chart, studyId) {
+    try {
+        const study = chart.getStudyById(studyId);
+        if (study?.onDataLoaded) {
+            study.onDataLoaded().subscribe(null, () => {
+                scheduleLegendRefresh();
+            });
+            return;
+        }
+    }
+    catch {
+        // Fallthrough to direct refresh.
+    }
+    scheduleLegendRefresh();
+}
+// ----- Layout ------------------------------------------------------------
+function getMainPriceAxisLeftRelativeTo(el) {
+    if (!el?.getBoundingClientRect)
+        return null;
+    const orect = el.getBoundingClientRect();
+    let bestLeft = null;
+    let bestTop = Infinity;
+    eachChartDocument((doc) => {
+        const nodes = doc.querySelectorAll('.price-axis-container');
+        for (const node of Array.from(nodes)) {
+            const r = node.getBoundingClientRect();
+            if (r.width < 2 || r.height < 16)
+                continue;
+            if (r.top < bestTop) {
+                bestTop = r.top;
+                bestLeft = r.left - orect.left;
+            }
+        }
+    });
+    if (bestLeft === null || Number.isNaN(bestLeft))
+        return null;
+    const maxW = el.clientWidth;
+    if (maxW <= 0)
+        return null;
+    return Math.max(0, Math.min(bestLeft, maxW));
+}
+function updateLegendOverlayLayout() {
+    const overlay = document.getElementById(OVERLAY_ID);
+    const container = document.getElementById('tv_chart_container');
+    if (!overlay || !container)
+        return;
+    const scaleGap = 4;
+    const boundaryLeft = getMainPriceAxisLeftRelativeTo(container);
+    if (boundaryLeft !== null && boundaryLeft > OVERLAY_LEFT_PX + scaleGap) {
+        overlay.style.maxWidth = \`\${boundaryLeft - OVERLAY_LEFT_PX - scaleGap}px\`;
+    }
+    else {
+        overlay.style.maxWidth = 'calc(100% - 56px)';
+    }
+}
+/** Test-only: clear all module-local state between cases. */
+function __resetLegendForTests() {
+    exportGeneration = 0;
+    retryCount = 0;
+    clearTimer();
+    legendOverlayEnabled = false;
+    indicatorColors = undefined;
 }
 
-// ============================================
-// Start
-// ============================================
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function () {
-    loadLibrary();
-  });
-} else {
-  loadLibrary();
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/resize.ts
+// Re-runs the widget's own resize after study operations so overlay lines
+// re-align with the price scale. Ported from chartLogic.js
+// \`scheduleChartWidgetResize\` (~line 162). Two rAFs + a 120ms timeout mirror
+// the legacy staggered sequence — TradingView doesn't always align on the
+// first tick after createStudy resolves.
+
+function scheduleChartWidgetResize() {
+    const run = () => {
+        const widget = getWidget();
+        if (!widget)
+            return;
+        try {
+            widget.resize();
+        }
+        catch {
+            // TV can throw if the widget is mid-teardown; safe to ignore.
+        }
+    };
+    try {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(run);
+        });
+    }
+    catch {
+        setTimeout(run, 0);
+    }
+    setTimeout(run, 120);
 }
-`;
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/studies.ts
+// Study presets — the createStudy() shape for each indicator we support.
+//
+// Ported from chartLogic.js: handleAddIndicator's switch (~line 818),
+// MA_LENGTHS / MA_COLORS (~line 920), handleSetMAVisibility createStudy
+// call (~line 959). Phase 3 keeps the curated TV-study surface used by
+// Token Details; consumers needing TV's full study picker can re-enable
+// header_widget via the disabledFeatures prop.
+/**
+ * Built-in MA visibility periods. Used by SET_MA_VISIBILITY to keep the
+ * MA dropdown in sync. Order matters for the default rendering order.
+ */
+const MA_LENGTHS = {
+    MA5: 5,
+    MA10: 10,
+    MA20: 20,
+    MA50: 50,
+    MA200: 200,
+};
+const DEFAULT_MA_COLORS = {
+    MA5: 'rgb(139,139,245)',
+    MA10: 'rgb(255,107,157)',
+    MA20: 'rgb(245,166,35)',
+    MA50: 'rgb(184,230,46)',
+    MA200: 'rgb(92,201,245)',
+};
+function getMAColor(name, indicatorColors) {
+    const fromConfig = indicatorColors?.MA?.[name];
+    if (fromConfig)
+        return fromConfig;
+    return DEFAULT_MA_COLORS[name] ?? DEFAULT_MA_COLORS.MA200;
+}
+function macdPreset(colors) {
+    const c = colors?.MACD ?? {};
+    return {
+        studyName: 'MACD',
+        inputs: { in_0: 12, in_1: 26, in_2: 9 },
+        overrides: {
+            'MACD.color': c.macd,
+            'Signal.color': c.signal,
+            'Histogram.color.0': c.histogramPositive,
+            'Histogram.color.1': c.histogramNegative,
+        },
+    };
+}
+function rsiPreset(colors) {
+    const c = colors?.RSI ?? {};
+    return {
+        studyName: 'Relative Strength Index',
+        inputs: { in_0: 14 },
+        overrides: {
+            'Plot.color': c.plot,
+            'hlines background.visible': false,
+        },
+    };
+}
+function bolPreset(colors) {
+    const c = colors?.BOL ?? {};
+    return {
+        studyName: 'Bollinger Bands',
+        inputs: { in_0: 20, in_1: 2 },
+        overrides: {
+            'Upper.color': c.upper,
+            'Basis.color': c.basis,
+            'Lower.color': c.lower,
+        },
+    };
+}
+function ma200Preset() {
+    return {
+        studyName: 'Moving Average',
+        inputs: { length: 200 },
+        overrides: {},
+    };
+}
+function maVariantPreset(name, colors) {
+    return {
+        studyName: 'Moving Average',
+        inputs: { length: MA_LENGTHS[name] },
+        overrides: {
+            'Plot.color': getMAColor(name, colors),
+        },
+    };
+}
+function fallbackPreset(inputs) {
+    return {
+        studyName: '',
+        inputs: inputs ?? {},
+        overrides: {},
+    };
+}
+/**
+ * Resolves the createStudy preset for one of the curated indicators. Unknown
+ * names fall back to a generic preset that uses the name verbatim as the
+ * study name and the inputs as provided.
+ */
+function resolveStudyPreset(name, indicatorColors, inputsOverride) {
+    switch (name) {
+        case 'MACD':
+            return macdPreset(indicatorColors);
+        case 'RSI':
+            return rsiPreset(indicatorColors);
+        case 'BOL':
+            return bolPreset(indicatorColors);
+        case 'MA200':
+            return ma200Preset();
+        case 'MA5':
+        case 'MA10':
+        case 'MA20':
+        case 'MA50':
+            return maVariantPreset(name, indicatorColors);
+        default: {
+            const preset = fallbackPreset(inputsOverride);
+            preset.studyName = name;
+            return preset;
+        }
+    }
+}
+/** Sub-pane indicators always render in a dedicated pane below the main series. */
+const SUB_PANE_INDICATOR_NAMES = new Set([
+    'MACD',
+    'RSI',
+]);
+function isSubPaneIndicator(name) {
+    return SUB_PANE_INDICATOR_NAMES.has(name);
+}
+/**
+ * Creates the indicator study on the given chart, returning the studyId once
+ * TradingView resolves the create promise.
+ */
+function createIndicatorStudy(chart, preset) {
+    return chart.createStudy(preset.studyName, false, false, preset.inputs, preset.overrides);
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/subPane.ts
+// Sub-pane height ratio handler.
+//
+// Ported from chartLogic.js handleSetSubPaneLayout (~line 783) +
+// applySubPaneHeightRatio (~line 750). The consumer-supplied ratio
+// (subPaneHeightRatio prop) governs the size of RSI/MACD sub-panes.
+
+
+
+const MIN_MAIN_PX = 72;
+function hasActiveSubPaneIndicators() {
+    for (const name of getActiveStudies().keys()) {
+        if (isSubPaneIndicator(name))
+            return true;
+    }
+    return false;
+}
+function applySubPaneHeightRatio(chart) {
+    const ratio = getSubPaneHeightRatio();
+    if (ratio === null)
+        return;
+    try {
+        const heights = chart.getAllPanesHeight();
+        if (heights.length < 2)
+            return;
+        const total = heights.reduce((sum, h) => sum + h, 0);
+        const bottomCount = heights.length - 1;
+        let bottomTotal = Math.round(total * ratio * bottomCount);
+        let main = total - bottomTotal;
+        if (main < MIN_MAIN_PX) {
+            main = MIN_MAIN_PX;
+            bottomTotal = total - main;
+        }
+        const newHeights = [main];
+        let remaining = bottomTotal;
+        for (let i = 0; i < bottomCount; i++) {
+            const h = i === bottomCount - 1
+                ? remaining
+                : Math.floor(bottomTotal / bottomCount);
+            newHeights.push(h);
+            remaining -= h;
+        }
+        chart.setAllPanesHeight(newHeights);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function handleSetSubPaneLayout(payload) {
+    if (payload.heightRatio == null) {
+        setSubPaneHeightRatio(null);
+        return;
+    }
+    const ratio = payload.heightRatio;
+    if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+        return;
+    }
+    setSubPaneHeightRatio(ratio);
+    const widget = getWidget();
+    if (widget && isChartReady() && hasActiveSubPaneIndicators()) {
+        applySubPaneHeightRatio(widget.activeChart());
+    }
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/index.ts
+// ADD_INDICATOR / REMOVE_INDICATOR / SET_MA_VISIBILITY handlers.
+//
+// Ported from chartLogic.js handleAddIndicator (~line 803),
+// handleRemoveIndicator (~line 891), handleSetMAVisibility (~line 929).
+// Phase 3 keeps the curated indicator set used by Token Details (MACD, RSI,
+// BOL, MA200 + MA visibility variants). Consumers needing TV's native study
+// picker can re-enable header_widget via the disabledFeatures prop.
+
+
+
+
+
+
+function isOwnStringKey(key) {
+    return (typeof key === 'string' &&
+        key !== '__proto__' &&
+        key !== 'constructor' &&
+        key !== 'prototype');
+}
+function notifyIndicatorAdded(name, studyId) {
+    // Two-frame wait so RN reads the legend overlay after layout completes.
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            postToRN('INDICATOR_ADDED', { name, id: String(studyId) });
+        });
+    });
+}
+function handleAddIndicator(payload, config) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    if (!payload?.name)
+        return;
+    const name = payload.name;
+    if (!isOwnStringKey(name))
+        return;
+    if (getActiveStudies().has(name))
+        return;
+    const chart = widget.activeChart();
+    const preset = resolveStudyPreset(name, config.indicatorColors, payload.inputs);
+    createIndicatorStudy(chart, preset)
+        .then((studyId) => {
+        registerStudy('active', name, studyId);
+        if (isSubPaneIndicator(name)) {
+            applySubPaneHeightRatio(chart);
+        }
+        subscribeStudyDataLoaded(chart, studyId);
+        scheduleChartWidgetResize();
+        notifyIndicatorAdded(name, studyId);
+    })
+        .catch((error) => {
+        reportErrorToRN(error instanceof Error
+            ? new Error(\`Failed to add indicator: \${error.message}\`)
+            : error);
+    });
+}
+function handleRemoveIndicator(payload) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    if (!payload?.name)
+        return;
+    const name = payload.name;
+    if (!isOwnStringKey(name))
+        return;
+    if (!getActiveStudies().has(name))
+        return;
+    const studyId = unregisterStudy(name);
+    if (!studyId)
+        return;
+    try {
+        const chart = widget.activeChart();
+        chart.removeEntity(studyId);
+        scheduleLegendRefresh();
+        postToRN('INDICATOR_REMOVED', { name });
+        if (isSubPaneIndicator(name) && hasActiveSubPaneIndicators()) {
+            applySubPaneHeightRatio(chart);
+        }
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function handleSetMAVisibility(payload, config) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    if (!payload)
+        return;
+    const visible = payload.visible || [];
+    const chart = widget.activeChart();
+    const visibleNames = new Set();
+    for (const visibleName of visible) {
+        if (isOwnStringKey(visibleName) && MA_LENGTHS[visibleName] != null) {
+            visibleNames.add(visibleName);
+        }
+    }
+    removeMAVariants(chart, visibleNames);
+    addMAVariants(chart, visible, config);
+}
+function removeMAVariants(chart, keep) {
+    const toRemove = [];
+    for (const name of getMaStudies().keys()) {
+        if (!keep.has(name))
+            toRemove.push(name);
+    }
+    if (toRemove.length === 0)
+        return;
+    for (const name of toRemove) {
+        const studyId = unregisterStudy(name);
+        if (!studyId)
+            continue;
+        try {
+            chart.removeEntity(studyId);
+            postToRN('INDICATOR_REMOVED', { name });
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    }
+    // Removing TV studies doesn't auto-clear the DOM legend pills. Refresh so
+    // the disabled MA's pill disappears alongside the underlying study.
+    scheduleLegendRefresh();
+}
+function addMAVariants(chart, visible, config) {
+    const promises = [];
+    for (const name of visible) {
+        if (!isOwnStringKey(name) || MA_LENGTHS[name] == null)
+            continue;
+        if (getMaStudies().has(name))
+            continue;
+        const preset = resolveStudyPreset(name, config.indicatorColors);
+        promises.push(createIndicatorStudy(chart, preset)
+            .then((studyId) => {
+            registerStudy('ma', name, studyId);
+            subscribeStudyDataLoaded(chart, studyId);
+            notifyIndicatorAdded(name, studyId);
+        })
+            .catch((err) => {
+            reportErrorToRN(new Error(\`MA creation failed: \${name} - \${String(err)}\`));
+        }));
+    }
+    if (promises.length > 0) {
+        Promise.all(promises).then(() => {
+            scheduleLegendRefresh();
+            scheduleChartWidgetResize();
+        });
+    }
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/volume/index.ts
+// Volume study handler. Supports overlay-on-main-pane and sub-pane modes.
+//
+// Ported from chartLogic.js handleToggleVolume (~line 4877) +
+// createVolumeStudy (~line 4824). Sub-pane mode reshapes pane heights to
+// give the volume strip ~22% of total chart height with sensible minimums.
+
+
+
+
+const MIN_VOLUME_PX = 56;
+const volume_MIN_MAIN_PX = 72;
+const VOLUME_RATIO = 0.22;
+function buildVolumeOverrides(useOverlay) {
+    const theme = getTheme();
+    if (!theme) {
+        return {
+            'volume ma.display': 0,
+            'volume.transparency': useOverlay ? 70 : 0,
+        };
+    }
+    return {
+        'volume ma.display': 0,
+        'volume.transparency': useOverlay ? 70 : 0,
+        'volume.color.0': getVolumeErrorColor(theme),
+        'volume.color.1': getVolumeSuccessColor(theme),
+    };
+}
+function applySubPaneHeights(chart) {
+    try {
+        const heights = chart.getAllPanesHeight();
+        if (heights.length !== 2)
+            return;
+        const total = heights[0] + heights[1];
+        let vol = Math.max(Math.round(total * VOLUME_RATIO), MIN_VOLUME_PX);
+        let main = total - vol;
+        if (main < volume_MIN_MAIN_PX && total > volume_MIN_MAIN_PX + MIN_VOLUME_PX) {
+            main = volume_MIN_MAIN_PX;
+            vol = total - main;
+        }
+        else if (main < volume_MIN_MAIN_PX) {
+            main = Math.max(48, total - MIN_VOLUME_PX);
+            vol = total - main;
+        }
+        chart.setAllPanesHeight([main, vol]);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function createVolumeStudy(useOverlay) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    if (getVolumeStudyId())
+        return;
+    const chart = widget.activeChart();
+    const overrides = buildVolumeOverrides(useOverlay);
+    const promise = useOverlay
+        ? chart.createStudy('Volume', true, false, {}, overrides, {
+            priceScale: 'no-scale',
+        })
+        : chart.createStudy('Volume', false, false, {}, overrides);
+    promise
+        .then((studyId) => {
+        setVolumeStudyId(studyId);
+        if (!useOverlay)
+            applySubPaneHeights(chart);
+        scheduleLegendRefresh();
+    })
+        .catch((error) => reportErrorToRN(error));
+}
+function handleToggleVolume(payload) {
+    const widget = getWidget();
+    if (!widget || !isChartReady() || !payload)
+        return;
+    const useOverlay = payload.volumeOverlay === true;
+    if (!payload.visible) {
+        const existing = getVolumeStudyId();
+        if (existing) {
+            try {
+                widget.activeChart().removeEntity(existing);
+            }
+            catch (error) {
+                reportErrorToRN(error);
+            }
+            setVolumeStudyId(null);
+        }
+        setVolumeIsOverlay(null);
+        scheduleLegendRefresh();
+        return;
+    }
+    const existing = getVolumeStudyId();
+    if (existing &&
+        getVolumeIsOverlay() !== null &&
+        getVolumeIsOverlay() !== useOverlay) {
+        try {
+            widget.activeChart().removeEntity(existing);
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+        setVolumeStudyId(null);
+    }
+    setVolumeIsOverlay(useOverlay);
+    if (!getVolumeStudyId()) {
+        createVolumeStudy(useOverlay);
+    }
+}
+function recolorVolumeStudy(theme) {
+    const studyId = getVolumeStudyId();
+    if (!studyId)
+        return;
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    try {
+        const study = widget.activeChart().getStudyById(studyId);
+        if (study && typeof study.applyOverrides === 'function') {
+            study.applyOverrides({
+                'volume.color.0': getVolumeErrorColor(theme),
+                'volume.color.1': getVolumeSuccessColor(theme),
+            });
+        }
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function registerVolumeThemeSync() {
+    subscribeTheme(recolorVolumeStudy);
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/state.ts
+// Module-local state for the Social trade-marker overlay.
+//
+// Replaces legacy globals \`window.tradeMarkerShapeIds\`,
+// \`window.tradeMarkerShapeIdsById\`, \`window.tradeMarkersData\`,
+// \`window.__tradeMarkerGen\`, \`window.__tradeMarkerPulseGen\` from
+// chartLogic.js (lines 29-33, 2649, 2900). Confined to this folder so
+// no other module can read or mutate it — the trade-marker lifecycle is
+// entirely owned here.
+const state_state = {
+    shapeIds: [],
+    shapesByMarkerId: new Map(),
+    markers: null,
+    placementGeneration: 0,
+    pulseGeneration: 0,
+};
+function getShapeIds() {
+    return state_state.shapeIds;
+}
+function pushShapeId(id) {
+    state_state.shapeIds.push(id);
+}
+function clearShapes() {
+    state_state.shapeIds = [];
+    state_state.shapesByMarkerId = new Map();
+}
+function getShapesByMarkerId() {
+    return state_state.shapesByMarkerId;
+}
+function setShapesForMarkerId(id, pair) {
+    state_state.shapesByMarkerId.set(id, pair);
+}
+function getMarkers() {
+    return state_state.markers;
+}
+function setMarkers(markers) {
+    state_state.markers = markers;
+}
+function bumpPlacementGeneration() {
+    state_state.placementGeneration += 1;
+    return state_state.placementGeneration;
+}
+function getPlacementGeneration() {
+    return state_state.placementGeneration;
+}
+function bumpPulseGeneration() {
+    state_state.pulseGeneration += 1;
+    return state_state.pulseGeneration;
+}
+function getPulseGeneration() {
+    return state_state.pulseGeneration;
+}
+/** Test-only: reset every slice between test cases. */
+function __resetTradeMarkerStateForTests() {
+    state_state.shapeIds = [];
+    state_state.shapesByMarkerId = new Map();
+    state_state.markers = null;
+    state_state.placementGeneration = 0;
+    state_state.pulseGeneration = 0;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/index.ts
+// Social trade-marker overlay: places colored circles (with black rings)
+// on the chart for each of the user's trades, at the price of the candle
+// their trade timestamp falls in.
+//
+// Ported from chartLogic.js (~lines 2633-2896):
+//   TRADE_MARKER_ICON, TRADE_MARKER_SIZE, TRADE_MARKER_RING_SIZE,
+//   TRADE_MARKER_RING_COLOR, createTradeMarkerIcon, clearTradeMarkers,
+//   handleSetTradeMarkers, placeTradeMarkers, scheduleTradeMarkerRefresh.
+//
+// State lives in ./state.ts (no window.* globals). The overlay reacts to
+// three data-lifecycle events emitted by widget/pagination/interaction
+// modules — see registerTradeMarkerOverlay(). Overlays never import from
+// widget/*; the lifecycle bus decouples them.
+//
+// Sequential ring/fill draw order: creating ring1, fill1, ring2, fill2, …
+// with every shape at zOrder 'top' keeps a black rim visible between
+// touching circles (otherwise adjacent fills merge into one blob).
+
+
+
+
+
+/** FontAwesome fa-circle glyph — same icon used elsewhere for the line-end dot. */
+const TRADE_MARKER_ICON = 0xf111;
+/** Inner colored circle diameter (px). */
+const TRADE_MARKER_SIZE = 10;
+/** Outer ring diameter (px). The colored circle sits on top, leaving a ~2px rim. */
+const TRADE_MARKER_RING_SIZE = 14;
+/** Ring/outline color drawn behind every colored circle. */
+const TRADE_MARKER_RING_COLOR = 'rgb(0, 0, 0)';
+/** Debounce delay for a re-placement after pan / zoom / pagination. */
+const REFRESH_DEBOUNCE_MS = 150;
+let refreshDebounce = null;
+/**
+ * Bar (from \`data\`) closest in time to \`tMs\`. Ties favor the earlier bar
+ * — the candle the trade actually falls within. Returns null when the
+ * series is empty, \`tMs\` is non-finite, or the nearest close is not a
+ * number.
+ */
+function snapMarkerToNearestBar(data, tMs) {
+    if (!data.length || !Number.isFinite(tMs))
+        return null;
+    let lo = 0;
+    let hi = data.length - 1;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (data[mid].time < tMs)
+            lo = mid + 1;
+        else
+            hi = mid;
+    }
+    let best = lo;
+    if (lo > 0) {
+        const prevDiff = tMs - data[lo - 1].time;
+        const curDiff = data[lo].time - tMs;
+        if (prevDiff <= curDiff)
+            best = lo - 1;
+    }
+    const close = Number(data[best].close);
+    if (!Number.isFinite(close))
+        return null;
+    return { timeSec: Math.floor(data[best].time / 1000), close };
+}
+function createTradeMarkerIcon(chart, timeSec, price, color, size) {
+    return chart.createShape({ time: timeSec, price }, {
+        shape: 'icon',
+        icon: TRADE_MARKER_ICON,
+        lock: true,
+        overrides: { color, size },
+        disableSelection: true,
+        disableSave: true,
+        disableUndo: true,
+        showInObjectsTree: false,
+        zOrder: 'top',
+    });
+}
+function removeEntitySafe(chart, entityId) {
+    if (!entityId)
+        return;
+    try {
+        chart.removeEntity(entityId);
+    }
+    catch {
+        // Shape may already be removed.
+    }
+}
+function clearTradeMarkers() {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    try {
+        const chart = widget.activeChart();
+        for (const id of getShapeIds()) {
+            try {
+                chart.removeEntity(id);
+            }
+            catch {
+                // Already removed.
+            }
+        }
+        clearShapes();
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function handleSetTradeMarkers(payload) {
+    const widget = getWidget();
+    if (!widget || !isChartReady()) {
+        // Not ready yet — stash the markers and place them once the widget
+        // reports ready via the ohlcvReset lifecycle event.
+        setMarkers(payload?.markers?.length ? payload.markers : null);
+        return;
+    }
+    setMarkers(payload?.markers?.length ? payload.markers : null);
+    if (getMarkers() === null) {
+        clearTradeMarkers();
+        return;
+    }
+    placeTradeMarkers();
+}
+function resolveSnappedPrice(snapped, markerPrice) {
+    if (snapped !== null)
+        return snapped.close;
+    if (markerPrice != null && Number.isFinite(markerPrice)) {
+        return markerPrice;
+    }
+    return null;
+}
+function collectDesiredMarkers(markers, data, theme) {
+    if (!data.length)
+        return [];
+    const firstT = data[0].time;
+    const lastBar = data.at(-1);
+    if (!lastBar)
+        return [];
+    const lastT = lastBar.time;
+    const eligible = markers.filter((m) => m?.id != null &&
+        Number.isFinite(m.time) &&
+        m.time >= firstT &&
+        m.time <= lastT);
+    const ordered = eligible.slice().sort((a, b) => a.time - b.time);
+    const desired = [];
+    for (const marker of ordered) {
+        const snapped = snapMarkerToNearestBar(data, marker.time);
+        const timeSec = snapped ? snapped.timeSec : Math.floor(marker.time / 1000);
+        const rawPrice = resolveSnappedPrice(snapped, marker.price);
+        if (rawPrice === null)
+            continue;
+        const color = marker.intent === 'exit' ? theme.errorColor : theme.successColor;
+        desired.push({
+            id: String(marker.id),
+            timeSec,
+            price: rawPrice,
+            color,
+        });
+    }
+    return desired;
+}
+function placeTradeMarkers() {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    let chart;
+    try {
+        chart = widget.activeChart();
+    }
+    catch (error) {
+        reportErrorToRN(error);
+        return;
+    }
+    if (!chart)
+        return;
+    const markers = getMarkers() ?? [];
+    const data = getOhlcvData();
+    if (!data.length)
+        return; // no candles loaded yet — re-runs after data / pan
+    const theme = getTheme();
+    if (!theme)
+        return;
+    const desired = collectDesiredMarkers(markers, data, theme);
+    // Skip when the drawn set already matches — prevents pan flicker.
+    const desiredKey = desired
+        .map((d) => d.id)
+        .sort((a, b) => a.localeCompare(b))
+        .join('|');
+    const drawnKey = Array.from(getShapesByMarkerId().keys())
+        .sort((a, b) => a.localeCompare(b))
+        .join('|');
+    if (desiredKey === drawnKey)
+        return;
+    const gen = bumpPlacementGeneration();
+    clearTradeMarkers();
+    const paint = () => {
+        if (gen !== getPlacementGeneration())
+            return;
+        if (!getWidget() || !isChartReady())
+            return;
+        let activeChart;
+        try {
+            activeChart = widget.activeChart();
+        }
+        catch (error) {
+            reportErrorToRN(error);
+            return;
+        }
+        if (!activeChart)
+            return;
+        // Draw ring1 → fill1 → ring2 → fill2 sequentially. Every new shape is
+        // created at zOrder 'top', so the next ring lands ON TOP of the
+        // previous fill — keeps a black seam between touching circles.
+        const drawRingAndFill = async (marker) => {
+            if (gen !== getPlacementGeneration())
+                return;
+            const ringId = await createTradeMarkerIcon(activeChart, marker.timeSec, marker.price, TRADE_MARKER_RING_COLOR, TRADE_MARKER_RING_SIZE);
+            if (gen !== getPlacementGeneration()) {
+                removeEntitySafe(activeChart, ringId);
+                return;
+            }
+            const fillId = await createTradeMarkerIcon(activeChart, marker.timeSec, marker.price, marker.color, TRADE_MARKER_SIZE);
+            if (gen !== getPlacementGeneration()) {
+                removeEntitySafe(activeChart, ringId);
+                removeEntitySafe(activeChart, fillId);
+                return;
+            }
+            if (ringId)
+                pushShapeId(ringId);
+            if (fillId)
+                pushShapeId(fillId);
+            setShapesForMarkerId(marker.id, {
+                fill: fillId ?? null,
+                ring: ringId ?? null,
+            });
+        };
+        let chain = Promise.resolve();
+        for (const marker of desired) {
+            chain = chain.then(() => drawRingAndFill(marker));
+        }
+        chain.catch(() => {
+            // Swallow — createShape failures are non-fatal for individual markers.
+        });
+    };
+    // Defer to dataReady when available so createShape has bars to snap X to.
+    try {
+        if (typeof chart.dataReady === 'function') {
+            chart.dataReady(paint);
+        }
+        else {
+            paint();
+        }
+    }
+    catch {
+        paint();
+    }
+}
+function scheduleTradeMarkerRefresh() {
+    if (!getMarkers())
+        return;
+    if (refreshDebounce)
+        clearTimeout(refreshDebounce);
+    refreshDebounce = setTimeout(() => {
+        refreshDebounce = null;
+        placeTradeMarkers();
+    }, REFRESH_DEBOUNCE_MS);
+}
+/**
+ * Wires the trade-marker message handlers and lifecycle subscriptions.
+ * Called once from bootstrap. Idempotent registerHandler replaces prior
+ * bindings — safe to call twice in tests without leaking listeners.
+ */
+function registerTradeMarkerOverlay() {
+    registerHandler('SET_TRADE_MARKERS', (payload) => {
+        handleSetTradeMarkers(payload);
+    });
+    // OHLCV reset drops every shape entity — clear our tracking (so
+    // placeTradeMarkers doesn't skip a redraw with a matching id set) and
+    // re-schedule a draw once the new data lands.
+    onDataLifecycle('ohlcvReset', () => {
+        clearShapes();
+        scheduleTradeMarkerRefresh();
+    });
+    // Older history paginated in → draw any markers that now sit in range.
+    onDataLifecycle('ohlcvPrepended', scheduleTradeMarkerRefresh);
+    // Pan / zoom may bring previously off-screen markers into the loaded
+    // range — re-place after the debounce settles.
+    onDataLifecycle('visibleRangeChanged', scheduleTradeMarkerRefresh);
+}
+/** Test-only: clear any pending refresh so timers don't leak between cases. */
+function __resetTradeMarkerRefreshForTests() {
+    if (refreshDebounce)
+        clearTimeout(refreshDebounce);
+    refreshDebounce = null;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/animation.ts
+// Pulse animation for a specific trade marker.
+//
+// Ported from chartLogic.js \`handlePulseTradeMarker\` (~lines 2915-3001).
+// Decaying |sin| envelope over ~1.1s, two humps that shrink back to the
+// base size. A generation token cancels an in-flight pulse when a newer
+// pulse (or a full marker rebuild) starts, so we never leave a shape
+// stuck at the peak size.
+
+
+
+
+
+/** Pulse duration (ms). */
+const PULSE_MS = 1100;
+/** Peak (colored-circle) size at the crest of a pulse. */
+const PULSE_PEAK = 22;
+/** Number of grow/shrink humps over the animation. */
+const PULSE_CYCLES = 2;
+function getShape(chart, id) {
+    if (id == null || typeof chart.getShapeById !== 'function')
+        return null;
+    try {
+        return chart.getShapeById(id);
+    }
+    catch {
+        return null;
+    }
+}
+function setSize(shape, size) {
+    if (!shape)
+        return;
+    try {
+        shape.setProperties({ size: Math.round(size) });
+    }
+    catch {
+        // TV shape may have been destroyed between frames — swallow.
+    }
+}
+function handlePulseTradeMarker(payload) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    if (payload?.id == null)
+        return;
+    const markerId = String(payload.id);
+    const record = getShapesByMarkerId().get(markerId);
+    if (!record)
+        return;
+    const { fill: fillId, ring: ringId } = record;
+    if (fillId == null && ringId == null)
+        return;
+    let chart;
+    try {
+        chart = widget.activeChart();
+    }
+    catch (error) {
+        reportErrorToRN(error);
+        return;
+    }
+    const fillShape = getShape(chart, fillId);
+    const ringShape = getShape(chart, ringId);
+    if (!fillShape && !ringShape)
+        return;
+    const gen = bumpPulseGeneration();
+    const startTs = Date.now();
+    // Ring grows proportionally so the rim stays even.
+    const ringRatio = TRADE_MARKER_RING_SIZE / TRADE_MARKER_SIZE;
+    const applySize = (fillSize) => {
+        setSize(fillShape, fillSize);
+        setSize(ringShape, fillSize * ringRatio);
+    };
+    const step = () => {
+        if (gen !== getPulseGeneration())
+            return;
+        if (!getWidget() || !isChartReady())
+            return;
+        // Abort if the markers were rebuilt — record ids now point elsewhere.
+        const current = getShapesByMarkerId().get(markerId);
+        if (current?.fill !== fillId || current?.ring !== ringId)
+            return;
+        const t = (Date.now() - startTs) / PULSE_MS;
+        if (t >= 1) {
+            applySize(TRADE_MARKER_SIZE);
+            return;
+        }
+        const envelope = Math.abs(Math.sin(Math.PI * PULSE_CYCLES * t)) * (1 - t);
+        applySize(TRADE_MARKER_SIZE + (PULSE_PEAK - TRADE_MARKER_SIZE) * envelope);
+        try {
+            requestAnimationFrame(step);
+        }
+        catch {
+            setTimeout(step, 16);
+        }
+    };
+    try {
+        requestAnimationFrame(step);
+    }
+    catch {
+        applySize(TRADE_MARKER_SIZE);
+    }
+}
+/** Registers the PULSE_TRADE_MARKER message handler. Called from bootstrap. */
+function registerTradeMarkerPulseHandler() {
+    registerHandler('PULSE_TRADE_MARKER', (payload) => {
+        handlePulseTradeMarker(payload);
+    });
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/tradeMarkers/markerHitTest.ts
+// Marker tap detection — turns a chart press into a TRADE_MARKER_PRESSED
+// message so the RN side can scroll the trades list to the pressed trade.
+//
+// Ported from chartLogic.js:
+//   findTradeMarkerIdNearPoint (~lines 3007-3072),
+//   crossHairMoved + mouse_up handlers (~lines 5692-5762).
+//
+// This owns its own crossHairMoved + mouse_up subscriptions rather than
+// piggy-backing on interaction/crosshair.ts, so overlays/tradeMarkers
+// stays self-contained and interaction/* has no knowledge of the
+// overlay's data.
+
+
+
+
+
+/** Pixel radius (Euclidean) for matching a tap to a marker. */
+const TAP_RADIUS_PX = 26;
+/** Max delay between last crosshair point and mouse_up to consider it a tap. */
+const TAP_MAX_AGE_MS = 700;
+let lastTapPoint = null;
+/**
+ * Extract a normalized time range from a TradingView bar/visible range result.
+ * Returns the range or null if the values are missing or non-normalizable.
+ */
+function normalizeRange(raw) {
+    if (raw?.from === undefined || raw?.to === undefined)
+        return null;
+    const from = normalizeChartUnixSec(raw.from);
+    const to = normalizeChartUnixSec(raw.to);
+    if (from === null || to === null)
+        return null;
+    return { lo: Math.min(from, to), hi: Math.max(from, to) };
+}
+function getVisibleTimeRangeSec(chart) {
+    try {
+        if (typeof chart.getVisibleBarsRange === 'function') {
+            const result = normalizeRange(chart.getVisibleBarsRange());
+            if (result)
+                return result;
+        }
+    }
+    catch {
+        // fall through to getVisibleRange
+    }
+    try {
+        if (typeof chart.getVisibleRange === 'function') {
+            return normalizeRange(chart.getVisibleRange());
+        }
+    }
+    catch {
+        return null;
+    }
+    return null;
+}
+/**
+ * Compute the Y coordinate for a price given a linear price scale.
+ * Returns null when the height is non-positive or the scale range is degenerate.
+ */
+function linearPriceToY(lo, hi, price, h, inverted) {
+    if (inverted)
+        return ((price - lo) / (hi - lo)) * h;
+    return ((hi - price) / (hi - lo)) * h;
+}
+/**
+ * Compute the Y coordinate for a price given a logarithmic price scale.
+ * Returns null when any value is non-positive or the log range is degenerate.
+ */
+function logPriceToY(lo, hi, price, h, inverted) {
+    const logLo = Math.log(lo);
+    const logHi = Math.log(hi);
+    const logP = Math.log(price);
+    if (logHi === logLo)
+        return inverted ? 0 : h / 2;
+    const t = (logP - logLo) / (logHi - logLo);
+    return inverted ? t * h : (1 - t) * h;
+}
+/**
+ * Y coordinate (main-pane overlay pixels) for a price. Mirrors chartLogic.js
+ * \`getPriceYForLastCloseOverlay\`. Returns null when the pane / scale /
+ * range isn't available. Log-scale mode uses log mapping.
+ */
+function priceToY(chart, price) {
+    if (!Number.isFinite(price))
+        return null;
+    if (typeof chart.getPanes !== 'function')
+        return null;
+    try {
+        const panes = chart.getPanes();
+        if (!panes?.length)
+            return null;
+        const pane = panes[0];
+        const scale = pane.getMainSourcePriceScale();
+        if (!scale)
+            return null;
+        const range = scale.getVisiblePriceRange();
+        if (range?.from === undefined || range?.to === undefined) {
+            return null;
+        }
+        const lo = Math.min(range.from, range.to);
+        const hi = Math.max(range.from, range.to);
+        const h = pane.getHeight();
+        if (!h || h <= 0)
+            return null;
+        const clamped = Math.min(hi, Math.max(lo, price));
+        const inverted = typeof scale.isInverted === 'function' && scale.isInverted();
+        const mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
+        if (mode === 1 && lo > 0 && hi > 0 && clamped > 0) {
+            return logPriceToY(lo, hi, clamped, h, inverted);
+        }
+        return linearPriceToY(lo, hi, clamped, h, inverted);
+    }
+    catch {
+        return null;
+    }
+}
+/** Resolve the plot width (in pixels) from the chart's time scale. */
+function getPlotWidth(chart) {
+    try {
+        const ts = chart.getTimeScale();
+        if (ts && typeof ts.width === 'function')
+            return ts.width();
+    }
+    catch {
+        // ignore — caller treats 0 as unavailable
+    }
+    return 0;
+}
+/**
+ * Resolve the price to use for Y-distance calculation for a marker.
+ * Returns null when no usable price is available.
+ */
+function resolveMarkerPrice(snapped, markerPrice) {
+    if (snapped != null)
+        return snapped.close;
+    if (markerPrice != null && Number.isFinite(markerPrice))
+        return markerPrice;
+    return null;
+}
+/**
+ * Compute the Y pixel distance between a marker and the tap point.
+ * Returns 0 when Y cannot be determined (falls back to X-only matching).
+ */
+function computeYDistance(chart, offsetY, snapped, markerPrice) {
+    if (offsetY == null || !Number.isFinite(offsetY))
+        return 0;
+    const price = resolveMarkerPrice(snapped, markerPrice);
+    if (price == null)
+        return 0;
+    const markerY = priceToY(chart, price);
+    if (markerY == null || !Number.isFinite(markerY))
+        return 0;
+    return markerY - offsetY;
+}
+function computeMarkerDistance(ctx, marker) {
+    if (marker?.id == null || !Number.isFinite(marker?.time))
+        return null;
+    const markerKey = String(marker.id);
+    if (!ctx.drawn.has(markerKey))
+        return null;
+    const snapped = snapMarkerToNearestBar(ctx.data, marker.time);
+    const mSec = snapped ? snapped.timeSec : marker.time / 1000;
+    if (mSec < ctx.range.lo || mSec > ctx.range.hi)
+        return null;
+    const dxPx = (mSec - ctx.timeSec) * ctx.pxPerSec;
+    const dyPx = computeYDistance(ctx.chart, ctx.offsetY, snapped, marker.price);
+    return { key: markerKey, dist: Math.hypot(dxPx, dyPx) };
+}
+function findTradeMarkerIdNearPoint(timeSec, offsetY) {
+    const markers = getMarkers();
+    if (!markers?.length)
+        return null;
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return null;
+    if (!Number.isFinite(timeSec))
+        return null;
+    let chart;
+    try {
+        chart = widget.activeChart();
+    }
+    catch {
+        return null;
+    }
+    if (!chart)
+        return null;
+    const range = getVisibleTimeRangeSec(chart);
+    if (!range || range.hi <= range.lo)
+        return null;
+    const plotW = getPlotWidth(chart);
+    if (plotW <= 0)
+        return null;
+    const drawn = getShapesByMarkerId();
+    if (!drawn.size)
+        return null;
+    const ctx = {
+        chart,
+        range,
+        pxPerSec: plotW / (range.hi - range.lo),
+        drawn,
+        data: getOhlcvData(),
+        timeSec,
+        offsetY,
+    };
+    let bestId = null;
+    let bestDist = Infinity;
+    for (const marker of markers) {
+        const result = computeMarkerDistance(ctx, marker);
+        if (result && result.dist < bestDist) {
+            bestDist = result.dist;
+            bestId = result.key;
+        }
+    }
+    return bestDist <= TAP_RADIUS_PX ? bestId : null;
+}
+/**
+ * Subscribes crossHairMoved (to capture the last tap point) and mouse_up
+ * (to hit-test and emit TRADE_MARKER_PRESSED). The captured point is
+ * consumed on release so a subsequent mouse_up without a fresh crosshair
+ * update can't re-fire the same press.
+ */
+function attachMarkerHitTest(widget, chart) {
+    try {
+        chart.crossHairMoved().subscribe(null, (params) => {
+            if (params?.price === undefined || params?.time === undefined) {
+                return;
+            }
+            lastTapPoint = {
+                timeSec: params.time,
+                offsetY: params.offsetY,
+                at: Date.now(),
+            };
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+    try {
+        widget.subscribe('mouse_up', () => {
+            const tap = lastTapPoint;
+            lastTapPoint = null;
+            if (!tap)
+                return;
+            if (Date.now() - tap.at > TAP_MAX_AGE_MS)
+                return;
+            const pressedId = findTradeMarkerIdNearPoint(tap.timeSec, tap.offsetY);
+            if (pressedId != null) {
+                postToRN('TRADE_MARKER_PRESSED', { id: pressedId });
+            }
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/** Test-only: forget any captured tap between test cases. */
+function __resetMarkerHitTestForTests() {
+    lastTapPoint = null;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/focusTime/index.ts
+// Slide-to-center-on-a-time overlay used by Social's "tap a trade row →
+// center the chart on that trade" interaction.
+//
+// Ported from chartLogic.js \`handleFocusTime\` (~lines 3103-3205),
+// including the ease-in-out-quart timing, the "already comfortably
+// visible → don't move" inset check, and the generation token that
+// cancels an in-flight slide when a newer FOCUS_TIME arrives.
+//
+// Since chrome / custom-crosshair suppression is gone in Phase 4, there
+// is no \`suppressChartUserInteraction\` counterpart here — analytics
+// gating during the animation lived in the deleted line-chrome path.
+
+
+
+
+const ANIM_MS = 600;
+const FALLBACK_BARS = 60;
+/** A target inside this fraction of the visible span from either edge is "already visible". */
+const VISIBLE_INSET = 0.08;
+let animGeneration = 0;
+function easeInOutQuart(t) {
+    return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+}
+function readVisibleRangeSec(chart) {
+    if (typeof chart.getVisibleRange !== 'function')
+        return null;
+    try {
+        const vr = chart.getVisibleRange();
+        if (!vr)
+            return null;
+        const from = normalizeChartUnixSec(vr.from);
+        const to = normalizeChartUnixSec(vr.to);
+        if (from === null || to === null || to <= from)
+            return null;
+        return { from, to };
+    }
+    catch {
+        return null;
+    }
+}
+function applyRange(chart, from, to) {
+    try {
+        chart.setVisibleRange({ from, to });
+    }
+    catch {
+        // TV may refuse a range while a resolution switch is mid-flight; drop.
+    }
+}
+function handleFocusTime(payload) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    if (!payload || !Number.isFinite(payload.timeMs))
+        return;
+    let chart;
+    try {
+        chart = widget.activeChart();
+    }
+    catch (error) {
+        reportErrorToRN(error);
+        return;
+    }
+    if (!chart || typeof chart.setVisibleRange !== 'function')
+        return;
+    const centerSec = payload.timeMs / 1000;
+    const current = readVisibleRangeSec(chart);
+    // Already comfortably visible → don't move (caller pulses separately).
+    if (current) {
+        const inset = (current.to - current.from) * VISIBLE_INSET;
+        if (centerSec >= current.from + inset && centerSec <= current.to - inset) {
+            return;
+        }
+    }
+    let spanSec;
+    if (Number.isFinite(payload.spanMs) && payload.spanMs > 0) {
+        spanSec = payload.spanMs / 1000;
+    }
+    else if (getSlbMode()) {
+        // SLB: default span covers the entire trade window so the focused
+        // trade stays in context with all other trades visible.
+        const slbFromMs = getVisibleFromMs();
+        const slbToMs = getVisibleToMs();
+        if (slbFromMs != null && slbToMs != null) {
+            spanSec = (slbToMs - slbFromMs) / 1000;
+        }
+        else if (current) {
+            spanSec = current.to - current.from;
+        }
+        else {
+            spanSec = getApproxBarDurationSec(getOhlcvData()) * FALLBACK_BARS;
+        }
+    }
+    else if (current) {
+        spanSec = current.to - current.from;
+    }
+    else {
+        spanSec = getApproxBarDurationSec(getOhlcvData()) * FALLBACK_BARS;
+    }
+    const targetFrom = centerSec - spanSec / 2;
+    const targetTo = centerSec + spanSec / 2;
+    animGeneration += 1;
+    const gen = animGeneration;
+    // Jump when animation is disabled or we have no start range to lerp from.
+    if (payload.animate === false || !current) {
+        applyRange(chart, targetFrom, targetTo);
+        return;
+    }
+    const startFrom = current.from;
+    const startTo = current.to;
+    const startTs = Date.now();
+    const step = () => {
+        if (gen !== animGeneration)
+            return;
+        if (!getWidget() || !isChartReady())
+            return;
+        const elapsed = Date.now() - startTs;
+        const progress = elapsed >= ANIM_MS ? 1 : elapsed / ANIM_MS;
+        const eased = easeInOutQuart(progress);
+        applyRange(chart, startFrom + (targetFrom - startFrom) * eased, startTo + (targetTo - startTo) * eased);
+        if (progress < 1) {
+            try {
+                requestAnimationFrame(step);
+            }
+            catch {
+                setTimeout(step, 16);
+            }
+        }
+    };
+    try {
+        requestAnimationFrame(step);
+    }
+    catch {
+        applyRange(chart, targetFrom, targetTo);
+    }
+}
+function registerFocusTimeOverlay() {
+    registerHandler('FOCUS_TIME', (payload) => {
+        handleFocusTime(payload);
+    });
+}
+/** Test-only: reset the animation generation counter. */
+function __resetFocusTimeForTests() {
+    animGeneration = 0;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/positionLines/state.ts
+// Module-local state for position line shape IDs.
+// Kept separate from core/state.ts per convention: overlay-specific state
+// lives in the overlay's own state module.
+let shapeIds = [];
+let generation = 0;
+function getPositionShapeIds() {
+    return shapeIds;
+}
+function pushPositionShapeId(id) {
+    shapeIds.push(id);
+}
+function clearPositionShapeIds() {
+    shapeIds = [];
+}
+function bumpGeneration() {
+    generation += 1;
+    return generation;
+}
+function getGeneration() {
+    return generation;
+}
+function __resetPositionLineStateForTests() {
+    shapeIds = [];
+    generation = 0;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/positionLines/index.ts
+// Position lines overlay (Perps). Renders horizontal dashed lines for entry,
+// take-profit, stop-loss, liquidation, and optionally a current-price line.
+//
+// Ported from chartLogic.js handleSetPositionLines (~line 2624),
+// clearPositionLines (~line 2608), and positionShapeIds state.
+
+
+
+
+
+function clearPositionLines() {
+    const widget = getWidget();
+    if (!widget || !isChartReady()) {
+        clearPositionShapeIds();
+        return;
+    }
+    const chart = widget.activeChart();
+    for (const id of getPositionShapeIds()) {
+        try {
+            chart.removeEntity(id);
+        }
+        catch {
+            // Shape may already be gone after resetData
+        }
+    }
+    clearPositionShapeIds();
+}
+function handleSetPositionLines(payload) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    bumpGeneration();
+    clearPositionLines();
+    if (!payload?.position) {
+        setHasExplicitCurrentPriceLine(false);
+        try {
+            widget.applyOverrides({
+                'mainSeriesProperties.showPriceLine': true,
+            });
+        }
+        catch {
+            // Best-effort
+        }
+        return;
+    }
+    const position = payload.position;
+    setHasExplicitCurrentPriceLine(!!position.currentPrice);
+    try {
+        widget.applyOverrides({
+            'mainSeriesProperties.showPriceLine': !getHasExplicitCurrentPriceLine(),
+        });
+    }
+    catch {
+        // Best-effort
+    }
+    const theme = getTheme();
+    if (!theme)
+        return;
+    const colors = payload.positionLineColors || {};
+    const currentPriceColor = colors.currentPrice ||
+        getThemeLastPriceLineColor(theme);
+    const entryColor = colors.entry || theme.borderColor;
+    const takeProfitColor = colors.takeProfit || theme.successColor;
+    const stopLossColor = colors.stopLoss || theme.borderColor;
+    const liquidationColor = colors.liquidation || theme.errorColor;
+    const lines = [];
+    if (position.currentPrice) {
+        lines.push({
+            price: position.currentPrice,
+            color: currentPriceColor,
+            lineStyle: 2,
+            lineWidth: 1,
+            showLabel: false,
+            showPrice: false,
+            horzLabelsAlign: 'right',
+        });
+    }
+    if (position.entryPrice) {
+        lines.push({
+            price: position.entryPrice,
+            text: 'Entry',
+            color: entryColor,
+            lineStyle: 2,
+            lineWidth: 1,
+            showLabel: true,
+            showPrice: true,
+            horzLabelsAlign: 'left',
+        });
+    }
+    if (position.takeProfitPrice) {
+        lines.push({
+            price: position.takeProfitPrice,
+            text: 'TP',
+            color: takeProfitColor,
+            lineStyle: 2,
+            lineWidth: 1,
+            showLabel: true,
+            showPrice: true,
+            horzLabelsAlign: 'left',
+        });
+    }
+    if (position.stopLossPrice) {
+        lines.push({
+            price: position.stopLossPrice,
+            text: 'SL',
+            color: stopLossColor,
+            lineStyle: 2,
+            lineWidth: 1,
+            showLabel: true,
+            showPrice: true,
+            horzLabelsAlign: 'left',
+        });
+    }
+    if (position.liquidationPrice) {
+        lines.push({
+            price: position.liquidationPrice,
+            text: 'Liq',
+            color: liquidationColor,
+            lineStyle: 2,
+            lineWidth: 1,
+            showLabel: true,
+            showPrice: true,
+            horzLabelsAlign: 'left',
+        });
+    }
+    try {
+        const chart = widget.activeChart();
+        const gen = getGeneration();
+        for (const line of lines) {
+            chart
+                .createShape({ price: line.price }, {
+                shape: 'horizontal_line',
+                lock: true,
+                disableSelection: true,
+                disableSave: true,
+                disableUndo: true,
+                ...(line.text != null ? { text: line.text } : {}),
+                overrides: {
+                    linecolor: line.color,
+                    linestyle: line.lineStyle,
+                    linewidth: line.lineWidth,
+                    showLabel: line.showLabel,
+                    textcolor: line.color,
+                    fontsize: 11,
+                    horzLabelsAlign: line.horzLabelsAlign,
+                    showPrice: line.showPrice,
+                },
+            })
+                .then((entityId) => {
+                if (!entityId)
+                    return;
+                if (getGeneration() !== gen) {
+                    try {
+                        chart.removeEntity(entityId);
+                    }
+                    catch {
+                        // Shape may already be gone
+                    }
+                    return;
+                }
+                pushPositionShapeId(entityId);
+            })
+                .catch(() => {
+                // Shape creation can fail silently
+            });
+        }
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function registerPositionLinesOverlay() {
+    registerHandler('SET_POSITION_LINES', (payload) => {
+        handleSetPositionLines(payload);
+    });
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/bootstrap.ts
+// Entry orchestration. Called once from src/index.ts when the IIFE evaluates
+// inside the WebView.
+//
+// Responsibilities (Phase 1 + 2):
+// 1. Read window.CONFIG (must be inlined by AdvancedChartTemplate before this
+//    script runs).
+// 2. Seed core state with the symbol / resolution / theme from CONFIG.
+// 3. Wire the RN→WV bridge to the message dispatcher.
+// 4. Register Phase 1 + 2 message handlers:
+//      SET_THEME_COLORS (Phase 1), SET_OHLCV_DATA, REALTIME_UPDATE,
+//      SET_CHART_TYPE (Phase 2).
+// 5. Begin loading the TradingView library so it's ready when the first
+//    SET_OHLCV_DATA arrives.
+// 6. On first SET_OHLCV_DATA: createChartWidget with the default datafeed,
+//    apply visual overrides, attach crosshair + visible-range listeners.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * When RN passes an explicit visible-range start (e.g. a specific period like
+ * 1D/1W/1M), build a \`{ type: 'time-range', from, to }\` timeframe so the
+ * initial view snaps to that window instead of defaulting to \`Date.now()\`.
+ * Padded by 2 bar durations so the last bar isn't glued to the right edge.
+ * Ported from chartLogic.js initChart's \`tfOption\` computation (~line 5284).
+ */
+function buildInitialTimeframe() {
+    const visibleFromMs = getVisibleFromMs();
+    if (visibleFromMs == null)
+        return undefined;
+    const visibleToMs = getVisibleToMs() ?? Date.now();
+    const initBarPadSec = getApproxBarDurationSec(getOhlcvData()) * 2;
+    return {
+        type: 'time-range',
+        from: Math.floor(visibleFromMs / 1000),
+        to: Math.ceil(visibleToMs / 1000) + initBarPadSec,
+    };
+}
+function readConfig() {
+    const config = window.CONFIG;
+    if (!config) {
+        throw new Error('window.CONFIG is missing — AdvancedChartTemplate must inline ' +
+            'CONFIG before chartLogic runs.');
+    }
+    return config;
+}
+/**
+ * Phase 1 + 2 bootstrap. Returns the resolved CONFIG so callers (and tests)
+ * can inspect what booted. Idempotent on its inbound subscription — the
+ * WebView is not expected to bootstrap twice.
+ */
+function bootstrap() {
+    const config = readConfig();
+    initThemeFromConfig(config.theme);
+    if (typeof config.subPaneHeightRatio === 'number') {
+        setSubPaneHeightRatio(config.subPaneHeightRatio);
+    }
+    registerHandler('SET_THEME_COLORS', (payload) => {
+        applyThemeColors(payload);
+    });
+    registerHandler('SET_OHLCV_DATA', (payload) => {
+        handleSetOHLCVData(payload);
+    });
+    registerHandler('REALTIME_UPDATE', (payload) => {
+        handleRealtimeUpdate(payload);
+    });
+    registerHandler('SET_CHART_TYPE', (payload) => {
+        handleSetChartType(payload);
+    });
+    registerHandler('ADD_INDICATOR', (payload) => {
+        handleAddIndicator(payload, config);
+    });
+    registerHandler('REMOVE_INDICATOR', (payload) => {
+        handleRemoveIndicator(payload);
+    });
+    registerHandler('SET_MA_VISIBILITY', (payload) => {
+        handleSetMAVisibility(payload, config);
+    });
+    registerHandler('TOGGLE_VOLUME', (payload) => {
+        handleToggleVolume(payload);
+    });
+    registerHandler('SET_SUB_PANE_LAYOUT', (payload) => {
+        handleSetSubPaneLayout(payload);
+    });
+    registerTradeMarkerOverlay();
+    registerTradeMarkerPulseHandler();
+    registerFocusTimeOverlay();
+    registerPositionLinesOverlay();
+    registerRnBackedPaginationHandler();
+    registerVolumeThemeSync();
+    onFromRN((message) => {
+        dispatchInboundMessage(message);
+    });
+    // Library load is fire-and-forget; the first-data handler awaits readiness
+    // again before constructing the widget, so this is purely a head-start.
+    loadLibrary_loadTradingViewLibrary(config.libraryUrl).catch((error) => {
+        reportErrorToRN(error);
+    });
+    onFirstOhlcvData(() => {
+        loadLibrary_loadTradingViewLibrary(config.libraryUrl)
+            .then(() => {
+            createChartWidget(config, {
+                datafeed: customDatafeed,
+                customFormatters: {
+                    priceFormatterFactory: advancedChartPriceFormatterFactory,
+                },
+                timeframe: buildInitialTimeframe(),
+                onReady: (widget) => {
+                    try {
+                        flushPendingTheme();
+                        applyScaleLayout();
+                        applyVisualOverrides(config.visualOverrides);
+                        setupLegendOverlay(config.legendOverlay, config.indicatorColors);
+                        const chart = widget.activeChart();
+                        // Match legacy onChartReady: when no explicit visible range
+                        // was passed, pin a 2-bar gap on the right. TV's default is
+                        // wider, leaving the chart visibly offset left.
+                        if (getVisibleFromMs() == null) {
+                            try {
+                                chart.getTimeScale().setRightOffset(2);
+                            }
+                            catch (rightOffsetError) {
+                                reportErrorToRN(rightOffsetError);
+                            }
+                        }
+                        attachCrosshairListener(chart);
+                        attachTapDismiss(widget);
+                        attachMarkerHitTest(widget, chart);
+                        attachVisibleRangeListeners(chart);
+                        chart
+                            .selection()
+                            .onChanged()
+                            .subscribe(null, () => {
+                            chart.selection().clear();
+                        });
+                        attachLegendResizeListener(widget);
+                        slbScheduleInitialCentering();
+                        scheduleChartLayoutSettledNotify();
+                    }
+                    catch (error) {
+                        reportErrorToRN(error);
+                    }
+                },
+            });
+        })
+            .catch((error) => {
+            reportErrorToRN(error);
+        });
+    });
+    postToRN('DEBUG', { message: 'modular-bootstrap-ready' });
+    return config;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/index.ts
+// AdvancedChart WebView IIFE entry point.
+//
+// Evaluated at runtime inside the WebView after AdvancedChartTemplate has
+// inlined window.CONFIG via a preceding <script> block. Calls bootstrap()
+// to seed state, wire the RN bridge, register Phase 1 handlers, and begin
+// loading the TradingView library.
+//
+// Future phases register their handlers / overlays / features inside their
+// own modules; this file stays a thin entry point.
+
+
+try {
+    bootstrap();
+}
+catch (error) {
+    reportErrorToRN(error);
+}
+
+var __webpack_export_target__ = self;
+for(var i in __webpack_exports__) __webpack_export_target__[i] = __webpack_exports__[i];
+if(__webpack_exports__.__esModule) Object.defineProperty(__webpack_export_target__, "__esModule", { value: true });
+/******/ })()
+;`;
+export default chartLogicString;

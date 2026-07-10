@@ -8,7 +8,7 @@ inputs:
   node-version:
     description: 'Node.js version'
     required: false
-    default: '20.18.0'
+    default: '24.16.0'
   yarn-version:
     description: Yarn version to use with Corepack
     required: false
@@ -102,6 +102,19 @@ inputs:
       Per-attempt timeout (minutes) for the CocoaPods install retry step (iOS only).
     required: false
     default: '15'
+  skip-pod-install:
+    description: >-
+      Skip Ruby, bundler, and CocoaPods pod install steps (iOS only).
+      Safe to set to 'true' for test-runner jobs that use a pre-built app artifact
+      — Detox does not require the Pods directory to run tests.
+    required: false
+    default: 'false'
+  install-applesimutils:
+    description: >-
+      Whether to install applesimutils (iOS only). Required by Detox but not
+      by Appium — set to 'false' for Appium test jobs
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -169,7 +182,9 @@ runs:
       run: |
         set -euo pipefail
         sudo mkdir -p "$CACHE_PATH" /opt/android-sdk/.temp
-        sudo chown -R "$(id -u):$(id -g)" "$CACHE_PATH" /opt/android-sdk/.temp
+        # chown the parent dir too so sdkmanager can create x86_64.backup
+        # next to x86_64 during installation (requires write on the parent).
+        sudo chown -R "$(id -u):$(id -g)" "$(dirname "$CACHE_PATH")" /opt/android-sdk/.temp
       shell: bash
 
     # Restore exact system image from cache (GitHub only — Namespace uses nscloud-cache-action in callers)
@@ -307,7 +322,7 @@ runs:
         command: ${{ steps.get-corepack-command.outputs.COREPACK_COMMAND }}
 
     - name: Restore Yarn cache
-      if: ${{ inputs.runner_provider != 'namespace' }}
+      if: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
       uses: actions/cache@v4
       with:
         path: |
@@ -343,19 +358,19 @@ runs:
 
     ## Ruby Setup & Cache Management
     - name: Setup Ruby
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       uses: ruby/setup-ruby@09a7688d3b55cf0e976497ff046b70949eeaccfd
       with:
         ruby-version: ${{ inputs.ruby-version }}
 
     - name: Install bundler
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: gem install bundler -v ${{ inputs.bundler-version }}
       working-directory: ios
       shell: bash
 
     - name: Restore Bundler cache
-      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
       uses: actions/cache@v4
       with:
         path: ios/vendor/bundle
@@ -364,30 +379,30 @@ runs:
           ${{ inputs.cache-prefix }}-bundler-${{ inputs.platform }}-${{ runner.os }}-
 
     - name: Configure bundler install path
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: bundle config set path 'vendor/bundle'
       working-directory: ios
       shell: bash
 
     - name: Install Ruby gems via bundler
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: bundle install
       working-directory: ios
       shell: bash
 
     - name: Generate binstubs for CocoaPods
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: bundle binstubs cocoapods --force --path=vendor/bundle/bin
       working-directory: ios
       shell: bash
 
     - name: Add binstubs to PATH
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: echo "$(pwd)/ios/vendor/bundle/bin" >> "$GITHUB_PATH"
       shell: bash
 
     - name: Verify CocoaPods
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: |
         bundle show cocoapods || (echo "❌ CocoaPods not installed from ios/Gemfile" && exit 1)
         bundle exec pod --version
@@ -395,7 +410,7 @@ runs:
       shell: bash
 
     - name: Verify CocoaPods BinStub
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: |
         bundle show cocoapods || (echo "❌ CocoaPods not installed from ios/Gemfile" && exit 1)
         pod --version
@@ -412,7 +427,7 @@ runs:
       shell: bash
 
     - name: Restore CocoaPods specs cache
-      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
       id: cocoapods-specs-cache
       uses: actions/cache@v4
       with:
@@ -423,7 +438,7 @@ runs:
       continue-on-error: true
 
     - name: Install CocoaPods via bundler
-      if: ${{ inputs.platform == 'ios'}}
+      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
         timeout_minutes: ${{ fromJSON(inputs.pod-install-timeout-minutes) }}
@@ -437,7 +452,7 @@ runs:
         COCOAPODS_DISABLE_STATS: 'true'
 
     - name: Install applesimutils
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.install-applesimutils == 'true' }}
       run: |
         if ! brew list applesimutils &>/dev/null; then
           brew tap wix/brew
@@ -448,6 +463,6 @@ runs:
       shell: bash
 
     - name: Check simutils
-      if: ${{ inputs.platform == 'ios' }}
+      if: ${{ inputs.platform == 'ios' && inputs.install-applesimutils == 'true' }}
       run: xcrun simctl list devices
       shell: bash

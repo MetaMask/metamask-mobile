@@ -50,6 +50,12 @@ jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: (symbol: string) => symbol,
 }));
 
+const mockUseTradablePerpsMarketSymbols = jest.fn();
+
+jest.mock('../hooks', () => ({
+  useTradablePerpsMarketSymbols: () => mockUseTradablePerpsMarketSymbols(),
+}));
+
 const btcAsset = {
   sourceAssetId: 'a1',
   symbol: 'BTC',
@@ -64,6 +70,14 @@ const ethAsset = {
   name: 'Ethereum',
   caip19: [],
   hlPerpsMarket: ['ETH'],
+};
+
+const dxyAsset = {
+  sourceAssetId: 'dxy',
+  symbol: 'DXY',
+  name: 'Dollar Index',
+  caip19: [],
+  hlPerpsMarket: ['xyz:DXY'],
 };
 
 const noPerpsAsset = {
@@ -94,6 +108,10 @@ describe('WhatsHappeningAssetSlider', () => {
     jest.clearAllMocks();
     mockUseWhatsHappeningAssetPrices.mockReturnValue({
       perpsPriceBySymbol: {},
+    });
+    mockUseTradablePerpsMarketSymbols.mockReturnValue({
+      tradableSymbols: new Set(['BTC', 'ETH', 'SOL']),
+      isLoading: false,
     });
   });
 
@@ -180,5 +198,34 @@ describe('WhatsHappeningAssetSlider', () => {
     );
     expect(screen.getByText('-2.50%')).toBeOnTheScreen();
     expect(screen.queryByText('undefined')).toBeNull();
+  });
+
+  it('hides a perps asset whose market is not in the tradable set (e.g. xyz:DXY)', () => {
+    renderWithProvider(
+      <WhatsHappeningAssetSlider
+        {...sharedProps}
+        assets={[btcAsset, dxyAsset]}
+      />,
+    );
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('DXY')).toBeNull();
+  });
+
+  it('returns null when all perps assets are non-tradable', () => {
+    const { toJSON } = renderWithProvider(
+      <WhatsHappeningAssetSlider {...sharedProps} assets={[dxyAsset]} />,
+    );
+    expect(toJSON()).toBeNull();
+  });
+
+  it('returns null while the tradable set is still loading (prevents flash of non-tradable markets)', () => {
+    mockUseTradablePerpsMarketSymbols.mockReturnValue({
+      tradableSymbols: new Set(),
+      isLoading: true,
+    });
+    const { toJSON } = renderWithProvider(
+      <WhatsHappeningAssetSlider {...sharedProps} assets={[btcAsset]} />,
+    );
+    expect(toJSON()).toBeNull();
   });
 });

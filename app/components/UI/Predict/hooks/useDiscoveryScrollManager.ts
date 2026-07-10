@@ -25,6 +25,11 @@ const showAnimationConfig = {
 interface UseDiscoveryScrollManagerParams {
   walletHeaderHeight: number;
   walletHeaderTranslateY?: SharedValue<number>;
+  /**
+   * Optional shared value updated with `contentOffset.y` on every scroll event.
+   * Use to drive scroll-linked UI such as HeaderStandardAnimated.
+   */
+  scrollY?: SharedValue<number>;
   onPortfolioScroll?: () => void;
   /**
    * Called from the scroll worklet (via runOnJS) with the current scroll Y and
@@ -49,6 +54,7 @@ interface UseDiscoveryScrollManagerReturn {
 export const useDiscoveryScrollManager = ({
   walletHeaderHeight,
   walletHeaderTranslateY: externalTranslateY,
+  scrollY,
   onPortfolioScroll,
   onScrollEvent,
   onHeaderHiddenChange,
@@ -98,6 +104,9 @@ export const useDiscoveryScrollManager = ({
       'worklet';
 
       const currentY = event.contentOffset.y;
+      if (scrollY) {
+        scrollY.value = currentY;
+      }
       runOnJS(callScrollCallbacks)(currentY, event.layoutMeasurement.height);
 
       // Skip settling events after a tab switch. Multiple events can fire

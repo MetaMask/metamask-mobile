@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import reactQueryService from '../../../core/ReactQueryService/ReactQueryService';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
@@ -24,16 +24,26 @@ import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
-import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
+import SsnInfoModal from './Views/Modals/SsnInfoModal';
 import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
+import PhoneCountrySelectorModal from './Views/Modals/PhoneCountrySelectorModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import LockManagerService from '../../../core/LockManagerService';
-import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 
-const RootStack = createStackNavigator();
-const Stack = createStackNavigator();
-const ModalsStack = createStackNavigator();
+const RootStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
+const ModalsStack = createNativeStackNavigator();
+
+const overlayScreenOptions = {
+  ...clearNativeStackNavigatorOptions,
+  presentation: 'transparentModal' as const,
+  gestureEnabled: false,
+};
 
 const MainRoutes = () => (
   <Stack.Navigator
@@ -44,11 +54,7 @@ const MainRoutes = () => (
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
     />
-    <Stack.Screen
-      name={Routes.RAMP.AMOUNT_INPUT}
-      component={BuildQuote}
-      options={{ headerShown: false }}
-    />
+    <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
     <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
     <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
     <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />
@@ -73,40 +79,27 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={Checkout}
-      options={{
-        headerShown: false,
-        cardStyle: { backgroundColor: 'transparent' },
-        animationEnabled: false,
-        gestureEnabled: false,
-        detachPreviousScreen: false,
-      }}
+      options={overlayScreenOptions}
     />
     <Stack.Screen
       name={Routes.RAMP.KYC_WEBVIEW}
       component={V2KycWebview}
-      options={{
-        headerShown: false,
-        cardStyle: { backgroundColor: 'transparent' },
-        animationEnabled: false,
-        gestureEnabled: false,
-        detachPreviousScreen: false,
-      }}
+      options={overlayScreenOptions}
     />
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
     />
-    <Stack.Screen
-      name={Routes.RAMP.HEADLESS_HOST}
-      component={HeadlessHost}
-      options={{ headerShown: false }}
-    />
+    <Stack.Screen name={Routes.RAMP.HEADLESS_HOST} component={HeadlessHost} />
   </Stack.Navigator>
 );
 
 const TokenListModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearNativeStackNavigatorOptions,
+      presentation: 'modal',
+    }}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
@@ -136,13 +129,17 @@ const TokenListModalsRoutes = () => (
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
       component={ProcessingInfoModal}
       options={{
-        ...clearStackNavigatorOptions,
-        presentation: 'transparentModal',
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
       }}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.SSN_INFO}
       component={SsnInfoModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.PHONE_COUNTRY_SELECTOR}
+      component={PhoneCountrySelectorModal}
     />
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.STATE_SELECTOR}
@@ -169,19 +166,19 @@ const TokenListRoutes = () => {
   return (
     <QueryClientProvider client={reactQueryService.queryClient}>
       <RootStack.Navigator
-        initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+        initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
         screenOptions={{ headerShown: false }}
       >
         <RootStack.Screen
-          name={Routes.RAMP.TOKEN_SELECTION}
+          name={Routes.RAMP.TOKEN_SELECTION_ROOT}
           component={MainRoutes}
         />
         <RootStack.Screen
           name={Routes.RAMP.MODALS.ID}
           component={TokenListModalsRoutes}
           options={{
-            ...clearStackNavigatorOptions,
-            detachPreviousScreen: false,
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
           }}
         />
       </RootStack.Navigator>

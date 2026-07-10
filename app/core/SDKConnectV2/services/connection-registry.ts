@@ -1,4 +1,8 @@
-import { AppState, AppStateStatus } from 'react-native';
+import {
+  AppState,
+  AppStateStatus,
+  NativeEventSubscription,
+} from 'react-native';
 import {
   IKeyManager,
   DEFAULT_SESSION_TTL,
@@ -13,36 +17,20 @@ import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
 import logger, { redactUrl } from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
-import { decompressPayloadB64 } from '../utils/compression-utils';
+import { parseMwpConnectPayload } from '../utils/parseMwpConnectDeeplink';
+import {
+  handleAgenticCliConnectDeeplink,
+  tryParseAgenticCliConnectionRequest,
+} from '../../AgenticCli/AgenticCliMwpConnectionService';
+import type { AgenticCliConnectionRequest } from '../../AgenticCli/agenticCliConnectionRequest';
 import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
-import Logger from '../../../util/Logger';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
+import { trackMwpEvent } from '../utils/trackMwpEvent';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
-
-/**
- * Fire-and-forget analytics helper. Never throws — a broken analytics
- * call must never abort connection establishment or error handling.
- */
-function trackMwpEvent(
-  event: IMetaMetricsEvent,
-  properties: Record<string, unknown>,
-): void {
-  try {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-    );
-  } catch {
-    // Intentionally swallowed: analytics must not block MWP flows.
-  }
-}
+import Logger from '../../../util/Logger';
 
 /**
  * Hard cap on the number of simultaneous active connections.
@@ -72,6 +60,7 @@ export class ConnectionRegistry {
   private readonly ready: Promise<void>;
   private connections = new Map<string, Connection>();
   private deeplinks = new Set<string>();
+  private appStateSubscription: NativeEventSubscription | null = null;
 
   constructor(
     relayURL: string,
@@ -166,7 +155,12 @@ export class ConnectionRegistry {
       if (id) {
         await this.handleSimpleDeeplink(id);
       } else {
-        await this.handleConnectDeeplink(url);
+        const agenticCliReq = tryParseAgenticCliConnectionRequest(url);
+        if (agenticCliReq) {
+          await this.handleAgenticCliDeeplink(url, agenticCliReq);
+        } else {
+          await this.handleConnectDeeplink(url);
+        }
       }
     } catch (error) {
       // Report to Sentry so we have visibility into deeplink dispatch failures.
@@ -370,7 +364,7 @@ export class ConnectionRegistry {
         failure_reason: error instanceof Error ? error.message : String(error),
       });
 
-      if (conn) await this.disconnect(conn.id);
+      if (conn) await this.cleanupConnection(conn);
     } finally {
       this.deeplinks.delete(url);
       // Loading-toast dismissal rules:
@@ -434,6 +428,39 @@ export class ConnectionRegistry {
     logger.debug('Connection disconnected:', id);
   }
 
+  private async handleAgenticCliDeeplink(
+    url: string,
+    connReq: AgenticCliConnectionRequest,
+  ): Promise<void> {
+    if (this.deeplinks.has(url)) return;
+    this.deeplinks.add(url);
+
+    try {
+      await handleAgenticCliConnectDeeplink(
+        url,
+        {
+          relayURL: this.RELAY_URL,
+          keymanager: this.keymanager,
+          hostapp: this.hostapp,
+          hasConnection: (id) => this.connections.has(id),
+          cleanupConnection: (connection) => this.cleanupConnection(connection),
+        },
+        connReq,
+      );
+    } finally {
+      this.deeplinks.delete(url);
+    }
+  }
+
+  private async cleanupConnection(conn: Connection): Promise<void> {
+    if (this.connections.has(conn.id)) {
+      await this.disconnect(conn.id);
+      return;
+    }
+
+    await conn.disconnect();
+  }
+
   /**
    * Parse the connection request from the deeplink URL.
    * @param url The full deeplink URL that triggered the connection.
@@ -442,26 +469,7 @@ export class ConnectionRegistry {
    * Format: metamask://connect/mwp?p=<encoded_connection_request>&c=1
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
-    const parsed = new URL(url);
-
-    const payload = parsed.searchParams.get('p');
-    if (!payload) {
-      throw new Error('No payload found in URL.');
-    }
-
-    if (payload.length > 1024 * 1024) {
-      throw new Error('Payload too large (max 1MB).');
-    }
-
-    const compressionFlag = parsed.searchParams.get('c');
-    const jsonString =
-      compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
-
-    if (jsonString.length > 1024 * 1024) {
-      throw new Error('Decompressed payload too large (max 1MB).');
-    }
-
-    const connReq: unknown = JSON.parse(jsonString);
+    const connReq: unknown = parseMwpConnectPayload(url);
 
     if (!isConnectionRequest(connReq)) {
       throw new Error('Invalid connection request structure.');
@@ -484,7 +492,7 @@ export class ConnectionRegistry {
   private setupAppStateListener(): void {
     let isColdStart = true;
 
-    AppState.addEventListener(
+    this.appStateSubscription = AppState.addEventListener(
       'change',
       (nextAppState: AppStateStatus): void => {
         if (nextAppState !== 'active') {
@@ -502,6 +510,25 @@ export class ConnectionRegistry {
         this.ready.then(() => this.reconnectAll());
       },
     );
+  }
+
+  /**
+   * Tears down the registry's process-level resources.
+   *
+   * Currently this removes the AppState listener registered in
+   * {@link setupAppStateListener}. Without this, the discarded subscription
+   * would retain the registry (and its `this`-capturing closure) for the
+   * lifetime of the process and keep firing `reconnectAll()` on every
+   * foreground event.
+   *
+   * NOTE: the registry is instantiated as a process-lifetime singleton in
+   * `app/core/SDKConnectV2/index.ts`, so there is no teardown caller today.
+   * If a real re-init/logout lifecycle is introduced, this is where active
+   * connection disposal should also be wired in.
+   */
+  public destroy(): void {
+    this.appStateSubscription?.remove();
+    this.appStateSubscription = null;
   }
 
   /**

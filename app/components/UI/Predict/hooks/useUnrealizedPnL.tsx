@@ -33,11 +33,11 @@ export function useUnrealizedPnL(
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const resolvedAddress = address ?? evmAccount?.address ?? '0x0';
+  const resolvedAddress = address ?? evmAccount?.address;
 
   const queryResult = useQuery({
-    ...predictQueries.unrealizedPnL.options({ address: resolvedAddress }),
-    enabled,
+    ...predictQueries.unrealizedPnL.options({ address: resolvedAddress ?? '' }),
+    enabled: enabled && Boolean(resolvedAddress),
   });
 
   useEffect(() => {

@@ -35,7 +35,7 @@ export function usePredictActivity({
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
-  const address = evmAccount?.address ?? '0x0';
+  const address = evmAccount?.address;
 
   useEffect(() => {
     ensurePolygonNetworkExists().catch(() => undefined);
@@ -46,7 +46,10 @@ export function usePredictActivity({
     Error,
     PredictActivity[],
     PredictActivityQueryKey
-  >(predictQueries.activity.options({ address, limit }));
+  >({
+    ...predictQueries.activity.options({ address: address ?? '', limit }),
+    enabled: Boolean(address),
+  });
 
   const activity = useMemo(() => {
     const seenActivityIds = new Set<string>();

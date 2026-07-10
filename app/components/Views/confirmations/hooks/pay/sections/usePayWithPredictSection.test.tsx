@@ -22,7 +22,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: { balance?: string }) => {
     const translations: Record<string, string> = {
       'confirm.pay_with_bottom_sheet.predict': 'Predict',
-      'confirm.pay_with_bottom_sheet.predict_account': 'Predict account',
+      'confirm.pay_with_bottom_sheet.predict_balance': 'Predict balance',
       'confirm.pay_with_bottom_sheet.add': 'Add',
       'confirm.pay_with_bottom_sheet.available_balance': `${
         params?.balance ?? ''
@@ -130,7 +130,7 @@ describe('usePayWithPredictSection', () => {
     expect(result.current?.rows[0]).toEqual(
       expect.objectContaining({
         id: 'predict-balance',
-        title: 'Predict account',
+        title: 'Predict balance',
         subtitle: '$250.00 available',
         isSelected: true,
         testID: 'pay-with-predict-section-balance-row',

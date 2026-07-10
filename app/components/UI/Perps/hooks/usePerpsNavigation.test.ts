@@ -234,10 +234,10 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToMarketList();
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.MARKET_LIST,
-        undefined,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: undefined,
+      });
     });
 
     it('navigates to market list with params', () => {
@@ -246,10 +246,10 @@ describe('usePerpsNavigation', () => {
 
       result.current.navigateToMarketList(params);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.MARKET_LIST,
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
         params,
-      );
+      });
     });
 
     it('navigates to order screen with direction and asset', async () => {

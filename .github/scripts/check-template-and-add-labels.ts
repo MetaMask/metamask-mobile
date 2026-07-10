@@ -22,8 +22,13 @@ import {
 } from './shared/label';
 import { TemplateType, templates } from './shared/template';
 import { retrievePullRequest } from './shared/pull-request';
+import { runAllChecks } from './shared/pr-template-checks';
+import {
+  renderFailureComment,
+  upsertStickyComment,
+} from './shared/pr-template-comment';
 
-const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github" , "cursor"];
+const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github" , "cursor", "mm-token-exchange-service"];
 
 // GitHub App / bot logins that cannot be resolved as User in GraphQL (user(login:) returns null).
 // Issues/PRs from these actors still get full template and label checks; we only skip the org check.
@@ -162,57 +167,80 @@ async function main(): Promise<void> {
       process.exit(1);
     }
   } else if (labelable.type === LabelableType.PullRequest) {
-    // Check changelog entry for all PRs (regardless of template match)
+    // PRs targeting non-main branches (e.g. release sync / cherry-pick branches) do not require
+    // a fully filled PR template — those workflows bypass manual testing and app-impact review.
+    // We exit 0 here (rather than adding a workflow-level `if:` condition) because GitHub branch
+    // protection treats a *skipped* required check as a failure; an early process.exit(0) produces
+    // a genuine green "passed" status, which is what non-main PRs need.
+    const baseBranch = context.payload.pull_request?.base?.ref;
+    if (baseBranch !== 'main') {
+      console.log(
+        `PR #${labelable.number} targets branch '${baseBranch}', not 'main'. ` +
+        `PR template checks are only enforced on PRs targeting 'main'.`,
+      );
+      // Clean up any stale failure state left from before this rule existed.
+      await removeLabelFromLabelableIfPresent(octokit, labelable, invalidPullRequestTemplateLabel);
+      await upsertStickyComment(octokit, labelable, null);
+      process.exit(0);
+    }
+
     const hasNoChangelogLabel = labelable.labels?.some(
-      (label) => label.name === "no-changelog"
+      (label) => label.name === 'no-changelog',
     );
 
-    // Require changelog entry
-    if (hasNoChangelogLabel) {
-      console.log(`PR ${labelable.number} has "no-changelog" label. Skipping changelog entry check.`);
-    } else if (!hasChangelogEntry(labelable.body)) {
-      const errorMessage = `PR is missing a valid "CHANGELOG entry:" line.`;
-      console.log(errorMessage);
+    // Section-heading check: every expected `## **…**` body heading must be present.
+    // The INVALID-PR-TEMPLATE label tracks this check only (pre-#30541 semantics) —
+    // semantic failures surface through the sticky comment and exit status instead.
+    const sectionHeadingsMissing = templateType !== TemplateType.PullRequest;
 
-      core.setFailed(errorMessage);
-      process.exit(1);
-    }
-
-    if (templateType === TemplateType.PullRequest) {
-      console.log("PR matches 'pull-request-template.md' template.");
-      await removeLabelFromLabelableIfPresent(
-        octokit,
-        labelable,
-        invalidPullRequestTemplateLabel,
-      );
+    if (sectionHeadingsMissing) {
+      await addLabelToLabelable(octokit, labelable, invalidPullRequestTemplateLabel);
     } else {
-      const errorMessage =
-        `PR body does not match template ('pull-request-template.md').\n\nMake sure PR's body includes all section titles.\n\nSections titles are listed here: https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/template.ts#L40-L47`;
-      console.log(errorMessage);
+      await removeLabelFromLabelableIfPresent(octokit, labelable, invalidPullRequestTemplateLabel);
+    }
 
-      // Add label to indicate PR body doesn't match template
-      await addLabelToLabelable(
+    const failures: { ok: false; reason: string; blocking: boolean }[] = [];
+
+    if (sectionHeadingsMissing) {
+      // Section-heading mismatch is informational (non-blocking), matching pre-#30541 behavior.
+      failures.push({
+        ok: false,
+        reason:
+          'PR body does not match `pull-request-template.md` (one or more section headings are missing). See https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/pr-template-checks.ts#L15-L23.',
+        blocking: false,
+      });
+    } else {
+      failures.push(...runAllChecks(labelable.body, Boolean(hasNoChangelogLabel)));
+    }
+
+    if (failures.length > 0) {
+      const blockingFailures = failures.filter((f) => f.blocking);
+      const warningFailures = failures.filter((f) => !f.blocking);
+
+      await upsertStickyComment(
         octokit,
         labelable,
-        invalidPullRequestTemplateLabel,
+        renderFailureComment({
+          blocking: blockingFailures.map((f) => f.reason),
+          warning: warningFailures.map((f) => f.reason),
+        }),
       );
 
-      // TODO: Remove these two lines in January 2024. By then, most PRs will match the new PR template, and we'll want the action to fail if they don't.
-      // For now, we're in a transition period and Github action shall add an annotation in case PR doesn't match template, but shall not fail.
-      // Indeed, many PRs were created before the new PR template was introduced and don't match the template for now.
-      core.error(errorMessage, {
-        title: invalidPullRequestTemplateLabel.name,
-        file: '.github/scripts/shared/template.ts',
-        startLine: 40,
-        endLine: 47,
-      }); // This creates an annotation on the PR
-      process.exit(0);
+      if (blockingFailures.length > 0) {
+        const bullets = blockingFailures.map((f) => `- ${f.reason}`).join('\n');
+        core.setFailed(`PR template has blocking issues:\n${bullets}`);
+        process.exit(1);
+        return;
+      }
 
-      // TODO: Uncomment these two lines in January 2024. By then, most PRs will match the new PR template, and we'll want the action to fail if they don't.
-      // Github action shall fail in case PR doesn't match template
-      // core.setFailed(errorMessage); // This creates a failure status for the action
-      // process.exit(1);
+      const bullets = warningFailures.map((f) => `- ${f.reason}`).join('\n');
+      core.warning(`PR template has warnings (informational, does not block merging):\n${bullets}`);
+      process.exit(0);
+      return;
     }
+
+    console.log("PR matches 'pull-request-template.md' template and is materially complete.");
+    await upsertStickyComment(octokit, labelable, null);
   } else {
     core.setFailed(
       `Shall never happen: Labelable is neither an issue nor a PR (${JSON.stringify(
@@ -378,35 +406,6 @@ async function userBelongsToMetaMaskOrg(
   } = await octokit.graphql(userBelongsToMetaMaskOrgQuery, { login: username });
 
   return Boolean(userBelongsToMetaMaskOrgResult?.user?.organization?.id);
-}
-
-// This function checks if the PR description has a changelog entry
-function hasChangelogEntry(body: string): boolean {
-  // Remove HTML comments (including multiline)
-  const uncommentedBody = body.replace(/<!--[\s\S]*?-->/g, "");
-
-  // Split body into lines
-  const lines = uncommentedBody.split(/\r?\n/);
-
-  // Find the line starting with "CHANGELOG entry:"
-  const changelogLine = lines.find(line => line.trim().startsWith("CHANGELOG entry:"));
-
-  if (!changelogLine) {
-    console.log("Changelog entry line missing");
-    return false;
-  }
-
-  // Extract everything after the prefix, tolerating extra spaces after the colon
-  const match = changelogLine.match(/^\s*CHANGELOG entry:\s*(.*)$/);
-  const entry = match?.[1]?.trim() ?? "";
-
-  if (entry === "") {
-    console.log("Changelog entry is empty");
-    return false;
-  }
-
-  console.log(`Changelog entry found: ${entry}`);
-  return true; // allow any non-empty value, including "null"
 }
 
 // This function checks if issue has both team and severity labels and removes needs-triage label if present

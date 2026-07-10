@@ -17,7 +17,53 @@ export type PredictAnalyticsEventKey =
   | 'shareAction'
   | 'geoBlockTriggered'
   | 'marketDetailsOpened'
-  | 'bannerAction';
+  | 'bannerAction'
+  | 'categoryClicked'
+  | 'searchInteracted';
+
+const mapPortfolioProperties = ({
+  actionType,
+  entryPoint,
+  openPositionsCount,
+  claimablePositionsCount,
+  hasClaimableWinnings,
+  portfolioModuleEnabled,
+  predictScreen,
+  predictComponent,
+  predictFeedTab,
+}: Record<string, unknown>) => ({
+  ...(actionType ? { [PredictEventProperties.ACTION_TYPE]: actionType } : {}),
+  ...(entryPoint ? { [PredictEventProperties.ENTRY_POINT]: entryPoint } : {}),
+  ...(openPositionsCount !== undefined
+    ? { [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount }
+    : {}),
+  ...(claimablePositionsCount !== undefined
+    ? {
+        [PredictEventProperties.CLAIMABLE_POSITIONS_COUNT]:
+          claimablePositionsCount,
+      }
+    : {}),
+  ...(hasClaimableWinnings !== undefined
+    ? {
+        [PredictEventProperties.HAS_CLAIMABLE_WINNINGS]: hasClaimableWinnings,
+      }
+    : {}),
+  ...(portfolioModuleEnabled !== undefined
+    ? {
+        [PredictEventProperties.PORTFOLIO_MODULE_ENABLED]:
+          portfolioModuleEnabled,
+      }
+    : {}),
+  ...(predictScreen
+    ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+    : {}),
+  ...(predictComponent
+    ? { [PredictEventProperties.PREDICT_COMPONENT]: predictComponent }
+    : {}),
+  ...(predictFeedTab
+    ? { [PredictEventProperties.PREDICT_FEED_TAB]: predictFeedTab }
+    : {}),
+});
 
 export const PREDICT_ANALYTICS_EVENTS: Record<
   PredictAnalyticsEventKey,
@@ -26,15 +72,19 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
   activityViewed: {
     event: MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
     logLabel: '📊 [Analytics] PREDICT_ACTIVITY_VIEWED',
-    mapProperties: ({ activityType }) => ({
+    mapProperties: ({ activityType, ...args }) => ({
       [PredictEventProperties.ACTIVITY_TYPE]: activityType,
+      ...mapPortfolioProperties(args),
     }),
   },
   positionViewed: {
     event: MetaMetricsEvents.PREDICT_POSITION_VIEWED,
     logLabel: '📊 [Analytics] PREDICT_POSITION_VIEWED',
-    mapProperties: ({ openPositionsCount }) => ({
-      [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount,
+    mapProperties: ({ openPositionsCount, ...args }) => ({
+      ...(openPositionsCount !== undefined
+        ? { [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount }
+        : {}),
+      ...mapPortfolioProperties(args),
     }),
   },
   feedViewed: {
@@ -48,11 +98,16 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       isSessionEnd,
       entryPoint,
       predictScreen,
+      predictComponent,
+      ...args
     }) => ({
       [PredictEventProperties.SESSION_ID]: sessionId,
       [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
       ...(predictScreen
         ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+        : {}),
+      ...(predictComponent
+        ? { [PredictEventProperties.PREDICT_COMPONENT]: predictComponent }
         : {}),
       [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
       [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
@@ -60,6 +115,7 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       ...(entryPoint
         ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
         : {}),
+      ...mapPortfolioProperties(args),
     }),
   },
   bannerAction: {
@@ -68,6 +124,16 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
     mapProperties: ({ actionType, bannerType }) => ({
       [PredictEventProperties.ACTION_TYPE]: actionType,
       [PredictEventProperties.BANNER_TYPE]: bannerType,
+    }),
+  },
+  categoryClicked: {
+    event: MetaMetricsEvents.PREDICT_CATEGORY_CLICKED,
+    logLabel: '📊 [Analytics] PREDICT_CATEGORY_CLICKED',
+    mapProperties: ({ categoryName, entryPoint }) => ({
+      [PredictEventProperties.CATEGORY_NAME]: categoryName,
+      ...(entryPoint
+        ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
+        : {}),
     }),
   },
   shareAction: {
@@ -141,6 +207,37 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       ...(gameClock ? { [PredictEventProperties.GAME_CLOCK]: gameClock } : {}),
       ...(Array.isArray(activeAbTests) && activeAbTests.length > 0
         ? { [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests }
+        : {}),
+    }),
+  },
+  searchInteracted: {
+    event: MetaMetricsEvents.PREDICT_SEARCH_INTERACTED,
+    logLabel: '📊 [Analytics] PREDICT_SEARCH_INTERACTED',
+    mapProperties: ({
+      interactionType,
+      predictFeedTab,
+      entryPoint,
+      searchQuery,
+      resultsCount,
+      marketId,
+      marketTitle,
+    }) => ({
+      [PredictEventProperties.INTERACTION_TYPE]: interactionType,
+      ...(predictFeedTab
+        ? { [PredictEventProperties.PREDICT_FEED_TAB]: predictFeedTab }
+        : {}),
+      ...(entryPoint
+        ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
+        : {}),
+      ...(searchQuery !== undefined
+        ? { [PredictEventProperties.SEARCH_QUERY]: searchQuery }
+        : {}),
+      ...(resultsCount !== undefined
+        ? { [PredictEventProperties.RESULTS_COUNT]: resultsCount }
+        : {}),
+      ...(marketId ? { [PredictEventProperties.MARKET_ID]: marketId } : {}),
+      ...(marketTitle
+        ? { [PredictEventProperties.MARKET_TITLE]: marketTitle }
         : {}),
     }),
   },

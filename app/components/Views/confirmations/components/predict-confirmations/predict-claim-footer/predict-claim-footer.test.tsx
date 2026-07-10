@@ -1,5 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import Engine from '../../../../../../core/Engine';
 import { PredictClaimFooter } from './predict-claim-footer';
 import { merge, noop } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../../__mocks__/controllers/transaction-controller-mock';
@@ -44,7 +45,20 @@ function render({
   );
 }
 
+const mockTrackClaimResolutionLagFailure = jest.fn();
+
 describe('PredictClaimFooter', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (
+      Engine.context as unknown as {
+        PredictController: { trackClaimResolutionLagFailure: jest.Mock };
+      }
+    ).PredictController = {
+      trackClaimResolutionLagFailure: mockTrackClaimResolutionLagFailure,
+    };
+  });
+
   it('renders market count', () => {
     // Given 5 won positions
     const { getByText } = render();
@@ -109,6 +123,42 @@ describe('PredictClaimFooter', () => {
     await waitFor(() => {
       expect(onErrorMock).toHaveBeenCalledWith(
         new Error('Tried to claim but no positions were won'),
+      );
+    });
+  });
+
+  it('routes the no-won-positions guard through the controller resolution-lag failure', async () => {
+    // Arrange - state with transaction from an address with no claimable positions
+    const state = merge(
+      {},
+      simpleSendTransactionControllerMock,
+      transactionApprovalControllerMock,
+      otherControllersMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  txParams: { from: '0xunknown' },
+                },
+              ],
+            },
+          },
+        },
+      },
+    );
+
+    // Act
+    renderWithProvider(<PredictClaimFooter onPress={noop} onError={noop} />, {
+      state,
+    });
+
+    // Assert - the Sentry 5JA7 guard is routed through the controller so it
+    // shares the per-attempt idempotency guard (single terminal event).
+    await waitFor(() => {
+      expect(mockTrackClaimResolutionLagFailure).toHaveBeenCalledWith(
+        expect.objectContaining({ address: '0xunknown' }),
       );
     });
   });

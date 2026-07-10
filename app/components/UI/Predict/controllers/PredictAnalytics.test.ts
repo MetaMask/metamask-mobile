@@ -2,6 +2,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
 import {
+  PredictEventValues,
   PredictShareStatus,
   PredictTradeStatus,
 } from '../constants/eventNames';
@@ -545,6 +546,136 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('tracks portfolio positions button tap with position viewed event', () => {
+      predictAnalytics.trackPortfolioPositionsButtonTapped({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        openPositionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.CLICKED,
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        open_positions_count: 2,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
+      });
+      expect(event.properties).not.toHaveProperty('amount_usd');
+      expect(event.properties).not.toHaveProperty('pnl');
+      expect(event.sensitiveProperties).toEqual({});
+    });
+
+    it('tracks portfolio transaction initiation with trade transaction event', () => {
+      predictAnalytics.trackPortfolioTransactionInitiated({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        openPositionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION.category,
+      );
+      expect(event.properties).toMatchObject({
+        status: PredictTradeStatus.INITIATED,
+        transaction_type:
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        open_positions_count: 2,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
+      });
+      expect(event.properties).not.toHaveProperty('amount_usd');
+      expect(event.properties).not.toHaveProperty('pnl');
+      expect(event.sensitiveProperties).toEqual({});
+    });
+
+    it('tracks positions screen viewed with position viewed event', () => {
+      predictAnalytics.trackPositionsScreenViewed({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        openPositionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        open_positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+      });
+    });
+
+    it('tracks positions tab viewed with position viewed event', () => {
+      predictAnalytics.trackPositionsTabViewed({
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
+        openPositionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        open_positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        predict_feed_tab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
+      });
+    });
+
+    it('tracks history tab viewed with activity viewed event', () => {
+      predictAnalytics.trackPositionsTabViewed({
+        predictFeedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+        openPositionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        activity_type: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+        open_positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        predict_feed_tab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
+      });
+    });
+
     it('tracks geo block with country from context', () => {
       predictAnalytics.trackGeoBlockTriggered({
         attemptedAction: 'deposit',
@@ -566,10 +697,12 @@ describe('PredictAnalytics', () => {
       predictAnalytics.trackFeedViewed({
         sessionId: 's1',
         feedTab: 'trending',
-        predictScreen: 'world_cup',
+        predictComponent:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
         numPagesViewed: 3,
         sessionTime: 98,
         entryPoint: 'carousel',
+        portfolioModuleEnabled: true,
       });
 
       expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
@@ -584,11 +717,13 @@ describe('PredictAnalytics', () => {
       expect(feedEvent.properties).toMatchObject({
         session_id: 's1',
         predict_feed_tab: 'trending',
-        predict_screen: 'world_cup',
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
         num_feed_pages_viewed_in_session: 3,
         session_time_in_feed: 98,
         is_session_end: false,
         entry_point: 'carousel',
+        portfolio_module_enabled: true,
       });
 
       expect(assetViewedEvent.name).toBe(
@@ -636,6 +771,39 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('tracks category clicked with category name and entry point', () => {
+      predictAnalytics.trackCategoryClicked({
+        categoryName: 'politics',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_CATEGORY_CLICKED.category,
+      );
+      expect(event.properties).toMatchObject({
+        category_name: 'politics',
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+    });
+
+    it('tracks category clicked without an entry point', () => {
+      predictAnalytics.trackCategoryClicked({
+        categoryName: 'sports',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_CATEGORY_CLICKED.category,
+      );
+      expect(event.properties).toMatchObject({
+        category_name: 'sports',
+      });
+      expect(event.properties).not.toHaveProperty('entry_point');
+    });
+
     it('tracks share action with optional market fields', () => {
       predictAnalytics.trackShareAction({
         status: PredictShareStatus.SUCCESS,
@@ -650,6 +818,102 @@ describe('PredictAnalytics', () => {
         status: PredictShareStatus.SUCCESS,
         market_id: 'm10',
         market_slug: 'slug-10',
+      });
+    });
+
+    it('tracks search opened with only the base properties', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+        predictFeedTab: 'trending',
+        entryPoint: 'predict_feed',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_SEARCH_INTERACTED.category,
+      );
+      expect(event.properties).toEqual({
+        interaction_type: 'opened',
+        predict_feed_tab: 'trending',
+        entry_point: 'predict_feed',
+      });
+    });
+
+    it('tracks search queried with search query and results count', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.QUERIED,
+        predictFeedTab: 'crypto',
+        entryPoint: 'predict_feed',
+        searchQuery: 'eth',
+        resultsCount: 5,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_SEARCH_INTERACTED.category,
+      );
+      expect(event.properties).toMatchObject({
+        interaction_type: 'queried',
+        predict_feed_tab: 'crypto',
+        entry_point: 'predict_feed',
+        search_query: 'eth',
+        results_count: 5,
+      });
+    });
+
+    it('emits results_count of zero (does not drop the property)', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.QUERIED,
+        searchQuery: 'nomatch',
+        resultsCount: 0,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        search_query: 'nomatch',
+        results_count: 0,
+      });
+    });
+
+    it('tracks search result_clicked with market id and title', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.RESULT_CLICKED,
+        predictFeedTab: 'sports',
+        entryPoint: 'predict_feed',
+        searchQuery: 'cup',
+        marketId: 'm42',
+        marketTitle: 'World Cup Winner',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_SEARCH_INTERACTED.category,
+      );
+      expect(event.properties).toMatchObject({
+        interaction_type: 'result_clicked',
+        predict_feed_tab: 'sports',
+        entry_point: 'predict_feed',
+        search_query: 'cup',
+        market_id: 'm42',
+        market_title: 'World Cup Winner',
+      });
+    });
+
+    it('omits optional properties (incl. predict_feed_tab) when not provided', () => {
+      predictAnalytics.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+        entryPoint: 'home_section',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toEqual({
+        interaction_type: 'opened',
+        entry_point: 'home_section',
       });
     });
   });

@@ -58,6 +58,16 @@ describe('PayWithSection', () => {
     expect(queryByTestId('payment-method-row-usdc')).not.toBeOnTheScreen();
   });
 
+  it('hides section title when title is empty', () => {
+    const config = buildConfig({ title: '' });
+
+    const { queryByTestId } = render(<PayWithSection config={config} />);
+
+    expect(
+      queryByTestId('pay-with-section-crypto-title'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('uses custom testID when provided', () => {
     const config = buildConfig({ testID: 'custom-section' });
 

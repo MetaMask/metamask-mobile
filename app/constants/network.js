@@ -69,7 +69,18 @@ export const NETWORKS_CHAIN_ID = {
   NOMINA: toHex('166'),
   TEMPO_MAINNET: toHex('4217'),
   TEMPO_TESTNET_MODERATO: toHex('42431'),
+  ARC: toHex('5042'),
+  ROBINHOOD: toHex('4663'),
 };
+
+/**
+ * The Arc USDC ERC-20 token contract. On Arc the native gas token is USDC, so
+ * this ERC-20 is a display duplicate of the native token. It is hidden across
+ * the UI (token list, aggregated balance, send asset picker) in favour of the
+ * native token, which is the source of truth for USDC on Arc.
+ */
+export const ARC_USDC_TOKEN_ADDRESS =
+  '0x3600000000000000000000000000000000000000';
 
 // To add a deprecation warning to a network, add it to the array
 export const DEPRECATED_NETWORKS = [
@@ -111,6 +122,8 @@ export const CHAINLIST_CURRENCY_SYMBOLS_MAP = {
   NOMINA: 'NOM',
   TEMPO_MAINNET: 'USD',
   TEMPO_TESTNET_MODERATO: 'USD',
+  ARC: 'USDC',
+  ROBINHOOD: 'ETH',
 };
 
 export const CURRENCY_SYMBOL_BY_CHAIN_ID = {
@@ -153,6 +166,8 @@ export const CURRENCY_SYMBOL_BY_CHAIN_ID = {
     CHAINLIST_CURRENCY_SYMBOLS_MAP.TEMPO_MAINNET,
   [NETWORKS_CHAIN_ID.TEMPO_TESTNET_MODERATO]:
     CHAINLIST_CURRENCY_SYMBOLS_MAP.TEMPO_TESTNET_MODERATO,
+  [NETWORKS_CHAIN_ID.ARC]: CHAINLIST_CURRENCY_SYMBOLS_MAP.ARC,
+  [NETWORKS_CHAIN_ID.ROBINHOOD]: CHAINLIST_CURRENCY_SYMBOLS_MAP.ROBINHOOD,
 };
 
 export const TEST_NETWORK_IDS = [

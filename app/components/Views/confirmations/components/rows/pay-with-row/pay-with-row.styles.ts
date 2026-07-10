@@ -36,6 +36,13 @@ const styleSheet = (params: { theme: Theme }) =>
       borderRadius: 99,
     },
 
+    moneyIcon: {
+      width: 20,
+      height: 20,
+      borderRadius: 4,
+      backgroundColor: params.theme.colors.accent04.light,
+    },
+
     disabled: {
       opacity: 0.5,
     },

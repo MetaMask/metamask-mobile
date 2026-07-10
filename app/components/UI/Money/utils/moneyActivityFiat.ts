@@ -3,7 +3,7 @@ import type { CurrencyRateState } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { moneyFormatFiat } from './moneyFormatFiat';
+import { moneyFormatUsd } from './moneyFormatFiat';
 import { balanceToFiatNumber } from '../../../../util/number';
 import { fromTokenMinimalUnit } from '../../../../util/number/bigint';
 import { isMusdToken } from '../../Earn/constants/musd';
@@ -123,35 +123,84 @@ function resolveCurrencyRateEntry(
 }
 
 /**
- * ETH → user's selected fiat rate from {@link CurrencyRateController} (same denominator as token→ETH `price`).
+ * ETH → USD rate from {@link CurrencyRateController} (same denominator as token→ETH `price`).
+ * Money amounts are always shown in dollars, so we convert token → USD directly.
  */
-function getEthToFiatConversionRate(
+function getEthToUsdRate(
   currencyRates: CurrencyRatesMap | undefined,
 ): number | undefined {
-  return resolveCurrencyRateEntry(currencyRates, ETH_TICKER)?.conversionRate;
+  return resolveCurrencyRateEntry(currencyRates, ETH_TICKER)?.usdConversionRate;
 }
 
 /**
- * Secondary fiat line for a Money activity row: prefix (+/-) + localized currency (2 decimals).
- * Converts **token → fiat** via {@link balanceToFiatNumber}: human token amount × ETH→fiat
- * × token→ETH `price` from market data, matching {@link balanceToFiat} / TransactionElement
- * ERC-20 handling.
+ * USD → user's selected fiat rate. For a USD-pegged token (USDC/mUSD) the USD
+ * amount equals the token amount, so this is all that's needed to render its
+ * fiat line. Derived as (currency per ETH) ÷ (USD per ETH); `undefined` when
+ * rates aren't available (caller should then omit the fiat line). Returns `1`
+ * implicitly when the selected currency already is USD (the two ETH rates match).
+ */
+export function getUsdToFiatConversionRate(
+  currencyRates: CurrencyRatesMap | undefined,
+): number | undefined {
+  const entry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
+  if (!entry) {
+    return undefined;
+  }
+  return entry.conversionRate / entry.usdConversionRate;
+}
+
+/**
+ * User's selected fiat → USD rate. Converts a value already expressed in the
+ * selected currency into dollars. Derived as (USD per ETH) ÷ (currency per ETH);
+ * `undefined` when rates aren't available (caller should then omit the USD
+ * value). Returns `1` implicitly when the selected currency already is USD (the
+ * two ETH rates match). Inverse of {@link getUsdToFiatConversionRate}.
+ */
+export function getFiatToUsdConversionRate(
+  currencyRates: CurrencyRatesMap | undefined,
+): number | undefined {
+  const entry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
+  if (!entry) {
+    return undefined;
+  }
+  return entry.usdConversionRate / entry.conversionRate;
+}
+
+/**
+ * Converts a fiat value already expressed in the user's selected currency
+ * into USD, via {@link getFiatToUsdConversionRate}. Returns `undefined` when
+ * `rawFiat` is missing/NaN or rates aren't available — callers decide how to
+ * render that (e.g. fall back to a formatted zero).
+ */
+export function convertSelectedFiatToUsd(
+  rawFiat: number | undefined,
+  currencyRates: CurrencyRatesMap | undefined,
+): number | undefined {
+  if (rawFiat === undefined || Number.isNaN(rawFiat)) {
+    return undefined;
+  }
+  const fiatToUsd = getFiatToUsdConversionRate(currencyRates);
+  if (!fiatToUsd) {
+    return undefined;
+  }
+  return rawFiat * fiatToUsd;
+}
+
+/**
+ * Secondary fiat line for a Money activity row: prefix (+/-) + USD (2 decimals).
  *
- * When market `price` is missing (common before rates load), mUSD-like tokens use the same
- * `balanceToFiatNumber` path with a **synthetic** token→ETH price from a 1:1 USD peg
- * (`1 / usdConversionRate` on the resolved ETH rate entry), so the pipeline stays token→fiat.
+ * mUSD is USD-pegged 1:1, so its dollar value is the token amount directly.
+ * Any other token converts **token → USD** via {@link balanceToFiatNumber}:
+ * human token amount × ETH→USD × token→ETH `price` from market data, matching
+ * {@link balanceToFiat} / TransactionElement ERC-20 handling.
  */
 export function buildMoneyActivityFiatLine(
   tx: TransactionMeta,
   currencyRates: CurrencyRatesMap | undefined,
-  currentCurrency: string | undefined,
   tokenMarketData: TokenMarketDataMap | undefined,
 ): string {
   const meta = resolveMusdTransferMeta(tx);
   if (!meta) {
-    return '';
-  }
-  if (!currentCurrency) {
     return '';
   }
 
@@ -179,46 +228,39 @@ export function buildMoneyActivityFiatLine(
     meta.contractAddress,
     meta.symbol,
   );
-  const tokenToEthRate = getTokenToEthPrice(
-    tokenMarketData,
-    chainId,
-    meta.contractAddress,
-  );
-  const ethToFiatRate = getEthToFiatConversionRate(currencyRates);
 
   let fiatNumber: number | undefined;
 
-  // mUSD is pegged 1:1 to USD by design — `tokenMarketData` has been observed
-  // to report wildly wrong prices for it on some chains, so we always derive
-  // fiat from the peg and never trust the market-rate path for mUSD.
   if (isMusdLike) {
-    const rateEntry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
-    if (rateEntry !== undefined && rateEntry.usdConversionRate !== 0) {
-      const tokenToEthPricePeg = 1 / rateEntry.usdConversionRate;
+    // mUSD is pegged 1:1 to USD, so its dollar value is the token amount.
+    // `tokenMarketData` has been observed to report wildly wrong prices for it
+    // on some chains, so we never trust the market-rate path for mUSD.
+    fiatNumber = absAmount;
+  } else {
+    const tokenToEthRate = getTokenToEthPrice(
+      tokenMarketData,
+      chainId,
+      meta.contractAddress,
+    );
+    const ethToUsdRate = getEthToUsdRate(currencyRates);
+    if (
+      tokenToEthRate !== undefined &&
+      tokenToEthRate !== null &&
+      tokenToEthRate !== 0 &&
+      ethToUsdRate !== undefined
+    ) {
       fiatNumber = balanceToFiatNumber(
         absAmount,
-        rateEntry.conversionRate,
-        tokenToEthPricePeg,
+        ethToUsdRate,
+        tokenToEthRate,
         2,
       );
     }
-  } else if (
-    tokenToEthRate !== undefined &&
-    tokenToEthRate !== null &&
-    tokenToEthRate !== 0 &&
-    ethToFiatRate !== undefined
-  ) {
-    fiatNumber = balanceToFiatNumber(
-      absAmount,
-      ethToFiatRate,
-      tokenToEthRate,
-      2,
-    );
   }
 
   if (fiatNumber === undefined) {
     return '';
   }
 
-  return `${prefix}${moneyFormatFiat(new BigNumber(fiatNumber), currentCurrency)}`;
+  return `${prefix}${moneyFormatUsd(new BigNumber(fiatNumber))}`;
 }

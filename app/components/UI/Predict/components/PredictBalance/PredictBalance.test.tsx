@@ -804,7 +804,6 @@ describe('PredictBalance', () => {
         state: initialState,
       });
 
-      // When balance is 0, Add funds uses Primary variant
       const primaryButtons = UNSAFE_getAllByProps({
         variant: ButtonVariants.Primary,
       });
@@ -822,12 +821,27 @@ describe('PredictBalance', () => {
         { state: initialState },
       );
 
-      // When balance > 0, Add funds uses Secondary variant and Withdraw also appears
       const secondaryButtons = UNSAFE_getAllByProps({
         variant: ButtonVariants.Secondary,
       });
       expect(secondaryButtons.length).toBeGreaterThanOrEqual(2);
       expect(getByText(/Withdraw/i)).toBeOnTheScreen();
+    });
+
+    it('displays Predictions title in TitleHub', () => {
+      const { getByText } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+
+      expect(getByText(strings('wallet.predict'))).toBeOnTheScreen();
+    });
+
+    it('hides Predictions title when hideTitle is true', () => {
+      const { queryByText } = renderWithProvider(<PredictBalance hideTitle />, {
+        state: initialState,
+      });
+
+      expect(queryByText(strings('wallet.predict'))).toBeNull();
     });
 
     it('handles undefined balance gracefully', () => {

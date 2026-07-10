@@ -17,7 +17,6 @@ import {
   AvatarFavicon,
   AvatarFaviconSize,
   Box,
-  Toaster,
   toast,
 } from '@metamask/design-system-react-native';
 import { USER_INTENT } from '../../../../constants/permissions.ts';
@@ -244,11 +243,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [networkConfigurations],
   );
 
-  const nonTestNetworkCaipChainIds = nonTestNetworkConfigurations.map(
-    ({ caipChainId }) => caipChainId,
+  const nonTestNetworkCaipChainIds = useMemo(
+    () => nonTestNetworkConfigurations.map(({ caipChainId }) => caipChainId),
+    [nonTestNetworkConfigurations],
   );
-  const testNetworkCaipChainIds = testNetworkConfigurations.map(
-    ({ caipChainId }) => caipChainId,
+  const testNetworkCaipChainIds = useMemo(
+    () => testNetworkConfigurations.map(({ caipChainId }) => caipChainId),
+    [testNetworkConfigurations],
   );
 
   const alreadyConnectedCaipChainIds = useMemo(
@@ -485,10 +486,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     sdkV2Connection?.originatorInfo?.url ??
     '';
 
-  // Should be the self reported dapp url if SDK or WC connection, empty/null if no self reported dapp url.
+  // Should be the self reported dapp url if SDKv1, SDKv2, or WC connection,
+  // empty/null if no self reported dapp url.
   // If not SDK or WC connection, i.e. a regular external connection, it should be the hostname.
   let referrer = channelIdOrHostname;
-  if (isOriginMMSDKRemoteConn) {
+  if (isOriginMMSDKRemoteConn || isOriginMMSDKV2RemoteConn) {
     referrer = dappUrl;
   } else if (isOriginWalletConnect) {
     referrer = wc2Metadata?.url;
@@ -720,7 +722,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       );
 
       toast({
-        description:
+        title:
           connectedAccountLength >= 1
             ? strings('toast.permissions_updated')
             : undefined,
@@ -999,7 +1001,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         </ScreenContainer>
       )}
       {renderPhishingModal()}
-      <Toaster />
     </Box>
   );
 };

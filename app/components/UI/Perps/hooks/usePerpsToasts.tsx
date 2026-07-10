@@ -23,6 +23,12 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import {
+  ActivityTypeFilter,
+  PerpsActivityFilter,
+} from '../../../Views/ActivityScreen/types';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
@@ -189,6 +195,10 @@ export interface PerpsToastOptionsConfig {
       shareFailed: PerpsToastOptions;
     };
   };
+  watchlist: {
+    addError: PerpsToastOptions;
+    limitReached: PerpsToastOptions;
+  };
 }
 
 const getPerpsToastLabels = (
@@ -300,17 +310,16 @@ const usePerpsToasts = (): {
         toastRef?.current?.closeToast();
         navigation.navigate(Routes.PERPS.ROOT);
       },
-      goToActivity: (transactionId: string) => {
+      goToActivity: (
+        transactionId: string,
+        perpsFilter?: PerpsActivityFilter,
+      ) => {
         toastRef?.current?.closeToast();
-        // Navigate to the Transactions tab first
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
-
-        // Then use a timeout to navigate to the specific transaction details
-        setTimeout(() => {
-          navigation.navigate(Routes.TRANSACTION_DETAILS, {
-            transactionId,
-          });
-        }, 100);
+        navigateToTransactionDetails(navigation, {
+          transactionId,
+          initialTypeFilter: ActivityTypeFilter.Perps,
+          ...(perpsFilter ? { initialPerpsFilter: perpsFilter } : {}),
+        });
       },
       goToPnlHeroCard: (position: Position, marketPrice?: string) => {
         toastRef?.current?.closeToast();
@@ -339,7 +348,11 @@ const usePerpsToasts = (): {
         transactionId: string,
       ): ToastOptions['closeButtonOptions'] => ({
         label: strings('perps.deposit.track'),
-        onPress: () => navigationHandlers.goToActivity(transactionId),
+        onPress: () =>
+          navigationHandlers.goToActivity(
+            transactionId,
+            PerpsActivityFilter.Deposits,
+          ),
         variant: ButtonVariants.Link,
       }),
     }),
@@ -1001,6 +1014,20 @@ const usePerpsToasts = (): {
               strings('perps.pnl_hero_card.share_failed'),
             ),
           },
+        },
+      },
+      watchlist: {
+        addError: {
+          ...perpsBaseToastOptions.error,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.add_error'),
+          ),
+        },
+        limitReached: {
+          ...perpsBaseToastOptions.info,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.limit_reached', { limit: 100 }),
+          ),
         },
       },
     }),

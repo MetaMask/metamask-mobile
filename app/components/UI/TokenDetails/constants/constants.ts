@@ -22,12 +22,20 @@ export enum TokenDetailsSource {
   ExploreCryptoTrending = 'explore_crypto_trending',
   /** Explore RWAs tab — stocks list */
   ExploreRwasStocks = 'explore_rwas_stocks',
+  /** Explore omni-search result tap */
+  ExploreSearch = 'explore_search',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
+  /** Swap discovery feed — hot tokens / movers pills */
+  MoversSwaps = 'movers-swaps',
+  /** Swap discovery feed — stocks section */
+  RwasStocksSwaps = 'rwas_stocks-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */
   HomepageTrending = 'homepage-trending',
   /** Swap/Bridge token selector */
   Swap = 'swap',
+  /** Price alert notification deeplink */
+  PriceAlertNotification = 'price_alert_notification',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
@@ -37,6 +45,7 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreNowStocks,
   TokenDetailsSource.ExploreCryptoTrending,
   TokenDetailsSource.ExploreRwasStocks,
+  TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
 ]);
 
@@ -78,3 +87,9 @@ export type TokenDetailsExitAction =
   | 'back_navigation'
   | 'cta_clicked'
   | 'app_backgrounded';
+
+/**
+ * Technical indicators that occupy a sub-pane below the main chart.
+ * Keep in sync with SUB_PANE_INDICATOR_NAMES in webview/src/features/indicators/studies.ts.
+ */
+export const SUB_PANE_INDICATORS = ['MACD', 'RSI'] as const;

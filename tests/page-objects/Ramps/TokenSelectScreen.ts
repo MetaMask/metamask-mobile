@@ -1,9 +1,10 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { selectTokenSelectors } from '../../../app/components/UI/Ramp/Aggregator/components/TokenSelectModal/SelectToken.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class TokenSelectScreen {
-  get tokenSearchInput(): DetoxElement {
+  get tokenSearchInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
     );

@@ -55,3 +55,11 @@ Other viewers:
 
 - SpeedScope: open the `.cpuprofile` directly at https://www.speedscope.app
 - Perfetto UI: open the converted JSON at https://ui.perfetto.dev
+
+### 4) Or: let an AI coding agent read it
+
+Instead of converting the trace and eyeballing a flame graph, you can hand the
+raw `.cpuprofile` to **Claude Code / your AI agent of choice** and ask "why is
+this slow?" — it parses the Hermes sampling profile and points you at the hot
+frames / culprit function directly, no viewer needed. Often the fastest path to
+a root cause.

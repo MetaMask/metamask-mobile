@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
-import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
 import { normalizeProviderCode } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,13 +26,14 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
+import { emitTerminalOrderAnalyticsFromCallback } from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import {
   BottomSheet,
   HeaderStandard,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
-import { showV2OrderToast } from '../../utils/v2OrderToast';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import {
   closeSession,
   failSession,
@@ -54,7 +54,6 @@ import {
   extractHostname,
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface CheckoutParams {
   url: string;
@@ -83,8 +82,7 @@ interface CheckoutParams {
    * When set, Checkout is participating in a headless buy session. On
    * successful callback the screen fires the session's `onOrderCreated`
    * callback, closes the session, and pops the ramp stack instead of
-   * resetting to `RAMPS_ORDER_DETAILS`. The `showV2OrderToast` surface is
-   * also suppressed — headless consumers drive their own UI.
+   * resetting to `RAMPS_ORDER_DETAILS`. Headless consumers drive their own UI.
    */
   headlessSessionId?: string;
 }
@@ -105,9 +103,7 @@ const Checkout = () => {
   const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
     useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const isV2Enabled = useRampsUnifiedV2Enabled();
-
+  const { userRegion } = useRampsUserRegion();
   const {
     url: uri,
     providerName,
@@ -118,9 +114,38 @@ const Checkout = () => {
     network,
     userAgent,
     onNavigationStateChange,
+    cryptocurrency,
     headlessSessionId,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
+
+  // Headless deposit (TRAM-3623): when a headless session drives this Checkout,
+  // every `buildBaseProps` funnel event is tagged `ramp_type: 'HEADLESS'` plus
+  // the seeded `ramp_surface`/`region`; non-headless UB2 keeps its defaults.
+  const headlessRampSurface =
+    getSession(headlessSessionId)?.params?.rampSurface;
+  const regionCode = userRegion?.regionCode || undefined;
+  const headlessBaseOverrides = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            rampType: 'HEADLESS' as const,
+            rampSurface: headlessRampSurface,
+            region: regionCode,
+          }
+        : {},
+    [headlessSessionId, headlessRampSurface, regionCode],
+  );
+  // The non-`buildBaseProps` Checkout emits (RAMPS_SCREEN_VIEWED,
+  // RAMPS_CLOSE_BUTTON_CLICKED) default to 'UNIFIED_BUY_2'; flip them the same
+  // way (TRAM-3623).
+  const headlessRampProps = useMemo(
+    () =>
+      headlessSessionId
+        ? { ramp_type: 'HEADLESS' as const, ramp_surface: headlessRampSurface }
+        : { ramp_type: 'UNIFIED_BUY_2' as const },
+    [headlessSessionId, headlessRampSurface],
+  );
 
   const initialUriRef = useRef(uri);
   const registeredOrderIdsRef = useRef<Set<string>>(new Set());
@@ -167,8 +192,8 @@ const Checkout = () => {
         createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
           .addProperties({
             location: 'Checkout',
-            ramp_type: 'UNIFIED_BUY_2',
-            ramp_routing: rampRoutingDecision ?? undefined,
+            ...headlessRampProps,
+            ...(headlessSessionId ? { region: regionCode } : {}),
           })
           .build(),
       );
@@ -178,7 +203,7 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
-              rampRouting: rampRoutingDecision,
+              ...headlessBaseOverrides,
             }),
             initial_url_path: redactUrlForAnalytics(uri),
             has_callback_flow: hasCallbackFlow,
@@ -191,11 +216,14 @@ const Checkout = () => {
     uri,
     createEventBuilder,
     trackEvent,
-    rampRoutingDecision,
     checkoutSessionId,
     providerName,
     hasCallbackFlow,
     effectiveOrderId,
+    headlessRampProps,
+    headlessBaseOverrides,
+    headlessSessionId,
+    regionCode,
   ]);
 
   const dismissActiveHeadlessFlow = useCallback(() => {
@@ -204,17 +232,55 @@ const Checkout = () => {
 
   const failHeadlessCheckout = useCallback(
     (checkoutError: unknown) => {
-      if (
-        hasTerminatedHeadlessSessionRef.current ||
-        !failSession(headlessSessionId, checkoutError)
-      ) {
+      if (hasTerminatedHeadlessSessionRef.current) {
         return false;
+      }
+      // Snapshot the session BEFORE failSession tears it down so the HEADLESS
+      // RAMPS_ORDER_FAILED event (TRAM-3623 §7) can carry the seeded
+      // ramp_surface and quote/amount context; failSession can't emit itself.
+      const session = getSession(headlessSessionId);
+      if (!failSession(headlessSessionId, checkoutError)) {
+        return false;
+      }
+      if (session) {
+        const quoteRecord = session.params?.quote?.quote;
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.RAMPS_ORDER_FAILED)
+            .addProperties({
+              ramp_type: 'HEADLESS',
+              ramp_surface: session.params?.rampSurface,
+              amount_source: Number(
+                quoteRecord?.amountIn ?? session.params?.amount ?? 0,
+              ),
+              amount_destination: Number(quoteRecord?.amountOut ?? 0),
+              payment_method_id: quoteRecord?.paymentMethod ?? '',
+              region: regionCode ?? '',
+              chain_id: network ?? '',
+              currency_destination: params?.cryptocurrency ?? '',
+              currency_source: params?.currency ?? '',
+              error_message:
+                checkoutError instanceof Error
+                  ? checkoutError.message
+                  : String(checkoutError),
+              is_authenticated: true,
+            })
+            .build(),
+        );
       }
       hasTerminatedHeadlessSessionRef.current = true;
       dismissActiveHeadlessFlow();
       return true;
     },
-    [headlessSessionId, dismissActiveHeadlessFlow],
+    [
+      headlessSessionId,
+      dismissActiveHeadlessFlow,
+      trackEvent,
+      createEventBuilder,
+      regionCode,
+      network,
+      params?.cryptocurrency,
+      params?.currency,
+    ],
   );
 
   useEffect(() => {
@@ -263,7 +329,7 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
-              rampRouting: rampRoutingDecision,
+              ...headlessBaseOverrides,
             }),
             url_path: redacted,
             previous_url_path: urlHistoryRef.current.previous ?? undefined,
@@ -280,8 +346,8 @@ const Checkout = () => {
       trackEvent,
       checkoutSessionId,
       providerName,
-      rampRoutingDecision,
       effectiveOrderId,
+      headlessBaseOverrides,
     ],
   );
 
@@ -304,7 +370,7 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
-              rampRouting: rampRoutingDecision,
+              ...headlessBaseOverrides,
             }),
             url_path: redactUrlForAnalytics(navState.url),
             order_id: effectiveOrderId ?? undefined,
@@ -335,25 +401,39 @@ const Checkout = () => {
           throw new Error('No wallet address or provider code available');
         }
 
-        const rampsOrder = await getOrderFromCallback(
-          providerCode,
-          navState.url,
-          walletAddress,
-        );
-
-        if (!rampsOrder) {
-          throw new Error('Order could not be retrieved from callback');
-        }
-
-        addOrder(rampsOrder);
-        dispatch(protectWalletModalVisible());
-
-        // Headless mode: hand the orderId to the consumer, close the
-        // session, and unwind out of the ramp stack so the caller regains
-        // foreground. Skip the toast + RAMPS_ORDER_DETAILS reset — both
-        // are user-facing UI the headless consumer didn't ask for.
+        // Headless mode: fetch the order, hand the orderId to the consumer,
+        // close the session, and unwind out of the ramp stack so the caller
+        // regains foreground. Skip RAMPS_ORDER_DETAILS — the headless consumer
+        // drives its own UI.
         const session = getSession(headlessSessionId);
         if (headlessSessionId && session) {
+          const rampsOrder = await getOrderFromCallback(
+            providerCode,
+            navState.url,
+            walletAddress,
+          );
+          if (!rampsOrder) {
+            throw new Error('Order could not be retrieved from callback');
+          }
+          addOrder(rampsOrder);
+
+          // TRAM-3623/3691: carry the headless context (surface + region) so the
+          // terminal RAMPS_TRANSACTION_FAILED is tagged HEADLESS — whether it
+          // fails now (read by emitTerminalOrderAnalyticsFromCallback below) or
+          // later via polling/relaunch. Mirrors useTransakRouting; safe here
+          // because this branch is already headless-gated.
+          setHeadlessOrderContext(rampsOrder.providerOrderId, {
+            rampSurface: headlessRampSurface,
+            region: regionCode ?? '',
+          });
+
+          // TRAM-3691: headless callback skips OrderDetails, so an
+          // already-terminal order here is never polled and its terminal
+          // metrics event would be lost. Emit it directly (no-ops for
+          // non-terminal orders and dedups against the polling path).
+          emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+
+          dispatch(protectWalletModalVisible());
           try {
             session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
           } catch (callbackError) {
@@ -369,26 +449,23 @@ const Checkout = () => {
           return;
         }
 
-        if (isV2Enabled) {
-          showV2OrderToast({
-            orderId: rampsOrder.providerOrderId,
-            cryptocurrency:
-              rampsOrder.cryptoCurrency?.symbol ?? params?.cryptocurrency ?? '',
-            cryptoAmount: rampsOrder.cryptoAmount,
-            status: rampsOrder.status,
-          });
-        }
+        dispatch(protectWalletModalVisible());
 
         closeSourceRef.current = 'callback_success';
 
+        // Unified buy stack (non-headless): leave the WebView immediately; OrderDetails
+        // resolves the order via callback params (same pattern as external-browser return).
         navigation.reset({
           index: 0,
           routes: [
             {
               name: Routes.RAMP.RAMPS_ORDER_DETAILS,
               params: {
-                orderId: rampsOrder.providerOrderId,
+                callbackUrl: navState.url,
+                providerCode,
+                walletAddress,
                 showCloseButton: true,
+                ...(cryptocurrency ? { cryptocurrency } : {}),
               },
             },
           ],
@@ -410,10 +487,9 @@ const Checkout = () => {
       providerCode,
       walletAddress,
       navigation,
+      cryptocurrency,
       addOrder,
       getOrderFromCallback,
-      isV2Enabled,
-      params?.cryptocurrency,
       headlessSessionId,
       dismissActiveHeadlessFlow,
       failHeadlessCheckout,
@@ -422,8 +498,10 @@ const Checkout = () => {
       trackEvent,
       checkoutSessionId,
       providerName,
-      rampRoutingDecision,
       effectiveOrderId,
+      headlessBaseOverrides,
+      headlessRampSurface,
+      regionCode,
     ],
   );
 
@@ -433,12 +511,11 @@ const Checkout = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
         .addProperties({
           location: 'Checkout',
-          ramp_type: 'UNIFIED_BUY_2',
-          ramp_routing: rampRoutingDecision ?? undefined,
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent, rampRoutingDecision]);
+  }, [createEventBuilder, trackEvent, headlessRampProps]);
   const handleClosePress = useCallback(() => {
     handleCancelPress();
     if (headlessSessionId) {
@@ -492,7 +569,7 @@ const Checkout = () => {
             ...buildBaseProps({
               checkoutSessionId,
               providerName,
-              rampRouting: rampRoutingDecision,
+              ...headlessBaseOverrides,
             }),
             url_path: redactedLoadedUrl,
             load_duration_ms: durationMs,
@@ -506,9 +583,9 @@ const Checkout = () => {
       trackEvent,
       checkoutSessionId,
       providerName,
-      rampRoutingDecision,
       headlessSessionId,
       navigation,
+      headlessBaseOverrides,
     ],
   );
 
@@ -521,7 +598,6 @@ const Checkout = () => {
     /* no-op until initialized */
   });
   const closeHeadlessOnUnmountRef = useRef<() => void>(() => undefined);
-  const surfaceClass = useElevatedSurface();
   closeHeadlessOnUnmountRef.current = () => {
     if (!headlessSessionId || hasTerminatedHeadlessSessionRef.current) {
       return;
@@ -544,7 +620,7 @@ const Checkout = () => {
           ...buildBaseProps({
             checkoutSessionId,
             providerName,
-            rampRouting: rampRoutingDecision,
+            ...headlessBaseOverrides,
           }),
           close_source: closeSourceRef.current ?? 'background',
           order_id: effectiveOrderId ?? undefined,
@@ -586,7 +662,6 @@ const Checkout = () => {
         goBack={navigation.goBack}
         isFullscreen
         keyboardAvoidingViewEnabled={false}
-        twClassName={surfaceClass}
       >
         {sharedHeader}
         <ScreenLayout>
@@ -621,7 +696,6 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
-        twClassName={surfaceClass}
       >
         {sharedHeader}
         <WebView
@@ -645,11 +719,15 @@ const Checkout = () => {
                   ...buildBaseProps({
                     checkoutSessionId,
                     providerName,
-                    rampRouting: rampRoutingDecision,
+                    ...headlessBaseOverrides,
                   }),
                   url_path: redactUrlForAnalytics(errorUrl),
                   status_code: nativeEvent.statusCode,
                   is_initial_url: isInitialUrl,
+                  error_message: strings(
+                    'fiat_on_ramp_aggregator.webview_received_error',
+                    { code: nativeEvent.statusCode },
+                  ),
                 })
                 .build(),
             );
@@ -694,7 +772,6 @@ const Checkout = () => {
       goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       {sharedHeader}
       <ScreenLayout>

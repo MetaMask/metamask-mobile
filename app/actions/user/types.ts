@@ -31,7 +31,10 @@ export enum UserActionType {
   CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN = 'CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN',
   SET_MONEY_ONBOARDING_SEEN = 'SET_MONEY_ONBOARDING_SEEN',
   SET_TOKEN_OVERVIEW_CHART_TYPE = 'SET_TOKEN_OVERVIEW_CHART_TYPE',
+  SET_TOKEN_OVERVIEW_CHART_INTERVAL = 'SET_TOKEN_OVERVIEW_CHART_INTERVAL',
+  SET_TOKEN_INDICATORS = 'SET_TOKEN_INDICATORS',
   SET_ONBOARDING_STEPPER_STEP = 'SET_ONBOARDING_STEPPER_STEP',
+  SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
 }
 
 // User actions
@@ -125,10 +128,23 @@ export type SetTokenOverviewChartTypeAction =
     payload: { chartType: ChartType };
   };
 
+export type SetTokenOverviewChartIntervalAction =
+  Action<UserActionType.SET_TOKEN_OVERVIEW_CHART_INTERVAL> & {
+    payload: { interval: string };
+  };
+
+export type SetTokenIndicatorsAction =
+  Action<UserActionType.SET_TOKEN_INDICATORS> & {
+    payload: { indicators: string[] };
+  };
+
 export type SetOnboardingStepperStepAction =
   Action<UserActionType.SET_ONBOARDING_STEPPER_STEP> & {
     payload: { stepperId: string; step: number };
   };
+
+export type SetAppInstallEventFiredAction =
+  Action<UserActionType.SET_APP_INSTALL_EVENT_FIRED>;
 
 /**
  * User actions union type
@@ -161,4 +177,7 @@ export type UserAction =
   | ClearMusdConversionAssetDetailCtasSeenAction
   | SetMoneyOnboardingSeenAction
   | SetTokenOverviewChartTypeAction
-  | SetOnboardingStepperStepAction;
+  | SetTokenOverviewChartIntervalAction
+  | SetTokenIndicatorsAction
+  | SetOnboardingStepperStepAction
+  | SetAppInstallEventFiredAction;

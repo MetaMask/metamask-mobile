@@ -10,6 +10,8 @@ module.exports = [
   // Native modules: mocked for deterministic behavior
   'react-native-device-info',
   'react-native/Libraries/Animated/Easing',
+  // Analytics helpers: mocked so OptinMetrics CV tests avoid native Platform/device-info gaps
+  '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
   // App components: mocked to avoid async operations (e.g. image sizing) causing act() warnings
   '../../components/Base/RemoteImage',
 ];

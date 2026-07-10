@@ -8,7 +8,11 @@ import '../../../../../../tests/component-view/mocks';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderPerpsMarketListView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsMarketListViewSelectorsIDs,
+  getPerpsMarketRowItemSelector,
+} from '../../Perps.testIds';
+import { PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY } from '../../selectors/featureFlags';
 import { PerpsMarketData } from '@metamask/perps-controller';
 
 /** Crypto market (no HIP-3): counted in marketCounts.crypto */
@@ -20,9 +24,10 @@ const cryptoMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$1M',
+  openInterest: '$500K',
 };
 
-/** Commodity market (HIP-3): counted in marketCounts.commodity so "Commodities" badge appears */
+/** Commodity market (HIP-3): counted in marketCounts.commodities so "Commodities" badge appears */
 const commodityMarket: PerpsMarketData = {
   symbol: 'XAU',
   name: 'Gold',
@@ -31,6 +36,7 @@ const commodityMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$500K',
+  openInterest: '$250K',
   marketType: 'commodity',
   isHip3: true,
 };
@@ -57,21 +63,29 @@ describe('PerpsMarketListView', () => {
         `${sortFiltersId}-categories-crypto`,
       );
       const commoditiesBadge = screen.getByTestId(
-        `${sortFiltersId}-categories-commodities`,
+        `${sortFiltersId}-categories-commodity`,
       );
       expect(cryptoBadge).toBeOnTheScreen();
       expect(commoditiesBadge).toBeOnTheScreen();
 
       fireEvent.press(cryptoBadge);
       await waitFor(() => {
-        expect(screen.getByText('BTC')).toBeOnTheScreen();
-        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).toHaveTextContent('BTC');
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).not.toBeOnTheScreen();
       });
 
       fireEvent.press(commoditiesBadge);
       await waitFor(() => {
-        expect(screen.getByText('XAU')).toBeOnTheScreen();
-        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).toHaveTextContent('XAU');
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).not.toBeOnTheScreen();
       });
     });
 
@@ -89,22 +103,74 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByText(strings('perps.no_tokens_found')),
         ).toBeOnTheScreen();
-        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
-        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).not.toBeOnTheScreen();
       });
     });
 
-    it('shows empty favorites state when view starts in watchlist-only mode with no favorites', async () => {
+    it('shows empty watchlist state when view starts in watchlist-only mode with no favorites', async () => {
       renderPerpsMarketListView({
         initialParams: { showWatchlistOnly: true },
+        streamOverrides: { marketData: marketDataWithCategories },
       });
 
       expect(
-        await screen.findByText(strings('perps.no_favorites_found')),
+        await screen.findByText(strings('perps.watchlist.empty_subtitle')),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.no_favorites_description')),
-      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Full asset names feature flag', () => {
+    it('shows ticker symbols on the asset label by default (flag off)', async () => {
+      renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).toHaveTextContent('BTC');
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).toHaveTextContent('XAU');
+      });
+      expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
+    });
+
+    it('shows full asset names on the asset label when perpsShowFullAssetNames is enabled', async () => {
+      renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).toHaveTextContent('Bitcoin');
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).toHaveTextContent('Gold');
+      });
+      expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+      expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
     });
   });
 });

@@ -1,10 +1,17 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { ListRenderItemInfo, Pressable } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarBaseShape,
@@ -29,42 +36,72 @@ import {
 import {
   formatAddressToAssetId,
   formatChainIdToCaip,
+  formatChainIdToHex,
+  isNativeAddress,
+  isNonEvmChainId,
+  BatchSellMetricsLocation,
 } from '@metamask/bridge-controller';
-import { CaipAssetType, CaipChainId } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import {
   resetBridgeState,
   selectBatchSellDestStablecoins,
-  selectBatchSellDestStablecoinsByChain,
+  selectBatchSellSourceTokens,
   setBatchSellDestToken,
   setBatchSellSourceTokenAmounts,
   setBatchSellSourceTokens,
   setBatchSellTokenSlippages,
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
+import {
+  selectEvmNetworkConfigurationsByChainId,
+  selectNativeCurrencyByChainId,
+} from '../../../../../selectors/networkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../../../selectors/multichainNetworkController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
+import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
+import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { BridgeToken } from '../../types';
-import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize as ButtonToggleSize } from '../../../../../component-library/components/Buttons/Button';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   buildBatchSellEligibleChains,
-  removeStablecoinsFromSourceTokens,
   getBatchSellDestinationToken,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   BatchSellTokenSortDirection,
   sortBatchSellTokens,
-  SUPPORTED_BATCH_SELL_CHAIN_IDS,
 } from './BatchSellTokenSelect.utils';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
+import { normalizeTokenAddress } from '../../utils/tokenUtils';
+import { useBatchSellTokens } from './useBatchSellTokens';
+import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useTrackBatchSellTokenPageViewed } from '../../hooks/useTrackBatchSellTokenPageViewed';
+import { useTrackBatchSellTokenPageContinueClicked } from '../../hooks/useTrackBatchSellTokenPageContinueClicked';
+import type { BatchSellTokenSelectRouteParams } from './types';
+import { safeToChecksumAddress } from '../../../../../util/address';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 
 const getTokenKey = (token: BridgeToken) =>
-  `${formatChainIdToCaip(token.chainId)}:${token.address}`;
+  `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
+    token.address,
+    token.chainId,
+  )}`;
 
 function getBatchSellSourceTokenAmount(token: BridgeToken, percent: number) {
   if (percent <= 0) return '0';
@@ -106,36 +143,199 @@ function getDefaultBatchSellSourceTokenAmounts(selectedTokens: BridgeToken[]) {
   );
 }
 
+function getPricePercentChangeText(
+  pricePercentChange: number | undefined,
+): string | undefined {
+  if (
+    pricePercentChange === undefined ||
+    !Number.isFinite(pricePercentChange)
+  ) {
+    return undefined;
+  }
+
+  return `${pricePercentChange >= 0 ? '+' : ''}${pricePercentChange.toFixed(
+    2,
+  )}%`;
+}
+
+function getPricePercentChangeTextColor(pricePercentChange: number): TextColor {
+  if (pricePercentChange > 0) {
+    return TextColor.SuccessDefault;
+  }
+
+  if (pricePercentChange < 0) {
+    return TextColor.ErrorDefault;
+  }
+
+  return TextColor.TextAlternative;
+}
+
+function getTokenPriceInFiat({
+  token,
+  chainId,
+  isNative,
+  tokenMarketData,
+  currencyRates,
+  nativeCurrency,
+}: {
+  token: BridgeToken;
+  chainId: Hex;
+  isNative: boolean;
+  tokenMarketData: ReturnType<typeof selectTokenMarketData>;
+  currencyRates: ReturnType<typeof selectCurrencyRates>;
+  nativeCurrency?: string;
+}): number | undefined {
+  const addressToUse = isNative
+    ? getNativeTokenAddress(chainId)
+    : safeToChecksumAddress(token.address);
+  const marketPriceInNative =
+    tokenMarketData?.[chainId]?.[addressToUse as Hex]?.price;
+
+  if (marketPriceInNative != null) {
+    const nativeToFiatRate = nativeCurrency
+      ? currencyRates?.[nativeCurrency]?.conversionRate
+      : undefined;
+
+    return nativeToFiatRate
+      ? marketPriceInNative * nativeToFiatRate
+      : undefined;
+  }
+
+  const nativePriceInFiat = isNative
+    ? currencyRates?.[token.symbol]?.conversionRate
+    : undefined;
+
+  return nativePriceInFiat ?? undefined;
+}
+
+function getTokenPricePercentChange({
+  token,
+  chainId,
+  isNative,
+  tokenMarketData,
+  multichainAssetsRates,
+}: {
+  token: BridgeToken;
+  chainId: Hex;
+  isNative: boolean;
+  tokenMarketData: ReturnType<typeof selectTokenMarketData>;
+  multichainAssetsRates: ReturnType<typeof selectMultichainAssetsRates>;
+}): number | undefined {
+  const tokenPercentageChange = token.address
+    ? tokenMarketData?.[chainId]?.[token.address as Hex]?.pricePercentChange1d
+    : undefined;
+  const evmPricePercentChange1d = isNative
+    ? tokenMarketData?.[chainId]?.[getNativeTokenAddress(chainId) as Hex]
+        ?.pricePercentChange1d
+    : tokenPercentageChange;
+  const multichainPricePercentChange =
+    multichainAssetsRates?.[token.address as CaipAssetType]?.marketData
+      ?.pricePercentChange?.P1D;
+
+  return multichainPricePercentChange ?? evmPricePercentChange1d;
+}
+
+interface TokenPriceDisplay {
+  tokenPriceText?: string;
+  pricePercentChangeText?: string;
+  pricePercentChangeTextColor?: TextColor;
+}
+
+const EMPTY_TOKEN_PRICE_DISPLAY: TokenPriceDisplay = {};
+
 export function BatchSellTokenSelect() {
   const navigation = useNavigation();
+  const route = useRoute<
+    RouteProp<
+      {
+        BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
+      },
+      'BatchSellTokenSelect'
+    >
+  >();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const allWalletTokens = useTokensWithBalance({
-    chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedNonEvmNetworkChainId = useSelector(
+    selectSelectedNonEvmNetworkChainId,
+  );
+  const {
+    chainId: selectedEvmChainId,
+    domainIsConnectedDapp,
+    networkName: selectedEvmNetworkName,
+  } = useNetworkInfo();
+  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
+    domainIsConnectedDapp,
+    selectedChainId: selectedEvmChainId,
+    selectedNetworkName: selectedEvmNetworkName,
   });
-  const stablecoinsByChain = useSelector(selectBatchSellDestStablecoinsByChain);
+  const currentChainId = isEvmNetworkSelected
+    ? selectedEvmChainId
+    : selectedNonEvmNetworkChainId;
+  const batchSellTokens = useBatchSellTokens();
   const [tokenSortDirection, setTokenSortDirection] =
     useState<BatchSellTokenSortDirection>('desc');
-  const eligibleSourceTokens = useMemo(() => {
-    const sourceTokens = removeStablecoinsFromSourceTokens({
-      tokens: allWalletTokens,
-      stablecoinsByChain,
+  const sortedEligibleSourceTokens = useMemo(
+    () => sortBatchSellTokens(batchSellTokens, tokenSortDirection),
+    [batchSellTokens, tokenSortDirection],
+  );
+  const sortedEligibleChains = useMemo(
+    () => buildBatchSellEligibleChains(sortedEligibleSourceTokens),
+    [sortedEligibleSourceTokens],
+  );
+  const batchSellLocation =
+    route.params?.batchSellLocation ?? BatchSellMetricsLocation.Unknown;
+  const preserveBridgeState = route.params?.preserveBridgeState === true;
+
+  useLayoutEffect(() => {
+    Engine.context.BridgeController.setLocation(batchSellLocation);
+  }, [batchSellLocation]);
+
+  useTrackBatchSellTokenPageViewed({
+    location: batchSellLocation,
+    sortedEligibleChains,
+  });
+  const trackBatchSellTokenPageContinueClicked =
+    useTrackBatchSellTokenPageContinueClicked({
+      location: batchSellLocation,
     });
 
-    return sortBatchSellTokens(sourceTokens, tokenSortDirection);
-  }, [allWalletTokens, stablecoinsByChain, tokenSortDirection]);
-  const sortedEligibleChains = useMemo(
-    () => buildBatchSellEligibleChains(eligibleSourceTokens),
-    [eligibleSourceTokens],
-  );
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
   const [selectedTokens, setSelectedTokens] = useState<BridgeToken[]>([]);
+  const committedSourceTokens = useSelector(selectBatchSellSourceTokens);
 
   useEffect(() => {
+    if (preserveBridgeState) {
+      return;
+    }
+
     dispatch(resetBridgeState());
-  }, [dispatch]);
+  }, [dispatch, preserveBridgeState]);
+
+  useEffect(() => {
+    // Tokens can be removed on the review page, which only updates Redux. Keep the
+    // local selection in sync so removed tokens appear deselected when returning here.
+    if (committedSourceTokens.length === 0) {
+      return;
+    }
+
+    const committedTokenKeys = new Set(committedSourceTokens.map(getTokenKey));
+
+    setSelectedTokens((tokens) => {
+      const reconciledTokens = tokens.filter((token) =>
+        committedTokenKeys.has(getTokenKey(token)),
+      );
+
+      return reconciledTokens.length === tokens.length
+        ? tokens
+        : reconciledTokens;
+    });
+  }, [committedSourceTokens]);
 
   useEffect(() => {
     // Default to the highest-value chain once balances load, but preserve a
@@ -159,18 +359,82 @@ export function BatchSellTokenSelect() {
   }, [selectedChainId, sortedEligibleChains]);
 
   const activeChainId = selectedChainId ?? sortedEligibleChains[0]?.chainId;
+  const activeHexChainId = activeChainId
+    ? formatChainIdToHex(activeChainId)
+    : undefined;
+  const tokenMarketData = useSelector(selectTokenMarketData);
+  const currencyRates = useSelector(selectCurrencyRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  const activeChainNativeCurrency = useSelector((state: RootState) =>
+    activeHexChainId
+      ? selectNativeCurrencyByChainId(state, activeHexChainId)
+      : undefined,
+  );
+
+  // Fetch STX liveness for the active batch sell source chain
+  useRefreshSmartTransactionsLiveness(activeChainId);
+
   const destinationStablecoins = useSelector((state: RootState) =>
     selectBatchSellDestStablecoins(state, activeChainId),
   );
   const selectedChainTokens = useMemo(
     () =>
       activeChainId
-        ? eligibleSourceTokens.filter(
+        ? sortedEligibleSourceTokens.filter(
             (token) => formatChainIdToCaip(token.chainId) === activeChainId,
           )
-        : eligibleSourceTokens,
-    [activeChainId, eligibleSourceTokens],
+        : sortedEligibleSourceTokens,
+    [activeChainId, sortedEligibleSourceTokens],
   );
+  const tokenPriceDisplayByKey = useMemo(() => {
+    const priceDisplayByKey = new Map<string, TokenPriceDisplay>();
+
+    for (const token of selectedChainTokens) {
+      const chainId = formatChainIdToHex(token.chainId);
+      const isNative = isNativeAddress(token.address);
+      const tokenPriceInFiat = getTokenPriceInFiat({
+        token,
+        chainId,
+        isNative,
+        tokenMarketData,
+        currencyRates,
+        nativeCurrency: activeChainNativeCurrency,
+      });
+      const tokenPriceText =
+        tokenPriceInFiat !== undefined
+          ? formatPriceWithSubscriptNotation(tokenPriceInFiat, currentCurrency)
+          : undefined;
+      const pricePercentChange = getTokenPricePercentChange({
+        token,
+        chainId,
+        isNative,
+        tokenMarketData,
+        multichainAssetsRates,
+      });
+      const pricePercentChangeText =
+        getPricePercentChangeText(pricePercentChange);
+      const pricePercentChangeTextColor =
+        pricePercentChangeText && pricePercentChange !== undefined
+          ? getPricePercentChangeTextColor(pricePercentChange)
+          : undefined;
+
+      priceDisplayByKey.set(getTokenKey(token), {
+        tokenPriceText,
+        pricePercentChangeText,
+        pricePercentChangeTextColor,
+      });
+    }
+
+    return priceDisplayByKey;
+  }, [
+    activeChainNativeCurrency,
+    currencyRates,
+    currentCurrency,
+    multichainAssetsRates,
+    selectedChainTokens,
+    tokenMarketData,
+  ]);
   const selectedTokenKeys = useMemo(
     () => new Set(selectedTokens.map(getTokenKey)),
     [selectedTokens],
@@ -215,16 +479,6 @@ export function BatchSellTokenSelect() {
   const handleTokenPress = useCallback(
     (token: BridgeToken) => {
       const tokenKey = getTokenKey(token);
-
-      if (selectedTokenKeys.has(tokenKey)) {
-        setSelectedTokens((tokens) =>
-          tokens.filter(
-            (selectedToken) => getTokenKey(selectedToken) !== tokenKey,
-          ),
-        );
-        return;
-      }
-
       const tokenChainId = formatChainIdToCaip(token.chainId);
 
       if (selectedChainId && tokenChainId !== selectedChainId) {
@@ -237,9 +491,21 @@ export function BatchSellTokenSelect() {
         setSelectedChainId(tokenChainId);
       }
 
-      setSelectedTokens((tokens) => [...tokens, token]);
+      setSelectedTokens((tokens) => {
+        const isSelected = tokens.some(
+          (selectedToken) => getTokenKey(selectedToken) === tokenKey,
+        );
+
+        if (isSelected) {
+          return tokens.filter(
+            (selectedToken) => getTokenKey(selectedToken) !== tokenKey,
+          );
+        }
+
+        return [...tokens, token];
+      });
     },
-    [selectedChainId, selectedTokenKeys],
+    [selectedChainId],
   );
 
   const handleNextPress = useCallback(() => {
@@ -250,8 +516,15 @@ export function BatchSellTokenSelect() {
       return;
     }
 
-    if (selectedTokens.length === 1) {
-      const sourceToken = selectedTokens[0];
+    const orderedSelectedTokens = sortBatchSellTokens(
+      selectedTokens,
+      tokenSortDirection,
+    );
+
+    trackBatchSellTokenPageContinueClicked(orderedSelectedTokens);
+
+    if (orderedSelectedTokens.length === 1) {
+      const sourceToken = orderedSelectedTokens[0];
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL,
         params: {
@@ -265,25 +538,58 @@ export function BatchSellTokenSelect() {
       return;
     }
 
-    dispatch(setBatchSellSourceTokens(selectedTokens));
+    // Batch Sell picks a source chain in this screen without updating the wallet's
+    // active network. Switch now so STX/gas checks and submit use the source chain
+    // (same pattern as useInitialSourceToken on Swaps entry).
+    if (orderedSelectedTokens[0]?.chainId) {
+      const tokenChainId = orderedSelectedTokens[0].chainId;
+      const tokenCaipChainId = formatChainIdToCaip(tokenChainId);
+      const currentCaipChainId = formatChainIdToCaip(currentChainId);
+
+      if (tokenCaipChainId !== currentCaipChainId) {
+        if (isNonEvmChainId(tokenCaipChainId)) {
+          onNonEvmNetworkChange(tokenCaipChainId);
+        } else {
+          const hexChainId = formatChainIdToHex(tokenCaipChainId);
+          onSetRpcTarget(
+            evmNetworkConfigurations[hexChainId] as NetworkConfiguration,
+          );
+        }
+      }
+    }
+
+    dispatch(setBatchSellSourceTokens(orderedSelectedTokens));
     dispatch(
       setBatchSellSourceTokenAmounts(
-        getDefaultBatchSellSourceTokenAmounts(selectedTokens),
+        getDefaultBatchSellSourceTokenAmounts(orderedSelectedTokens),
       ),
     );
     dispatch(
       setBatchSellDestToken(
         getBatchSellDestinationToken(
-          selectedTokens[0].chainId,
+          orderedSelectedTokens[0].chainId,
           destinationStablecoins,
         ),
       ),
     );
     dispatch(
-      setBatchSellTokenSlippages(getDefaultBatchSellSlippages(selectedTokens)),
+      setBatchSellTokenSlippages(
+        getDefaultBatchSellSlippages(orderedSelectedTokens),
+      ),
     );
     navigation.navigate(Routes.BRIDGE.BATCH_SELL_REVIEW);
-  }, [destinationStablecoins, dispatch, navigation, selectedTokens]);
+  }, [
+    currentChainId,
+    destinationStablecoins,
+    dispatch,
+    evmNetworkConfigurations,
+    navigation,
+    onNonEvmNetworkChange,
+    onSetRpcTarget,
+    selectedTokens,
+    trackBatchSellTokenPageContinueClicked,
+    tokenSortDirection,
+  ]);
 
   const handleExploreTokensPress = useCallback(() => {
     navigation.navigate(Routes.TRENDING_VIEW, {
@@ -350,6 +656,8 @@ export function BatchSellTokenSelect() {
       const network = sortedEligibleChains.find(
         (eligibleNetwork) => eligibleNetwork.chainId === chainId,
       );
+      const tokenPriceDisplay =
+        tokenPriceDisplayByKey.get(tokenKey) ?? EMPTY_TOKEN_PRICE_DISPLAY;
 
       return (
         <Box
@@ -361,11 +669,21 @@ export function BatchSellTokenSelect() {
             networkName={network?.name}
             networkImageSource={getNetworkImageSource({ chainId })}
             isSelected={isSelected}
+            tokenPriceText={tokenPriceDisplay.tokenPriceText}
+            pricePercentChangeText={tokenPriceDisplay.pricePercentChangeText}
+            pricePercentChangeTextColor={
+              tokenPriceDisplay.pricePercentChangeTextColor
+            }
           />
         </Box>
       );
     },
-    [handleTokenPress, selectedTokenKeys, sortedEligibleChains],
+    [
+      handleTokenPress,
+      selectedTokenKeys,
+      sortedEligibleChains,
+      tokenPriceDisplayByKey,
+    ],
   );
 
   return (
@@ -396,7 +714,7 @@ export function BatchSellTokenSelect() {
                 {strings('bridge.batch_sell_select_subtitle')}
               </Text>
             </Box>
-            <Box twClassName="pt-4 pl-4">
+            <Box twClassName="py-4 pl-4">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -416,7 +734,7 @@ export function BatchSellTokenSelect() {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="px-4 py-4"
+              twClassName="px-4 py-2"
             >
               <Pressable
                 accessibilityRole="button"

@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 
 const mockEnsureDeviceReady = jest.fn();
 const mockSetTargetWalletType = jest.fn();
+const mockSetPendingOperationAddress = jest.fn();
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
@@ -14,6 +15,7 @@ jest.mock('..', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: mockEnsureDeviceReady,
     setTargetWalletType: mockSetTargetWalletType,
+    setPendingOperationAddress: mockSetPendingOperationAddress,
     showAwaitingConfirmation: mockShowAwaitingConfirmation,
     hideAwaitingConfirmation: mockHideAwaitingConfirmation,
     showHardwareWalletError: mockShowHardwareWalletError,
@@ -22,24 +24,6 @@ jest.mock('..', () => ({
   executeHardwareWalletOperation: (...args: unknown[]) =>
     mockExecuteHardwareWalletOperation(...args),
 }));
-
-const mockApprovalRequest = { requestData: { from: '0xTestAddress' } };
-const mockTransactionMetadata = { txParams: { from: '0xTestAddress' } };
-
-jest.mock(
-  '../../../components/Views/confirmations/hooks/useApprovalRequest',
-  () => ({
-    __esModule: true,
-    default: () => ({ approvalRequest: mockApprovalRequest }),
-  }),
-);
-
-jest.mock(
-  '../../../components/Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
-  () => ({
-    useTransactionMetadataRequest: () => mockTransactionMetadata,
-  }),
-);
 
 const mockIsSigningQRObject = { current: false };
 
@@ -62,6 +46,7 @@ describe('useQrConfirm', () => {
   const executeApproval = jest.fn().mockResolvedValue(undefined);
 
   const defaultOptions = {
+    fromAddress: '0xTestAddress',
     onReject,
     onTransactionConfirm,
     executeApproval,
@@ -93,14 +78,9 @@ describe('useQrConfirm', () => {
   });
 
   it('calls rejectOnce when no fromAddress is available', async () => {
-    const originalRequestData = mockApprovalRequest.requestData;
-    const originalTxParams = mockTransactionMetadata.txParams;
-    mockApprovalRequest.requestData =
-      {} as typeof mockApprovalRequest.requestData;
-    mockTransactionMetadata.txParams =
-      {} as typeof mockTransactionMetadata.txParams;
-
-    const { result } = renderHook(() => useQrConfirm(defaultOptions));
+    const { result } = renderHook(() =>
+      useQrConfirm({ ...defaultOptions, fromAddress: '' }),
+    );
 
     await act(async () => {
       await result.current.onConfirm();
@@ -108,9 +88,6 @@ describe('useQrConfirm', () => {
 
     expect(onReject).toHaveBeenCalledTimes(1);
     expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
-
-    mockApprovalRequest.requestData = originalRequestData;
-    mockTransactionMetadata.txParams = originalTxParams;
   });
 
   it('calls executeHardwareWalletOperation for message signing', async () => {
@@ -124,6 +101,7 @@ describe('useQrConfirm', () => {
       expect.objectContaining({
         address: '0xTestAddress',
         operationType: 'message',
+        setPendingOperationAddress: mockSetPendingOperationAddress,
       }),
     );
   });
@@ -141,6 +119,7 @@ describe('useQrConfirm', () => {
       expect.objectContaining({
         address: '0xTestAddress',
         operationType: 'transaction',
+        setPendingOperationAddress: mockSetPendingOperationAddress,
       }),
     );
   });
@@ -230,13 +209,10 @@ describe('useQrConfirm', () => {
     expect(onReject).toHaveBeenCalledTimes(1);
   });
 
-  it('uses from address from transaction metadata when approval request has no from', async () => {
-    const originalRequestData = mockApprovalRequest.requestData;
-    mockApprovalRequest.requestData =
-      {} as typeof mockApprovalRequest.requestData;
-    mockTransactionMetadata.txParams = { from: '0xTxMetaAddress' };
-
-    const { result } = renderHook(() => useQrConfirm(defaultOptions));
+  it('uses the explicit from address option', async () => {
+    const { result } = renderHook(() =>
+      useQrConfirm({ ...defaultOptions, fromAddress: '0xExplicitAddress' }),
+    );
 
     await act(async () => {
       await result.current.onConfirm();
@@ -244,11 +220,9 @@ describe('useQrConfirm', () => {
 
     expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
       expect.objectContaining({
-        address: '0xTxMetaAddress',
+        address: '0xExplicitAddress',
       }),
     );
-
-    mockApprovalRequest.requestData = originalRequestData;
   });
 
   it('rethrows error from onTransactionConfirm onError callback', async () => {

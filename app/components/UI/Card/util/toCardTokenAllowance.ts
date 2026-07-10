@@ -10,6 +10,7 @@ const STATUS_TO_FUNDING_STATUS: Record<string, FundingStatus> = {
 export function toCardFundingToken(
   asset: CardFundingAsset,
   isMoneyAccountEntry: boolean = false,
+  displaySymbol?: string,
 ): CardFundingToken {
   return {
     address: asset.address,
@@ -28,5 +29,6 @@ export function toCardFundingToken(
     stagingTokenAddress: asset.stagingTokenAddress ?? null,
     delegationContract: asset.delegationContract ?? null,
     isMoneyAccountEntry,
+    displaySymbol,
   };
 }

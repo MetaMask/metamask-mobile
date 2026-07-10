@@ -9,7 +9,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import RewardsThemeImageComponent from '../../ThemeImageComponent/RewardsThemeImageComponent';
-import type { OndoCampaignTourStepDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignTourStepDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { documentToPlainText } from '../../ContentfulRichText/ContentfulRichText';
 
 export const CAMPAIGN_TOUR_STEP_TEST_IDS = {
@@ -21,7 +21,7 @@ export const CAMPAIGN_TOUR_STEP_TEST_IDS = {
 } as const;
 
 interface CampaignTourStepProps {
-  step: OndoCampaignTourStepDto;
+  step: CampaignTourStepDto;
 }
 
 const CampaignTourStep: React.FC<CampaignTourStepProps> = ({ step }) => {

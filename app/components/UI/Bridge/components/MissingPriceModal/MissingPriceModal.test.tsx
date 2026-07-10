@@ -29,7 +29,10 @@ jest.mock('@metamask/design-system-react-native', () => {
       ref: React.Ref<unknown>,
     ) => {
       ReactModule.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: () => props.goBack?.(),
+        onCloseBottomSheet: (callback?: () => void) => {
+          callback?.();
+          props.goBack?.();
+        },
       }));
 
       return ReactModule.createElement(

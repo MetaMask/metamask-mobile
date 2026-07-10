@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import BN4 from 'bnjs4';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import {
@@ -44,7 +45,6 @@ import {
   getProviderName,
   setFiatSellTxHash,
 } from '../../../../../../reducers/fiatOrders';
-import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
   addHexPrefix,
@@ -101,19 +101,13 @@ function SendTransaction() {
     return rpcEndpoints?.[defaultRpcEndpointIndex]?.networkClientId;
   }, [networkConfigurations, orderData]);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: strings(
-            'fiat_on_ramp_aggregator.send_transaction.sell_crypto',
-          ),
-        },
-        theme,
-      ),
-    );
-  }, [theme, navigation]);
+  const headerTitle = strings(
+    'fiat_on_ramp_aggregator.send_transaction.sell_crypto',
+  );
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const transactionAnalyticsPayload = useMemo(
     () => ({
@@ -234,7 +228,16 @@ function SendTransaction() {
   ]);
 
   if (!order || !orderData?.cryptoCurrency) {
-    return null;
+    return (
+      <ScreenLayout>
+        <HeaderStandard
+          title={headerTitle}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'send-transaction-back-button' }}
+          includesTopInset
+        />
+      </ScreenLayout>
+    );
   }
 
   let tokenIcon: ImageSourcePropType;
@@ -251,6 +254,12 @@ function SendTransaction() {
 
   return (
     <ScreenLayout>
+      <HeaderStandard
+        title={headerTitle}
+        onBack={handleHeaderBack}
+        backButtonProps={{ testID: 'send-transaction-back-button' }}
+        includesTopInset
+      />
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <View style={styles.content}>

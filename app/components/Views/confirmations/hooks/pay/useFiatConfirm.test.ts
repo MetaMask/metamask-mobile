@@ -2,16 +2,21 @@ import { renderHook, act } from '@testing-library/react-hooks';
 
 import { useFiatConfirm } from './useFiatConfirm';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionPayFiatPayment } from './useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayTotals,
+} from './useTransactionPayData';
 import { useHeadlessBuy } from '../../../../UI/Ramp/headless';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import Engine from '../../../../../core/Engine';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { getTransactionPayFiatTestOptions } from '../../../../../util/environment';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('./useTransactionPayData');
 jest.mock('../../../../UI/Ramp/headless');
 jest.mock('../../context/confirmation-context');
+jest.mock('../../../../../util/environment');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
@@ -45,6 +50,21 @@ describe('useFiatConfirm', () => {
     } as unknown as TransactionMeta);
 
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
+    jest.mocked(getTransactionPayFiatTestOptions).mockReturnValue(undefined);
+
+    jest.mocked(useTransactionPayTotals).mockReturnValue({
+      total: { fiat: '55.00', usd: '55.00' },
+      fees: {
+        metaMask: { fiat: '0.50', usd: '0.50' },
+        provider: { fiat: '1.00', usd: '1.00' },
+        providerFiat: { fiat: '3.00', usd: '3.00' },
+        sourceNetwork: {
+          estimate: { fiat: '0.50', usd: '0.50', raw: '0', human: '0' },
+          max: { fiat: '0.50', usd: '0.50', raw: '0', human: '0' },
+        },
+        targetNetwork: { fiat: '0', usd: '0' },
+      },
+    } as never);
   });
 
   it('returns isFiatPaymentSelected as false when no fiat payment', () => {
@@ -146,9 +166,10 @@ describe('useFiatConfirm', () => {
         {
           quote: mockQuote,
           assetId: 'eip155:1/erc20:0xabc',
-          amount: 50,
+          amount: 52,
           paymentMethodId: 'pm-123',
           currency: 'USD',
+          walletAddress: undefined,
         },
         expect.objectContaining({
           onOrderCreated: expect.any(Function),
@@ -193,6 +214,71 @@ describe('useFiatConfirm', () => {
         updateCall as { callback: (fp: typeof fiatPaymentObj) => void }
       ).callback(fiatPaymentObj);
       expect(fiatPaymentObj.orderId).toBe('order-xyz');
+    });
+
+    it('skips headless buy and sets a synthetic orderId when fiat test funding source is configured', () => {
+      jest.mocked(getTransactionPayFiatTestOptions).mockReturnValue({
+        testFundingSource: '0x1234567890123456789012345678901234567890',
+      });
+
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).not.toHaveBeenCalled();
+      expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(undefined);
+      expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
+      expect(
+        Engine.context.TransactionPayController.updateFiatPayment,
+      ).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID_MOCK,
+        callback: expect.any(Function),
+      });
+
+      const updateCall = jest.mocked(
+        Engine.context.TransactionPayController.updateFiatPayment,
+      ).mock.calls[0][0];
+      const fiatPaymentObj = {} as { orderId?: string };
+      (
+        updateCall as { callback: (fp: typeof fiatPaymentObj) => void }
+      ).callback(fiatPaymentObj);
+      expect(fiatPaymentObj.orderId).toBe('fiat-test-funding-source');
+    });
+
+    it('does not set a synthetic orderId when fiat test funding source is configured without transaction metadata', () => {
+      jest.mocked(getTransactionPayFiatTestOptions).mockReturnValue({
+        testFundingSource: '0x1234567890123456789012345678901234567890',
+      });
+      jest
+        .mocked(useTransactionMetadataRequest)
+        .mockReturnValue(undefined as unknown as TransactionMeta);
+
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).not.toHaveBeenCalled();
+      expect(
+        Engine.context.TransactionPayController.updateFiatPayment,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not update fiat payment when transactionMetadata is missing', () => {
@@ -292,6 +378,62 @@ describe('useFiatConfirm', () => {
 
       expect(setIsHeadlessBuyInProgressMock).toHaveBeenCalledWith(false);
       expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it('uses zero amount when totals are unavailable', () => {
+      jest.mocked(useTransactionPayTotals).mockReturnValue(undefined);
+
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 0 }),
+        expect.any(Object),
+      );
+    });
+
+    it('subtracts providerFiat fee from total for buy amount', () => {
+      jest.mocked(useTransactionPayTotals).mockReturnValue({
+        total: { fiat: '100.00', usd: '100.00' },
+        fees: {
+          metaMask: { fiat: '0', usd: '0' },
+          provider: { fiat: '0', usd: '0' },
+          providerFiat: { fiat: '15.00', usd: '15.00' },
+          sourceNetwork: {
+            estimate: { fiat: '0', usd: '0', raw: '0', human: '0' },
+            max: { fiat: '0', usd: '0', raw: '0', human: '0' },
+          },
+          targetNetwork: { fiat: '0', usd: '0' },
+        },
+      } as never);
+
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1' },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 85 }),
+        expect.any(Object),
+      );
     });
 
     it('clears error and resets headless buy in progress on close', () => {

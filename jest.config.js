@@ -3,6 +3,8 @@ process.env.TZ = 'America/Toronto';
 // Unit tests need a test-like environment before Babel transforms app modules.
 process.env.METAMASK_ENVIRONMENT ??= 'test';
 
+process.env.MM_INFURA_PROJECT_ID = 'fake-infura-project-id';
+
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
@@ -10,6 +12,7 @@ process.env.MM_FOX_CODE = 'EXAMPLE_FOX_CODE';
 
 process.env.MM_SECURITY_ALERTS_API_ENABLED = 'true';
 process.env.SECURITY_ALERTS_API_URL = 'https://example.com';
+process.env.COMPLIANCE_API_URL = 'https://compliance.example.com';
 
 process.env.LAUNCH_DARKLY_URL =
   'https://client-config.dev-api.cx.metamask.io/v1';
@@ -32,7 +35,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@braze/react-native-sdk|uuid))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@braze/react-native-sdk|uuid|ip-regex))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
@@ -95,6 +98,12 @@ const config = {
     '^@metamask/perps-controller/(.*)$':
       '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
+    // The preview build of @metamask/perps-controller bundles the hyperliquid
+    // Deno SDK via a file:// URL left over from its CI build environment.
+    // Map it to the same mock used for the npm package above so jest.requireActual
+    // can load @metamask/perps-controller without crashing.
+    '^file:///home/runner/work/hyperliquid/hyperliquid/src/mod\\.ts$':
+      '<rootDir>/app/__mocks__/hyperliquidMock.js',
     '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':
@@ -105,6 +114,7 @@ const config = {
     '^expo-screen-orientation(/.*)?$':
       '<rootDir>/app/__mocks__/expo-screen-orientation.js',
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
+    '^expo$': '<rootDir>/app/__mocks__/expo.ts',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
     '^@metamask/design-system-react-native/spinner$':
       '<rootDir>/app/__mocks__/spinnerMock.js',

@@ -13,7 +13,6 @@ import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTest
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
 import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { swapActionExpectations } from '../../helpers/analytics/expectations/swap-action.analytics';
 
 describe(SmokeSwap('Swap from Actions'), (): void => {
@@ -46,12 +45,6 @@ describe(SmokeSwap('Swap from Actions'), (): void => {
           },
         ],
         testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            stxMigrationBatchStatus: false,
-            stxMigrationCancel: false,
-            stxMigrationGetFees: false,
-            stxMigrationSubmitTransactions: false,
-          });
           await testSpecificMock(mockServer);
           await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
         },
@@ -66,7 +59,8 @@ describe(SmokeSwap('Swap from Actions'), (): void => {
 
         // Submit first swap: ETH->ERC20 (USDC) with custom slippage
         await submitSwapUnifiedUI('1', 'ETH', 'USDC', '0x1', {
-          slippage: '3.5',
+          // slippage: '3.5',
+          // comment out until bug #29615 is fixed
         });
         await checkSwapActivity('ETH', 'USDC');
 

@@ -63,11 +63,11 @@ import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../UI/Earn/constants/events/musdEvents';
-import { MONEY_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyHubEvents';
 import { getNetworkName } from '../../UI/Earn/utils/network';
 import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
 
-const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
+const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_HUB_EVENTS_CONSTANTS;
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const CashTokensFullView = () => {

@@ -123,7 +123,6 @@ export class BackgroundBridge extends EventEmitter {
     isWalletConnect,
     wcRequestActions,
     getApprovedHosts,
-    remoteConnHost,
     isMMSDK,
     sdkVersion = 'v1',
     channelId,
@@ -132,7 +131,6 @@ export class BackgroundBridge extends EventEmitter {
     this.url = url;
     this.origin = new URL(url).origin;
     // TODO - When WalletConnect and MMSDK uses the Permission System, URL does not apply in all conditions anymore since hosts may not originate from web. This will need to change!
-    this.remoteConnHost = remoteConnHost;
     this.isMainFrame = isMainFrame;
     this.isWalletConnect = isWalletConnect;
     this.isMMSDK = isMMSDK;
@@ -872,13 +870,6 @@ export class BackgroundBridge extends EventEmitter {
    */
   createEip5792Middleware() {
     return createEip5792Middleware({
-      getAccounts: () => {
-        const { AccountsController } = Engine.context;
-        const addresses = AccountsController.listAccounts().map(
-          (acc) => acc.address,
-        );
-        return Promise.resolve(addresses);
-      },
       // EIP-5792
       processSendCalls: processSendCalls.bind(
         null,
@@ -917,6 +908,8 @@ export class BackgroundBridge extends EventEmitter {
             }),
           isAuxiliaryFundsSupported: (chainId) =>
             ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
+          getPermittedAccountsForOrigin: async () =>
+            getPermittedAccounts(this.channelIdOrOrigin),
         },
         Engine.controllerMessenger,
       ),

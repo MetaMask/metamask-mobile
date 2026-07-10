@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import CampaignTourStep, {
   CAMPAIGN_TOUR_STEP_TEST_IDS,
 } from './CampaignTourStep';
-import type { OndoCampaignTourStepDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignTourStepDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -29,7 +29,7 @@ jest.mock('../../ThemeImageComponent/RewardsThemeImageComponent', () => {
   };
 });
 
-const baseStep: OndoCampaignTourStepDto = {
+const baseStep: CampaignTourStepDto = {
   title: 'Welcome to the Campaign',
   description: 'Learn how this works.',
   image: {

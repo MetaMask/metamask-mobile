@@ -12,8 +12,8 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
@@ -301,15 +301,11 @@ const Settings: React.FC = () => {
             labelTextVariant={LibraryTextVariant.BodySMMedium}
             onPress={() => {
               Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-                  .addProperties({
-                    location: 'app_settings',
-                    text: strings('app_settings.simulation_details_learn_more'),
-                    url_domain: SIMULATION_DETALS_ARTICLE_URL,
-                  })
-                  .build(),
-              );
+              trackExternalLinkClicked(trackEvent, createEventBuilder, {
+                location: 'app_settings',
+                text: strings('app_settings.simulation_details_learn_more'),
+                url_domain: SIMULATION_DETALS_ARTICLE_URL,
+              });
             }}
             label={strings('app_settings.simulation_details_learn_more')}
           />

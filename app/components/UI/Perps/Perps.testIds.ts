@@ -142,12 +142,34 @@ export const PerpsMarketListViewSelectorsIDs = {
   BACK_BUTTON: 'perps-market-list-back-button',
   SEARCH_CLEAR_BUTTON: 'perps-market-list-search-bar-clear',
   SEARCH_BAR: 'perps-market-list-search-bar',
+  NO_RESULTS: 'perps-market-list-no-results',
+  /** CTA button shown in the empty state (clear search or clear filter) */
+  EMPTY_STATE_CTA: 'perps-market-list-empty-state-cta',
+  /** Empty state shown when a category filter yields no results (no active search) */
+  NO_RESULTS_FILTER: 'perps-market-list-no-results-filter',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
   LIST_HEADER: 'perps-market-list-header',
   MARKET_LIST: 'perps-market-list',
   SORT_FILTERS: 'perps-market-list-sort-filters',
+  MARKET_COUNT: 'perps-market-list-market-count',
   WATCHLIST_TOGGLE: 'perps-market-list-watchlist-toggle',
+  /** Star badge in the category row that filters to watchlisted markets */
+  WATCHLIST_FILTER_BADGE: 'perps-market-list-sort-filters-categories-watchlist',
 };
+
+// ========================================
+// PERPS WATCHLIST SECTION SELECTORS
+// ========================================
+
+export const PerpsWatchlistSelectorsIDs = {
+  SECTION: 'perps-watchlist-section',
+  HEADER: 'perps-watchlist-header',
+  EMPTY_STATE: 'perps-watchlist-empty-state',
+  SHOW_MORE_BUTTON: 'perps-watchlist-show-more-button',
+  SHOW_LESS_BUTTON: 'perps-watchlist-show-less-button',
+  SUGGESTED_SECTION: 'perps-watchlist-suggested-section',
+  SUGGESTED_HEADER: 'perps-watchlist-suggested-header',
+} as const;
 
 // ========================================
 // PERPS MARKET ROW ITEM SELECTORS
@@ -163,8 +185,26 @@ export const getPerpsMarketRowItemSelector = {
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}`,
   tokenLogo: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-token-logo`,
+  assetLabel: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-asset-label`,
   badge: (symbol: string) =>
     `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-badge`,
+  addButton: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}-add-button`,
+};
+
+// ========================================
+// PERPS RELATED MARKETS SELECTORS
+// ========================================
+
+export const PerpsRelatedMarketsSelectorsIDs = {
+  RAIL: 'perps-related-markets-rail',
+  HEADER: 'perps-related-markets-header',
+  PILL_GRID: 'perps-related-markets-pill-grid',
+};
+
+export const getPerpsRelatedMarketsSelector = {
+  tile: (symbol: string) => `perps-market-tile-card-${symbol}`,
 };
 
 // ========================================
@@ -204,18 +244,6 @@ export const PerpsAmountDisplaySelectorsIDs = {
 // PERPS VIEWS SELECTORS
 // ========================================
 
-export const PerpsTabViewSelectorsIDs = {
-  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
-  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
-    'perps-tab-view-geo-block-bottom-sheet-tooltip',
-  ONBOARDING_BUTTON: 'perps-start-trading-button',
-  BALANCE_BUTTON: 'perps-balance-button',
-  ADD_FUNDS_BUTTON: 'perps-add-funds-button',
-  WITHDRAW_BUTTON: 'perps-withdraw-button',
-  BALANCE_VALUE: 'perps-balance-value',
-  SCROLL_VIEW: 'perps-tab-scroll-view',
-};
-
 export const PerpsHomeViewSelectorsIDs = {
   SUPPORT_BUTTON: 'perps-home-support-button',
   LEARN_MORE_BUTTON: 'perps-home-learn-more-button',
@@ -230,14 +258,34 @@ export const PerpsHomeViewSelectorsIDs = {
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
+  /** Per-position card; suffixed with the list index, e.g. `perps-home-position-card-0` */
+  POSITION_CARD: 'perps-home-position-card',
+  /** Per-order card; suffixed with the list index, e.g. `perps-home-order-card-0` */
+  ORDER_CARD: 'perps-home-order-card',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
+  PRODUCTS_SECTION: 'perps-products',
+  TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
+  TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
+  TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
+  TOP_MOVERS_LOSERS_PILL: 'perps-home-top-movers-losers',
+  TOP_MOVERS_LIST: 'perps-home-top-movers-list',
+  RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
+  RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
+  RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
   TAB_BAR_ACTIONS: 'tab-bar-item-actions',
   TAB_BAR_ACTIVITY: 'tab-bar-item-activity',
 };
+
+export const PerpsTabViewSelectorsIDs = {
+  START_NEW_TRADE_CTA: 'perps-tab-view-start-new-trade-cta',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-tab-view-geo-block-bottom-sheet-tooltip',
+  SCROLL_VIEW: 'perps-tab-scroll-view',
+} as const;
 
 export const PerpsPositionsViewSelectorsIDs = {
   REFRESH_CONTROL: 'refresh-control',
@@ -269,6 +317,7 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
 export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
+  DONE_BUTTON: 'perps-tpsl-done-button',
   SET_BUTTON: 'perps-tpsl-set-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
@@ -377,7 +426,6 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
   SERVICE_INTERRUPTION_BANNER:
     'perps-market-details-service-interruption-banner',
-  TITLE_SECTION_WRAPPER: 'perps-market-details-title-section-wrapper',
 };
 
 // ========================================
@@ -391,10 +439,9 @@ export const PerpsMarketHeaderSelectorsIDs = {
   ASSET_NAME: 'perps-market-header-asset-name',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
-  PRICE_TITLE_SECTION: 'perps-market-header-price-title-section',
-  PRICE_CHANGE_TITLE_SECTION: 'perps-market-header-price-change-title-section',
   MORE_BUTTON: 'perps-market-header-more-button',
   FAVORITE_BUTTON: 'perps-market-header-favorite-button',
+  CATEGORY_SEARCH_BUTTON: 'perps-market-header-category-search-button',
 };
 
 // ========================================
@@ -553,6 +600,7 @@ export const PerpsOrderViewSelectorsIDs = {
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
+  SCROLL_VIEW: 'perps-order-view-scroll-view',
   KEYPAD: 'perps-order-view-keypad',
   // Keypad action buttons
   KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
@@ -759,7 +807,10 @@ export const PerpsOrderBookViewSelectorsIDs = {
   MODIFY_ACTION_SHEET: 'perps-order-book-modify-action-sheet',
   CLOSE_BUTTON: 'perps-order-book-close-button',
   DEPTH_BAND_BUTTON: 'perps-order-book-depth-band-button',
+  DEPTH_BAND_SHEET: 'perps-order-book-depth-band-sheet',
+  DEPTH_BAND_SHEET_CLOSE: 'perps-order-book-depth-band-sheet-close',
   DEPTH_BAND_OPTION: 'perps-order-book-depth-band-option',
+  UNIT_TOGGLE: 'perps-order-book-unit-toggle',
   UNIT_TOGGLE_BASE: 'perps-order-book-unit-toggle-base',
   UNIT_TOGGLE_USD: 'perps-order-book-unit-toggle-usd',
   SPREAD_INFO_BUTTON: 'perps-order-book-spread-info-button',

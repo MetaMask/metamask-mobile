@@ -8,21 +8,19 @@ import { useTheme } from '../../../../util/theme';
 
 import { useStyles } from '../../../../component-library/hooks';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
-import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 
 import Routes from '../../../../constants/navigation/Routes';
 
-import { useSwitchNotificationLoadingText } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet from './NotificationsSettings.styles';
 import {
   useNotificationStoragePreferences,
-  type NotificationStoragePreferences,
-  type NotificationStoragePreferenceSection,
+  type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 
 import {
@@ -35,7 +33,9 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
+  IconSize,
 } from '@metamask/design-system-react-native';
+import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 interface NotificationRowProps {
   title: string;
@@ -59,7 +59,11 @@ const NotificationRow = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
-        <Icon name={iconName} color={IconColor.IconAlternative} />
+        <Icon
+          name={iconName}
+          color={IconColor.IconAlternative}
+          size={IconSize.Lg}
+        />
         <Box twClassName="ml-4">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
@@ -75,7 +79,7 @@ const NotificationRow = ({
 };
 
 type NotificationPreferenceStatus =
-  NotificationStoragePreferences[NotificationStoragePreferenceSection];
+  NotificationPreferences[NotificationPreferenceSection];
 
 const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
   const active = [];
@@ -100,12 +104,12 @@ const NotificationsSettings = ({ navigation }: Props) => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
 
-  const loadingText = useSwitchNotificationLoadingText();
   const { preferences } = useNotificationStoragePreferences();
 
   const navigateToSection = (
-    type: NotificationStoragePreferenceSection,
+    type: NotificationPreferenceSection,
     title: string,
     description: string,
   ) => {
@@ -149,12 +153,27 @@ const NotificationsSettings = ({ navigation }: Props) => {
             <NotificationRow
               title={strings('app_settings.notifications_opts.perps_title')}
               status={getStatusText(preferences?.perps)}
-              iconName={IconName.Global}
+              iconName={IconName.Candlestick}
               onPress={() =>
                 navigateToSection(
                   'perps',
                   strings('app_settings.notifications_opts.perps_title'),
                   strings('app_settings.notifications_opts.perps_desc'),
+                )
+              }
+            />
+
+            <NotificationRow
+              title={strings(
+                'app_settings.notifications_opts.agentic_cli_title',
+              )}
+              status={getStatusText(preferences?.agenticCli)}
+              iconName={IconName.Code}
+              onPress={() =>
+                navigateToSection(
+                  'agenticCli',
+                  strings('app_settings.notifications_opts.agentic_cli_title'),
+                  strings('app_settings.notifications_opts.agentic_cli_desc'),
                 )
               }
             />
@@ -165,7 +184,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
                   'app_settings.notifications_opts.social_ai_title',
                 )}
                 status={getStatusText(preferences?.socialAI)}
-                iconName={IconName.Ai}
+                iconName={IconName.Flash}
                 onPress={() =>
                   navigateToSection(
                     'socialAI',
@@ -188,12 +207,29 @@ const NotificationsSettings = ({ navigation }: Props) => {
                 )
               }
             />
+
+            {isPriceAlertsEnabled && (
+              <NotificationRow
+                title={strings(
+                  'app_settings.notifications_opts.price_alerts_title',
+                )}
+                status={getStatusText(preferences?.priceAlerts)}
+                iconName={IconName.Notification}
+                onPress={() =>
+                  navigateToSection(
+                    'priceAlerts',
+                    strings(
+                      'app_settings.notifications_opts.price_alerts_title',
+                    ),
+                    strings(
+                      'app_settings.notifications_opts.price_alerts_desc',
+                    ),
+                  )
+                }
+              />
+            )}
           </>
         )}
-        <SwitchLoadingModal
-          loading={!!loadingText}
-          loadingText={loadingText ?? ''}
-        />
       </ScrollView>
     </SafeAreaView>
   );

@@ -12,6 +12,8 @@ import {
   useRoute,
   StackActions,
 } from '@react-navigation/native';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
   BannerBase,
@@ -62,6 +64,9 @@ const RevealPrivateCredential = ({
 }: IRevealPrivateCredentialProps) => {
   const navigation = useNavigation();
   const route = useRoute<RevealPrivateCredentialRouteProp>();
+  const tabBarHeight = useContext(BottomTabBarHeightContext);
+  const { bottom: safeAreaBottom } = useSafeAreaInsets();
+  const bottomSpacing = tabBarHeight ?? safeAreaBottom;
   const hasNavigation = !cancel;
   const shouldUpdateNav = route?.params?.shouldUpdateNav;
   const keyringId = route?.params?.keyringId;
@@ -386,7 +391,8 @@ const RevealPrivateCredential = ({
 
   return (
     <Box
-      twClassName="flex-1 pb-4 h-full bg-default"
+      twClassName="flex-1 h-full bg-default"
+      style={{ paddingBottom: bottomSpacing }}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
       <HeaderStandard

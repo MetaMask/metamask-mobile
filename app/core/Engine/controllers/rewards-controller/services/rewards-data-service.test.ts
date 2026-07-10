@@ -22,6 +22,7 @@ import type {
   LineaTokenRewardDto,
   CampaignDto,
   VipDashboardDto,
+  VipRefereeMeDto,
   VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
@@ -1798,6 +1799,7 @@ describe('RewardsDataService', () => {
       referralCode: 'TEST123',
       totalReferees: 5,
       referredByCode: 'REFERRER100',
+      isVipReferee: false,
     };
 
     beforeEach(() => {
@@ -4388,63 +4390,68 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'sub-vip';
     const mockToken = 'test-bearer-token';
     const mockVIPDashboard: VipDashboardDto = {
-      program: { id: 'vip', name: 'VIP Pilot' },
+      program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
       period: {
-        start: '2026-03-31T00:00:00.000Z',
-        end: '2026-04-30T23:59:59.999Z',
+        start: '2099-06-01T00:00:00.000Z',
+        end: '2099-06-30T23:59:59.999Z',
       },
-      currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
-      nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+      computedAt: '2099-06-30T14:52:00.000Z',
+      currentTier: {
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
+        tier: 3,
+      },
+      nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
       progress: {
-        percent: 72,
-        remainingPointsToNextTier: 800000,
+        percent: 42,
+        remainingPointsToNextTier: 123456,
         status: 'on_track',
       },
       fees: {
-        revenueShareBps: 150,
-        swapsBps: 15,
-        perpsBps: 4,
-        nextTierRevenueShareBps: 200,
-        nextTierSwapsBps: 12,
-        nextTierPerpsBps: 3,
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        nextTierRevenueShareBps: 88,
+        nextTierSwapsBps: 9,
+        nextTierPerpsBps: 6,
       },
       volume: {
-        swapsUsd: 4100000,
-        perpsUsd: 2300000,
-        points: 24400000,
-        pointsFromReferrals: 500000,
-        referrals: 2,
-        referralsCap: 10,
+        swapsUsd: 1234567,
+        perpsUsd: 9876543,
+        points: 5555555,
+        pointsFromReferrals: 111111,
+        referrals: 3,
+        referralsCap: 7,
       },
       pointsAllocation: {
-        earned: 24400000,
-        threshold: 100000000,
-        percent: 24.4,
+        earned: 5555555,
+        threshold: 7777777,
+        percent: 71.4,
       },
       tiers: [
         {
-          id: 'gold-fox-vip-3',
-          name: 'Gold Fox 3',
+          id: 'mock-tier-alpha-3',
+          name: 'Mock Tier Alpha 3',
           tier: 3,
-          pointsRequirement: 750000,
-          revenueShareBps: 150,
-          swapsBps: 15,
-          perpsBps: 4,
-          referralCarryoverBps: 2000,
+          pointsRequirement: 321000,
+          revenueShareBps: 99,
+          swapsBps: 11,
+          perpsBps: 7,
+          referralCarryoverBps: 4242,
           status: 'current',
         },
       ],
       localizedText: {
-        periodTitle: 'Mar 31 - Apr 30',
+        periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
-        nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-        nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+        nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+        nextTierPerpsFeeDelta: '↓ 6 bps next tier',
         revenueShareTitle: 'Revenue share',
         referralPointsTitle: 'Referral points',
-        nextTierRevenueShareDelta: '↑ 2% next tier',
-        nextTierReferralPointsDelta: '↑ 20% next tier',
+        nextTierRevenueShareDelta: '↑ 1% next tier',
+        nextTierReferralPointsDelta: '↑ 42% next tier',
         topTierDescription: 'Top tier reached',
         statsTitle: 'Volume',
         pointsTitle: 'Points',
@@ -4510,6 +4517,71 @@ describe('RewardsDataService', () => {
       await expect(service.getVIPDashboard(mockSubscriptionId)).rejects.toThrow(
         'Get VIP dashboard failed: 500',
       );
+    });
+  });
+
+  describe('getVipRefereeDashboard', () => {
+    const mockSubscriptionId = 'sub-referee';
+    const mockToken = 'test-bearer-token';
+    // Obviously-synthetic fixture — never real VIP codes/figures.
+    const mockRefereeDashboard: VipRefereeMeDto = {
+      referredByCode: 'TESTCODE',
+      points: 1234,
+      swapsVolume: 1000,
+      perpsVolume: 2000,
+      computedAt: '2099-06-30T14:52:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockRefereeDashboard),
+      } as unknown as Response);
+    });
+
+    it('fetches the referee dashboard from the expected endpoint with auth headers', async () => {
+      const result = await service.getVipRefereeDashboard(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/vip/referee/me',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockRefereeDashboard);
+    });
+
+    it('returns null when the user is not a VIP referee', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      await expect(
+        service.getVipRefereeDashboard(mockSubscriptionId),
+      ).resolves.toBe(null);
+    });
+
+    it('throws when the referee dashboard response is not ok', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response);
+
+      await expect(
+        service.getVipRefereeDashboard(mockSubscriptionId),
+      ).rejects.toThrow('Get VIP referee dashboard failed: 500');
     });
   });
 
@@ -4610,6 +4682,41 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
+    });
+
+    it('includes the wallet address in the payload when provided', async () => {
+      const mockWalletAddress = '0xabc';
+
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+        mockWalletAddress,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/benefits/impression',
+        expect.objectContaining({
+          body: JSON.stringify({
+            benefitId: mockBenefitId,
+            benefitType: mockBenefitType,
+            walletAddress: mockWalletAddress,
+          }),
+        }),
+      );
+    });
+
+    it('omits the wallet address from the payload when not provided', async () => {
+      await service.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+      );
+
+      const requestBody = JSON.parse(
+        (mockFetch.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(requestBody).not.toHaveProperty('walletAddress');
     });
 
     it('throws when post benefit impression response is not ok', async () => {
@@ -4966,6 +5073,68 @@ describe('RewardsDataService', () => {
 
       await expect(service.getClientVersionRequirements()).rejects.toThrow(
         'Get client version requirements failed: 500',
+      );
+    });
+  });
+
+  describe('getFirstPredictOnUs', () => {
+    const mockFirstPredictOnUs = {
+      name: 'First Predict On Us',
+      image: {
+        lightModeUrl: 'https://images.example.com/light.png',
+        darkModeUrl: 'https://images.example.com/dark.png',
+      },
+      localizedText: {
+        cta: 'Predict now',
+        description: 'Your first prediction is on us.',
+      },
+      usdAmount: 5,
+      markets: [{ eventId: '30615', conditionId: '0xabc' }],
+      termsUrl: 'https://example.com/terms',
+    };
+
+    it('fetches first predict on us from the correct public endpoint', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockFirstPredictOnUs),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getFirstPredictOnUs();
+
+      expect(result).toEqual(mockFirstPredictOnUs);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${AppConstants.REWARDS_API_URL.UAT}/public/first-predict-on-us`,
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('returns null when no visible entry exists', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+      } as Response);
+
+      const result = await service.getFirstPredictOnUs();
+
+      expect(result).toBeNull();
+    });
+
+    it('throws when response is not ok and not 404', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(service.getFirstPredictOnUs()).rejects.toThrow(
+        'Get first predict on us failed: 500',
       );
     });
   });
@@ -5393,6 +5562,186 @@ describe('RewardsDataService', () => {
       await expect(
         service.getPerpsTradingCampaignVolume(mockCampaignId),
       ).rejects.toThrow('Get perps trading campaign volume failed: 500');
+    });
+  });
+
+  describe('Predict The Pitch endpoints', () => {
+    const mockCampaignId = 'predict-campaign-1';
+    const mockSubscriptionId = 'sub-predict-1';
+    const mockToken = 'predict-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('gets the public leaderboard endpoint', async () => {
+      const leaderboard = {
+        campaignId: mockCampaignId,
+        computedAt: '2026-06-30T12:00:00.000Z',
+        entries: [],
+        totalParticipants: 0,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(leaderboard),
+      } as unknown as Response);
+
+      const result =
+        await service.getPredictThePitchLeaderboard(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/leaderboard`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(leaderboard);
+    });
+
+    it('gets authenticated leaderboard position and returns null on 404', async () => {
+      const position = {
+        rank: 1,
+        totalParticipants: 10,
+        roi: 0.5,
+        pnl: 100,
+        volume: 200,
+        eligible: true,
+        neighbors: [],
+        computedAt: '2026-06-30T12:00:00.000Z',
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(position),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/leaderboard/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(position);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPredictThePitchLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toBeNull();
+    });
+
+    it('gets authenticated positions and throws on failures', async () => {
+      const positions = {
+        openPositions: [],
+        resolvedPositions: [],
+        computedAt: null,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(positions),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchPositions(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/positions/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(positions);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPredictThePitchPositions(mockCampaignId, mockSubscriptionId),
+      ).rejects.toThrow('Get Predict The Pitch positions failed: 404');
+    });
+
+    it('gets authenticated participant outcome and throws on failures', async () => {
+      const outcome = {
+        subscriptionId: mockSubscriptionId,
+        outcomeStatus: 'pending' as const,
+        winnerVerificationCode: 'ABC123',
+        rank: 2,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(outcome),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/outcome/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(outcome);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getPredictThePitchParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow(
+        'Get Predict The Pitch participant outcome failed: 500',
+      );
+    });
+
+    it('gets public prize-pool stats and throws on failures', async () => {
+      const prizePool = {
+        totalVolumeUsd: 1000,
+        unlockedPoolUsd: 500,
+        thresholdsUsd: [0, 1000],
+        poolScheduleUsd: [250, 500],
+        breakdown: [{ rank: 1, amountUsd: 500 }],
+        computedAt: null,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(prizePool),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchPrizePool(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/prize-pool`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(prizePool);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response);
+
+      await expect(
+        service.getPredictThePitchPrizePool(mockCampaignId),
+      ).rejects.toThrow('Get Predict The Pitch prize pool failed: 503');
     });
   });
 });

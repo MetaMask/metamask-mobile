@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import { ActivityIndicator } from 'react-native';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
@@ -12,13 +18,28 @@ import onboardingRiveFile from '../../../../animations/fox_loading.riv';
 import { getScreenDimensions } from '../../../../util/onboarding';
 import { hasTestOverrides } from '../../../../util/test/utils';
 
+export type FoxRiveLoaderAnimationRef = Pick<RiveRef, 'stop'>;
+
 interface FoxRiveLoaderAnimationProps {}
 
-const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
+const FoxRiveLoaderAnimation = forwardRef<
+  FoxRiveLoaderAnimationRef,
+  FoxRiveLoaderAnimationProps
+>((_props, ref) => {
   const riveRef = useRef<RiveRef>(null);
   const { colors } = useTheme();
   const tw = useTailwind();
   const { screenWidth, animationHeight } = getScreenDimensions();
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      stop: (...args) => {
+        riveRef.current?.stop(...args);
+      },
+    }),
+    [],
+  );
 
   const animationWrapperStyle = useMemo(
     () => ({ width: screenWidth, height: animationHeight }),
@@ -80,6 +101,8 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
       </Box>
     </Box>
   );
-};
+});
+
+FoxRiveLoaderAnimation.displayName = 'FoxRiveLoaderAnimation';
 
 export default FoxRiveLoaderAnimation;

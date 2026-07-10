@@ -28,6 +28,8 @@ export const QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME = {
   'sei-mainnet': () => process.env.QUICKNODE_SEI_URL,
   'monad-mainnet': () => process.env.QUICKNODE_MONAD_URL,
   'hyperevm-mainnet': () => process.env.QUICKNODE_HYPEREVM_URL,
+  'arc-mainnet': () => process.env.QUICKNODE_ARC_URL,
+  'robinhood-mainnet': () => process.env.QUICKNODE_ROBINHOOD_URL,
 };
 
 export function getFailoverUrlsForInfuraNetwork(
@@ -131,7 +133,8 @@ export const PopularList = [
   {
     chainId: toHex('324'),
     nickname: 'zkSync Era',
-    rpcUrl: `https://mainnet.era.zksync.io`,
+    rpcUrl: `https://zksync-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: [],
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -190,6 +193,32 @@ export const PopularList = [
       blockExplorerUrl: 'https://explore.tempo.xyz/',
       imageUrl: 'TEMPO',
       imageSource: require('../../images/tempo.png'),
+    },
+  },
+  {
+    chainId: toHex('5042'),
+    nickname: 'Arc',
+    rpcUrl: `https://arc-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('arc-mainnet'),
+    ticker: 'USDC',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.arc.io',
+      imageUrl: 'ARC',
+      imageSource: require('../../images/arc-network-logo.png'),
+    },
+  },
+  {
+    chainId: toHex('4663'),
+    nickname: 'Robinhood Chain',
+    rpcUrl: `https://robinhood-mainnet.infura.io/v3/${infuraProjectId}`,
+    failoverRpcUrls: getFailoverUrlsForInfuraNetwork('robinhood-mainnet'),
+    ticker: 'ETH',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://robinhoodchain.blockscout.com',
+      imageUrl: 'ROBINHOOD',
+      imageSource: require('../../images/robinhood.png'),
     },
   },
 ];
@@ -405,6 +434,9 @@ export const NETWORK_CHAIN_ID: {
   readonly TEMPO_MAINNET: '0x1079';
   readonly CHILIZ: '0x15b38';
   readonly STABLE_MAINNET: '0x3dc';
+  readonly ARC: '0x13b2';
+  readonly KONET_MAINNET: '0x4341';
+  readonly ROBINHOOD_CHAIN: '0x1237';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -451,6 +483,9 @@ export const NETWORK_CHAIN_ID: {
   TEMPO_MAINNET: '0x1079',
   CHILIZ: '0x15b38',
   STABLE_MAINNET: '0x3dc',
+  ARC: '0x13b2',
+  KONET_MAINNET: '0x4341',
+  ROBINHOOD_CHAIN: '0x1237',
   ...CHAIN_IDS,
 };
 
@@ -504,4 +539,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
   [NETWORK_CHAIN_ID.MANTLE]: require('../../images/mantle.png'),
   [NETWORK_CHAIN_ID.SCROLL]: require('../../images/scroll-mainnet-logo.png'),
+  [NETWORK_CHAIN_ID.ARC]: require('../../images/arc-network-logo.png'),
+  [NETWORK_CHAIN_ID.KONET_MAINNET]: require('../../images/konet.png'),
+  [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: require('../../images/robinhood.png'),
 };

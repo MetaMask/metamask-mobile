@@ -10,8 +10,18 @@ import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import Engine from '../../../../core/Engine';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import { useQuery } from '@metamask/react-data-query';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
+jest.mock('@metamask/react-data-query', () => ({
+  useQuery: jest.fn(() => ({ data: undefined })),
+}));
+jest.mock('../../Money/queryKeys', () => ({
+  MoneyAccountBalanceServiceQueryKeys: {
+    GET_EXCHANGE_RATE: 'MoneyAccountBalanceService:getExchangeRate',
+  },
+}));
 jest.mock('../../Tokens/util', () => ({
   deriveBalanceFromAssetMarketDetails: jest.fn(),
 }));
@@ -55,7 +65,7 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('@metamask/bridge-controller', () => ({
   isSolanaChainId: jest.fn((chainId: string) => chainId.startsWith('solana:')),
 }));
-jest.mock('../../Ramp/Deposit/constants/networks', () => ({
+jest.mock('../../Ramp/constants/networks', () => ({
   SOLANA_MAINNET: {
     chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
   },
@@ -91,6 +101,7 @@ const mockBuildTokenIconUrl = buildTokenIconUrl as jest.MockedFunction<
 const mockUseTokensWithBalance = useTokensWithBalance as jest.MockedFunction<
   typeof useTokensWithBalance
 >;
+const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 
 describe('useAssetBalances', () => {
   const mockEvmToken: CardFundingToken = {
@@ -2105,6 +2116,194 @@ describe('useAssetBalances', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('money account (mUSD) fiat conversion', () => {
+    const mockMoneyAccountToken: CardFundingToken = {
+      address: '0xveda000000000000000000000000000000000001',
+      caipChainId: 'eip155:59144' as CaipChainId,
+      decimals: 6,
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
+      fundingStatus: FundingStatus.Enabled,
+      spendableBalance: '100',
+      walletAddress: '0xwallet1',
+      isMoneyAccountEntry: true,
+    } as CardFundingToken;
+
+    beforeEach(() => {
+      // Default: no vault exchange rate available → 1:1 share↔mUSD fallback.
+      mockUseQuery.mockReturnValue({ data: undefined } as any);
+    });
+
+    // Sets the vmUSD→mUSD vault exchange rate (raw uint256, mUSD-scaled: 1e6 = 1.0).
+    const setExchangeRate = (rate: string | undefined) => {
+      mockUseQuery.mockReturnValue({
+        data: rate === undefined ? undefined : { rate },
+      } as any);
+    };
+
+    const setupSelectorMock = (marketData: Record<string, unknown>) => {
+      mockUseSelector.mockImplementation((selector: any) => {
+        if (typeof selector === 'function') {
+          const state = {
+            engine: {
+              backgroundState: {
+                TokensController: { allTokens: {} },
+                NetworkController: {
+                  networkConfigurationsByChainId: {
+                    '0x1': { nativeCurrency: 'ETH' },
+                    '0xe708': { nativeCurrency: 'ETH' },
+                  },
+                },
+                CurrencyRateController: {
+                  currencyRates: { ETH: { conversionRate: 2000 } },
+                },
+                TokenRatesController: { marketData },
+              },
+            },
+          };
+          return selector(state);
+        }
+        return 'USD';
+      });
+    };
+
+    it('values the balance 1:1 in USD (mUSD is USD-pegged), ignoring live mUSD market data', () => {
+      // Even with mUSD market data present (which would imply a 0.92 rate), the
+      // money account is valued at its USD peg to stay identical to the Money
+      // tab: 100 mUSD → $100.00, not $92.
+      setExchangeRate('1000000');
+      setupSelectorMock({
+        '0x1': {
+          [MUSD_TOKEN_ADDRESS.toLowerCase()]: { price: 0.00046 },
+        },
+      });
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBe(100);
+      expect(balanceInfo?.balanceFiat).toBe('$100.00');
+    });
+
+    it('falls back to the raw share balance (1:1 USD) when the vault exchange rate is unavailable', () => {
+      // No exchange rate → vmUSD shares are shown 1:1 as USD (no worse than
+      // today, and correct once the rate loads).
+      setExchangeRate(undefined);
+      setupSelectorMock({});
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBe(100);
+      expect(balanceInfo?.balanceFiat).toBe('$100.00');
+    });
+
+    it('falls back to the raw share balance (1:1 USD) when the vault exchange rate is a raw zero', () => {
+      // A non-empty "0" rate is truthy but must not zero out the balance — it is
+      // treated as unavailable, so shares are shown 1:1 as USD.
+      setExchangeRate('0');
+      setupSelectorMock({});
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBe(100);
+      expect(balanceInfo?.balanceFiat).toBe('$100.00');
+    });
+
+    it('applies the vmUSD vault exchange rate to convert shares into their mUSD (USD) value', () => {
+      // 100 vmUSD shares × 1.05 share price = 105 mUSD = $105.00. No market rate
+      // is applied — mUSD is valued at its USD peg.
+      setExchangeRate('1050000');
+      setupSelectorMock({});
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBeCloseTo(105, 5);
+      expect(balanceInfo?.balanceFiat).toBe('$105.00');
+    });
+
+    it('treats a share price of exactly 1.0 as unchanged mUSD value', () => {
+      setExchangeRate('1000000');
+      setupSelectorMock({});
+      mockFormatWithThreshold.mockImplementation((value: number | null) =>
+        value !== null && value !== undefined
+          ? `$${value.toFixed(2)}`
+          : '$0.00',
+      );
+
+      const { result } = renderHook(() =>
+        useAssetBalances([mockMoneyAccountToken]),
+      );
+
+      const key = `${mockMoneyAccountToken.address?.toLowerCase()}-${mockMoneyAccountToken.caipChainId}-${mockMoneyAccountToken.walletAddress?.toLowerCase()}`;
+      const balanceInfo = result.current.get(key);
+
+      expect(balanceInfo?.rawFiatNumber).toBe(100);
+      expect(balanceInfo?.balanceFiat).toBe('$100.00');
+    });
+
+    it('polls the vault exchange rate on an interval so it does not drift from the Money balance', () => {
+      // The Money tab refreshes the balance (with an embedded vmUSD→mUSD value)
+      // on a 30s interval, so the Card must poll the vault rate on the same
+      // cadence rather than caching a stale rate.
+      setExchangeRate('1000000');
+      setupSelectorMock({});
+
+      renderHook(() => useAssetBalances([mockMoneyAccountToken]));
+
+      const exchangeRateCall = mockUseQuery.mock.calls.find(
+        ([options]: [{ queryKey?: unknown[] }]) =>
+          options?.queryKey?.[0] ===
+          'MoneyAccountBalanceService:getExchangeRate',
+      );
+
+      expect(exchangeRateCall?.[0]).toEqual(
+        expect.objectContaining({
+          enabled: true,
+          refetchInterval: 30 * 1000,
+        }),
+      );
     });
   });
 });

@@ -145,12 +145,11 @@ function buildSlackMessage(options) {
       },
     );
   } else {
-    const releaseNotesMrkdwn = `<${REPO_URL}/tree/release/${version}|View release notes>`;
     blocks.push({
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `_Cherry-picks available in the release PR. ${releaseNotesMrkdwn}_`,
+        text: `_Cherry-picks available in the release PR._`,
       },
     });
   }
@@ -174,22 +173,32 @@ function buildSlackMessage(options) {
     );
   }
 
-  // Add pipeline link
-  if (pipelineUrl) {
-    blocks.push(
-      {
-        type: 'divider',
-      },
-      {
-        type: 'context',
-        elements: [
-          {
-            type: 'mrkdwn',
-            text: `<${pipelineUrl}|View Build Pipeline> | <${REPO_URL}/tree/release/${version}|View full release notes>`,
-          },
-        ],
-      },
-    );
+  // Add pipeline and RC notes links
+  if (pipelineUrl || prNumber) {
+    const links = [];
+    if (pipelineUrl) {
+      links.push(`<${pipelineUrl}|View Build Pipeline>`);
+    }
+    if (prNumber) {
+      const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+      links.push(`<${REPO_URL}/pull/${prNumber}#user-content-whats-in-this-rc${anchorSuffix}|View full RC notes>`);
+    }
+    if (links.length > 0) {
+      blocks.push(
+        {
+          type: 'divider',
+        },
+        {
+          type: 'context',
+          elements: [
+            {
+              type: 'mrkdwn',
+              text: links.join(' | '),
+            },
+          ],
+        },
+      );
+    }
   }
 
   return {
@@ -217,6 +226,8 @@ async function postToSlack(botToken, channelName, payload) {
         channel: channelName,
         blocks: payload.blocks,
         text: payload.text,
+        unfurl_links: false,
+        unfurl_media: false,
       }),
     });
 

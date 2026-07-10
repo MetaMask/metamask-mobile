@@ -147,7 +147,7 @@ describe('TokenNotAvailableModal', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
-      screen: Routes.RAMP.TOKEN_SELECTION,
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
     });
   });
 
@@ -181,7 +181,7 @@ describe('TokenNotAvailableModal', () => {
     capturedOnClose?.(false);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
-      screen: Routes.RAMP.TOKEN_SELECTION,
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
     });
   });
 

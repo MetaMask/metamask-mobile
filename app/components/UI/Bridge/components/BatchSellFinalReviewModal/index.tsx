@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useCallback, useMemo, useState } from 'react';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -10,6 +10,7 @@ import {
   AvatarTokenSize,
   BottomSheet,
   BottomSheetHeader,
+  BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -33,6 +34,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   selectBatchSellSourceTokens,
+  selectBatchSellSlippages,
   selectIsSubmittingTx,
   setIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
@@ -47,6 +49,7 @@ import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { useTrackBatchSellReviewModalSubmitted } from '../../hooks/useTrackBatchSellReviewModalSubmitted';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
@@ -210,84 +213,88 @@ function NetworkFeeRow({
     : TextColor.TextDefault;
 
   return (
-    <Box
-      testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      paddingHorizontal={4}
-      paddingVertical={3}
-      twClassName="border-t border-muted"
-    >
+    <>
+      <Box twClassName="border-t border-muted mx-4" />
       <Box
+        testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_ROW}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={1}
+        paddingHorizontal={4}
+        paddingVertical={3}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={textColor}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
         >
-          {strings('bridge.network_fee')}
-        </Text>
-        <Pressable
-          onPress={onInfoPress}
-          testID={BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON}
-          accessibilityRole="button"
-        >
-          <Icon
-            name={IconName.Info}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Pressable>
-      </Box>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.End}
-        gap={2}
-        twClassName="min-w-0 flex-1"
-      >
-        {isLoading ? (
-          <Skeleton
-            width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
-            height={NETWORK_FEE_SKELETON_HEIGHT}
-            twClassName="rounded-lg"
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={textColor}
+          >
+            {strings('bridge.network_fee')}
+          </Text>
+          <Pressable
+            onPress={onInfoPress}
             testID={
-              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
+              BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_INFO_BUTTON
             }
-          />
-        ) : (
-          <>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={textColor}
-              numberOfLines={1}
-            >
-              {networkFee.formatted}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={fiatTextColor}
-              numberOfLines={1}
-            >
-              {networkFee.formattedFiat}
-            </Text>
-          </>
-        )}
+            accessibilityRole="button"
+          >
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          </Pressable>
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.End}
+          gap={2}
+          twClassName="min-w-0 flex-1"
+        >
+          {isLoading ? (
+            <Skeleton
+              width={NETWORK_FEE_VALUES_SKELETON_WIDTH}
+              height={NETWORK_FEE_SKELETON_HEIGHT}
+              twClassName="rounded-lg"
+              testID={
+                BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON
+              }
+            />
+          ) : (
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={textColor}
+                numberOfLines={1}
+              >
+                {networkFee.formatted}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={fiatTextColor}
+                numberOfLines={1}
+              >
+                {networkFee.formattedFiat}
+              </Text>
+            </>
+          )}
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 }
 
 export function BatchSellFinalReviewModal() {
   const dispatch = useDispatch();
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
+  const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const batchSellQuoteData = useBatchSellQuoteData({
     shouldUpdateBatchSellTrades: false,
@@ -299,7 +306,15 @@ export function BatchSellFinalReviewModal() {
     networkFee: batchSellQuoteData.networkFee,
   });
   const surfaceClass = useElevatedSurface();
-  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(false);
+  const trackBatchSellReviewModalSubmitted =
+    useTrackBatchSellReviewModalSubmitted({
+      batchSellSlippages,
+      selectedTokens,
+      tokenData: batchSellQuoteData.tokenData,
+      usdQuotedGas: batchSellQuoteData.networkFee.usd,
+    });
   const finalReviewQuoteData = useMemo(
     () =>
       getFinalReviewQuoteData({
@@ -314,12 +329,15 @@ export function BatchSellFinalReviewModal() {
     ],
   );
   const isBatchSellTradesLoading = batchSellQuoteData.isBatchSellTradesLoading;
+  const isNetworkFeeUnavailable = batchSellQuoteData.isNetworkFeeUnavailable;
   const hasInsufficientGaslessDestinationToken =
     batchSellQuoteData.isGasless &&
     !isBatchSellTradesLoading &&
     !batchSellQuoteData.isBatchSellTradeAvailable;
   const hasInsufficientGas =
-    hasSufficientGas === false || hasInsufficientGaslessDestinationToken;
+    !isNetworkFeeUnavailable &&
+    (hasSufficientGas === false || hasInsufficientGaslessDestinationToken);
+  const hasNetworkFeeError = hasInsufficientGas || isNetworkFeeUnavailable;
   const isSellAllDisabled =
     batchSellQuoteData.isLoading ||
     isBatchSellTradesLoading ||
@@ -327,6 +345,7 @@ export function BatchSellFinalReviewModal() {
     !batchSellQuoteData.hasAnyQuote ||
     batchSellQuoteData.hasPendingQuoteRows ||
     isSubmittingTx ||
+    isNetworkFeeUnavailable ||
     hasInsufficientGas;
   const isButtonDisabled = batchSellQuoteData.needsNewQuote
     ? false
@@ -343,6 +362,10 @@ export function BatchSellFinalReviewModal() {
       return strings('quote_expired_modal.get_new_quote');
     }
 
+    if (isNetworkFeeUnavailable) {
+      return strings('bridge.insufficient_balance');
+    }
+
     if (hasInsufficientGas) {
       return strings('bridge.insufficient_funds');
     }
@@ -353,6 +376,10 @@ export function BatchSellFinalReviewModal() {
 
     return strings('bridge.batch_sell_sell_all');
   })();
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
 
   const handleToggleTokenDetails = () => {
     setIsTokenDetailsExpanded((isExpanded) => !isExpanded);
@@ -380,6 +407,7 @@ export function BatchSellFinalReviewModal() {
   const handleSellAll = useCallback(async () => {
     try {
       dispatch(setIsSubmittingTx(true));
+      trackBatchSellReviewModalSubmitted();
 
       await submitBatchSellTx({
         quoteResponses: batchSellQuoteData.recommendedQuotes,
@@ -388,23 +416,27 @@ export function BatchSellFinalReviewModal() {
       console.error('Error submitting Batch Sell tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      });
     }
   }, [
     batchSellQuoteData.recommendedQuotes,
     dispatch,
     navigation,
     submitBatchSellTx,
+    trackBatchSellReviewModalSubmitted,
   ]);
 
   return (
     <BottomSheet
+      ref={sheetRef}
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
       twClassName={surfaceClass}
     >
       <BottomSheetHeader
-        onClose={navigation.goBack}
+        onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,
           testID: BatchSellFinalReviewModalSelectorsIDs.CLOSE_BUTTON,
@@ -427,7 +459,7 @@ export function BatchSellFinalReviewModal() {
       />
       <NetworkFeeRow
         networkFee={batchSellQuoteData.networkFee}
-        hasInsufficientGas={hasInsufficientGas}
+        hasInsufficientGas={hasNetworkFeeError}
         isLoading={isBatchSellTradesLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />

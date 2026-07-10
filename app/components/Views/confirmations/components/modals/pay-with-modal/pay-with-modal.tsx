@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
@@ -37,6 +37,8 @@ import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePer
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
+import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 
 interface PayWithModalParams {
   /**
@@ -83,6 +85,17 @@ export function PayWithModal() {
   const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
     isPredictContext,
     isPredictContext ? resetSelectedPaymentToken : undefined,
+  );
+  const ensurePayToken = useEnsurePayToken();
+
+  const isMoneyAccount = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const { renderNoFeeTag } = usePayWithNoFeeToken();
+  const tagRenderers = useMemo(
+    () => (isMoneyAccount ? [renderNoFeeTag] : undefined),
+    [isMoneyAccount, renderNoFeeTag],
   );
 
   const close = useCallback((onClosed?: () => void) => {
@@ -172,6 +185,18 @@ export function PayWithModal() {
           } catch {
             // Network not configured — skip
           }
+
+          // Adding via TokensController only covers legacy metadata. Ensure the
+          // token is also registered in unified assets state, so the pay
+          // controller can resolve it (otherwise it throws "Payment token not
+          // found").
+          await ensurePayToken({
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+            symbol: token.symbol,
+            decimals: token.decimals,
+            name: token.name,
+          });
         }
 
         setPayToken({
@@ -185,6 +210,7 @@ export function PayWithModal() {
     [
       close,
       dismissOnSelectCount,
+      ensurePayToken,
       isPredictContext,
       isWithdraw,
       navigation,
@@ -252,6 +278,13 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
       shouldNavigateBack={dismissOnSelectCount <= 1}
+      onClose={(hasCallback) => {
+        // Swipe/overlay/back-button dismiss: navigate back manually.
+        // X button or token selection: postCallback handles it (hasCallback=true).
+        if (!hasCallback && dismissOnSelectCount > 1) {
+          navigation.goBack();
+        }
+      }}
     >
       <HeaderStandard title={modalTitle} onClose={handleClose} />
       <Asset
@@ -259,6 +292,7 @@ export function PayWithModal() {
         hideNfts
         hideHeader
         tokenFilter={tokenFilter}
+        tagRenderers={tagRenderers}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}
       />

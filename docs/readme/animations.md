@@ -5,7 +5,7 @@ The two out-of-the-box animation libraries available in MetaMask mobile are [Lot
 This guide provides a high-level overview of the animation libraries, including how to use them in the mobile app and how to troubleshoot common issues.
 
 - [Lottie](#lottie)
-- [Rive](#tools-for-identifying-re-renders) (Experimental)
+- [Rive](#rive) (Experimental)
 
 ## Lottie
 
@@ -80,11 +80,30 @@ function App() {
 }
 ```
 
+#### In-app example (bundled `.riv`, state machine)
+
+A real usage from the app — `app/components/UI/OnboardingAnimation/OnboardingAnimation.tsx` — loading a bundled `.riv` asset with a typed ref, `Fit`/`Alignment`, and a state machine:
+
+```tsx
+import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
+
+const logoRef = useRef<RiveRef>(null);
+
+<Rive
+  ref={logoRef}
+  source={MetaMaskWordmarkAnimation} // a bundled .riv asset
+  fit={Fit.Contain}
+  alignment={Alignment.Center}
+  stateMachineName="WordmarkBuildUp"
+  onPlay={() => setIsPlaying(true)}
+/>;
+```
+
 Imperative:
 
 ```javascript
 import React, { useEffect, useRef } from 'react';
-import Rive from 'react-native-rive';
+import Rive from 'rive-react-native';
 
 export default function AnimationWithImperativeApi() {
   const animationRef = useRef < Rive > null;

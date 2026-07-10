@@ -8,7 +8,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useLatestBalance } from '.';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import { Hex, type CaipAssetId, type CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
@@ -62,6 +62,39 @@ describe('useLatestBalance', () => {
         atomicBalance: BigNumber.from('1000000000000000000'),
       });
     });
+  });
+
+  it('refetches EVM balance when refreshKey changes', async () => {
+    let refreshKey = 0;
+    mockProvider.getBalance
+      .mockResolvedValueOnce(BigNumber.from('1000000000000000000'))
+      .mockResolvedValueOnce(BigNumber.from('2000000000000000000'));
+
+    const { result, rerender } = renderHookWithProvider(
+      () =>
+        useLatestBalance({
+          address: constants.AddressZero,
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          refreshKey,
+        }),
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(result.current?.displayBalance).toBe('1.0');
+    });
+
+    await act(async () => {
+      refreshKey = 1;
+      rerender({ state: initialState });
+    });
+
+    await waitFor(() => {
+      expect(result.current?.displayBalance).toBe('2.0');
+    });
+
+    expect(mockProvider.getBalance).toHaveBeenCalledTimes(2);
   });
 
   it('should fetch ERC20 token balance', async () => {

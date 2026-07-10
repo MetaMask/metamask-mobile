@@ -148,7 +148,13 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
 
   const navigateToMarketList = useCallback(
     (params?: PerpsNavigationParamList['PerpsMarketListView']) => {
-      navigation.navigate(Routes.PERPS.MARKET_LIST, params);
+      // Navigate via the Perps root so this works from both contexts:
+      // 1. When PerpsHomeView is embedded as a tab in the main navigator (wallet home)
+      // 2. When PerpsHomeView is a stack screen inside PerpsScreenStack
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params,
+      });
     },
     [navigation],
   );

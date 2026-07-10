@@ -1,19 +1,19 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FilterButton,
+  SegmentedControl,
+} from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import { usePerpsLivePrices } from '../../../UI/Perps/hooks/stream';
+import { formatPercentage } from '../../../UI/Perps/utils/formatUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
@@ -48,21 +48,23 @@ import {
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
-import PillScrollList from '../components/PillScrollList';
-import PillRow, { type PillOption } from '../components/PillRow';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import SectionHeader from '../components/SectionHeader';
+import PillScrollList from '../components/PillScrollList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
-import { WhatsHappeningSource } from '../../../UI/WhatsHappening/constants';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { SectionRefreshHandle } from '../../Homepage/types';
-import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
-import { useABTest } from '../../../../hooks';
 import {
-  WHATS_HAPPENING_EXPLORE_AB_KEY,
-  WHATS_HAPPENING_EXPLORE_VARIANTS,
-} from '../abTestConfig';
+  MAX_ITEMS_DISPLAYED,
+  WhatsHappeningSource,
+} from '../../../UI/WhatsHappening/constants';
+import {
+  isWhatsHappeningSectionVisible,
+  useWhatsHappening,
+} from '../../../UI/WhatsHappening/hooks';
+import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -78,16 +80,11 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     withTileExtras: false,
   });
 
-  const moverPills: PillOption[] = [
-    {
-      key: 'gainers',
-      name: strings('trending.perps_movers_pill_gainers'),
-    },
-    {
-      key: 'losers',
-      name: strings('trending.perps_movers_pill_losers'),
-    },
-  ];
+  const symbols = useMemo(
+    () => perps.data.map(({ market }) => market.symbol),
+    [perps.data],
+  );
+  const livePrices = usePerpsLivePrices({ symbols, throttleMs: 3000 });
 
   const handleMoverPillSelect = (key: string) => {
     if (key === 'gainers' || key === 'losers') {
@@ -99,14 +96,33 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     const feedItemsBySymbol = new Map(
       perps.data.map((item) => [item.market.symbol, item]),
     );
+    const marketsWithLivePrices = perps.data.map(({ market }) => {
+      const livePrice = livePrices[market.symbol];
+      if (!livePrice?.percentChange24h) {
+        return market;
+      }
+
+      const changePercent = parseFloat(livePrice.percentChange24h);
+      if (Number.isNaN(changePercent)) {
+        return market;
+      }
+
+      return {
+        ...market,
+        change24hPercent: formatPercentage(changePercent),
+      };
+    });
     const markets = filterAndSortByPriceChangeDirection(
-      perps.data.map((item) => item.market),
+      marketsWithLivePrices,
       activeMoverDirection,
     );
     return markets
-      .map((market) => feedItemsBySymbol.get(market.symbol))
+      .map((market) => {
+        const item = feedItemsBySymbol.get(market.symbol);
+        return item ? { ...item, market } : undefined;
+      })
       .filter((item): item is PerpsFeedItem => item !== undefined);
-  }, [activeMoverDirection, perps.data]);
+  }, [activeMoverDirection, livePrices, perps.data]);
   const pillData =
     data.length === 0 &&
     perps.data.length > 0 &&
@@ -119,7 +135,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box>
+    <>
       <SectionHeader
         title={strings('trending.perps_movers')}
         onViewAll={() =>
@@ -137,18 +153,28 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         tabName="Now"
         sectionName="perps_movers"
       />
-      <PillRow
-        pills={moverPills}
-        activeKey={activeMoverDirection}
-        onSelect={handleMoverPillSelect}
-        testIdPrefix="perps-movers"
-      />
+      <Box twClassName="px-4 mb-3">
+        <SegmentedControl
+          value={activeMoverDirection}
+          onChange={handleMoverPillSelect}
+          isFullWidth
+          testID="perps-movers-pills"
+        >
+          <FilterButton value="gainers" testID="perps-movers-pill-gainers">
+            {strings('trending.perps_movers_pill_gainers')}
+          </FilterButton>
+          <FilterButton value="losers" testID="perps-movers-pill-losers">
+            {strings('trending.perps_movers_pill_losers')}
+          </FilterButton>
+        </SegmentedControl>
+      </Box>
       <PillScrollList<PerpsFeedItem>
         data={pillData}
         isLoading={perps.isLoading}
         renderItem={(item, index) => (
           <PerpsPillItem
             item={item}
+            marketDetailsSourceSection="perps_movers"
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',
@@ -165,7 +191,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
         Skeleton={CryptoMoversSkeleton}
         listTestId="explore-perps-pills-list"
       />
-    </Box>
+    </>
   );
 };
 
@@ -173,24 +199,25 @@ const CRYPTO_MOVERS_TIME_OPTION = TimeOption.OneHour;
 const CRYPTO_MOVERS_ROW_COUNT = 3;
 const CRYPTO_MOVERS_MAX_PILLS = 18;
 
-const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
+const NowTabContent: React.FC<TabProps> = ({
+  refresh,
+  refreshing,
+  onRefresh,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
-  const { variant: whatsHappeningExploreVariant } = useABTest(
-    WHATS_HAPPENING_EXPLORE_AB_KEY,
-    WHATS_HAPPENING_EXPLORE_VARIANTS,
-  );
 
-  const whatsHappeningRef = useRef<SectionRefreshHandle>(null);
+  const whatsHappening = useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const refreshWhatsHappening = whatsHappening.refresh;
 
   useEffect(() => {
     if (refresh.trigger === 0) return;
-    whatsHappeningRef.current?.refresh();
-  }, [refresh.trigger]);
+    void refreshWhatsHappening();
+  }, [refresh.trigger, refreshWhatsHappening]);
 
   const worldCupPredictions = useWorldCupPredictionsFeed({
     enabled: isPredictEnabled,
@@ -203,6 +230,11 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const displayedPredictions = worldCupPredictions.isEnabled
     ? worldCupPredictions
     : predictions;
+  const perpsFeed = usePerpsFeed({
+    variant: 'all',
+    refresh,
+    withTileExtras: false,
+  });
   const cryptoMovers = useTokensFeed({
     refresh,
     hideRiskyTokens: true,
@@ -236,45 +268,165 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     [],
   );
 
+  const showWhatsHappening =
+    isWhatsHappeningEnabled && isWhatsHappeningSectionVisible(whatsHappening);
+  const showPredictions =
+    isPredictEnabled &&
+    (displayedPredictions.isLoading || displayedPredictions.data.length > 0);
   const showCryptoMovers =
     cryptoMovers.isLoading || cryptoMovers.data.length > 0;
+  const showPerps =
+    isPerpsEnabled && (perpsFeed.isLoading || perpsFeed.data.length > 0);
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
-  const whatsHappeningSection = isWhatsHappeningEnabled ? (
-    <Box key="whats-happening" twClassName="-mx-4" marginBottom={6}>
-      <WhatsHappeningSection
-        ref={whatsHappeningRef}
-        source={WhatsHappeningSource.Explore}
-      />
-    </Box>
-  ) : null;
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
 
-  const predictionsSection = (
-    <PredictionsCarouselSection
-      key="predictions"
-      feed={displayedPredictions}
-      tabName="Now"
-      sectionName="predictions_trending"
-      title={
-        worldCupPredictions.isEnabled
-          ? strings('predict.world_cup.predictions_title')
-          : strings('wallet.predict')
-      }
-      testIdPrefix="predict-market-row-item"
-      idPrefix="predictions"
-      onViewAll={() =>
-        worldCupPredictions.isEnabled
-          ? navigateToExploreWorldCupPredictions(navigation)
-          : navigateToExplorePredictionsList(navigation, 'trending')
-      }
-      isEnabled={isPredictEnabled}
-    />
-  );
+    if (showPredictions) {
+      items.push({
+        key: 'predict',
+        content: (
+          <PredictionsCarouselSection
+            feed={displayedPredictions}
+            tabName="Now"
+            sectionName="predictions_trending"
+            title={
+              worldCupPredictions.isEnabled
+                ? strings('predict.world_cup.predictions_title')
+                : strings('wallet.predict')
+            }
+            testIdPrefix="predict-market-row-item"
+            idPrefix="predictions"
+            onViewAll={() =>
+              worldCupPredictions.isEnabled
+                ? navigateToExploreWorldCupPredictions(navigation)
+                : navigateToExplorePredictionsList(navigation, 'trending')
+            }
+            isEnabled={isPredictEnabled}
+          />
+        ),
+      });
+    }
 
-  const orderedIntroSections =
-    whatsHappeningExploreVariant.whatsHappeningBeforePredict
-      ? [whatsHappeningSection, predictionsSection]
-      : [predictionsSection, whatsHappeningSection];
+    if (showCryptoMovers) {
+      items.push({
+        key: 'crypto_movers',
+        content: (
+          <>
+            <SectionHeader
+              title={strings('trending.crypto_movers')}
+              onViewAll={() =>
+                navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW, {
+                  initialTimeOption: CRYPTO_MOVERS_TIME_OPTION,
+                  entryPoint: 'crypto_movers',
+                  quickBuySource: 'explore_now',
+                })
+              }
+              testID="section-header-view-all-crypto_movers"
+              tabName="Now"
+              sectionName="tokens_movers"
+            />
+            <PillScrollList<TrendingAsset>
+              data={cryptoMovers.data}
+              isLoading={cryptoMovers.isLoading}
+              renderItem={(token, index) => (
+                <CryptoMoversPillItem
+                  token={token}
+                  index={index}
+                  timeOption={CRYPTO_MOVERS_TIME_OPTION}
+                  onCardPress={() =>
+                    trackExploreInteracted({
+                      interaction_type: 'section_item_tapped',
+                      tab_name: 'Now',
+                      section_name: 'tokens_movers',
+                      asset_type: 'token',
+                      position: index,
+                      token_symbol: token.symbol,
+                      chain_id: getCaipChainIdFromAssetId(token.assetId),
+                      item_clicked: token.assetId,
+                    })
+                  }
+                />
+              )}
+              keyExtractor={(token) => token.assetId ?? ''}
+              Skeleton={CryptoMoversSkeleton}
+              listTestId="explore-crypto_movers-pills-list"
+              rowCount={CRYPTO_MOVERS_ROW_COUNT}
+              maxPills={CRYPTO_MOVERS_MAX_PILLS}
+            />
+          </>
+        ),
+      });
+    }
+
+    if (showPerps) {
+      items.push({
+        key: 'perps',
+        content: <PerpsBlock refresh={refresh} navigation={perpsNavigation} />,
+      });
+    }
+
+    if (showWhatsHappening) {
+      items.push({
+        key: 'wh',
+        content: (
+          <WhatsHappeningSection
+            source={WhatsHappeningSource.Explore}
+            feed={whatsHappening}
+            tabName="Now"
+            sectionName="whats_happening"
+          />
+        ),
+      });
+    }
+
+    if (showStocks) {
+      items.push({
+        key: 'stocks',
+        isVerticalList: true,
+        content: (
+          <>
+            <SectionHeader
+              title={strings('trending.stocks')}
+              onViewAll={() =>
+                navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
+              }
+              testID="section-header-view-all-stocks"
+              tabName="Now"
+              sectionName="stocks"
+            />
+            <CardList<TrendingAsset>
+              data={stocks.data}
+              isLoading={stocks.isLoading}
+              renderItem={renderTokenItem}
+              Skeleton={TrendingTokensSkeleton}
+              idPrefix="stocks"
+            />
+          </>
+        ),
+      });
+    }
+
+    return items;
+  }, [
+    showWhatsHappening,
+    showPredictions,
+    showCryptoMovers,
+    showPerps,
+    showStocks,
+    whatsHappening,
+    displayedPredictions,
+    worldCupPredictions.isEnabled,
+    isPredictEnabled,
+    navigation,
+    cryptoMovers.data,
+    cryptoMovers.isLoading,
+    refresh,
+    perpsNavigation,
+    stocks.data,
+    stocks.isLoading,
+    renderTokenItem,
+  ]);
 
   return (
     <ExploreScroll
@@ -282,80 +434,15 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       onRefresh={onRefresh}
       testID={TrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW}
     >
-      {orderedIntroSections}
-
-      {showCryptoMovers && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.crypto_movers')}
-            onViewAll={() =>
-              navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW, {
-                initialTimeOption: CRYPTO_MOVERS_TIME_OPTION,
-              })
-            }
-            testID="section-header-view-all-crypto_movers"
-            tabName="Now"
-            sectionName="tokens_movers"
-          />
-          <PillScrollList<TrendingAsset>
-            data={cryptoMovers.data}
-            isLoading={cryptoMovers.isLoading}
-            renderItem={(token, index) => (
-              <CryptoMoversPillItem
-                token={token}
-                index={index}
-                timeOption={CRYPTO_MOVERS_TIME_OPTION}
-                onCardPress={() =>
-                  trackExploreInteracted({
-                    interaction_type: 'section_item_tapped',
-                    tab_name: 'Now',
-                    section_name: 'tokens_movers',
-                    asset_type: 'token',
-                    position: index,
-                    token_symbol: token.symbol,
-                    chain_id: getCaipChainIdFromAssetId(token.assetId),
-                    item_clicked: token.assetId,
-                  })
-                }
-              />
-            )}
-            keyExtractor={(token) => token.assetId ?? ''}
-            Skeleton={CryptoMoversSkeleton}
-            listTestId="explore-crypto_movers-pills-list"
-            rowCount={CRYPTO_MOVERS_ROW_COUNT}
-            maxPills={CRYPTO_MOVERS_MAX_PILLS}
-          />
-        </Box>
-      )}
-
-      {isPerpsEnabled && (
-        <PerpsSectionProvider>
-          <PerpsBlock refresh={refresh} navigation={perpsNavigation} />
-        </PerpsSectionProvider>
-      )}
-
-      {showStocks && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.stocks')}
-            onViewAll={() =>
-              navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
-            }
-            testID="section-header-view-all-stocks"
-            tabName="Now"
-            sectionName="stocks"
-          />
-          <CardList<TrendingAsset>
-            data={stocks.data}
-            isLoading={stocks.isLoading}
-            renderItem={renderTokenItem}
-            Skeleton={TrendingTokensSkeleton}
-            idPrefix="stocks"
-          />
-        </Box>
-      )}
+      <ExploreSectionList sections={sections} />
     </ExploreScroll>
   );
 };
+
+const NowTab: React.FC<TabProps> = (props) => (
+  <PerpsSectionProvider>
+    <NowTabContent {...props} />
+  </PerpsSectionProvider>
+);
 
 export default NowTab;
