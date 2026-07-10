@@ -288,6 +288,7 @@ export function BatchSellTokenSelect() {
   );
   const batchSellLocation =
     route.params?.batchSellLocation ?? BatchSellMetricsLocation.Unknown;
+  const preserveBridgeState = route.params?.preserveBridgeState === true;
 
   useLayoutEffect(() => {
     Engine.context.BridgeController.setLocation(batchSellLocation);
@@ -309,8 +310,12 @@ export function BatchSellTokenSelect() {
   const committedSourceTokens = useSelector(selectBatchSellSourceTokens);
 
   useEffect(() => {
+    if (preserveBridgeState) {
+      return;
+    }
+
     dispatch(resetBridgeState());
-  }, [dispatch]);
+  }, [dispatch, preserveBridgeState]);
 
   useEffect(() => {
     // Tokens can be removed on the review page, which only updates Redux. Keep the
