@@ -329,6 +329,7 @@ export type PredictOutcomeToken = {
   id: string;
   title: string;
   shortTitle?: string;
+  image?: string;
   /**
    * Mid price = implied probability / quoted odds. Use this for "% chance" and
    * odds display so it matches the chart and Polymarket.
@@ -341,6 +342,20 @@ export type PredictOutcomeToken = {
    */
   buyPrice?: number;
 };
+
+export type PredictMarketBuyButtonPressParams = {
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  outcomeToken: PredictOutcomeToken;
+};
+
+/**
+ * Called when the user taps a buy button (before the betslip opens).
+ * Return `true` to handle the buy flow externally and skip the default sheet.
+ */
+export type PredictMarketBuyButtonPress = (
+  params: PredictMarketBuyButtonPressParams,
+) => boolean | void;
 
 export interface PredictActivity {
   id: string;

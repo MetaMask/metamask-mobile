@@ -1,7 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { SectionHeader } from '@metamask/design-system-react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import Text, {
   TextVariant,
   TextColor,
@@ -11,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
 import { formatTimeSinceListing } from '../../utils/time';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 import styleSheet from './PerpsRecentlyAddedSection.styles';
 import type { PerpsRecentlyAddedSectionProps } from './PerpsRecentlyAddedSection.types';
 
@@ -19,6 +24,7 @@ const PerpsRecentlyAddedTile: React.FC<{
   onPress: (market: PerpsMarketData) => void;
 }> = ({ market, onPress }) => {
   const { styles } = useStyles(styleSheet, {});
+  const showFullAssetNames = useSelector(selectPerpsShowFullAssetNamesFlag);
 
   const handlePress = useCallback(() => {
     onPress(market);
@@ -26,6 +32,16 @@ const PerpsRecentlyAddedTile: React.FC<{
 
   const isPositiveChange = !market.change24h.startsWith('-');
   const changeColor = isPositiveChange ? TextColor.Success : TextColor.Error;
+
+  // Mirrors PerpsMarketRowItem: prefer the display name (e.g. "Bitcoin") only
+  // when the flag is on, otherwise fall back to the display symbol. Both
+  // branches go through getPerpsDisplaySymbol so a HIP-3 `dex:SYMBOL` value
+  // (e.g. "xyz:SKHY") never renders with its raw dex prefix.
+  const assetLabel = useMemo(() => {
+    const label =
+      showFullAssetNames && market.name ? market.name : market.symbol;
+    return getPerpsDisplaySymbol(label);
+  }, [showFullAssetNames, market.name, market.symbol]);
 
   return (
     <TouchableOpacity
@@ -38,26 +54,18 @@ const PerpsRecentlyAddedTile: React.FC<{
     >
       <View style={styles.logoRow}>
         <PerpsTokenLogo symbol={market.symbol} size={32} />
-        {market.listedAt !== undefined && (
-          <Text
-            variant={TextVariant.BodyXS}
-            color={TextColor.Alternative}
-            style={styles.timeLabel}
-            numberOfLines={1}
-          >
-            {formatTimeSinceListing(market.listedAt)}
-          </Text>
-        )}
       </View>
 
+      <Text
+        variant={TextVariant.BodySMMedium}
+        color={TextColor.Default}
+        style={styles.name}
+        numberOfLines={1}
+      >
+        {assetLabel}
+      </Text>
+
       <View style={styles.priceRow}>
-        <Text
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Default}
-          numberOfLines={1}
-        >
-          {market.symbol}
-        </Text>
         <Text
           variant={TextVariant.BodyXS}
           color={TextColor.Default}
@@ -73,6 +81,17 @@ const PerpsRecentlyAddedTile: React.FC<{
           {market.change24hPercent}
         </Text>
       </View>
+
+      {market.listedAt !== undefined && (
+        <Text
+          variant={TextVariant.BodyXS}
+          color={TextColor.Alternative}
+          style={styles.timeLabel}
+          numberOfLines={1}
+        >
+          {formatTimeSinceListing(market.listedAt)}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };
@@ -91,6 +110,7 @@ const PerpsRecentlyAddedTile: React.FC<{
 const PerpsRecentlyAddedSection: React.FC<PerpsRecentlyAddedSectionProps> = ({
   markets,
   onMarketPress,
+  onViewAllPress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -102,6 +122,8 @@ const PerpsRecentlyAddedSection: React.FC<PerpsRecentlyAddedSectionProps> = ({
     <View testID={PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_SECTION}>
       <SectionHeader
         title={strings('perps.home.recently_added')}
+        isInteractive={Boolean(onViewAllPress)}
+        onPress={onViewAllPress}
         testID={PerpsHomeViewSelectorsIDs.RECENTLY_ADDED_HEADER}
       />
       <ScrollView

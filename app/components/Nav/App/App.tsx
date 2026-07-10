@@ -173,6 +173,7 @@ import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDeta
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
+import DesignerModeOverlay from '../../UI/DesignerMode';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -181,7 +182,6 @@ const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
 };
 
 const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
-  presentation: 'containedTransparentModal',
   animation: 'none',
   contentStyle: { backgroundColor: importedColors.transparent },
   gestureEnabled: false,
@@ -717,6 +717,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.SHEET.IMPORT_WALLET_TIP}
       component={ImportWalletTipBottomSheet}
     />
+    <NativeStack.Screen
+      name={Routes.WEBVIEW.SIMPLE}
+      component={SimpleWebview}
+      options={{
+        presentation: 'modal',
+        animation: 'slide_from_bottom',
+      }}
+    />
   </NativeStack.Navigator>
 );
 
@@ -1233,9 +1241,7 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         options={{
-          headerShown: false,
           gestureEnabled: true,
-          presentation: 'containedTransparentModal',
           contentStyle: { backgroundColor: importedColors.transparent },
         }}
         component={Confirm}
@@ -1398,6 +1404,8 @@ const App: React.FC = () => {
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
+        {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
+        <DesignerModeOverlay />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>
   );
