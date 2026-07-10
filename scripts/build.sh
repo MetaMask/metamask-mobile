@@ -2,7 +2,10 @@
 
 set -o pipefail
 
-readonly __DIRNAME__="$( cd "${BASH_SOURCE[0]%/*}" && pwd )"
+# ${BASH_SOURCE[0]//\\//} normalizes backslashes: Yarn on Windows/Git Bash
+# spawns `bash C:\...\scripts\build.sh`, and without this the directory
+# resolution fails, leaving __DIRNAME__ empty. No-op on macOS/Linux.
+readonly __DIRNAME__="$( cd "$( dirname "${BASH_SOURCE[0]//\\//}" )" && pwd )"
 readonly REPO_ROOT_DIR="$(dirname "${__DIRNAME__}")"
 
 PLATFORM=$1
@@ -21,7 +24,9 @@ loadJSEnv(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $JS_ENV_FILE ]
 		then
-			source $JS_ENV_FILE
+			# Strip CR so a CRLF .js.env (common on Windows/Git Bash) doesn't
+			# leave trailing \r in exported values. No-op on LF files.
+			source <(tr -d '\r' < "$JS_ENV_FILE")
 		fi
 	fi
 }

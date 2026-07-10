@@ -127,9 +127,12 @@ module.exports = function (baseConfig) {
           // published dist (extension-only). The dynamic import() uses webpackIgnore
           // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
           // to resolve it statically. Return an empty module stub.
+          // Match either path separator so this works on Windows (`\`) too.
           if (
             moduleName === './providers/MYXProvider' &&
-            context.originModulePath?.includes('@metamask/perps-controller')
+            /[\\/]@metamask[\\/]perps-controller[\\/]/.test(
+              context.originModulePath ?? '',
+            )
           ) {
             return { type: 'empty' };
           }
@@ -139,10 +142,13 @@ module.exports = function (baseConfig) {
           // (the ESM build correctly imports `@nktkas/hyperliquid`, confirming this is
           // a CJS-transpile bug in the published package). Redirect to the real package
           // until upstream ships a patched release.
+          // Match either path separator so this works on Windows (`\`) too.
           if (
             moduleName ===
               'file:///home/runner/work/hyperliquid/hyperliquid/src/mod.ts' &&
-            context.originModulePath?.includes('@metamask/perps-controller')
+            /[\\/]@metamask[\\/]perps-controller[\\/]/.test(
+              context.originModulePath ?? '',
+            )
           ) {
             return context.resolveRequest(
               context,

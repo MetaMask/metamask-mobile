@@ -9,9 +9,11 @@
 dev_load_js_env() {
   local js_env_file="${REPO_ROOT:?REPO_ROOT must be set}/.js.env"
   if [[ -f "$js_env_file" ]]; then
+    # Strip CR so a CRLF .js.env (common on Windows/Git Bash) doesn't leave
+    # trailing \r in exported values like ADB_SERIAL. No-op on LF files.
     # shellcheck disable=SC1090
     set -a
-    source "$js_env_file"
+    source <(tr -d '\r' < "$js_env_file")
     set +a
   fi
 }
@@ -19,7 +21,7 @@ dev_load_js_env() {
 dev_require_jq() {
   if ! command -v jq &> /dev/null; then
     echo "❌ jq is required but not installed"
-    echo "Install with: brew install jq"
+    echo "Install with: brew install jq (macOS) / winget install jqlang.jq (Windows)"
     exit 1
   fi
 }
@@ -95,11 +97,15 @@ dev_resolve_ios_simulator_udid() {
 
 dev_android_serial_is_ready() {
   local serial="$1"
-  [[ "$(adb -s "$serial" get-state 2>/dev/null || true)" == "device" ]]
+  # tr -d '\r' strips the trailing CR that adb.exe emits on Windows/Git Bash,
+  # otherwise the == "device" test always fails even when the device is ready.
+  [[ "$(adb -s "$serial" get-state 2>/dev/null | tr -d '\r' || true)" == "device" ]]
 }
 
 dev_list_android_device_serials() {
-  adb devices | awk '/^[^ ]+[[:space:]]+device$/ { print $1 }'
+  # tr -d '\r' so this works on Windows/Git Bash where adb.exe emits CRLF
+  # and the awk /device$/ anchor would otherwise miss `device\r`.
+  adb devices | tr -d '\r' | awk '/^[^ ]+[[:space:]]+device$/ { print $1 }'
 }
 
 dev_resolve_android_serial_from_avd_name() {
