@@ -28,12 +28,24 @@ import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
 import { useSelector } from 'react-redux';
+import URLParse from 'url-parse';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import Engine from '../../../../core/Engine';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const BENEFIT_CLAIM_BUTTON_TYPE = 'claim';
+const BENEFIT_URL_WALLET_PARAM = 'wallet';
+
+const getBenefitWalletAddress = (url: string): string | undefined => {
+  if (!url) return undefined;
+  try {
+    const { query } = new URLParse(url, true);
+    return query[BENEFIT_URL_WALLET_PARAM] || undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 const BenefitFullView = () => {
   const tw = useTailwind();
@@ -42,6 +54,11 @@ const BenefitFullView = () => {
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const walletAddress = useMemo(
+    () => getBenefitWalletAddress(benefit.url),
+    [benefit.url],
+  );
 
   useEffect(() => {
     trackEvent(
@@ -63,9 +80,10 @@ const BenefitFullView = () => {
         subscriptionId,
         benefit.id,
         benefit.type.id,
+        walletAddress,
       )
       .catch();
-  }, [benefit, subscriptionId]);
+  }, [benefit, subscriptionId, walletAddress]);
 
   const handleClaim = () => {
     trackEvent(

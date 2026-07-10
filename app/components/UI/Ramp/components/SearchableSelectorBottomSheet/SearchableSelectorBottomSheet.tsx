@@ -19,7 +19,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import styleSheet from './SearchableSelectorBottomSheet.styles';
 
 export interface SearchableSelectorBottomSheetProps<T> {
@@ -61,7 +60,6 @@ function SearchableSelectorBottomSheet<T>({
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
-  const surfaceClass = useElevatedSurface();
 
   const data = useMemo(
     () => getResults(searchString),
@@ -97,11 +95,7 @@ function SearchableSelectorBottomSheet<T>({
   );
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         title={title}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

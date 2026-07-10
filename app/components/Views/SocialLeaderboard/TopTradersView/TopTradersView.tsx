@@ -397,6 +397,7 @@ const TopTradersView = () => {
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
+          traderAvatarUri: trader?.avatarUri,
         });
       if (!wasFollowing && openSetupIfNeeded(performFollow)) {
         return;

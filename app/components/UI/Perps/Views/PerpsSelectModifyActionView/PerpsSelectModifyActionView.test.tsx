@@ -39,15 +39,30 @@ jest.mock(
       onActionSelect,
       position,
       testID,
+      sheetRef,
     }: {
       onClose: () => void;
       onActionSelect: (action: string) => void;
       position?: Position;
       testID?: string;
+      sheetRef?: React.RefObject<{
+        onOpenBottomSheet: () => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      } | null>;
     }) {
       const ReactModule = jest.requireActual('react');
       const { View, Text, TouchableOpacity } =
         jest.requireActual('react-native');
+
+      if (sheetRef) {
+        sheetRef.current = {
+          onOpenBottomSheet: jest.fn(),
+          onCloseBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        };
+      }
+
       return ReactModule.createElement(
         View,
         { testID: testID || 'modify-action-sheet' },
@@ -257,6 +272,14 @@ describe('PerpsSelectModifyActionView', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
+  it('calls goBack after action is selected without external sheetRef', () => {
+    render(<PerpsSelectModifyActionView position={mockLongPosition} />);
+
+    fireEvent.press(screen.getByTestId('add-to-position'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
   it('calls onClose callback when close button is pressed with external sheetRef', () => {
     const mockOnClose = jest.fn();
     const mockSheetRef = {
@@ -273,7 +296,26 @@ describe('PerpsSelectModifyActionView', () => {
 
     fireEvent.press(screen.getByTestId('close-button'));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalled();
+    expect(mockOnClose).toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('calls onClose callback after action is selected with external sheetRef', () => {
+    const mockOnClose = jest.fn();
+    const mockSheetRef = {
+      current: { onCloseBottomSheet: mockOnCloseBottomSheet },
+    };
+
+    render(
+      <PerpsSelectModifyActionView
+        position={mockLongPosition}
+        sheetRef={mockSheetRef as never}
+        onClose={mockOnClose}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('add-to-position'));
+
     expect(mockOnClose).toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
