@@ -1,9 +1,11 @@
 import React, { memo, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   formatPerpsFiat,
@@ -50,9 +52,12 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   size = 'default',
 }) => {
   const isLarge = size === 'large';
-  const priceVariant = isLarge ? TextVariant.HeadingLG : TextVariant.BodySM;
-  const priceColor = isLarge ? TextColor.Default : TextColor.Alternative;
-  const changeVariant = isLarge ? TextVariant.BodyMDMedium : TextVariant.BodySM;
+  const priceVariant = isLarge ? TextVariant.HeadingLg : TextVariant.BodySm;
+  const priceColor = isLarge
+    ? TextColor.TextDefault
+    : TextColor.TextAlternative;
+  const changeVariant = isLarge ? TextVariant.BodyMd : TextVariant.BodySm;
+  const changeFontWeight = isLarge ? FontWeight.Medium : FontWeight.Regular;
   const { styles } = useStyles(styleSheet, {});
   // Subscribe to price stream only for 24h change percentage
   const prices = usePerpsLivePrices({
@@ -74,10 +79,10 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   const isPositiveChange = displayChange !== null && displayChange >= 0;
   const changeColor =
     displayChange === null
-      ? TextColor.Default // Neutral color for loading state
+      ? TextColor.TextDefault // Neutral color for loading state
       : isPositiveChange
-        ? TextColor.Success
-        : TextColor.Error;
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault;
 
   // Format price display with edge case handling
   const formattedPrice = useMemo(() => {
@@ -118,7 +123,12 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       <Text variant={priceVariant} color={priceColor} testID={testIDPrice}>
         {formattedPrice}
       </Text>
-      <Text variant={changeVariant} color={changeColor} testID={testIDChange}>
+      <Text
+        variant={changeVariant}
+        fontWeight={changeFontWeight}
+        color={changeColor}
+        testID={testIDChange}
+      >
         {formattedChange}
       </Text>
     </View>
