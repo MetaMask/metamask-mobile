@@ -200,6 +200,8 @@ function getBatchSellMetamaskFeePercent(
 ) {
   const quoteBpsFee = recommendedQuotes
     .map((recommendedQuote) => {
+      // TODO: remove this once controller types are updated
+      // @ts-expect-error: controller types are not up to date yet
       const fee = recommendedQuote.quote.feeData?.metabridge?.quoteBpsFee;
 
       return fee as number | string | null | undefined;
