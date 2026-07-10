@@ -9,6 +9,7 @@ import { ethers } from 'ethers';
 import { useEffect, useRef } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import EngineService from '../../../../core/EngineService';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
@@ -36,6 +37,7 @@ import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import {
   isMoneyAccountTx,
   isMoneyDepositTx,
+  isPerpsPredictMoneyActivity,
   isPerpsPredictMoneyDeposit,
   isPerpsPredictMoneyWithdraw,
   nestedTxWithType,
@@ -182,6 +184,20 @@ function latestTransactionMeta(
   return Engine.context.TransactionController.state.transactions.find(
     (tx) => tx.id === transactionId,
   );
+}
+
+// Activity rows render transaction status from the Redux copy of
+// TransactionController state, which trails these messenger events behind
+// EngineService's update batcher; under a busy JS thread the rows visibly lag
+// the toasts. Flushing here makes rows update in the same frame as the toast.
+function flushActivityState(transactionMeta: TransactionMeta) {
+  if (
+    !isMoneyAccountTx(transactionMeta) &&
+    !isPerpsPredictMoneyActivity(transactionMeta)
+  ) {
+    return;
+  }
+  EngineService.flushState();
 }
 
 export const useMoneyTransactionStatus = () => {
@@ -354,6 +370,7 @@ export const useMoneyTransactionStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
+      flushActivityState(transactionMeta);
       switch (transactionMeta.status) {
         case TransactionStatus.approved:
           showInProgressFor(transactionMeta);
@@ -376,6 +393,7 @@ export const useMoneyTransactionStatus = () => {
 
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
+      flushActivityState(transactionMeta);
       showConfirmedFor(transactionMeta);
     };
 
