@@ -4084,6 +4084,20 @@
         "four": "Enter the security code on your extension"
       },
       "scan_qr_code_button": "Scan QR code",
+      "scanner": {
+        "searching_label": "Scan the code on your other device",
+        "detected_label": "Code detected",
+        "invalid_qr_title": "Unrecognized QR code",
+        "invalid_qr_description": "Scan the QR code from MetaMask extension's Import to mobile flow.",
+        "expired_qr_title": "QR code expired",
+        "expired_qr_description": "Generate a new QR code on your extension and scan it again within 60 seconds.",
+        "connection_failed_title": "Connection failed",
+        "connection_failed_description": "We couldn't connect to your extension. Try scanning again.",
+        "try_again": "Try again",
+        "permission_title": "Turn on camera access",
+        "permission_description": "To scan a QR code, you'll need to give MetaMask camera access from your device's settings menu.",
+        "open_settings": "Open Settings"
+      },
       "enter_code_on_extension": "Enter code on extension",
       "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
       "done": "Done",
@@ -7254,7 +7268,8 @@
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
+      "description_with_amounts_prefix": "Convert your",
+      "description_with_amounts_middle": "in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
       "add": "Add",
       "convert_cta": "Convert your crypto",
@@ -7321,7 +7336,6 @@
       "convert_crypto": "Convert crypto",
       "deposit_funds": "Debit card or Apple Pay",
       "bank_account": "Bank account",
-      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
       "coming_soon": "Coming soon"

@@ -684,6 +684,12 @@ export interface AdvancedChartProps {
    */
   useSubscriptPriceFormat?: boolean;
 
+  /**
+   * Optional maximum decimal precision for TV built-in price scale labels and pills.
+   * Omit to keep TradingView defaults unless `useSubscriptPriceFormat` is enabled.
+   */
+  priceDecimals?: number;
+
   /** Callback when chart is ready */
   onChartReady?: () => void;
   /**
