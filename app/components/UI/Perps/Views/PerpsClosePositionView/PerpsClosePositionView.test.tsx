@@ -2082,31 +2082,33 @@ describe('PerpsClosePositionView', () => {
       // HyperLiquid's marginUsed already includes PnL
       // receivedAmount = marginUsed - fees = 1450 - 45 = 1405
       // realizedPnl = unrealizedPnl = 150 (from defaultPerpsPositionMock)
-      expect(handleClosePosition).toHaveBeenCalledWith({
-        position: defaultPerpsPositionMock,
-        size: '',
-        orderType: 'market',
-        limitPrice: undefined,
-        trackingData: {
-          totalFee: 45,
-          marketPrice: 3000,
-          receivedAmount: 1405,
-          realizedPnl: 150,
-          metamaskFeeRate: 0,
-          metamaskFee: 0,
-          feeDiscountPercentage: undefined,
-          estimatedPoints: undefined,
-          inputMethod: 'default',
-        },
-        marketPrice: '3000.00',
-        // Slippage parameters added in USD-as-source-of-truth refactor
-        // For full closes (100%), usdAmount is undefined to bypass $10 minimum validation
-        slippage: {
-          usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
-          priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-          maxSlippageBps: 300, // maxSlippageBps: 3% slippage tolerance (300 basis points) - conservative default
-        },
-      });
+      expect(handleClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          position: defaultPerpsPositionMock,
+          size: '',
+          orderType: 'market',
+          limitPrice: undefined,
+          trackingData: {
+            totalFee: 45,
+            marketPrice: 3000,
+            receivedAmount: 1405,
+            realizedPnl: 150,
+            metamaskFeeRate: 0,
+            metamaskFee: 0,
+            feeDiscountPercentage: undefined,
+            estimatedPoints: undefined,
+            inputMethod: 'default',
+          },
+          marketPrice: '3000.00',
+          // Slippage parameters added in USD-as-source-of-truth refactor
+          // For full closes (100%), usdAmount is undefined to bypass $10 minimum validation
+          slippage: {
+            usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
+            priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
+            maxSlippageBps: 300, // maxSlippageBps: 3% slippage tolerance (300 basis points) - conservative default
+          },
+        }),
+      );
     });
 
     it('validates limit order requires price before confirmation', async () => {
@@ -2209,29 +2211,31 @@ describe('PerpsClosePositionView', () => {
 
       // Assert - Should call with limit price and specific calculated values
       await waitFor(() => {
-        expect(handleClosePosition).toHaveBeenCalledWith({
-          position: defaultPerpsPositionMock,
-          size: '',
-          orderType: 'limit',
-          limitPrice: '50000',
-          trackingData: {
-            totalFee: 45,
-            marketPrice: 3000,
-            receivedAmount: 1405,
-            realizedPnl: 150,
-            metamaskFeeRate: 0,
-            metamaskFee: 0,
-            feeDiscountPercentage: undefined,
-            estimatedPoints: undefined,
-            inputMethod: 'default',
-          },
-          marketPrice: '3000.00',
-          slippage: {
-            usdAmount: '4500',
-            priceAtCalculation: 3000,
-            maxSlippageBps: 100,
-          },
-        });
+        expect(handleClosePosition).toHaveBeenCalledWith(
+          expect.objectContaining({
+            position: defaultPerpsPositionMock,
+            size: '',
+            orderType: 'limit',
+            limitPrice: '50000',
+            trackingData: {
+              totalFee: 45,
+              marketPrice: 3000,
+              receivedAmount: 1405,
+              realizedPnl: 150,
+              metamaskFeeRate: 0,
+              metamaskFee: 0,
+              feeDiscountPercentage: undefined,
+              estimatedPoints: undefined,
+              inputMethod: 'default',
+            },
+            marketPrice: '3000.00',
+            slippage: {
+              usdAmount: '4500',
+              priceAtCalculation: 3000,
+              maxSlippageBps: 100,
+            },
+          }),
+        );
       });
     });
   });

@@ -920,10 +920,12 @@ describe('PerpsMarketTabs', () => {
       fireEvent.press(orderCard);
 
       await waitFor(() => {
-        expect(mockCancelOrder).toHaveBeenCalledWith(expect.objectContaining({
-          orderId: btcOrder.orderId,
-          symbol: btcOrder.symbol,
-        }));
+        expect(mockCancelOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderId: btcOrder.orderId,
+            symbol: btcOrder.symbol,
+          }),
+        );
       });
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
@@ -973,10 +975,12 @@ describe('PerpsMarketTabs', () => {
       fireEvent.press(orderCard);
 
       await waitFor(() => {
-        expect(mockCancelOrder).toHaveBeenCalledWith(expect.objectContaining({
-          orderId: btcOrder.orderId,
-          symbol: btcOrder.symbol,
-        }));
+        expect(mockCancelOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderId: btcOrder.orderId,
+            symbol: btcOrder.symbol,
+          }),
+        );
       });
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
@@ -1020,10 +1024,12 @@ describe('PerpsMarketTabs', () => {
       fireEvent.press(orderCard);
 
       await waitFor(() => {
-        expect(mockCancelOrder).toHaveBeenCalledWith(expect.objectContaining({
-          orderId: btcOrder.orderId,
-          symbol: btcOrder.symbol,
-        }));
+        expect(mockCancelOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderId: btcOrder.orderId,
+            symbol: btcOrder.symbol,
+          }),
+        );
       });
 
       expect(mockShowToast).toHaveBeenCalledTimes(2);
