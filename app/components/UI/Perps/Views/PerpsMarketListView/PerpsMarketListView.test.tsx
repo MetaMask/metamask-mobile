@@ -1880,7 +1880,7 @@ describe('PerpsMarketListView', () => {
         expect(mockTrack).toHaveBeenCalledWith(
           MetaMetricsEvents.PERPS_SEARCH_QUERY,
           expect.objectContaining({
-            [PEP.SEARCH_QUERY]: 'bitcoin',
+            [PEP.SEARCH_QUERY]: 'BT',
             [PEP.RESULTS_COUNT]: 1,
           }),
         );
