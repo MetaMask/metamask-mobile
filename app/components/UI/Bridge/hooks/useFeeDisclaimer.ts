@@ -1,7 +1,7 @@
 import {
   BRIDGE_MM_FEE_RATE,
   DiscountType,
-  QuoteResponseV2,
+  QuoteResponse,
 } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useMemo } from 'react';
@@ -20,7 +20,7 @@ import { strings } from '../../../../../locales/i18n';
 export const useFeeDisclaimer = ({
   activeQuote,
 }: {
-  activeQuote?: QuoteResponseV2 | null;
+  activeQuote?: QuoteResponse | null;
 }) => {
   const baseBpsFee = activeQuote?.quote.feeData.metabridge?.baseBpsFee;
   const baseFeePercentage = !isNullOrUndefined(baseBpsFee)
