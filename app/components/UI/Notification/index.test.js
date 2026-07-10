@@ -155,6 +155,48 @@ describe('Notification', () => {
     jest.useRealTimers();
   });
 
+  it('dequeues success notification after pending with the same id was dismissed', () => {
+    jest.useFakeTimers();
+    const { getByTestId, dispatchSpy, rerender, store } = renderNotification({
+      id: 'notification-1',
+      ...simpleNotification,
+      status: 'pending',
+      autodismiss: 1000,
+    });
+
+    act(() => {
+      getByTestId('simple-notification').props.onDismissComplete();
+    });
+
+    act(() => {
+      store.dispatch({
+        type: ACTIONS.MODIFY_OR_SHOW_SIMPLE_NOTIFICATION,
+        id: 'notification-1',
+        status: 'success',
+        title: simpleNotification.title,
+        description: simpleNotification.description,
+        autodismiss: 1000,
+      });
+    });
+
+    rerender(
+      <Provider store={store}>
+        <Notification />
+      </Provider>,
+    );
+
+    act(() => {
+      getByTestId('simple-notification').props.onDismissComplete();
+    });
+
+    expect(
+      dispatchSpy.mock.calls.filter(
+        ([action]) => action.type === ACTIONS.REMOVE_CURRENT_NOTIFICATION,
+      ),
+    ).toHaveLength(2);
+    jest.useRealTimers();
+  });
+
   it('dequeues only once when dismiss complete is invoked twice', () => {
     jest.useFakeTimers();
     const { getByTestId, dispatchSpy } = renderNotification({

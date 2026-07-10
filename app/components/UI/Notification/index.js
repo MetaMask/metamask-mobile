@@ -34,8 +34,18 @@ function Notification({
   }, [removeCurrentNotification]);
 
   useEffect(() => {
+    if (!currentNotification?.id) {
+      return;
+    }
+
     dismissCompleteRef.current = false;
-  }, [currentNotification?.id]);
+  }, [
+    currentNotification?.id,
+    currentNotification?.autodismiss,
+    currentNotification?.status,
+    currentNotification?.title,
+    currentNotification?.description,
+  ]);
 
   const animatedTimingStart = useCallback((animatedRef, toValue, callback) => {
     animatedRef.value = withTiming(
