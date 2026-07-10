@@ -60,49 +60,31 @@ const config = {
    * target native packages. This prevents JS-only patches from invalidating
    * the fingerprint.
    *
-   * Note: only the specific `.github/workflows` files that actually orchestrate/compile
-   * the native binary are tracked below, rather than the entire `.github/workflows` and
-   * `.github/scripts` directories. Workflows/scripts that merely run or report on tests
-   * against an already-built app (e.g. `run-e2e-*.yml`, `.github/scripts/e2e-*.mjs`,
-   * `update-e2e-fixtures.yml`) can't change the compiled native binary, so they're
-   * intentionally excluded. Blanket-tracking every workflow/script (those, plus unrelated
-   * GitHub automation like labelers, changelog automation, Crowdin sync, etc.) would
-   * invalidate the fingerprint on changes that can't possibly affect the native binary,
-   * which:
-   *   - breaks native-build cache reuse in CI (`.github/actions/find-reusable-build`),
-   *     forcing unnecessary full native rebuilds, and
-   *   - causes false-positive fingerprint mismatches in the OTA guardrail
-   *     (see `docs/nightly-ota-updates.md`), blocking otherwise-safe OTA updates.
+   * Note: `.github/workflows` and `.github/scripts` are tracked as whole directories
+   * (`type: 'dir'`) rather than as a hand-picked list of files. This is deliberate:
+   * a denylist of "known native-affecting workflows" would silently fail to track any
+   * *new* workflow that changes native compilation, which the OTA guardrail (see
+   * `docs/nightly-ota-updates.md`) would then treat as fingerprint-unchanged — a false
+   * negative that can ship OTA updates over builds with different native code, crashing
+   * production. Tracking the whole directory means new workflows affect the fingerprint
+   * by default; we only opt out (via `ignorePaths` below) automation we've verified can't
+   * touch the compiled native binary (labelers, changelog/Crowdin/notification automation,
+   * or test runners like `run-e2e-*.yml` that only execute against an already-built app).
+   * This trades a few more false-positive fingerprint invalidations (safe, just forces an
+   * occasional unnecessary native rebuild) for eliminating the false-negative risk.
    */
   extraSources: [
     {
-      type: 'file',
-      filePath: '.github/workflows/ci.yml',
+      type: 'dir',
+      filePath: '.github/workflows',
       reasons: [
-        'Detect changes to the main CI workflow that orchestrates native builds.',
+        'Detect changes to CI/build/OTA workflows that could affect the native binary.',
       ],
     },
     {
-      type: 'file',
-      filePath: '.github/workflows/get-requirements.yml',
-      reasons: [
-        'Detect changes to the workflow that gates native build requirements.',
-      ],
-    },
-    {
-      type: 'file',
-      filePath: '.github/workflows/build-android-e2e.yml',
-      reasons: ['Detect changes to the Android native e2e build workflow.'],
-    },
-    {
-      type: 'file',
-      filePath: '.github/workflows/build-ios-e2e.yml',
-      reasons: ['Detect changes to the iOS native e2e build workflow.'],
-    },
-    {
-      type: 'file',
-      filePath: '.github/workflows/build.yml',
-      reasons: ['Detect changes to the shared native build workflow.'],
+      type: 'dir',
+      filePath: '.github/scripts',
+      reasons: ['Detect changes to scripts invoked by CI/build/OTA workflows.'],
     },
     {
       type: 'file',
@@ -124,6 +106,150 @@ const config = {
       filePath: './scripts/setup.mjs',
       reasons: ['Detect setup script changes.'],
     },
+  ],
+
+  /**
+   * Paths excluded from the fingerprint entirely (on top of `@expo/fingerprint`'s own
+   * defaults). Every entry below has been verified to only run GitHub metadata automation
+   * (labels/comments/notifications), static lint/compliance checks, branch/release
+   * bookkeeping, or test execution against an already-built app artifact — none of them
+   * can change the compiled native binary or the OTA JS bundle.
+   *
+   * IMPORTANT: this is a denylist by design (see the comment on `extraSources` above).
+   * When adding a new workflow/script, it is tracked by default; only add it here once
+   * you've confirmed it can't affect the native binary. When in doubt, leave it tracked.
+   */
+  ignorePaths: [
+    // .github/scripts own tooling/deps - irrelevant to any workflow's runtime behavior.
+    '.github/scripts/node_modules/**',
+    '.github/scripts/.yarn/**',
+    '.github/scripts/package.json',
+    '.github/scripts/tsconfig.json',
+    '.github/scripts/yarn.lock',
+    '.github/scripts/.gitignore',
+
+    // Shared GitHub-automation helpers (PR templates, labels, issue/PR metadata) and
+    // fitness-function lint rules - static checks/bookkeeping, no build logic.
+    '.github/scripts/shared/**',
+    '.github/scripts/fitness-functions/**',
+    '.github/scripts/add-release-label-to-pr-and-linked-issues.ts',
+    '.github/scripts/check-feature-flag-registry.ts',
+    '.github/scripts/check-feature-flag-registry.test.ts',
+    '.github/scripts/check-pr-has-required-labels.ts',
+    '.github/scripts/check-template-and-add-labels.ts',
+    '.github/scripts/check-template-and-add-labels.test.ts',
+    '.github/scripts/close-release-bug-report-issue.ts',
+    '.github/scripts/collect-qa-stats.mjs',
+    '.github/scripts/create-bug-report-issue.ts',
+    '.github/scripts/extract-semver.sh',
+    '.github/scripts/generate-regression-slack-summary.mjs',
+    '.github/scripts/get-next-semver-version.sh',
+    '.github/scripts/get-stable-released-version.sh',
+    '.github/scripts/known-feature-flag-constants.ts',
+    '.github/scripts/resolve-previous-ref.sh',
+    '.github/scripts/run-update-release-changelog-mobile.sh',
+    '.github/scripts/scripts.types.ts',
+    '.github/scripts/validate-pr-commit.sh',
+
+    // Operate on already-built app artifacts/test reports, not native compilation.
+    '.github/scripts/e2e-create-json-test-report.mjs',
+    '.github/scripts/e2e-extract-test-results.mjs',
+    '.github/scripts/e2e-freeze-timings.mjs',
+    '.github/scripts/e2e-merge-detox-junit-reports.mjs',
+    '.github/scripts/e2e-merge-test-results.mjs',
+    '.github/scripts/e2e-report-fixture-validation.mjs',
+    '.github/scripts/e2e-smart-selection.mjs',
+    '.github/scripts/e2e-split-tags-shards.mjs',
+
+    // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
+    // since it writes OTA version metadata consumed by the release pipeline.
+
+    // PR/issue label and metadata automation.
+    '.github/workflows/add-release-label.yml',
+    '.github/workflows/add-team-label.yml',
+    '.github/workflows/auto-draft-prs.yml',
+    '.github/workflows/auto-label-not-ready-for-e2e.yml',
+    '.github/workflows/block-stable-main-to-main.yml',
+    '.github/workflows/block-stable-sync-to-release.yml',
+    '.github/workflows/check-pr-labels.yml',
+    '.github/workflows/check-pr-max-lines.yml',
+    '.github/workflows/check-template-and-add-labels.yml',
+    '.github/workflows/pr-title-linter.yml',
+    '.github/workflows/remove-labels-after-pr-closed.yml',
+    '.github/workflows/stale-issue-pr.yml',
+
+    // AI/RCA/flaky-test/QA reporting - reads CI history, doesn't build.
+    '.github/workflows/ai-pr-risk-analysis.yml',
+    '.github/workflows/automated-rca.yml',
+    '.github/workflows/remove-rca-needed-label-sheets.yml',
+    '.github/workflows/triage-forwarder.yml',
+    '.github/workflows/flaky-test-report.yml',
+    '.github/workflows/qa-stats.yml',
+    '.github/workflows/post-merge-validation.yml',
+
+    // Release/branch bookkeeping (merges, syncs, changelog) - no native or OTA build step.
+    '.github/workflows/create-cherry-pick-pr.yml',
+    '.github/workflows/create-release-draft.yml',
+    '.github/workflows/merge-previous-release-branches.yml',
+    '.github/workflows/merge-stable-sync-pr.yml',
+    '.github/workflows/merge-stable-sync-release-pr.yml',
+    '.github/workflows/merge-version-bump-pr.yml',
+    '.github/workflows/nightly-temp-branch-sync.yml',
+    '.github/workflows/release-branch-sync.yml',
+    '.github/workflows/stable-branch-sync.yml',
+    '.github/workflows/update-release-changelog.yml',
+    '.github/workflows/changelog-check.yml',
+
+    // Release bug-report issue bookkeeping.
+    '.github/workflows/close-bug-report.yml',
+    '.github/workflows/create-bug-report.yml',
+
+    // Static lint/compliance checks - analyze diffs/metadata, don't compile anything.
+    '.github/workflows/cla.yml',
+    '.github/workflows/check-attributions.yml',
+    '.github/workflows/update-attributions.yml',
+    '.github/workflows/check-feature-flag-registry.yml',
+    '.github/workflows/check-feature-flag-registry-drift.yml',
+    '.github/workflows/fitness-functions.yml',
+    '.github/workflows/security-code-scanner.yml',
+
+    // Crowdin translation sync.
+    '.github/workflows/crowdin_download_translations.yml',
+    '.github/workflows/crowdin_upload_sources.yml',
+    '.github/workflows/crowdin-rc-download-translations.yml',
+    '.github/workflows/crowdin-rc-upload-sources.yml',
+
+    // Fire-and-forget dispatchers/re-runners around `ci.yml` (which is itself tracked) -
+    // these don't run any build steps of their own.
+    '.github/workflows/ci-bitrise-shadow.yml',
+    '.github/workflows/ci-namespace-shadow.yml',
+    '.github/workflows/rerun-ci-on-skipped-e2e-labels.yml',
+
+    // Notification-only.
+    '.github/workflows/prod-build-env-notify.yml',
+    '.github/workflows/publish-slack-release-testing-status.yml',
+    '.github/workflows/slack-rc-notification.yml',
+
+    // Builds a dev CI container image, not a shipped mobile binary.
+    '.github/workflows/docker.yml',
+
+    // Run or report on tests against an already-built app artifact - can't change the
+    // compiled binary. (`detox build-framework-cache` only builds Detox's own test-runner
+    // framework cache, not the app.)
+    '.github/workflows/run-appium-e2e-workflow.yml',
+    '.github/workflows/run-appium-smoke-tests-android.yml',
+    '.github/workflows/run-appium-smoke-tests-ios.yml',
+    '.github/workflows/run-e2e-api-specs.yml',
+    '.github/workflows/run-e2e-smoke-tests-android.yml',
+    '.github/workflows/run-e2e-smoke-tests-ios.yml',
+    '.github/workflows/run-e2e-workflow.yml',
+    '.github/workflows/performance-test-runner.yml',
+    '.github/workflows/update-e2e-fixtures.yml',
+    '.github/workflows/upload-to-testflight.yml',
+    '.github/workflows/runway-ota-resolve-context.yml',
+
+    // Note: `.github/workflows/get-requirements.yml` is intentionally NOT ignored, since
+    // it gates whether native build jobs run at all.
   ],
 
   /**
