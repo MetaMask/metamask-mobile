@@ -13,8 +13,16 @@ jest.mock('../MoneyActivityItem/MoneyActivityItem', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ tx }: { tx: { id: string } }) => (
-      <Text testID="onchain-row">{tx.id}</Text>
+    default: ({
+      tx,
+      privacyMode,
+    }: {
+      tx: { id: string };
+      privacyMode?: boolean;
+    }) => (
+      <Text testID="onchain-row" accessibilityHint={String(privacyMode)}>
+        {tx.id}
+      </Text>
     ),
   };
 });
@@ -23,8 +31,16 @@ jest.mock('../AccountsApiActivityItem/AccountsApiActivityItem', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ activity }: { activity: { hash: string } }) => (
-      <Text testID="api-row">{activity.hash}</Text>
+    default: ({
+      activity,
+      privacyMode,
+    }: {
+      activity: { hash: string };
+      privacyMode?: boolean;
+    }) => (
+      <Text testID="api-row" accessibilityHint={String(privacyMode)}>
+        {activity.hash}
+      </Text>
     ),
   };
 });
@@ -57,5 +73,29 @@ describe('MoneyActivityRow', () => {
 
     expect(getByTestId('api-row')).toHaveTextContent('0xfeed');
     expect(queryByTestId('onchain-row')).toBeNull();
+  });
+
+  it('forwards privacyMode to the on-chain row', () => {
+    const { getByTestId } = render(
+      <MoneyActivityRow
+        item={onchainItem(tx)}
+        moneyAddress="0x1"
+        privacyMode
+      />,
+    );
+
+    expect(getByTestId('onchain-row').props.accessibilityHint).toBe('true');
+  });
+
+  it('forwards privacyMode to the Accounts-API row', () => {
+    const { getByTestId } = render(
+      <MoneyActivityRow
+        item={accountsApiItem(card)}
+        moneyAddress="0x1"
+        privacyMode
+      />,
+    );
+
+    expect(getByTestId('api-row').props.accessibilityHint).toBe('true');
   });
 });
