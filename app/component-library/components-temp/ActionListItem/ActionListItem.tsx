@@ -98,8 +98,8 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   const getStyle = useCallback(
     ({ pressed }: { pressed: boolean }) =>
       tw.style(
-        'bg-default px-4 py-3',
-        pressed && !isDisabled && 'bg-default-pressed',
+        'px-4 py-3',
+        pressed && !isDisabled && 'bg-pressed',
         isDisabled && 'opacity-50',
       ),
     [tw, isDisabled],
