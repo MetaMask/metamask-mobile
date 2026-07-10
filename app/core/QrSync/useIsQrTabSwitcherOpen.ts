@@ -47,8 +47,19 @@ export const useIsQrTabSwitcherOpen = (): boolean => {
 
     updateIsOpen();
 
-    const unsubscribe = navigation.addListener('state', updateIsOpen);
-    return unsubscribe;
+    const unsubscribes: (() => void)[] = [];
+    let currentNavigation: NavigatorWithParent | undefined = navigation;
+
+    while (currentNavigation) {
+      unsubscribes.push(currentNavigation.addListener('state', updateIsOpen));
+      currentNavigation = currentNavigation.getParent();
+    }
+
+    return () => {
+      unsubscribes.forEach((unsubscribe) => {
+        unsubscribe();
+      });
+    };
   }, [navigation]);
 
   return isOpen;

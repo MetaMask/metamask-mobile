@@ -1,22 +1,28 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 
 import Routes from '../../constants/navigation/Routes';
 import { useIsQrTabSwitcherOpen } from './useIsQrTabSwitcherOpen';
 
-const createNavigationMock = (
-  routeNamesByNavigator: string[][],
-): {
+interface NavigationMock {
   getState: jest.Mock;
   getParent: jest.Mock;
   addListener: jest.Mock;
-} => {
-  const navigators = routeNamesByNavigator.map((routeNames) => ({
-    getState: jest.fn(() => ({
-      routes: routeNames.map((name) => ({ name })),
-    })),
-    getParent: jest.fn(),
-    addListener: jest.fn(() => jest.fn()),
-  }));
+  routeNames: string[];
+}
+
+const createNavigationHierarchy = (
+  routeNamesByNavigator: string[][],
+): { navigation: NavigationMock; navigators: NavigationMock[] } => {
+  const navigators: NavigationMock[] = routeNamesByNavigator.map(
+    (routeNames) => ({
+      routeNames,
+      getState: jest.fn(() => ({
+        routes: routeNames.map((name) => ({ name })),
+      })),
+      getParent: jest.fn(),
+      addListener: jest.fn(() => jest.fn()),
+    }),
+  );
 
   navigators.forEach((navigator, index) => {
     navigator.getParent.mockReturnValue(
@@ -24,8 +30,13 @@ const createNavigationMock = (
     );
   });
 
-  return navigators[0];
+  return { navigation: navigators[0], navigators };
 };
+
+const createNavigationMock = (
+  routeNamesByNavigator: string[][],
+): NavigationMock =>
+  createNavigationHierarchy(routeNamesByNavigator).navigation;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -72,6 +83,44 @@ describe('useIsQrTabSwitcherOpen', () => {
     );
 
     const { result } = renderHook(() => useIsQrTabSwitcherOpen());
+
+    expect(result.current).toBe(true);
+  });
+
+  it('subscribes to state changes on ancestor navigators', () => {
+    const { navigation, navigators } = createNavigationHierarchy([
+      [Routes.ONBOARDING.ADD_DEVICE_TO_WALLET],
+      ['OnboardingNav'],
+      ['OnboardingRootNav'],
+    ]);
+    const parentNavigator = navigators[1];
+
+    mockUseNavigation.mockReturnValue(navigation as never);
+
+    const { result } = renderHook(() => useIsQrTabSwitcherOpen());
+
+    expect(result.current).toBe(false);
+    expect(navigation.addListener).toHaveBeenCalledWith(
+      'state',
+      expect.any(Function),
+    );
+    expect(parentNavigator.addListener).toHaveBeenCalledWith(
+      'state',
+      expect.any(Function),
+    );
+
+    parentNavigator.routeNames.push(Routes.QR_TAB_SWITCHER);
+    parentNavigator.getState.mockImplementation(() => ({
+      routes: parentNavigator.routeNames.map((name) => ({ name })),
+    }));
+
+    const parentStateListener = parentNavigator.addListener.mock.calls.find(
+      ([event]) => event === 'state',
+    )?.[1] as (() => void) | undefined;
+
+    act(() => {
+      parentStateListener?.();
+    });
 
     expect(result.current).toBe(true);
   });
