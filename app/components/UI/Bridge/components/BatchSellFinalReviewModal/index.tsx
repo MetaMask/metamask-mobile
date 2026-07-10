@@ -431,7 +431,6 @@ export function BatchSellFinalReviewModal() {
       ref={sheetRef}
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-     
     >
       <BottomSheetHeader
         onClose={handleClose}

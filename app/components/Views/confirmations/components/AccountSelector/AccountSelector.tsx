@@ -40,7 +40,6 @@ import {
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './AccountSelector.styles';
 
-
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
   MODAL: 'account-selector-modal',
@@ -227,7 +226,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             isFullscreen
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
-           
           >
             <HeaderStandard
               title={selectorTitle}

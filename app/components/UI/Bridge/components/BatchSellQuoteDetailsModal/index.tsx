@@ -47,7 +47,6 @@ export function BatchSellQuoteDetailsModal() {
     <BottomSheet
       testID={BatchSellQuoteDetailsModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-     
     >
       <BottomSheetHeader
         onClose={navigation.goBack}

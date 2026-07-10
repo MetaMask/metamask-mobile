@@ -175,7 +175,6 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
               isFullscreen
               keyboardAvoidingViewEnabled={false}
               onClose={handleSheetClosed}
-             
             >
               <HeaderStandard title={title} onClose={handleModalRequestClose} />
               <View style={styles.searchContainer}>

@@ -99,12 +99,7 @@ const RwaUnavailableBottomSheet = forwardRef<
   }
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      isInteractable
-      onClose={handleSheetClosed}
-     
-    >
+    <BottomSheet ref={sheetRef} isInteractable onClose={handleSheetClosed}>
       <BottomSheetHeader onClose={closeSheet}>
         {strings('rwa.unavailable.title')}
       </BottomSheetHeader>

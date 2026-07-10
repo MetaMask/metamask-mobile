@@ -151,12 +151,7 @@ const AddressSelector = () => {
   }, [internalAccountsSpreadByScopes, isEvmOnly, displayOnlyCaipChainIds]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      isFullscreen
-      goBack={navigation.goBack}
-     
-    >
+    <BottomSheet ref={sheetRef} isFullscreen goBack={navigation.goBack}>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         {strings('address_selector.select_an_address')}
       </BottomSheetHeader>

@@ -124,11 +124,7 @@ export const SendAlertModal = ({
 
   return (
     <Modal visible transparent animationType="none">
-      <BottomSheet
-        ref={bottomSheetRef}
-        onClose={onClose}
-       
-      >
+      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
         <PageNavigation
           alerts={alerts}
           selectedIndex={safeIndex}

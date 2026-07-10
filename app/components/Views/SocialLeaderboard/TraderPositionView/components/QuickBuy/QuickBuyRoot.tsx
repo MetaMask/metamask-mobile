@@ -175,11 +175,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
     activeScreen === 'amount' || activeScreen === 'priceImpactConfirm';
 
   return (
-    <BottomSheetDialog
-      ref={bottomSheetRef}
-      onClose={onClose}
-     
-    >
+    <BottomSheetDialog ref={bottomSheetRef} onClose={onClose}>
       {isContentReady ? (
         <QuickBuyProvider
           target={target}

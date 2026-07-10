@@ -104,7 +104,6 @@ export function BatchSellDestinationTokenSelectorModal() {
       ref={sheetRef}
       goBack={navigation.goBack}
       testID={BatchSellDestinationTokenSelectorModalSelectorsIDs.SHEET}
-     
     >
       <BottomSheetHeader
         onClose={handleClose}

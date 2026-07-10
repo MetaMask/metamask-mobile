@@ -42,7 +42,6 @@ export function PayWithBottomSheet() {
       goBack={handleGoBack}
       testID={PAY_WITH_BOTTOM_SHEET_TEST_ID}
       keyboardAvoidingViewEnabled={false}
-     
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>{title}</Text>

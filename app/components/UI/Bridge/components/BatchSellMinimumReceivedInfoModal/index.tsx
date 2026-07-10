@@ -27,7 +27,6 @@ export function BatchSellMinimumReceivedInfoModal() {
     <BottomSheet
       testID={BatchSellMinimumReceivedInfoModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-     
     >
       <BottomSheetHeader
         onBack={handleBack}

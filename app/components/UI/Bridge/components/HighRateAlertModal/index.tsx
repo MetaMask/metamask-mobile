@@ -49,7 +49,6 @@ export function HighRateAlertModal() {
       ref={sheetRef}
       goBack={goBack}
       testID={HighRateAlertModalSelectorsIDs.SHEET}
-     
     >
       <BottomSheetHeader
         onClose={handleClose}

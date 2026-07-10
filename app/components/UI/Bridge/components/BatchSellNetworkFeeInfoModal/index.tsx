@@ -27,7 +27,6 @@ export function BatchSellNetworkFeeInfoModal() {
     <BottomSheet
       testID={BatchSellNetworkFeeInfoModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-     
     >
       <BottomSheetHeader
         onBack={handleBack}
