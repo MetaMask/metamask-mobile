@@ -394,6 +394,7 @@ const PermissionsSummary = ({
                 <AvatarGroup
                   variant={AvatarGroupVariant.Account}
                   size={AvatarGroupSize.Xs}
+                  testID="avatar-group-container"
                   avatarPropsArr={accountAddresses.map((caipAccountId) => {
                     const { address } = parseCaipAccountId(caipAccountId);
                     return { address };
@@ -476,6 +477,7 @@ const PermissionsSummary = ({
                     <AvatarGroup
                       variant={AvatarGroupVariant.Network}
                       size={AvatarGroupSize.Xs}
+                      testID="avatar-group-container"
                       avatarPropsArr={networkAvatars.map((avatar) => ({
                         name: avatar.name,
                         src: avatar.imageSource as ImageOrSvgSrc,
