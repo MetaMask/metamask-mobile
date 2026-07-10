@@ -88,6 +88,9 @@ const createStyles = (colors: Colors) =>
     },
     networkCell: {
       alignItems: 'center',
+      // Ensure cells render without an opaque surface so pressed state
+      // uses the design-system overlay instead of a background fill.
+      backgroundColor: 'transparent',
     },
     networkCellDisabled: {
       alignItems: 'center',
