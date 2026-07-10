@@ -1,6 +1,6 @@
 import { Dimensions, StyleSheet } from 'react-native';
 import { AppThemeKey, Theme } from '../../../util/theme/models';
-import { NOTIFICATION_OVERLAY_ELEVATION } from './BaseNotification.constants';
+import { NOTIFICATION_MODAL_OVERLAY_ELEVATION } from './BaseNotification.constants';
 const marginWidth = 16;
 const notificationWidth = Dimensions.get('window').width - marginWidth * 2;
 
@@ -14,8 +14,8 @@ const styleSheet = (params: { theme: Theme }) => {
       top: 0,
       left: marginWidth,
       width: notificationWidth,
-      zIndex: NOTIFICATION_OVERLAY_ELEVATION,
-      elevation: NOTIFICATION_OVERLAY_ELEVATION,
+      zIndex: NOTIFICATION_MODAL_OVERLAY_ELEVATION,
+      elevation: NOTIFICATION_MODAL_OVERLAY_ELEVATION,
       backgroundColor:
         theme.themeAppearance === AppThemeKey.light
           ? colors.background.default

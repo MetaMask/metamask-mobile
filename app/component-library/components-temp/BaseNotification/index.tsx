@@ -21,6 +21,7 @@ import Animated, {
   useSharedValue,
   withDelay,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -153,7 +154,9 @@ export const getDescription = (
 
 /**
  * @deprecated Please update your code to use `Toast` from `@metamask/design-system-react-native`.
+ *
  * The API may have changed — compare props before migrating.
+ *
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react/src/components/Toast/Toast.tsx}
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#toast-component Migration docs}
  */
@@ -271,11 +274,28 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       translateYProgress.value = withSpring(
         visibleTranslateY,
         NOTIFICATION_SPRING_CONFIG,
-        () => {
+        (finished) => {
+          if (!finished) {
+            return;
+          }
+
           translateYProgress.value = withDelay(
             dismissDurationMs,
-            withSpring(hiddenTranslateY, NOTIFICATION_SPRING_CONFIG, () => {
-              runOnJS(handleDismissComplete)();
+            withTiming(visibleTranslateY, { duration: 0 }, (isFinished) => {
+              if (!isFinished) {
+                return;
+              }
+
+              translateYProgress.value = withSpring(
+                getHiddenTranslateY(
+                  notificationHeight.value,
+                  topInsetOffset.value,
+                ),
+                NOTIFICATION_SPRING_CONFIG,
+                () => {
+                  runOnJS(handleDismissComplete)();
+                },
+              );
             }),
           );
         },
