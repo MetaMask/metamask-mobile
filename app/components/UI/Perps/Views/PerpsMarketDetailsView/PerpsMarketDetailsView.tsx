@@ -80,7 +80,6 @@ import TradingViewChart, {
 import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvancedChart';
 import {
   selectPerpsAdvancedChartEnabledFlag,
-  selectPerpsButtonColorTestVariant,
   selectPerpsOrderBookEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -112,6 +111,8 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
@@ -132,8 +133,11 @@ import {
 } from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  BUTTON_COLOR_VARIANTS,
+  PERPS_BUTTON_COLOR_AB_TEST_KEY,
+} from '../../abTestConfig';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -363,10 +367,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // A/B Testing: Button color test (TAT-1937)
   const {
     variantName: buttonColorVariant,
-    isEnabled: isButtonColorTestEnabled,
-  } = usePerpsABTest({
-    test: BUTTON_COLOR_TEST,
-    featureFlagSelector: selectPerpsButtonColorTestVariant,
+    isActive: isButtonColorTestEnabled,
+  } = useABTest(PERPS_BUTTON_COLOR_AB_TEST_KEY, BUTTON_COLOR_VARIANTS, {
+    experimentName: 'Long/Short Button Color Test',
+    variationNames: { control: 'White/White', colors: 'Green/Red' },
   });
 
   usePerpsConnection();
@@ -588,6 +592,34 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     },
   });
 
+  // Market detail CUF: open -> stats + live price. Chart and top-of-book keep
+  // their own spans. Tags captured at mount for per-context p75.
+  const marketDetailCufTags = useMemo(() => buildPerpsCufStartTags(), []);
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsMarketDetailLive,
+    // endConditions (not the simple `conditions` API), which would auto-reset
+    // while the first condition is false and restart the span on every render
+    // during hydration — under-reporting open-to-live-detail latency.
+    endConditions: [
+      !!market,
+      !!marketStats,
+      !isLoadingHistory,
+      !isLoadingPosition,
+      !!currentPrice,
+      // The funded/unfunded endData tag reads account.totalBalance, so the span
+      // must not end until the account stream has loaded — otherwise a funded
+      // user is misrecorded as unfunded while account is still loading.
+      !isLoadingAccount,
+    ],
+    tags: marketDetailCufTags,
+    endData: {
+      [PERPS_CUF_TAG.VARIANT]:
+        !!account?.totalBalance && parseFloat(account.totalBalance) > 0
+          ? PERPS_CUF_VARIANT.FUNDED
+          : PERPS_CUF_VARIANT.UNFUNDED,
+    },
+  });
+
   // Track asset screen viewed event - declarative (main's event name)
   // Waits for market insights to finish loading so market_insights_displayed
   // reflects the actual display state rather than a loading-time snapshot.
@@ -623,10 +655,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isPerpsInsightsEnabled && Boolean(perpsInsightsReport),
       [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
         isServiceInterruptionBannerEnabled,
-      // A/B Test context (TAT-1937) - for baseline exposure tracking
-      ...(isButtonColorTestEnabled && {
-        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      }),
     },
   });
 
@@ -796,7 +824,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               direction === 'long'
                 ? PERPS_EVENT_VALUE.DIRECTION.LONG
                 : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-            [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
           });
         }
 
@@ -822,7 +849,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       market?.symbol,
       marketData,
       isButtonColorTestEnabled,
-      buttonColorVariant,
     ],
   );
 
@@ -1581,18 +1607,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Show Long/Short buttons when no position exists and user can trade */}
           {shouldShowLongShortButtonsOnly && (
             <View style={styles.actionsContainer} accessible={false}>
-              {buttonColorVariant === 'monochrome' ? (
-                <DSButton
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  onPress={handleLongPress}
-                  isDisabled={isAtOICap}
-                  style={styles.actionButtonWrapper}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </DSButton>
-              ) : (
+              {buttonColorVariant === 'colors' ? (
                 <ButtonSemantic
                   severity={ButtonSemanticSeverity.Success}
                   onPress={handleLongPress}
@@ -1603,20 +1618,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 >
                   {strings('perps.market.long')}
                 </ButtonSemantic>
-              )}
-
-              {buttonColorVariant === 'monochrome' ? (
+              ) : (
                 <DSButton
                   variant={ButtonVariant.Primary}
                   size={ButtonSizeRNDesignSystem.Lg}
-                  onPress={handleShortPress}
+                  onPress={handleLongPress}
                   isDisabled={isAtOICap}
                   style={styles.actionButtonWrapper}
-                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
                 >
-                  {strings('perps.market.short')}
+                  {strings('perps.market.long')}
                 </DSButton>
-              ) : (
+              )}
+
+              {buttonColorVariant === 'colors' ? (
                 <ButtonSemantic
                   severity={ButtonSemanticSeverity.Danger}
                   onPress={handleShortPress}
@@ -1627,6 +1642,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 >
                   {strings('perps.market.short')}
                 </ButtonSemantic>
+              ) : (
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  onPress={handleShortPress}
+                  isDisabled={isAtOICap}
+                  style={styles.actionButtonWrapper}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+                >
+                  {strings('perps.market.short')}
+                </DSButton>
               )}
             </View>
           )}

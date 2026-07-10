@@ -8,6 +8,7 @@ import {
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
+import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import ChoosePassword from '../../Views/ChoosePassword';
@@ -35,6 +36,7 @@ import { Authentication } from '../../../core/';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import {
+  addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
   slideFromRightNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -128,7 +130,6 @@ import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWall
 import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
-import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
 import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
@@ -182,7 +183,6 @@ const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
 };
 
 const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
-  presentation: 'containedTransparentModal',
   animation: 'none',
   contentStyle: { backgroundColor: importedColors.transparent },
   gestureEnabled: false,
@@ -402,6 +402,11 @@ const OnboardingRootNav = () => (
       name={Routes.QR_TAB_SWITCHER}
       component={QRTabSwitcher}
       options={{ presentation: 'modal' }}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+      component={VerificationCodeBottomSheet}
+      options={addDeviceVerificationCodeScreenOptions}
     />
     <NativeStack.Screen
       name={Routes.WEBVIEW.MAIN}
@@ -635,6 +640,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
       component={VerificationCodeBottomSheet}
+      options={addDeviceVerificationCodeScreenOptions}
     />
     <NativeStack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
@@ -717,6 +723,14 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.IMPORT_WALLET_TIP}
       component={ImportWalletTipBottomSheet}
+    />
+    <NativeStack.Screen
+      name={Routes.WEBVIEW.SIMPLE}
+      component={SimpleWebview}
+      options={{
+        presentation: 'modal',
+        animation: 'slide_from_bottom',
+      }}
     />
   </NativeStack.Navigator>
 );
@@ -1136,6 +1150,16 @@ const AppFlow = () => {
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
+        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+        component={VerificationCodeBottomSheet}
+        options={addDeviceVerificationCodeScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+        component={ImportFromSecretRecoveryPhrase}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
         component={MultichainAccountDetails}
       />
@@ -1234,9 +1258,7 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         options={{
-          headerShown: false,
           gestureEnabled: true,
-          presentation: 'containedTransparentModal',
           contentStyle: { backgroundColor: importedColors.transparent },
         }}
         component={Confirm}

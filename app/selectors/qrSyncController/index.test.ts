@@ -2,6 +2,7 @@ import { QrSyncPhases } from '../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../core/QrSync/QrSyncController';
 import type { RootState } from '../../reducers';
 import {
+  selectQrSyncExistingUserImportMnemonic,
   selectQrSyncHasImportPlan,
   selectQrSyncPresentation,
   selectQrSyncShouldNavigateToImport,
@@ -73,7 +74,7 @@ describe('qrSyncController selectors', () => {
       ).toBe(true);
     });
 
-    it('returns false after sync completes', () => {
+    it('returns true after sync completes with import data still pending', () => {
       expect(
         selectQrSyncShouldNavigateToImport(
           buildState({
@@ -81,7 +82,55 @@ describe('qrSyncController selectors', () => {
             importPlan,
           }),
         ),
-      ).toBe(false);
+      ).toBe(true);
+    });
+  });
+
+  describe('selectQrSyncExistingUserImportMnemonic', () => {
+    it('returns the primary mnemonic when flagged', () => {
+      const state = buildState({
+        importPlan: [
+          {
+            index: 0,
+            value: 'primary mnemonic',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: true,
+          },
+          {
+            index: 1,
+            value: 'secondary mnemonic',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: false,
+          },
+        ],
+      });
+
+      expect(selectQrSyncExistingUserImportMnemonic(state)).toBe(
+        'primary mnemonic',
+      );
+    });
+
+    it('falls back to the first mnemonic when isPrimary is absent', () => {
+      const state = buildState({
+        importPlan: [
+          {
+            index: 0,
+            value: 'extension mnemonic',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: false,
+          },
+        ],
+      });
+
+      expect(selectQrSyncExistingUserImportMnemonic(state)).toBe(
+        'extension mnemonic',
+      );
     });
   });
 

@@ -65,11 +65,22 @@ import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/type
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
+import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
 import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
+import type { MoreTokenActionsMenuParams } from '../../components/UI/TokenDetails/components/MoreTokenActionsMenu';
+import type { SecurityBadgeBottomSheetParams } from '../../components/UI/TokenDetails/components/SecurityBadgeBottomSheet';
+import type { MAPickerSheetParams } from '../../components/UI/Charts/AdvancedChart/MAPickerSheet';
+import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCliApproval/types';
+import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
+import type { CreditBalanceTooltipParams } from '../../components/UI/Card/components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
+import type { MoneyUnlinkCardSheetRouteParams } from '../../components/UI/Card/components/MoneyUnlinkCardSheet/MoneyUnlinkCardSheet';
+import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
 import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
 import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 
@@ -277,8 +288,10 @@ type SocialLoginRouteParams = AccountStatusParams & {
 
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
-  previous_screen: string;
-  onboardingTraceCtx: TraceContext;
+  previous_screen?: string;
+  onboardingTraceCtx?: TraceContext;
+  initialStep?: number;
+  qrSyncImport?: boolean;
 }
 
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
@@ -348,6 +361,7 @@ type TraderPositionViewParams =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RootStackParamList = {
   // Top-level routes
+  Main: NestedNavigationParams | undefined;
   WalletView: undefined;
   BrowserTabHome: BrowserParams | NestedNavigationParams | undefined;
   BrowserView: BrowserParams | undefined;
@@ -416,6 +430,7 @@ export type RootStackParamList = {
   RampSsnInfoModal: RampNavigationParamList['RampSsnInfoModal'];
   RampStateSelectorModal: RampNavigationParamList['RampStateSelectorModal'];
   RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
+  RampsServiceDisruptionModal: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -453,7 +468,7 @@ export type RootStackParamList = {
   LedgerMessageSignModal: LedgerMessageSignModalParams | undefined;
   LedgerTransactionModal: LedgerTransactionModalParams | undefined;
   QRSigningTransactionModal: undefined;
-  QRTabSwitcher: undefined;
+  QRTabSwitcher: QRTabSwitcherParams | undefined;
 
   // Misc top-level routes
   OptionsSheet: OptionsSheetParams | undefined;
@@ -472,6 +487,7 @@ export type RootStackParamList = {
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
+  MarketInsightsView: MarketInsightsRouteParams;
   ExploreSearch: ExploreSearchRouteParams | undefined;
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
@@ -567,6 +583,7 @@ export type RootStackParamList = {
   WalletCreationError: WalletCreationErrorParams | undefined;
   AddDeviceToWallet: undefined;
   AddDeviceVerificationCode: undefined;
+  ImportPrivateKeyView: NestedNavigationParams | undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
@@ -616,6 +633,7 @@ export type RootStackParamList = {
   PermittedNetworksInfoSheet: undefined;
   NetworkSelector: NetworkSelectorParams | undefined;
   AccountActions: AccountActionsParams;
+  AccountsMenuView: undefined;
   SettingsAdvancedFiatOnTestnetsFriction: undefined;
   ShowIpfs: ShowIpfsGatewaySheetParams | undefined;
   ShowNftDisplayMedia: ShowNftDisplayMediaParams | undefined;
@@ -627,6 +645,8 @@ export type RootStackParamList = {
   ChangeInSimulationModal: undefined;
   SelectSRP: SelectSRPParams | undefined;
   OnboardingSheet: OnboardingSheetParams | undefined;
+  ImportWalletTipSheet: undefined;
+  MAPicker: MAPickerSheetParams | undefined;
   SeedphraseModal: SeedphraseModalParams | undefined;
   SkipAccountSecurityModal: undefined;
   SuccessErrorSheet: SuccessErrorSheetParams | undefined;
@@ -687,6 +707,7 @@ export type RootStackParamList = {
   MoneyLinkCardSheet: MoneyNavigationParamList['MoneyLinkCardSheet'];
   MoneyEarnCryptoInfoSheet: MoneyNavigationParamList['MoneyEarnCryptoInfoSheet'];
   MoneyGeoBlockSheet: MoneyNavigationParamList['MoneyGeoBlockSheet'];
+  MoneyDeeplinkModal: MoneyDeeplinkModalParams | undefined;
   TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;
 
@@ -744,6 +765,7 @@ export type RootStackParamList = {
   // leaderboard into PerpsMarketDetails).
   Perps: NestedNavigationParams | PerpsNavigationParamList['Perps'];
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
+  PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];
   PerpsMarketListView: PerpsNavigationParamList['PerpsMarketListView'];
@@ -769,6 +791,7 @@ export type RootStackParamList = {
   PerpsCancelAllOrders: undefined;
   PerpsTooltip: undefined;
   PerpsCrossMarginWarning: undefined;
+  PerpsSelectProvider: PerpsNavigationParamList['PerpsSelectProvider'];
   PerpsPositionTransaction: PerpsNavigationParamList['PerpsPositionTransaction'];
   PerpsOrderTransaction: PerpsNavigationParamList['PerpsOrderTransaction'];
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
@@ -808,9 +831,14 @@ export type RootStackParamList = {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
+  TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
   LockScreen: undefined;
+  MoreTokenActionsMenu: MoreTokenActionsMenuParams;
+  SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
+  AgenticCliApprovalConfirm: AgenticCliApprovalParams;
+  AgenticCliDashboardConfirmation: AgenticCliDashboardWebviewParams;
   ConfirmationRequestModal: undefined;
   ConfirmationSwitchAccountType: undefined;
   ConfirmationPayWithModal: undefined;
@@ -895,6 +923,7 @@ export type RootStackParamList = {
     | { flow: string; shippingAddress?: ShippingAddress }
     | undefined;
   CardCashback: undefined;
+  CardCreditRedeem: undefined;
   ReviewOrder: undefined;
   OrderCompleted:
     | {
@@ -932,6 +961,9 @@ export type RootStackParamList = {
   };
   CardWaitlistFormModal: { url: string };
   CardForgotPasswordModal: { location?: 'us' | 'international' } | undefined;
+  CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
+  CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;
+  CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
 
   // Send routes
   Recipient: SendRecipientParams | undefined;

@@ -413,6 +413,26 @@ describe('MoneyMetaMaskCard', () => {
       ).toHaveTextContent('$2,342.86');
     });
 
+    it('renders the real available balance when privacyMode is false', () => {
+      const { getByTestId } = render(
+        <MoneyMetaMaskCard {...props} privacyMode={false} />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$2,342.86');
+    });
+
+    it('masks the available balance when privacyMode is true', () => {
+      const { getByTestId } = render(
+        <MoneyMetaMaskCard {...props} privacyMode />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('•'.repeat(9));
+    });
+
     it('renders the available balance muted when the balance is stale', () => {
       const { getByTestId, rerender } = render(
         <MoneyMetaMaskCard {...props} />,
