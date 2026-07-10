@@ -38,15 +38,25 @@ async function navigateFromBrowserToSnapSettings() {
   await SettingsView.tapSnaps();
 }
 
-async function navigateBackFromSettingsToWallet() {
+/**
+ * Navigate from Snap settings to the browser
+ */
+async function navigateFromSnapSettingsToBrowser() {
   await SnapSettingsView.tapBackButton();
   await SnapSettingsView.tapListBackButton();
+
+  await Assertions.expectElementToBeVisible(SettingsView.title, {
+    timeout: 10000,
+    description: 'Settings view should be visible',
+  });
   await SettingsView.tapBackButton();
-  await Assertions.expectElementToBeVisible(AccountMenu.backButton, {
-    timeout: 10_000,
-    description: 'Account menu back button should be visible',
+  await Assertions.expectElementToBeVisible(AccountMenu.container, {
+    timeout: 10000,
+    description: 'Account menu should be visible',
   });
   await AccountMenu.tapBack();
+
+  await navigateToBrowserView();
 }
 
 jest.setTimeout(150_000);
@@ -83,9 +93,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
 
-        await navigateBackFromSettingsToWallet();
-
-        await navigateToBrowserView();
+        await navigateFromSnapSettingsToBrowser();
 
         await TestSnaps.tapButton('sendAlertButton');
 
@@ -110,9 +118,7 @@ describe(SmokeSnaps('Snap Management Tests'), () => {
         await SnapSettingsView.selectSnap('Dialog Example Snap');
         await SnapSettingsView.toggleEnable();
 
-        await navigateBackFromSettingsToWallet();
-
-        await navigateToBrowserView();
+        await navigateFromSnapSettingsToBrowser();
 
         await TestSnaps.tapButton('sendAlertButton');
 
