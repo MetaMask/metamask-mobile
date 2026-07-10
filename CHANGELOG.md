@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added check for price alerts supported networks (#32010)
 - Fixed display approved transactions for Non-EVM networks (#31838)
 - Fixed odds/prices being truncated on Predict bet buttons so the full price is always readable (#31953)
+- Added Robinhood Chain as a featured network (#33037)
 
 ### Changed
 
