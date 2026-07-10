@@ -1083,6 +1083,14 @@
       "empty_following": {
         "title": "No activity yet",
         "description": "Follow traders to see their trades show up here."
+      },
+      "empty_all": {
+        "title": "No activity yet",
+        "description": "Trader activity will show up here as trades come in."
+      },
+      "error": {
+        "title": "Couldn't load the feed",
+        "retry": "Try again"
       }
     },
     "notification_preferences": {

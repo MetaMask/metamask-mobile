@@ -39,6 +39,7 @@ const perpItem: FeedPerpItem = {
   timestamp: Date.now() - 4 * 60_000,
   marketSymbol: 'ETH',
   marketName: 'Ethereum',
+  tradeSymbol: 'ETH',
   direction: 'long',
   leverage: 8,
   subHeader: '$50.6K at $1,701.24',

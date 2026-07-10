@@ -62,10 +62,18 @@ export interface FeedSpotItem extends FeedItemBase {
  */
 export interface FeedPerpItem extends FeedItemBase {
   type: 'perps';
-  /** Perp market symbol (e.g. `ETH`). */
+  /**
+   * Clean market symbol shown to the user (e.g. `ETH`, `SPCX`). Never carries a
+   * HIP-3 DEX prefix.
+   */
   marketSymbol: string;
   /** Perp market display name (e.g. `Ethereum`). */
   marketName: string;
+  /**
+   * Tradable market symbol used to open the Perps market detail page. For HIP-3
+   * markets this is the `xyz:`-namespaced symbol; not shown to the user.
+   */
+  tradeSymbol: string;
   direction: FeedPerpDirection;
   /** Leverage multiplier (e.g. `8` → "8x"). */
   leverage: number;

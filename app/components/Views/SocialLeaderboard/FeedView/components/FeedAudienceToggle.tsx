@@ -134,7 +134,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           accessibilityState={{ selected: value === 'following' }}
           testID={getFeedAudienceOptionTestId('following')}
         >
-          <Box twClassName="rounded-xl px-4 py-2">
+          <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={
@@ -162,7 +162,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           accessibilityState={{ selected: value === 'all' }}
           testID={getFeedAudienceOptionTestId('all')}
         >
-          <Box twClassName="rounded-xl px-4 py-2">
+          <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={

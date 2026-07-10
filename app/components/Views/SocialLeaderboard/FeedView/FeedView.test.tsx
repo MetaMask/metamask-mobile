@@ -1,24 +1,81 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import FeedView from './FeedView';
 import {
   FeedViewSelectorsIDs,
-  getFeedAudienceOptionTestId,
   getFeedTradeButtonTestId,
 } from './FeedView.testIds';
+import type { FeedItem, FeedSection } from './types';
+import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
 const mockNavigate = jest.fn();
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
+const mockLoadMore = jest.fn();
+const mockRefresh = jest.fn();
 
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+const spotItem: FeedItem = {
+  id: 'feed-1',
+  type: 'spot',
+  username: 'dutchiono',
+  traderAddress: '0x1111111111111111111111111111111111111111',
+  action: 'bought',
+  timestamp: Date.now() - 1000,
+  subHeader: '$120K',
+  valueLabel: '$123,000.5',
+  pnlLabel: '+12%',
+  isPnlPositive: true,
+  tokenSymbol: 'PEPE',
+  tokenName: 'Pepe',
+  tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+  chain: 'eip155:1',
+  chainIdHex: '0x1',
+};
+
+const perpItem: FeedItem = {
+  id: 'feed-2',
+  type: 'perps',
+  username: 'aparjey',
+  traderAddress: '0x2222222222222222222222222222222222222222',
+  action: 'closed',
+  timestamp: Date.now() - 2000,
+  subHeader: '$88K',
+  valueLabel: '$88,000.5',
+  pnlLabel: '+12%',
+  isPnlPositive: true,
+  marketSymbol: 'ETH',
+  marketName: 'Ethereum',
+  tradeSymbol: 'ETH',
+  direction: 'long',
+  leverage: 8,
+};
+
+const buildResult = (
+  overrides: Partial<UseTraderFeedResult> = {},
+): UseTraderFeedResult => {
+  const items = overrides.items ?? [spotItem, perpItem];
+  const sections: FeedSection[] =
+    overrides.sections ??
+    (items.length ? [{ dateLabel: 'Today', data: items }] : []);
   return {
-    ...Reanimated,
-    withSpring: jest.fn((value: number) => value),
+    items,
+    sections,
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: mockLoadMore,
+    error: null,
+    refresh: mockRefresh,
+    ...overrides,
   };
-});
+};
+
+let mockFeedResult: UseTraderFeedResult = buildResult();
+
+jest.mock('./hooks/useTraderFeed', () => ({
+  useTraderFeed: () => mockFeedResult,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -49,9 +106,10 @@ jest.mock('../TraderPositionView/components/QuickBuy', () => {
 describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFeedResult = buildResult();
   });
 
-  it('renders the type selector, audience toggle, and feed list for the "all" audience', () => {
+  it('renders the type selector, audience toggle, and feed list when items exist', () => {
     renderWithProvider(<FeedView />);
 
     expect(
@@ -63,12 +121,21 @@ describe('FeedView', () => {
     expect(screen.getByTestId(FeedViewSelectorsIDs.LIST)).toBeOnTheScreen();
   });
 
-  it('shows the empty state when switching to the Following audience', () => {
+  it('shows the skeleton loading state on the initial fetch', () => {
+    mockFeedResult = buildResult({ items: [], isLoading: true });
+
     renderWithProvider(<FeedView />);
 
-    fireEvent.press(
-      screen.getByTestId(getFeedAudienceOptionTestId('following')),
-    );
+    expect(screen.getByTestId(FeedViewSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(FeedViewSelectorsIDs.LIST),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the empty state when there are no items', () => {
+    mockFeedResult = buildResult({ items: [] });
+
+    renderWithProvider(<FeedView />);
 
     expect(
       screen.getByTestId(FeedViewSelectorsIDs.EMPTY_STATE),
@@ -76,6 +143,19 @@ describe('FeedView', () => {
     expect(
       screen.queryByTestId(FeedViewSelectorsIDs.LIST),
     ).not.toBeOnTheScreen();
+  });
+
+  it('shows an error state with a retry that refetches', () => {
+    mockFeedResult = buildResult({ items: [], error: 'boom' });
+
+    renderWithProvider(<FeedView />);
+
+    expect(
+      screen.getByTestId(FeedViewSelectorsIDs.ERROR_STATE),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.RETRY_BUTTON));
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('opens the QuickBuy sheet with a CTA haptic when a spot Trade is pressed', () => {
@@ -101,5 +181,18 @@ describe('FeedView', () => {
         params: expect.objectContaining({ source: 'social_feed' }),
       }),
     );
+  });
+
+  it('requests the next page when the list reaches its end', () => {
+    mockFeedResult = buildResult({ hasNextPage: true });
+
+    renderWithProvider(<FeedView />);
+
+    const list = screen.getByTestId(FeedViewSelectorsIDs.LIST);
+    act(() => {
+      list.props.onEndReached();
+    });
+
+    expect(mockLoadMore).toHaveBeenCalledTimes(1);
   });
 });

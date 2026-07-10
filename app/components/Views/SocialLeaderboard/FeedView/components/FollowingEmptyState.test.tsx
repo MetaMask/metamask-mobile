@@ -9,7 +9,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('FollowingEmptyState', () => {
-  it('renders the empty-state container with title and description', () => {
+  it('renders the following-specific copy by default', () => {
     renderWithProvider(<FollowingEmptyState />);
 
     expect(
@@ -20,6 +20,17 @@ describe('FollowingEmptyState', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByText('social_leaderboard.feed.empty_following.description'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the generic copy for the "all" audience', () => {
+    renderWithProvider(<FollowingEmptyState audience="all" />);
+
+    expect(
+      screen.getByText('social_leaderboard.feed.empty_all.title'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.feed.empty_all.description'),
     ).toBeOnTheScreen();
   });
 });
