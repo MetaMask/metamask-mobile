@@ -60,7 +60,7 @@ describe('PotentialEarningsTokenRow', () => {
     mockMoneyFormatFiat.mockClear();
   });
 
-  it('renders the token symbol', () => {
+  it('renders the token name', () => {
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
@@ -71,7 +71,7 @@ describe('PotentialEarningsTokenRow', () => {
       />,
     );
 
-    expect(getByText('USDC')).toBeOnTheScreen();
+    expect(getByText('USD Coin')).toBeOnTheScreen();
   });
 
   it('renders the token fiat balance', () => {
@@ -193,7 +193,7 @@ describe('PotentialEarningsTokenRow', () => {
       />,
     );
 
-    fireEvent.press(getByText('USDC'));
+    fireEvent.press(getByText('USD Coin'));
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
