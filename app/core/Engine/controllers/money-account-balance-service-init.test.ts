@@ -46,6 +46,10 @@ const getServiceConstructorOptions = (): MoneyAccountBalanceServiceOptions => {
 };
 
 describe('moneyAccountBalanceServiceInit', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('returns a MoneyAccountBalanceService instance', () => {
     const initRequest = getInitRequestMock();
 
@@ -127,6 +131,7 @@ describe('trace tagging', () => {
         tags: { source: 'unit-test' },
         data: expect.objectContaining({ app_state: 'background' }),
       }),
+      expect.any(Function),
     );
   });
 
@@ -141,6 +146,7 @@ describe('trace tagging', () => {
       expect.objectContaining({
         data: expect.objectContaining({ app_state: 'unknown' }),
       }),
+      expect.any(Function),
     );
   });
 
@@ -159,6 +165,7 @@ describe('trace tagging', () => {
           app_state: 'active',
         }),
       }),
+      expect.any(Function),
     );
   });
 

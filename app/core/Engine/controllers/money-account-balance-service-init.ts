@@ -12,7 +12,7 @@ import { trace, TraceOperation, TraceRequest } from '../../../util/trace';
 const traceMoneyAccountDataFetch: MoneyAccountBalanceServiceTraceCallback =
   async <ReturnType>(
     request: MoneyAccountBalanceServiceTraceRequest,
-    fn?: (context?: TraceContext) => ReturnType,
+    fn: (context?: TraceContext) => ReturnType = () => undefined as ReturnType,
   ): Promise<ReturnType> => {
     const taggedRequest: TraceRequest = {
       id: request.id,
@@ -25,10 +25,6 @@ const traceMoneyAccountDataFetch: MoneyAccountBalanceServiceTraceCallback =
         app_state: AppState.currentState ?? 'unknown',
       },
     };
-    if (!fn) {
-      trace(taggedRequest);
-      return undefined as ReturnType;
-    }
     return await Promise.resolve(trace(taggedRequest, fn));
   };
 
