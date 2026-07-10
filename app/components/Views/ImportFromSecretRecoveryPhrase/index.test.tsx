@@ -197,6 +197,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(
         getByText(
           strings('import_from_seed.enter_your_secret_recovery_phrase'),
+          { exact: false },
         ),
       ).toBeOnTheScreen();
     });

@@ -192,7 +192,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
    * call. No-op without a live session; `quote` (when in scope) seeds amount.
    */
   const emitHeadlessOrderFailed = useCallback(
-    (error: unknown, quote?: TransakBuyQuote) => {
+    (error: unknown, quote?: TransakBuyQuote, providerOrderId?: string) => {
       const session = getSession(headlessSessionId);
       if (!session) {
         return;
@@ -200,6 +200,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       trackEvent('RAMPS_ORDER_FAILED', {
         ramp_type: 'HEADLESS',
         ramp_surface: session.params?.rampSurface,
+        // TRAM-3696: present when the failure occurs after an order exists.
+        ...(providerOrderId && { provider_order_id: providerOrderId }),
         amount_source: Number(quote?.fiatAmount ?? session.params?.amount ?? 0),
         amount_destination: 0,
         payment_method_id: selectedPaymentMethod?.id || '',
@@ -551,6 +553,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
               ramp_type: wasHeadless ? 'HEADLESS' : 'DEPOSIT',
               ramp_surface: rampSurface,
+              provider_order_id: rampsOrder.providerOrderId,
               amount_source: Number(rampsOrder.fiatAmount),
               amount_destination: Number(rampsOrder.cryptoAmount),
               exchange_rate: Number(rampsOrder.exchangeRate),
@@ -580,7 +583,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           });
           // Emit the HEADLESS failure event BEFORE failSession tears the
           // session down (TRAM-3623 §7) so the surface snapshot is available.
-          emitHeadlessOrderFailed(error);
+          // orderId (from the callback URL) is the provider order id (TRAM-3696).
+          emitHeadlessOrderFailed(error, undefined, orderId);
           if (failSession(headlessSessionId, error)) {
             // @ts-expect-error `pop` exists on the parent stack navigator at
             // runtime but is not surfaced on the generic `NavigationProp`
@@ -787,6 +791,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
                     ramp_type: 'HEADLESS',
                     ramp_surface: rampSurface,
+                    provider_order_id: rampsOrder.providerOrderId,
                     amount_source: Number(rampsOrder.fiatAmount),
                     amount_destination: Number(rampsOrder.cryptoAmount),
                     exchange_rate: Number(rampsOrder.exchangeRate),
