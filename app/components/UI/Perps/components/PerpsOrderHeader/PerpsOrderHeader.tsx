@@ -12,8 +12,12 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+
+// Header price cadence, matches LivePriceHeader's own default throttle.
+const HEADER_PRICE_THROTTLE_MS = 1000;
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -38,6 +42,31 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   isLoading,
 }) => {
   const navigation = useNavigation();
+
+  // Subscribe to live prices directly in the header instead of relying solely
+  // on the `price` prop. PerpsOrderView / PerpsClosePositionView recompute
+  // fees, margin, liquidation price, and validation on every price tick, so
+  // their own re-render can lag behind the WebSocket feed on lower-end
+  // devices. Because this subscription's state lives inside PerpsOrderHeader
+  // (a small, cheap subtree), its updates render independently of that
+  // heavier parent, keeping the header as responsive as the market details
+  // page. The `price` prop is kept as the value to show until this
+  // subscription delivers its first update.
+  const livePrices = usePerpsLivePrices({
+    symbols: [asset],
+    throttleMs: HEADER_PRICE_THROTTLE_MS,
+  });
+
+  const livePrice = useMemo(() => {
+    const rawPrice = livePrices[asset]?.price;
+    if (!rawPrice) {
+      return undefined;
+    }
+    const parsed = Number.parseFloat(rawPrice);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  }, [livePrices, asset]);
+
+  const displayPrice = livePrice ?? price;
 
   const handleBack = useCallback(() => {
     if (onBack) {
@@ -74,9 +103,13 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 
   const description = useMemo(
     () => (
-      <LivePriceHeader symbol={asset} throttleMs={1000} currentPrice={price} />
+      <LivePriceHeader
+        symbol={asset}
+        throttleMs={HEADER_PRICE_THROTTLE_MS}
+        currentPrice={displayPrice}
+      />
     ),
-    [asset, price],
+    [asset, displayPrice],
   );
 
   const endAccessory = useMemo(() => {

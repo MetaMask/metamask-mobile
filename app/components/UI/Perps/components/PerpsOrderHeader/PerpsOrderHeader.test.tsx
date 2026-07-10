@@ -5,6 +5,16 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import PerpsOrderHeader from './PerpsOrderHeader';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsLivePrices, type PriceUpdate } from '../../hooks/stream';
+
+const buildPriceUpdate = (
+  overrides: Partial<PriceUpdate> & { symbol: string },
+): PriceUpdate => ({
+  price: '0',
+  timestamp: Date.now(),
+  isTradable: true,
+  ...overrides,
+});
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -18,9 +28,19 @@ jest.mock('../../providers/PerpsStreamManager');
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({
-    ETH: { percentChange24h: '2.5' },
+    ETH: {
+      symbol: 'ETH',
+      price: '0',
+      percentChange24h: '2.5',
+      timestamp: Date.now(),
+      isTradable: true,
+    },
   })),
 }));
+
+const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
+  typeof usePerpsLivePrices
+>;
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
@@ -56,6 +76,9 @@ describe('PerpsOrderHeader', () => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue({
       goBack: mockGoBack,
+    });
+    mockUsePerpsLivePrices.mockReturnValue({
+      ETH: buildPriceUpdate({ symbol: 'ETH', percentChange24h: '2.5' }),
     });
   });
 
@@ -204,6 +227,105 @@ describe('PerpsOrderHeader', () => {
     );
     const orderTypeButton = getByTestId('perps-order-header-order-type-button');
     expect(orderTypeButton).toBeDisabled();
+  });
+
+  describe('Live price subscription (decoupled from parent price prop)', () => {
+    it('renders the price prop before the live subscription has delivered a value', () => {
+      // Simulates the very first render, before the WebSocket subscription
+      // has delivered any data for this symbol yet.
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      const { getByText } = renderWithProvider(
+        <PerpsOrderHeader {...defaultProps} price={3000} />,
+        { state: initialState },
+      );
+
+      expect(getByText('$3,000')).toBeTruthy();
+    });
+
+    it('shows the live subscription price instead of a stale price prop', () => {
+      // Simulates a parent (PerpsOrderView / PerpsClosePositionView) that
+      // hasn't re-rendered with a fresh `price` prop yet (e.g. because it is
+      // busy recomputing fees/margin/validation), while the header's own
+      // independent WebSocket subscription has already received a newer
+      // price. The header must reflect the live price, not the stale prop,
+      // so it stays as responsive as the market details page.
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: buildPriceUpdate({
+          symbol: 'ETH',
+          percentChange24h: '2.5',
+          price: '3123.45',
+        }),
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <PerpsOrderHeader {...defaultProps} price={3000} />,
+        { state: initialState },
+      );
+
+      expect(getByText('$3,123.4')).toBeTruthy();
+      expect(queryByText('$3,000')).toBeNull();
+    });
+
+    it('updates the displayed price on every live subscription tick without a new price prop', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: buildPriceUpdate({
+          symbol: 'ETH',
+          percentChange24h: '2.5',
+          price: '3050',
+        }),
+      });
+
+      const { getByText, queryByText, rerender } = renderWithProvider(
+        <PerpsOrderHeader {...defaultProps} price={3000} />,
+        { state: initialState },
+      );
+      expect(getByText('$3,050')).toBeTruthy();
+
+      // A second live tick arrives; the `price` prop from the parent is
+      // still the original stale value (parent hasn't re-rendered), yet the
+      // header should pick up the newest live value.
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: buildPriceUpdate({
+          symbol: 'ETH',
+          percentChange24h: '2.5',
+          price: '3075',
+        }),
+      });
+      rerender(<PerpsOrderHeader {...defaultProps} price={3000} />);
+
+      expect(getByText('$3,075')).toBeTruthy();
+      expect(queryByText('$3,050')).toBeNull();
+      expect(queryByText('$3,000')).toBeNull();
+    });
+
+    it('falls back to the price prop when the live price is invalid (zero)', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: buildPriceUpdate({
+          symbol: 'ETH',
+          percentChange24h: '2.5',
+          price: '0',
+        }),
+      });
+
+      const { getByText } = renderWithProvider(
+        <PerpsOrderHeader {...defaultProps} price={3000} />,
+        { state: initialState },
+      );
+
+      expect(getByText('$3,000')).toBeTruthy();
+    });
+
+    it('subscribes using the asset symbol so different order screens get independent prices', () => {
+      renderWithProvider(<PerpsOrderHeader {...defaultProps} asset="BTC" />, {
+        state: initialState,
+      });
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+        symbols: ['BTC'],
+        throttleMs: 1000,
+      });
+    });
   });
 
   describe('HIP3 Asset Symbol Handling', () => {
