@@ -33,8 +33,7 @@ function BottomShape({
     const rightBaseY = height;
 
     // strokeOnly traces ONLY the center cutout curve. Flat shoulders are rendered
-    // by the side containers' native borderBottomWidth. Dimensions from
-    // getTradeMenuBottomShapeDimensions (width = button × 2).
+    // by the side containers' native borderBottomWidth.
     if (strokeOnly) {
       return `
         M ${rightBaseX} ${rightBaseY}

@@ -85,11 +85,6 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
-import {
-  getTradeMenuBottomShapeDimensions,
-  TRADE_MENU_BOTTOM_SHAPE_STROKE_SVG_WIDTH_EXTRA,
-  TRADE_MENU_BOTTOM_SHAPE_STROKE_WIDTH,
-} from './tradeMenuBottomShapeDimensions';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
@@ -323,13 +318,7 @@ function TradeWalletActions() {
   );
 
   const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
-  const bottomShapeDimensions = useMemo(
-    () => getTradeMenuBottomShapeDimensions(buttonLayout.width),
-    [buttonLayout.width],
-  );
-  const bottomShapeStrokeWidth =
-    bottomShapeDimensions.width +
-    TRADE_MENU_BOTTOM_SHAPE_STROKE_SVG_WIDTH_EXTRA;
+  const bottomShapeMaskWidth = buttonLayout.width * 2;
 
   const actionList = (
     <>
@@ -425,11 +414,11 @@ function TradeWalletActions() {
             )}
           />
           <BottomShape
-            width={bottomShapeDimensions.width}
+            width={bottomShapeMaskWidth}
             height={bottomMaskHeight}
-            peakHeight={bottomShapeDimensions.peakHeight}
-            peakBezierLength={bottomShapeDimensions.peakBezierLength}
-            baseBezierLength={bottomShapeDimensions.baseBezierLength}
+            peakHeight={16}
+            peakBezierLength={25}
+            baseBezierLength={55}
             fill={elevatedSurfaceColor}
           />
           <View
@@ -445,15 +434,15 @@ function TradeWalletActions() {
               testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
             >
               <BottomShape
-                width={bottomShapeStrokeWidth}
+                width={bottomShapeMaskWidth + 4}
                 height={bottomMaskHeight}
-                peakHeight={bottomShapeDimensions.peakHeight}
-                peakBezierLength={bottomShapeDimensions.peakBezierLength}
-                baseBezierLength={bottomShapeDimensions.baseBezierLength}
+                peakHeight={16}
+                peakBezierLength={25}
+                baseBezierLength={55}
                 strokeOnly
                 pathProps={{
                   stroke: colors.border.muted,
-                  strokeWidth: TRADE_MENU_BOTTOM_SHAPE_STROKE_WIDTH,
+                  strokeWidth: 1,
                 }}
               />
             </View>
