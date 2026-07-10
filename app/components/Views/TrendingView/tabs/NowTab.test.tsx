@@ -46,8 +46,16 @@ jest.mock('../feeds/perps/usePerpsFeed', () => ({
   usePerpsFeed: () => mockUsePerpsFeed(),
 }));
 
-jest.mock('../../../UI/Perps/hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
+// usePerpsLiveMovers (used by PerpsBlock) subscribes via the stream
+// singleton — stub it so the hook's real ranking/fingerprint logic still
+// runs (preserving the filter/sort assertions below) without needing a
+// PerpsStreamProvider or real WebSocket.
+jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  usePerpsStream: () => ({
+    prices: {
+      subscribeToSymbols: jest.fn(() => jest.fn()),
+    },
+  }),
 }));
 
 jest.mock('../feeds/perps/PerpsPillItem', () => {
