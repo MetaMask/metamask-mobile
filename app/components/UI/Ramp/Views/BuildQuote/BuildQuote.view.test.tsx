@@ -64,11 +64,7 @@ const US_REGION = {
   regionCode: 'us-ca',
 };
 
-const buildQuote = (
-  provider: string,
-  paymentMethodId: string,
-  id: string,
-) => ({
+const buildQuote = (provider: string, paymentMethodId: string, id: string) => ({
   provider,
   id,
   inputAmount: 100,
@@ -209,8 +205,9 @@ function setupV2Hooks(
     });
 
   const getQuotesMock = Engine.context.RampsController.getQuotes as jest.Mock;
-  getQuotesMock.mockReset().mockImplementation(
-    (params?: { providers?: string[] }) => {
+  getQuotesMock
+    .mockReset()
+    .mockImplementation((params?: { providers?: string[] }) => {
       const providerId = params?.providers?.[0] ?? 'transak';
       if (providerId === 'moonpay') {
         return Promise.resolve({
@@ -222,8 +219,7 @@ function setupV2Hooks(
         success: [DEBIT_CARD_QUOTE, APPLE_PAY_QUOTE],
         error: [],
       });
-    },
-  );
+    });
 
   const stateOverrides = buildV2RampsState({ providers, selectedProvider });
   return { getQuotesMock, stateOverrides };
