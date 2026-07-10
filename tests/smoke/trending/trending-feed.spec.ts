@@ -42,6 +42,10 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         enabled: false,
         minimumVersion: '0.0.0',
       },
+      predictWorldCup: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
     });
 
     // Setup API mocks using centralized definition
@@ -125,7 +129,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             details: {
               tapItem: () => TrendingView.tapTokenRow(USDC_ASSET_ID),
               verifyVisible: () =>
-                TrendingView.verifyTokenDetailsTitleVisible('USD Coin'),
+                TrendingView.verifyTokenDetailsTitleVisible('USDC'),
               tapBack: () => TrendingView.tapBackFromTokenDetails(),
             },
           },
@@ -137,9 +141,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             details: {
               tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
               verifyVisible: () =>
-                TrendingView.verifyTokenDetailsTitleVisible(
-                  'Ondo US Dollar Yield',
-                ),
+                TrendingView.verifyTokenDetailsTitleVisible('USDY'),
               tapBack: () => TrendingView.tapBackFromTokenDetails(),
             },
           },

@@ -71,12 +71,9 @@ const emitExternalLinkClicked = <TEvent>(
 
 /**
  * Track External Link Clicked with the mobile analytics schema.
- * Generic over the event type so callers using either MetricsEventBuilder
- * (ITrackingEvent) or AnalyticsEventBuilder (AnalyticsTrackingEvent) are
- * both accepted without a lossy union parameter.
  *
- * @param trackEvent - trackEvent function (MetaMetrics or useAnalytics)
- * @param createEventBuilder - createEventBuilder function (MetricsEventBuilder or AnalyticsEventBuilder)
+ * @param trackEvent - trackEvent function from useAnalytics
+ * @param createEventBuilder - createEventBuilder function from AnalyticsEventBuilder
  * @param properties - Link properties
  */
 export const trackExternalLinkClicked = <TEvent>(
@@ -91,8 +88,8 @@ export const trackExternalLinkClicked = <TEvent>(
  * Track External Link Clicked for block explorer taps.
  * Sends `url_domain` as the URL hostname (not the full path).
  *
- * @param trackEvent - trackEvent function (MetaMetrics or useAnalytics)
- * @param createEventBuilder - createEventBuilder function (MetricsEventBuilder or AnalyticsEventBuilder)
+ * @param trackEvent - trackEvent function from useAnalytics
+ * @param createEventBuilder - createEventBuilder function from AnalyticsEventBuilder
  * @param properties - Block explorer link properties
  */
 export const trackBlockExplorerLinkClicked = <TEvent>(

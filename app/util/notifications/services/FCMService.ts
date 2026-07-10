@@ -98,6 +98,9 @@ async function registerForRemoteMessages() {
 async function processAndHandleNotification(
   payload: FirebaseMessagingTypes.RemoteMessage,
   handler: (notification: INotification) => void | Promise<void>,
+  platformHandler?: (
+    rawPayload: FirebaseMessagingTypes.RemoteMessage,
+  ) => void | Promise<void>,
 ) {
   try {
     const payloadData = payload?.data?.data
@@ -108,6 +111,7 @@ async function processAndHandleNotification(
       : undefined;
 
     if (!data) {
+      await platformHandler?.(payload);
       return;
     }
 
@@ -175,6 +179,9 @@ class FCMService {
    */
   listenToPushNotificationsReceived = async (
     handler: (notification: INotification) => void | Promise<void>,
+    platformHandler?: (
+      rawPayload: FirebaseMessagingTypes.RemoteMessage,
+    ) => void | Promise<void>,
   ): Promise<UnsubscribeFunc | null> => {
     try {
       // We only subscribe to foreground messages, as subscribing to background messages that contain `notification` + `data` payloads have issues
@@ -182,7 +189,7 @@ class FCMService {
       // IOS - requires isHeadless injection and app modification to ship a minimal app when headless (https://rnfirebase.io/messaging/usage#background-application-state).
       // Android - will cause double notifications if a remote message contains both `notification` + `data` payloads
       // Firebase will still send push notifications in background + app kill as there is a `notification` payload in the remote message
-      await this.#registerForegroundMessages(handler);
+      await this.#registerForegroundMessages(handler, platformHandler);
       return this.#hasRegisteredForeground;
     } catch {
       return null;
@@ -197,6 +204,9 @@ class FCMService {
   #hasRegisteredForeground: UnsubscribeFunc | null = null;
   #registerForegroundMessages = async (
     handler: (notification: INotification) => void | Promise<void>,
+    platformHandler?: (
+      rawPayload: FirebaseMessagingTypes.RemoteMessage,
+    ) => void | Promise<void>,
   ) => {
     if (!(await isPushNotificationsEnabled())) {
       return null;
@@ -208,7 +218,7 @@ class FCMService {
 
     try {
       this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
-        processAndHandleNotification(payload, handler);
+        processAndHandleNotification(payload, handler, platformHandler);
       });
     } catch {
       // Do nothing

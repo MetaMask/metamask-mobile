@@ -78,11 +78,13 @@ import {
   CardStateWarning,
   CardStatus,
   CardType,
+  type RegistrationSettingsResponse,
 } from '../../types';
 import type { TokenI } from '../../../Tokens/types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { ToastContext } from '../../../../../component-library/components/Toast';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -93,10 +95,13 @@ import {
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import {
   selectIsCardAuthenticated,
+  selectCardLastUnauthenticatedReason,
   selectCardholderAccounts,
   selectCardUserLocation,
   selectCardHomeDataStatus,
+  selectMoneyAccountVedaTokenConfig,
 } from '../../../../../selectors/cardController';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
@@ -107,7 +112,11 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockNavigationDispatch = jest.fn();
 
-import { useFocusEffect, StackActions } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  StackActions,
+  CommonActions,
+} from '@react-navigation/native';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -124,9 +133,15 @@ jest.mock('@react-navigation/native', () => {
       params: {},
     }),
     StackActions: {
-      replace: jest.fn((routeName) => ({
+      replace: jest.fn((routeName: string) => ({
         type: 'REPLACE',
         routeName,
+      })),
+    },
+    CommonActions: {
+      reset: jest.fn((payload: unknown) => ({
+        type: 'RESET',
+        payload,
       })),
     },
   };
@@ -253,7 +268,15 @@ const mockUseAssetBalances = jest.fn(() =>
 const mockNavigateToTravelPage = jest.fn();
 const mockNavigateToCardTosPage = jest.fn();
 
-const mockUseNavigateToCardPage = jest.fn(() => ({
+interface NavigateToCardPageHookReturn {
+  navigateToTravelPage: jest.Mock;
+  navigateToCardTosPage: jest.Mock;
+}
+
+const mockUseNavigateToCardPage = jest.fn<
+  NavigateToCardPageHookReturn,
+  [unknown, string | undefined]
+>(() => ({
   navigateToTravelPage: mockNavigateToTravelPage,
   navigateToCardTosPage: mockNavigateToCardTosPage,
 }));
@@ -262,9 +285,29 @@ const mockUseSwapBridgeNavigation = jest.fn(() => ({
   goToSwaps: mockGoToSwaps,
 }));
 
+interface RegistrationSettingsHookReturn {
+  data: RegistrationSettingsResponse | null;
+  isLoading: boolean;
+  error: Error | null;
+  fetchData: jest.Mock;
+}
+
 jest.mock('../../hooks/useCardHomeData', () => ({
   __esModule: true,
   useCardHomeData: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCreditBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    wallet: null,
+    creditBalance: '0',
+    creditBalanceNumber: 0,
+    creditCurrency: undefined,
+    creditFiatNumber: undefined,
+    hasCredit: false,
+    isLoading: false,
+  })),
 }));
 
 jest.mock('../../hooks/useCardFreeze', () => ({
@@ -277,7 +320,24 @@ jest.mock('../../hooks/useAssetBalances', () => ({
 }));
 
 jest.mock('../../hooks/useNavigateToCardPage', () => ({
-  useNavigateToCardPage: () => mockUseNavigateToCardPage(),
+  useNavigateToCardPage: (
+    navigation: unknown,
+    cardTermsAndConditionsUrl?: string,
+  ) => mockUseNavigateToCardPage(navigation, cardTermsAndConditionsUrl),
+}));
+
+const mockUseRegistrationSettings = jest.fn<RegistrationSettingsHookReturn, []>(
+  () => ({
+    data: null,
+    isLoading: false,
+    error: null,
+    fetchData: jest.fn(),
+  }),
+);
+
+jest.mock('../../hooks/useRegistrationSettings', () => ({
+  __esModule: true,
+  default: () => mockUseRegistrationSettings(),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -499,6 +559,7 @@ jest.mock('../../../../../core/Engine', () => ({
         getCapabilities: jest.fn().mockReturnValue(null),
         logout: jest.fn().mockResolvedValue(undefined),
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        clearLastUnauthenticatedReason: jest.fn(),
       },
     },
   },
@@ -539,10 +600,22 @@ const mockGetCapabilities = Engine.context.CardController
   .getCapabilities as jest.Mock;
 const mockCardControllerLogout = Engine.context.CardController
   .logout as jest.MockedFunction<typeof Engine.context.CardController.logout>;
+const mockClearLastUnauthenticatedReason = Engine.context.CardController
+  .clearLastUnauthenticatedReason as jest.MockedFunction<
+  typeof Engine.context.CardController.clearLastUnauthenticatedReason
+>;
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
   typeof isSolanaChainId
 >;
+const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
+const mockToastRef = {
+  current: {
+    showToast: mockShowToast,
+    closeToast: mockCloseToast,
+  },
+};
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) => {
@@ -555,6 +628,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_home.error_title': 'Unable to load card',
       'card.card_home.error_description': 'Please try again later',
       'card.card_home.try_again': 'Try again',
+      'card.card_home.onboarding_token_revoked':
+        'We couldn’t continue your Card session. Please log in again.',
       'card.card_home.logout': 'Logout',
       'card.card_home.logout_description': 'Logout of your Card account',
       'card.card_home.logout_confirmation_title': 'Confirm Logout',
@@ -613,6 +688,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Enter your wallet password to view your card PIN.',
       'card.card_home.manage_card_options.cashback_description':
         'Earn on all spending',
+      'card.card_home.manage_card_options.unlink_money_account':
+        'Unlink Money account',
+      'card.card_home.manage_card_options.unlink_money_account_description':
+        'Change your Card funding source',
+      'money.metamask_card.unlink_card_sheet_another_money_account':
+        'another Money account',
       'money.metamask_card.link_title': 'Link MetaMask Card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
@@ -679,9 +760,16 @@ function setupMockSelectors(
     cardholderAccounts: string[];
     selectedAccount: typeof mockSelectedInternalAccount;
     isAuthenticated: boolean;
+    lastUnauthenticatedReason: 'onboarding_token_revoked' | null;
     userLocation: 'us' | 'international';
     isMetalCardCheckoutEnabled: boolean;
     cardHomeDataStatus: 'idle' | 'loading' | 'success' | 'error';
+    primaryMoneyAccount: { address: string } | undefined;
+    vedaConfig: {
+      caipChainId: string;
+      address: string;
+      decimals: number;
+    } | null;
   }>,
 ) {
   const defaults = {
@@ -692,9 +780,12 @@ function setupMockSelectors(
     cardholderAccounts: [mockCurrentAddress],
     selectedAccount: mockSelectedInternalAccount,
     isAuthenticated: false,
+    lastUnauthenticatedReason: null,
     userLocation: 'international' as const,
     isMetalCardCheckoutEnabled: true,
     cardHomeDataStatus: 'success' as const,
+    primaryMoneyAccount: { address: mockCurrentAddress },
+    vedaConfig: null,
   };
 
   const config = { ...defaults, ...overrides };
@@ -708,8 +799,14 @@ function setupMockSelectors(
       return config.depositMinVersion;
     if (selector === selectCardholderAccounts) return config.cardholderAccounts;
     if (selector === selectIsCardAuthenticated) return config.isAuthenticated;
+    if (selector === selectCardLastUnauthenticatedReason)
+      return config.lastUnauthenticatedReason;
     if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectCardHomeDataStatus) return config.cardHomeDataStatus;
+    if (selector === selectPrimaryMoneyAccount)
+      return config.primaryMoneyAccount;
+    if (selector === selectMoneyAccountVedaTokenConfig)
+      return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
 
@@ -994,10 +1091,16 @@ function overrideCardHomeDataBalance(
   }
 }
 
+const CardHomeWithToast = () => (
+  <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+    <CardHome />
+  </ToastContext.Provider>
+);
+
 // Helper: Render component with proper wrapper
 function render() {
   return renderScreen(
-    withCardSDK(CardHome),
+    withCardSDK(CardHomeWithToast),
     {
       name: Routes.CARD.HOME,
     },
@@ -1132,6 +1235,12 @@ describe('CardHome Component', () => {
       navigateToTravelPage: mockNavigateToTravelPage,
       navigateToCardTosPage: mockNavigateToCardTosPage,
     });
+    mockUseRegistrationSettings.mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
 
     mockUseSwapBridgeNavigation.mockReturnValue({
       goToSwaps: mockGoToSwaps,
@@ -1207,6 +1316,39 @@ describe('CardHome Component', () => {
     expect(
       screen.queryByTestId(CardHomeSelectors.CARD_WALLET_ADDRESS),
     ).not.toBeOnTheScreen();
+  });
+
+  it('resets to authentication when onboarding token is revoked', async () => {
+    setupMockSelectors({
+      isAuthenticated: false,
+      lastUnauthenticatedReason: 'onboarding_token_revoked',
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(CommonActions.reset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      });
+    });
+    expect(mockNavigationDispatch).toHaveBeenCalledWith({
+      type: 'RESET',
+      payload: {
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      },
+    });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [
+          {
+            label: strings('card.card_home.onboarding_token_revoked'),
+          },
+        ],
+      }),
+    );
+    expect(mockClearLastUnauthenticatedReason).toHaveBeenCalledTimes(1);
   });
 
   it('renders wallet address on the card image when authenticated', () => {
@@ -1359,6 +1501,212 @@ describe('CardHome Component', () => {
       );
     });
 
+    it('shows the unlink row when the active primary Money Account owns the Money Account spending source', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Unlink Money account')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Change your Card funding source'),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the unlink row when the active primary Money Account does not own the Money Account spending source', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        primaryMoneyAccount: {
+          address: '0x0000000000000000000000000000000000000abc',
+        },
+      });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the unlink row when there is no active primary Money Account', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        primaryMoneyAccount: undefined,
+      });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the unlink row when the Money Account spending source has no wallet address', () => {
+      const moneyAccountTokenWithoutWallet = {
+        ...moneyAccountPriorityToken,
+        walletAddress: undefined,
+      } as unknown as typeof mockPriorityToken;
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountTokenWithoutWallet,
+        allTokens: [moneyAccountTokenWithoutWallet],
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the unlink row for a non-Money Account primary spending source', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: mockPriorityToken,
+        allTokens: [mockPriorityToken],
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the no-other-token unlink sheet when no other delegated token exists', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource: undefined,
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
+    });
+
+    it('opens the other-token unlink sheet when another enabled token exists', () => {
+      const otherDelegatedToken = {
+        ...mockPriorityToken,
+        address: '0x456',
+        symbol: 'USDT',
+        name: 'Tether USD',
+        walletAddress: '0xabc',
+        fundingStatus: FundingStatus.Enabled,
+      };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken, otherDelegatedToken],
+      });
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource: 'USDT',
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
+    });
+
+    it('opens the other-token unlink sheet when another limited token exists', () => {
+      const otherDelegatedToken = {
+        ...mockPriorityToken,
+        address: '0x456',
+        symbol: 'USDT',
+        name: 'Tether USD',
+        walletAddress: '0xabc',
+        fundingStatus: FundingStatus.Limited,
+      };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken, otherDelegatedToken],
+      });
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource: 'USDT',
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
+    });
+
+    it('uses another Money account when the fallback token is also a Money Account', () => {
+      const otherMoneyAccountToken = {
+        ...mockPriorityToken,
+        address: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
+        symbol: 'VEDA',
+        name: 'Veda',
+        caipChainId: 'eip155:143',
+        walletAddress: '0xabc',
+        fundingStatus: FundingStatus.Enabled,
+      };
+      setupMockSelectors({
+        isAuthenticated: true,
+        vedaConfig: {
+          caipChainId: 'eip155:143',
+          address: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
+          decimals: 6,
+        },
+      });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken, otherMoneyAccountToken],
+      });
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource: 'another Money account',
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
+    });
+
     it('navigates to MoneyAddMoneySheet and skips switchToFundingAccountIfNeeded when add funds is pressed', async () => {
       setupLoadCardDataMock({
         priorityToken: moneyAccountPriorityToken,
@@ -1413,7 +1761,110 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('opens mailto link when contact support item is pressed', async () => {
+  it('loads registration settings on Card Home', () => {
+    render();
+
+    expect(mockUseRegistrationSettings).toHaveBeenCalledWith();
+  });
+
+  it('passes dynamic TOS URL to Card navigation actions', () => {
+    const dynamicTosUrl = 'https://docs.baanx.us/metamask/terms.pdf';
+    mockUseRegistrationSettings.mockReturnValue({
+      data: {
+        countries: [],
+        usStates: [],
+        links: {
+          us: {
+            termsAndConditions: dynamicTosUrl,
+            accountOpeningDisclosure: '',
+            noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
+          },
+          intl: {
+            termsAndConditions: '',
+            rightToInformation: '',
+          },
+        },
+        config: {
+          us: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+          intl: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+        },
+      },
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
+    setupMockSelectors({ userLocation: 'us' });
+
+    render();
+
+    expect(mockUseNavigateToCardPage).toHaveBeenCalledWith(
+      expect.any(Object),
+      dynamicTosUrl,
+    );
+  });
+
+  it('opens dynamic support email when contact support item is pressed', async () => {
+    const dynamicSupportEmail = 'us-support@cl-cards.com';
+    mockUseRegistrationSettings.mockReturnValue({
+      data: {
+        countries: [],
+        usStates: [],
+        links: {
+          us: {
+            termsAndConditions: '',
+            accountOpeningDisclosure: '',
+            noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
+          },
+          intl: {
+            termsAndConditions: '',
+            rightToInformation: '',
+          },
+        },
+        config: {
+          us: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: dynamicSupportEmail,
+          },
+          intl: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+        },
+      },
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
+    setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    const contactSupportItem = screen.getByTestId(
+      CardHomeSelectors.CONTACT_SUPPORT_ITEM,
+    );
+    fireEvent.press(contactSupportItem);
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        `mailto:${dynamicSupportEmail}`,
+      );
+    });
+  });
+
+  it('opens fallback support email when contact support item is pressed', async () => {
     setupMockSelectors({ isAuthenticated: true });
     setupLoadCardDataMock({ isAuthenticated: true });
 
@@ -6319,9 +6770,6 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
-      ).toBeOnTheScreen();
-      expect(
         screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
       expect(
@@ -6339,7 +6787,9 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
+        screen.queryByTestId(
+          CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM,
+        ),
       ).not.toBeOnTheScreen();
       expect(
         screen.queryByText(strings('money.metamask_card.link_title')),
@@ -6353,7 +6803,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
+        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
     });
 

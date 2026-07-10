@@ -1,0 +1,15 @@
+export const ActivityScreenSelectorsIDs = {
+  SAFE_AREA_VIEW: 'activity-screen-safe-area-view',
+  HEADER: 'activity-screen-header',
+  BACK_BUTTON: 'activity-screen-back-button',
+  SEARCH_INPUT: 'activity-screen-search-input',
+  NETWORK_FILTER_CHIP: 'activity-screen-network-filter-chip',
+  TYPE_FILTER_CHIP: 'activity-screen-type-filter-chip',
+  TYPE_FILTER_SHEET: 'activity-screen-type-filter-sheet',
+  TYPE_FILTER_OPTION_PREFIX: 'activity-screen-type-filter-option-',
+  PERPS_FILTER_CHIP: 'activity-screen-perps-filter-chip',
+  PERPS_FILTER_SHEET: 'activity-screen-perps-filter-sheet',
+  PERPS_FILTER_OPTION_PREFIX: 'activity-screen-perps-filter-option-',
+  LIST: 'activity-screen-list',
+  EMPTY_STATE: 'activity-screen-empty-state',
+};

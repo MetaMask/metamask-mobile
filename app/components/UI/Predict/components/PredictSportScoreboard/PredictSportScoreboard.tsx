@@ -8,14 +8,12 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useMemo } from 'react';
+import React from 'react';
 import I18n from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
-import { isSoccerLeague } from '../../constants/sports';
-import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
-import { GameUpdate, PredictMarketGame, PredictSportTeam } from '../../types';
-import { parseScore } from '../../utils/gameParser';
+import { PredictMarketGame, PredictSportTeam } from '../../types';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
 import { getSportLiveStatusText, isGameEnded } from '../../utils/scoreboard';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import PulsingLiveDot from '../PulsingLiveDot/PulsingLiveDot';
@@ -29,14 +27,6 @@ export interface PredictSportScoreboardProps {
   /** Renders a denser layout for use inside carousel cards. */
   compact?: boolean;
   testID?: string;
-  /**
-   * Live game update supplied by a parent that already subscribes (e.g. the
-   * market card). When provided (including `null`), the scoreboard uses it
-   * instead of opening its own subscription, avoiding a duplicate WebSocket
-   * connection. When omitted, the scoreboard subscribes itself (e.g. when used
-   * standalone on the game details screen).
-   */
-  gameUpdate?: GameUpdate | null;
 }
 
 /**
@@ -76,65 +66,45 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   game,
   compact = false,
   testID,
-  gameUpdate: externalGameUpdate,
 }) => {
   const config = getLeagueConfig(game.league);
-  // Reuse a parent-provided update when available; otherwise subscribe here.
-  // Passing a null gameId disables the hook so we don't duplicate the parent's
-  // WebSocket subscription and connection-polling interval.
-  const hasExternalUpdate = externalGameUpdate !== undefined;
-  const { gameUpdate: subscribedUpdate } = useLiveGameUpdates(
-    hasExternalUpdate ? null : game.id,
-  );
-  const gameUpdate = hasExternalUpdate ? externalGameUpdate : subscribedUpdate;
 
-  const liveData = useMemo(() => {
-    const liveScore = gameUpdate?.score
-      ? parseScore(gameUpdate.score, game.league)
-      : null;
-
-    return {
-      homeScore: liveScore?.home ?? game.score?.home ?? 0,
-      awayScore: liveScore?.away ?? game.score?.away ?? 0,
-      elapsed: gameUpdate?.elapsed ?? game.elapsed,
-      period: gameUpdate?.period ?? game.period,
-      status: gameUpdate?.status ?? game.status,
-    };
-  }, [game, gameUpdate]);
+  const gameData = {
+    homeScore: game.score?.home ?? 0,
+    awayScore: game.score?.away ?? 0,
+    elapsed: game.elapsed,
+    period: game.period,
+    status: game.status,
+  };
 
   const isEnded = isGameEnded({
-    status: liveData.status,
-    period: liveData.period,
+    status: gameData.status,
+    period: gameData.period,
     endTime: game.endTime,
   });
-  const isScheduled = !isEnded && liveData.status === 'scheduled';
+  const isScheduled = !isEnded && gameData.status === 'scheduled';
   const isLive = !isEnded && !isScheduled;
 
-  const scheduledTime = useMemo(
-    () => formatGameDateTime(game.startTime),
-    [game.startTime],
-  );
+  const scheduledTime = formatGameDateTime(game.startTime);
 
   const statusText = getSportLiveStatusText({
     league: game.league,
-    status: liveData.status,
-    period: liveData.period,
-    elapsed: liveData.elapsed,
+    status: gameData.status,
+    period: gameData.period,
+    elapsed: gameData.elapsed,
     endTime: game.endTime,
   });
 
   const teamLogoSize = compact ? COMPACT_TEAM_LOGO_SIZE : TEAM_LOGO_SIZE;
   const showScores = isLive || isEnded;
 
-  // Team display order is sport-dependent: soccer (and other draw-capable
-  // leagues) show the home team on the left, while US sports (e.g. American
-  // football) follow the away-then-home convention. testIDs stay tied to the
-  // team identity (home/away), not the slot.
-  const isHomeFirst = isSoccerLeague(game.league);
+  // Keep visual order aligned with the parser's score/team normalization.
+  // testIDs stay tied to the team identity (home/away), not the slot.
+  const isHomeFirst = getLeagueTeamOrder(game.league) === 'home-away';
   const leftTeam = isHomeFirst ? game.homeTeam : game.awayTeam;
   const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
-  const leftScore = isHomeFirst ? liveData.homeScore : liveData.awayScore;
-  const rightScore = isHomeFirst ? liveData.awayScore : liveData.homeScore;
+  const leftScore = isHomeFirst ? gameData.homeScore : gameData.awayScore;
+  const rightScore = isHomeFirst ? gameData.awayScore : gameData.homeScore;
   const leftLogoTestID = testID
     ? `${testID}${
         isHomeFirst

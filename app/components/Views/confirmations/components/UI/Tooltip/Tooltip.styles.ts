@@ -33,6 +33,9 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.normal,
     },
+    iconButton: {
+      marginLeft: 4,
+    },
   });
 };
 

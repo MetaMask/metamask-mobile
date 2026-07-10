@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 
 /**
  * Why NavigationService instead of useNavigation():
@@ -18,19 +19,22 @@ import NavigationService from '../../../../core/NavigationService/NavigationServ
  */
 export const useMoneyNavigation = () => {
   const hasSeenOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const isOnboardingEnabled = useSelector(
+    selectMoneyOnboardingStepperAnimationEnabled,
+  );
 
   const redirectToOnboarding = useCallback(() => {
     NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
   }, []);
 
   const redirectToOnboardingIfNeeded = useCallback(() => {
-    if (hasSeenOnboarding) {
+    if (hasSeenOnboarding || !isOnboardingEnabled) {
       return false;
     }
 
     redirectToOnboarding();
     return true;
-  }, [hasSeenOnboarding, redirectToOnboarding]);
+  }, [hasSeenOnboarding, isOnboardingEnabled, redirectToOnboarding]);
 
   const navigateToMoneyHome = useCallback(() => {
     if (redirectToOnboardingIfNeeded()) {

@@ -11,10 +11,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import { renderShortAddress } from '../../../../util/address';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../selectors/tokensController';
 import { selectTickerByChainId } from '../../../../selectors/networkController';
@@ -23,8 +20,9 @@ import {
   getMusdDisplayAmountFromTransactionMeta,
   isIncomingMoneyTransactionMeta,
 } from '../constants/activityStyles';
+import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
-import { moneyFormatFiat } from '../utils/moneyFormatFiat';
+import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import {
   isMusdToken,
   isMusdTokenOnChain,
@@ -32,7 +30,12 @@ import {
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
 import { MONEY_WITHDRAW_TOKEN_SYMBOL } from '../constants/moneyTokens';
-import { isMoneyWithdrawTx } from '../utils/moneyTransactionGuards';
+import {
+  isMoneyWithdrawTx,
+  isPerpsPredictMoneyActivity,
+  isPerpsPredictMoneyWithdraw,
+  perpsPredictServiceFamily,
+} from '../utils/moneyTransactionGuards';
 import type { MoneyActivityTransactionMeta } from '../constants/mockActivityData';
 import {
   classifyMoneyActivity,
@@ -97,7 +100,7 @@ function prettifyFiatProvider(
  * - converted → "{token} → mUSD"
  * - sent      → "mUSD → {token}" (the withdraw destination token)
  * - received  → "From: 0x…" (the sender)
- * - deposited → fiat provider ("Transak"), else the funding token ("mUSD")
+ * - deposited → fiat payment method ("Apple Pay"), else provider ("Transak"), else funding token ("mUSD")
  * - card / added / transferred → the source token symbol, if any
  */
 function deriveSubtitle(
@@ -105,10 +108,22 @@ function deriveSubtitle(
   tx: TransactionMeta,
   sourceTokenSymbol: string | undefined,
   explicitSubtitle: string | undefined,
+  paymentMethodName: string | undefined,
 ): string | undefined {
   if (explicitSubtitle) {
     return explicitSubtitle;
   }
+
+  // Perps/Predict ↔ Money transfers (either direction) name the service account
+  // instead of a token pair / sender.
+  const serviceFamily = perpsPredictServiceFamily(tx);
+  if (serviceFamily === 'perps') {
+    return strings('transaction_details.label.perps_account');
+  }
+  if (serviceFamily === 'predict') {
+    return strings('transaction_details.label.predictions_account');
+  }
+
   switch (kind) {
     case 'converted':
       return sourceTokenSymbol
@@ -121,7 +136,12 @@ function deriveSubtitle(
       const destSymbol =
         sourceTokenSymbol ??
         (isMoneyWithdrawTx(tx) ? MONEY_WITHDRAW_TOKEN_SYMBOL : undefined);
-      return destSymbol ? `${MUSD_TOKEN.symbol} → ${destSymbol}` : undefined;
+      // A plain mUSD send (destination is mUSD too) collapses to just "mUSD",
+      // mirroring the deposit row; only a cross-token withdrawal keeps the
+      // "mUSD → X" pair, where the destination token carries real information.
+      return destSymbol && destSymbol !== MUSD_TOKEN.symbol
+        ? `${MUSD_TOKEN.symbol} → ${destSymbol}`
+        : MUSD_TOKEN.symbol;
     }
     case 'received': {
       const sender = tx.txParams?.from;
@@ -133,6 +153,7 @@ function deriveSubtitle(
     }
     case 'deposited':
       return (
+        paymentMethodName ??
         prettifyFiatProvider(tx.metamaskPay?.fiat?.provider) ??
         sourceTokenSymbol
       );
@@ -162,7 +183,7 @@ export function useMoneyTransactionDisplayInfo(
   _moneyAddress: string | undefined,
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
-  const currentCurrency = useSelector(selectCurrentCurrency);
+  const paymentMethodName = useFiatPaymentMethodName(tx);
   const currencyRates = useSelector(selectCurrencyRates);
   const tokenMarketData = useSelector(selectTokenMarketData);
 
@@ -192,10 +213,11 @@ export function useMoneyTransactionDisplayInfo(
   });
 
   return useMemo(() => {
-    const sourceTokenSymbol =
-      payToken?.symbol ??
-      nativeTicker ??
-      (isMusdToken(payTokenAddress) ? MUSD_TOKEN.symbol : undefined);
+    // mUSD is registered with the uppercase symbol "MUSD"; canonicalise it to
+    // the branded "mUSD" so subtitles never leak the registry casing.
+    const sourceTokenSymbol = isMusdToken(payTokenAddress)
+      ? MUSD_TOKEN.symbol
+      : (payToken?.symbol ?? nativeTicker);
     const kind = classifyMoneyActivity(tx);
     const status = getMoneyActivityStatus(tx);
     const isIncoming = isIncomingMoneyTransactionMeta(tx);
@@ -220,29 +242,46 @@ export function useMoneyTransactionDisplayInfo(
     let fiatAmount = buildMoneyActivityFiatLine(
       tx,
       currencyRates,
-      currentCurrency,
       tokenMarketData,
     );
-    if (!fiatAmount && currentCurrency) {
+    if (!fiatAmount) {
       const rawFiat = Number(tx.metamaskPay?.targetFiat);
       if (!isNaN(rawFiat) && rawFiat > 0) {
-        fiatAmount = `+${moneyFormatFiat(new BigNumber(rawFiat), currentCurrency)}`;
+        fiatAmount = `+${moneyFormatUsd(new BigNumber(rawFiat))}`;
       }
     }
 
     if (status === 'failed') {
       primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
-      if (currentCurrency) {
-        fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatFiat(
-          new BigNumber(0),
-          currentCurrency,
-        )}`;
+      fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatUsd(
+        new BigNumber(0),
+      )}`;
+    }
+
+    // Perps/Predict ↔ Money transfers carry no `requiredAssets` and aren't token
+    // transfers, so neither amount path above resolves. Skip when failed so the
+    // signed-zero amount set above is preserved (as for every other failed row).
+    if (status !== 'failed' && isPerpsPredictMoneyActivity(tx)) {
+      const fiatStr = isPerpsPredictMoneyWithdraw(tx)
+        ? tx.metamaskPay?.targetFiat
+        : tx.metamaskPay?.totalFiat;
+      const fiat = Number(fiatStr);
+      if (!isNaN(fiat) && fiat > 0) {
+        const amount = new BigNumber(fiat);
+        primaryAmount = formatMusdAmount(amount, isIncoming);
+        fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatUsd(amount)}`;
       }
     }
 
     return {
       label: moneyActivityLabel(kind, status),
-      description: deriveSubtitle(kind, tx, sourceTokenSymbol, subtitle),
+      description: deriveSubtitle(
+        kind,
+        tx,
+        sourceTokenSymbol,
+        subtitle,
+        paymentMethodName,
+      ),
       primaryAmount,
       fiatAmount,
       isIncoming,
@@ -252,7 +291,7 @@ export function useMoneyTransactionDisplayInfo(
   }, [
     tx,
     subtitle,
-    currentCurrency,
+    paymentMethodName,
     currencyRates,
     tokenMarketData,
     payToken,

@@ -1,23 +1,30 @@
-import React, { useRef, useEffect, useState } from 'react';
-import {
-  TouchableOpacity,
-  Animated,
-  StyleSheet,
-  type LayoutRectangle,
-} from 'react-native';
 import {
   Box,
   BoxFlexDirection,
-  Text,
-  TextVariant,
   FontWeight,
+  Text,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { brandColor } from '@metamask/design-tokens';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  type LayoutRectangle,
+} from 'react-native';
+import Animated, {
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { strings } from '../../../../../../../../locales/i18n';
-import { useQuickBuyContext } from '../useQuickBuyContext';
-import type { QuickBuyTradeMode } from '../types';
-import { useTheme } from '../../../../../../../util/theme';
 import { playSelection } from '../../../../../../../util/haptics';
+import { useTheme } from '../../../../../../../util/theme';
+import type { QuickBuyTradeMode } from '../types';
+import { useQuickBuyContext } from '../useQuickBuyContext';
 
 const styles = StyleSheet.create({
   // Inner row owns the relative positioning context. It carries no border or
@@ -38,14 +45,24 @@ const styles = StyleSheet.create({
 
 interface QuickBuyTradeModeToggleProps {
   testID?: string;
+  buyOnly?: boolean;
 }
 
 const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   testID = 'quick-buy-trade-mode-toggle',
+  buyOnly = false,
 }) => {
   const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
   const { colors } = useTheme();
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  const buyColor = colors.success.default;
+  const sellColor = brandColor.orange400;
+
+  const slideProgress = useSharedValue(tradeMode === 'sell' ? 1 : 0);
+  const buyWidthSV = useSharedValue(0);
+  const buyXSV = useSharedValue(0);
+  const sellWidthSV = useSharedValue(0);
+
+  const prevTradeModeRef = useRef<QuickBuyTradeMode | null>(null);
   const [buyLayout, setBuyLayout] = useState<LayoutRectangle | null>(null);
   const [sellWidth, setSellWidth] = useState(0);
 
@@ -57,28 +74,68 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   };
 
   useEffect(() => {
-    if (!buyLayout) return;
-    Animated.spring(slideAnim, {
-      toValue: tradeMode === 'buy' ? 0 : buyLayout.width,
-      // Color interpolation (backgroundColor below) is not supported by the
-      // native driver, so the slide must run on the JS driver too.
-      useNativeDriver: false,
-      tension: 180,
-      friction: 20,
-    }).start();
-  }, [tradeMode, buyLayout, slideAnim]);
+    if (buyOnly || !buyLayout) return;
+    const target = tradeMode === 'buy' ? 0 : 1;
+
+    if (prevTradeModeRef.current === null) {
+      slideProgress.value = target;
+      prevTradeModeRef.current = tradeMode;
+      return;
+    }
+
+    if (prevTradeModeRef.current !== tradeMode) {
+      prevTradeModeRef.current = tradeMode;
+      slideProgress.value = withSpring(target, {
+        duration: 150,
+        dampingRatio: 0.75,
+      });
+    }
+  }, [tradeMode, buyLayout, buyOnly, slideProgress]);
+
+  const sliderStyle = useAnimatedStyle(() => {
+    const progress = slideProgress.value;
+    const width = interpolate(
+      progress,
+      [0, 1],
+      [buyWidthSV.value, sellWidthSV.value],
+    );
+
+    return {
+      left: buyXSV.value,
+      width,
+      backgroundColor: interpolateColor(
+        progress,
+        [0, 1],
+        [buyColor, sellColor],
+      ),
+      transform: [{ translateX: progress * buyWidthSV.value }],
+    };
+  }, [buyColor, sellColor]);
 
   const sliderWidth = tradeMode === 'buy' ? (buyLayout?.width ?? 0) : sellWidth;
 
-  // Transition the slider background from green (buy, translateX 0) to red
-  // (sell, translateX = buy button width) as it slides across.
-  const sliderBackgroundColor =
-    buyLayout && buyLayout.width > 0
-      ? slideAnim.interpolate({
-          inputRange: [0, buyLayout.width],
-          outputRange: [colors.success.default, colors.error.default],
-        })
-      : colors.success.default;
+  if (buyOnly) {
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="border border-muted rounded-xl p-1"
+        testID={testID}
+      >
+        <Box
+          twClassName="rounded-lg px-4 py-1"
+          style={{ backgroundColor: buyColor }}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.PrimaryInverse}
+          >
+            {strings('social_leaderboard.quick_buy.buy_label')}
+          </Text>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -88,22 +145,17 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
     >
       <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>
         {buyLayout && sliderWidth > 0 && (
-          <Animated.View
-            style={[
-              styles.slider,
-              {
-                left: buyLayout.x,
-                width: sliderWidth,
-                backgroundColor: sliderBackgroundColor,
-                transform: [{ translateX: slideAnim }],
-              },
-            ]}
-          />
+          <Animated.View style={[styles.slider, sliderStyle]} />
         )}
 
         <TouchableOpacity
           onPress={() => handlePress('buy')}
-          onLayout={(e) => setBuyLayout(e.nativeEvent.layout)}
+          onLayout={(e) => {
+            const layout = e.nativeEvent.layout;
+            setBuyLayout(layout);
+            buyWidthSV.value = layout.width;
+            buyXSV.value = layout.x;
+          }}
           accessibilityRole="button"
           accessibilityState={{ selected: tradeMode === 'buy' }}
           testID="quick-buy-trade-mode-buy"
@@ -128,7 +180,11 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
         <TouchableOpacity
           onPress={() => handlePress('sell')}
           disabled={!hasSellableBalance}
-          onLayout={(e) => setSellWidth(e.nativeEvent.layout.width)}
+          onLayout={(e) => {
+            const width = e.nativeEvent.layout.width;
+            setSellWidth(width);
+            sellWidthSV.value = width;
+          }}
           accessibilityRole="button"
           accessibilityState={{
             selected: tradeMode === 'sell',

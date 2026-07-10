@@ -61,10 +61,13 @@ jobs:
         inputs.runner_provider == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
          'namespace-profile-metamask-android-build') ||
-        (inputs.platform == 'ios' && 'macos-latest' ||
-         (startsWith(github.base_ref, 'release/') &&
+        (inputs.platform == 'ios' &&
+          (startsWith(github.base_ref, 'release/') &&
+            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') ||
+            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]'))) ||
+        (startsWith(github.base_ref, 'release/') &&
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
-          fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]')))
+          fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
       }}
 
     steps:
@@ -238,7 +241,7 @@ jobs:
             echo "WDA prebuilt artifacts found"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "WDA cache miss — prepare-ios-appium-runner will prebuild (parallel with sim boot)"
+            echo "WDA cache miss — prepare-ios-appium-runner will prebuild after sim boot"
           fi
         shell: bash
 
@@ -252,11 +255,19 @@ jobs:
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_BUNDLE_ID: io.metamask.MetaMask
           SKIP_WDA_PREBUILD: ${{ steps.wda-prebuilt.outputs.ready == 'true' && 'true' || 'false' }}
+          IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          IOS_APP_WARM_LAUNCH_SETTLE_MS: '15000'
 
       - name: Resolve Appium test grep pattern
         id: appium-grep
         run: echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
         shell: bash
+
+      - name: Verify Appium runner connectivity (iOS)
+        if: ${{ inputs.platform == 'ios' }}
+        run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
+        env:
+          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
 
       - name: Run Appium smoke tests (Android)
         id: run-tests-android
@@ -280,7 +291,11 @@ jobs:
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
           ANDROID_AVD_NAME: appium_smoke_avd
           ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
-          ANDROID_EMULATOR_CI_CORES: '4'
+          ANDROID_BOOT_TIMEOUT_MS: '300000'
+          ANDROID_EMULATOR_CI_CORES: '8'
+          ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
+          ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
 
       - name: Run Appium smoke tests (iOS)
         id: run-tests-ios
@@ -309,6 +324,8 @@ jobs:
           SKIP_DEVICE_BOOT: 'true'
           SKIP_APP_REINSTALL: 'true'
           USE_PREBUILT_WDA: 'true'
+          IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          IOS_PRE_LAUNCH_SETTLE_MS: '1500'
 
       - name: Upload Playwright HTML report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}

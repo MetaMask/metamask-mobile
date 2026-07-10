@@ -17,6 +17,8 @@ export interface ScrollOptions {
   percent?: number;
   scrollableElement?: PlaywrightElement;
   duration?: number;
+  /** WDIO native scrollIntoView limit; default is 10. */
+  maxScrolls?: number;
 }
 
 /**
@@ -97,6 +99,7 @@ export default class PlaywrightGestures {
    */
   private static async isElementInteractive(
     elem: PlaywrightElement,
+    memo?: { hasClickableAncestor?: boolean },
   ): Promise<boolean> {
     if (!(await elem.isEnabled())) {
       return false;
@@ -111,7 +114,31 @@ export default class PlaywrightGestures {
         elem.getAttribute('clickable'),
         elem.getAttribute('enabled'),
       ]);
-      return clickableAttr !== 'false' && enabledAttr !== 'false';
+      if (enabledAttr === 'false') {
+        return false;
+      }
+      if (clickableAttr !== 'false') {
+        return true;
+      }
+      // RN often attaches testIDs to non-clickable Text/View children whose
+      // touchable ancestor receives the tap (Appium clicks by coordinates), and
+      // whether the child is merged into the touchable's accessibility node is
+      // nondeterministic. A genuinely disabled control has no clickable ancestor.
+      if (memo?.hasClickableAncestor) {
+        return true;
+      }
+      // findElements returns [] for the ancestor axis on UiAutomator2 even when
+      // the ancestor exists, so probe with a scoped findElement and check error.
+      const ancestor = await elem
+        .unwrap()
+        .$('./ancestor::*[@clickable="true"]');
+      const hasClickableAncestor = ancestor.error === undefined;
+      if (hasClickableAncestor && memo) {
+        // The probe costs seconds (full page-source xpath); a positive verdict
+        // is structural and stable for the duration of one interactive wait.
+        memo.hasClickableAncestor = true;
+      }
+      return hasClickableAncestor;
     } catch {
       return true;
     }
@@ -129,9 +156,10 @@ export default class PlaywrightGestures {
     const requiredStableReads = options?.requiredStableReads ?? 6;
     const start = Date.now();
     let consecutiveInteractive = 0;
+    const memo: { hasClickableAncestor?: boolean } = {};
 
     while (Date.now() - start < timeout - interval) {
-      if (await this.isElementInteractive(elem)) {
+      if (await this.isElementInteractive(elem, memo)) {
         consecutiveInteractive += 1;
         if (consecutiveInteractive >= requiredStableReads) {
           return;
@@ -316,6 +344,7 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement,
       duration,
+      maxScrolls = 30,
     } = options || {};
     await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
@@ -325,6 +354,7 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement: scrollableElement?.unwrap(),
       duration,
+      maxScrolls,
     });
   }
 
@@ -502,5 +532,60 @@ export default class PlaywrightGestures {
         // Keyboard may already be hidden
       }
     }
+  }
+
+  /**
+   * Press a return key on the soft keyboard (e.g. 'Next', 'Done', 'Go').
+   * Use when tapOutside cannot dismiss the keyboard (keyboardDismissMode="none")
+   * or when onSubmitEditing must fire to advance the flow.
+   */
+  @boxedStep
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    logger.debug(`Tapping keyboard return key: ${keyName}`);
+
+    if (PlatformDetector.isAndroid()) {
+      try {
+        await drv.execute('mobile: performEditorAction', [
+          { action: keyName.toLowerCase() },
+        ]);
+      } catch {
+        await drv.hideKeyboard();
+      }
+      return;
+    }
+
+    // iOS — tap the keyboard return key directly (separate window from app UI).
+    // e.g. Next: name="Next:" label="next" inside XCUIElementTypeKeyboard
+    const normalized = keyName.toLowerCase();
+    const titleCase = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+
+    // iOS keyboard keys commonly use "Next:" / label "next" — try those first.
+    const locators = [
+      `~${titleCase}:`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND name == '${titleCase}:'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}:']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@label='${normalized}']`,
+      `~${titleCase}`,
+      `~${normalized}`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND label == '${normalized}'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${normalized}']`,
+    ];
+
+    for (const locator of locators) {
+      const button = await drv.$(locator);
+      try {
+        await button.waitForDisplayed({ timeout: 5000 });
+        await button.click();
+        return;
+      } catch {
+        // try next locator variant
+      }
+    }
+
+    throw new Error(`Could not find iOS keyboard key "${keyName}"`);
   }
 }

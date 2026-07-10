@@ -3,7 +3,9 @@ import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
   encapsulated,
+  FrameworkDetector,
   Matchers,
+  PlatformDetector,
   PlaywrightAssertions,
   PlaywrightGestures,
   PlaywrightMatchers,
@@ -24,7 +26,6 @@ import {
 } from '../framework/fixtures/FixtureUtils';
 import TermsOfUseModal from '../page-objects/Onboarding/TermsOfUseModal';
 import CreatePasswordView from '../page-objects/Onboarding/CreatePasswordView';
-import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessView';
 import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
@@ -36,21 +37,167 @@ import ManualBackupStep1View from '../page-objects/Onboarding/ManualBackupStep1V
 import NetworkListModal from '../page-objects/Network/NetworkListModal';
 import { CustomNetworks } from '../resources/networks.e2e';
 import ToastModal from '../page-objects/wallet/ToastModal';
-import { waitForAppReady } from './general.flow';
+import {
+  dismissAndroidSystemOverlaysPlaywright,
+  dismissDeveloperMenuPlaywright,
+  waitForAppReady,
+} from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
-import PlaywrightUtilities from '../framework/PlaywrightUtilities';
+import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import PlaywrightUtilities, {
+  getDriver,
+} from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
-import OnboardingCryptoExperienceQuestionnaireView from '../page-objects/Onboarding/OnboardingCryptoExperienceQuestionnaireView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
+import {
+  isLoginScreenDisplayed,
+  isWalletHomeReadyOnAndroidStable,
+  isWalletHomeReadyOnAppium,
+  isWalletHomeReadyOnIOS,
+} from './wallet-home-readiness';
+
 const logger = createLogger({
   name: 'WalletFlow',
 });
+
+const WALLET_HOME_POLL_INTERVAL_MS = 250;
+
+/**
+ * Waits for the wallet home screen to be ready after login.
+ * On iOS, `wallet-screen` may exist but report `displayed === false` while
+ * child indicators are visible — mirrors Detox `toExist` readiness checks.
+ */
+export const waitForWalletHomePlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(30_000),
+): Promise<void> => {
+  if (PlatformDetector.isAndroid()) {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(WalletView.container),
+      {
+        description: 'Wallet should be visible',
+        timeout,
+      },
+    );
+    return;
+  }
+
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    if (await isWalletHomeReadyOnIOS()) {
+      logger.debug('Wallet home ready on iOS');
+      return;
+    }
+    await sleep(WALLET_HOME_POLL_INTERVAL_MS);
+  }
+
+  throw new Error(
+    `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
+  );
+};
+
+const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
+  if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+    return isWalletHomeReadyOnAndroidStable();
+  }
+  if (!(await isWalletHomeReadyOnAppium())) {
+    return false;
+  }
+  return !(await isLoginScreenDisplayed());
+};
+
+const completeUnlockedWalletHome = async (
+  dismissPostLoginModals: () => Promise<void>,
+): Promise<void> => {
+  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await dismissPostLoginModals();
+};
+
+/**
+ * Opens the account list when nested navigation (e.g. AddressList / AccountDetails)
+ * may have hidden the tab bar or wallet chrome. Backs out until wallet home or
+ * the list is reachable, then taps the identicon if needed.
+ */
+export const ensureAccountListOpenPlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(30_000),
+): Promise<void> => {
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    try {
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        { timeout: 1_500, description: 'Account list' },
+      );
+      return;
+    } catch {
+      // list not visible yet
+    }
+
+    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+      await WalletView.tapIdenticon();
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        {
+          timeout: resolveE2EWaitTimeoutMs(10_000),
+          description: 'Account list should open from wallet home',
+        },
+      );
+      return;
+    }
+
+    try {
+      await getDriver().back();
+    } catch {
+      // ignore transient back failures
+    }
+    await sleep(300);
+  }
+
+  throw new Error(`Account list not open within ${timeout}ms`);
+};
+
+/**
+ * Returns to wallet home from nested account flows (AddressList, AccountDetails,
+ * or an account-list overlay that hides wallet chrome).
+ */
+export const dismissToWalletHomePlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(60_000),
+): Promise<void> => {
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+      return;
+    }
+
+    try {
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        { timeout: 1_500, description: 'Account list overlay' },
+      );
+      await getDriver().back();
+      await sleep(500);
+      continue;
+    } catch {
+      // not showing account list
+    }
+
+    try {
+      await getDriver().back();
+    } catch {
+      // ignore transient back failures
+    }
+    await sleep(300);
+  }
+
+  throw new Error(`Wallet home not reached within ${timeout}ms`);
+};
 
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
@@ -177,6 +324,53 @@ export const closeOnboardingModals = async (
   }
 };
 
+/** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
+
+/**
+ * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
+ * No-op when the app navigates straight to the wallet home (common on some builds/flags).
+ */
+export const dismissOnboardingInterestQuestionnaire =
+  async (): Promise<void> => {
+    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const walletContainer = await asPlaywrightElement(WalletView.container);
+        if (await walletContainer.unwrap().isExisting()) {
+          logger.debug(
+            'Wallet home already visible; skipping interest questionnaire',
+          );
+          return;
+        }
+
+        const skipButton = await asPlaywrightElement(
+          OnboardingInterestQuestionnaireView.skipButton,
+        );
+        if (await skipButton.unwrap().isExisting()) {
+          await PlaywrightGestures.waitAndTap(skipButton, {
+            timeout: 5000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+          await skipButton
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 5000 });
+          return;
+        }
+      } catch {
+        // Stale element / screen transition while the next route loads.
+      }
+      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
+    }
+
+    logger.debug(
+      'Onboarding Interest Questionnaire not shown within poll window; continuing',
+    );
+  };
+
 /**
  * Imports a wallet using a secret recovery phrase during the onboarding process.
  *
@@ -186,6 +380,7 @@ export const closeOnboardingModals = async (
  * @param {string} [options.seedPhrase] - The secret recovery phrase to import the wallet. Defaults to a valid account's seed phrase.
  * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
+ * @param {boolean} [options.optInToMarketing=false] - Whether to opt in to marketing consent at Opt-in Metrics.
  * @param {boolean} [options.fromResetWallet=false] - Whether the import is from a reset wallet flow. Defaults to false.
  * @returns {Promise<void>} Resolves when the wallet import process is complete.
  */
@@ -193,11 +388,13 @@ export const importWalletWithRecoveryPhrase = async ({
   seedPhrase,
   password,
   optInToMetrics = true,
+  optInToMarketing = false,
   fromResetWallet = false,
 }: {
   seedPhrase?: string;
   password?: string;
   optInToMetrics?: boolean;
+  optInToMarketing?: boolean;
   fromResetWallet?: boolean;
 }): Promise<void> => {
   // tap on import seed phrase button
@@ -237,17 +434,20 @@ export const importWalletWithRecoveryPhrase = async ({
       await MetaMetricsOptInView.tapMetricsCheckbox();
     }
 
+    if (optInToMarketing && optInToMetrics) {
+      await MetaMetricsOptInView.tapMarketingCheckbox();
+    }
+
     await MetaMetricsOptInView.tapAgreeButton();
   }
   if (optInToMetrics) {
-    await OnboardingInterestQuestionnaireView.tapContinueButton();
-    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
+    await dismissOnboardingInterestQuestionnaire();
+    await Assertions.expectElementToBeVisible(WalletView.container, {
+      description: 'Wallet home should be visible after onboarding completion',
+      timeout: 15000,
+    });
   }
   //'Should dismiss Enable device Notifications checks alert'
-  await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-    description: 'Onboarding Success View should be visible',
-  });
-  await OnboardingSuccessView.tapDone();
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -314,10 +514,15 @@ export const dismissProtectYourWalletModal = async (): Promise<void> => {
  * @async
  * @param {Object} [options={}] - Configuration options for wallet creation.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics analytics.
+ * @param {boolean} [options.optInToMarketing=false] - Whether to opt in to marketing consent at Opt-in Metrics.
  * @returns {Promise<void>} Resolves when the wallet creation flow is complete.
  */
 export const CreateNewWallet = async ({
   optInToMetrics = true,
+  optInToMarketing = false,
+}: {
+  optInToMetrics?: boolean;
+  optInToMarketing?: boolean;
 } = {}): Promise<void> => {
   //'should create new wallet'
   await OnboardingView.tapCreateWallet();
@@ -351,18 +556,21 @@ export const CreateNewWallet = async ({
     await MetaMetricsOptInView.tapMetricsCheckbox();
   }
 
+  if (optInToMarketing && optInToMetrics) {
+    await MetaMetricsOptInView.tapMarketingCheckbox();
+  }
+
   await MetaMetricsOptInView.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   if (optInToMetrics) {
-    await OnboardingInterestQuestionnaireView.tapContinueButton();
-    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
+    await dismissOnboardingInterestQuestionnaire();
+    await Assertions.expectElementToBeVisible(WalletView.container, {
+      description: 'Wallet home should be visible after onboarding completion',
+      timeout: 15000,
+    });
   }
 
-  await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-    description: 'Onboarding Success View should be visible',
-  });
-  await OnboardingSuccessView.tapDone();
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
@@ -457,24 +665,46 @@ export const loginToApp = async (password?: string): Promise<void> => {
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
     try {
-      const btn = await asPlaywrightElement(
+      const sheetTitle = await asPlaywrightElement(
         encapsulated({
           detox: () =>
-            Matchers.getElementByID(
-              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
-            ),
+            Matchers.getElementByID(ExistingUserSheetSelectorsIDs.TITLE),
           appium: () =>
-            PlaywrightMatchers.getElementById(
-              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
-              { exact: true },
-            ),
+            PlaywrightMatchers.getElementByText('Never miss a move', true),
         }),
       );
-      const isDisplayed = await btn.unwrap().isDisplayed();
-      if (isDisplayed) {
-        await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
-        logger.debug('Dismissed push notification existing user sheet');
+      await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
+        timeout: 5_000,
+        description: 'Push notification existing user sheet',
+      });
+
+      try {
+        const notNowById = await asPlaywrightElement(
+          encapsulated({
+            detox: () =>
+              Matchers.getElementByID(
+                ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
+              ),
+            appium: () =>
+              PlaywrightMatchers.getElementById(
+                ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
+                { exact: true },
+              ),
+          }),
+        );
+        await PlaywrightGestures.waitAndTap(notNowById, { timeout: 5_000 });
+      } catch {
+        const notNowByText = await asPlaywrightElement(
+          PlaywrightMatchers.getElementByText('Not now', true),
+        );
+        await PlaywrightGestures.waitAndTap(notNowByText, { timeout: 5_000 });
       }
+
+      await PlaywrightAssertions.expectElementToNotBeVisible(sheetTitle, {
+        timeout: 10_000,
+        description: 'Push notification existing user sheet should close',
+      });
+      logger.debug('Dismissed push notification existing user sheet');
     } catch {
       // Sheet not present — no-op
     }
@@ -499,29 +729,85 @@ export const loginToAppPlaywright = async (
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login view container',
-      timeout: 45_000,
-    },
-  );
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.passwordInput),
-    {
-      description: 'Login password input',
-      timeout: 15_000,
-    },
-  );
+  const dismissPostLoginModals = async (): Promise<void> => {
+    await PlaywrightUtilities.wait(500);
+    await dismissPushNotificationExistingUserSheet();
+    await dismissExperienceEnhancerModal();
+  };
+
+  await dismissAndroidSystemOverlaysPlaywright();
+
+  if (await isUnlockedWalletHomeReady()) {
+    await completeUnlockedWalletHome(dismissPostLoginModals);
+    return;
+  }
+
+  const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
+
+  if (readyScreen === 'wallet') {
+    await completeUnlockedWalletHome(dismissPostLoginModals);
+    return;
+  }
+
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.passwordInput),
+      {
+        description: 'Login password input',
+        timeout: 3_000,
+      },
+    );
+  } catch {
+    // Dev menu can overlay login on local builds — dismiss and retry once.
+    await dismissDeveloperMenuPlaywright();
+    await dismissAndroidSystemOverlaysPlaywright();
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.passwordInput),
+      {
+        description: 'Login password input',
+        timeout: 5_000,
+      },
+    );
+  }
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
   await LoginView.enterPassword(password ?? '');
   await LoginView.tapLoginButton();
 
-  await PlaywrightUtilities.wait(5000);
-  await dismissPushNotificationExistingUserSheet();
-  await dismissExperienceEnhancerModal();
+  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await dismissPostLoginModals();
+};
+
+/**
+ * Logs in (Appium), waits for the wallet, and opens the account list bottom sheet.
+ */
+export const loginAndOpenAccountList = async (
+  options: {
+    scenarioType?: string;
+    dismissModals?: boolean;
+    walletTimeout?: number;
+    accountListDescription?: string;
+  } = {},
+): Promise<void> => {
+  const {
+    walletTimeout = 15_000,
+    accountListDescription = 'Account list should be visible',
+    ...loginOptions
+  } = options;
+
+  await loginToAppPlaywright(loginOptions);
+
+  await waitForWalletHomePlaywright(walletTimeout);
+
+  await WalletView.tapIdenticon();
+
+  await Assertions.expectElementToBeVisible(
+    AccountListBottomSheet.accountList,
+    {
+      description: accountListDescription,
+    },
+  );
 };
 
 /**
@@ -559,93 +845,6 @@ export const selectAccountByDevice = async (
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
 };
 
-/** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
-const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
-const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
-
-/**
- * Advances past the optional crypto experience questionnaire (Playwright / Appium only).
- * No-op when the screen is not shown.
- */
-export const dismissOnboardingCryptoExperienceQuestionnaire =
-  async (): Promise<void> => {
-    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
-
-    while (Date.now() < deadline) {
-      try {
-        const successDoneButton = await asPlaywrightElement(
-          OnboardingSuccessView.doneButton,
-        );
-        if (await successDoneButton.unwrap().isExisting()) {
-          return;
-        }
-
-        const continueButton = await asPlaywrightElement(
-          OnboardingCryptoExperienceQuestionnaireView.continueButton,
-        );
-        if (await continueButton.unwrap().isExisting()) {
-          await PlaywrightGestures.waitAndTap(continueButton, {
-            timeout: 10_000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
-          await continueButton
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 10_000 });
-          return;
-        }
-      } catch {
-        // Stale element / screen transition while the next route loads.
-      }
-      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
-    }
-  };
-
-/**
- * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
- * No-op when the app navigates straight to onboarding success (common on some builds/flags).
- */
-export const dismissOnboardingInterestQuestionnaire =
-  async (): Promise<void> => {
-    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
-
-    while (Date.now() < deadline) {
-      try {
-        const successDoneButton = await asPlaywrightElement(
-          OnboardingSuccessView.doneButton,
-        );
-        if (await successDoneButton.unwrap().isExisting()) {
-          logger.debug(
-            'Onboarding success already visible; skipping interest questionnaire',
-          );
-          return;
-        }
-
-        const continueButton = await asPlaywrightElement(
-          OnboardingInterestQuestionnaireView.continueButton,
-        );
-        if (await continueButton.unwrap().isExisting()) {
-          await PlaywrightGestures.waitAndTap(continueButton, {
-            timeout: 5000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
-          await continueButton
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 5000 });
-          return;
-        }
-      } catch {
-        // Stale element / screen transition while the next route loads.
-      }
-      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
-    }
-
-    logger.debug(
-      'Onboarding Interest Questionnaire not shown within poll window; continuing',
-    );
-  };
-
 const PREDICT_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
 
 /**
@@ -681,21 +880,64 @@ export const resolvePredictGtmOnboardingModalEnabled = async (
  * @function dismisspredictionsModalPlaywright
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
-export const dismisspredictionsModalPlaywright = async (
-  maxRetries = 2,
-): Promise<void> => {
+const tryDismissPredictionsModalPlaywright = async (
+  timeout = 3000,
+): Promise<boolean> => {
   try {
     const btn = await asPlaywrightElement(PredictModalView.notNowButton);
     await PlaywrightGestures.waitAndTap(btn, {
-      timeout: 3000,
+      timeout,
       checkForDisplayed: true,
       checkForEnabled: true,
     });
     await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 3000 });
-    return;
+    return true;
   } catch {
+    return false;
+  }
+};
+
+export const dismisspredictionsModalPlaywright = async (
+  maxRetries = 2,
+): Promise<void> => {
+  const dismissed = await tryDismissPredictionsModalPlaywright();
+  if (!dismissed) {
     logger.error(`Predict modal not dismissed after ${maxRetries} attempts`);
   }
+};
+
+const startPredictionsModalWatcher = (intervalMs = 1000): (() => void) => {
+  let stopped = false;
+  let inFlight = false;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const tick = async () => {
+    if (stopped || inFlight) {
+      if (!stopped) {
+        timeoutId = setTimeout(tick, intervalMs);
+      }
+      return;
+    }
+
+    inFlight = true;
+    try {
+      await tryDismissPredictionsModalPlaywright(1000);
+    } finally {
+      inFlight = false;
+      if (!stopped) {
+        timeoutId = setTimeout(tick, intervalMs);
+      }
+    }
+  };
+
+  timeoutId = setTimeout(tick, 0);
+
+  return () => {
+    stopped = true;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
 };
 
 /**
@@ -737,12 +979,6 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
-  await dismissOnboardingCryptoExperienceQuestionnaire();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(OnboardingSuccessView.doneButton),
-    { timeout: 30_000 },
-  );
-  await OnboardingSuccessView.tapDone();
   const productionFeatureFlags = await fetchProductionFeatureFlags(
     'main',
     testEnvironment,
@@ -756,9 +992,14 @@ export const onboardingFlowImportSRPPlaywright = async (
     'predictGtmOnboardingModalEnabled',
     predictGtmOnboardingModalEnabled,
   );
-  await dismisspredictionsModalPlaywright();
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(WalletView.container),
-  );
+  const stopPredictionsModalWatcher = startPredictionsModalWatcher();
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(WalletView.container),
+    );
+    await tryDismissPredictionsModalPlaywright();
+  } finally {
+    stopPredictionsModalWatcher();
+  }
 };

@@ -44,4 +44,15 @@ export const SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappi
       EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_SUBMITTED,
       EVENT_NAME.SOCIAL_QUICK_BUY_TRADE_COMPLETED,
     ],
+    // Only applies to Token Details / Market Insights flows — not Explore
+    excludeWhenPropertiesMatch: {
+      source: [
+        'explore_search',
+        'explore_crypto',
+        'explore_now',
+        'explore_rwas',
+        'explore_trending',
+        'explore_stocks',
+      ] as const,
+    },
   };

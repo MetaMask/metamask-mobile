@@ -46,7 +46,6 @@ describe('sendQrHardwareErrorAnalytics', () => {
     addSensitiveProperties: jest.fn(),
     removeProperties: jest.fn(),
     removeSensitiveProperties: jest.fn(),
-    setSaveDataRecording: jest.fn(),
     build: mockBuild,
   } as unknown as AnalyticsBuilder;
   const mockCreateEventBuilder = jest.fn(() => mockBuilder);

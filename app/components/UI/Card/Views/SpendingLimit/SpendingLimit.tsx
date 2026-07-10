@@ -108,6 +108,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     limitType,
     customLimit,
     isLoading,
+    isUiInteractionLocked,
     handleAccountSelect,
     handleOtherSelect,
     handleLimitSelect,
@@ -129,14 +130,14 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 
-  const isLoadingRef = useRef(isLoading);
+  const isUiInteractionLockedRef = useRef(isUiInteractionLocked);
   useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
+    isUiInteractionLockedRef.current = isUiInteractionLocked;
+  }, [isUiInteractionLocked]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isLoadingRef.current) return;
+      if (!isUiInteractionLockedRef.current) return;
       e.preventDefault();
     });
     return unsubscribe;

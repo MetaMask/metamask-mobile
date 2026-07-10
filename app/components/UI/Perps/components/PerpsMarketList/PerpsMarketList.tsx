@@ -54,7 +54,10 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     ({ item }: { item: PerpsMarketData }) => (
       <PerpsMarketRowItem
         market={item}
-        onPress={() => onMarketPress(item)}
+        // Pass the stable callback directly; PerpsMarketRowItem invokes it with
+        // its own market. A per-row inline closure would change every render and
+        // defeat React.memo on the row.
+        onPress={onMarketPress}
         iconSize={iconSize}
         displayMetric={sortBy}
         showBadge={showBadge}
@@ -80,8 +83,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
 
   return (
     <FlashList
-      key={filterKey}
       data={markets}
+      extraData={filterKey}
       renderItem={renderItem}
       keyExtractor={(item: PerpsMarketData) => item.symbol}
       contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
@@ -89,6 +92,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       ListHeaderComponent={ListHeaderComponent}
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       removeClippedSubviews
+      showsVerticalScrollIndicator={false}
       testID={testID}
     />
   );

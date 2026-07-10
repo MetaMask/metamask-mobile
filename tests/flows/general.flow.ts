@@ -1,6 +1,7 @@
 import { createLogger } from '../framework/logger';
 import Assertions from '../framework/Assertions';
 import {
+  FrameworkDetector,
   Gestures,
   PlaywrightAssertions,
   PlaywrightGestures,
@@ -9,11 +10,22 @@ import {
 import Matchers from '../framework/Matchers';
 import Utilities, { sleep } from '../framework/Utilities';
 import LoginView from '../page-objects/wallet/LoginView';
+import WalletView from '../page-objects/wallet/WalletView';
 import { PlatformDetector } from '../framework/PlatformLocator';
+import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import {
+  isLoginScreenDisplayed,
+  isWalletHomeReadyOnAndroidStable,
+  isWalletHomeReadyOnIOS,
+} from './wallet-home-readiness';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { execSync } from 'node:child_process';
 
 const logger = createLogger({
   name: 'GeneralFlow',
 });
+
+const DEV_MENU_PROBE_TIMEOUT_MS = 800;
 
 /**
  * Dismisses development build screens.
@@ -85,12 +97,21 @@ export const dismissDevelopmentServerPickerPlaywright =
     const serverUrl = getMetroServerUrl();
 
     try {
-      const devServerRow = await PlaywrightMatchers.getElementByText(serverUrl);
-      await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
-        timeout: 2000,
-        description: 'Dev Server Row should be visible',
-      });
-      await PlaywrightGestures.waitAndTap(devServerRow);
+      const end = Date.now() + 8000;
+      while (Date.now() < end) {
+        try {
+          const devServerRow =
+            await PlaywrightMatchers.getElementByText(serverUrl);
+          await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
+            timeout: 1500,
+            description: 'Dev Server Row should be visible',
+          });
+          await PlaywrightGestures.waitAndTap(devServerRow);
+          return;
+        } catch {
+          await sleep(500);
+        }
+      }
     } catch (error) {
       logger.debug(
         `Playwright development server picker was not dismissed (best effort): ${
@@ -106,12 +127,12 @@ const closeDeveloperMenuPlaywright = async (): Promise<void> => {
       exact: true,
     });
     await PlaywrightAssertions.expectElementToBeVisible(closeButton, {
-      timeout: 2000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Close Button should be visible',
     });
     await PlaywrightGestures.waitAndTap(closeButton);
     await PlaywrightAssertions.expectElementToNotBeVisible(closeButton, {
-      timeout: 5000,
+      timeout: 2000,
       description: 'Dev Menu Close Button should not be visible',
     });
     return;
@@ -128,12 +149,12 @@ const closeDeveloperMenuPlaywright = async (): Promise<void> => {
   try {
     const closeButton = await PlaywrightMatchers.getElementByText('Close');
     await PlaywrightAssertions.expectElementToBeVisible(closeButton, {
-      timeout: 2000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Close Button should be visible',
     });
     await PlaywrightGestures.waitAndTap(closeButton);
     await PlaywrightAssertions.expectElementToNotBeVisible(closeButton, {
-      timeout: 5000,
+      timeout: 2000,
       description: 'Dev Menu Close Button should not be visible',
     });
     return;
@@ -146,20 +167,6 @@ const closeDeveloperMenuPlaywright = async (): Promise<void> => {
       }`,
     );
   }
-
-  if (!PlatformDetector.isAndroid()) {
-    return;
-  }
-
-  try {
-    await globalThis.driver?.back();
-  } catch (backError) {
-    logger.debug(
-      `Playwright developer menu Android back dismissal failed: ${
-        backError instanceof Error ? backError.message : String(backError)
-      }`,
-    );
-  }
 };
 
 const dismissDeveloperMenuOnboardingPlaywright = async (): Promise<void> => {
@@ -167,7 +174,7 @@ const dismissDeveloperMenuOnboardingPlaywright = async (): Promise<void> => {
     const continueButton =
       await PlaywrightMatchers.getElementByText('Continue');
     await PlaywrightAssertions.expectElementToBeVisible(continueButton, {
-      timeout: 5000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Continue Button should be visible',
     });
 
@@ -191,6 +198,36 @@ export const dismissDeveloperMenuPlaywright = async (): Promise<void> => {
 };
 
 /**
+ * Collapses the Android notification shade / Quick Settings panel.
+ * Accidental status-bar swipes during launch or gestures can leave the shade
+ * open and block all in-app interactions.
+ */
+export const dismissAndroidSystemOverlaysPlaywright =
+  async (): Promise<void> => {
+    if (!PlatformDetector.isAndroid()) {
+      return;
+    }
+
+    const serial = process.env.ANDROID_DEVICE_UDID?.trim();
+    const adbFlag = serial ? `-s ${serial}` : '';
+
+    try {
+      execSync(`adb ${adbFlag} shell cmd statusbar collapse`, {
+        stdio: 'ignore',
+      });
+      logger.debug('Collapsed Android status bar via adb shell');
+    } catch (error) {
+      logger.debug(
+        `statusbar collapse failed (best effort): ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  };
+
+export type AppReadyScreen = 'login' | 'wallet';
+
+/**
  * Waits for app initialization and rehydration to complete.
  * This ensures the app is in a stable state before proceeding with tests.
  * Handles the case where React Native reload triggers state rehydration that may
@@ -199,48 +236,83 @@ export const dismissDeveloperMenuPlaywright = async (): Promise<void> => {
  * @async
  * @function waitForAppReady
  * @param {number} timeout - Maximum time to wait in milliseconds (default: 20000)
- * @returns {Promise<void>} Resolves when app is ready
+ * @returns {Promise<AppReadyScreen>} Which screen the app stabilized on
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
-  timeout: number = 60000,
-): Promise<void> => {
+  timeout: number = resolveE2EWaitTimeoutMs(60_000),
+): Promise<AppReadyScreen> => {
   const startTime = Date.now();
+  const deadline = startTime + timeout;
+  const pollIntervalMs = FrameworkDetector.isAppium() ? 500 : 2000;
 
-  logger.debug('Waiting for app to complete rehydration and stabilize...');
+  logger.debug('Waiting for app to reach login or wallet home...');
 
-  try {
-    // Initial wait for app to finish launching and start rehydration
-    await sleep(1000);
-    await Utilities.executeWithRetry(
-      async () => {
+  while (Date.now() < deadline) {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      if (await isWalletHomeReadyOnIOS()) {
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
+        );
+        return 'wallet';
+      }
+    } else if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+      // Android Appium: probe login before wallet-screen. The wallet container
+      // may exist in the native tree while the lock screen is showing.
+      if (await isLoginScreenDisplayed()) {
+        await sleep(500);
+        if (await isLoginScreenDisplayed()) {
+          logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+          return 'login';
+        }
+        // Login flickered during rehydration — skip wallet probe this iteration.
+        await sleep(pollIntervalMs);
+        continue;
+      }
+      if (await isWalletHomeReadyOnAndroidStable()) {
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
+        );
+        return 'wallet';
+      }
+    } else {
+      try {
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet home should be visible',
+          timeout: 3000,
+        });
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
+        );
+        return 'wallet';
+      } catch {
+        // Not on wallet yet.
+      }
+    }
+
+    if (!(FrameworkDetector.isAppium() && PlatformDetector.isAndroid())) {
+      try {
         await Assertions.expectElementToBeVisible(LoginView.container, {
           description: 'Login view should be stable',
           timeout: 3000,
         });
-
-        // Verify it stays visible (not flickering during rehydration)
-        await sleep(1500);
-
+        await sleep(500);
         await Assertions.expectElementToBeVisible(LoginView.container, {
           description: 'Login view should remain visible',
-          timeout: 2000,
+          timeout: 1500,
         });
-      },
-      {
-        timeout,
-        interval: 2000,
-        description:
-          'wait for app to complete rehydration and stabilize on login screen',
-      },
-    );
+        logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+        return 'login';
+      } catch {
+        // Still booting — keep polling.
+      }
+    }
 
-    logger.debug(`App ready after ${Date.now() - startTime}ms`);
-  } catch (error) {
-    logger.error(`App failed to stabilize within ${timeout}ms`, error);
-    throw new Error(
-      `App did not stabilize on login screen within ${timeout}ms. ` +
-        `This may indicate rehydration issues or state corruption.`,
-    );
+    await sleep(pollIntervalMs);
   }
+
+  throw new Error(
+    `App did not reach login or wallet home within ${timeout}ms. ` +
+      `This may indicate rehydration issues or state corruption.`,
+  );
 };

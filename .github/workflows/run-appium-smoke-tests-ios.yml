@@ -44,7 +44,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3, 4]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -52,7 +52,78 @@ jobs:
       platform: ios
       test_suite_tag: SmokeAccounts
       split_number: ${{ matrix.split }}
+      total_splits: 4
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
+
+  appium-perps-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokePerps'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-perps-ios-smoke
+      platform: ios
+      test_suite_tag: SmokePerps
+      split_number: ${{ matrix.split }}
       total_splits: 2
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
+
+  appium-predictions-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokePredictions'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2, 3]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-predictions-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: SmokePredictions
+      split_number: ${{ matrix.split }}
+      total_splits: 3
+      test-timeout-minutes: 60
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
+
+  appium-seedless-onboarding-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeSeedlessOnboarding'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-seedless-onboarding-ios-smoke-${{ matrix.split }}
+      platform: ios
+      test_suite_tag: SmokeSeedlessOnboarding
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 60
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}

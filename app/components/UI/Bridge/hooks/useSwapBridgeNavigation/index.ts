@@ -7,6 +7,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
   getNativeAssetForChainId,
+  isNativeAddress,
   isNonEvmChainId,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
@@ -42,6 +43,18 @@ import { areAddressesEqual } from '../../../../../util/address';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
+import {
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_BRIDGE_TOKEN,
+} from '../../../../../enablement/assets/arc';
+
+/**
+ * Allows to manually set the default Swap token when clicking on the Swap CTA from
+ * native token page. If unset, `getNativeAssetForChainId` of bridge-controller is used.
+ */
+const NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN: { [key: string]: BridgeToken } = {
+  [ARC_HEX_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
+};
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -64,6 +77,7 @@ export interface BridgeRouteParams {
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
   scrollToTopOnNav?: boolean;
+  autoFocusSourceAmountInput?: boolean;
   /**
    * Homepage / explicit flow `active_ab_tests` carried on the route and bound
    * to transactions when the user submits (not stored in Redux).
@@ -250,6 +264,15 @@ export const useSwapBridgeNavigation = ({
         ? candidateSourceToken
         : undefined;
 
+      // Doing this manual override last to ensure it is not overriden by the previous overrides.
+      if (
+        isNativeAddress(sourceToken?.address) &&
+        NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN[effectiveSourceChainId]
+      ) {
+        sourceToken =
+          NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN[effectiveSourceChainId];
+      }
+
       if (!sourceToken) {
         // fallback to ETH on mainnet
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
@@ -312,12 +335,19 @@ export const useSwapBridgeNavigation = ({
         Engine.context.BridgeController.setLocation(mappedLocation);
       }
 
+      const shouldAutoFocusSourceAmountInput = Boolean(
+        effectiveSourceTokenBase || effectiveDestTokenBase,
+      );
+
       const params: BridgeRouteParams = {
         sourceToken,
         sourcePage,
         bridgeViewMode,
         location: mappedLocation,
         ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
+        ...(shouldAutoFocusSourceAmountInput && {
+          autoFocusSourceAmountInput: true,
+        }),
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 

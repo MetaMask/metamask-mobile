@@ -13,7 +13,7 @@ describe('onChainAnalyticProperties', () => {
 
   it('returns undefined if notification is on-chain but has no chain_id', () => {
     const notification = {
-      notification_type: 'on-chain',
+      notification_type: 'wallet_activity',
       payload: {},
     } as unknown as INotification;
     expect(onChainAnalyticProperties(notification)).toBeUndefined();
@@ -21,7 +21,7 @@ describe('onChainAnalyticProperties', () => {
 
   it('returns chain_id if notification is on-chain and has chain_id', () => {
     const notification = {
-      notification_type: 'on-chain',
+      notification_type: 'wallet_activity',
       payload: {
         chain_id: '1',
       },

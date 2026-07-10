@@ -1,12 +1,25 @@
-import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ActivityIndicator, FlatList, Switch, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   useNavigation,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -36,18 +49,27 @@ import {
   ManagePriceAlertsTestIds,
   PriceAlert,
   PriceAlertRouteParams,
+  PriceAlertAnalytics,
 } from '../../constants';
-import { fetchAlerts, deleteAlert, updateAlert } from '../../api';
+import {
+  fetchAlerts,
+  deleteAlert,
+  updateAlert,
+  priceAlertsQueryKey,
+} from '../../api';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
-const priceAlertsQueryKey = (assetId: string) => ['priceAlerts', assetId];
+const styles = StyleSheet.create({
+  switchDisabled: { opacity: 0.5 },
+});
 
 const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const { colors, brandColors } = useTheme();
   const queryClient = useQueryClient();
   const { toastRef } = useContext(ToastContext);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -57,8 +79,18 @@ const ManagePriceAlertsView: React.FC = () => {
     >();
   const { symbol, ticker, currentPrice, currentCurrency, assetId } =
     route.params;
+  const displayTicker = ticker || symbol;
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasResolvedInitialFetch = useRef(false);
+  const [deletingIds, setDeletingIds] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  const [togglingIds, setTogglingIds] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
+  const inFlightDeletes = useRef(new Set<string>());
+  const inFlightToggles = useRef(new Set<string>());
 
   const {
     data: alerts = [],
@@ -81,7 +113,16 @@ const ManagePriceAlertsView: React.FC = () => {
       return;
     }
     hasResolvedInitialFetch.current = true;
-    if (isError || alerts.length === 0) {
+    if (isError) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Danger,
+        iconColor: colors.error.default,
+        labelOptions: [{ label: strings('price_alerts.fetch_error') }],
+        hasNoTimeout: false,
+      });
+      navigation.goBack();
+    } else if (alerts.length === 0) {
       navigation.replace(Routes.CREATE_PRICE_ALERT, {
         symbol,
         ticker,
@@ -100,43 +141,72 @@ const ManagePriceAlertsView: React.FC = () => {
     currentPrice,
     currentCurrency,
     assetId,
+    toastRef,
+    colors,
   ]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleAddAlert = useCallback(() => {
-    navigation.navigate(Routes.CREATE_PRICE_ALERT, {
+  const handleNavigateToCreate = useCallback(
+    (editingAlert?: PriceAlert) => {
+      navigation.navigate(Routes.CREATE_PRICE_ALERT, {
+        symbol,
+        ticker,
+        currentPrice,
+        currentCurrency,
+        assetId,
+        fromManage: true,
+        existingThresholds: alerts.map((a) => a.threshold),
+        editingAlert,
+      });
+    },
+    [
+      navigation,
       symbol,
       ticker,
       currentPrice,
       currentCurrency,
       assetId,
-      fromManage: true,
-      existingThresholds: alerts.map((a) => a.threshold),
-    });
-  }, [
-    navigation,
-    symbol,
-    ticker,
-    currentPrice,
-    currentCurrency,
-    assetId,
-    alerts,
-  ]);
+      alerts,
+    ],
+  );
 
   const handleDeleteAlert = useCallback(
     async (id: string) => {
+      if (inFlightDeletes.current.has(id)) return;
+      inFlightDeletes.current.add(id);
+      setDeletingIds((prev) => new Set(prev).add(id));
+
       const queryKey = priceAlertsQueryKey(assetId);
       const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
-      const next = previous.filter((a) => a.id !== id);
-      const isEmpty = next.length === 0;
-      queryClient.setQueryData(queryKey, next);
 
       try {
         const response = await deleteAlert(id);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const deleted = previous.find((a) => a.id === id);
+        if (deleted) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+            )
+              .addProperties({
+                interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
+                asset_id: assetId,
+                token_symbol: displayTicker,
+                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+                alert_value: deleted.threshold,
+                alert_recurring: deleted.recurring,
+                alert_active: deleted.active,
+              })
+              .build(),
+          );
+        }
+
+        const next = previous.filter((a) => a.id !== id);
+        queryClient.setQueryData(queryKey, next);
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           iconName: IconName.Trash,
@@ -144,10 +214,17 @@ const ManagePriceAlertsView: React.FC = () => {
           labelOptions: [{ label: strings('price_alerts.delete_success') }],
           hasNoTimeout: false,
         });
-        if (isEmpty) {
+        if (next.length === 0) {
           navigation.goBack();
         }
       } catch {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          iconColor: colors.error.default,
+          labelOptions: [{ label: strings('price_alerts.delete_error') }],
+          hasNoTimeout: false,
+        });
         const response = await fetchAlerts(assetId).catch(() => null);
         if (response?.ok) {
           const data: PriceAlert[] = await response.json().catch(() => []);
@@ -155,15 +232,36 @@ const ManagePriceAlertsView: React.FC = () => {
         } else {
           queryClient.setQueryData(queryKey, previous);
         }
+      } finally {
+        inFlightDeletes.current.delete(id);
+        setDeletingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       }
     },
-    [navigation, assetId, queryClient, toastRef, colors],
+    [
+      navigation,
+      assetId,
+      queryClient,
+      toastRef,
+      colors,
+      displayTicker,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const handleToggleAlert = useCallback(
     async (id: string, newValue: boolean) => {
+      if (inFlightToggles.current.has(id)) return;
+      inFlightToggles.current.add(id);
+      setTogglingIds((prev) => new Set(prev).add(id));
+
       const queryKey = priceAlertsQueryKey(assetId);
       const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
+      const toggled = previous.find((a) => a.id === id);
       queryClient.setQueryData(
         queryKey,
         previous.map((a) => (a.id === id ? { ...a, active: newValue } : a)),
@@ -172,63 +270,130 @@ const ManagePriceAlertsView: React.FC = () => {
       try {
         const response = await updateAlert(id, { active: newValue });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        if (toggled) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+            )
+              .addProperties({
+                interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
+                asset_id: assetId,
+                token_symbol: displayTicker,
+                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+                alert_value: toggled.threshold,
+                alert_recurring: toggled.recurring,
+                alert_active: newValue,
+                prev_alert_value: toggled.threshold,
+                prev_alert_recurring: toggled.recurring,
+                prev_alert_active: toggled.active,
+              })
+              .build(),
+          );
+        }
       } catch {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          iconColor: colors.error.default,
+          labelOptions: [{ label: strings('price_alerts.toggle_error') }],
+          hasNoTimeout: false,
+        });
         queryClient.setQueryData(
           queryKey,
           previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
         );
+      } finally {
+        inFlightToggles.current.delete(id);
+        setTogglingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
       }
     },
-    [assetId, queryClient],
+    [
+      assetId,
+      queryClient,
+      toastRef,
+      colors,
+      displayTicker,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
-  const renderItem = ({ item }: { item: PriceAlert }) => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4 py-3 border-b border-muted"
-      testID={`${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-${item.id}`}
-    >
-      <Box twClassName="flex-1 mr-3">
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-          {strings('price_alerts.reaches_threshold', {
-            threshold: formatPriceWithSubscriptNotation(
-              item.threshold,
-              currentCurrency,
-            ),
-          })}
-        </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {item.recurring
-            ? strings('price_alerts.recurring')
-            : strings('price_alerts.once_label')}
-        </Text>
+  const renderItem = ({ item }: { item: PriceAlert }) => {
+    const isDeleting = deletingIds.has(item.id);
+    const isToggling = togglingIds.has(item.id);
+
+    return (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="px-4 py-3 border-b border-muted"
+        testID={`${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-${item.id}`}
+      >
+        <TouchableOpacity
+          onPress={() => handleNavigateToCreate(item)}
+          disabled={isDeleting || isToggling}
+          style={tw.style('flex-1 mr-3')}
+          testID={`${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-${item.id}`}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {strings('price_alerts.reaches_threshold', {
+              threshold: formatPriceWithSubscriptNotation(
+                item.threshold,
+                currentCurrency,
+                { maximumFractionDigits: 15 },
+              ),
+            })}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {item.recurring
+              ? strings('price_alerts.recurring')
+              : strings('price_alerts.once_label')}
+          </Text>
+        </TouchableOpacity>
+
+        {isDeleting ? (
+          <ActivityIndicator
+            size="small"
+            color={colors.primary.default}
+            testID={`${ManagePriceAlertsTestIds.ALERT_DELETE_SPINNER_PREFIX}-${item.id}`}
+            style={tw.style('self-center')}
+          />
+        ) : (
+          <ButtonIcon
+            onPress={() => handleDeleteAlert(item.id)}
+            size={ButtonIconSize.Md}
+            iconName={IconName.Trash}
+            testID={`${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-${item.id}`}
+            accessibilityLabel="Delete alert"
+            style={tw.style('self-center')}
+          />
+        )}
+
+        <Switch
+          value={item.active}
+          onValueChange={(v) => handleToggleAlert(item.id, v)}
+          disabled={isToggling}
+          trackColor={{
+            true: colors.primary.default,
+            false: colors.border.muted,
+          }}
+          thumbColor={brandColors.white}
+          ios_backgroundColor={colors.border.muted}
+          testID={`${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-${item.id}`}
+          style={[
+            tw.style('ml-3 self-center'),
+            isToggling && styles.switchDisabled,
+          ]}
+        />
       </Box>
-
-      <ButtonIcon
-        onPress={() => handleDeleteAlert(item.id)}
-        size={ButtonIconSize.Md}
-        iconName={IconName.Trash}
-        testID={`${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-${item.id}`}
-        accessibilityLabel="Delete alert"
-        style={tw.style('self-center')}
-      />
-
-      <Switch
-        value={item.active}
-        onValueChange={(v) => handleToggleAlert(item.id, v)}
-        trackColor={{
-          true: colors.primary.default,
-          false: colors.border.muted,
-        }}
-        thumbColor={colors.background.default}
-        ios_backgroundColor={colors.border.muted}
-        testID={`${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-${item.id}`}
-        style={tw.style('ml-3 self-center')}
-      />
-    </Box>
-  );
+    );
+  };
 
   return (
     <SafeAreaView
@@ -267,7 +432,7 @@ const ManagePriceAlertsView: React.FC = () => {
           <View style={tw.style('px-4 pb-4 pt-2')}>
             <Button
               variant={ButtonVariant.Primary}
-              onPress={handleAddAlert}
+              onPress={() => handleNavigateToCreate()}
               testID={ManagePriceAlertsTestIds.ADD_ALERT_BUTTON}
               twClassName="w-full"
             >

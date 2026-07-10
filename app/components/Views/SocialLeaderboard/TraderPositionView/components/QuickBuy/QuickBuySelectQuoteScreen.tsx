@@ -26,7 +26,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
   const {
     sortedQuotes,
     selectedQuoteRequestId,
-    setSelectedQuoteRequestId,
+    handleSelectQuote,
     isQuoteLoading,
     destToken,
     currentCurrency,
@@ -59,7 +59,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
         },
         quoteRequestId: quote.quote.requestId,
         onPress: (requestId: string) => {
-          setSelectedQuoteRequestId(requestId);
+          handleSelectQuote(requestId);
           setActiveScreen('quoteDetails');
         },
         loading: isQuoteLoading,
@@ -77,7 +77,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
       destToken,
       isQuoteLoading,
       selectedQuoteRequestId,
-      setSelectedQuoteRequestId,
+      handleSelectQuote,
       setActiveScreen,
     ],
   );
@@ -111,7 +111,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
               {strings('bridge.select_quote_info')}
             </Text>
           </Box>
-          <Box twClassName="pb-4">
+          <Box>
             {rows.map((rowProps) => (
               <QuoteRow key={rowProps.quoteRequestId} {...rowProps} />
             ))}

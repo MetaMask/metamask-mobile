@@ -52,7 +52,10 @@ jest.mock('../utils/moneyAccountTransactions');
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
-    ConfirmationLoader: { CustomAmount: 'customAmount' },
+    ConfirmationLoader: {
+      CustomAmount: 'customAmount',
+      AdvancedCustomAmount: 'advancedCustomAmount',
+    },
   }),
 );
 
@@ -203,7 +206,7 @@ describe('useMoneyAccountDeposit', () => {
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: undefined,
@@ -216,6 +219,7 @@ describe('useMoneyAccountDeposit', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
       }),
     );
   });
@@ -228,7 +232,7 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: true,
@@ -259,7 +263,7 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
       autoSelectFiatPayment: undefined,
@@ -269,7 +273,7 @@ describe('useMoneyAccountDeposit', () => {
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
-  it('defaults intent to "convert" when omitted', async () => {
+  it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {
     let observedBatchId: string | undefined;
     mockAddTransactionBatch.mockImplementationOnce(async (args) => {
       observedBatchId = (args as { batchId: string }).batchId;
@@ -282,7 +286,7 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit();
     });
 
-    expect(getMoneyAccountDepositIntent(observedBatchId)).toBe('convert');
+    expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
     clearMoneyAccountDepositIntent(observedBatchId);
   });
 
@@ -443,7 +447,7 @@ describe('useMoneyAccountWithdrawal', () => {
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
@@ -454,10 +458,44 @@ describe('useMoneyAccountWithdrawal', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
         transactions: [
           expect.objectContaining({ type: 'moneyAccountWithdraw' }),
           expect.objectContaining({ type: 'tokenMethodTransfer' }),
         ],
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to true when vault chain is Monad', async () => {
+    setupSelectors({
+      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to false when vault chain is not Monad', async () => {
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: false,
       }),
     );
   });

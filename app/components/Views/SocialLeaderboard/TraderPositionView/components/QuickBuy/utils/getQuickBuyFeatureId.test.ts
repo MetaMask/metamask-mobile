@@ -27,6 +27,24 @@ describe('getQuickBuyFeatureId', () => {
     );
   });
 
+  it('maps explore surfaces to QUICK_BUY_EXPLORE', () => {
+    expect(getQuickBuyFeatureId('explore_search')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_crypto')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_now')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_rwas')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_stocks')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+  });
+
   it('defaults to UNKNOWN when source is missing', () => {
     expect(getQuickBuyFeatureId()).toBe(FeatureId.UNKNOWN);
   });

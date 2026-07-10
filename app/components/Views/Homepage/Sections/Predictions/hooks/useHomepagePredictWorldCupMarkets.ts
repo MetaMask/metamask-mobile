@@ -112,5 +112,21 @@ export function useHomepagePredictWorldCupMarkets({
   });
 }
 
+/**
+ * Homepage discovery: loads live World Cup games using the same LIVE-tab query
+ * path as the dedicated World Cup screen.
+ */
+export function useHomepagePredictLiveWorldCupMarkets({
+  enabled,
+}: UseHomepagePredictWorldCupMarketsArgs): UseHomepagePredictWorldCupMarketsResult {
+  const config = useSelector(selectPredictWorldCupConfig);
+
+  return usePredictWorldCupMarkets({
+    tabKey: PREDICT_WORLD_CUP_TAB_KEYS.LIVE,
+    config,
+    enabled,
+  });
+}
+
 export type UseHomepagePredictWorldCupMarketsResult =
   UsePredictMarketDataResult;

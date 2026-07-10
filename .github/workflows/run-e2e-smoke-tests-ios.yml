@@ -114,24 +114,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  identity-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeIdentity')
-    strategy:
-      matrix:
-        split: [1, 2]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: identity-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeIdentity'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   network-abstraction-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions')
     strategy:
@@ -163,24 +145,6 @@ jobs:
       test_suite_tag: 'SmokeNetworkExpansion'
       split_number: ${{ matrix.split }}
       total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  prediction-market-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokePredictions')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: prediction-market-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokePredictions'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
@@ -222,24 +186,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  seedless-onboarding-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: seedless-onboarding-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeSeedlessOnboarding'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   browser-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeBrowser')
     strategy:
@@ -274,25 +220,32 @@ jobs:
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
+      bitrise_machine_type: ${{ inputs.runner_provider == 'bitrise' && matrix.split == 1 && vars.BITRISE_E2E_HEAVY_MACHINE_TYPE || '' }}
     secrets: inherit
 
   report-ios-smoke-tests:
     name: Report iOS Smoke Tests
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
-    if: ${{ !cancelled() && inputs.selected_tags != '[]' && inputs.selected_tags != '["FlaskBuildTests"]' }}
+    # Appium migration: skip rollup when every Detox shard is skipped (e.g. AI selects
+    # an Appium-only tag like SmokeAccounts). Non-empty tags still trigger this workflow.
+    if: >-
+      ${{
+        !cancelled() &&
+        (
+          contains(toJSON(needs), '"result":"success"') ||
+          contains(toJSON(needs), '"result":"failure"')
+        )
+      }}
     needs:
       - confirmations-ios-smoke
       - swap-ios-smoke
       - stake-ios-smoke
       - perps-ios-smoke
       - wallet-platform-ios-smoke
-      - identity-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
-      - prediction-market-ios-smoke
       - money-ios-smoke
       - multichain-api-ios-smoke
-      - seedless-onboarding-ios-smoke
       - browser-ios-smoke
       - snaps-ios-smoke
     steps:

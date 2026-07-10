@@ -2,11 +2,93 @@
 import path from 'path';
 import { GanacheHardfork, RampsRegion } from './types';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 // The RPC URL for the local node
 // This should be used in fixtures where a url is needed.
 // The port is then translated to the actual allocated port
 export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
+
+/**
+ * Optional cap for E2E wait/poll timeouts (ms). Set `E2E_WAIT_TIMEOUT_MS=30000`
+ * locally to fail fast when a step is stuck instead of waiting minutes.
+ */
+export const resolveE2EWaitTimeoutMs = (fallbackMs: number): number => {
+  const raw = process.env.E2E_WAIT_TIMEOUT_MS?.trim();
+  if (!raw) {
+    return fallbackMs;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallbackMs;
+};
+
+/** Bootstrap-only timeout (fixture /state.json, cold app after pm clear). */
+export const resolveE2EFixtureBootstrapTimeoutMs = (): number => {
+  const raw = process.env.E2E_FIXTURE_BOOTSTRAP_TIMEOUT_MS?.trim();
+  if (raw) {
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return process.env.E2E_WAIT_TIMEOUT_MS ? 90_000 : 300_000;
+};
+
+export const resolveConfiguredAndroidApkPath = (): string | undefined =>
+  process.env.ANDROID_APK_PATH?.trim() ||
+  process.env.PREBUILT_ANDROID_APK_PATH?.trim();
+
+export const resolveConfiguredIosAppPath = (): string | undefined =>
+  process.env.IOS_APP_PATH?.trim() || process.env.PREBUILT_IOS_APP_PATH?.trim();
+
+const isDebugE2eArtifactPath = (artifactPath: string): boolean => {
+  const normalized = artifactPath.toLowerCase();
+  return (
+    normalized.includes('debug-iphonesimulator') ||
+    normalized.includes('/debug-') ||
+    normalized.includes('-debug.') ||
+    normalized.includes('debug.apk') ||
+    normalized.includes('app-prod-debug')
+  );
+};
+
+/** Release/main-e2e artifacts load fixture state via launch args — no Metro or dev launcher. */
+const isReleaseE2eArtifactPath = (artifactPath: string): boolean => {
+  if (isDebugE2eArtifactPath(artifactPath)) {
+    return false;
+  }
+  const normalized = artifactPath.toLowerCase();
+  return (
+    normalized.includes('release') ||
+    normalized.includes('main-e2e') ||
+    normalized.includes('release-iphonesimulator')
+  );
+};
+
+export const isReleaseE2eArtifactForPlatform = (
+  platform: 'android' | 'ios',
+): boolean => {
+  const artifactPath =
+    platform === 'android'
+      ? resolveConfiguredAndroidApkPath()
+      : resolveConfiguredIosAppPath();
+  return artifactPath ? isReleaseE2eArtifactPath(artifactPath) : false;
+};
+
+/** Debug builds need Metro deep-link + dev-launcher dismissal; release artifacts do not. */
+export const shouldHandleMetroDevLauncherLocally = (): boolean => {
+  const platform = PlatformDetector.isAndroid() ? 'android' : 'ios';
+  return !isReleaseE2eArtifactForPlatform(platform);
+};
+
+/** UiAutomator2 died on device — polling element queries will not recover in-session. */
+export const isUiAutomator2SessionDeadError = (error: unknown): boolean => {
+  const message = error instanceof Error ? error.message : String(error);
+  return (
+    message.includes('instrumentation process is not running') ||
+    message.includes('instrumentation process cannot be initialized')
+  );
+};
 
 // Default implicit wait timeout for WebDriverIO element lookups (in ms).
 // Kept low to enable fast retries in polling loops; use withImplicitWait() for longer waits.
@@ -87,6 +169,15 @@ export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
   'dist',
 );
 
+export const DEFAULT_BITCOIN_TEST_DAPP_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'test-dapp-bitcoin',
+  'dist',
+);
+
 export const DEFAULT_BROWSER_PLAYGROUND_PATH = path.join(
   '..',
   '..',
@@ -121,6 +212,7 @@ export enum DappVariants {
   TEST_DAPP = 'test-dapp',
   MULTICHAIN_TEST_DAPP = 'multichain-test-dapp',
   SOLANA_TEST_DAPP = 'solana-test-dapp',
+  BITCOIN_TEST_DAPP = 'bitcoin-test-dapp',
   BROWSER_PLAYGROUND = 'browser-playground',
 }
 
@@ -133,6 +225,9 @@ export const TestDapps = {
   },
   [DappVariants.SOLANA_TEST_DAPP]: {
     dappPath: path.resolve(__dirname, DEFAULT_SOLANA_TEST_DAPP_PATH),
+  },
+  [DappVariants.BITCOIN_TEST_DAPP]: {
+    dappPath: path.resolve(__dirname, DEFAULT_BITCOIN_TEST_DAPP_PATH),
   },
   [DappVariants.BROWSER_PLAYGROUND]: {
     dappPath: path.resolve(__dirname, DEFAULT_BROWSER_PLAYGROUND_PATH),

@@ -10,9 +10,12 @@ import {
   selectMusdConversionAssetDetailCtasSeen,
   selectMoneyOnboardingSeen,
   selectTokenOverviewChartType,
+  selectTokenOverviewChartInterval,
+  selectTokenIndicators,
   selectOnboardingStepperProgress,
 } from './selectors';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
+import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
 
 // Mock the redux store state
 const mockState = {
@@ -24,6 +27,8 @@ const mockState = {
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
     moneyOnboardingSeen: false,
     tokenOverviewChartType: ChartType.Line as ChartType,
+    tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
+    tokenIndicators: [] as string[],
     onboardingStepperProgress: {} as Record<string, number>,
   },
 };
@@ -189,6 +194,56 @@ describe('user state selectors', () => {
       );
 
       expect(result.current).toBe(ChartType.Line);
+    });
+  });
+
+  describe('selectTokenOverviewChartInterval', () => {
+    it('returns persisted interval when valid', () => {
+      mockState.user.tokenOverviewChartInterval = '1h';
+
+      const { result } = renderHook(() =>
+        useSelector(selectTokenOverviewChartInterval),
+      );
+
+      expect(result.current).toBe('1h');
+    });
+
+    it('returns default when interval is invalid', () => {
+      // @ts-expect-error - Testing invalid persisted value
+      mockState.user.tokenOverviewChartInterval = 'invalid';
+
+      const { result } = renderHook(() =>
+        useSelector(selectTokenOverviewChartInterval),
+      );
+
+      expect(result.current).toBe(DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL);
+    });
+  });
+
+  describe('selectTokenIndicators', () => {
+    it('returns empty array when no indicators are active', () => {
+      mockState.user.tokenIndicators = [];
+
+      const { result } = renderHook(() => useSelector(selectTokenIndicators));
+
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns active indicators when set', () => {
+      mockState.user.tokenIndicators = ['RSI', 'MACD'];
+
+      const { result } = renderHook(() => useSelector(selectTokenIndicators));
+
+      expect(result.current).toEqual(['RSI', 'MACD']);
+    });
+
+    it('returns empty array when tokenIndicators is not set', () => {
+      // @ts-expect-error - Testing undefined state
+      mockState.user.tokenIndicators = undefined;
+
+      const { result } = renderHook(() => useSelector(selectTokenIndicators));
+
+      expect(result.current).toEqual([]);
     });
   });
 

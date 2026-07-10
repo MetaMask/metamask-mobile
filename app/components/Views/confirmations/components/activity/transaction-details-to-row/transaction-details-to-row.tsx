@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 import { type Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import Text from '../../../../../../component-library/components/Texts/Text';
@@ -10,21 +11,38 @@ import Name from '../../../../../UI/Name/Name';
 import { NameType } from '../../../../../UI/Name/Name.types';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import {
   hasTransactionType,
   parseStandardTokenTransactionData,
 } from '../../../utils/transaction';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import { getTokenTransferData } from '../../../utils/transaction-pay';
+import MoneyIcon from '../../../../../../images/money.png';
+
+const iconStyles = StyleSheet.create({
+  moneyIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  moneyIcon: { width: 32, height: 32 },
+});
 
 const SEND_TYPES: TransactionType[] = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
 ];
 
 export function TransactionDetailsToRow() {
   const { transactionMeta } = useTransactionDetails();
+  const isMoneyContext = useIsMoneyAccountContext();
   const recipient = useRecipient();
   const chainId = transactionMeta?.chainId as Hex;
 
@@ -32,13 +50,24 @@ export function TransactionDetailsToRow() {
     return null;
   }
 
-  const staticLabel = getToLabel(transactionMeta);
-
-  if (!staticLabel && !recipient) {
-    return null;
-  }
+  const staticLabel = getToLabel(transactionMeta, isMoneyContext);
 
   if (staticLabel) {
+    const isMoneyAccount =
+      staticLabel === strings('transaction_details.label.money_account');
+
+    const icon = isMoneyAccount ? (
+      <View style={iconStyles.moneyIconWrapper}>
+        <Image
+          source={MoneyIcon}
+          style={iconStyles.moneyIcon}
+          testID="money-account-icon"
+        />
+      </View>
+    ) : (
+      <AvatarAccount accountAddress={recipient ?? '0x0'} size={AvatarSize.Sm} />
+    );
+
     return (
       <TransactionDetailsRow label={strings('transaction_details.label.to')}>
         <Box
@@ -46,10 +75,7 @@ export function TransactionDetailsToRow() {
           alignItems={AlignItems.center}
           gap={6}
         >
-          <AvatarAccount
-            accountAddress={recipient ?? '0x0'}
-            size={AvatarSize.Sm}
-          />
+          {icon}
           <Text>{staticLabel}</Text>
         </Box>
       </TransactionDetailsRow>
@@ -83,24 +109,30 @@ function useRecipient(): Hex | undefined {
   }, [transactionMeta]);
 }
 
-function getToLabel(transactionMeta: {
-  type?: string;
-  nestedTransactions?: { type?: string }[];
-}): string | undefined {
+function getToLabel(
+  transactionMeta: {
+    type?: string;
+    nestedTransactions?: { type?: string }[];
+  },
+  isMoneyContext: boolean,
+): string | undefined {
+  const asTxMeta = transactionMeta as Parameters<typeof hasTransactionType>[0];
+
+  // Money context: perpsWithdraw/predictWithdraw (inflow) → To: Money account
   if (
-    hasTransactionType(
-      transactionMeta as Parameters<typeof hasTransactionType>[0],
-      [TransactionType.perpsDeposit],
-    )
+    isMoneyContext &&
+    hasTransactionType(asTxMeta, [
+      TransactionType.perpsWithdraw,
+      TransactionType.predictWithdraw,
+    ])
   ) {
+    return strings('transaction_details.label.money_account');
+  }
+
+  if (hasTransactionType(asTxMeta, [TransactionType.perpsDeposit])) {
     return strings('transaction_details.label.perps_account');
   }
-  if (
-    hasTransactionType(
-      transactionMeta as Parameters<typeof hasTransactionType>[0],
-      [TransactionType.predictDeposit],
-    )
-  ) {
+  if (hasTransactionType(asTxMeta, [TransactionType.predictDeposit])) {
     return strings('transaction_details.label.predictions_account');
   }
   return undefined;

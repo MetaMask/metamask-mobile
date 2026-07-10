@@ -116,15 +116,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
-  MultichainWalletSnapFactory: {
-    createClient: jest.fn(),
-  },
-  WalletClientType: {
-    Solana: 'solana',
-  },
-}));
-
 const mockGetInternalAccountsFromWallet =
   getInternalAccountsFromWallet as jest.Mock;
 const mockUseWalletBalances = useWalletBalances as jest.Mock;

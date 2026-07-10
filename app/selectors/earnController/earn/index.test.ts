@@ -903,6 +903,7 @@ describe('Earn Controller Selectors', () => {
       },
       settings: {
         showFiatOnTestnets: false,
+        basicFunctionalityEnabled: true,
       },
     });
 

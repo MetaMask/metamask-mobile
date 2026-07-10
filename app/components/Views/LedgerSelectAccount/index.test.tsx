@@ -215,7 +215,7 @@ describe('LedgerSelectAccount', () => {
       mockEnsureDeviceReady.mockReturnValue(new Promise(() => undefined));
       const { queryByText } = renderWithProvider(<LedgerSelectAccount />);
 
-      expect(queryByText('Looking for device')).toBeOnTheScreen();
+      expect(queryByText('Looking for your device')).toBeOnTheScreen();
     });
 
     it('sets target wallet type to Ledger on mount', async () => {

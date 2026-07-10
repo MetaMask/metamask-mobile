@@ -1,33 +1,26 @@
-import StorageWrapper from '../../../../store/storage-wrapper';
+import Engine from '../../../../core/Engine';
 import {
   EMPTY_BLOB,
-  WATCHLIST_STORAGE_PATH,
   readFromTokenWatchList,
   writeToTokenWatchList,
   type WatchlistBlob,
 } from './storage';
 
-jest.mock('../../../../store/storage-wrapper', () => ({
-  __esModule: true,
-  default: {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
+jest.mock('../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
   },
 }));
 
-const mockedStorageWrapper = StorageWrapper as jest.Mocked<
-  typeof StorageWrapper
->;
+const mockCall = Engine.controllerMessenger.call as jest.Mock;
+const GET_ACTION = 'AuthenticatedUserStorageService:getAssetsWatchlist';
+const SET_ACTION = 'AuthenticatedUserStorageService:setAssetsWatchlist';
+const CLIENT_TYPE = 'mobile';
 
 describe('watchlist storage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('WATCHLIST_STORAGE_PATH', () => {
-    it('matches the agreed storage path from the tech spec', () => {
-      expect(WATCHLIST_STORAGE_PATH).toBe('watchlistV1.tokens');
-    });
+    mockCall.mockResolvedValue(undefined);
   });
 
   describe('EMPTY_BLOB', () => {
@@ -37,57 +30,55 @@ describe('watchlist storage', () => {
   });
 
   describe('readFromTokenWatchList', () => {
-    it('reads from the configured storage path', async () => {
-      mockedStorageWrapper.getItem.mockResolvedValue(null);
+    it('reads via the assets-watchlist SDK action', async () => {
+      mockCall.mockResolvedValue(null);
 
       await readFromTokenWatchList();
 
-      expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(
-        WATCHLIST_STORAGE_PATH,
-      );
+      expect(mockCall).toHaveBeenCalledWith(GET_ACTION);
     });
 
-    it('returns EMPTY_BLOB when storage is empty (null)', async () => {
-      mockedStorageWrapper.getItem.mockResolvedValue(null);
+    it('returns EMPTY_BLOB when SDK returns null', async () => {
+      mockCall.mockResolvedValue(null);
 
       const result = await readFromTokenWatchList();
 
       expect(result).toStrictEqual(EMPTY_BLOB);
     });
 
-    it('returns EMPTY_BLOB when storage value is an empty string', async () => {
-      mockedStorageWrapper.getItem.mockResolvedValue('');
+    it('returns EMPTY_BLOB when SDK returns undefined', async () => {
+      mockCall.mockResolvedValue(undefined);
 
       const result = await readFromTokenWatchList();
 
       expect(result).toStrictEqual(EMPTY_BLOB);
     });
 
-    it('parses a fully populated valid blob from storage', async () => {
-      const stored: WatchlistBlob = {
+    it('parses a fully populated valid blob from SDK', async () => {
+      const blob: WatchlistBlob = {
         assets: ['eip155:1/erc20:0xabc', 'eip155:1/erc20:0xdef'],
         version: 1,
       };
-      mockedStorageWrapper.getItem.mockResolvedValue(JSON.stringify(stored));
+      mockCall.mockResolvedValue(blob);
 
       const result = await readFromTokenWatchList();
 
-      expect(result).toStrictEqual(stored);
+      expect(result).toStrictEqual(blob);
     });
 
     it.each([
       {
         case: 'schema defaults for missing fields',
-        stored: {},
+        value: {},
         expected: EMPTY_BLOB,
       },
       {
         case: 'the default version when only assets is provided',
-        stored: { assets: ['eip155:1/erc20:0xabc'] },
+        value: { assets: ['eip155:1/erc20:0xabc'] },
         expected: { assets: ['eip155:1/erc20:0xabc'], version: 1 },
       },
-    ])('applies $case', async ({ stored, expected }) => {
-      mockedStorageWrapper.getItem.mockResolvedValue(JSON.stringify(stored));
+    ])('applies $case', async ({ value, expected }) => {
+      mockCall.mockResolvedValue(value);
 
       const result = await readFromTokenWatchList();
 
@@ -96,26 +87,26 @@ describe('watchlist storage', () => {
 
     it.each([
       {
-        case: 'the stored blob has the wrong asset type',
-        stored: JSON.stringify({ assets: [123], version: 1 }),
+        case: 'the blob has the wrong asset type',
+        value: { assets: [123], version: 1 },
       },
       {
-        case: 'the stored blob has a non-literal version',
-        stored: JSON.stringify({ assets: [], version: 2 }),
+        case: 'the blob has a non-literal version',
+        value: { assets: [], version: 2 },
       },
       {
-        case: 'the stored value is not valid JSON',
-        stored: '{not-json',
+        case: 'the SDK value is not an object',
+        value: 'not-an-object',
       },
-    ])('throws when $case', async ({ stored }) => {
-      mockedStorageWrapper.getItem.mockResolvedValue(stored);
+    ])('throws when $case', async ({ value }) => {
+      mockCall.mockResolvedValue(value);
 
       await expect(readFromTokenWatchList()).rejects.toThrow();
     });
   });
 
   describe('writeToTokenWatchList', () => {
-    it('writes a validated blob to the configured storage path', async () => {
+    it('writes a validated blob via the assets-watchlist SDK action', async () => {
       const blob: WatchlistBlob = {
         assets: ['eip155:1/erc20:0xabc'],
         version: 1,
@@ -123,18 +114,16 @@ describe('watchlist storage', () => {
 
       await writeToTokenWatchList(blob);
 
-      expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
-        WATCHLIST_STORAGE_PATH,
-        JSON.stringify(blob),
-      );
+      expect(mockCall).toHaveBeenCalledWith(SET_ACTION, blob, CLIENT_TYPE);
     });
 
     it('writes EMPTY_BLOB correctly', async () => {
       await writeToTokenWatchList(EMPTY_BLOB);
 
-      expect(mockedStorageWrapper.setItem).toHaveBeenCalledWith(
-        WATCHLIST_STORAGE_PATH,
-        JSON.stringify(EMPTY_BLOB),
+      expect(mockCall).toHaveBeenCalledWith(
+        SET_ACTION,
+        EMPTY_BLOB,
+        CLIENT_TYPE,
       );
     });
 
@@ -155,25 +144,28 @@ describe('watchlist storage', () => {
       await expect(
         writeToTokenWatchList(invalid as unknown as WatchlistBlob),
       ).rejects.toThrow();
-      expect(mockedStorageWrapper.setItem).not.toHaveBeenCalled();
+      expect(mockCall).not.toHaveBeenCalled();
     });
   });
 
-  describe('read/write round trip', () => {
-    it('produces a value that can be read back as-is', async () => {
+  describe('read + write interaction', () => {
+    it('writes then reads using the expected SDK actions', async () => {
       const blob: WatchlistBlob = {
         assets: ['eip155:1/erc20:0xabc', 'eip155:137/erc20:0xdef'],
         version: 1,
       };
 
-      mockedStorageWrapper.setItem.mockImplementation(async () => undefined);
+      mockCall.mockResolvedValueOnce(undefined).mockResolvedValueOnce(blob);
       await writeToTokenWatchList(blob);
-
-      const written = mockedStorageWrapper.setItem.mock.calls[0][1] as string;
-      mockedStorageWrapper.getItem.mockResolvedValue(written);
-
       const result = await readFromTokenWatchList();
 
+      expect(mockCall).toHaveBeenNthCalledWith(
+        1,
+        SET_ACTION,
+        blob,
+        CLIENT_TYPE,
+      );
+      expect(mockCall).toHaveBeenNthCalledWith(2, GET_ACTION);
       expect(result).toStrictEqual(blob);
     });
   });

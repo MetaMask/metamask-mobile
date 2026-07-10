@@ -22,9 +22,8 @@ import {
 import { getDeleGatorEnvironment } from '../../../core/Delegation';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import {
-  RelayStatus,
   submitRelayTransaction,
-  waitForRelayResult,
+  waitForRelaySuccess,
 } from '../transaction-relay';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 import { NetworkClientId } from '@metamask/network-controller';
@@ -89,7 +88,7 @@ const getRootMessenger = (): RootMessenger =>
 
 describe('Delegation 7702 Publish Hook', () => {
   const submitRelayTransactionMock = jest.mocked(submitRelayTransaction);
-  const waitForRelayResultMock = jest.mocked(waitForRelayResult);
+  const waitForRelaySuccessMock = jest.mocked(waitForRelaySuccess);
   let messenger: TransactionControllerInitMessenger;
   let hookClass: Delegation7702PublishHook;
 
@@ -184,8 +183,8 @@ describe('Delegation 7702 Publish Hook', () => {
     signEip7702AuthorizationMock.mockResolvedValue(
       AUTHORIZATION_SIGNATURE_MOCK,
     );
-    waitForRelayResultMock.mockResolvedValue({
-      status: RelayStatus.Success,
+    waitForRelaySuccessMock.mockResolvedValue({
+      status: 'VALIDATED',
       transactionHash: TRANSACTION_HASH_MOCK,
     });
     getStateMock.mockReturnValue({
@@ -221,6 +220,34 @@ describe('Delegation 7702 Publish Hook', () => {
       expect(result).toEqual({
         transactionHash: undefined,
       });
+    });
+
+    it('throws when atomic batch is not supported for a gas-sponsored transaction', async () => {
+      await expect(
+        hookClass.getHook()(
+          {
+            ...TRANSACTION_META_MOCK,
+            isGasFeeSponsored: true,
+          },
+          SIGNED_TX_MOCK,
+        ),
+      ).rejects.toThrow(
+        'Gas Station 7702: Chain must support EIP-7702 for sponsored or gas included transaction',
+      );
+    });
+
+    it('throws when atomic batch is not supported for a gas-included transaction', async () => {
+      await expect(
+        hookClass.getHook()(
+          {
+            ...TRANSACTION_META_MOCK,
+            isGasFeeIncluded: true,
+          },
+          SIGNED_TX_MOCK,
+        ),
+      ).rejects.toThrow(
+        'Gas Station 7702: Chain must support EIP-7702 for sponsored or gas included transaction',
+      );
     });
 
     it('no selected gas fee token', async () => {
@@ -293,7 +320,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Selected gas fee token not found');
+      ).rejects.toThrow('Gas Station 7702: Selected gas fee token not found');
     });
 
     it('throws error when upgrade contract address not found for non-upgraded accounts', async () => {
@@ -314,7 +341,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Upgrade contract address not found');
+      ).rejects.toThrow('Gas Station 7702: Upgrade contract address not found');
     });
 
     it('throws error when gas fee token is undefined in buildExecutions for includeTransfer', async () => {
@@ -343,7 +370,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Selected gas fee token not found');
+      ).rejects.toThrow('Gas Station 7702: Selected gas fee token not found');
     });
   });
 
@@ -655,10 +682,12 @@ describe('Delegation 7702 Publish Hook', () => {
     );
   });
 
-  it('throws if relay status is not success', async () => {
-    waitForRelayResultMock.mockResolvedValueOnce({
-      status: 'TEST_STATUS',
-    });
+  it('throws if relay result is not success', async () => {
+    waitForRelaySuccessMock.mockRejectedValueOnce(
+      new Error(
+        'Sentinel: Relay: Transaction failed - TEST_STATUS - Unknown error',
+      ),
+    );
     isAtomicBatchSupportedMock.mockResolvedValueOnce([
       {
         chainId: TRANSACTION_META_MOCK.chainId,
@@ -677,7 +706,34 @@ describe('Delegation 7702 Publish Hook', () => {
         },
         SIGNED_TX_MOCK,
       ),
-    ).rejects.toThrow('Transaction relay error - TEST_STATUS');
+    ).rejects.toThrow(
+      'Gas Station 7702: Sentinel: Relay: Transaction failed - TEST_STATUS - Unknown error',
+    );
+  });
+
+  it('prefixes relay submit errors', async () => {
+    submitRelayTransactionMock.mockRejectedValueOnce(
+      new Error('Sentinel: Relay: submission failed'),
+    );
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        isSupported: true,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    await expect(
+      hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      ),
+    ).rejects.toThrow('Gas Station 7702: Sentinel: Relay: submission failed');
   });
 
   it('submits request to relay for gasless 7702 swap without gas fee tokens', async () => {

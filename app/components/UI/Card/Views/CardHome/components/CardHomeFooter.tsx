@@ -4,13 +4,13 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
-import { CARD_SUPPORT_EMAIL } from '../../../constants';
 
 interface CardHomeFooterProps {
   isAuthenticated: boolean;
   isLoading: boolean;
   hasAlerts: boolean;
   hasSetupActions: boolean;
+  supportEmail: string;
   onNavigateToCardTos: () => void;
   onLogout: () => void;
 }
@@ -20,6 +20,7 @@ const CardHomeFooter = ({
   isLoading,
   hasAlerts,
   hasSetupActions,
+  supportEmail,
   onNavigateToCardTos,
   onLogout,
 }: CardHomeFooterProps) => {
@@ -46,7 +47,7 @@ const CardHomeFooter = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => Linking.openURL(`mailto:${CARD_SUPPORT_EMAIL}`)}
+          onPress={() => Linking.openURL(`mailto:${supportEmail}`)}
           testID={CardHomeSelectors.CONTACT_SUPPORT_ITEM}
           style={tw.style('px-4')}
         >
