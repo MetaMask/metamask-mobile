@@ -7,8 +7,8 @@ import {
 } from '../types';
 import { isGameEnded } from './scoreboard';
 
-export const PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD = 0.95;
-export const PREDICT_DEAD_OUTCOME_LOW_THRESHOLD = 0.05;
+export const PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD = 0.99;
+export const PREDICT_DEAD_OUTCOME_LOW_THRESHOLD = 0.01;
 export const PREDICT_MIN_STALENESS_PENALTY = 0.1;
 export const PREDICT_LAST_HOUR_TIME_PENALTY = 0.5;
 
@@ -196,9 +196,13 @@ export const getPredictMarketProbabilityPenalty = (
     return 1;
   }
 
+  // Scale the penalty so a probability at the high threshold keeps a full score
+  // of 1 and a probability of 1 lands at 0.5, regardless of the threshold width.
+  const penaltySlope = 0.5 / (1 - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD);
+
   return Math.max(
     PREDICT_MIN_STALENESS_PENALTY,
-    1 - (maxProbability - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD) * 10,
+    1 - (maxProbability - PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD) * penaltySlope,
   );
 };
 

@@ -15,10 +15,6 @@ export function isRampSellOrder(order: FiatOrder) {
   return mapRampOrderType(order.orderType) === 'sell';
 }
 
-export function isRampDepositOrder(order: FiatOrder) {
-  return mapRampOrderType(order.orderType) === 'deposit';
-}
-
 export function getRampActivityTransactionHash(order: FiatOrder) {
   const kind = mapRampOrderType(order.orderType);
   return kind ? getRampOrderTransactionHash(order, kind) : undefined;

@@ -19,6 +19,8 @@ import {
 } from './useMoneyAccount';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
+import Routes from '../../../../constants/navigation/Routes';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -39,6 +41,9 @@ import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../../Earn/constants/musd';
 
 jest.mock('../../../../core/Engine');
 jest.mock('./useMoneyToasts');
+jest.mock('../../../../core/NavigationService/NavigationService', () => ({
+  navigation: { navigate: jest.fn() },
+}));
 jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
 }));
@@ -99,6 +104,8 @@ const mockUnsubscribe = jest.fn<
   void,
   [string, TransactionStatusUpdatedHandler | TransactionConfirmedHandler]
 >();
+
+const mockNavigate = jest.fn();
 
 Object.defineProperty(Engine, 'controllerMessenger', {
   value: { subscribe: mockSubscribe, unsubscribe: mockUnsubscribe },
@@ -252,6 +259,7 @@ describe('useMoneyTransactionStatus', () => {
     jest.useFakeTimers();
     mockControllerTransactions.length = 0;
 
+    Object.assign(NavigationService.navigation, { navigate: mockNavigate });
     mockUseMoneyToasts.mockReturnValue({
       showToast: mockShowToast,
       MoneyToastOptions: moneyToastOptions,
@@ -351,7 +359,9 @@ describe('useMoneyTransactionStatus', () => {
       expect(getMoneyAccountDepositIntent).toHaveBeenCalledWith(
         '0xINTENTBATCH',
       );
-      expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+      expect(depositInProgressFn).toHaveBeenCalledWith(
+        expect.objectContaining({ intent: 'addMusd' }),
+      );
     });
 
     it('clears the batch intent on terminal states', () => {
@@ -444,7 +454,9 @@ describe('useMoneyTransactionStatus', () => {
         }),
       });
 
-      expect(depositFailedFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+      expect(depositFailedFn).toHaveBeenCalledWith(
+        expect.objectContaining({ intent: 'addMusd' }),
+      );
     });
 
     describe('intent falls back to the transaction funding method when no batch intent is stored', () => {
@@ -461,7 +473,9 @@ describe('useMoneyTransactionStatus', () => {
         });
         jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
-        expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'card' });
+        expect(depositInProgressFn).toHaveBeenCalledWith(
+          expect.objectContaining({ intent: 'card' }),
+        );
       });
 
       it('derives "addMusd" from a deposit paid with mUSD', () => {
@@ -477,7 +491,9 @@ describe('useMoneyTransactionStatus', () => {
         });
         jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
-        expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+        expect(depositInProgressFn).toHaveBeenCalledWith(
+          expect.objectContaining({ intent: 'addMusd' }),
+        );
       });
 
       it('derives "convert" from a crypto deposit with no fiat/mUSD payment', () => {
@@ -492,7 +508,9 @@ describe('useMoneyTransactionStatus', () => {
         });
         jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
-        expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'convert' });
+        expect(depositInProgressFn).toHaveBeenCalledWith(
+          expect.objectContaining({ intent: 'convert' }),
+        );
       });
 
       it('re-reads metamaskPay populated after approval instead of the stale snapshot', () => {
@@ -515,7 +533,9 @@ describe('useMoneyTransactionStatus', () => {
 
         jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
-        expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'card' });
+        expect(depositInProgressFn).toHaveBeenCalledWith(
+          expect.objectContaining({ intent: 'card' }),
+        );
       });
     });
 
@@ -1092,6 +1112,207 @@ describe('useMoneyTransactionStatus', () => {
     });
   });
 
+  describe('tap-to-navigate onPress', () => {
+    const buildNavSendTxMeta = (
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta =>
+      buildTxMeta({
+        id: 'nav-send-tx',
+        type: TransactionType.perpsDeposit,
+        metamaskPay: {
+          tokenAddress: MUSD_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+          targetFiat: '100',
+        },
+        ...overrides,
+      } as unknown as Partial<TransactionMeta>);
+
+    it('deposit approved → in-progress onPress navigates to Money transaction details with the tx id', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'nav-deposit-approved',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      const params = depositInProgressFn.mock.calls[0][0];
+      expect(params?.onPress).toEqual(expect.any(Function));
+      params?.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.TRANSACTION_DETAILS,
+        { transactionId: 'nav-deposit-approved' },
+      );
+    });
+
+    it('deposit failed → failed onPress navigates to Money transaction details with the tx id', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'nav-deposit-failed',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+        }),
+      });
+      const params = depositFailedFn.mock.calls[0][0];
+      expect(params?.onPress).toEqual(expect.any(Function));
+      params?.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.TRANSACTION_DETAILS,
+        { transactionId: 'nav-deposit-failed' },
+      );
+    });
+
+    it('deposit confirmed → success onPress navigates to Money transaction details with the tx id', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          id: 'nav-deposit-confirmed',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(1_000_000)),
+          },
+        }),
+      );
+      const params = depositSuccessFn.mock.calls[0][0];
+      expect(params?.onPress).toEqual(expect.any(Function));
+      params?.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.TRANSACTION_DETAILS,
+        { transactionId: 'nav-deposit-confirmed' },
+      );
+    });
+
+    it('perps receive confirmed → deposit success onPress navigates to Money transaction details with the tx id', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          id: 'nav-receive-confirmed',
+          type: TransactionType.perpsWithdraw,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            isPostQuote: true,
+            targetFiat: '50',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+      const params = depositSuccessFn.mock.calls[0][0];
+      expect(params?.onPress).toEqual(expect.any(Function));
+      params?.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.TRANSACTION_DETAILS,
+        { transactionId: 'nav-receive-confirmed' },
+      );
+    });
+
+    it('send approved → in-progress onPress navigates to Money transaction details with the tx id', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildNavSendTxMeta({
+          id: 'nav-send-approved',
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+      const params = sendInProgressFn.mock.calls[0][0];
+      expect(params?.onPress).toEqual(expect.any(Function));
+      params?.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.TRANSACTION_DETAILS,
+        { transactionId: 'nav-send-approved' },
+      );
+    });
+
+    it('send failed → failed onPress navigates to Money transaction details with the tx id', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildNavSendTxMeta({
+          id: 'nav-send-failed',
+          status: TransactionStatus.failed,
+        }),
+      });
+      const params = sendFailedFn.mock.calls[0][0];
+      expect(params?.onPress).toEqual(expect.any(Function));
+      params?.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.TRANSACTION_DETAILS,
+        { transactionId: 'nav-send-failed' },
+      );
+    });
+
+    it('send confirmed → success onPress navigates to Money transaction details with the tx id', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildNavSendTxMeta({
+          id: 'nav-send-confirmed',
+          status: TransactionStatus.confirmed,
+        }),
+      );
+      const params = sendSuccessFn.mock.calls[0][0];
+      expect(params?.onPress).toEqual(expect.any(Function));
+      params?.onPress?.();
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.TRANSACTION_DETAILS,
+        { transactionId: 'nav-send-confirmed' },
+      );
+    });
+
+    it('withdraw confirmed → success params carry no onPress', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          id: 'nav-withdraw-confirmed',
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(1_000_000)),
+          },
+        }),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0]).not.toHaveProperty('onPress');
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('withdraw failed → failed builder receives no onPress', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'nav-withdraw-failed',
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.failed,
+        }),
+      });
+
+      expect(withdrawFailedFn).toHaveBeenCalledTimes(1);
+      expect(withdrawFailedFn).toHaveBeenCalledWith();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
   describe('dedup + cleanup', () => {
     it('does not fire the same status+id toast twice', () => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
@@ -1204,10 +1425,9 @@ describe('useMoneyTransactionStatus', () => {
         }),
       );
 
-      expect(depositSuccessFn).toHaveBeenCalledWith({
-        amountFiat: undefined,
-        intent: 'convert',
-      });
+      expect(depositSuccessFn).toHaveBeenCalledWith(
+        expect.objectContaining({ amountFiat: undefined, intent: 'convert' }),
+      );
     });
   });
 
