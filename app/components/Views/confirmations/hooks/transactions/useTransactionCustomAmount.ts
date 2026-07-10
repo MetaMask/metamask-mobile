@@ -74,6 +74,7 @@ export function useTransactionCustomAmount({
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
   const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
   const hasPrefilled = useRef(false);
+  const depositMaxHumanRef = useRef<string | null>(null);
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -105,6 +106,7 @@ export function useTransactionCustomAmount({
     ? musdFiatRate
     : payTokenFiatRate;
   const balanceUsd = useTokenBalance(tokenFiatRate);
+  const { payToken } = useTransactionPayToken();
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
 
@@ -205,6 +207,8 @@ export function useTransactionCustomAmount({
         setIsMax(false);
       }
 
+      depositMaxHumanRef.current = null;
+
       setConfirmationMetric({
         properties: {
           mm_pay_amount_input_type: 'manual',
@@ -263,6 +267,18 @@ export function useTransactionCustomAmount({
         setIsMax(false);
       }
 
+      // For money account deposit max, store the full-precision human amount
+      // derived directly from the raw token balance. This bypasses the lossy
+      // fiat roundtrip (ROUND_DOWN → ÷ rate → × 10^decimals → ROUND_UP) that
+      // can inflate the required amount past the actual balance.
+      if (percentage === 100 && isMoneyAccountDeposit && payToken?.balanceRaw) {
+        depositMaxHumanRef.current = new BigNumber(payToken.balanceRaw)
+          .shiftedBy(-(payToken.decimals ?? 6))
+          .toString(10);
+      } else {
+        depositMaxHumanRef.current = null;
+      }
+
       setAmountFiat(newAmount);
     },
     [
@@ -272,6 +288,8 @@ export function useTransactionCustomAmount({
       isMoneyAccountWithdraw,
       isMoneyAccountDeposit,
       isAddMusdFlow,
+      payToken?.balanceRaw,
+      payToken?.decimals,
       setIsMax,
       setConfirmationMetric,
     ],
@@ -291,7 +309,8 @@ export function useTransactionCustomAmount({
   }, [isAddMusdFlow, balanceUsd, updatePendingAmountPercentage]);
 
   const updateTokenAmount = useCallback(async () => {
-    await updateTransactionPayAmount(amountHuman);
+    const effectiveHuman = depositMaxHumanRef.current ?? amountHuman;
+    await updateTransactionPayAmount(effectiveHuman);
     setIsTokenAmountUpdated(true);
   }, [amountHuman, updateTransactionPayAmount]);
 
