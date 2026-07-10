@@ -11,6 +11,7 @@ import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../tests/component-view
 import Engine from '../../../../../core/Engine';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
+import { PAYMENT_SELECTION_MODAL_TEST_IDS } from '../Modals/PaymentSelectionModal/PaymentSelectionModal.testIds';
 
 const ETH_ASSET_ID = 'eip155:1/slip44:60';
 const ETH_CHAIN_ID = 'eip155:1';
@@ -351,6 +352,15 @@ describe('V2 unified-buy BuildQuote', () => {
 
     await waitFor(() => {
       expect(queryByText('Providers')).not.toBeOnTheScreen();
+      expect(getByText('Pay with')).toBeOnTheScreen();
+      expect(getByText(/Buying via MoonPay/)).toBeOnTheScreen();
+    });
+
+    fireEvent.press(
+      getByTestId(PAYMENT_SELECTION_MODAL_TEST_IDS.HEADER_CLOSE_BUTTON),
+    );
+
+    await waitFor(() => {
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
     });
 

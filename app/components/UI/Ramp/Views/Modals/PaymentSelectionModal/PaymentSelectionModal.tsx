@@ -129,7 +129,7 @@ function PaymentSelectionModal() {
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(Routes.RAMP.MODALS.ID, {
         screen: Routes.RAMP.MODALS.PROVIDER_SELECTION,
-        params: { amount },
+        params: { amount, returnToPaymentSelection: true },
       });
     });
   }, [

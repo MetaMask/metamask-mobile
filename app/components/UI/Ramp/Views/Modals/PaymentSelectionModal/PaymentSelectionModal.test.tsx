@@ -264,7 +264,7 @@ describe('PaymentSelectionModal', () => {
       'RampModals',
       expect.objectContaining({
         screen: 'RampProviderSelectionModal',
-        params: { amount: 100 },
+        params: { amount: 100, returnToPaymentSelection: true },
       }),
     );
   });
@@ -289,7 +289,7 @@ describe('PaymentSelectionModal', () => {
       'RampModals',
       expect.objectContaining({
         screen: 'RampProviderSelectionModal',
-        params: { amount: 100 },
+        params: { amount: 100, returnToPaymentSelection: true },
       }),
     );
   });

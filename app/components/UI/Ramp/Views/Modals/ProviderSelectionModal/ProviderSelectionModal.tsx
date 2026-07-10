@@ -33,6 +33,8 @@ export interface ProviderSelectionModalParams {
   amount?: number;
   assetId?: string;
   skipQuotes?: boolean;
+  /** Reopen payment selection after the user picks a provider (payment sheet flow). */
+  returnToPaymentSelection?: boolean;
 }
 
 export const createProviderSelectionModalNavigationDetails =
@@ -53,6 +55,7 @@ function ProviderSelectionModal() {
     amount: routeAmount,
     assetId: paramAssetId,
     skipQuotes = false,
+    returnToPaymentSelection = false,
   } = useParams<ProviderSelectionModalParams>();
 
   const {
@@ -158,18 +161,31 @@ function ProviderSelectionModal() {
           .addProperties({
             provider: provider.name,
             previous_provider: selectedProvider?.name,
-            location: 'Amount Input',
+            location: returnToPaymentSelection
+              ? 'Payment Selection'
+              : 'Amount Input',
             ramp_type: 'UNIFIED_BUY_2',
           })
           .build(),
       );
       setSelectedProvider(provider);
+      if (returnToPaymentSelection) {
+        sheetRef.current?.onCloseBottomSheet(() => {
+          navigation.navigate(Routes.RAMP.MODALS.ID, {
+            screen: Routes.RAMP.MODALS.PAYMENT_SELECTION,
+            params: { amount },
+          });
+        });
+        return;
+      }
       navigation.goBack();
     },
     [
       setSelectedProvider,
       navigation,
+      amount,
       selectedProvider?.name,
+      returnToPaymentSelection,
       trackEvent,
       createEventBuilder,
     ],
