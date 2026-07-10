@@ -108,6 +108,10 @@ export function useTransactionCustomAmount({
   const balanceUsd = useTokenBalance(tokenFiatRate);
   const { payToken } = useTransactionPayToken();
 
+  useEffect(() => {
+    depositMaxHumanRef.current = null;
+  }, [payToken?.address, payToken?.chainId]);
+
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
 
   // Gating mirrors useFiatBuyLimitAlert so the keypad cap and the limit alert agree.
