@@ -176,9 +176,7 @@ const PermissionsSummary = ({
         >
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
-            badge={
-              <BadgeNetwork name={networkName} src={networkImageSource} />
-            }
+            badge={<BadgeNetwork name={networkName} src={networkImageSource} />}
           >
             {icon ? (
               <AvatarFavicon
