@@ -69,6 +69,10 @@ function Notification({
     }
 
     const dismissDuration = currentNotification.autodismiss || 5000;
+    // BaseNotification normally dequeues via onDismissComplete after its exit
+    // animation. Keep this fallback so the Redux queue still advances if that
+    // callback never fires (for example, interrupted animations or unmount edge
+    // cases). The extra second gives the animation time to finish first.
     const timeoutId = setTimeout(() => {
       handleDismissComplete();
     }, dismissDuration + 1000);
