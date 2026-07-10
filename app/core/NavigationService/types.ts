@@ -2,6 +2,7 @@ import type {
   ParamListBase,
   NavigationProp,
   NavigationState,
+  NavigatorScreenParams,
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
@@ -68,7 +69,10 @@ import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../c
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 
 // Perps navigation params
-import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type {
+  PerpsNavigationParamList,
+  PerpsStackParamList,
+} from '../../components/UI/Perps/types/navigation';
 import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
@@ -763,7 +767,7 @@ export type RootStackParamList = {
   // The `Perps` root is a nested stack navigator, so it also accepts the
   // `{ screen, params }` form for cross-stack navigation (e.g. from the social
   // leaderboard into PerpsMarketDetails).
-  Perps: NestedNavigationParams | PerpsNavigationParamList['Perps'];
+  Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
