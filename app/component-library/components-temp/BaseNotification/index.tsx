@@ -8,9 +8,8 @@ import React, {
 import {
   Dimensions,
   LayoutChangeEvent,
-  NativeSyntheticEvent,
   StyleProp,
-  TextLayoutEventData,
+  TextLayoutEvent,
   TouchableOpacity,
   View,
   ViewStyle,
@@ -105,7 +104,8 @@ const getTitle = (
     case 'pending_withdrawal':
       return strings('notifications.pending_withdrawal_title');
     case 'success': {
-      const parsed = nonce != null ? parseInt(String(nonce), 10) : NaN;
+      const parsed =
+        nonce != null ? Number.parseInt(String(nonce), 10) : Number.NaN;
       if (!Number.isNaN(parsed)) {
         return strings('notifications.success_title', { nonce: parsed });
       }
@@ -120,7 +120,8 @@ const getTitle = (
     case 'received':
       return strings('notifications.received_title', { amount, assetType });
     case 'speedup': {
-      const parsed = nonce != null ? parseInt(String(nonce), 10) : NaN;
+      const parsed =
+        nonce != null ? Number.parseInt(String(nonce), 10) : Number.NaN;
       if (!Number.isNaN(parsed)) {
         return strings('notifications.speedup_title', { nonce: parsed });
       }
@@ -210,9 +211,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     dismissCompleteCalledRef.current = false;
   }, [status, title, description, isVisible]);
 
-  const handleTitleTextLayout = (
-    event: NativeSyntheticEvent<TextLayoutEventData>,
-  ) => {
+  const handleTitleTextLayout = (event: TextLayoutEvent) => {
     const lineCount = event.nativeEvent.lines.length;
 
     setTitleLineCount((current) =>
@@ -220,9 +219,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     );
   };
 
-  const handleDescriptionTextLayout = (
-    event: NativeSyntheticEvent<TextLayoutEventData>,
-  ) => {
+  const handleDescriptionTextLayout = (event: TextLayoutEvent) => {
     const lineCount = event.nativeEvent.lines.length;
 
     setDescriptionLineCount((current) =>

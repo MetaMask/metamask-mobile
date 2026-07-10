@@ -1,6 +1,5 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
-import type { ReactTestInstance } from 'react-test-renderer';
 import BaseNotification, { getDescription } from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
@@ -35,7 +34,9 @@ const mockLayoutEvent = {
   nativeEvent: { layout: { height: 100, width: 300, x: 0, y: 0 } },
 };
 
-const triggerEnterLayout = (getByTestId: (id: string) => ReactTestInstance) => {
+const triggerEnterLayout = (
+  getByTestId: ReturnType<typeof renderWithProvider>['getByTestId'],
+) => {
   fireEvent(
     getByTestId('base-notification-container'),
     'layout',
