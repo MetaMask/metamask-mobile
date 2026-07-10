@@ -1077,7 +1077,7 @@
       },
       "type_filter": {
         "all": "All types",
-        "tokens": "Spot (tokens)",
+        "tokens": "Tokens",
         "perps": "Perps"
       },
       "empty_following": {

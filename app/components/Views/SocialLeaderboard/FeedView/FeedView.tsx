@@ -148,7 +148,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   );
 
   const renderItemSeparator = useCallback(
-    () => <Box twClassName="h-px bg-muted" />,
+    () => <Box twClassName="h-px bg-muted my-1" />,
     [],
   );
 

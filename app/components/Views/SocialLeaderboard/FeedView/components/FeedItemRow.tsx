@@ -46,7 +46,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
 
   return (
-    <Box twClassName="px-4 py-2 gap-4" testID={getFeedItemTestId(item.id)}>
+    <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
