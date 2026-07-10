@@ -72,6 +72,12 @@ export function getRampsControllerMessenger(
       'TransakService:cancelOrder',
       'TransakService:cancelAllActiveOrders',
       'TransakService:getActiveOrders',
+      'UserStorageController:getState',
+      'UserStorageController:performGetStorage',
+      'UserStorageController:performGetStorageAllFeatureEntries',
+      'UserStorageController:performSetStorage',
+      'UserStorageController:performBatchSetStorage',
+      'AuthenticationController:isSignedIn',
     ],
     events: [],
   });
