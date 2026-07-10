@@ -3,6 +3,7 @@ import { BigNumber } from 'bignumber.js';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
+import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
@@ -169,6 +170,69 @@ describe('MoneyPotentialEarnings', () => {
     const serialized = JSON.stringify(toJSON());
     expect(serialized).not.toContain('MaskedView');
     expect(serialized).not.toContain('LinearGradient');
+  });
+
+  it('renders the real token row balance when privacyMode is false', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.2}
+        tokens={[MOCK_USDC]}
+        privacyMode={false}
+      />,
+    );
+
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+    ).toHaveTextContent('$5000.00');
+  });
+
+  it('masks the token row balance when privacyMode is true', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.2}
+        tokens={[MOCK_USDC]}
+        privacyMode
+      />,
+    );
+
+    expect(
+      getByTestId(PotentialEarningsTokenRowTestIds.BALANCE),
+    ).toHaveTextContent('•'.repeat(9));
+  });
+
+  it('renders the real headline total and projected amounts when privacyMode is false', () => {
+    // USDC $5000 x 4% APY x 1 year = $200.00
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.04}
+        tokens={[MOCK_USDC]}
+        privacyMode={false}
+      />,
+    );
+
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TOTAL)).toHaveTextContent(
+      '$5000.00',
+    );
+    expect(
+      getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+    ).toHaveTextContent('+$200.00');
+  });
+
+  it('masks the headline total and projected amounts when privacyMode is true', () => {
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apyDecimal={0.04}
+        tokens={[MOCK_USDC]}
+        privacyMode
+      />,
+    );
+
+    expect(getByTestId(MoneyPotentialEarningsTestIds.TOTAL)).toHaveTextContent(
+      '•'.repeat(9),
+    );
+    expect(
+      getByTestId(MoneyPotentialEarningsTestIds.PROJECTED),
+    ).toHaveTextContent('•'.repeat(6));
   });
 
   it('excludes tokens with zero balance', () => {

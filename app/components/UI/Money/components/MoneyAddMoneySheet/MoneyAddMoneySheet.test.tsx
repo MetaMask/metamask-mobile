@@ -73,6 +73,11 @@ jest.mock('../../../../../selectors/transactionController', () => ({
   selectTransactions: jest.fn(() => []),
 }));
 
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { forwardRef, useImperativeHandle } = jest.requireActual('react');
@@ -136,7 +141,8 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
     expect(getByText('Debit card or Apple Pay')).toBeOnTheScreen();
-    expect(getByText('$1,203.89 mUSD')).toBeOnTheScreen();
+    expect(getByText('$1,203.89')).toBeOnTheScreen();
+    expect(getByText('mUSD')).toBeOnTheScreen();
     expect(getByText('Bank account')).toBeOnTheScreen();
     expect(getByText('External address')).toBeOnTheScreen();
     // Bank account and External address are both coming soon.
@@ -191,7 +197,8 @@ describe('MoneyAddMoneySheet', () => {
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('$1,500.00 mUSD')).toBeOnTheScreen();
+    expect(getByText('$1,500.00')).toBeOnTheScreen();
+    expect(getByText('mUSD')).toBeOnTheScreen();
   });
 
   it('shows the move-mUSD row disabled with the "Add mUSD" label when the selected EVM account has no mUSD tokens or fiat balance', () => {
@@ -258,7 +265,8 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
     ).toBeOnTheScreen();
-    expect(getByText('$12.34 mUSD')).toBeOnTheScreen();
+    expect(getByText('$12.34')).toBeOnTheScreen();
+    expect(getByText('mUSD')).toBeOnTheScreen();
   });
 
   it('initiates a deposit with autoSelectFiatPayment when Deposit funds is pressed', () => {
