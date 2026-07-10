@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "8.3.0",
+  "version": "8.4.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -354,7 +354,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^68.2.0",
     "@metamask/transaction-pay-controller": "^23.17.4",
-    "@metamask/tron-wallet-snap": "^1.29.0",
+    "@metamask/tron-wallet-snap": "^1.29.1",
     "@metamask/utils": "^11.11.0",
     "@metamask/wallet": "^6.0.0",
     "@myx-trade/sdk": "^0.1.265",
