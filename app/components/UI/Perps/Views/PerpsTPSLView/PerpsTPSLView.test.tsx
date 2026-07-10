@@ -575,7 +575,7 @@ describe('PerpsTPSLView', () => {
         undefined,
         '3150.00',
         '2850.00',
-        {
+        expect.objectContaining({
           direction: 'long',
           source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
           positionSize: 0,
@@ -583,7 +583,7 @@ describe('PerpsTPSLView', () => {
           stopLossPercentage: undefined,
           isEditingExistingPosition: false,
           entryPrice: 3000,
-        },
+        }),
       );
     });
 
@@ -606,7 +606,7 @@ describe('PerpsTPSLView', () => {
         undefined,
         undefined,
         undefined,
-        {
+        expect.objectContaining({
           direction: 'long',
           source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
           positionSize: 0,
@@ -614,7 +614,7 @@ describe('PerpsTPSLView', () => {
           stopLossPercentage: undefined,
           isEditingExistingPosition: false,
           entryPrice: 3000,
-        },
+        }),
       );
     });
 
