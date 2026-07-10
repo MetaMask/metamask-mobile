@@ -1,15 +1,11 @@
-import React, { ReactNode, useRef, useState } from 'react';
-import {
-  BottomSheet,
-  BottomSheetRef,
-  HeaderStandard,
-} from '@metamask/design-system-react-native';
-import { Modal, TouchableOpacity, View } from 'react-native';
+import React, { ReactNode, useState } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
+import BottomModal from '../bottom-modal';
 import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 interface ExpandableProps {
   collapsedContent: ReactNode;
@@ -36,8 +32,6 @@ const Expandable = ({
 }: ExpandableProps) => {
   const { styles } = useStyles(styleSheet, { isCompact });
   const [expanded, setExpanded] = useState(false);
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
 
   return (
     <>
@@ -52,37 +46,25 @@ const Expandable = ({
         {collapsedContent}
       </TouchableOpacity>
       {expanded && (
-        <Modal
-          visible
-          animationType="none"
-          transparent
-          presentationStyle="overFullScreen"
-          onRequestClose={() => bottomSheetRef.current?.onCloseBottomSheet()}
-        >
-          <View style={styles.modalRoot}>
-            <BottomSheet
-              ref={bottomSheetRef}
+        <BottomModal onClose={() => setExpanded(false)}>
+          <View style={styles.modalContent}>
+            <HeaderStandard
+              title={expandedContentTitle}
               onClose={() => setExpanded(false)}
-              twClassName={surfaceClass}
-            >
-              <HeaderStandard
-                title={expandedContentTitle}
-                onClose={() => bottomSheetRef.current?.onCloseBottomSheet()}
-                closeButtonProps={{
-                  testID: collapseButtonTestID ?? 'collapseButtonTestID',
-                }}
-              />
-              <View style={styles.modalExpandedContent}>
-                {copyText && (
-                  <View style={styles.copyButtonContainer}>
-                    <CopyButton copyText={copyText} />
-                  </View>
-                )}
-                {expandedContent}
-              </View>
-            </BottomSheet>
+              closeButtonProps={{
+                testID: collapseButtonTestID ?? 'collapseButtonTestID',
+              }}
+            />
+            <View style={styles.modalExpandedContent}>
+              {copyText && (
+                <View style={styles.copyButtonContainer}>
+                  <CopyButton copyText={copyText} />
+                </View>
+              )}
+              {expandedContent}
+            </View>
           </View>
-        </Modal>
+        </BottomModal>
       )}
     </>
   );

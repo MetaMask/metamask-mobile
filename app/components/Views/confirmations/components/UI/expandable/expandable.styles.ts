@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -20,14 +21,11 @@ const styleSheet = (params: {
       padding: isCompact ? 0 : 16,
       marginBottom: isCompact ? 0 : 8,
     },
-    /** Full-screen wrapper for transparent Modal so BottomSheet can fill the window. */
-    modalRoot: {
-      flex: 1,
-    },
     modalContent: {
-      // Deprecated: kept for backward-compat; BottomSheet provides surface + radius.
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: getElevatedSurfaceColor(theme),
       paddingBottom: 34,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
     },
     modalExpandedContent: {
       paddingHorizontal: 16,
