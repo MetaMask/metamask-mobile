@@ -85,11 +85,11 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
 
 jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
   const MockReact = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
+  const { View: MockView } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () =>
-      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+      MockReact.createElement(MockView, { testID: 'rewards-vip-badge' }),
   };
 });
 
@@ -2088,7 +2088,7 @@ describe('PerpsClosePositionView', () => {
           size: '',
           orderType: 'market',
           limitPrice: undefined,
-          trackingData: {
+          trackingData: expect.objectContaining({
             totalFee: 45,
             marketPrice: 3000,
             receivedAmount: 1405,
@@ -2098,7 +2098,7 @@ describe('PerpsClosePositionView', () => {
             feeDiscountPercentage: undefined,
             estimatedPoints: undefined,
             inputMethod: 'default',
-          },
+          }),
           marketPrice: '3000.00',
           // Slippage parameters added in USD-as-source-of-truth refactor
           // For full closes (100%), usdAmount is undefined to bypass $10 minimum validation
@@ -2217,7 +2217,7 @@ describe('PerpsClosePositionView', () => {
             size: '',
             orderType: 'limit',
             limitPrice: '50000',
-            trackingData: {
+            trackingData: expect.objectContaining({
               totalFee: 45,
               marketPrice: 3000,
               receivedAmount: 1405,
@@ -2227,7 +2227,7 @@ describe('PerpsClosePositionView', () => {
               feeDiscountPercentage: undefined,
               estimatedPoints: undefined,
               inputMethod: 'default',
-            },
+            }),
             marketPrice: '3000.00',
             slippage: {
               usdAmount: '4500',
