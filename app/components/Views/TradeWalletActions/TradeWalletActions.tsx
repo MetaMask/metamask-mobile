@@ -35,9 +35,11 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
+  getElevatedSurfaceColor,
+  useElevatedSurface,
+} from '../../../util/theme/themeUtils';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import {
   useSafeAreaFrame,
@@ -115,6 +117,7 @@ function TradeWalletActions() {
   const tw = useTailwind();
   const theme = useTheme();
   const { colors } = theme;
+  const surfaceClass = useElevatedSurface();
 
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -382,23 +385,23 @@ function TradeWalletActions() {
       <View style={tw.style('px-4')}>
         <View
           testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
-          style={tw.style('bg-default p-4 rounded-t-2xl px-0')}
+          style={tw.style(surfaceClass, 'p-4 rounded-t-2xl px-0')}
         >
           {actionList}
         </View>
         <View
           style={tw.style('flex-row mt-[-1px]', { height: bottomMaskHeight })}
         >
-          <View style={tw.style('bg-default flex-1 rounded-bl-2xl')} />
+          <View style={tw.style(surfaceClass, 'flex-1 rounded-bl-2xl')} />
           <BottomShape
             width={buttonLayout.width * 4}
             height={bottomMaskHeight}
             peakHeight={16}
             peakBezierLength={25}
             baseBezierLength={55}
-            fill={colors.background.default}
+            fill={getElevatedSurfaceColor(theme)}
           />
-          <View style={tw.style('bg-default flex-1 rounded-br-2xl')} />
+          <View style={tw.style(surfaceClass, 'flex-1 rounded-br-2xl')} />
         </View>
       </View>
     </Animated.View>
