@@ -7,7 +7,6 @@ import { MetaMetricsEvents } from '../../core/Analytics';
 import { useAnalytics } from './useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../util/test/analyticsMock';
 import { useNftDetectionChainIds } from './useNftDetectionChainIds';
-import { prepareNftDetectionEvents } from '../../util/assets';
 import { getDecimalChainId } from '../../util/networks';
 import Logger from '../../util/Logger';
 import {
@@ -44,10 +43,6 @@ jest.mock('./useNftDetectionChainIds', () => ({
   useNftDetectionChainIds: jest.fn(),
 }));
 
-jest.mock('../../util/assets', () => ({
-  prepareNftDetectionEvents: jest.fn(),
-}));
-
 jest.mock('../../util/networks', () => ({
   getDecimalChainId: jest.fn(),
 }));
@@ -80,10 +75,6 @@ describe('useNftDetection', () => {
     useNftDetectionChainIds as jest.MockedFunction<
       typeof useNftDetectionChainIds
     >;
-  const mockPrepareNftDetectionEvents =
-    prepareNftDetectionEvents as jest.MockedFunction<
-      typeof prepareNftDetectionEvents
-    >;
   const mockGetDecimalChainId = getDecimalChainId as jest.MockedFunction<
     typeof getDecimalChainId
   >;
@@ -96,17 +87,35 @@ describe('useNftDetection', () => {
   const mockSelectedAddress = '0x1234567890abcdef';
   const mockChainIds = ['0x1', '0x89'] as Hex[];
 
-  const mockNftControllerState = {
+  const existingNft: Nft = {
+    address: '0xNFT1',
+    tokenId: '1',
+    name: 'NFT 1',
+    standard: 'ERC721',
+  } as Nft;
+
+  const newlyDetectedNft: Nft = {
+    address: '0xNFT2',
+    tokenId: '2',
+    name: 'NFT 2',
+    standard: 'ERC721',
+    chainId: '0x1' as Hex,
+  } as unknown as Nft;
+
+  // State BEFORE detection — used as pre-await snapshot
+  const mockNftControllerStateBefore = {
     allNfts: {
       [mockSelectedAddress.toLowerCase()]: {
-        '0x1': [
-          {
-            address: '0xNFT1',
-            tokenId: '1',
-            name: 'NFT 1',
-            standard: 'ERC721',
-          } as Nft,
-        ],
+        '0x1': [existingNft],
+      },
+    },
+  };
+
+  // State AFTER detection — returned after await resolves
+  const mockNftControllerStateAfter = {
+    allNfts: {
+      [mockSelectedAddress.toLowerCase()]: {
+        '0x1': [existingNft, newlyDetectedNft],
       },
     },
   };
@@ -117,7 +126,7 @@ describe('useNftDetection', () => {
         detectNfts: mockDetectNfts,
       },
       NftController: {
-        state: mockNftControllerState,
+        state: mockNftControllerStateBefore,
       },
       PreferencesController: {
         state: {
@@ -130,10 +139,7 @@ describe('useNftDetection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup useDispatch mock
     mockUseDispatch.mockReturnValue(mockDispatch);
-
-    // Setup useSelector mock
     mockUseSelector.mockReturnValue(mockSelectedAddress);
 
     mockAddProperties.mockReturnThis();
@@ -150,21 +156,21 @@ describe('useNftDetection', () => {
       }),
     );
 
-    // Setup useNftDetectionChainIds mock
     mockUseNftDetectionChainIds.mockReturnValue(mockChainIds);
 
-    // Setup Engine mock
+    // Reset to "before" state
+    mockEngine.context.NftController.state = mockNftControllerStateBefore;
+    mockEngine.context.PreferencesController.state.useNftDetection = true;
+
     (Engine as unknown as { context: typeof mockEngine.context }).context =
       mockEngine.context;
 
-    // Setup prepareNftDetectionEvents mock
-    mockPrepareNftDetectionEvents.mockReturnValue([]);
-
-    // Setup getDecimalChainId mock
     mockGetDecimalChainId.mockReturnValue(1);
 
-    // Setup detectNfts to resolve
-    mockDetectNfts.mockResolvedValue(undefined);
+    // When detectNfts resolves, simulate controller state having been updated
+    mockDetectNfts.mockImplementation(async () => {
+      mockEngine.context.NftController.state = mockNftControllerStateAfter;
+    });
   });
 
   afterEach(() => {
@@ -198,9 +204,7 @@ describe('useNftDetection', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('dispatches showNftFetchingLoadingIndicator before detection', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
-
+    it('dispatches showNftFetchingLoadingIndicator before detection by default', async () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
@@ -212,9 +216,7 @@ describe('useNftDetection', () => {
       );
     });
 
-    it('dispatches hideNftFetchingLoadingIndicator after detection', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
-
+    it('dispatches hideNftFetchingLoadingIndicator after detection by default', async () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
@@ -226,9 +228,22 @@ describe('useNftDetection', () => {
       );
     });
 
-    it('calls NftDetectionController.detectNfts with firstPageOnly true by default', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
+    it('does not dispatch loading indicators when showLoadingIndicator is false', async () => {
+      const { result } = renderHook(() => useNftDetection());
 
+      await act(async () => {
+        await result.current.detectNfts(true, false);
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        showNftFetchingLoadingIndicator(),
+      );
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        hideNftFetchingLoadingIndicator(),
+      );
+    });
+
+    it('calls NftDetectionController.detectNfts with firstPageOnly true by default', async () => {
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
@@ -243,8 +258,6 @@ describe('useNftDetection', () => {
     });
 
     it('calls NftDetectionController.detectNfts with firstPageOnly false when specified', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
-
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
@@ -259,18 +272,16 @@ describe('useNftDetection', () => {
     });
 
     it('aborts previous detection when detectNfts is called again', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
       let firstAbortSignal: AbortSignal | undefined;
       let secondAbortSignal: AbortSignal | undefined;
 
       mockDetectNfts.mockImplementation(
-        (_chainIds, options?: { signal?: AbortSignal }) => {
+        async (_chainIds: Hex[], options?: { signal?: AbortSignal }) => {
           if (!firstAbortSignal) {
             firstAbortSignal = options?.signal;
           } else if (!secondAbortSignal) {
             secondAbortSignal = options?.signal;
           }
-          return Promise.resolve();
         },
       );
 
@@ -291,8 +302,6 @@ describe('useNftDetection', () => {
     });
 
     it('starts trace before detection', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
-
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
@@ -303,8 +312,6 @@ describe('useNftDetection', () => {
     });
 
     it('ends trace after detection', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
-
       const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
@@ -314,14 +321,8 @@ describe('useNftDetection', () => {
       expect(mockEndTrace).toHaveBeenCalledWith({ name: 'DetectNfts' });
     });
 
-    it('tracks analytics events for newly detected NFTs', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
-
-      const mockEventParams = [
-        { chain_id: 1, source: 'detected' as const },
-        { chain_id: 137, source: 'detected' as const },
-      ];
-      mockPrepareNftDetectionEvents.mockReturnValue(mockEventParams);
+    it('tracks COLLECTIBLE_ADDED event for each newly detected NFT', async () => {
+      mockGetDecimalChainId.mockReturnValue(1);
 
       const { result } = renderHook(() => useNftDetection());
 
@@ -329,7 +330,8 @@ describe('useNftDetection', () => {
         await result.current.detectNfts();
       });
 
-      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      // newlyDetectedNft (0xNFT2:2) was not in the pre-detection snapshot
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.COLLECTIBLE_ADDED,
       );
@@ -337,15 +339,29 @@ describe('useNftDetection', () => {
         chain_id: 1,
         source: 'detected',
       });
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        chain_id: 137,
-        source: 'detected',
-      });
     });
 
-    it('does not track events when no new NFTs detected', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
-      mockPrepareNftDetectionEvents.mockReturnValue([]);
+    it('does not track events for NFTs that already existed before detection', async () => {
+      // After detection state is the same as before — no new NFTs
+      mockDetectNfts.mockImplementation(async () => {
+        mockEngine.context.NftController.state = mockNftControllerStateBefore;
+      });
+
+      const { result } = renderHook(() => useNftDetection());
+
+      await act(async () => {
+        await result.current.detectNfts();
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not track events when no NFTs exist after detection', async () => {
+      mockDetectNfts.mockImplementation(async () => {
+        mockEngine.context.NftController.state = {
+          allNfts: { [mockSelectedAddress.toLowerCase()]: {} },
+        };
+      });
 
       const { result } = renderHook(() => useNftDetection());
 
@@ -357,7 +373,6 @@ describe('useNftDetection', () => {
     });
 
     it('hides loading indicator even when detection fails', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
       mockDetectNfts.mockRejectedValue(new Error('Detection failed'));
 
       const { result } = renderHook(() => useNftDetection());
@@ -376,7 +391,6 @@ describe('useNftDetection', () => {
     });
 
     it('ends trace even when detection fails', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
       mockDetectNfts.mockRejectedValue(new Error('Detection failed'));
 
       const { result } = renderHook(() => useNftDetection());
@@ -391,87 +405,78 @@ describe('useNftDetection', () => {
 
       expect(mockEndTrace).toHaveBeenCalledWith({ name: 'DetectNfts' });
     });
-
-    it('calls prepareNftDetectionEvents with previous and new NFT states', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
-
-      const { result } = renderHook(() => useNftDetection());
-
-      await act(async () => {
-        await result.current.detectNfts();
-      });
-
-      expect(mockPrepareNftDetectionEvents).toHaveBeenCalledWith(
-        mockNftControllerState.allNfts[mockSelectedAddress.toLowerCase()],
-        mockNftControllerState.allNfts[mockSelectedAddress.toLowerCase()],
-        expect.any(Function),
-      );
-    });
   });
 
   describe('getNftDetectionAnalyticsParams', () => {
-    it('returns correct analytics params for valid NFT', async () => {
-      mockGetDecimalChainId.mockReturnValue(1);
+    it('returns correct analytics params for a valid NFT via trackEvent', async () => {
+      mockGetDecimalChainId.mockReturnValue(137);
+
+      // Set up state so newlyDetectedNft is on chain 0x89
+      mockEngine.context.NftController.state = {
+        allNfts: { [mockSelectedAddress.toLowerCase()]: {} },
+      };
+      mockDetectNfts.mockImplementation(async () => {
+        mockEngine.context.NftController.state = {
+          allNfts: {
+            [mockSelectedAddress.toLowerCase()]: {
+              '0x89': [
+                {
+                  address: '0xNFT3',
+                  tokenId: '3',
+                  chainId: '0x89' as Hex,
+                  standard: 'ERC721',
+                } as unknown as Nft,
+              ],
+            },
+          },
+        };
+      });
 
       const { result } = renderHook(() => useNftDetection());
-
-      const mockNft = {
-        address: '0xNFT1',
-        tokenId: '1',
-        name: 'Test NFT',
-        description: 'Test NFT Description',
-        image: 'test-image.jpg',
-        chainId: '0x1' as Hex,
-        standard: 'ERC721',
-      } as unknown as Nft;
 
       await act(async () => {
         await result.current.detectNfts();
       });
 
-      // Extract the param builder from the mock call
-      const prepareEventsCall = mockPrepareNftDetectionEvents.mock.calls[0];
-      expect(prepareEventsCall).toBeDefined();
-
-      const paramBuilder = prepareEventsCall[2];
-      const params = paramBuilder(mockNft);
-
-      expect(params).toEqual({
-        chain_id: 1,
+      expect(mockGetDecimalChainId).toHaveBeenCalledWith('0x89');
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        chain_id: 137,
         source: 'detected',
       });
-      expect(mockGetDecimalChainId).toHaveBeenCalledWith('0x1');
     });
 
-    it('returns undefined when getDecimalChainId throws error', async () => {
+    it('skips event when getDecimalChainId throws', async () => {
       mockGetDecimalChainId.mockImplementation(() => {
         throw new Error('Invalid chainId');
       });
 
-      const { result } = renderHook(() => useNftDetection());
+      mockEngine.context.NftController.state = {
+        allNfts: { [mockSelectedAddress.toLowerCase()]: {} },
+      };
+      mockDetectNfts.mockImplementation(async () => {
+        mockEngine.context.NftController.state = {
+          allNfts: {
+            [mockSelectedAddress.toLowerCase()]: {
+              '0x1': [
+                {
+                  address: '0xNFT4',
+                  tokenId: '4',
+                  chainId: 'invalid' as Hex,
+                  standard: 'ERC721',
+                } as unknown as Nft,
+              ],
+            },
+          },
+        };
+      });
 
-      const mockNft = {
-        address: '0xNFT1',
-        tokenId: '1',
-        name: 'Test NFT',
-        description: 'Test NFT Description',
-        image: 'test-image.jpg',
-        chainId: 'invalid' as Hex,
-        standard: 'ERC721',
-      } as unknown as Nft;
+      const { result } = renderHook(() => useNftDetection());
 
       await act(async () => {
         await result.current.detectNfts();
       });
 
-      // Extract the param builder from the mock call
-      const prepareEventsCall = mockPrepareNftDetectionEvents.mock.calls[0];
-      expect(prepareEventsCall).toBeDefined();
-
-      const paramBuilder = prepareEventsCall[2];
-      const params = paramBuilder(mockNft);
-
-      expect(params).toBeUndefined();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
       expect(mockLoggerError).toHaveBeenCalledWith(
         expect.any(Error),
         'useNftDetection.getNftDetectionAnalyticsParams',
@@ -481,11 +486,10 @@ describe('useNftDetection', () => {
 
   describe('abortDetection', () => {
     it('aborts in-progress detection', async () => {
-      mockEngine.context.PreferencesController.state.useNftDetection = true;
       let capturedSignal: AbortSignal | undefined;
 
       mockDetectNfts.mockImplementation(
-        async (_chainIds, options?: { signal?: AbortSignal }) => {
+        async (_chainIds: Hex[], options?: { signal?: AbortSignal }) => {
           capturedSignal = options?.signal;
         },
       );

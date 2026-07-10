@@ -134,7 +134,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           return;
         lastNftDetectRef.current = now;
 
-        detectNfts().catch(() => {
+        detectNfts(true, false).catch(() => {
           // AbortError is expected when detection is cancelled on blur
         });
 
