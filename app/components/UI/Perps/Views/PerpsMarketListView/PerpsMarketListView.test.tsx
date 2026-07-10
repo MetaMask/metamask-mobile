@@ -2061,7 +2061,7 @@ describe('PerpsMarketListView', () => {
       jest.useRealTimers();
     });
 
-    it('does NOT flush a pending search query on blur while results are still loading', () => {
+    it('flushes a pending search query on blur while loading with the count props omitted', () => {
       jest.useFakeTimers();
 
       mockUsePerpsMarketListView.mockReturnValue({
@@ -2098,7 +2098,8 @@ describe('PerpsMarketListView', () => {
           forex: 0,
           new: 0,
         },
-        // Results still loading — a mid-load flush would report a stale count.
+        // Results still loading — the flush must emit the query without a
+        // count, never drop it and never report a stale count.
         isLoading: true,
         error: null,
       });
@@ -2120,11 +2121,92 @@ describe('PerpsMarketListView', () => {
         focusCleanups.forEach((cleanup) => cleanup());
       });
 
-      // The pending query is dropped (not emitted as settled) while loading.
-      expect(mockTrack).not.toHaveBeenCalledWith(
+      // The pending query is still emitted (never a silent drop) but with the
+      // count-dependent props omitted, since the count is unknown mid-load.
+      expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SEARCH_QUERY,
-        expect.anything(),
+        expect.objectContaining({
+          [PEP.SEARCH_QUERY]: 'bt',
+          query_text: 'bt',
+          query_length: 2,
+        }),
       );
+      const searchQueryProps =
+        mockTrack.mock.calls.find(
+          ([name]) => name === MetaMetricsEvents.PERPS_SEARCH_QUERY,
+        )?.[1] ?? {};
+      expect(searchQueryProps).not.toHaveProperty(PEP.RESULTS_COUNT);
+      expect(searchQueryProps).not.toHaveProperty(PEP.RESULT_COUNT);
+      expect(searchQueryProps).not.toHaveProperty('has_results');
+      // No results/no-results screen view is recorded while loading — the
+      // counts that determine which screen type was shown are unknown.
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PEP.SCREEN_TYPE]: expect.stringMatching(/search/i),
+        }),
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('emits the pending SEARCH_QUERY before RESULT_TAPPED when a result is tapped mid-debounce', () => {
+      jest.useFakeTimers();
+
+      mockUsePerpsMarketListView.mockReturnValue({
+        markets: [mockMarketData[0]],
+        searchState: {
+          searchQuery: 'BT',
+          setSearchQuery: mockSetSearchQuery,
+          clearSearch: mockClearSearch,
+        },
+        sortState: {
+          selectedOptionId: 'volume',
+          sortBy: 'volume',
+          direction: 'desc' as const,
+          handleOptionChange: jest.fn(),
+        },
+        favoritesState: {
+          showFavoritesOnly: false,
+          setShowFavoritesOnly: jest.fn(),
+          hasWatchlistMarkets: false,
+          watchlistMarketObjects: [],
+          suggestedMarkets: [],
+        },
+        marketTypeFilterState: {
+          marketTypeFilter: 'all' as const,
+          setMarketTypeFilter: jest.fn(),
+        },
+        marketCounts: {
+          crypto: 1,
+          stocks: 0,
+          'pre-ipo': 0,
+          indices: 0,
+          etfs: 0,
+          commodities: 0,
+          forex: 0,
+          new: 0,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      // Tap a result BEFORE the 500ms debounce fires — the query is still
+      // pending. The tap must flush it first so the funnel is query → tap.
+      act(() => {
+        fireEvent.press(screen.getByTestId('market-row-BTC'));
+      });
+
+      const emitted = mockTrack.mock.calls.map(([name]) => name);
+      const queryIdx = emitted.indexOf(MetaMetricsEvents.PERPS_SEARCH_QUERY);
+      const tapIdx = emitted.indexOf(
+        MetaMetricsEvents.PERPS_SEARCH_RESULT_TAPPED,
+      );
+      expect(queryIdx).toBeGreaterThanOrEqual(0);
+      expect(tapIdx).toBeGreaterThanOrEqual(0);
+      expect(queryIdx).toBeLessThan(tapIdx);
 
       jest.useRealTimers();
     });

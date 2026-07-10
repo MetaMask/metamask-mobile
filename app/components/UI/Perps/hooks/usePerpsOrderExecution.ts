@@ -62,6 +62,12 @@ const getPerpsOrderPositionSnapshot = (
  * Trade transaction analytics (submitted + terminal) are emitted by
  * `@metamask/perps-controller` TradingService — do not re-emit
  * PERPS_TRADE_TRANSACTION from this hook.
+ *
+ * Partial-fill status on the open-trade path (PARTIALLY_FILLED plus
+ * amount_filled / remaining_amount) is likewise controller-owned and lands with
+ * the next `@metamask/perps-controller` release — do not emit it here, as client
+ * emission would double-count once the controller ships it (same deferral as
+ * `orderExecutionLatencyMs`).
  */
 export function usePerpsOrderExecution(
   params: UsePerpsOrderExecutionParams = {},

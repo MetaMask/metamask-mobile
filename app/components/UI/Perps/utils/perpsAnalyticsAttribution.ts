@@ -78,6 +78,10 @@ export function hasPerpsUtmAttribution(
 /**
  * Store UTM attribution on the in-memory PerpsController context so
  * TradingService can merge it into submitted/terminal events.
+ *
+ * The context lives for the app session (not cleared on navigation), so a later
+ * signed deeplink overwrites earlier UTM — intended last-touch attribution,
+ * consistent with the extension's session store and the controller's context.
  */
 export function setPerpsUtmAttribution(context: PerpsAttributionContext): void {
   if (!hasPerpsUtmAttribution(context)) {

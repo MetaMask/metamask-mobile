@@ -147,6 +147,12 @@ const PerpsMarketListView = ({
   // set when a search result is tapped so leaving the screen after a
   // tap is not counted as a search abandonment.
   const searchResultTappedRef = useRef(false);
+  // Holds the latest flushPendingSearchQuery so handleMarketPress (defined
+  // before it) can force the pending query to emit before the result-tap event,
+  // keeping the funnel order query → tap. Assigned once the callback exists.
+  const flushPendingSearchQueryRef = useRef<() => void>(() => {
+    // Assigned below once flushPendingSearchQuery is defined.
+  });
 
   // Handler for market press (defined early to avoid use-before-define)
   const handleMarketPress = useCallback(
@@ -165,6 +171,10 @@ const PerpsMarketListView = ({
             searchStartTimeRef.current !== null
               ? Date.now() - searchStartTimeRef.current
               : undefined;
+          // A fast tap can land before the still-debouncing PERPS_SEARCH_QUERY
+          // has fired. Flush it synchronously first so the funnel stream is
+          // always query → tap, never tap → query.
+          flushPendingSearchQueryRef.current();
           track(MetaMetricsEvents.PERPS_SEARCH_RESULT_TAPPED, {
             [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: trimmedQuery.toLowerCase(),
             [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: filteredMarkets.length,
@@ -295,10 +305,20 @@ const PerpsMarketListView = ({
   // emit the search query + results/no-results screen view.
   // Stored in a ref (event-callback pattern) so both the debounce timer and the
   // on-blur flush use the latest result count / filter context.
-  const emitSearchQueryRef = useRef<(trimmedQuery: string) => void>(() => {
+  const emitSearchQueryRef = useRef<
+    (trimmedQuery: string, resultsSettled?: boolean) => void
+  >(() => {
     // Assigned on every render below.
   });
-  emitSearchQueryRef.current = (trimmedQuery: string) => {
+  // `resultsSettled` defaults to true (the debounced emit only runs once the
+  // markets list has settled). A blur/unmount flush while markets are still
+  // loading passes false: the result count is unknown, so the count-dependent
+  // props are omitted (never a stale/zero count) and no results screen view is
+  // recorded, but the query is still emitted so it is never silently dropped.
+  emitSearchQueryRef.current = (
+    trimmedQuery: string,
+    resultsSettled = true,
+  ) => {
     const normalizedQuery = trimmedQuery.toLowerCase();
     const resultCount = filteredMarkets.length;
     const hasResults = resultCount > 0;
@@ -317,29 +337,39 @@ const PerpsMarketListView = ({
         : 'browse';
 
     lastEmittedSearchQueryRef.current = normalizedQuery;
-    lastEmittedSearchResultsCountRef.current = resultCount;
+    if (resultsSettled) {
+      lastEmittedSearchResultsCountRef.current = resultCount;
+    }
     searchQueryCountRef.current += 1;
 
     track(MetaMetricsEvents.PERPS_SEARCH_QUERY, {
       [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: normalizedQuery,
       query_text: normalizedQuery,
       query_length: normalizedQuery.length,
-      [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: resultCount,
-      [PERPS_EVENT_PROPERTY.RESULT_COUNT]: resultCount,
-      has_results: hasResults,
+      ...(resultsSettled
+        ? {
+            [PERPS_EVENT_PROPERTY.RESULTS_COUNT]: resultCount,
+            [PERPS_EVENT_PROPERTY.RESULT_COUNT]: resultCount,
+            has_results: hasResults,
+          }
+        : {}),
       [PERPS_EVENT_PROPERTY.MODE]: mode,
       active_chips: activeChips,
       [PERPS_EVENT_PROPERTY.SOURCE]:
         PERPS_EVENT_VALUE.SOURCE.PERP_MARKET_SEARCH,
     });
 
-    track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: hasResults
-        ? PERPS_EVENT_VALUE.SCREEN_TYPE.SEARCH_RESULTS_SHOWN
-        : PERPS_EVENT_VALUE.SCREEN_TYPE.SEARCH_NO_RESULTS,
-      [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: normalizedQuery,
-      [PERPS_EVENT_PROPERTY.RESULT_COUNT]: resultCount,
-    });
+    // A results/no-results screen view is only meaningful once the counts are
+    // known; while loading no such screen has actually been shown yet.
+    if (resultsSettled) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: hasResults
+          ? PERPS_EVENT_VALUE.SCREEN_TYPE.SEARCH_RESULTS_SHOWN
+          : PERPS_EVENT_VALUE.SCREEN_TYPE.SEARCH_NO_RESULTS,
+        [PERPS_EVENT_PROPERTY.SEARCH_QUERY]: normalizedQuery,
+        [PERPS_EVENT_PROPERTY.RESULT_COUNT]: resultCount,
+      });
+    }
   };
 
   // Latest loading state readable from stable callbacks without dep churn.
@@ -362,21 +392,24 @@ const PerpsMarketListView = ({
   }, []);
 
   // Flush a query still awaiting the debounce so a blur/unmount records it
-  // before we decide on abandonment — it is never silently lost. A query whose
-  // results are still loading is dropped (not emitted as settled), matching the
-  // debounce gate, so result_count/has_results are never captured mid-load.
+  // before we decide on abandonment — it is never silently lost. When the
+  // markets list is still loading, the query is emitted with the count-dependent
+  // props omitted (unknown mid-load) rather than dropped or reported with a
+  // stale count.
   const flushPendingSearchQuery = useCallback(() => {
     if (searchResultTimerRef.current) {
       clearTimeout(searchResultTimerRef.current);
       searchResultTimerRef.current = null;
     }
     if (pendingSearchQueryRef.current) {
-      if (!isLoadingMarketsRef.current) {
-        emitSearchQueryRef.current(pendingSearchQueryRef.current);
-      }
+      emitSearchQueryRef.current(
+        pendingSearchQueryRef.current,
+        !isLoadingMarketsRef.current,
+      );
       pendingSearchQueryRef.current = null;
     }
   }, []);
+  flushPendingSearchQueryRef.current = flushPendingSearchQuery;
 
   const emitSearchAbandoned = useCallback(() => {
     if (!lastEmittedSearchQueryRef.current) {
