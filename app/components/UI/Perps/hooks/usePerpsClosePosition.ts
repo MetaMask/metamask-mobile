@@ -9,6 +9,19 @@ import {
   type TrackingData,
 } from '@metamask/perps-controller';
 import { handlePerpsError } from '../utils/translatePerpsError';
+import { TraceName } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufRequestAfter,
+  watchPerpsCufPositionClosed,
+  acceptPerpsCufRequest,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -58,6 +71,23 @@ export const usePerpsClosePosition = (
         slippage,
       } = params;
       const isFullClose = size === undefined || size === '';
+
+      // Confirmation CUF (market close): ends when the stream shows the
+      // position reduced or absent. Limit closes rest until filled, so their
+      // confirmation is not a render-latency measurement.
+      let closeCufOpId: string | undefined;
+      let controllerSettled = false;
+      if (orderType === 'market') {
+        closeCufOpId = startPerpsCufTrace({
+          name: TraceName.PerpsClosePositionToConfirmation,
+        });
+        watchPerpsCufPositionClosed(closeCufOpId, position);
+        endPerpsCufRequestAfter(
+          closeCufOpId,
+          () => controllerSettled,
+          PERPS_CUF_STREAM_TIMEOUT_MS,
+        );
+      }
 
       try {
         setIsClosing(true);
@@ -135,9 +165,18 @@ export const usePerpsClosePosition = (
           position,
         });
 
+        controllerSettled = true;
+
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (result.success) {
+          // Controller accepted the close: only now may a stream shrink/absence
+          // complete the CUF as a success. If the position already shrank while
+          // the request was in flight, that render instant was recorded and the
+          // span ends at it here.
+          if (closeCufOpId) {
+            acceptPerpsCufRequest(closeCufOpId);
+          }
           // Market order immediately fills or fails
           // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
           // Note: We only support market close for now but keeping check for future limit close support.
@@ -189,11 +228,31 @@ export const usePerpsClosePosition = (
             fallbackMessage: strings('perps.close_position.error_unknown'),
           });
 
+          // Rejected request, not an exception: classify before the throw so
+          // the catch's EXCEPTION end no-ops (matches TPSL/cancel paths).
+          if (closeCufOpId) {
+            endPerpsCufTrace({
+              id: closeCufOpId,
+              data: {
+                [PERPS_CUF_TAG.SUCCESS]: false,
+                [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+              },
+            });
+          }
           throw new Error(errorMessage);
         }
 
         return result;
       } catch (err) {
+        if (closeCufOpId) {
+          endPerpsCufTrace({
+            id: closeCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+            },
+          });
+        }
         const closeError =
           err instanceof Error
             ? err
