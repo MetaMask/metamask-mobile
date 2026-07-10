@@ -1115,6 +1115,21 @@ describe('CustomAmountInfo', () => {
     });
   });
 
+  describe('PayWithRow visibility for moneyAccountDeposit', () => {
+    it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('pay-with')).toBeOnTheScreen();
+    });
+  });
+
   describe('no-funds account with accountOverride', () => {
     function setupNoFundsWithOverride() {
       useTransactionMetadataRequestMock.mockReturnValue({
