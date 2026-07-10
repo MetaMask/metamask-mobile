@@ -8,7 +8,7 @@ const {
 } = require('@metamask/build-utils');
 const { ESLint } = require('eslint');
 const defaultTransformer = require('@expo/metro-config/babel-transformer');
-const svgTransformer = require('react-native-svg-transformer');
+const svgTransformer = require('react-native-svg-transformer/expo');
 
 // Code fence removal variables
 const fileExtsToScan = ['.js', '.jsx', '.cjs', '.mjs', '.ts', '.tsx'];
