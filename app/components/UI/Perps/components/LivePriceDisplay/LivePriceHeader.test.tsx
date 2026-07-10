@@ -337,4 +337,80 @@ describe('LivePriceHeader', () => {
       expect(getByText('--%')).toBeTruthy();
     });
   });
+
+  describe('percentChange24h override prop', () => {
+    it('uses the override value instead of the internal subscription', () => {
+      // Even though the internal subscription would resolve to +5.50%, the
+      // explicit override takes precedence.
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: {
+          symbol: 'ETH',
+          price: '3000',
+          percentChange24h: '5.5',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { getByText, queryByText } = render(
+        <LivePriceHeader
+          symbol="ETH"
+          currentPrice={3000}
+          percentChange24h={-1.25}
+        />,
+      );
+
+      expect(getByText('-1.25%')).toBeTruthy();
+      expect(queryByText('+5.50%')).toBeNull();
+    });
+
+    it('does not subscribe to the price stream when an override is provided', () => {
+      render(
+        <LivePriceHeader
+          symbol="ETH"
+          currentPrice={3000}
+          percentChange24h={2}
+        />,
+      );
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
+        expect.objectContaining({ symbols: [] }),
+      );
+    });
+
+    it('subscribes to the price stream as usual when no override is provided (backward compatible)', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      render(<LivePriceHeader symbol="ETH" currentPrice={3000} />);
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
+        expect.objectContaining({ symbols: ['ETH'] }),
+      );
+    });
+
+    it('shows the loading placeholder when the override is explicitly null', () => {
+      const { getByText } = render(
+        <LivePriceHeader
+          symbol="ETH"
+          currentPrice={3000}
+          percentChange24h={null}
+        />,
+      );
+
+      expect(getByText('--%')).toBeTruthy();
+    });
+
+    it('formats a zero override as a legitimate value, not a loading state', () => {
+      const { getByText, queryByText } = render(
+        <LivePriceHeader
+          symbol="ETH"
+          currentPrice={3000}
+          percentChange24h={0}
+        />,
+      );
+
+      expect(getByText('+0.00%')).toBeTruthy();
+      expect(queryByText('--%')).toBeNull();
+    });
+  });
 });

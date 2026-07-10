@@ -5,20 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import PerpsOrderHeader from './PerpsOrderHeader';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
-import {
-  usePerpsLivePrices,
-  usePerpsLiveHeaderPrice,
-  type PriceUpdate,
-} from '../../hooks/stream';
-
-const buildPriceUpdate = (
-  overrides: Partial<PriceUpdate> & { symbol: string },
-): PriceUpdate => ({
-  price: '0',
-  timestamp: Date.now(),
-  isTradable: true,
-  ...overrides,
-});
+import { usePerpsLiveHeaderPrice } from '../../hooks/stream';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -31,24 +18,18 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../providers/PerpsStreamManager');
 
 jest.mock('../../hooks/stream', () => ({
-  // Used internally by the real LivePriceHeader for the 24h percent change.
-  usePerpsLivePrices: jest.fn(() => ({
-    ETH: {
-      symbol: 'ETH',
-      price: '0',
-      percentChange24h: '2.5',
-      timestamp: Date.now(),
-      isTradable: true,
-    },
+  // LivePriceHeader's own internal subscription, used only when a caller
+  // doesn't supply a percentChange24h override (not the case for
+  // PerpsOrderHeader, which always provides one via usePerpsLiveHeaderPrice).
+  usePerpsLivePrices: jest.fn(() => ({})),
+  // Used by PerpsOrderHeader itself for the displayed price + 24h change
+  // (candle-derived price, unthrottled — see usePerpsLiveHeaderPrice).
+  usePerpsLiveHeaderPrice: jest.fn(() => ({
+    price: undefined,
+    percentChange24h: null,
   })),
-  // Used by PerpsOrderHeader itself for the displayed price (candle-derived,
-  // unthrottled — see usePerpsLiveHeaderPrice).
-  usePerpsLiveHeaderPrice: jest.fn(() => ({ price: undefined })),
 }));
 
-const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
-  typeof usePerpsLivePrices
->;
 const mockUsePerpsLiveHeaderPrice =
   usePerpsLiveHeaderPrice as jest.MockedFunction<
     typeof usePerpsLiveHeaderPrice
@@ -89,12 +70,14 @@ describe('PerpsOrderHeader', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       goBack: mockGoBack,
     });
-    mockUsePerpsLivePrices.mockReturnValue({
-      ETH: buildPriceUpdate({ symbol: 'ETH', percentChange24h: '2.5' }),
+    // No live price by default (falls back to the `price` prop), but a
+    // valid percent change so existing "+2.50%" assertions keep working.
+    // Tests that exercise the candle-derived price source override this
+    // explicitly.
+    mockUsePerpsLiveHeaderPrice.mockReturnValue({
+      price: undefined,
+      percentChange24h: 2.5,
     });
-    // No live price by default — tests that exercise the candle-derived
-    // price source override this explicitly.
-    mockUsePerpsLiveHeaderPrice.mockReturnValue({ price: undefined });
   });
 
   it('should render without crashing', () => {
@@ -248,7 +231,10 @@ describe('PerpsOrderHeader', () => {
     it('renders the price prop before the candle-derived price has arrived', () => {
       // Simulates the very first render, before usePerpsLiveHeaderPrice's
       // underlying candle subscription has delivered any data yet.
-      mockUsePerpsLiveHeaderPrice.mockReturnValue({ price: undefined });
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: undefined,
+        percentChange24h: null,
+      });
 
       const { getByText } = renderWithProvider(
         <PerpsOrderHeader {...defaultProps} price={3000} />,
@@ -266,7 +252,10 @@ describe('PerpsOrderHeader', () => {
       // newer price. The header must reflect the live price, not the stale
       // prop, so it stays as responsive as the market details page (which
       // gets its speed from the same candle-derived data source).
-      mockUsePerpsLiveHeaderPrice.mockReturnValue({ price: 3123.45 });
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: 3123.45,
+        percentChange24h: 2.5,
+      });
 
       const { getByText, queryByText } = renderWithProvider(
         <PerpsOrderHeader {...defaultProps} price={3000} />,
@@ -278,7 +267,10 @@ describe('PerpsOrderHeader', () => {
     });
 
     it('updates the displayed price on every candle tick without a new price prop', () => {
-      mockUsePerpsLiveHeaderPrice.mockReturnValue({ price: 3050 });
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: 3050,
+        percentChange24h: 2.5,
+      });
 
       const { getByText, queryByText, rerender } = renderWithProvider(
         <PerpsOrderHeader {...defaultProps} price={3000} />,
@@ -289,7 +281,10 @@ describe('PerpsOrderHeader', () => {
       // A second candle tick arrives; the `price` prop from the parent is
       // still the original stale value (parent hasn't re-rendered), yet the
       // header should pick up the newest live value.
-      mockUsePerpsLiveHeaderPrice.mockReturnValue({ price: 3075 });
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: 3075,
+        percentChange24h: 2.5,
+      });
       rerender(<PerpsOrderHeader {...defaultProps} price={3000} />);
 
       expect(getByText('$3,075')).toBeTruthy();
@@ -298,7 +293,10 @@ describe('PerpsOrderHeader', () => {
     });
 
     it('falls back to the price prop when there is no candle-derived price yet', () => {
-      mockUsePerpsLiveHeaderPrice.mockReturnValue({ price: undefined });
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: undefined,
+        percentChange24h: null,
+      });
 
       const { getByText } = renderWithProvider(
         <PerpsOrderHeader {...defaultProps} price={3000} />,
@@ -314,6 +312,63 @@ describe('PerpsOrderHeader', () => {
       });
 
       expect(mockUsePerpsLiveHeaderPrice).toHaveBeenCalledWith('BTC');
+    });
+  });
+
+  describe('Percent change bundled with price in the same hook', () => {
+    it('shows the percent change from usePerpsLiveHeaderPrice instead of the priceChange prop', () => {
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: 3050,
+        percentChange24h: -4.25,
+      });
+
+      const { getByText, queryByText } = renderWithProvider(
+        <PerpsOrderHeader {...defaultProps} price={3000} priceChange={2.5} />,
+        { state: initialState },
+      );
+
+      expect(getByText('-4.25%')).toBeTruthy();
+      expect(queryByText('+2.50%')).toBeNull();
+    });
+
+    it('updates price and percent change together on the same hook tick', () => {
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: 3050,
+        percentChange24h: 1.1,
+      });
+
+      const { getByText, queryByText, rerender } = renderWithProvider(
+        <PerpsOrderHeader {...defaultProps} price={3000} />,
+        { state: initialState },
+      );
+      expect(getByText('$3,050')).toBeTruthy();
+      expect(getByText('+1.10%')).toBeTruthy();
+
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: 3200,
+        percentChange24h: -2.75,
+      });
+      rerender(<PerpsOrderHeader {...defaultProps} price={3000} />);
+
+      expect(getByText('$3,200')).toBeTruthy();
+      expect(getByText('-2.75%')).toBeTruthy();
+      expect(queryByText('$3,050')).toBeNull();
+      expect(queryByText('+1.10%')).toBeNull();
+    });
+
+    it('shows the loading placeholder for percent change while it is null, even with a valid price', () => {
+      mockUsePerpsLiveHeaderPrice.mockReturnValue({
+        price: 3050,
+        percentChange24h: null,
+      });
+
+      const { getByText } = renderWithProvider(
+        <PerpsOrderHeader {...defaultProps} price={3000} />,
+        { state: initialState },
+      );
+
+      expect(getByText('$3,050')).toBeTruthy();
+      expect(getByText('--%')).toBeTruthy();
     });
   });
 

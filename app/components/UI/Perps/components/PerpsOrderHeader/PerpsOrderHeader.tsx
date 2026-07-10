@@ -16,13 +16,6 @@ import { usePerpsLiveHeaderPrice } from '../../hooks/stream';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 
-// No artificial throttle for the % change subscription inside LivePriceHeader:
-// unlike PerpsOrderView / PerpsClosePositionView's own price subscription
-// (which drives expensive fee/margin/validation recompute and is deliberately
-// throttled to 1000ms), this only feeds a lightweight Text node inside a
-// memoized leaf component.
-const HEADER_PERCENT_CHANGE_THROTTLE_MS = 0;
-
 interface PerpsOrderHeaderProps {
   asset: string;
   price: number;
@@ -47,18 +40,19 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
 }) => {
   const navigation = useNavigation();
 
-  // Use the same candle-derived, unthrottled price source that makes the
-  // market details header feel instantaneous (see usePerpsLiveHeaderPrice),
-  // instead of relying solely on the `price` prop. PerpsOrderView /
-  // PerpsClosePositionView recompute fees, margin, liquidation price, and
-  // validation on every allMids price tick, so their own re-render can lag
-  // behind the WebSocket feed, and even the allMids feed itself updates less
-  // frequently than the candle stream a chart would use. Because this
-  // subscription's state lives inside PerpsOrderHeader (a small, cheap
-  // subtree), its updates render independently of that heavier parent. The
-  // `price` prop is kept as the value to show until this subscription
-  // delivers its first update.
-  const { price: livePrice } = usePerpsLiveHeaderPrice(asset);
+  // Use the same candle-derived, unthrottled price (+ 24h change) source
+  // that makes the market details header feel instantaneous (see
+  // usePerpsLiveHeaderPrice), instead of relying solely on the `price` prop.
+  // PerpsOrderView / PerpsClosePositionView recompute fees, margin,
+  // liquidation price, and validation on every allMids price tick, so their
+  // own re-render can lag behind the WebSocket feed, and even the allMids
+  // feed itself updates less frequently than the candle stream a chart would
+  // use. Because this subscription's state lives inside PerpsOrderHeader (a
+  // small, cheap subtree), its updates render independently of that heavier
+  // parent, and price + percent change come from one hook so they update
+  // together. The `price` prop is kept as the value to show until this
+  // subscription delivers its first update.
+  const { price: livePrice, percentChange24h } = usePerpsLiveHeaderPrice(asset);
 
   const displayPrice = livePrice ?? price;
 
@@ -99,11 +93,11 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     () => (
       <LivePriceHeader
         symbol={asset}
-        throttleMs={HEADER_PERCENT_CHANGE_THROTTLE_MS}
         currentPrice={displayPrice}
+        percentChange24h={percentChange24h}
       />
     ),
-    [asset, displayPrice],
+    [asset, displayPrice, percentChange24h],
   );
 
   const endAccessory = useMemo(() => {
