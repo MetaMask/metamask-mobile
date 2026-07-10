@@ -21,8 +21,8 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
   onSuggestionSelect,
   onPressIn,
 }) => {
-  const { colors } = useAppTheme();
-  const styles = createStyles(colors);
+  const { colors, themeAppearance } = useAppTheme();
+  const styles = createStyles(colors, themeAppearance);
 
   // Filter BIP39 wordlist based on current input
   const suggestions = useMemo(() => {
