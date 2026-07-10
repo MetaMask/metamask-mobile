@@ -122,6 +122,30 @@ describe('BaseNotification', () => {
     expect(closeButtonStyle.marginTop).toBeDefined();
   });
 
+  it('top-aligns content when title spans multiple lines without description', () => {
+    const { getByTestId } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={{ title: 'Title', description: '' }}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    fireEvent(
+      getByTestId(BaseNotificationTestIds.NOTIFICATION_TITLE),
+      'onTextLayout',
+      {
+        nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
+      },
+    );
+
+    const labelsContainer = getByTestId(BaseNotificationTestIds.CONTAINER);
+    const labelsStyle = StyleSheet.flatten(labelsContainer.props.style);
+
+    expect(labelsStyle.justifyContent).toBe('flex-start');
+  });
+
   it('top-aligns content when description spans multiple lines', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <BaseNotification
@@ -280,6 +304,36 @@ describe('BaseNotification', () => {
     );
 
     triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+
+    expect(onDismissComplete).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('does not restart auto dismiss when layout height changes after enter', async () => {
+    jest.useFakeTimers();
+    const onDismissComplete = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <BaseNotification
+        status="success"
+        data={defaultData}
+        dismissDuration={100}
+        onDismissComplete={onDismissComplete}
+      />,
+    );
+
+    triggerEnterLayout(getByTestId);
+
+    await act(async () => {
+      jest.advanceTimersByTime(50);
+    });
+
+    fireEvent(getByTestId('base-notification-container'), 'layout', {
+      nativeEvent: { layout: { height: 120, width: 300, x: 0, y: 0 } },
+    });
 
     await act(async () => {
       jest.runAllTimers();

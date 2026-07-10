@@ -195,7 +195,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
     : description;
   const hasDescription = resolvedDescription.length > 0;
   const shouldTopAlign =
-    (titleLineCount !== null && titleLineCount > 1 && hasDescription) ||
+    (titleLineCount !== null && titleLineCount > 1) ||
     (descriptionLineCount !== null && descriptionLineCount > 1);
   const animatedStyle = useAnimatedStyle(() => ({
     top: topInsetOffset.value,
@@ -393,13 +393,16 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
       const heightChanged = measuredHeightRef.current !== height;
       measuredHeightRef.current = height;
 
-      if (hasEnteredRef.current && !heightChanged) {
+      if (hasEnteredRef.current) {
+        if (heightChanged) {
+          notificationHeight.value = height;
+        }
         return;
       }
 
       startEnterAnimation(height);
     },
-    [isVisible, startEnterAnimation],
+    [isVisible, notificationHeight, startEnterAnimation],
   );
 
   if (!isVisible) {
