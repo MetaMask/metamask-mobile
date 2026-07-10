@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed Advanced details bottom sheet background in Pure Black theme by migrating confirmation expandable sheets to MMDS BottomSheet (#TBD)
 ## [8.1.1]
 
 ### Fixed
