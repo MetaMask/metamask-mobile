@@ -442,7 +442,7 @@ function TradeWalletActions() {
                 strokeOnly
                 pathProps={{
                   stroke: colors.border.muted,
-                  strokeWidth: 1,
+                  strokeWidth: 2,
                 }}
               />
             </View>
