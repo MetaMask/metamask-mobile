@@ -204,6 +204,7 @@ export interface TVShapeCreateOptions {
 
 export interface TVPriceScale {
   getVisiblePriceRange(): { from: number; to: number } | null;
+  width?(): number;
   isInverted?(): boolean;
   getMode?(): number;
   setAutoScale?(enabled: boolean): void;
@@ -211,6 +212,7 @@ export interface TVPriceScale {
 
 export interface TVPane {
   getMainSourcePriceScale(): TVPriceScale | null;
+  getRightPriceScales?(): TVPriceScale[];
   getHeight(): number;
 }
 

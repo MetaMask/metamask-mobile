@@ -300,8 +300,12 @@ describe('legend', () => {
       }) as unknown as TVActiveChart;
 
     it('subscribes to panes_height_changed and triggers layout update', () => {
-      installContainer();
+      const container = installContainer();
       setupLegendOverlay({ enabled: true });
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
       let handler: (() => void) | undefined;
       const widget = {
         subscribe: jest.fn((_event: string, cb: () => void) => {
@@ -316,7 +320,8 @@ describe('legend', () => {
       );
       handler?.();
       const overlay = document.getElementById(OVERLAY_ID);
-      expect(overlay?.style.maxWidth).toBe('calc(100% - 56px)');
+      // 400 - 8 - 48 (fallback, no widget set) - 4 = 340
+      expect(overlay?.style.maxWidth).toBe('340px');
     });
 
     it('does not throw when subscribe throws', () => {
@@ -890,12 +895,17 @@ describe('legend', () => {
       expect(() => updateLegendOverlayLayout()).not.toThrow();
     });
 
-    it('sets fallback max-width when no price-axis is found', () => {
-      installContainer();
+    it('uses fallback scale width when no widget and container has width', () => {
+      const container = installContainer();
       setupLegendOverlay({ enabled: true });
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
       updateLegendOverlayLayout();
       const overlay = document.getElementById(OVERLAY_ID);
-      expect(overlay?.style.maxWidth).toBe('calc(100% - 56px)');
+      // 400 - 8 - 48 (fallback) - 4 = 340
+      expect(overlay?.style.maxWidth).toBe('340px');
     });
 
     it('is a no-op when container element is missing', () => {
@@ -1079,122 +1089,110 @@ describe('legend', () => {
     });
   });
 
-  describe('updateLegendOverlayLayout with price-axis', () => {
-    it('computes pixel max-width from price-axis left boundary', () => {
+  describe('updateLegendOverlayLayout with price scale API', () => {
+    it('computes pixel max-width from price scale width', () => {
       const container = installContainer();
       setupLegendOverlay({ enabled: true });
-      const axisNode = document.createElement('div');
-      axisNode.classList.add('price-axis-container');
-      container.appendChild(axisNode);
 
       Object.defineProperty(container, 'clientWidth', {
         value: 400,
         configurable: true,
       });
-      jest.spyOn(container, 'getBoundingClientRect').mockReturnValue({
-        left: 0,
-        top: 0,
-        right: 400,
-        bottom: 600,
-        width: 400,
-        height: 600,
-        x: 0,
-        y: 0,
-        toJSON: () => ({}),
-      });
-      jest.spyOn(axisNode, 'getBoundingClientRect').mockReturnValue({
-        left: 350,
-        top: 0,
-        right: 400,
-        bottom: 600,
-        width: 50,
-        height: 600,
-        x: 350,
-        y: 0,
-        toJSON: () => ({}),
+
+      const priceScale = { width: () => 50 };
+      const chart = {
+        exportData: jest.fn().mockResolvedValue({ schema: [], data: [] }),
+        getStudyById: jest.fn().mockReturnValue(null),
+        getAllPanesHeight: jest.fn().mockReturnValue([400]),
+        getPanes: () => [
+          { getRightPriceScales: () => [priceScale], getHeight: () => 400 },
+        ],
+      } as unknown as TVActiveChart;
+      setWidget({
+        activeChart: () => chart,
+      } as unknown as TVChartingLibraryWidget);
+      setChartReady(true);
+
+      updateLegendOverlayLayout();
+      const overlay = document.getElementById(OVERLAY_ID);
+      // 400 (container) - 8 (left pad) - 50 (scale) - 4 (gap) = 338
+      expect(overlay?.style.maxWidth).toBe('338px');
+    });
+
+    it('uses fallback scale width when no widget is set', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true });
+
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
       });
 
       updateLegendOverlayLayout();
       const overlay = document.getElementById(OVERLAY_ID);
-      expect(overlay?.style.maxWidth).toBe('338px');
+      // 400 - 8 - 48 (fallback) - 4 = 340
+      expect(overlay?.style.maxWidth).toBe('340px');
     });
 
-    it('uses fallback max-width when container clientWidth is 0', () => {
+    it('does not set maxWidth when container clientWidth is 0', () => {
       const container = installContainer();
       setupLegendOverlay({ enabled: true });
-      const axisNode = document.createElement('div');
-      axisNode.classList.add('price-axis-container');
-      container.appendChild(axisNode);
 
       Object.defineProperty(container, 'clientWidth', {
         value: 0,
         configurable: true,
       });
-      jest.spyOn(container, 'getBoundingClientRect').mockReturnValue({
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: 0,
-        height: 0,
-        x: 0,
-        y: 0,
-        toJSON: () => ({}),
-      });
-      jest.spyOn(axisNode, 'getBoundingClientRect').mockReturnValue({
-        left: 350,
-        top: 0,
-        right: 400,
-        bottom: 600,
-        width: 50,
-        height: 600,
-        x: 350,
-        y: 0,
-        toJSON: () => ({}),
-      });
 
       updateLegendOverlayLayout();
       const overlay = document.getElementById(OVERLAY_ID);
-      expect(overlay?.style.maxWidth).toBe('calc(100% - 56px)');
+      expect(overlay?.style.maxWidth).toBe('');
     });
 
-    it('uses fallback when price-axis is too small (width < 2)', () => {
+    it('applies maxWidth to sub-pane overlays too', async () => {
       const container = installContainer();
-      setupLegendOverlay({ enabled: true });
-      const axisNode = document.createElement('div');
-      axisNode.classList.add('price-axis-container');
-      container.appendChild(axisNode);
+      const rsiData = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 55.5]],
+      );
+      setupLegendOverlay({
+        enabled: true,
+        config: {
+          RSI: {
+            subPaneLegend: true,
+            plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: null }],
+            useIndex: true,
+          },
+        },
+      });
 
       Object.defineProperty(container, 'clientWidth', {
         value: 400,
         configurable: true,
       });
-      jest.spyOn(container, 'getBoundingClientRect').mockReturnValue({
-        left: 0,
-        top: 0,
-        right: 400,
-        bottom: 600,
-        width: 400,
-        height: 600,
-        x: 0,
-        y: 0,
-        toJSON: () => ({}),
-      });
-      jest.spyOn(axisNode, 'getBoundingClientRect').mockReturnValue({
-        left: 350,
-        top: 0,
-        right: 351,
-        bottom: 600,
-        width: 1,
-        height: 600,
-        x: 350,
-        y: 0,
-        toJSON: () => ({}),
-      });
+
+      const priceScale = { width: () => 50 };
+      const { chart } = makeChart(rsiData, [300, 100], { 'sid-rsi': 1 });
+      (chart as unknown as Record<string, unknown>).getPanes = () => [
+        { getRightPriceScales: () => [priceScale], getHeight: () => 300 },
+        { getRightPriceScales: () => [priceScale], getHeight: () => 100 },
+      ];
+      setWidget({
+        activeChart: () => chart,
+      } as unknown as TVChartingLibraryWidget);
+      setChartReady(true);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
 
       updateLegendOverlayLayout();
-      const overlay = document.getElementById(OVERLAY_ID);
-      expect(overlay?.style.maxWidth).toBe('calc(100% - 56px)');
+      const subOverlay = container.querySelector(
+        '[id^="study-legend-overlay-pane-"]',
+      );
+      expect(subOverlay).not.toBeNull();
+      expect((subOverlay as HTMLElement).style.maxWidth).toBe('338px');
     });
   });
 

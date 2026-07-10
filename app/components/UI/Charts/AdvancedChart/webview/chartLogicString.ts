@@ -3193,43 +3193,34 @@ function repositionSubPaneOverlays(chart) {
     }
 }
 // ----- Layout ------------------------------------------------------------
-function getMainPriceAxisLeftRelativeTo(el) {
-    if (!el?.getBoundingClientRect)
-        return null;
-    const orect = el.getBoundingClientRect();
-    let bestLeft = null;
-    let bestTop = Infinity;
-    eachChartDocument((doc) => {
-        const nodes = doc.querySelectorAll('.price-axis-container');
-        for (const node of Array.from(nodes)) {
-            const r = node.getBoundingClientRect();
-            if (r.width < 2 || r.height < 16)
-                continue;
-            if (r.top < bestTop) {
-                bestTop = r.top;
-                bestLeft = r.left - orect.left;
-            }
-        }
-    });
-    if (bestLeft === null || Number.isNaN(bestLeft))
-        return null;
-    const maxW = el.clientWidth;
-    if (maxW <= 0)
-        return null;
-    return Math.max(0, Math.min(bestLeft, maxW));
+const FALLBACK_SCALE_WIDTH = 48;
+const SCALE_GAP = 4;
+function getPriceScaleWidth() {
+    const widget = getWidget();
+    if (!widget)
+        return FALLBACK_SCALE_WIDTH;
+    const chart = widget.activeChart();
+    const panes = chart.getPanes?.();
+    if (!panes || panes.length === 0)
+        return FALLBACK_SCALE_WIDTH;
+    const scales = panes[0].getRightPriceScales?.();
+    const w = scales?.[0]?.width?.();
+    return w && w > 0 ? w : FALLBACK_SCALE_WIDTH;
 }
 function updateLegendOverlayLayout() {
-    const overlay = document.getElementById(OVERLAY_ID);
     const container = document.getElementById('tv_chart_container');
-    if (!overlay || !container)
+    if (!container)
         return;
-    const scaleGap = 4;
-    const boundaryLeft = getMainPriceAxisLeftRelativeTo(container);
-    if (boundaryLeft !== null && boundaryLeft > OVERLAY_LEFT_PX + scaleGap) {
-        overlay.style.maxWidth = \`\${boundaryLeft - OVERLAY_LEFT_PX - scaleGap}px\`;
-    }
-    else {
-        overlay.style.maxWidth = 'calc(100% - 56px)';
+    const containerWidth = container.clientWidth;
+    if (containerWidth <= 0)
+        return;
+    const scaleWidth = getPriceScaleWidth();
+    const maxWidth = \`\${containerWidth - OVERLAY_LEFT_PX - scaleWidth - SCALE_GAP}px\`;
+    const overlay = document.getElementById(OVERLAY_ID);
+    if (overlay)
+        overlay.style.maxWidth = maxWidth;
+    for (const el of subPaneOverlays.values()) {
+        el.style.maxWidth = maxWidth;
     }
 }
 /** Test-only: clear all module-local state between cases. */
