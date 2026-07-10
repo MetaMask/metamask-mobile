@@ -4,6 +4,7 @@ import { hexToNumber } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { selectNetworkConnectionBannerState } from '../../../selectors/networkConnectionBanner';
 import { useMessenger } from '../../../hooks/useMessenger';
+import Engine from '../../../core/Engine';
 import type { RouteMessengerInstance } from '../../Views/Wallet/messenger';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../useAnalytics/useAnalytics';
@@ -51,6 +52,13 @@ const useNetworkConnectionBanner = (): {
   const networkConnectionBannerState = useSelector(
     selectNetworkConnectionBannerState,
   );
+
+  // Refresh connectivity metadata for every enabled network when the banner
+  // mounts. NetworkController only keeps the selected network's metadata fresh
+  // on its own, but the banner rule needs it for all enabled networks.
+  useEffect(() => {
+    Engine.lookupEnabledNetworks();
+  }, []);
 
   // Fire analytics whenever the banner is visible. The banner's show/hide
   // and 5s/30s escalation are driven by NetworkConnectionBannerController.
