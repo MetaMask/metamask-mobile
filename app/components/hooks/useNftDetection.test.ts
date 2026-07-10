@@ -102,8 +102,12 @@ describe('useNftDetection', () => {
     chainId: '0x1' as Hex,
   } as unknown as Nft;
 
+  interface MockNftState {
+    allNfts: Record<string, Record<string, Nft[]>>;
+  }
+
   // State BEFORE detection — used as pre-await snapshot
-  const mockNftControllerStateBefore = {
+  const mockNftControllerStateBefore: MockNftState = {
     allNfts: {
       [mockSelectedAddress.toLowerCase()]: {
         '0x1': [existingNft],
@@ -112,7 +116,7 @@ describe('useNftDetection', () => {
   };
 
   // State AFTER detection — returned after await resolves
-  const mockNftControllerStateAfter = {
+  const mockNftControllerStateAfter: MockNftState = {
     allNfts: {
       [mockSelectedAddress.toLowerCase()]: {
         '0x1': [existingNft, newlyDetectedNft],
@@ -120,7 +124,13 @@ describe('useNftDetection', () => {
     },
   };
 
-  const mockEngine = {
+  const mockEngine: {
+    context: {
+      NftDetectionController: { detectNfts: jest.Mock };
+      NftController: { state: MockNftState };
+      PreferencesController: { state: { useNftDetection: boolean } };
+    };
+  } = {
     context: {
       NftDetectionController: {
         detectNfts: mockDetectNfts,
