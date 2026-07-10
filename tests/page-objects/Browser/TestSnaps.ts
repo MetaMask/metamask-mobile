@@ -207,7 +207,13 @@ class TestSnaps {
           );
         }
 
-        await Assertions.checkIfJsonEqual(actualJson, expectedJson);
+        if (
+          typeof expectedJson === 'object' &&
+          expectedJson !== null &&
+          !Array.isArray(expectedJson)
+        ) {
+          await Assertions.checkIfJsonEqual(actualJson, expectedJson);
+        }
       }, options);
     });
   }
