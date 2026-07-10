@@ -556,6 +556,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
           orderId: orderToCancel.orderId,
           symbol: orderToCancel.symbol,
           trackingData: {
+            totalFee: 0,
+            marketPrice: currentPrice,
             source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
             ...toPerpsEntryAttribution({
               source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
@@ -630,6 +632,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     },
     [
       position?.size,
+      currentPrice,
       showToast,
       PerpsToastOptions.orderManagement.shared,
       onOrderCancelled,

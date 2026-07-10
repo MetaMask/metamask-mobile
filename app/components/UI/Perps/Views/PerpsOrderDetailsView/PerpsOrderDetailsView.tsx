@@ -218,6 +218,8 @@ const PerpsOrderDetailsView: React.FC = () => {
         orderId: order.orderId,
         symbol: order.symbol,
         trackingData: {
+          totalFee,
+          marketPrice: priceMetrics.effectivePrice ?? 0,
           source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
           ...toPerpsEntryAttribution({
             source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
@@ -245,7 +247,16 @@ const PerpsOrderDetailsView: React.FC = () => {
     } finally {
       setIsCanceling(false);
     }
-  }, [order, canCancel, cancelOrder, navigation, showToast, PerpsToastOptions]);
+  }, [
+    order,
+    canCancel,
+    cancelOrder,
+    navigation,
+    showToast,
+    PerpsToastOptions,
+    totalFee,
+    priceMetrics.effectivePrice,
+  ]);
 
   if (!order) {
     return (
