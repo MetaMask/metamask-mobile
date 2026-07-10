@@ -1232,6 +1232,127 @@ function slbHandleGetBars(onResult) {
     return true;
 }
 
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/priceFormatter.ts
+// Price formatting for TradingView's \`custom_formatters.priceFormatterFactory\`.
+//
+// Ported from chartLogic.js: SUBSCRIPT_DIGITS_CROSSHAIR / toSubscriptDigitsCrosshair
+// (~line 1328), formatSubscriptNotationCrosshair (~1350), formatCrosshairPrice
+// (~1373), advancedChartPriceFormatterFactory (~1397).
+//
+// This is a TV widget option, not a message handler — the factory returns a
+// { format(price) } object that TV uses to render the price scale + last-value
+// pill. Without it, TV falls back to a plain \`x.xx\` format that ignores our
+// \`useSubscriptPriceFormat\` config.
+const SUBSCRIPT_DIGITS = [
+    '₀',
+    '₁',
+    '₂',
+    '₃',
+    '₄',
+    '₅',
+    '₆',
+    '₇',
+    '₈',
+    '₉',
+];
+function toSubscriptDigits(n) {
+    return String(n)
+        .split('')
+        .map((digit) => SUBSCRIPT_DIGITS[Number.parseInt(digit, 10)] ?? digit)
+        .join('');
+}
+/**
+ * For values strictly between 0 and 0.0001, produces the compact
+ * \`0.0₆12345\` notation. Returns \`null\` when the value doesn't qualify so
+ * callers can fall through to Intl formatting.
+ */
+function formatSubscriptNotation(abs) {
+    if (!(abs > 0 && abs < 0.0001))
+        return null;
+    const priceStr = abs.toFixed(20);
+    const match = /^0\\.0*([1-9]\\d*)/.exec(priceStr);
+    if (!match)
+        return null;
+    const leadingZeros = priceStr.indexOf(match[1]) - 2;
+    if (leadingZeros < 4)
+        return null;
+    const sig = match[1];
+    const significantDigits = sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
+    return \`0.0\${toSubscriptDigits(leadingZeros)}\${significantDigits}\`;
+}
+function getConfiguredPriceDecimals() {
+    const decimals = window.CONFIG?.priceDecimals;
+    if (typeof decimals !== 'number' || !Number.isFinite(decimals)) {
+        return null;
+    }
+    return Math.max(0, Math.floor(decimals));
+}
+function formatPriceWithConfiguredDecimals(price, maxDecimals) {
+    const p = Number(price);
+    if (p === 0) {
+        return '0';
+    }
+    const abs = Math.abs(p);
+    let decimals = maxDecimals;
+    if (abs >= 1) {
+        const integerDigits = Math.floor(Math.log10(abs)) + 1;
+        decimals = Math.min(maxDecimals, Math.max(0, 5 - integerDigits));
+    }
+    const rounded = Number(p.toFixed(decimals));
+    return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals,
+    }).format(rounded);
+}
+/**
+ * Formats a price for the TV built-in price scale + crosshair label. Zero-
+ * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
+ */
+function formatCrosshairPrice(price) {
+    if (price === undefined || price === null || Number.isNaN(Number(price))) {
+        return '';
+    }
+    const p = Number(price);
+    if (p === 0)
+        return '0.00';
+    const abs = Math.abs(p);
+    const sub = formatSubscriptNotation(abs);
+    if (sub) {
+        return p < 0 ? \`-\${sub}\` : sub;
+    }
+    const configuredPriceDecimals = getConfiguredPriceDecimals();
+    if (configuredPriceDecimals !== null) {
+        return formatPriceWithConfiguredDecimals(p, configuredPriceDecimals);
+    }
+    return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: abs >= 1 ? 2 : 4,
+    }).format(p);
+}
+/**
+ * TradingView \`custom_formatters.priceFormatterFactory\`. Returns null (letting
+ * TV fall back to its default) when subscript formatting is disabled or when
+ * the symbol is a volume series. Otherwise returns a formatter that routes
+ * through \`formatCrosshairPrice\`.
+ */
+function advancedChartPriceFormatterFactory(symbolInfo, _minTick) {
+    if (symbolInfo === null || symbolInfo.format === 'volume') {
+        return null;
+    }
+    if (!window.CONFIG ||
+        (!window.CONFIG.useSubscriptPriceFormat &&
+            getConfiguredPriceDecimals() === null)) {
+        return null;
+    }
+    return {
+        format(price) {
+            return formatCrosshairPrice(price);
+        },
+    };
+}
+
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/datafeed.ts
 // TradingView UDF datafeed object passed into the widget constructor.
 //
@@ -1239,6 +1360,7 @@ function slbHandleGetBars(onResult) {
 // helpers \`filterBarsForRange\` (~4944), \`fetchOlderBars\` (~4991).
 // Phase 2 wires the default Price API paginator; Phase 6 swaps in
 // pagination/rnBacked.ts when consumers opt into the custom strategy.
+
 
 
 
@@ -1260,7 +1382,7 @@ const SUPPORTED_RESOLUTIONS = [
     '1W',
     '1M',
 ];
-const VARIABLE_TICK_SIZE = [
+const DEFAULT_VARIABLE_TICK_SIZE = [
     '0.0000000001',
     '0.000001',
     '0.00000001',
@@ -1273,6 +1395,25 @@ const VARIABLE_TICK_SIZE = [
     '10000',
     '0.1',
 ].join(' ');
+const PERPS_VARIABLE_TICK_SIZE = [
+    '0.0000000001',
+    '0.000001',
+    '0.00000001',
+    '0.0001',
+    '0.000001',
+    '0.01',
+    '0.0001',
+    '10000',
+    '1',
+].join(' ');
+function getVariableTickSize() {
+    return getConfiguredPriceDecimals() !== null
+        ? PERPS_VARIABLE_TICK_SIZE
+        : DEFAULT_VARIABLE_TICK_SIZE;
+}
+function getPriceScale() {
+    return getConfiguredPriceDecimals() !== null ? 10000000000 : 100;
+}
 /** Strips internal fields from an OHLCVBar to the shape TV expects. */
 function toTVBar(bar) {
     return {
@@ -1329,8 +1470,8 @@ const customDatafeed = {
             timezone: 'Etc/UTC',
             exchange: '',
             minmov: 1,
-            pricescale: 100,
-            variable_tick_size: VARIABLE_TICK_SIZE,
+            pricescale: getPriceScale(),
+            variable_tick_size: getVariableTickSize(),
             has_intraday: true,
             has_daily: true,
             has_weekly_and_monthly: true,
@@ -1420,96 +1561,6 @@ function forwardRealtimeTick(tick) {
             reportErrorToRN(error);
         }
     }
-}
-
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/priceFormatter.ts
-// Price formatting for TradingView's \`custom_formatters.priceFormatterFactory\`.
-//
-// Ported from chartLogic.js: SUBSCRIPT_DIGITS_CROSSHAIR / toSubscriptDigitsCrosshair
-// (~line 1328), formatSubscriptNotationCrosshair (~1350), formatCrosshairPrice
-// (~1373), advancedChartPriceFormatterFactory (~1397).
-//
-// This is a TV widget option, not a message handler — the factory returns a
-// { format(price) } object that TV uses to render the price scale + last-value
-// pill. Without it, TV falls back to a plain \`x.xx\` format that ignores our
-// \`useSubscriptPriceFormat\` config.
-const SUBSCRIPT_DIGITS = [
-    '₀',
-    '₁',
-    '₂',
-    '₃',
-    '₄',
-    '₅',
-    '₆',
-    '₇',
-    '₈',
-    '₉',
-];
-function toSubscriptDigits(n) {
-    return String(n)
-        .split('')
-        .map((digit) => SUBSCRIPT_DIGITS[Number.parseInt(digit, 10)] ?? digit)
-        .join('');
-}
-/**
- * For values strictly between 0 and 0.0001, produces the compact
- * \`0.0₆12345\` notation. Returns \`null\` when the value doesn't qualify so
- * callers can fall through to Intl formatting.
- */
-function formatSubscriptNotation(abs) {
-    if (!(abs > 0 && abs < 0.0001))
-        return null;
-    const priceStr = abs.toFixed(20);
-    const match = /^0\\.0*([1-9]\\d*)/.exec(priceStr);
-    if (!match)
-        return null;
-    const leadingZeros = priceStr.indexOf(match[1]) - 2;
-    if (leadingZeros < 4)
-        return null;
-    const sig = match[1];
-    const significantDigits = sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
-    return \`0.0\${toSubscriptDigits(leadingZeros)}\${significantDigits}\`;
-}
-/**
- * Formats a price for the TV built-in price scale + crosshair label. Zero-
- * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
- */
-function formatCrosshairPrice(price) {
-    if (price === undefined || price === null || Number.isNaN(Number(price))) {
-        return '';
-    }
-    const p = Number(price);
-    if (p === 0)
-        return '0.00';
-    const abs = Math.abs(p);
-    const sub = formatSubscriptNotation(abs);
-    if (sub) {
-        return p < 0 ? \`-\${sub}\` : sub;
-    }
-    return new Intl.NumberFormat('en-US', {
-        style: 'decimal',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: abs >= 1 ? 2 : 4,
-    }).format(p);
-}
-/**
- * TradingView \`custom_formatters.priceFormatterFactory\`. Returns null (letting
- * TV fall back to its default) when subscript formatting is disabled or when
- * the symbol is a volume series. Otherwise returns a formatter that routes
- * through \`formatCrosshairPrice\`.
- */
-function advancedChartPriceFormatterFactory(symbolInfo, _minTick) {
-    if (symbolInfo === null || symbolInfo.format === 'volume') {
-        return null;
-    }
-    if (!window.CONFIG?.useSubscriptPriceFormat) {
-        return null;
-    }
-    return {
-        format(price) {
-            return formatCrosshairPrice(price);
-        },
-    };
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
