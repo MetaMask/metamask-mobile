@@ -11,10 +11,11 @@ import {
   BackHandler,
   ScrollView,
   InteractionManager,
-  Animated,
-  Easing,
   Platform,
+  StyleSheet,
+  View,
 } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
 import { captureException } from '@sentry/react-native';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -22,7 +23,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BaseNotification from '../../../component-library/components-temp/BaseNotification';
-import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
@@ -150,6 +150,14 @@ interface OnboardingRouteParams {
   showErrorReportSentToast?: boolean;
 }
 
+const styles = StyleSheet.create({
+  androidNotificationOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+    elevation: 999,
+  },
+});
+
 const Onboarding = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const onboardingVersion = useMemo(
@@ -209,7 +217,8 @@ const Onboarding = () => {
     startFoxAnimation: undefined,
   });
 
-  const notificationAnimated = useRef(new Animated.Value(100)).current;
+  const [onboardingNotificationVisible, setOnboardingNotificationVisible] =
+    useState(false);
 
   const onboardingTraceCtx = useRef<TraceContext>(undefined);
   const socialLoginTraceCtx = useRef<TraceContext>(undefined);
@@ -227,19 +236,6 @@ const Onboarding = () => {
   const mounted = useRef<boolean>(false);
   const hasCheckedVaultBackup = useRef<boolean>(false);
   const warningCallback = useRef<() => boolean>(() => true);
-  const notificationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const animatedTimingStart = useCallback(
-    (animatedRef: Animated.Value, toValue: number): void => {
-      Animated.timing(animatedRef, {
-        toValue,
-        duration: 500,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }).start();
-    },
-    [],
-  );
 
   const disableBackPress = useCallback((): void => {
     // Disable back press
@@ -248,12 +244,9 @@ const Onboarding = () => {
   }, []);
 
   const showNotification = useCallback((): void => {
-    animatedTimingStart(notificationAnimated, 0);
-    notificationTimer.current = setTimeout(() => {
-      animatedTimingStart(notificationAnimated, 200);
-    }, 4000);
+    setOnboardingNotificationVisible(true);
     disableBackPress();
-  }, [animatedTimingStart, notificationAnimated, disableBackPress]);
+  }, [disableBackPress]);
 
   const updateNavBar = useCallback((): void => {
     navigation.setOptions({
@@ -1089,8 +1082,13 @@ const Onboarding = () => {
 
   const handleSimpleNotification =
     useCallback((): React.ReactElement | null => {
-      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast)
+      if (!route?.params?.delete && !route?.params?.showErrorReportSentToast) {
         return null;
+      }
+
+      if (!onboardingNotificationVisible) {
+        return null;
+      }
 
       const notificationData = route?.params?.showErrorReportSentToast
         ? {
@@ -1104,29 +1102,47 @@ const Onboarding = () => {
             description: strings('onboarding.your_wallet'),
           };
 
+      const notificationContent = (
+        <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
+          <BaseNotification
+            isVisible={onboardingNotificationVisible}
+            dismissDuration={4000}
+            onDismissComplete={() => setOnboardingNotificationVisible(false)}
+            status="success"
+            data={notificationData}
+          />
+        </View>
+      );
+
+      if (Platform.OS === 'ios') {
+        return (
+          <FullWindowOverlay>
+            {/*
+              iOS: portal to a UIWindow so top-anchored animation is not
+              affected by onboarding layout siblings lower in the tree.
+            */}
+            {notificationContent}
+          </FullWindowOverlay>
+        );
+      }
+
       return (
-        <Animated.View
-          style={[
-            tw.style('flex-row items-end', { flex: 0.1 }),
-            { transform: [{ translateY: notificationAnimated }] },
-          ]}
+        <View
+          pointerEvents="box-none"
+          style={styles.androidNotificationOverlay}
         >
-          <ElevatedView
-            style={tw.style(
-              'absolute bottom-0 left-0 right-0 bg-transparent',
-              Device.isIphoneX() ? 'pb-5' : 'pb-[10px]',
-            )}
-            elevation={100}
-          >
-            <BaseNotification status="success" data={notificationData} />
-          </ElevatedView>
-        </Animated.View>
+          {/*
+            Android: FullWindowOverlay stays in the normal view hierarchy, so
+            keep the toast as the last SafeAreaView child with absolute fill
+            and elevation to render above the ScrollView.
+          */}
+          {notificationContent}
+        </View>
       );
     }, [
       route?.params?.delete,
       route?.params?.showErrorReportSentToast,
-      notificationAnimated,
-      tw,
+      onboardingNotificationVisible,
     ]);
 
   useEffect(() => {
@@ -1156,9 +1172,6 @@ const Onboarding = () => {
 
     return () => {
       mounted.current = false;
-      if (notificationTimer.current) {
-        clearTimeout(notificationTimer.current);
-      }
       unsetLoading();
       InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     };
@@ -1237,14 +1250,14 @@ const Onboarding = () => {
           <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         )}
 
-        <Box>{handleSimpleNotification()}</Box>
-
         <FastOnboarding
           onPressContinueWithGoogle={onPressContinueWithGoogle}
           onPressContinueWithApple={onPressContinueWithApple}
           onPressImport={onPressImport}
           onPressCreate={onPressCreate}
         />
+
+        {handleSimpleNotification()}
       </SafeAreaView>
     </ErrorBoundary>
   );

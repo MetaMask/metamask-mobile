@@ -2,31 +2,23 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import Animated, { useSharedValue } from 'react-native-reanimated';
+import { useSharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { renderFromWei, fastSplit } from '../../../../util/number';
 import { validateTransactionActionBalance } from '../../../../util/transactions';
-import {
-  fontStyles,
-  colors as importedColors,
-} from '../../../../styles/common';
+import { fontStyles } from '../../../../styles/common';
 import decodeTransaction from '../../TransactionElement/utils';
 import TransactionActionContent from '../../TransactionActionModal/TransactionActionContent';
 import ActionContent from '../../ActionModal/ActionContent';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import TransactionDetails from '../../TransactionElement/TransactionDetails';
 import BaseNotification from '../../../../component-library/components-temp/BaseNotification';
-import Device from '../../../../util/device';
-import ElevatedView from 'react-native-elevated-view';
+import { NOTIFICATION_MODAL_OVERLAY_ELEVATION } from '../../../../component-library/components-temp/BaseNotification/BaseNotification.constants';
 import { CANCEL_RATE, SPEED_UP_RATE } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { collectibleContractsSelector } from '../../../../reducers/collectibles';
 import { useTheme } from '../../../../util/theme';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../util/theme/themeUtils';
 import {
   selectChainId,
   selectTickerByChainId,
@@ -45,10 +37,8 @@ const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
 const ACTION_SPEEDUP = 'speedup';
 
-const createStyles = (theme) => {
-  const { colors } = theme;
-
-  return StyleSheet.create({
+const createStyles = (colors) =>
+  StyleSheet.create({
     absoluteFill: {
       ...StyleSheet.absoluteFillObject,
     },
@@ -66,17 +56,6 @@ const createStyles = (theme) => {
       color: colors.text.default,
       ...fontStyles.bold,
     },
-    notification: {
-      position: 'absolute',
-      bottom: 0,
-      paddingBottom: Device.isIphoneX() ? 20 : 10,
-      left: 0,
-      right: 0,
-      backgroundColor: importedColors.transparent,
-    },
-    modalTypeViewBrowser: {
-      bottom: Device.isIphoneX() ? 70 : 60,
-    },
     closeIcon: {
       paddingTop: 4,
       position: 'absolute',
@@ -91,6 +70,8 @@ const createStyles = (theme) => {
       width: '200%',
       flexDirection: 'row',
       backgroundColor: colors.overlay.default,
+      zIndex: NOTIFICATION_MODAL_OVERLAY_ELEVATION,
+      elevation: NOTIFICATION_MODAL_OVERLAY_ELEVATION,
     },
     modalOverlay: {
       justifyContent: 'center',
@@ -100,25 +81,17 @@ const createStyles = (theme) => {
     modalContainer: {
       width: '90%',
       borderRadius: 10,
-      backgroundColor: getElevatedSurfaceColor(theme),
-      ...(isPureBlackEnabled && {
-        borderWidth: 1,
-        borderColor: colors.border.muted,
-      }),
-    },
-    elevatedView: {
-      backgroundColor: importedColors.transparent,
+      backgroundColor: colors.background.default,
     },
   });
-};
 
 function TransactionNotification(props) {
   const {
     accounts,
     currentNotification,
-    isInBrowserView,
-    notificationAnimated,
     onClose,
+    onDismissComplete,
+    dismissDuration,
     transactions,
     animatedTimingStart,
     smartTransactions,
@@ -138,8 +111,8 @@ function TransactionNotification(props) {
   const actionXAnimated = useSharedValue(0);
   const detailsAnimated = useSharedValue(0);
 
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const detailsFadeIn = useCallback(async () => {
     setTransactionDetailsIsVisible(true);
@@ -286,39 +259,36 @@ function TransactionNotification(props) {
 
   useEffect(() => onCloseNotification(), [onCloseNotification]);
 
+  const shouldSkipSubmittedSmartTransaction =
+    tx.status === 'submitted' &&
+    smartTransactions.some((stx) => stx.txHash === tx.hash);
+
+  useEffect(() => {
+    if (shouldSkipSubmittedSmartTransaction) {
+      onDismissComplete?.();
+    }
+  }, [onDismissComplete, shouldSkipSubmittedSmartTransaction]);
+
   // Don't show submitted notification for STX b/c we only know when it's confirmed,
   // o/w a submitted notification will show up after it's confirmed, then a confirmed notification will show up immediately after
-  if (tx.status === 'submitted') {
-    const smartTx = smartTransactions.find((stx) => stx.txHash === tx.hash);
-    if (smartTx) {
-      return null;
-    }
+  if (shouldSkipSubmittedSmartTransaction) {
+    return null;
   }
 
   return (
     <>
-      <Animated.View
-        style={[
-          styles.notification,
-          isInBrowserView && styles.modalTypeViewBrowser,
-          {
-            transform: [{ translateY: notificationAnimated }],
-          },
-        ]}
-      >
-        <ElevatedView style={styles.elevatedView} elevation={100}>
-          <BaseNotification
-            status={currentNotification.status}
-            data={{
-              ...tx?.txParams,
-              ...currentNotification.transaction,
-              title: transactionElement?.notificationKey,
-            }}
-            onPress={detailsFadeIn}
-            onHide={onCloseNotification}
-          />
-        </ElevatedView>
-      </Animated.View>
+      <BaseNotification
+        status={currentNotification.status}
+        data={{
+          ...tx?.txParams,
+          ...currentNotification.transaction,
+          title: transactionElement?.notificationKey,
+        }}
+        onPress={detailsFadeIn}
+        onHide={onCloseNotification}
+        onDismissComplete={onDismissComplete}
+        dismissDuration={dismissDuration}
+      />
       {transactionDetailsIsVisible && (
         <View style={styles.modalsContainer}>
           <View style={[styles.modalOverlay]}>
@@ -380,9 +350,9 @@ function TransactionNotification(props) {
 }
 
 TransactionNotification.propTypes = {
-  isInBrowserView: PropTypes.bool,
-  notificationAnimated: PropTypes.object,
   onClose: PropTypes.func,
+  onDismissComplete: PropTypes.func,
+  dismissDuration: PropTypes.number,
   animatedTimingStart: PropTypes.func,
   currentNotification: PropTypes.object,
   swapsTransactions: PropTypes.object,
