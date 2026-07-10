@@ -6,13 +6,24 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextVariant,
   TextColor,
@@ -24,8 +35,10 @@ import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { setOnboardingInterests } from '../../../actions/onboarding';
+import { selectAccountGroupBalanceForEmptyState } from '../../../selectors/assets/balances';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
 
@@ -84,15 +97,22 @@ const INTEREST_OPTIONS: InterestOption[] = [
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
       RouteProp<RootStackParamList, 'OnboardingInterestQuestionnaire'>
     >();
   const { onComplete, accountType: routeAccountType } = route.params;
+  const dispatch = useDispatch();
   const reduxAccountType = useSelector(selectOnboardingAccountType);
 
   const accountType = routeAccountType ?? reduxAccountType;
+  const accountGroupBalance = useSelector(
+    selectAccountGroupBalanceForEmptyState,
+  );
+  const walletHasFunds =
+    (accountGroupBalance?.totalBalanceInUserCurrency ?? 0) > 0;
 
   const [selectedIds, setSelectedIds] = useState<Set<InterestOptionId>>(
     new Set(),
@@ -175,6 +195,13 @@ const OnboardingInterestQuestionnaire = () => {
   const onNext = useCallback(() => {
     const selectedInterests = Array.from(selectedIds);
 
+    dispatch(
+      setOnboardingInterests({
+        interests: selectedInterests,
+        ...(otherText && { otherText }),
+      }),
+    );
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
@@ -188,17 +215,32 @@ const OnboardingInterestQuestionnaire = () => {
         .build(),
     );
 
-    onComplete();
+    if (walletHasFunds) {
+      onComplete();
+      return;
+    }
+
+    navigation.navigate(Routes.ONBOARDING.FUND_WALLET, {
+      onComplete,
+      ...(accountType && { accountType }),
+      selectedInterests,
+      ...(otherText && { otherText }),
+    });
   }, [
     selectedIds,
     otherText,
+    dispatch,
     trackEvent,
     createEventBuilder,
     accountType,
     onComplete,
+    walletHasFunds,
+    navigation,
   ]);
 
   const onSkip = useCallback(() => {
+    dispatch(setOnboardingInterests({ interests: [] }));
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
@@ -212,7 +254,7 @@ const OnboardingInterestQuestionnaire = () => {
     );
 
     onComplete();
-  }, [trackEvent, createEventBuilder, accountType, onComplete]);
+  }, [dispatch, trackEvent, createEventBuilder, accountType, onComplete]);
 
   return (
     <SafeAreaView
@@ -315,7 +357,7 @@ const OnboardingInterestQuestionnaire = () => {
           style={tw.style('w-full')}
           testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
         >
-          {strings('onboarding_interest_questionnaire.done')}
+          {strings('onboarding_interest_questionnaire.next')}
         </Button>
       </Box>
 

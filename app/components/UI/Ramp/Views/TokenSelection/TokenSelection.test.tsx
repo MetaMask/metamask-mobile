@@ -5,13 +5,21 @@ import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import useSearchTokenResults from '../../hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_CRYPTOCURRENCIES } from '../../testUtils';
+import {
+  MOCK_CRYPTOCURRENCIES,
+  MOCK_ETH_TOKEN,
+  MOCK_BTC_TOKEN,
+  MOCK_USDC_SOLANA_TOKEN,
+} from '../../testUtils/mockCryptoCurrencies';
+import { useRampTokens } from '../../hooks/useRampTokens';
 import { useRampsController } from '../../hooks/useRampsController';
+import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockHeaderGoBack = jest.fn();
 const mockParentGoBack = jest.fn();
+const mockRootNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -19,6 +27,9 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockHeaderGoBack,
     getParent: () => ({
       goBack: mockParentGoBack,
+      getParent: () => ({
+        navigate: mockRootNavigate,
+      }),
     }),
   }),
 }));
@@ -40,6 +51,7 @@ interface CustomTestState {
 function renderWithProvider(
   component: React.ComponentType,
   customState?: CustomTestState,
+  initialParams?: Record<string, unknown>,
 ) {
   return renderScreen(
     component,
@@ -56,6 +68,7 @@ function renderWithProvider(
         },
       },
     },
+    initialParams,
   );
 }
 
@@ -73,6 +86,21 @@ jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
 
+jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => jest.fn());
+
+jest.mock('../../hooks/useRampTokens', () => ({
+  useRampTokens: jest.fn(),
+}));
+
+const mockUseRampsUnifiedV2Enabled =
+  useRampsUnifiedV2Enabled as jest.MockedFunction<
+    typeof useRampsUnifiedV2Enabled
+  >;
+
+const mockUseRampTokens = useRampTokens as jest.MockedFunction<
+  typeof useRampTokens
+>;
+
 jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: <T,>(value: T) => value,
 }));
@@ -85,18 +113,21 @@ jest.mock('../../hooks/useDepositCryptoCurrencyNetworkName', () => ({
 const mockNetworkConfigurations = {
   'eip155:1': {
     chainId: '0x1',
+    caipChainId: 'eip155:1',
     name: 'Ethereum Mainnet',
     nativeCurrency: 'ETH',
     rpcEndpoints: [],
   },
   'bip122:000000000019d6689c085ae165831e93': {
     chainId: 'bip122:000000000019d6689c085ae165831e93',
+    caipChainId: 'bip122:000000000019d6689c085ae165831e93',
     name: 'Bitcoin',
     nativeCurrency: 'BTC',
     rpcEndpoints: [],
   },
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
     chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     name: 'Solana',
     nativeCurrency: 'SOL',
     rpcEndpoints: [],
@@ -106,6 +137,13 @@ const mockNetworkConfigurations = {
 jest.mock('../../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../../selectors/networkController'),
   selectNetworkConfigurationsByCaipChainId: () => mockNetworkConfigurations,
+}));
+
+const mockGetAddressesByGroupId = jest.fn();
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../../../selectors/multichainAccounts/accounts'),
+  selectInternalAccountListSpreadByScopesByGroupId: () =>
+    mockGetAddressesByGroupId,
 }));
 
 const mockTokens = MOCK_CRYPTOCURRENCIES;
@@ -131,6 +169,8 @@ describe('TokenSelection Component', () => {
       convertToRampsTokens(mockTokens),
     );
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
+    mockGetAddressesByGroupId.mockReturnValue([]);
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false); // Default to V1 behavior
 
     const rampsTokens = convertToRampsTokens(mockTokens);
 
@@ -267,6 +307,7 @@ describe('TokenSelection Component', () => {
   });
 
   it('sets selected token and navigates directly to AMOUNT_INPUT without closing modal when token is pressed ', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     const mockSetSelectedToken = jest.fn();
     mockUseRampsController.mockReturnValue({
       ...mockUseRampsController(),
@@ -648,5 +689,150 @@ describe('TokenSelection Component', () => {
       (token: (typeof mockTokens)[0]) => token.chainId === 'eip155:999',
     );
     expect(unconfiguredToken).toBeUndefined();
+  });
+});
+
+describe('TokenSelection Component - receive mode', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useSearchTokenResults as jest.Mock).mockImplementation(
+      ({ tokens }) => tokens,
+    );
+    mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
+    mockGetAddressesByGroupId.mockReturnValue([]);
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+
+    const rampsTokens = convertToRampsTokens(mockTokens);
+    mockUseRampTokens.mockReturnValue({
+      topTokens: rampsTokens,
+      allTokens: rampsTokens,
+      isLoading: false,
+      error: null,
+    });
+
+    mockUseRampsController.mockReturnValue({
+      tokens: { topTokens: rampsTokens, allTokens: rampsTokens },
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
+      tokensLoading: false,
+      tokensError: null,
+      userRegion: null,
+      setUserRegion: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
+      providers: [],
+      providersLoading: false,
+      providersError: null,
+      countries: [],
+      countriesLoading: false,
+      countriesError: null,
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'idle' as const,
+      getQuotes: jest.fn(),
+      getBuyWidgetData: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      addPrecreatedOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
+    });
+  });
+
+  it('filters out non-EVM tokens when receiveMode is enabled', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      TokenSelection,
+      undefined,
+      { receiveMode: true, groupId: 'test-group-id' },
+    );
+
+    expect(
+      getByTestId(`token-list-item-${MOCK_ETH_TOKEN.assetId}`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`token-list-item-${MOCK_BTC_TOKEN.assetId}`),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(`token-list-item-${MOCK_USDC_SOLANA_TOKEN.assetId}`),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('navigates to the receive QR screen with the matching address for the selected chain', () => {
+    mockGetAddressesByGroupId.mockReturnValue([
+      {
+        account: { address: '0xabc' },
+        scope: 'eip155:1',
+        networkName: 'Ethereum Mainnet',
+      },
+    ]);
+
+    const { getByTestId } = renderWithProvider(TokenSelection, undefined, {
+      receiveMode: true,
+      groupId: 'test-group-id',
+    });
+
+    fireEvent.press(getByTestId(`token-list-item-${MOCK_ETH_TOKEN.assetId}`));
+
+    expect(mockGetAddressesByGroupId).toHaveBeenCalledWith('test-group-id');
+    expect(mockRootNavigate).toHaveBeenCalledWith(
+      Routes.ONBOARDING.RECEIVE_QR,
+      {
+        tokenSymbol: MOCK_ETH_TOKEN.symbol,
+        networkName: 'Ethereum Mainnet',
+        chainId: MOCK_ETH_TOKEN.chainId,
+        address: '0xabc',
+      },
+    );
+    expect(mockGoToBuy).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.RAMP.AMOUNT_INPUT,
+      expect.anything(),
+    );
+  });
+
+  it('falls back to any EVM address when the exact chain scope is not available', () => {
+    mockGetAddressesByGroupId.mockReturnValue([
+      {
+        account: { address: '0xfallback' },
+        scope: 'eip155:137',
+        networkName: 'Polygon',
+      },
+    ]);
+
+    const { getByTestId } = renderWithProvider(TokenSelection, undefined, {
+      receiveMode: true,
+      groupId: 'test-group-id',
+    });
+
+    fireEvent.press(getByTestId(`token-list-item-${MOCK_ETH_TOKEN.assetId}`));
+
+    expect(mockRootNavigate).toHaveBeenCalledWith(
+      Routes.ONBOARDING.RECEIVE_QR,
+      {
+        tokenSymbol: MOCK_ETH_TOKEN.symbol,
+        networkName: 'Polygon',
+        chainId: MOCK_ETH_TOKEN.chainId,
+        address: '0xfallback',
+      },
+    );
+  });
+
+  it('does not navigate to the receive QR screen when no address is found', () => {
+    mockGetAddressesByGroupId.mockReturnValue([]);
+
+    const { getByTestId } = renderWithProvider(TokenSelection, undefined, {
+      receiveMode: true,
+      groupId: 'test-group-id',
+    });
+
+    fireEvent.press(getByTestId(`token-list-item-${MOCK_ETH_TOKEN.assetId}`));
+
+    expect(mockRootNavigate).not.toHaveBeenCalled();
   });
 });

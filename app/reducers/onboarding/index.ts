@@ -7,6 +7,8 @@ import {
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
+  SET_ONBOARDING_INTERESTS,
+  SET_ONBOARDING_CRYPTO_EXPERIENCE,
   SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
@@ -25,11 +27,28 @@ import {
   type WalletHomeOnboardingStepsState,
 } from '../../constants/walletHomeOnboardingSteps';
 
+/**
+ * Answers the user gave during the onboarding questionnaires. These were
+ * previously only sent to analytics; they are kept here so the rest of the app
+ * can read the user's stated interests / experience.
+ */
+export interface OnboardingQuestionnaireState {
+  /** Interest option ids selected on the interest questionnaire. */
+  interests: string[];
+  /** Free-text entered for the "Other" interest option, if any. */
+  interestOtherText?: string;
+  /** Selected crypto-experience level ('new' | 'beginner' | ...). */
+  cryptoExperience?: string;
+}
+
 export interface OnboardingState {
   events: [ITrackingEvent][];
   completedOnboarding: boolean;
   accountType?: AccountType;
   onboardingVersion?: string;
+
+  /** Stored answers from the onboarding questionnaires. */
+  questionnaire: OnboardingQuestionnaireState;
 
   // used to backfill analytic preferences selected event for social login users
   pendingSocialLoginMarketingConsentBackfill: string | null;
@@ -61,6 +80,7 @@ export interface OnboardingState {
 export const initialOnboardingState: OnboardingState = {
   events: [],
   completedOnboarding: false,
+  questionnaire: { interests: [] },
   pendingSocialLoginMarketingConsentBackfill: null,
   iosGoogleWarningSheetLastDismissedAt: null,
   walletHomeOnboardingStepsEligible: false,
@@ -104,6 +124,23 @@ const onboardingReducer = (
         ...state,
         accountType: undefined,
         onboardingVersion: undefined,
+      };
+    case SET_ONBOARDING_INTERESTS:
+      return {
+        ...state,
+        questionnaire: {
+          ...(state.questionnaire ?? { interests: [] }),
+          interests: action.interests,
+          interestOtherText: action.otherText,
+        },
+      };
+    case SET_ONBOARDING_CRYPTO_EXPERIENCE:
+      return {
+        ...state,
+        questionnaire: {
+          ...(state.questionnaire ?? { interests: [] }),
+          cryptoExperience: action.cryptoExperience,
+        },
       };
     case SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL:
       return {

@@ -14,17 +14,19 @@ import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-  },
-}));
-
 const mockOptinMetricsTestOnboardingSlice = {
   events: [] as unknown[],
   accountType: undefined as string | undefined,
 };
+
+const mockFeatureFlagState = {
+  isInterestQuestionnaireEnabled: false,
+};
+
+jest.mock('../../../selectors/featureFlagController/onboarding', () => ({
+  selectOnboardingInterestQuestionnaireEnabled: () =>
+    mockFeatureFlagState.isInterestQuestionnaireEnabled,
+}));
 
 jest.mock('react-redux', () => {
   const actual = jest.requireActual('react-redux');

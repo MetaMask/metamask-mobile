@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useRoute } from '@react-navigation/native';
 import reactQueryService from '../../../core/ReactQueryService/ReactQueryService';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
@@ -45,54 +46,77 @@ const overlayScreenOptions = {
   gestureEnabled: false,
 };
 
-const MainRoutes = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-    screenOptions={{ headerShown: false }}
-  >
-    <Stack.Screen
-      name={Routes.RAMP.TOKEN_SELECTION}
-      component={TokenSelection}
-    />
-    <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
-    <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
-    <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
-    <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />
-    <Stack.Screen name={Routes.RAMP.ENTER_ADDRESS} component={V2EnterAddress} />
-    <Stack.Screen
-      name={Routes.RAMP.VERIFY_IDENTITY}
-      component={V2VerifyIdentity}
-    />
-    <Stack.Screen name={Routes.RAMP.BANK_DETAILS} component={V2BankDetails} />
-    <Stack.Screen
-      name={Routes.RAMP.ORDER_PROCESSING}
-      component={V2OrderProcessing}
-    />
-    <Stack.Screen
-      name={Routes.RAMP.KYC_PROCESSING}
-      component={V2KycProcessing}
-    />
-    <Stack.Screen
-      name={Routes.RAMP.ADDITIONAL_VERIFICATION}
-      component={V2AdditionalVerification}
-    />
-    <Stack.Screen
-      name={Routes.RAMP.CHECKOUT}
-      component={Checkout}
-      options={overlayScreenOptions}
-    />
-    <Stack.Screen
-      name={Routes.RAMP.KYC_WEBVIEW}
-      component={V2KycWebview}
-      options={overlayScreenOptions}
-    />
-    <Stack.Screen
-      name={Routes.RAMP.RAMPS_ORDER_DETAILS}
-      component={RampsOrderDetails}
-    />
-    <Stack.Screen name={Routes.RAMP.HEADLESS_HOST} component={HeadlessHost} />
-  </Stack.Navigator>
-);
+/**
+ * Extract only custom params, ignoring React Navigation's internal
+ * `screen`/`params` keys used for nested deep linking.
+ */
+function pickCustomParams(
+  params: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!params) return undefined;
+  const { screen, params: _nested, initial, ...custom } = params;
+  return Object.keys(custom).length > 0 ? custom : undefined;
+}
+
+const MainRoutes = () => {
+  const mainRoute = useRoute();
+  const customParams = pickCustomParams(
+    mainRoute.params as Record<string, unknown> | undefined,
+  );
+
+  return (
+    <Stack.Navigator
+      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+      screenOptions={{ headerShown: false }}
+    >
+      <Stack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={TokenSelection}
+        initialParams={customParams}
+      />
+      <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
+      <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
+      <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
+      <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />
+      <Stack.Screen
+        name={Routes.RAMP.ENTER_ADDRESS}
+        component={V2EnterAddress}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.VERIFY_IDENTITY}
+        component={V2VerifyIdentity}
+      />
+      <Stack.Screen name={Routes.RAMP.BANK_DETAILS} component={V2BankDetails} />
+      <Stack.Screen
+        name={Routes.RAMP.ORDER_PROCESSING}
+        component={V2OrderProcessing}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.KYC_PROCESSING}
+        component={V2KycProcessing}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.ADDITIONAL_VERIFICATION}
+        component={V2AdditionalVerification}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.CHECKOUT}
+        component={Checkout}
+        options={overlayScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.KYC_WEBVIEW}
+        component={V2KycWebview}
+        options={overlayScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.RAMP.RAMPS_ORDER_DETAILS}
+        component={RampsOrderDetails}
+      />
+      <Stack.Screen name={Routes.RAMP.HEADLESS_HOST} component={HeadlessHost} />
+    </Stack.Navigator>
+  );
+};
 
 const TokenListModalsRoutes = () => (
   <ModalsStack.Navigator
@@ -153,6 +177,11 @@ const TokenListModalsRoutes = () => (
 );
 
 const TokenListRoutes = () => {
+  const route = useRoute();
+  const customParams = pickCustomParams(
+    route.params as Record<string, unknown> | undefined,
+  );
+
   // Disable auto-lock during Ramps unified buy v2 flow
   // This allows users to minimize the app to check personal details or complete
   // verification steps without being locked out and redirected to wallet home
@@ -172,6 +201,7 @@ const TokenListRoutes = () => {
         <RootStack.Screen
           name={Routes.RAMP.TOKEN_SELECTION_ROOT}
           component={MainRoutes}
+          initialParams={customParams}
         />
         <RootStack.Screen
           name={Routes.RAMP.MODALS.ID}

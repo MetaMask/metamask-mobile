@@ -12,6 +12,7 @@ import {
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectAccountGroupBalanceForEmptyState } from '../../../selectors/assets/balances';
 
 const MockView = View;
 const MockPressable = Pressable;
@@ -83,7 +84,7 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn().mockReturnValue(undefined),
+  useSelector: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -101,6 +102,15 @@ describe('OnboardingInterestQuestionnaire', () => {
   beforeEach(() => {
     delete mockInterestQuestionnaireRouteParams.accountType;
     jest.clearAllMocks();
+    // Default: wallet has funds so pressing Next calls onComplete directly
+    (
+      jest.requireMock('react-redux').useSelector as jest.Mock
+    ).mockImplementation((selector: (state: unknown) => unknown) => {
+      if (selector === selectAccountGroupBalanceForEmptyState) {
+        return { totalBalanceInUserCurrency: 100 };
+      }
+      return undefined;
+    });
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,

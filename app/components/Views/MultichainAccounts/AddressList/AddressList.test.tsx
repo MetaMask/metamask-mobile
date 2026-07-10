@@ -197,11 +197,7 @@ describe('AddressList', () => {
   it('renders correctly with list of addresses from a specific account group', () => {
     const { getAllByText, getByText } = renderWithAddressList();
 
-    // The title is set in navigation options, not rendered in the component
-    expect(mockSetOptions).toHaveBeenCalledWith({
-      header: expect.any(Function),
-      headerShown: true,
-    });
+    expect(getByText(TITLE)).toBeOnTheScreen();
 
     expect(getAllByText(shortenedEthAddress).length).toBe(3);
     expect(getByText('Ethereum')).toBeDefined();
@@ -212,37 +208,21 @@ describe('AddressList', () => {
     expect(getByText('Solana Mainnet')).toBeDefined();
   });
 
-  it('sets navigation options when title is provided', () => {
+  it('renders the header title when title is provided', () => {
     renderWithAddressList();
 
-    expect(mockSetOptions).toHaveBeenCalledWith({
-      header: expect.any(Function),
-      headerShown: true,
-    });
+    expect(mockSetOptions).not.toHaveBeenCalled();
   });
 
   it('calls navigation.goBack from the header back button', () => {
-    renderWithAddressList();
+    const { getByTestId } = renderWithAddressList();
 
-    const navOptionsWithHeader = mockSetOptions.mock.calls
-      .map(([opts]) => opts)
-      .find(
-        (opts) =>
-          opts &&
-          opts.headerShown === true &&
-          typeof opts.header === 'function',
-      );
-
-    expect(navOptionsWithHeader).toBeDefined();
-
-    const { getByTestId, unmount } = render(navOptionsWithHeader.header());
     fireEvent.press(getByTestId(AddressListIds.GO_BACK));
 
     expect(mockGoBack).toHaveBeenCalled();
-    unmount();
   });
 
-  it('does not set navigation options when title is not provided', () => {
+  it('does not render the header when title is not provided', () => {
     const { useParams } = jest.requireMock(
       '../../../../util/navigation/navUtils',
     );

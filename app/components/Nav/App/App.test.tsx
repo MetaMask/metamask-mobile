@@ -138,6 +138,9 @@ jest.mock('../../UI/OptinMetrics', () => () => (
 jest.mock('../../Views/OnboardingInterestQuestionnaire', () => () => (
   <MockView testID="mock-onboarding-interest-questionnaire" />
 ));
+jest.mock('../../Views/OnboardingFundWallet', () => () => (
+  <MockView testID="mock-onboarding-fund-wallet" />
+));
 jest.mock(
   '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire',
   () => () => (
@@ -1763,6 +1766,40 @@ describe('App', () => {
         expect(
           getByTestId('mock-onboarding-interest-questionnaire'),
         ).toBeOnTheScreen();
+      });
+    });
+
+    it('renders OnboardingFundWallet when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.FUND_WALLET,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-onboarding-fund-wallet')).toBeOnTheScreen();
       });
     });
 

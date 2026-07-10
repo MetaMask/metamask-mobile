@@ -21,7 +21,10 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
+import OnboardingFundWallet from '../../Views/OnboardingFundWallet';
+import OnboardingReceiveQR from '../../Views/OnboardingFundWallet/OnboardingReceiveQR';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
+import TokenListRoutes from '../../UI/Ramp/routes';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
@@ -337,6 +340,11 @@ const OnboardingNav = () => {
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <NativeStack.Screen
+        name={Routes.ONBOARDING.FUND_WALLET}
+        component={OnboardingFundWallet}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
         name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
         component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
@@ -391,24 +399,63 @@ const SimpleWebviewScreen = () => (
   </NativeStack.Navigator>
 );
 
-const OnboardingRootNav = () => (
-  <NativeStack.Navigator
-    initialRouteName={Routes.ONBOARDING.NAV}
-    screenOptions={{ headerShown: false }}
-  >
-    <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
-    <NativeStack.Screen
-      name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
-      options={{ presentation: 'modal' }}
-    />
-    <NativeStack.Screen
-      name={Routes.WEBVIEW.MAIN}
-      component={SimpleWebviewScreen}
-      options={{ presentation: 'modal' }}
-    />
-  </NativeStack.Navigator>
-);
+const OnboardingMultichainAddressList = () => {
+  const route = useRoute();
+  const { colors } = useTheme();
+
+  return (
+    <NativeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={MultichainAccountAddressList}
+        initialParams={route?.params}
+      />
+    </NativeStack.Navigator>
+  );
+};
+
+const OnboardingRootNav = () => {
+  const { colors } = useTheme();
+
+  return (
+    <NativeStack.Navigator
+      initialRouteName={Routes.ONBOARDING.NAV}
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
+      <NativeStack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={TokenListRoutes}
+      />
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={OnboardingMultichainAddressList}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.RECEIVE_QR}
+        component={OnboardingReceiveQR}
+      />
+      <NativeStack.Screen
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcher}
+        options={{ presentation: 'modal' }}
+      />
+      <NativeStack.Screen
+        name={Routes.WEBVIEW.MAIN}
+        component={SimpleWebviewScreen}
+        options={{ presentation: 'modal' }}
+      />
+    </NativeStack.Navigator>
+  );
+};
 
 const VaultRecoveryFlow = () => {
   const { colors } = useTheme();

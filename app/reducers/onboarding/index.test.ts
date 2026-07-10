@@ -6,6 +6,8 @@ import {
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
+  SET_ONBOARDING_INTERESTS,
+  SET_ONBOARDING_CRYPTO_EXPERIENCE,
   SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
   SET_SEEDLESS_ONBOARDING,
   CLEAR_SEEDLESS_ONBOARDING,
@@ -92,6 +94,52 @@ describe('onboardingReducer', () => {
 
     expect(state.accountType).toBeUndefined();
     expect(state.onboardingVersion).toBeUndefined();
+  });
+
+  it('handles the SET_ONBOARDING_INTERESTS action', () => {
+    const action = {
+      type: SET_ONBOARDING_INTERESTS,
+      interests: ['swap_tokens', 'other'],
+      otherText: 'staking',
+    } as const;
+
+    const state = onboardingReducer(initialState, action);
+
+    expect(state.questionnaire).toEqual({
+      interests: ['swap_tokens', 'other'],
+      interestOtherText: 'staking',
+    });
+  });
+
+  it('preserves the crypto experience when SET_ONBOARDING_INTERESTS is dispatched', () => {
+    const stateWithExperience = {
+      ...initialState,
+      questionnaire: { interests: [], cryptoExperience: 'advanced' },
+    };
+
+    const action = {
+      type: SET_ONBOARDING_INTERESTS,
+      interests: ['swap_tokens'],
+    } as const;
+
+    const state = onboardingReducer(stateWithExperience, action);
+
+    expect(state.questionnaire).toEqual({
+      interests: ['swap_tokens'],
+      interestOtherText: undefined,
+      cryptoExperience: 'advanced',
+    });
+  });
+
+  it('handles the SET_ONBOARDING_CRYPTO_EXPERIENCE action', () => {
+    const action = {
+      type: SET_ONBOARDING_CRYPTO_EXPERIENCE,
+      cryptoExperience: 'beginner',
+    } as const;
+
+    const state = onboardingReducer(initialState, action);
+
+    expect(state.questionnaire.cryptoExperience).toBe('beginner');
   });
 
   it('handles the SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL action', () => {

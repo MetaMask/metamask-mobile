@@ -1,6 +1,10 @@
 import {
   selectCompletedOnboarding,
   selectOnboardingAccountType,
+  selectOnboardingQuestionnaire,
+  selectOnboardingInterests,
+  selectOnboardingInterestOtherText,
+  selectOnboardingCryptoExperience,
   selectPendingSocialLoginMarketingConsentBackfill,
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
@@ -60,6 +64,45 @@ describe('Onboarding selectors', () => {
     expect(selectPendingSocialLoginMarketingConsentBackfill(state)).toBe(
       'google',
     );
+  });
+
+  describe('questionnaire selectors', () => {
+    const stateWithQuestionnaire = {
+      onboarding: {
+        completedOnboarding: true,
+        questionnaire: {
+          interests: ['swap_tokens', 'other'],
+          interestOtherText: 'staking',
+          cryptoExperience: 'beginner',
+        },
+      },
+    } as RootState;
+
+    it('returns the questionnaire answers', () => {
+      expect(selectOnboardingQuestionnaire(stateWithQuestionnaire)).toEqual({
+        interests: ['swap_tokens', 'other'],
+        interestOtherText: 'staking',
+        cryptoExperience: 'beginner',
+      });
+      expect(selectOnboardingInterests(stateWithQuestionnaire)).toEqual([
+        'swap_tokens',
+        'other',
+      ]);
+      expect(selectOnboardingInterestOtherText(stateWithQuestionnaire)).toBe(
+        'staking',
+      );
+      expect(selectOnboardingCryptoExperience(stateWithQuestionnaire)).toBe(
+        'beginner',
+      );
+    });
+
+    it('returns safe defaults when the questionnaire is missing (partial rehydration)', () => {
+      const state = { onboarding: { completedOnboarding: false } } as RootState;
+      expect(selectOnboardingQuestionnaire(state)).toEqual({ interests: [] });
+      expect(selectOnboardingInterests(state)).toEqual([]);
+      expect(selectOnboardingInterestOtherText(state)).toBeUndefined();
+      expect(selectOnboardingCryptoExperience(state)).toBeUndefined();
+    });
   });
 
   describe('wallet home onboarding steps (partial rehydration)', () => {

@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { useStyles } from '../../../hooks/useStyles';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -14,6 +15,7 @@ import { IconName, toast } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { AddressListIds } from './AddressList.testIds';
 import {
   useParams,
@@ -24,7 +26,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { strings } from '../../../../../locales/i18n';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import {
@@ -44,6 +45,7 @@ export const createAddressListNavigationDetails =
  */
 export const AddressList = () => {
   const navigation = useNavigation();
+  const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -132,22 +134,20 @@ export const AddressList = () => {
     [navigation, groupId, trackEvent, createEventBuilder],
   );
 
-  useLayoutEffect(() => {
-    if (title) {
-      navigation.setOptions({
-        ...getHeaderCompactStandardNavbarOptions({
-          title,
-          onBack: () => navigation.goBack(),
-          backButtonProps: { testID: AddressListIds.GO_BACK },
-          includesTopInset: true,
-        }),
-        headerShown: true,
-      });
-    }
-  }, [navigation, title]);
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   return (
-    <View style={styles.safeArea}>
+    <View style={[styles.safeArea, tw.style('flex-1 bg-default')]}>
+      {title ? (
+        <HeaderCompactStandard
+          title={title}
+          onBack={handleBack}
+          backButtonProps={{ testID: AddressListIds.GO_BACK }}
+          includesTopInset
+        />
+      ) : null}
       <FlashList
         data={internalAccountsSpreadByScopes}
         keyExtractor={(item) => item.scope}

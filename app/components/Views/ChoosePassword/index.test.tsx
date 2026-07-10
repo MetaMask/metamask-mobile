@@ -70,6 +70,15 @@ import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../core/Engine';
 
+const mockFeatureFlagState = {
+  isInterestQuestionnaireEnabled: false,
+};
+
+jest.mock('../../../selectors/featureFlagController/onboarding', () => ({
+  selectOnboardingInterestQuestionnaireEnabled: () =>
+    mockFeatureFlagState.isInterestQuestionnaireEnabled,
+}));
+
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
 >;
@@ -733,6 +742,52 @@ describe('ChoosePassword', () => {
             onComplete: expect.any(Function),
           }),
         );
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockMetrics.identify).toHaveBeenCalled();
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('navigates to interest questionnaire after OAuth wallet creation when feature flag is enabled', async () => {
+      mockFeatureFlagState.isInterestQuestionnaireEnabled = true;
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'biometrics',
+        availableBiometryType: 'faceID',
+      });
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      jest
+        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
+        .mockResolvedValue(undefined);
+
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await fillAndSubmitForm(component);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({
+            onComplete: expect.any(Function),
+          }),
+        );
+        expect(mockNavigation.reset).not.toHaveBeenCalled();
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockMetrics.identify).toHaveBeenCalled();
       });
