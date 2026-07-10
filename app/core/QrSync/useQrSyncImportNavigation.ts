@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
-  selectQrSyncImportMnemonic,
+  selectQrSyncExistingUserImportMnemonic,
   selectQrSyncShouldNavigateToImport,
 } from '../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../NavigationService/types';
@@ -29,7 +29,7 @@ export const useQrSyncImportNavigation = ({
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
   );
-  const qrSyncMnemonic = useSelector(selectQrSyncImportMnemonic);
+  const qrSyncMnemonic = useSelector(selectQrSyncExistingUserImportMnemonic);
   const hasHandledImportNavigationRef = useRef(false);
 
   useEffect(() => {

@@ -36,6 +36,27 @@ export const selectQrSyncImportMnemonic = createSelector(
     null,
 );
 
+/** Primary mnemonic when flagged; otherwise first mnemonic (extension often omits isPrimary). */
+export const selectQrSyncExistingUserImportMnemonic = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) => {
+    const importPlan = qrSyncState.importPlan;
+    if (!importPlan?.length) {
+      return null;
+    }
+
+    const primaryMnemonic = importPlan.find(
+      (entry) => entry.type === 'MNEMONIC' && entry.isPrimary,
+    )?.value;
+
+    if (primaryMnemonic) {
+      return primaryMnemonic;
+    }
+
+    return importPlan.find((entry) => entry.type === 'MNEMONIC')?.value ?? null;
+  },
+);
+
 export const selectQrSyncHasImportPlan = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
@@ -87,5 +108,7 @@ export const selectQrSyncShouldNavigateToImport = createSelector(
   selectQrSyncPhase,
   selectQrSyncHasImportPlan,
   (phase, hasImportPlan) =>
-    phase === QrSyncPhases.REVIEWING_IMPORT && hasImportPlan,
+    hasImportPlan &&
+    (phase === QrSyncPhases.REVIEWING_IMPORT ||
+      phase === QrSyncPhases.COMPLETED),
 );

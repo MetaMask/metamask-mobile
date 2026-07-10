@@ -14,7 +14,7 @@ import {
   TextField,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -27,6 +27,7 @@ import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 import { useAddDeviceResetToInstructionsListener } from '../../../core/QrSync/useAddDeviceResetToInstructionsListener';
+import { useIsQrTabSwitcherOpen } from '../../../core/QrSync/useIsQrTabSwitcherOpen';
 import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Logger from '../../../util/Logger';
@@ -69,9 +70,7 @@ const AddDeviceToWallet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
-  const isScannerOpen = useNavigationState((state) =>
-    state.routes.some((route) => route.name === Routes.QR_TAB_SWITCHER),
-  );
+  const isScannerOpen = useIsQrTabSwitcherOpen();
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);

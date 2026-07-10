@@ -47,10 +47,7 @@ const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockUseNavigationState = jest.fn(
-  (selector: (state: { routes: { name: string }[] }) => unknown) =>
-    selector({ routes: [] }),
-);
+let mockIsQrTabSwitcherOpen = false;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -60,11 +57,12 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     }),
-    useNavigationState: (
-      selector: (state: { routes: { name: string }[] }) => unknown,
-    ) => mockUseNavigationState(selector),
   };
 });
+
+jest.mock('../../../core/QrSync/useIsQrTabSwitcherOpen', () => ({
+  useIsQrTabSwitcherOpen: () => mockIsQrTabSwitcherOpen,
+}));
 
 jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
@@ -93,10 +91,7 @@ const renderComponent = (
 describe('AddDeviceToWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseNavigationState.mockImplementation(
-      (selector: (state: { routes: { name: string }[] }) => unknown) =>
-        selector({ routes: [] }),
-    );
+    mockIsQrTabSwitcherOpen = false;
   });
 
   describe('initial render', () => {
@@ -197,12 +192,7 @@ describe('AddDeviceToWallet', () => {
     });
 
     it('resets a stale QR sync session before opening the scanner', () => {
-      mockUseNavigationState.mockImplementation(
-        (selector: (state: { routes: { name: string }[] }) => unknown) =>
-          selector({
-            routes: [{ name: Routes.QR_TAB_SWITCHER }],
-          }),
-      );
+      mockIsQrTabSwitcherOpen = true;
 
       const { getByText } = renderComponent({
         phase: QrSyncPhases.AWAITING_SYNC_READY,
@@ -244,6 +234,21 @@ describe('AddDeviceToWallet', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+        );
+      });
+    });
+
+    it('does not open the verification sheet while the scanner is open', async () => {
+      mockIsQrTabSwitcherOpen = true;
+
+      renderComponent({
+        phase: QrSyncPhases.DISPLAYING_OTP,
+        otp: { otp: '123456', deadline: Date.now() + 30_000 },
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
         );
       });
@@ -358,15 +363,39 @@ describe('AddDeviceToWallet', () => {
       );
     });
 
+    it('auto-imports for existing users when sync-ready omits isPrimary', async () => {
+      const mnemonic =
+        'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
+
+      renderComponent(
+        {
+          phase: QrSyncPhases.COMPLETED,
+          importPlan: [
+            {
+              index: 0,
+              value: mnemonic,
+              type: 'MNEMONIC',
+              accountName: null,
+              hiddenIndexes: [],
+              isPrimary: false,
+            },
+          ],
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(mockCompleteExistingUserQrSyncImport).toHaveBeenCalledWith(
+          expect.objectContaining({ navigate: mockNavigate }),
+          mnemonic,
+        );
+      });
+    });
+
     it.each([true, false])(
       'does not navigate or auto-import while the scanner is open (completedOnboarding=%s)',
       async (completedOnboarding) => {
-        mockUseNavigationState.mockImplementation(
-          (selector: (state: { routes: { name: string }[] }) => unknown) =>
-            selector({
-              routes: [{ name: Routes.QR_TAB_SWITCHER }],
-            }),
-        );
+        mockIsQrTabSwitcherOpen = true;
 
         renderComponent(
           {
@@ -395,7 +424,7 @@ describe('AddDeviceToWallet', () => {
       },
     );
 
-    it('does not navigate to import after sync has completed', async () => {
+    it('navigates to import after sync completes for new users', async () => {
       renderComponent({
         phase: QrSyncPhases.COMPLETED,
         importPlan: [
@@ -411,12 +440,15 @@ describe('AddDeviceToWallet', () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect(mockNavigate).toHaveBeenCalledWith(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-          expect.anything(),
+          {
+            initialStep: 1,
+            qrSyncImport: true,
+          },
         );
-        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
       });
+      expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
     });
 
     it('does not navigate to import when sync failed with stale import data', async () => {

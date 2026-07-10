@@ -83,12 +83,7 @@ export const decodeAddDeviceQrPayloadFromMwpDeeplink = (
     throw new Error('Payload too large (max 1MB).');
   }
 
-  let jsonString: string;
-  try {
-    jsonString = Buffer.from(payload, 'base64').toString('utf-8');
-  } catch {
-    throw new Error('Add Device QR payload is not valid base64.');
-  }
+  const jsonString = Buffer.from(payload, 'base64').toString('utf-8');
 
   if (jsonString.length > 1024 * 1024) {
     throw new Error('Decoded payload too large (max 1MB).');
