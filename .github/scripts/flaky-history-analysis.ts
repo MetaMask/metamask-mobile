@@ -3,7 +3,7 @@
  *
  * Identifies Jest unit test files modified in the PR and counts how often each
  * one failed on main over the last LOOKBACK_DAYS of completed ci.yml runs,
- * bucketed into 7d/30d windows. Writes a machine-readable JSON artifact
+ * bucketed into 7d/15d/30d windows. Writes a machine-readable JSON artifact
  * consumed by Stage 2 (AI analyzer) and Stage 3 (sticky PR comment).
  *
  * Historical failure is a HINT, not proof — a file can be flagged here with
