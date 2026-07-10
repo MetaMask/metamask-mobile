@@ -1,6 +1,6 @@
 import {
   isAgenticCliConnectionRequest,
-  isAgenticCliLoginOperation,
+  shouldWaitForAgenticCliMwpConnection,
   type AgenticCliConnectionRequest,
 } from './agenticCliConnectionRequest';
 
@@ -75,16 +75,22 @@ describe('isAgenticCliConnectionRequest', () => {
   });
 });
 
-describe('isAgenticCliLoginOperation', () => {
-  it('treats missing operationType as login', () => {
-    expect(isAgenticCliLoginOperation(undefined)).toBe(true);
+describe('shouldWaitForAgenticCliMwpConnection', () => {
+  it('treats omitted operationType as connection-gated', () => {
+    expect(shouldWaitForAgenticCliMwpConnection(undefined)).toBe(true);
   });
 
-  it('treats login operationType as login', () => {
-    expect(isAgenticCliLoginOperation('login')).toBe(true);
+  it('treats login operationType as connection-gated', () => {
+    expect(shouldWaitForAgenticCliMwpConnection('login')).toBe(true);
   });
 
-  it('rejects non-login operation types', () => {
-    expect(isAgenticCliLoginOperation('tx_approve')).toBe(false);
+  it('treats tx_approve operationType as connection-gated', () => {
+    expect(shouldWaitForAgenticCliMwpConnection('tx_approve')).toBe(true);
+  });
+
+  it('treats other operation types as not connection-gated', () => {
+    expect(shouldWaitForAgenticCliMwpConnection('transaction_request')).toBe(
+      false,
+    );
   });
 });

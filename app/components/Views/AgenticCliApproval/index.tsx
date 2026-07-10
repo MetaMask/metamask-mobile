@@ -16,7 +16,7 @@ import {
 import { useParams } from '../../../util/navigation/navUtils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
-import { isAgenticCliLoginOperation } from '../../../core/AgenticCli/agenticCliConnectionRequest';
+import { shouldWaitForAgenticCliMwpConnection } from '../../../core/AgenticCli/agenticCliConnectionRequest';
 import { waitForAgenticCliLoginConnectionEstablished } from '../../../core/AgenticCli/agenticCliConnectionSession';
 import { AgenticCliApprovalService } from './AgenticCliApprovalService';
 import type { AgenticCliApprovalParams } from './types';
@@ -121,7 +121,7 @@ const AgenticCliApproval: React.FC = () => {
     let cancelled = false;
     (async () => {
       try {
-        if (isAgenticCliLoginOperation(operationType)) {
+        if (shouldWaitForAgenticCliMwpConnection(operationType)) {
           await waitForAgenticCliLoginConnectionEstablished();
         }
 

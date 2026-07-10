@@ -21,14 +21,12 @@ import {
 import {
   type AgenticCliConnectionRequest,
   isAgenticCliConnectionRequest,
-  isAgenticCliLoginOperation,
 } from './agenticCliConnectionRequest';
 import {
   clearAgenticCliLoginConnectionEstablished,
   markAgenticCliLoginConnectionEstablished,
 } from './agenticCliConnectionSession';
 import {
-  createMwpClientConnectedWaiter,
   handleAgenticCliQrLogin,
   waitForKeyringUnlock,
 } from './AgenticCliQrLoginService';
@@ -37,7 +35,7 @@ export interface AgenticCliMwpConnectionDeps {
   relayURL: string;
   keymanager: IKeyManager;
   hostapp: IHostApplicationAdapter;
-  getConnection: (id: string) => Connection | undefined;
+  hasConnection: (id: string) => boolean;
   cleanupConnection: (conn: Connection) => Promise<void>;
 }
 
@@ -133,52 +131,34 @@ export async function handleAgenticCliConnectDeeplink(
       expiresAt: Date.now() + DEFAULT_SESSION_TTL,
     };
 
-    const existingConnection = deps.getConnection(connInfo.id);
-
-    if (existingConnection) {
+    if (deps.hasConnection(connInfo.id)) {
       logger.debug(
-        'Already have a connection with this id, reusing for agentic CLI login',
+        'Already have a connection with this id, skipping',
         redactUrl(url),
-      );
-      conn = existingConnection;
-      agenticCliStage = 'mwp-connect-existing';
-    } else {
-      deps.hostapp.showConnectionLoading(connInfo, {
-        autodismissMs: AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS,
-      });
-      agenticCliStage = 'create-mwp-connection';
-      conn = await Connection.create(
-        connInfo,
-        deps.keymanager,
-        deps.relayURL,
-        deps.hostapp,
-      );
-      wireAgenticCliClientEvents(conn);
-
-      agenticCliStage = 'mwp-connect';
-      const { promise: connectedPromise, cancel: cancelConnectedWait } =
-        createMwpClientConnectedWaiter(conn);
-      try {
-        await conn.connect({
-          ...connReq.sessionRequest,
-          mode: 'untrusted',
-        });
-        await connectedPromise;
-      } catch (error) {
-        cancelConnectedWait();
-        await connectedPromise.catch(() => undefined);
-        throw error;
-      }
-    }
-
-    if (!isAgenticCliLoginOperation(connReq.connectionType.operationType)) {
-      logger.debug(
-        'Agentic CLI connection established without login flow',
-        conn.id,
       );
       return;
     }
 
+    // --- Create MWP connection and connect (untrusted) ---
+    deps.hostapp.showConnectionLoading(connInfo, {
+      autodismissMs: AGENTIC_CLI_CONNECTION_LOADING_AUTODISMISS_MS,
+    });
+    agenticCliStage = 'create-mwp-connection';
+    conn = await Connection.create(
+      connInfo,
+      deps.keymanager,
+      deps.relayURL,
+      deps.hostapp,
+    );
+    wireAgenticCliClientEvents(conn);
+
+    agenticCliStage = 'mwp-connect';
+    await conn.connect({
+      ...connReq.sessionRequest,
+      mode: 'untrusted',
+    });
+
+    // Signal universal-link approval that MWP pairing is ready to mint.
     markAgenticCliLoginConnectionEstablished();
 
     // --- QR login: Hydra → dashboard → WebView → auth token ---

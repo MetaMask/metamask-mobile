@@ -27,19 +27,15 @@ jest.mock('./agenticCliOtpUi', () => ({
   showAgenticCliOtpCode: jest.fn(),
   hideAgenticCliOtpCode: jest.fn(),
 }));
-jest.mock('./AgenticCliQrLoginService', () => {
-  const actual = jest.requireActual('./AgenticCliQrLoginService');
-  return {
-    ...actual,
-    waitForKeyringUnlock: jest.fn().mockResolvedValue(undefined),
-    handleAgenticCliQrLogin: jest.fn().mockImplementation(async ({ conn }) => {
-      await conn.client.sendResponse({
-        type: 'auth-token',
-        token: 'cli-token',
-      });
-    }),
-  };
-});
+jest.mock('./AgenticCliQrLoginService', () => ({
+  waitForKeyringUnlock: jest.fn().mockResolvedValue(undefined),
+  handleAgenticCliQrLogin: jest.fn().mockImplementation(async ({ conn }) => {
+    await conn.client.sendResponse({
+      type: 'auth-token',
+      token: 'cli-token',
+    });
+  }),
+}));
 jest.mock('../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -127,7 +123,6 @@ describe('AgenticCliMwpConnectionService', () => {
     mockKeyManager = new KeyManager() as jest.Mocked<KeyManager>;
 
     const sendResponse = jest.fn().mockResolvedValue(undefined);
-    const off = jest.fn();
     const on = jest.fn(
       (event: string, handler: (...args: unknown[]) => void) => {
         clientHandlers[event] = handler;
@@ -136,10 +131,8 @@ describe('AgenticCliMwpConnectionService', () => {
     mockConnection = {
       id: mockConnectionRequest.sessionRequest.id,
       info: mockConnectionInfo,
-      client: { sendResponse, on, off } as unknown as Connection['client'],
-      connect: jest.fn().mockImplementation(async () => {
-        clientHandlers.connected?.();
-      }),
+      client: { sendResponse, on } as unknown as Connection['client'],
+      connect: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<Connection>;
 
@@ -175,7 +168,7 @@ describe('AgenticCliMwpConnectionService', () => {
         relayURL: RELAY_URL,
         keymanager: mockKeyManager,
         hostapp: mockHostApp,
-        getConnection: () => undefined,
+        hasConnection: () => false,
         cleanupConnection: jest.fn().mockResolvedValue(undefined),
       },
       mockConnectionRequest,
@@ -197,7 +190,7 @@ describe('AgenticCliMwpConnectionService', () => {
       relayURL: RELAY_URL,
       keymanager: mockKeyManager,
       hostapp: mockHostApp,
-      getConnection: () => undefined,
+      hasConnection: () => false,
       cleanupConnection: jest.fn().mockResolvedValue(undefined),
     });
     await Promise.resolve();
@@ -236,7 +229,7 @@ describe('AgenticCliMwpConnectionService', () => {
       relayURL: RELAY_URL,
       keymanager: mockKeyManager,
       hostapp: mockHostApp,
-      getConnection: () => undefined,
+      hasConnection: () => false,
       cleanupConnection: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -257,7 +250,6 @@ describe('AgenticCliMwpConnectionService', () => {
   it('hides the OTP sheet when QR login fails after display_otp', async () => {
     mockConnection.connect.mockImplementation(async () => {
       clientHandlers.display_otp?.('4892AKJ7', Date.now() + 60_000);
-      clientHandlers.connected?.();
     });
     mockHandleAgenticCliQrLogin.mockRejectedValueOnce(
       new Error('QR login failed'),
@@ -267,7 +259,7 @@ describe('AgenticCliMwpConnectionService', () => {
       relayURL: RELAY_URL,
       keymanager: mockKeyManager,
       hostapp: mockHostApp,
-      getConnection: () => undefined,
+      hasConnection: () => false,
       cleanupConnection: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -276,102 +268,6 @@ describe('AgenticCliMwpConnectionService', () => {
       expect.objectContaining({ id: mockConnectionInfo.id }),
     );
     expect(mockHostApp.showConnectionError).toHaveBeenCalled();
-  });
-
-  it('cancels the MWP connected waiter when connect fails', async () => {
-    mockConnection.connect.mockRejectedValueOnce(new Error('connect failed'));
-
-    await handleAgenticCliConnectDeeplink(agenticCliDeeplink, {
-      relayURL: RELAY_URL,
-      keymanager: mockKeyManager,
-      hostapp: mockHostApp,
-      getConnection: () => undefined,
-      cleanupConnection: jest.fn().mockResolvedValue(undefined),
-    });
-
-    expect(mockConnection.client.off).toHaveBeenCalledWith(
-      'connected',
-      expect.any(Function),
-    );
-    expect(mockHostApp.showConnectionError).toHaveBeenCalled();
-    expect(mockHandleAgenticCliQrLogin).not.toHaveBeenCalled();
-  });
-
-  it('waits for the MWP connected event before starting QR login', async () => {
-    let completeConnect: (() => void) | undefined;
-    mockConnection.connect.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          completeConnect = () => {
-            clientHandlers.connected?.();
-            resolve();
-          };
-        }),
-    );
-
-    const promise = handleAgenticCliConnectDeeplink(agenticCliDeeplink, {
-      relayURL: RELAY_URL,
-      keymanager: mockKeyManager,
-      hostapp: mockHostApp,
-      getConnection: () => undefined,
-      cleanupConnection: jest.fn().mockResolvedValue(undefined),
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    expect(mockHandleAgenticCliQrLogin).not.toHaveBeenCalled();
-
-    completeConnect?.();
-    await promise;
-
-    expect(mockHandleAgenticCliQrLogin).toHaveBeenCalledWith(
-      expect.objectContaining({
-        connReq: mockConnectionRequest,
-        conn: mockConnection,
-      }),
-    );
-  });
-
-  it('reuses an established connection for login without reconnecting', async () => {
-    await handleAgenticCliConnectDeeplink(agenticCliDeeplink, {
-      relayURL: RELAY_URL,
-      keymanager: mockKeyManager,
-      hostapp: mockHostApp,
-      getConnection: () => mockConnection,
-      cleanupConnection: jest.fn().mockResolvedValue(undefined),
-    });
-
-    expect(Connection.create).not.toHaveBeenCalled();
-    expect(mockConnection.connect).not.toHaveBeenCalled();
-    expect(mockHandleAgenticCliQrLogin).toHaveBeenCalledWith(
-      expect.objectContaining({
-        conn: mockConnection,
-      }),
-    );
-  });
-
-  it('skips dashboard login when operationType is not login', async () => {
-    const nonLoginRequest: AgenticCliConnectionRequest = {
-      ...mockConnectionRequest,
-      connectionType: {
-        name: 'agentic-cli',
-        operationType: 'tx_approve',
-      },
-    };
-
-    await handleAgenticCliConnectDeeplink(
-      agenticCliDeeplink,
-      {
-        relayURL: RELAY_URL,
-        keymanager: mockKeyManager,
-        hostapp: mockHostApp,
-        getConnection: () => undefined,
-        cleanupConnection: jest.fn().mockResolvedValue(undefined),
-      },
-      nonLoginRequest,
-    );
-
-    expect(mockHandleAgenticCliQrLogin).not.toHaveBeenCalled();
   });
 
   it('hides the loading toast after a successful agentic QR handshake', async () => {
@@ -390,7 +286,7 @@ describe('AgenticCliMwpConnectionService', () => {
       relayURL: RELAY_URL,
       keymanager: mockKeyManager,
       hostapp: mockHostApp,
-      getConnection: () => undefined,
+      hasConnection: () => false,
       cleanupConnection: jest.fn().mockResolvedValue(undefined),
     });
 

@@ -1,7 +1,6 @@
 import { showSimpleNotification } from '../../actions/notification';
 import { store } from '../../store';
 import { AgenticCliDashboardWebviewService } from '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
-import Engine from '../Engine';
 import { Connection } from '../SDKConnectV2/services/connection';
 import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
 
@@ -57,28 +56,31 @@ const mockIsUnlocked = jest.fn(() => true);
 const mockSubscribe = jest.fn();
 const mockUnsubscribe = jest.fn();
 
-const applyEngineTestMocks = (): void => {
-  (
-    Engine.context as unknown as {
-      AuthenticationController: { getBearerToken: jest.Mock };
-    }
-  ).AuthenticationController = {
-    getBearerToken: mockGetBearerToken,
-  };
-  Engine.context.KeyringController.isUnlocked = mockIsUnlocked;
-  Engine.context.KeyringController.state = {
-    ...Engine.context.KeyringController.state,
-    keyrings: [
-      {
-        type: 'HD Key Tree',
-        accounts: [],
-        metadata: { id: 'entropy-source-id', name: 'HD Key Tree' },
+jest.mock('../Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      KeyringController: {
+        isUnlocked: mockIsUnlocked,
+        state: {
+          keyrings: [
+            {
+              type: 'HD Key Tree',
+              metadata: { id: 'entropy-source-id' },
+            },
+          ],
+        },
       },
-    ],
-  };
-  Engine.controllerMessenger.subscribe = mockSubscribe;
-  Engine.controllerMessenger.unsubscribe = mockUnsubscribe;
-};
+      AuthenticationController: {
+        getBearerToken: mockGetBearerToken,
+      },
+    },
+    controllerMessenger: {
+      subscribe: mockSubscribe,
+      unsubscribe: mockUnsubscribe,
+    },
+  },
+}));
 
 jest.mock(
   '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService',
@@ -118,8 +120,15 @@ const loadAgenticCliQrLogin = (
   buildType: string,
 ): typeof import('./AgenticCliQrLoginService') => {
   mockGetBuildType.mockReturnValue(buildType);
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('./AgenticCliQrLoginService');
+  let qrLoginModule: typeof import('./AgenticCliQrLoginService') | undefined;
+  jest.isolateModules(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    qrLoginModule = require('./AgenticCliQrLoginService');
+  });
+  if (!qrLoginModule) {
+    throw new Error('AgenticCliQrLoginService module not found');
+  }
+  return qrLoginModule;
 };
 
 describe('AgenticCliQrLoginService', () => {
@@ -136,7 +145,6 @@ describe('AgenticCliQrLoginService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    applyEngineTestMocks();
     process.env.MM_DEV_API_ENV = 'dev';
     mockGetBearerToken.mockResolvedValue('hydra-token');
     mockIsUnlocked.mockReturnValue(true);
@@ -325,24 +333,5 @@ describe('AgenticCliQrLoginService', () => {
       'KeyringController:unlock',
       mockSubscribe.mock.calls[0][1],
     );
-  });
-
-  it('waits for the MWP connected event', async () => {
-    const { createMwpClientConnectedWaiter } =
-      loadAgenticCliQrLogin('main_prod');
-    const handlers: Record<string, () => void> = {};
-    const conn = {
-      client: {
-        on: jest.fn((event: string, handler: () => void) => {
-          handlers[event] = handler;
-        }),
-        off: jest.fn(),
-      },
-    } as unknown as import('../SDKConnectV2/services/connection').Connection;
-
-    const { promise } = createMwpClientConnectedWaiter(conn, 1_000);
-    const waitPromise = promise;
-    handlers.connected?.();
-    await expect(waitPromise).resolves.toBeUndefined();
   });
 });

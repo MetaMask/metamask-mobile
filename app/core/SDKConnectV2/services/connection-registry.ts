@@ -442,7 +442,7 @@ export class ConnectionRegistry {
           relayURL: this.RELAY_URL,
           keymanager: this.keymanager,
           hostapp: this.hostapp,
-          getConnection: (id) => this.connections.get(id),
+          hasConnection: (id) => this.connections.has(id),
           cleanupConnection: (connection) => this.cleanupConnection(connection),
         },
         connReq,

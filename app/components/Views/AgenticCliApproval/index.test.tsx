@@ -190,6 +190,31 @@ describe('AgenticCliApproval', () => {
     expect(mockGetAuthToken).toHaveBeenCalled();
   });
 
+  it('waits for CLI login connection before minting for tx_approve deeplinks', async () => {
+    mockUseParams.mockReturnValue({
+      ...defaultApprovalParams,
+      operationType: 'tx_approve',
+    });
+
+    render(<AgenticCliApproval />);
+
+    await waitFor(() =>
+      expect(
+        mockWaitForAgenticCliLoginConnectionEstablished,
+      ).toHaveBeenCalled(),
+    );
+    expect(mockGetAuthToken).toHaveBeenCalled();
+  });
+
+  it('does not wait for CLI login connection before minting for other deeplinks', async () => {
+    render(<AgenticCliApproval />);
+
+    await waitFor(() => expect(mockGetAuthToken).toHaveBeenCalled());
+    expect(
+      mockWaitForAgenticCliLoginConnectionEstablished,
+    ).not.toHaveBeenCalled();
+  });
+
   it('renders the localized header title after the WebView loads', async () => {
     render(<AgenticCliApproval />);
 
