@@ -91,5 +91,5 @@ export const selectIsContactSyncingEnabled = createSelector(
 export const selectIsRampsSyncingEnabled = createSelector(
   selectUserStorageControllerState,
   (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState?.isRampsSyncingEnabled,
+    userStorageControllerState?.isRampsSyncingEnabled ?? true,
 );
