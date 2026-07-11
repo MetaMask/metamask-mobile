@@ -2,6 +2,7 @@ import type {
   ParamListBase,
   NavigationProp,
   NavigationState,
+  NavigatorScreenParams,
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
@@ -65,9 +66,13 @@ import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/type
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
+import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 
 // Perps navigation params
-import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type {
+  PerpsNavigationParamList,
+  PerpsStackParamList,
+} from '../../components/UI/Perps/types/navigation';
 import type { MoneyNavigationParamList } from '../../components/UI/Money/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
@@ -287,8 +292,10 @@ type SocialLoginRouteParams = AccountStatusParams & {
 
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
-  previous_screen: string;
-  onboardingTraceCtx: TraceContext;
+  previous_screen?: string;
+  onboardingTraceCtx?: TraceContext;
+  initialStep?: number;
+  qrSyncImport?: boolean;
 }
 
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
@@ -465,7 +472,7 @@ export type RootStackParamList = {
   LedgerMessageSignModal: LedgerMessageSignModalParams | undefined;
   LedgerTransactionModal: LedgerTransactionModalParams | undefined;
   QRSigningTransactionModal: undefined;
-  QRTabSwitcher: undefined;
+  QRTabSwitcher: QRTabSwitcherParams | undefined;
 
   // Misc top-level routes
   OptionsSheet: OptionsSheetParams | undefined;
@@ -760,7 +767,7 @@ export type RootStackParamList = {
   // The `Perps` root is a nested stack navigator, so it also accepts the
   // `{ screen, params }` form for cross-stack navigation (e.g. from the social
   // leaderboard into PerpsMarketDetails).
-  Perps: NestedNavigationParams | PerpsNavigationParamList['Perps'];
+  Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
