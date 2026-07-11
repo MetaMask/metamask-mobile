@@ -7,6 +7,7 @@ import {
 import { renderHook } from '@testing-library/react-hooks';
 import { ethers } from 'ethers';
 import Engine from '../../../../core/Engine';
+import EngineService from '../../../../core/EngineService';
 import {
   useMoneyTransactionStatus,
   formatMusdAmountForToast,
@@ -45,6 +46,10 @@ import { NotificationMoment } from '../../../../util/haptics';
 import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../../Earn/constants/musd';
 
 jest.mock('../../../../core/Engine');
+jest.mock('../../../../core/EngineService', () => ({
+  __esModule: true,
+  default: { flushState: jest.fn() },
+}));
 jest.mock('./useMoneyToasts');
 jest.mock('../../../../core/NavigationService/NavigationService', () => ({
   navigation: { navigate: jest.fn() },
@@ -1749,6 +1754,110 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
       expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toContain('33.33');
+    });
+  });
+
+  describe('activity row sync (engine state flush)', () => {
+    const mockFlushState = jest.mocked(EngineService.flushState);
+
+    it('flushes engine state when a Money Account tx status updates', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+        }),
+      });
+
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
+    });
+
+    it('flushes engine state when a Money Account tx confirms', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(1_000_000)),
+          },
+        }),
+      );
+
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
+    });
+
+    it('flushes engine state when a Money Account tx fails or drops', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+        }),
+      });
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-2',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.dropped,
+        }),
+      });
+
+      expect(mockFlushState).toHaveBeenCalledTimes(2);
+    });
+
+    it('flushes engine state for a perps/predict Money transfer', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.perpsDeposit,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            targetFiat: '100',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(mockFlushState).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not flush for transactions outside the Money activity list', () => {
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.approved,
+        }),
+      });
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.simpleSend,
+          status: TransactionStatus.confirmed,
+        }),
+      );
+
+      expect(mockFlushState).not.toHaveBeenCalled();
+    });
+
+    it('does not flush on a transactionConfirmed event carrying a non-confirmed status', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.submitted,
+        }),
+      );
+
+      expect(mockFlushState).not.toHaveBeenCalled();
     });
   });
 });
