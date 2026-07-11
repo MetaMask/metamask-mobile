@@ -169,6 +169,11 @@ export const BRIDGE_CHAINID_COMMON_TOKEN_PAIR: Record<
     decimals: 6,
     assetId: 'eip155:324/erc20:0x493257fD37EDB34451f62EDf8D2a0C418852bA4C',
   },
+  'eip155:4663': {
+    symbol: 'USDG',
+    decimals: 6,
+    assetId: 'eip155:4663/erc20:0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168',
+  },
 };
 
 // ---------------------------------------------------------------------------
