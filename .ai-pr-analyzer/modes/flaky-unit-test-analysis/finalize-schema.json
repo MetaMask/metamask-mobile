@@ -1,0 +1,69 @@
+{
+  "type": "object",
+  "properties": {
+    "analyzedFiles": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "All modified unit test files that were reviewed"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "line": { "type": "number" },
+          "patternId": {
+            "type": "string",
+            "enum": [
+              "J1",
+              "J2",
+              "J3",
+              "J4",
+              "J5",
+              "J6",
+              "J7",
+              "J8",
+              "J9",
+              "J10"
+            ]
+          },
+          "patternName": { "type": "string" },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium"]
+          },
+          "snippet": {
+            "type": "string",
+            "description": "The exact current code being replaced, covering the same lines/scope as `suggestedFix`, formatted as real TypeScript with line breaks (use \\n between lines and preserve indentation). Must line up with `suggestedFix` so the two can be rendered as a diff (removed vs added lines) — do not paraphrase or summarize it."
+          },
+          "explanation": { "type": "string" },
+          "suggestedFix": {
+            "type": "string",
+            "description": "The corrected code snippet ONLY, formatted as real TypeScript with line breaks (use \\n between lines and preserve indentation). Do NOT write prose sentences here — keep all explanation in the `explanation` field."
+          },
+          "historicalHintUsed": { "type": "boolean" }
+        },
+        "required": [
+          "file",
+          "patternId",
+          "patternName",
+          "severity",
+          "snippet",
+          "explanation",
+          "suggestedFix",
+          "historicalHintUsed"
+        ]
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Confidence in the assessment (0-100)"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Detailed reasoning: what was investigated and why each finding was flagged"
+    }
+  },
+  "required": ["analyzedFiles", "findings", "confidence", "reasoning"]
+}

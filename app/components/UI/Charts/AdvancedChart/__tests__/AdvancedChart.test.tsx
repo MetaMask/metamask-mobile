@@ -62,6 +62,16 @@ describe('AdvancedChart', () => {
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
   });
 
+  it('serializes configured price decimals into the WebView template', () => {
+    const { getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} priceDecimals={4} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+
+    expect(webView.props.source.html).toMatch(/priceDecimals:\s*4/);
+  });
+
   it('keeps loading overlay while isLoading until parent clears it', () => {
     const { getByTestId, queryByTestId, rerender } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} isLoading />,

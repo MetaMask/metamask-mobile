@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
@@ -47,6 +48,11 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 48, bottom: 34, left: 0, right: 0 }),
 }));
 
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(() => false),
+}));
+
 // The view consumes `useMoneyActivityItems`, which fans out to these two data
 // hooks. Mocking the data hooks (not the bucketing hook) keeps the
 // merge/bucket/filter wiring under test end-to-end through the real view.
@@ -65,15 +71,20 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
     default: ({
       tx,
       onPress,
+      privacyMode,
     }: {
       tx: { id: string };
       onPress?: (tx: { id: string }) => void;
+      privacyMode?: boolean;
     }) => (
       <RNPressable
         testID={`activity-mock-tx-${tx.id}`}
         onPress={() => onPress?.(tx)}
       >
         <Text>{tx.id}</Text>
+        <Text testID={`activity-mock-tx-${tx.id}-privacy-mode`}>
+          {String(privacyMode)}
+        </Text>
       </RNPressable>
     ),
   };
@@ -85,9 +96,18 @@ jest.mock(
     const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ activity }: { activity: { hash: string } }) => (
+      default: ({
+        activity,
+        privacyMode,
+      }: {
+        activity: { hash: string };
+        privacyMode?: boolean;
+      }) => (
         <RNPressable testID={`activity-mock-api-${activity.hash}`}>
           <Text>{activity.hash}</Text>
+          <Text testID={`activity-mock-api-${activity.hash}-privacy-mode`}>
+            {String(privacyMode)}
+          </Text>
         </RNPressable>
       ),
     };
@@ -260,6 +280,39 @@ describe('MoneyActivityView', () => {
     expect(
       getByTestId('activity-mock-tx-money-tx-converted'),
     ).toBeOnTheScreen();
+  });
+
+  describe('privacy mode', () => {
+    const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
+
+    it('forwards privacyMode=false to on-chain rows by default', () => {
+      mockSelectPrivacyMode.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId('activity-mock-tx-money-tx-converted-privacy-mode'),
+      ).toHaveTextContent('false');
+    });
+
+    it('forwards privacyMode=true to on-chain rows when privacy mode is on', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId('activity-mock-tx-money-tx-converted-privacy-mode'),
+      ).toHaveTextContent('true');
+    });
+
+    it('forwards privacyMode=true to Accounts-API rows when privacy mode is on', () => {
+      mockSelectPrivacyMode.mockReturnValue(true);
+      mockApiActivity({ activity: [CARD_TX] });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(getByTestId(`${CARD_ROW_TEST_ID}-privacy-mode`)).toHaveTextContent(
+        'true',
+      );
+    });
   });
 
   it('renders a Pending section for in-flight rows', () => {

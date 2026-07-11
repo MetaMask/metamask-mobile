@@ -325,7 +325,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
-          {!isResultReady && !(isKeyboardVisible && isMoneyAccountDeposit) && (
+          {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&

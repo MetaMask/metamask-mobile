@@ -14,6 +14,20 @@ describe('createAdvancedChartTemplate', () => {
     expect(html).toContain('useSubscriptPriceFormat: true');
   });
 
+  it('defaults priceDecimals to null in CONFIG', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain('priceDecimals: null');
+  });
+
+  it('bakes priceDecimals when provided', () => {
+    const html = createAdvancedChartTemplate(mockTheme, {
+      priceDecimals: 4,
+    });
+
+    expect(html).toContain('priceDecimals: 4');
+  });
+
   it('uses current-price override for the last-close label background', () => {
     const currentPriceColor = '#ffffff0a';
 

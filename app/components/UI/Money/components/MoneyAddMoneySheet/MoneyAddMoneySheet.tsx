@@ -27,6 +27,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import {
@@ -195,8 +196,9 @@ const MoneyAddMoneySheet: React.FC = () => {
     () => moneyFormatUsd(new BigNumber(tokenBalanceAggregated)),
     [tokenBalanceAggregated],
   );
-  const moveMusdLabel = hasMusdBalance
-    ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
+  // Mask only the amount; keep the mUSD symbol visible in privacy mode.
+  const moveMusdLabel: MoneySheetOption['label'] = hasMusdBalance
+    ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
   const baseOptions: MoneySheetOption[] = [
