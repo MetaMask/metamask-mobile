@@ -36,7 +36,6 @@ import {
   setFiatSellTxHash,
   removeFiatSellTxHash,
   setHasAgreedTransakNativePolicy,
-  setFiatProviderScope,
 } from '.';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -92,15 +91,6 @@ export interface ActivationKey {
   label?: string;
   active: boolean;
 }
-/**
- * Provider-class scope for the headless fiat quote path (Phase 1 dev/RC gate).
- * Mirrors `@metamask/ramps-controller`'s `ProviderScope`.
- * - `off`: native-only (default / production).
- * - `in-app`: also allow in-app WebView aggregator providers.
- * - `all`: additionally allow external / custom-action providers (Phase 2).
- */
-export type FiatProviderScope = 'off' | 'in-app' | 'all';
-
 export interface FiatOrdersState {
   orders: FiatOrder[];
   customOrderIds: CustomIdData[];
@@ -117,11 +107,6 @@ export interface FiatOrdersState {
   hasAgreedTransakNativePolicy: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
-  /**
-   * Headless fiat provider-class scope (dev/RC gate). Optional so persisted
-   * state predating this field rehydrates to the `off` default via the selector.
-   */
-  providerScope?: FiatProviderScope;
 }
 
 export const ACTIONS = {
@@ -152,7 +137,6 @@ export const ACTIONS = {
   FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
   FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY:
     'FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY',
-  FIAT_SET_PROVIDER_SCOPE: 'FIAT_SET_PROVIDER_SCOPE',
 } as const;
 
 export type Action =
@@ -179,8 +163,7 @@ export type Action =
   | ReturnType<typeof updateOnRampNetworks>
   | ReturnType<typeof setFiatSellTxHash>
   | ReturnType<typeof removeFiatSellTxHash>
-  | ReturnType<typeof setHasAgreedTransakNativePolicy>
-  | ReturnType<typeof setFiatProviderScope>;
+  | ReturnType<typeof setHasAgreedTransakNativePolicy>;
 
 export type Region = Country & State;
 

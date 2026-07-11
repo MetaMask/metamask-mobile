@@ -20,7 +20,6 @@ import {
   CustomIdData,
   FiatOrder,
   FiatOrdersState,
-  FiatProviderScope,
 } from './types';
 import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
@@ -81,10 +80,6 @@ export const setFiatOrdersGetStartedSell = (getStartedFlag: boolean) => ({
 export const setFiatOrdersGetStartedDeposit = (getStartedFlag: boolean) => ({
   type: ACTIONS.FIAT_SET_GETSTARTED_DEPOSIT,
   payload: getStartedFlag,
-});
-export const setFiatProviderScope = (scope: FiatProviderScope) => ({
-  type: ACTIONS.FIAT_SET_PROVIDER_SCOPE,
-  payload: scope,
 });
 export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
   type: ACTIONS.FIAT_ADD_CUSTOM_ID_DATA,
@@ -227,15 +222,6 @@ export const fiatOrdersGetStartedDeposit: (
 
 export const selectHasAgreedTransakNativePolicy = (state: RootState): boolean =>
   state.fiatOrders.hasAgreedTransakNativePolicy === true;
-
-/**
- * Raw headless fiat provider-class scope setting (dev/RC gate). Defaults to
- * `off` when unset. The production hard-off guard is applied by
- * `getEffectiveProviderScope` in the Ramp module, not here.
- */
-export const selectFiatProviderScopeSetting = (
-  state: RootState,
-): FiatProviderScope => state.fiatOrders.providerScope ?? 'off';
 
 export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   const providers = orders
@@ -437,12 +423,6 @@ const fiatOrderReducer: (
       return {
         ...state,
         getStartedDeposit: action.payload,
-      };
-    }
-    case ACTIONS.FIAT_SET_PROVIDER_SCOPE: {
-      return {
-        ...state,
-        providerScope: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_REGION_AGG: {

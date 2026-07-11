@@ -1,17 +1,18 @@
 import { renderHook } from '@testing-library/react-native';
 import { useRegionHasFiatProvider } from './useRegionHasFiatProvider';
 import { useRampsProviders } from './useRampsProviders';
-import { useFiatProviderScope } from '../utils/providerScope';
+import { useHeadlessAllProvidersEnabled } from './useHeadlessAllProvidersEnabled';
 
 jest.mock('./useRampsProviders', () => ({
   useRampsProviders: jest.fn(),
 }));
-jest.mock('../utils/providerScope', () => ({
-  useFiatProviderScope: jest.fn(),
+jest.mock('./useHeadlessAllProvidersEnabled', () => ({
+  useHeadlessAllProvidersEnabled: jest.fn(),
 }));
 
 const mockUseRampsProviders = useRampsProviders as jest.Mock;
-const mockUseFiatProviderScope = useFiatProviderScope as jest.Mock;
+const mockUseHeadlessAllProvidersEnabled =
+  useHeadlessAllProvidersEnabled as jest.Mock;
 
 // mUSD-on-Monad CAIP-19 asset id (checksummed), matching
 // MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD].
@@ -27,13 +28,13 @@ const nonServingCryptoCurrencies = { [OTHER_ASSET_ID.toLowerCase()]: true };
 describe('useRegionHasFiatProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseFiatProviderScope.mockReturnValue('off');
+    mockUseHeadlessAllProvidersEnabled.mockReturnValue(false);
   });
 
-  it.each(['off', 'in-app', 'all'] as const)(
-    'returns true when a native provider serves the asset (scope %s)',
-    (scope) => {
-      mockUseFiatProviderScope.mockReturnValue(scope);
+  it.each([false, true])(
+    'returns true when a native provider serves the asset (flag %s)',
+    (allProvidersEnabled) => {
+      mockUseHeadlessAllProvidersEnabled.mockReturnValue(allProvidersEnabled);
       mockUseRampsProviders.mockReturnValue({
         providers: [
           { type: 'aggregator', supportedCryptoCurrencies: {} },
@@ -50,9 +51,9 @@ describe('useRegionHasFiatProvider', () => {
     },
   );
 
-  describe("when scope is 'off' (native-only)", () => {
+  describe('when the flag is disabled (native-only)', () => {
     beforeEach(() => {
-      mockUseFiatProviderScope.mockReturnValue('off');
+      mockUseHeadlessAllProvidersEnabled.mockReturnValue(false);
     });
 
     it('returns false when a native provider is present but does not serve the asset', () => {
@@ -98,9 +99,9 @@ describe('useRegionHasFiatProvider', () => {
     });
   });
 
-  describe.each(['in-app', 'all'] as const)("when scope is '%s'", (scope) => {
+  describe('when the flag is enabled (all providers)', () => {
     beforeEach(() => {
-      mockUseFiatProviderScope.mockReturnValue(scope);
+      mockUseHeadlessAllProvidersEnabled.mockReturnValue(true);
     });
 
     it('returns true when an aggregator serves the asset', () => {
@@ -151,7 +152,7 @@ describe('useRegionHasFiatProvider', () => {
   });
 
   it('matches the asset case-insensitively (provider key checksummed vs lowercased assetId)', () => {
-    mockUseFiatProviderScope.mockReturnValue('in-app');
+    mockUseHeadlessAllProvidersEnabled.mockReturnValue(true);
     mockUseRampsProviders.mockReturnValue({
       providers: [
         {
@@ -170,7 +171,7 @@ describe('useRegionHasFiatProvider', () => {
   });
 
   it('excludes providers with no supportedCryptoCurrencies map', () => {
-    mockUseFiatProviderScope.mockReturnValue('in-app');
+    mockUseHeadlessAllProvidersEnabled.mockReturnValue(true);
     mockUseRampsProviders.mockReturnValue({
       providers: [{ type: 'aggregator' }, { type: 'native' }],
     });
@@ -181,7 +182,7 @@ describe('useRegionHasFiatProvider', () => {
   });
 
   it('returns false when the assetId is empty (fails closed)', () => {
-    mockUseFiatProviderScope.mockReturnValue('all');
+    mockUseHeadlessAllProvidersEnabled.mockReturnValue(true);
     mockUseRampsProviders.mockReturnValue({
       providers: [
         {

@@ -59,8 +59,6 @@ import fiatOrderReducer, {
   getDetectedGeolocation,
   setHasAgreedTransakNativePolicy,
   selectHasAgreedTransakNativePolicy,
-  setFiatProviderScope,
-  selectFiatProviderScopeSetting,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -416,16 +414,6 @@ describe('fiatOrderReducer', () => {
     );
     expect(stateWithStartedTrue.getStartedDeposit).toEqual(true);
     expect(stateWithStartedFalse.getStartedDeposit).toEqual(false);
-  });
-
-  it('sets the headless fiat provider scope', () => {
-    const stateInApp = fiatOrderReducer(
-      initialState,
-      setFiatProviderScope('in-app'),
-    );
-    const stateOff = fiatOrderReducer(stateInApp, setFiatProviderScope('off'));
-    expect(stateInApp.providerScope).toEqual('in-app');
-    expect(stateOff.providerScope).toEqual('off');
   });
 
   it('sets hasAgreedTransakNativePolicy to true', () => {
@@ -932,19 +920,6 @@ describe('selectors', () => {
       expect(selectedAddressSelector(state)).toBe(
         '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       );
-    });
-  });
-
-  describe('selectFiatProviderScopeSetting', () => {
-    it('defaults to off when unset', () => {
-      expect(selectFiatProviderScopeSetting(initialRootState)).toBe('off');
-    });
-
-    it('returns the stored provider scope', () => {
-      const state = merge({}, initialRootState, {
-        fiatOrders: { providerScope: 'in-app' },
-      });
-      expect(selectFiatProviderScopeSetting(state)).toBe('in-app');
     });
   });
 

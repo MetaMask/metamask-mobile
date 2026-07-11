@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Button,
@@ -41,13 +40,8 @@ import {
 } from '../../headless';
 import type { Quote } from '../../types';
 import { RAMP_SURFACE } from '../../types/depositAnalytics';
-import { setFiatProviderScope } from '../../../../../reducers/fiatOrders';
-import { getEffectiveProviderScope } from '../../utils/providerScope';
-import type { FiatProviderScope } from '../../../../../reducers/fiatOrders/types';
 
 import styleSheet from './HeadlessPlayground.styles';
-
-const PROVIDER_SCOPES: FiatProviderScope[] = ['off', 'in-app', 'all'];
 
 export const HEADLESS_PLAYGROUND_HEADER_TEST_ID = 'headless-playground-header';
 export const HEADLESS_PLAYGROUND_BACK_BUTTON_TEST_ID =
@@ -293,8 +287,6 @@ type QuotesStatus = 'idle' | 'loading' | 'success' | 'error';
 function HeadlessPlayground() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const dispatch = useDispatch();
-  const providerScope = useSelector(getEffectiveProviderScope);
 
   // Setters live in the controller hook — `useHeadlessBuy` is read-only on
   // purpose. The playground simulates an external consumer pre-seeding
@@ -728,41 +720,6 @@ function HeadlessPlayground() {
                       </ScrollView>
                     </View>
                   </Accordion>
-                </View>
-
-                <View style={styles.accordionItem}>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                  >
-                    {strings(
-                      'app_settings.fiat_on_ramp.headless_playground.provider_scope_label',
-                    )}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings(
-                      'app_settings.fiat_on_ramp.headless_playground.provider_scope_hint',
-                    )}
-                  </Text>
-                  <View style={styles.actionsRow}>
-                    {PROVIDER_SCOPES.map((scope) => (
-                      <Button
-                        key={scope}
-                        variant={
-                          providerScope === scope
-                            ? ButtonVariant.Primary
-                            : ButtonVariant.Secondary
-                        }
-                        onPress={() => dispatch(setFiatProviderScope(scope))}
-                        testID={`headless-playground-provider-scope-${scope}`}
-                      >
-                        {scope}
-                      </Button>
-                    ))}
-                  </View>
                 </View>
 
                 <View style={styles.accordionItem}>

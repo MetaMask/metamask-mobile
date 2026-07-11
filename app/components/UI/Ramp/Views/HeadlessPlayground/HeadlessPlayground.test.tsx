@@ -221,31 +221,6 @@ describe('HeadlessPlayground', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  describe('provider-scope dev toggle', () => {
-    it('renders an off / in-app / all control', () => {
-      render(HeadlessPlayground);
-      expect(
-        screen.getByTestId('headless-playground-provider-scope-off'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('headless-playground-provider-scope-in-app'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('headless-playground-provider-scope-all'),
-      ).toBeOnTheScreen();
-    });
-
-    it('does not crash when a scope option is pressed', () => {
-      render(HeadlessPlayground);
-      fireEvent.press(
-        screen.getByTestId('headless-playground-provider-scope-in-app'),
-      );
-      expect(
-        screen.getByTestId('headless-playground-provider-scope-in-app'),
-      ).toBeOnTheScreen();
-    });
-  });
-
   describe('Selected values section', () => {
     it('is collapsed by default — only the title is visible', () => {
       render(HeadlessPlayground);
