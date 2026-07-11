@@ -188,6 +188,19 @@ const PerpsMarketRowItem = ({
     return getPerpsDisplaySymbol(label);
   }, [showFullAssetNames, displayMarket.name, displayMarket.symbol]);
 
+  // Only show the ticker alongside the metric text when the row is already
+  // displaying the full name (otherwise the ticker is redundant) and the
+  // name is a genuine name rather than the ticker-fallback value returned
+  // when Terminal API / HyperLiquid name resolution has no real name for
+  // this market.
+  const showTickerSuffix = useMemo(
+    () =>
+      showFullAssetNames &&
+      Boolean(displayMarket.name) &&
+      displayMarket.name !== displayMarket.symbol,
+    [showFullAssetNames, displayMarket.name, displayMarket.symbol],
+  );
+
   return (
     <Card
       onPress={handlePress}
@@ -241,13 +254,40 @@ const PerpsMarketRowItem = ({
             gap={2}
             twClassName="mt-0.5"
           >
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              numberOfLines={1}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {displayText}
-            </Text>
+              {showTickerSuffix && (
+                <>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    numberOfLines={1}
+                    testID={getPerpsMarketRowItemSelector.tickerSuffix(
+                      market.symbol,
+                    )}
+                  >
+                    {getPerpsDisplaySymbol(displayMarket.symbol)}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    numberOfLines={1}
+                  >
+                    {'\u00B7'}
+                  </Text>
+                </>
+              )}
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                numberOfLines={1}
+              >
+                {displayText}
+              </Text>
+            </Box>
             {showBadge && badgeType && (
               <PerpsBadge
                 type={badgeType}
