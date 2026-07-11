@@ -1,14 +1,13 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import {
-  BottomSheet,
-  BottomSheetRef,
-  Box,
-  HeaderStandard,
-} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import Cell, {
   CellVariant,
@@ -41,6 +40,7 @@ export default function NetworkListBottomSheet({
   sheetRef: React.RefObject<BottomSheetRef | null>;
   displayEvmNetworksOnly?: boolean;
 }) {
+  const tw = useTailwind();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
 
@@ -72,15 +72,14 @@ export default function NetworkListBottomSheet({
     return configs;
   }, [displayEvmNetworksOnly, networkConfigurations, getAccountByScope]);
 
-  useEffect(() => {
-    sheetRef.current?.onOpenBottomSheet();
-  }, [sheetRef]);
-
   return (
     <BottomSheet
+      shouldNavigateBack={false}
       ref={sheetRef}
       onClose={() => setOpenNetworkSelector(false)}
-      twClassName={`max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`}
+      style={tw.style(
+        `max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`,
+      )}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
       <HeaderStandard

@@ -1,8 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import {
-  BottomSheetRef,
-  HeaderStandard,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -12,6 +9,7 @@ import { strings } from '../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
+import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
