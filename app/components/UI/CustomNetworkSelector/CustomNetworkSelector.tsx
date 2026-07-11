@@ -9,7 +9,6 @@ import { parseCaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // external dependencies
 import { strings } from '../../../../locales/i18n';
@@ -63,7 +62,6 @@ const CustomNetworkSelector = ({
 }: CustomNetworkSelectorProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, {});
-  const tw = useTailwind();
   const { navigate } = useNavigation();
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -182,7 +180,6 @@ const CustomNetworkSelector = ({
       createAvatarProps,
       selectedChainIdCaip,
       showFiatOnTestnets,
-      tw,
     ],
   );
 

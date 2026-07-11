@@ -11,6 +11,10 @@ jest.mock('./pureBlackPreview', () => ({
 
 import { getElevatedSurfaceColor, isPureBlackEnabled } from './themeUtils';
 
+beforeEach(() => {
+  mockIsPureBlackEnabled = false;
+});
+
 const createTheme = (
   themeAppearance: AppThemeKey.light | AppThemeKey.dark,
 ): Theme => {
@@ -32,10 +36,6 @@ describe('isPureBlackEnabled re-export', () => {
 });
 
 describe('getElevatedSurfaceColor', () => {
-  beforeEach(() => {
-    mockIsPureBlackEnabled = false;
-  });
-
   it('returns default background when pure black preview is off', () => {
     const theme = createTheme(AppThemeKey.dark);
 
