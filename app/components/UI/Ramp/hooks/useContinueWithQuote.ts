@@ -4,8 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import type { CaipChainId } from '@metamask/utils';
-import { normalizeProviderCode } from '@metamask/ramps-controller';
-
 import { strings } from '../../../../../locales/i18n';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { selectHasAgreedTransakNativePolicy } from '../../../../reducers/fiatOrders';
@@ -244,7 +242,7 @@ export function useContinueWithQuote(
       let redirectUrl: string;
       let buyWidget: Awaited<ReturnType<typeof getBuyWidgetData>>;
       try {
-        providerCode = normalizeProviderCode(quote.provider);
+        providerCode = quote.provider;
         const isCustom = isCustomAction(quote);
         const redirectConfig = getWidgetRedirectConfig(
           quote,

@@ -25,7 +25,8 @@ export function buildQuoteWithRedirectUrl(
 }
 
 function getProviderDeeplinkRedirectUrl(providerCode: string): string {
-  return `metamask://on-ramp/providers/${providerCode}`;
+  const code = providerCode.replace(/^\/providers\//u, '');
+  return `metamask://on-ramp/providers/${code}`;
 }
 
 /**

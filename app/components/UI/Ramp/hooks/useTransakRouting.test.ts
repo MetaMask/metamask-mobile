@@ -256,7 +256,6 @@ jest.mock('@metamask/ramps-controller', () => ({
       (orderId: string, _env: string) => `transformed-${orderId}`,
     ),
   },
-  normalizeProviderCode: (code: string) => code.replace(/^\/providers\//, ''),
   RampsOrderStatus: {
     Pending: 'PENDING',
     Completed: 'COMPLETED',
@@ -1531,7 +1530,7 @@ describe('useTransakRouting', () => {
               name: 'RampsOrderDetails',
               params: expect.objectContaining({
                 callbackUrl: url,
-                providerCode: 'transak-native-staging',
+                providerCode: '/providers/transak-native-staging',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
                 cryptocurrency: 'ETH',
@@ -1576,7 +1575,7 @@ describe('useTransakRouting', () => {
               name: 'RampsOrderDetails',
               params: expect.objectContaining({
                 callbackUrl,
-                providerCode: 'transak-native-staging',
+                providerCode: '/providers/transak-native-staging',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
                 cryptocurrency: 'ETH',
@@ -2053,7 +2052,7 @@ describe('useTransakRouting', () => {
               name: 'RampsOrderDetails',
               params: expect.objectContaining({
                 callbackUrl,
-                providerCode: 'transak-native-staging',
+                providerCode: '/providers/transak-native-staging',
                 walletAddress: MOCK_WALLET_ADDRESS,
                 showCloseButton: true,
                 cryptocurrency: 'ETH',
