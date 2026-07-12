@@ -239,6 +239,7 @@
     "@ledgerhq/device-management-kit": "^1.5.0",
     "@ledgerhq/device-signer-kit-ethereum": "^1.16.0",
     "@ledgerhq/device-transport-kit-react-native-ble": "^1.3.0",
+    "@ledgerhq/hw-app-eth": "^6.42.0",
     "@ledgerhq/react-native-hw-transport-ble": "^6.37.0",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^1.0.4",

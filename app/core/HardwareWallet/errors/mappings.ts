@@ -283,4 +283,9 @@ export const ERROR_NAME_MAPPINGS: Record<string, ErrorCode> = {
   DeviceLockedError: ErrorCode.AuthenticationDeviceLocked,
   DeviceNotConnectedError: ErrorCode.DeviceDisconnected,
   SessionRefresherError: ErrorCode.DeviceDisconnected,
+  // DMK device-action-layer rejection. Unlike command-layer rejections (which
+  // carry errorCode 6985/5501 and route through the status-code parser), this
+  // tag has no errorCode — without a mapping, a deliberate on-device "reject"
+  // press surfaced as a red unknown error instead of a neutral cancellation.
+  RefusedByUserDAError: ErrorCode.UserRejected,
 };

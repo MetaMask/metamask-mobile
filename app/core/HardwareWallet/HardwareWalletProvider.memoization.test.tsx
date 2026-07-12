@@ -22,6 +22,7 @@ jest.mock('react-redux', () => ({
 const mockAdapterInstance = {
   walletType: HardwareWalletType.Ledger,
   requiresDeviceDiscovery: true,
+  deviceId: 'device-123',
   connect: jest.fn().mockResolvedValue(undefined),
   disconnect: jest.fn().mockResolvedValue(undefined),
   getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),

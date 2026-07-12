@@ -9,7 +9,7 @@ import {
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter } from '../types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import { isDmkEnabled } from '../../Ledger/dmk';
+import { getDmkEnabled } from '../../Ledger/dmk';
 import { useSelector } from 'react-redux';
 import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagController';
 
@@ -23,7 +23,7 @@ interface UseAdapterLifecycleOptions {
    * in-flight operation).
    */
   deviceId: string | null;
-  adapterRef: React.MutableRefObject<HardwareWalletAdapter | null>;
+  adapterRef: React.RefObject<HardwareWalletAdapter | null>;
   handleDeviceEvent: (payload: DeviceEventPayload) => void;
   handleError: (error: unknown) => void;
   updateConnectionState: (state: HardwareWalletConnectionState) => void;
@@ -31,7 +31,7 @@ interface UseAdapterLifecycleOptions {
 
 interface UseAdapterLifecycleResult {
   isTransportAvailable: boolean;
-  previousTransportAvailableRef: React.MutableRefObject<boolean | null>;
+  previousTransportAvailableRef: React.RefObject<boolean | null>;
   createAdapterWithCallbacks: (
     targetType: HardwareWalletType,
   ) => HardwareWalletAdapter;
@@ -60,9 +60,13 @@ export const useAdapterLifecycle = ({
   const previousTransportAvailableRef = useRef<boolean | null>(null);
   const transportCleanupRef = useRef<(() => void) | null>(null);
 
-  // DMK flag, read live from feature-flag state. Held in a ref so the adapter
-  // callbacks stay stable (no spurious re-creation on flag change); the value
-  // is read fresh at adapter-creation time.
+  // DMK flag: the authoritative value is the one latched at engine init
+  // (setDmkEnabled), because the keyring's Ledger bridge was chosen with that
+  // value and cannot change until the next launch. Reading live Redux flags
+  // here previously allowed the adapter to diverge from the bridge (remote
+  // flag refetch mid-session, or basic-functionality gating zeroing the
+  // selector output) — a silent, total Ledger breakage. The live flags are
+  // kept only as a defensive fallback for the latch-never-set case.
   const dmkFlags = useSelector(selectRemoteFeatureFlags);
   const dmkFlagsRef = useRef(dmkFlags);
   dmkFlagsRef.current = dmkFlags;
@@ -82,7 +86,7 @@ export const useAdapterLifecycle = ({
 
   const createAdapterWithCallbacks = useCallback(
     (targetType: HardwareWalletType) => {
-      const enableDmk = isDmkEnabled(dmkFlagsRef.current);
+      const enableDmk = getDmkEnabled(dmkFlagsRef.current);
       return createAdapter(
         targetType,
         {
@@ -161,7 +165,7 @@ export const useAdapterLifecycle = ({
 
     previousTransportAvailableRef.current = null;
 
-    const enableDmk = isDmkEnabled(dmkFlagsRef.current);
+    const enableDmk = getDmkEnabled(dmkFlagsRef.current);
 
     const adapter = walletType
       ? createAdapterWithCallbacks(walletType)

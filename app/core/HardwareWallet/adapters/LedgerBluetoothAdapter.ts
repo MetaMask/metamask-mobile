@@ -174,6 +174,18 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
     }
   }
 
+  /**
+   * Release the cached BLE transport once a signing flow stops awaiting
+   * confirmation. The transport package caches connections by device id, so
+   * holding one past the operation leaves a stale connection for the next
+   * flow. This was previously done unconditionally by the provider's
+   * hideAwaitingConfirmation; it moved here so the DMK adapter (which
+   * deliberately keeps its session alive across operations) can opt out.
+   */
+  releaseAfterOperation(): void {
+    this.disconnect().catch(() => undefined);
+  }
+
   reset(): void {
     DevLogger.log('[LedgerBluetoothAdapter] Resetting adapter state');
     this.#flowComplete = false;

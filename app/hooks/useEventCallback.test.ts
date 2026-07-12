@@ -3,10 +3,13 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useEventCallback } from './useEventCallback';
 
 // Type helper: `renderHook` in @testing-library/react-native requires
-// explicit Props when no initialProps are supplied. This wrapper fills in
-// `Props = undefined` for the common no-arg case.
-const renderHookNoProps = <R>(hookToRender: () => R) =>
-  renderHook<R, undefined>(hookToRender);
+// explicit Props when no initialProps are supplied, and its `rerender`
+// demands the props argument even when Props is undefined. This wrapper
+// fills in `Props = undefined` and exposes a no-arg rerender.
+const renderHookNoProps = <R>(hookToRender: () => R) => {
+  const { rerender, ...rest } = renderHook<R, undefined>(hookToRender);
+  return { ...rest, rerender: () => rerender(undefined) };
+};
 
 describe('useEventCallback', () => {
   it('returns a function with stable identity across re-renders', () => {
@@ -22,7 +25,9 @@ describe('useEventCallback', () => {
 
   it('always invokes the latest supplied callback', () => {
     const calls: string[] = [];
-    const { result, rerender } = renderHook<string, { label: string }>(
+    // The hook returns a callable, so the renderHook result type is the
+    // wrapped function — not the callback's return value.
+    const { result, rerender } = renderHook<() => number, { label: string }>(
       ({ label }) => useEventCallback(() => calls.push(label)),
       { initialProps: { label: 'a' } },
     );
@@ -48,7 +53,7 @@ describe('useEventCallback', () => {
   });
 
   it('returns whatever the latest callback returns', () => {
-    const { result, rerender } = renderHook<number, { value: number }>(
+    const { result, rerender } = renderHook<() => number, { value: number }>(
       ({ value }) => useEventCallback(() => value),
       { initialProps: { value: 10 } },
     );
@@ -61,7 +66,7 @@ describe('useEventCallback', () => {
 
   it('keeps the callback identity stable across renders even when the inner closure changes', () => {
     const { result, rerender } = renderHookNoProps(() =>
-      useEventCallback(() => {}),
+      useEventCallback(() => undefined),
     );
     const initial = result.current;
     rerender();

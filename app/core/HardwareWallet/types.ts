@@ -68,7 +68,21 @@ export interface HardwareWalletAdapter {
    * Attempt to reconnect to a known device by scanning in the background
    * without showing the scanning UI. Returns true if connected.
    */
-  backgroundReconnect?(targetDeviceId: string, timeoutMs?: number): Promise<boolean>;
+  backgroundReconnect?(
+    targetDeviceId: string,
+    timeoutMs?: number,
+  ): Promise<boolean>;
+
+  /**
+   * Optional hook invoked when a signing/confirmation flow ends
+   * (`hideAwaitingConfirmation`). Adapters whose transports must be released
+   * after each operation implement this (the legacy Ledger BLE transport is
+   * cached per device id and holds the connection; QR mirrors its previous
+   * behavior). Adapters that reuse their session across operations — the DMK
+   * adapter, whose session is a transport connection, not an authorization —
+   * omit it, keeping the connection warm for the next operation.
+   */
+  releaseAfterOperation?(): void;
 
   /**
    * Reset the adapter state without emitting events.
@@ -145,9 +159,7 @@ export interface HardwareWalletAdapter {
    * @param callback - Called when transport state changes
    * @returns Cleanup function to unsubscribe
    */
-  onTransportStateChange(
-    callback: (isAvailable: boolean) => void,
-  ): () => void;
+  onTransportStateChange(callback: (isAvailable: boolean) => void): () => void;
 
   /**
    * Get the required app name for this wallet type.

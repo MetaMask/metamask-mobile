@@ -19,6 +19,8 @@ describe('useTransportMonitoring', () => {
   ): HardwareWalletAdapter => ({
     walletType: HardwareWalletType.Ledger,
     requiresDeviceDiscovery: false,
+    deviceId: null,
+    destroy: jest.fn(),
     connect: jest.fn().mockResolvedValue(undefined),
     disconnect: jest.fn().mockResolvedValue(undefined),
     getConnectedDeviceId: jest.fn().mockReturnValue(null),

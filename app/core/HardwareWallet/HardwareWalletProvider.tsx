@@ -159,8 +159,16 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const hideAwaitingConfirmation = useCallback(() => {
     awaitingConfirmationRejectRef.current = null;
+    // Adapter-specific post-operation release. Legacy Ledger BLE transports
+    // are cached by device id inside the transport package and must be
+    // released once signing is no longer awaiting; the DMK adapter omits
+    // this hook because its session is intentionally reused across
+    // operations. (A previous blanket disconnect() here was removed for DMK,
+    // which silently changed legacy behavior too — this restores it per
+    // adapter.)
+    refs.adapterRef.current?.releaseAfterOperation?.();
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [updateConnectionState]);
+  }, [refs, updateConnectionState]);
 
   const handleCloseFlow = useCallback(() => {
     awaitingConfirmationRejectRef.current = null;

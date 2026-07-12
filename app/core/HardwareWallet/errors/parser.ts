@@ -118,6 +118,17 @@ function parseLedgerCommunicationError(
 }
 
 /**
+ * Status codes missing from hw-wallet-sdk's LEDGER_ERROR_MAPPINGS, mapped
+ * locally until they can be added upstream. 0x6807 is "app not installed":
+ * without a mapping it parsed as Unknown ("something went wrong"), giving the
+ * user no hint that the fix is installing the Ethereum app via Ledger Live.
+ * DeviceMissingCapability renders the existing app-related messaging.
+ */
+const MOBILE_LEDGER_STATUS_CODE_OVERRIDES: Record<string, ErrorCode> = {
+  '0x6807': ErrorCode.DeviceMissingCapability,
+};
+
+/**
  * Parse a Ledger status code to HardwareWalletError.
  */
 function parseLedgerStatusCode(
@@ -126,6 +137,15 @@ function parseLedgerStatusCode(
   originalError?: Error,
 ): HardwareWalletError {
   const hexCode = toHexStatusCode(statusCode);
+
+  const overrideCode = MOBILE_LEDGER_STATUS_CODE_OVERRIDES[hexCode];
+  if (overrideCode) {
+    return createHardwareWalletError(overrideCode, walletType, undefined, {
+      cause: originalError,
+      metadata: { statusCode, hexCode },
+    });
+  }
+
   const mapping = LEDGER_ERROR_MAPPINGS[hexCode];
 
   if (mapping) {
@@ -186,19 +206,48 @@ function parseDMKErrorByTag(
       ? errorObj._tag
       : null;
 
-  if (!tag || !ERROR_NAME_MAPPINGS[tag]) {
+  if (!tag) {
     return null;
   }
 
-  return createHardwareWalletError(
-    ERROR_NAME_MAPPINGS[tag],
-    walletType,
-    undefined,
-    {
-      cause: isErrorLike(error) ? error : undefined,
-      metadata: { errorName: tag },
-    },
-  );
+  if (ERROR_NAME_MAPPINGS[tag]) {
+    return createHardwareWalletError(
+      ERROR_NAME_MAPPINGS[tag],
+      walletType,
+      undefined,
+      {
+        cause: isErrorLike(error) ? error : undefined,
+        metadata: { errorName: tag },
+      },
+    );
+  }
+
+  // Unrecognized tag → fall back to the APDU status word. DMK carries it as
+  // a 4-hex-digit `errorCode` string, and UnknownDeviceExchangeError (the
+  // wrapper for codes absent from DMK's own maps) buries it one level down
+  // in `originalError.errorCode` — per Ledger's DMK guidance, both locations
+  // must be checked or rejections/locked states wrapped this way parse as
+  // Unknown. Routing through parseLedgerStatusCode reuses the same
+  // classification as translated legacy errors (6985/5501 → UserRejected,
+  // 5515 → locked, 6807 → app missing, …).
+  const rawErrorCode =
+    typeof errorObj.errorCode === 'string'
+      ? errorObj.errorCode
+      : typeof (errorObj.originalError as Record<string, unknown> | undefined)
+            ?.errorCode === 'string'
+        ? ((errorObj.originalError as Record<string, unknown>)
+            .errorCode as string)
+        : null;
+
+  if (rawErrorCode && /^[0-9a-fA-F]{4}$/u.test(rawErrorCode)) {
+    return parseLedgerStatusCode(
+      parseInt(rawErrorCode, 16),
+      walletType,
+      isErrorLike(error) ? error : undefined,
+    );
+  }
+
+  return null;
 }
 
 /**

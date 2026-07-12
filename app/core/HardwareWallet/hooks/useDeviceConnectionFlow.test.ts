@@ -13,6 +13,8 @@ jest.mock('../../SDKConnect/utils/DevLogger', () => ({
 const createMockAdapter = (overrides = {}) => ({
   walletType: HardwareWalletType.Ledger,
   requiresDeviceDiscovery: true,
+  deviceId: 'device-123',
+  onTransportStateChange: jest.fn().mockReturnValue(jest.fn()),
   resetFlowState: jest.fn(),
   isTransportAvailable: jest.fn().mockResolvedValue(true),
   startDeviceDiscovery: jest.fn(),
@@ -27,6 +29,7 @@ const createMockAdapter = (overrides = {}) => ({
   ensurePermissions: jest.fn().mockResolvedValue(true),
   reset: jest.fn(),
   isFlowComplete: jest.fn().mockReturnValue(false),
+  destroy: jest.fn(),
   ...overrides,
 });
 
@@ -257,7 +260,7 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
-    it('creates new adapter and disconnects old when wallet type differs', async () => {
+    it('creates new adapter and destroys old when wallet type differs', async () => {
       const oldAdapter = createMockAdapter({
         walletType: HardwareWalletType.Ledger,
       });
@@ -280,7 +283,10 @@ describe('useDeviceConnectionFlow', () => {
         result.current.ensureDeviceReady(),
       );
 
-      expect(oldAdapter.disconnect).toHaveBeenCalled();
+      // destroy(), not disconnect(): the replaced adapter is orphaned, and
+      // only destroy() stops its BLE-state monitoring (see
+      // resolveOrCreateAdapter).
+      expect(oldAdapter.destroy).toHaveBeenCalled();
       expect(createAdapterWithCallbacks).toHaveBeenCalledWith(
         HardwareWalletType.Qr,
       );

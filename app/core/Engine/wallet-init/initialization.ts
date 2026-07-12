@@ -1,6 +1,6 @@
 import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
-import { isDmkEnabled } from '../../Ledger/dmk';
+import { isDmkEnabled, setDmkEnabled } from '../../Ledger/dmk';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
@@ -22,9 +22,8 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
-  // DMK stack selection. Read the ledgerDmk flag fresh from the persisted
+  // DMK stack selection. Read the ledgerDmk flag from the persisted
   // RemoteFeatureFlagController state (LEDGER_FORCE_DMK env var overrides).
-  // No caching — the adapter factory reads the same flag from live state.
   const remoteFeatureFlagState = (state as Record<string, unknown>)
     ?.RemoteFeatureFlagController as
     | {
@@ -36,6 +35,13 @@ export function initializeWallet({
     ...(remoteFeatureFlagState?.remoteFeatureFlags ?? {}),
     ...(remoteFeatureFlagState?.localOverrides ?? {}),
   });
+  // Latch the resolved value for the whole app session. The adapter factory
+  // reads this latch (getDmkEnabled) instead of live Redux flags, so the
+  // adapter choice can never diverge from the keyring-bridge choice made
+  // below — a mismatch silently breaks all Ledger operations (the DMK
+  // adapter's `updateSessionId` no-ops on the legacy bridge, and the legacy
+  // adapter's `updateTransportMethod` no-ops on the DMK bridge).
+  setDmkEnabled(useDmk);
 
   const wallet = new Wallet({
     messenger,

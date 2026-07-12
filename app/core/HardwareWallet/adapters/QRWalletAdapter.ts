@@ -85,6 +85,15 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
     }
   }
 
+  /**
+   * Mirrors the provider's previous behavior of disconnecting every adapter
+   * when a signing flow stops awaiting confirmation (the blanket disconnect
+   * was removed so the DMK adapter could keep its session alive).
+   */
+  releaseAfterOperation(): void {
+    this.disconnect().catch(() => undefined);
+  }
+
   getConnectedDeviceId(): string | null {
     return this.#deviceId;
   }
