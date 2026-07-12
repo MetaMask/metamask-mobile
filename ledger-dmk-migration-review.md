@@ -415,7 +415,7 @@ Net effect: after the first device-selection scan (and after every `backgroundRe
 
 ## 5. Implementation status
 
-The in-repo findings have been implemented on this branch (2026-07-11). Every fix carries an inline comment explaining the why at the change site.
+The in-repo findings have been implemented on this branch (2026-07-11/12, uncommitted working tree). Every fix carries an inline comment explaining the why at the change site; the code for each change is reproduced in §5.1 below.
 
 | Finding                                | Status      | Where                                                                                                                                                                                                                                    |
 | -------------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -439,7 +439,354 @@ The in-repo findings have been implemented on this branch (2026-07-11). Every fi
 | M‑5 dead code                          | ⚠️ Partial  | `useEventCallback` tests' type errors fixed; the unused hook + unused `selectLedgerDmkEnabled` left in place pending an adopt-or-delete decision (wiring the selector into `dmk.ts` would drag native BLE imports into its module graph) |
 | R‑3, R‑6, G‑1, G‑2, C‑4 (bridge state) | ⛔ Upstream | Require changes in `@metamask/eth-ledger-bridge-keyring` / partner enrollment — file upstream issues                                                                                                                                     |
 
-Additionally, seven test failures and 29 tsc errors that pre-existed on the branch (verified by stash-and-rerun against the unmodified tree) were repaired: outdated `createAdapter` arity expectations, adapter mocks missing the interface's new required members (`deviceId`, `onTransportStateChange`, `destroy`), the `useHwSwapLifecycle` → `useHardwareWalletSubmit` required-prop mismatch, and `useEventCallback.test.ts` generic annotations. Post-fix: `yarn lint:tsc` clean, targeted lint clean, and 64 suites / 1347 tests pass across `app/core/HardwareWallet`, `app/core/Ledger`, `app/core/Engine/wallet-init`, and the HW swaps components.
+Additionally, seven test failures and 29 tsc errors that pre-existed on the branch (verified by stash-and-rerun against the unmodified tree) were repaired: outdated `createAdapter` arity expectations, adapter mocks missing the interface's new required members (`deviceId`, `onTransportStateChange`, `destroy`), the `useHwSwapLifecycle` → `useHardwareWalletSubmit` required-prop mismatch, and `useEventCallback.test.ts` generic annotations. A follow-up lint pass re-added `@ledgerhq/hw-app-eth` to `package.json` (the legacy adapter still imports it directly for its unlock check — the branch had removed the dependency and was surviving on hoisting of the keyring's transitive copy) and cleared the branch-owned warnings (`no-void`, `no-shadow`, deprecated `MutableRefObject`). Post-fix: **0 eslint errors across the entire branch diff, 0 tsc errors repo-wide, and 64 suites / 1,347 tests pass** across `app/core/HardwareWallet`, `app/core/Ledger`, `app/core/Engine/wallet-init`, and the HW swaps components.
+
+### 5.1 The changes, with code
+
+Each entry: what changed, why, and the code as it now stands in the working tree.
+
+#### R‑1 — Flag latch + loud mismatch guard
+
+**Why:** the keyring's Ledger bridge is chosen once at engine init, but the adapter re-evaluated the flag from live Redux state on every adapter creation. Two divergence vectors existed (mid-session remote-flag refetch; `selectRemoteFeatureFlags` returning `{}` when basic functionality is off while the init-time read is ungated). A mismatch silently breaks all Ledger operations in both directions.
+
+`app/core/Ledger/dmk.ts` — the latch:
+
+```ts
+const state: {
+  dmk: DeviceManagementKit | null;
+  /** DMK flag value resolved once at engine init (see `setDmkEnabled`). */
+  dmkEnabled: boolean | null;
+} = { dmk: null, dmkEnabled: null };
+
+/**
+ * Latch the resolved DMK flag at engine init. [...] Latching the init-time
+ * value makes the adapter choice atomically consistent with the keyring
+ * choice; a flag change takes effect on the next app launch for BOTH sides.
+ */
+export const setDmkEnabled = (enabled: boolean): void => {
+  state.dmkEnabled = enabled;
+};
+
+/** The DMK flag as the keyring saw it at engine init. */
+export const getDmkEnabled = (
+  fallbackFlags?: Record<string, unknown> | null,
+): boolean => state.dmkEnabled ?? isDmkEnabled(fallbackFlags);
+```
+
+`app/core/Engine/wallet-init/initialization.ts` — set the latch where the bridge is chosen:
+
+```ts
+const useDmk = isDmkEnabled({
+  ...(remoteFeatureFlagState?.remoteFeatureFlags ?? {}),
+  ...(remoteFeatureFlagState?.localOverrides ?? {}),
+});
+// Latch the resolved value for the whole app session. The adapter factory
+// reads this latch (getDmkEnabled) instead of live Redux flags, so the
+// adapter choice can never diverge from the keyring-bridge choice made below.
+setDmkEnabled(useDmk);
+```
+
+`app/core/HardwareWallet/hooks/useAdapterLifecycle.ts` — both adapter-creation sites now call `getDmkEnabled(dmkFlagsRef.current)` instead of `isDmkEnabled(...)` (live flags remain only as a defensive fallback for the latch-never-set case).
+
+`app/core/Ledger/Ledger.ts` (`connectLedgerDmkHardware`) — a mismatch now fails loudly instead of optional-chaining into a no-op:
+
+```ts
+const ledgerBridge = keyring.bridge as unknown as LedgerBridgeConnection;
+// Fail loudly on a feature-flag mismatch instead of optional-chaining: [...]
+if (typeof ledgerBridge.updateSessionId !== 'function') {
+  throw new Error(
+    'Ledger DMK adapter is paired with a non-DMK keyring bridge — ledgerDmk feature-flag mismatch between engine init and adapter creation',
+  );
+}
+await ledgerBridge.updateSessionId(sessionId);
+```
+
+#### R‑2 — Stop the native BLE scan
+
+**Why:** verified in `RNBleTransport`: unsubscribing `listenToAvailableDevices` does **not** stop the native scan — only `transport.stopDiscovering()` or a `connect()` on the _same_ transport does, and our connects go through the bridge's separate DMK instance. Without this, the scan (with `allowDuplicates` + a 1 s interval) ran for the rest of the app session: battery drain, degraded GATT/APDU throughput, and Android scan throttling.
+
+`app/core/HardwareWallet/adapters/LedgerBluetoothDMKAdapter.ts`:
+
+```ts
+stopDeviceDiscovery(): void {
+  log('[LedgerDMK] stopDeviceDiscovery called');
+  if (this.#scanSubscription) {
+    this.#scanSubscription.unsubscribe();
+    this.#scanSubscription = null;
+    // Unsubscribing alone does NOT stop the native BLE scan: [...]
+    this.#stopDmkScan();
+  }
+  if (this.#scanTimeoutId) {
+    clearTimeout(this.#scanTimeoutId);
+    this.#scanTimeoutId = null;
+  }
+}
+
+/** Stop the discovery DMK instance's native BLE scan. Fire-and-forget. */
+#stopDmkScan(): void {
+  try {
+    getDmk()
+      .stopDiscovering()
+      .catch((error: unknown) => {
+        log('[LedgerDMK] stopDiscovering failed:', error);
+      });
+  } catch (error) {
+    log('[LedgerDMK] stopDiscovering threw synchronously:', error);
+  }
+}
+```
+
+The background-reconnect scan calls `this.#stopDmkScan()` on every exit path as well (same rationale, right after its discovery promise settles).
+
+#### R‑9 — Serialize `backgroundReconnect` with `connect()`
+
+**Why:** strategy 1 called `connectLedgerDmkDevice()` directly, bypassing the `#connectInFlight` latch — a concurrent UI-triggered `connect()` could interleave a second `bridge.connect()`, leaving `#sessionId` pointing at the session the middleware just disconnected. Delegating to `connect()` shares the latch and reuses the destroy-guard/retry/monitoring/event logic the inline version duplicated (~40 lines deleted).
+
+```ts
+// Strategy 1: Direct connect using cached device info (no scan).
+// Delegates to this.connect() rather than calling connectLedgerDmkDevice
+// directly: connect() owns the #connectInFlight latch, so a concurrent
+// UI-triggered connect() cannot interleave a second bridge.connect() [...]
+if (
+  this.#lastConnectedDevice &&
+  this.#lastConnectedDevice.id === targetDeviceId
+) {
+  try {
+    // Seed the discovery cache so connect() finds the device without a
+    // scan — device IDs are stateless for the BLE transport.
+    this.#discoveredDevices.set(targetDeviceId, this.#lastConnectedDevice);
+    await this.connect(targetDeviceId);
+    if (this.isConnected() && this.#deviceId === targetDeviceId) {
+      return true;
+    }
+  } catch (error) {
+    log(
+      '[LedgerDMK] backgroundReconnect - direct connect failed, falling back to scan:',
+      error,
+    );
+  }
+  if (this.#isDestroyed) return false;
+}
+```
+
+`connect()`'s in-flight await was also hardened so it no longer rethrows a _previous_ caller's failure:
+
+```ts
+if (this.#connectInFlight) {
+  // Wait for the in-flight attempt but don't rethrow its failure as ours:
+  // that attempt's initiator already received (and handled) the error.
+  await this.#connectInFlight.catch(() => undefined);
+  ...
+}
+```
+
+#### R‑4 + C‑3 — Locked / app-not-installed no longer swallowed
+
+**Why:** a locked device typically still reports `BOLOS` to the app check, so the lock is only discovered when `OpenAppCommand` fails with `0x5515`. The old catch swallowed that, telling the user to "open the Ethereum app" when the fix is entering their PIN. Same for `0x6807` (app not installed) — looping on "open the app" can never succeed; the user must install it via Ledger Live.
+
+`LedgerBluetoothDMKAdapter.ts` (`#handleWrongApp`, open-app catch — the close-app catch mirrors the lock check):
+
+```ts
+} catch (openError) {
+  // A locked device typically still reports "BOLOS" to the app check, so the
+  // lock is only discovered HERE, when the open command fails with 0x5515.
+  // Rethrow so #doEnsureDeviceReady's catch classifies it and emits
+  // DeviceEvent.DeviceLocked. Same for 0x6807 (app not installed).
+  if (this.#isDeviceLocked(openError) || this.#isAppNotInstalled(openError)) {
+    throw openError;
+  }
+  // Everything else (transient BLE drops during the app switch, etc.) keeps
+  // the old swallow-and-return-false behavior: the AppNotOpen event already
+  // emitted drives the retry UI.
+  log('[LedgerDMK] Failed to send open app command:', openError);
+  await this.#closeSession('handleWrongApp-error');
+}
+```
+
+New helper covering both error shapes (keyring-translated `TransportStatusError.statusCode` and raw DMK `errorCode`, incl. the `originalError` nesting of `UnknownDeviceExchangeError`):
+
+```ts
+#isAppNotInstalled(error: unknown): boolean {
+  if (error === null || typeof error !== 'object') return false;
+  const err = error as {
+    statusCode?: number;
+    errorCode?: string;
+    originalError?: { errorCode?: string };
+  };
+  if (err.statusCode === APP_NOT_INSTALLED_STATUS_CODE) return true;
+  const code = err.errorCode ?? err.originalError?.errorCode;
+  return (
+    typeof code === 'string' &&
+    parseInt(code, 16) === APP_NOT_INSTALLED_STATUS_CODE
+  );
+}
+```
+
+And the parser side (C‑3), `app/core/HardwareWallet/errors/parser.ts` — `0x6807` is absent from hw-wallet-sdk's `LEDGER_ERROR_MAPPINGS`, so it's mapped locally until it can be added upstream:
+
+```ts
+const MOBILE_LEDGER_STATUS_CODE_OVERRIDES: Record<string, ErrorCode> = {
+  '0x6807': ErrorCode.DeviceMissingCapability,
+};
+// checked in parseLedgerStatusCode before the SDK mapping lookup
+```
+
+#### R‑5 — 30 s app-open timeout
+
+**Why:** opening an app requires a physical confirmation on the device; the skill's default for that HITL step is 30 s. The blanket 10 s APDU timeout regularly expired while the user was still reading the on-device prompt.
+
+```ts
+const LEDGER_OPERATION_TIMEOUT_MS = 10000;
+// Opening an app requires the user to physically confirm on the device.
+// Per Ledger's DMK guidance the app-open user-confirmation timeout defaults
+// to 30s — the 10s LEDGER_OPERATION_TIMEOUT_MS is for pure APDU round-trips.
+const LEDGER_OPEN_APP_TIMEOUT_MS = 30000;
+```
+
+`openEthereumAppOnLedger()` is now wrapped with `LEDGER_OPEN_APP_TIMEOUT_MS`; `closeRunningAppOnLedger()` (no user interaction) keeps 10 s.
+
+#### R‑7 — Per-adapter post-signing release
+
+**Why:** the branch removed the provider's blanket `disconnect()` after signing so the DMK session could stay alive — but that call also served the legacy Ledger adapter (cached BLE transports must be released) and QR, and it runs for 100 % of users while the flag is off. The behavior is now an adapter concern.
+
+`app/core/HardwareWallet/types.ts`:
+
+```ts
+/**
+ * Optional hook invoked when a signing/confirmation flow ends
+ * (`hideAwaitingConfirmation`). Adapters whose transports must be released
+ * after each operation implement this [...]. Adapters that reuse their
+ * session across operations — the DMK adapter, whose session is a transport
+ * connection, not an authorization — omit it.
+ */
+releaseAfterOperation?(): void;
+```
+
+`LedgerBluetoothAdapter` and `QRWalletAdapter` implement it as `this.disconnect().catch(() => undefined)`; the DMK adapter deliberately does not implement it. `HardwareWalletProvider.tsx`:
+
+```ts
+const hideAwaitingConfirmation = useCallback(() => {
+  awaitingConfirmationRejectRef.current = null;
+  // Adapter-specific post-operation release. [...]
+  refs.adapterRef.current?.releaseAfterOperation?.();
+  updateConnectionState({ status: ConnectionStatus.Disconnected });
+}, [refs, updateConnectionState]);
+```
+
+#### R‑8 — Teardown can no longer create a keyring
+
+**Why:** `withLedgerKeyring` _creates_ the Ledger keyring when missing, and `disconnectLedgerDmkSession` runs on teardown paths — including provider unmount right after "forget device". Without the guard, forgetting a Ledger silently re-persisted an empty Ledger keyring into the vault.
+
+`app/core/Ledger/Ledger.ts`:
+
+```ts
+export const disconnectLedgerDmkSession = async (): Promise<void> => {
+  const hasLedgerKeyring = Engine.context.KeyringController.state.keyrings.some(
+    (keyring) => keyring.type === LegacyLedgerKeyring.type,
+  );
+  if (!hasLedgerKeyring) {
+    DevLogger.log(
+      '[Ledger] disconnectLedgerDmkSession - no Ledger keyring, nothing to disconnect',
+    );
+    return;
+  }
+  const bridge = await getLedgerDmkBridge();
+  await bridge.destroy();
+};
+```
+
+#### C‑1 — Fast paths fall through to the guided flow
+
+**Why:** the two new fast paths in `ensureDeviceReady` treated "device not ready" (wrong app / dashboard) as terminal — `handleError(new Error('Device not ready'))` parsed to a generic red "Something went wrong", and swap/bridge submits dispatched `TransactionFailed`. The main path instead shows "open the Ethereum app" and waits via the blocking promise. The fast paths now resolve only on ready and otherwise fall through to that guided flow.
+
+`app/core/HardwareWallet/hooks/useDeviceConnectionFlow.ts` (already-connected fast path; the background-reconnect path mirrors it):
+
+```ts
+// Fast paths below resolve immediately ONLY when the device reports ready.
+// A not-ready result (wrong app open, dashboard) must NOT be treated as a
+// terminal error: the adapter has already emitted the guiding event
+// (AppNotOpen / DeviceLocked), and the main flow's blocking promise lets the
+// user fix the device and continue [...]
+if (
+  targetDeviceId &&
+  adapter.isConnected?.() &&
+  adapter.deviceId === targetDeviceId
+) {
+  try {
+    refs.abortControllerRef.current = new AbortController();
+    const isReady = await tryEnsureReady(adapter, targetDeviceId);
+    if (isReady) {
+      return true;
+    }
+    // fall through to guided flow
+  } catch (error) {
+    // fall through to full flow
+  } finally {
+    refs.abortControllerRef.current = null;
+  }
+}
+```
+
+The now-redundant `ensureDeviceReadyOrError` helper was removed.
+
+#### C‑2 — DMK rejection classification
+
+**Why:** command-layer rejections carry `errorCode 6985/5501` and route correctly through the keyring's translator, but the device-action-layer tag `RefusedByUserDAError` has no `errorCode` — a deliberate on-device "reject" press parsed as a red unknown error. And per the DMK guidance, `UnknownDeviceExchangeError` buries its status word in `originalError.errorCode`.
+
+`app/core/HardwareWallet/errors/mappings.ts`:
+
+```ts
+// DMK device-action-layer rejection. Unlike command-layer rejections (which
+// carry errorCode 6985/5501 [...]), this tag has no errorCode — without a
+// mapping, a deliberate on-device "reject" press surfaced as a red unknown
+// error instead of a neutral cancellation.
+RefusedByUserDAError: ErrorCode.UserRejected,
+```
+
+`parser.ts` (`parseDMKErrorByTag`) — unrecognized tags now fall back to the APDU status word, checking both locations:
+
+```ts
+// Unrecognized tag → fall back to the APDU status word. DMK carries it as a
+// 4-hex-digit `errorCode` string, and UnknownDeviceExchangeError buries it
+// one level down in `originalError.errorCode` [...]
+const rawErrorCode = /* errorObj.errorCode ?? errorObj.originalError?.errorCode */;
+if (rawErrorCode && /^[0-9a-fA-F]{4}$/u.test(rawErrorCode)) {
+  return parseLedgerStatusCode(parseInt(rawErrorCode, 16), walletType, ...);
+}
+```
+
+#### C‑4 / C‑5 / C‑6 / C‑7 / C‑8 / M‑2 — smaller fixes
+
+- **C‑4:** `#verifyEthereumAppUnlocked` → `#emitEthereumAppOpened`. The method performed no verification (the bridge's session state has no LOCKED granularity); the rename stops the code claiming a check it doesn't do, and the docstring marks where a real Step‑3 pre-flight belongs once the bridge exposes `deviceStatus`.
+- **C‑5:** `ensurePermissions` now branches on `Number(Platform.Version) >= 31` (numeric API level — the old `Number(getSystemVersion()) || 0` fell to `0` on non-numeric release strings, routing Android 12+ devices to the useless `ACCESS_FINE_LOCATION` branch). `Linking.openSettings()` fires only on `RESULTS.BLOCKED` — a plain `DENIED` is re-requestable.
+
+  ```ts
+  const apiLevel = Number(Platform.Version) || 0;
+  if (apiLevel >= 31) {
+    const result = await requestMultiple([BLUETOOTH_CONNECT, BLUETOOTH_SCAN]);
+    ...
+    if (!allGranted) {
+      const anyBlocked = /* either result === RESULTS.BLOCKED */;
+      if (anyBlocked) await Linking.openSettings();
+      return false;
+    }
+  }
+  ```
+
+- **C‑6:** `resetDmk()` calls `state.dmk?.close()` before nulling — DMK owns a native `BleManager`; nulling without close leaked that stack and the next `getDmk()` ran a second live BLE manager alongside the orphan.
+- **C‑7:** `resolveOrCreateAdapter` uses `existing?.destroy()` instead of `disconnect()` — only `destroy()` stops the replaced adapter's own BLE-state monitoring; the old code leaked one live BLE listener per wallet-type swap.
+- **C‑8:** `#doConnect`'s no-cached-device branch now **throws** after emitting `ConnectionFailed`, so `connect()` has one contract: resolves ⇒ a session exists. Previously it resolved successfully, and callers proceeded to readiness checks against a non-existent session.
+- **M‑2:** `reset()` delegates to `resetFlowState()` so the two interface-mandated (and intentionally identical) methods can never drift.
+
+#### M‑1 — CI guard for the metro ESM pins
+
+**Why:** `metro.config.js` bypasses the DMK packages' `exports` maps with hardcoded `lib/esm/index.js` paths. A package upgrade that reorganizes `lib/` would fail only at bundle time — or silently resolve the CJS build again and reintroduce the `reflect-metadata` "property is not configurable" crash the shim prevents.
+
+New `app/core/Ledger/dmkMetroEsmPaths.test.ts` parses `LEDGER_DMK_ESM_PACKAGES` out of `metro.config.js` itself (so the two can't drift) and asserts each pinned `lib/esm/index.js` exists, plus the `reflect-metadata` shim and its require target.
+
+#### Dependency fix — `@ledgerhq/hw-app-eth` restored
+
+**Why:** the branch removed it from `package.json`, but the legacy `LedgerBluetoothAdapter` (shipped to all users while the flag is off) still imports it directly (`new Eth(transport).getAddress(...)` in its unlock check) and was surviving only on hoisting of `@metamask/eth-ledger-bridge-keyring`'s transitive copy — also an `import-x/no-extraneous-dependencies` lint error. Re-added `"@ledgerhq/hw-app-eth": "^6.42.0"` (resolves to the already-installed 6.42.2, so no tree change). Remove it again when the legacy adapter is deleted post-migration.
 
 ## 6. Second-pass verification log
 
