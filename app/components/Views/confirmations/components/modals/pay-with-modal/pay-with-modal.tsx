@@ -39,12 +39,6 @@ import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/us
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
-import { useTheme } from '../../../../../../util/theme';
-import { AppThemeKey } from '../../../../../../util/theme/models';
-import {
-  getElevatedSurfaceColor,
-  isPureBlackEnabled,
-} from '../../../../../../util/theme/themeUtils';
 
 interface PayWithModalParams {
   /**
@@ -61,15 +55,7 @@ interface PayWithModalParams {
 
 export function PayWithModal() {
   const navigation = useNavigation();
-  const theme = useTheme();
   const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
-  const bottomSheetStyle = useMemo(() => {
-    if (!isPureBlackEnabled || theme.themeAppearance !== AppThemeKey.dark) {
-      return undefined;
-    }
-
-    return { backgroundColor: getElevatedSurfaceColor(theme) };
-  }, [theme]);
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
     transactionMeta,
@@ -291,7 +277,6 @@ export function PayWithModal() {
       isFullscreen
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
-      style={bottomSheetStyle}
       shouldNavigateBack={dismissOnSelectCount <= 1}
       onClose={(hasCallback) => {
         // Swipe/overlay/back-button dismiss: navigate back manually.

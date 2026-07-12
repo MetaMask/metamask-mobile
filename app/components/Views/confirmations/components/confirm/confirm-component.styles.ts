@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../../util/theme/themeUtils';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -12,7 +13,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     bottomSheetDialogSheet: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: getElevatedSurfaceColor(theme),
     },
     confirmContainer: {
       display: 'flex',

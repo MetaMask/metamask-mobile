@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../../../util/theme/themeUtils';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -9,7 +10,7 @@ const styleSheet = (params: {
   const { noMargin, isSelected } = vars;
   return StyleSheet.create({
     modalContainer: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: getElevatedSurfaceColor(theme),
       borderTopRightRadius: 16,
       borderTopLeftRadius: 16,
       paddingBottom: 16,
@@ -65,7 +66,6 @@ const styleSheet = (params: {
     gasFeeTokenListItem: {
       position: 'relative',
       width: '100%',
-      backgroundColor: theme.colors.background.default,
     },
     gasFeeTokenListItemSelected: {
       position: 'relative',
