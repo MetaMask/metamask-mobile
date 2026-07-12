@@ -6,7 +6,6 @@ import type { Json } from '@metamask/utils';
  * in app/selectors/featureFlagController/
  */
 export enum FeatureFlagNames {
-  rewardsEnabled = 'rewardsEnabled',
   otaUpdatesEnabled = 'otaUpdatesEnabled',
   fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',

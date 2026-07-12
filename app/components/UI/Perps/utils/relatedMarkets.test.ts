@@ -1,5 +1,8 @@
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import { getRelatedMarketsForMarket } from './relatedMarkets';
+import {
+  getRelatedMarketsForMarket,
+  hasRelatedMarketsCategory,
+} from './relatedMarkets';
 
 const createMarket = (
   symbol: string,
@@ -130,6 +133,21 @@ describe('relatedMarkets utilities', () => {
     expect(result?.markets.map((market) => market.symbol)).toStrictEqual([
       'builder:ABC',
     ]);
+  });
+
+  it('hasRelatedMarketsCategory is true for categorised markets', () => {
+    expect(
+      hasRelatedMarketsCategory(
+        createMarket('xyz:AAPL', { marketType: 'stock', isHip3: true }),
+      ),
+    ).toBe(true);
+    expect(hasRelatedMarketsCategory(createMarket('FET'))).toBe(true);
+  });
+
+  it('hasRelatedMarketsCategory is false without a symbol or category', () => {
+    expect(hasRelatedMarketsCategory(null)).toBe(false);
+    expect(hasRelatedMarketsCategory(undefined)).toBe(false);
+    expect(hasRelatedMarketsCategory(createMarket(''))).toBe(false);
   });
 
   it('returns null when there are no other markets in the category', () => {

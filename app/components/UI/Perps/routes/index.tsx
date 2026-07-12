@@ -4,7 +4,10 @@ import {
 } from '@react-navigation/native-stack';
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import type { PerpsNavigationParamList } from '../types/navigation';
+import type {
+  PerpsNavigationParamList,
+  PerpsStackParamList,
+} from '../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
@@ -54,7 +57,7 @@ import {
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/navbar/navbar';
 
-const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
+const Stack = createNativeStackNavigator<PerpsStackParamList>();
 const ModalStack = createNativeStackNavigator();
 
 const styles = StyleSheet.create({
