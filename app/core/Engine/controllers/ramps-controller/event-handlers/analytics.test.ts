@@ -10,6 +10,9 @@ import {
   setHeadlessOrderContext,
 } from '../headlessOrderContextRegistry';
 import {
+  __resetConfirmedOrderAnalyticsRegistryForTests,
+} from '../confirmedOrderAnalyticsRegistry';
+import {
   __resetTerminalOrderAnalyticsRegistryForTests,
   markTerminalOrderAnalyticsEmitted,
 } from '../terminalOrderAnalyticsRegistry';
@@ -948,6 +951,7 @@ describe('emitOrderConfirmedAnalyticsFromCallback', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(analytics.trackEvent).mockImplementation(mockTrackEvent);
+    __resetConfirmedOrderAnalyticsRegistryForTests();
     __resetTerminalOrderAnalyticsRegistryForTests();
   });
 
@@ -1001,5 +1005,67 @@ describe('emitOrderConfirmedAnalyticsFromCallback', () => {
     });
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('emits only once across repeat callback observations of the same order', () => {
+    const order = createMockOrder({ status: Status.Pending });
+
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'HEADLESS',
+      rampSurface: 'money_account',
+      region: 'US',
+    });
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'HEADLESS',
+      rampSurface: 'money_account',
+      region: 'US',
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('dedups when providerOrderId differs but id matches', () => {
+    const firstObservation = createMockOrder({
+      id: '/providers/transak/orders/mm-internal-code',
+      providerOrderId: 'transak-native-999',
+      status: Status.Pending,
+    });
+    const retryObservation = createMockOrder({
+      id: '/providers/transak/orders/mm-internal-code',
+      providerOrderId: 'mm-internal-code',
+      status: Status.Pending,
+    });
+
+    emitOrderConfirmedAnalyticsFromCallback(firstObservation, {
+      rampType: 'UNIFIED_BUY_2',
+    });
+    emitOrderConfirmedAnalyticsFromCallback(retryObservation, {
+      rampType: 'UNIFIED_BUY_2',
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not mark the registry when trackEvent throws, so a retry can emit', () => {
+    const order = createMockOrder({ status: Status.Pending });
+    mockTrackEvent.mockImplementationOnce(() => {
+      throw new Error('analytics unavailable');
+    });
+
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'UNIFIED_BUY_2',
+    });
+    emitOrderConfirmedAnalyticsFromCallback(order, {
+      rampType: 'UNIFIED_BUY_2',
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        message:
+          'RampsController: Failed to emit RAMPS_TRANSACTION_CONFIRMED from callback',
+      }),
+    );
   });
 });
