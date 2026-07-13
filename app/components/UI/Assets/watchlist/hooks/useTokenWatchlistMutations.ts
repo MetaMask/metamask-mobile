@@ -8,7 +8,7 @@ import {
   writeToTokenWatchList,
 } from '../storage';
 import { createAsyncBatcher } from '../utils/createAsyncBatcher';
-import { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
+import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
 export type WatchlistAddInput = CaipAssetType | CaipAssetType[];
 export type WatchlistRemoveInput = CaipAssetType | CaipAssetType[];
@@ -110,6 +110,9 @@ const useWatchlistMutation = <TInput>({
     onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: tokenWatchlistQueryKeys.blob,
+      });
+      queryClient.invalidateQueries({
+        queryKey: tokenWatchlistQueryKeys.hydrated,
       });
     },
   });
