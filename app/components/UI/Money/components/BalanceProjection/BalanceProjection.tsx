@@ -38,7 +38,7 @@ export function BalanceProjection({
   projectedYears,
 }: BalanceProjectionProps) {
   const navigation = useNavigation();
-  const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyAccountBalance();
+  const { isApyLoading, apyDecimal, apyPercent } = useMoneyAccountBalance();
   const formatFiat = useFiatFormatter();
   const { trackTooltipClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_DEPOSIT,
@@ -83,7 +83,7 @@ export function BalanceProjection({
     });
   }, [navigation, trackTooltipClicked]);
 
-  if (vaultApyQuery.isLoading) {
+  if (isApyLoading) {
     return (
       <View testID="balance-projection-skeleton">
         <Skeleton height={20} width={160} />

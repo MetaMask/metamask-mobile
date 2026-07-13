@@ -522,6 +522,141 @@ describe('useMoneyAccountBalance', () => {
     });
   });
 
+  // The data-service bridge can remove the vault APY query out from under an
+  // active observer (service-side cache GC publishes a "removed" event that
+  // `createUIQueryClient` honours), leaving the rebuilt query with
+  // `data: undefined` / `isLoading: true`. The hook carries the last live APY
+  // across such windows so the UI never loses an APY it has already shown.
+  describe('last-known APY carry', () => {
+    it('keeps the last live APY when the query transiently loses its data and reloads', () => {
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.05 },
+        isLoading: false,
+      });
+
+      const { result, rerender } = renderHook(() => useMoneyAccountBalance());
+      expect(result.current.apyDecimal).toBe(0.05);
+
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: true,
+        isError: false,
+      });
+      rerender(undefined);
+
+      expect(result.current.apyDecimal).toBe(0.05);
+      expect(result.current.apyPercent).toBe(5);
+      expect(result.current.apyPercentFormatted).toBe('5%');
+    });
+
+    it('prefers the carried live APY over the fallback when the query later errors', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: 0.04,
+          vaultApyOverride: undefined,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.05 },
+        isLoading: false,
+      });
+
+      const { result, rerender } = renderHook(() => useMoneyAccountBalance());
+      expect(result.current.apyDecimal).toBe(0.05);
+
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: false,
+        isError: true,
+      });
+      rerender(undefined);
+
+      expect(result.current.apyDecimal).toBe(0.05);
+    });
+
+    it('still yields to vaultApyOverride when a carried value exists', () => {
+      setupDefaultSelectors({
+        remoteApyConfig: {
+          vaultApyFallback: undefined,
+          vaultApyOverride: 0.08,
+        },
+      });
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.05 },
+        isLoading: false,
+      });
+
+      const { result, rerender } = renderHook(() => useMoneyAccountBalance());
+
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: true,
+      });
+      rerender(undefined);
+
+      expect(result.current.apyDecimal).toBe(0.08);
+    });
+
+    it('updates the carried value when a fresh live APY arrives', () => {
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.05 },
+        isLoading: false,
+      });
+
+      const { result, rerender } = renderHook(() => useMoneyAccountBalance());
+
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.06 },
+        isLoading: false,
+      });
+      rerender(undefined);
+
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: true,
+      });
+      rerender(undefined);
+
+      expect(result.current.apyDecimal).toBe(0.06);
+    });
+  });
+
+  describe('isApyLoading', () => {
+    it('is true while the query loads with no APY available from any source', () => {
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: true,
+      });
+
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.isApyLoading).toBe(true);
+    });
+
+    it('is false once the query has settled with data', () => {
+      const { result } = renderHook(() => useMoneyAccountBalance());
+
+      expect(result.current.isApyLoading).toBe(false);
+    });
+
+    it('is false while the query reloads with a carried last-known APY', () => {
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: { apy: 0.05 },
+        isLoading: false,
+      });
+
+      const { result, rerender } = renderHook(() => useMoneyAccountBalance());
+
+      setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+        data: undefined,
+        isLoading: true,
+      });
+      rerender(undefined);
+
+      expect(result.current.isApyLoading).toBe(false);
+    });
+  });
+
   it('collapses sub-cent total fiat to $0.00 when both balances are 1 minimal unit', () => {
     setupDefaultQueries({
       data: {

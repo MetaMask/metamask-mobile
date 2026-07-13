@@ -61,7 +61,7 @@ const MoneyBalanceCard = () => {
     isBalanceFetchError,
     isBalanceFetching,
     refetchBalance,
-    vaultApyQuery,
+    isApyLoading,
   } = useMoneyAccountBalance();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
@@ -310,7 +310,7 @@ const MoneyBalanceCard = () => {
           twClassName="gap-2"
         >
           {renderBalanceSlot()}
-          {vaultApyQuery.isLoading ? (
+          {isApyLoading ? (
             <Skeleton
               height={20}
               width={60}

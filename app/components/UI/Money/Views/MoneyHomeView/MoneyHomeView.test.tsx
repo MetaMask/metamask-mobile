@@ -478,6 +478,7 @@ describe('MoneyHomeView', () => {
       apyDecimal: 0.05,
       apyPercent: 5,
       apyPercentFormatted: '5%',
+      isApyLoading: false,
       vaultApyQuery: {
         data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,

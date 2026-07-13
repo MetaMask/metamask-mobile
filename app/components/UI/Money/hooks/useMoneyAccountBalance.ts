@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   type MoneyAccountBalanceResponse,
   type NormalizedVaultApyResponse,
@@ -52,6 +52,15 @@ interface UseMoneyAccountBalanceResult {
   apyDecimal: number | undefined;
   apyPercent: number | undefined;
   apyPercentFormatted: string | undefined;
+  /**
+   * True while the APY query is loading and no APY of any kind is available
+   * (no live value, no carried last-known value, no override, no fallback).
+   * Prefer this over `vaultApyQuery.isLoading` for skeletons: the raw flag
+   * flips back to true whenever the bridge bug (see the last-known carry
+   * below) rebuilds the query, which would flicker UI that already has an
+   * APY to show.
+   */
+  isApyLoading: boolean;
 }
 
 const useMoneyAccountBalance = (
@@ -197,7 +206,22 @@ const useMoneyAccountBalance = (
     ? lastKnownBalance.value
     : undefined;
 
-  const serviceApy = vaultApyQuery.data?.apy;
+  const liveServiceApy = vaultApyQuery.data?.apy;
+
+  // Currently `BaseDataService` in core clears cached data every 5 minutes
+  // even if it's actively observed. When the component using this hook re-renders
+  // this lead to `data:undefined` being returned.
+  //
+  // This should be properly fixed in core - but for the time being we've
+  // created this ref which holds onto the last known value - so in cases
+  // where we lose the underlying data we still render the last good value.
+  const lastKnownServiceApyRef = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (liveServiceApy !== undefined) {
+      lastKnownServiceApyRef.current = liveServiceApy;
+    }
+  }, [liveServiceApy]);
+  const serviceApy = liveServiceApy ?? lastKnownServiceApyRef.current;
 
   // During first load with no cache, do not show fallback to avoid flicker.
   // Show fallback on explicit APY query errors (service outage path) or when
@@ -224,6 +248,8 @@ const useMoneyAccountBalance = (
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
 
+  const isApyLoading = vaultApyQuery.isLoading && apyDecimal === undefined;
+
   return {
     moneyBalanceQuery,
     vaultApyQuery,
@@ -242,6 +268,7 @@ const useMoneyAccountBalance = (
     apyDecimal,
     apyPercent,
     apyPercentFormatted,
+    isApyLoading,
   };
 };
 
