@@ -25,7 +25,8 @@ import { limitedCalls } from '../../core/Delegation/caveatBuilder/limitedCallsBu
 import { Messenger } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
-import { toHex } from '@metamask/controller-utils';
+import { query, toHex } from '@metamask/controller-utils';
+import EthQuery from '@metamask/eth-query';
 import Engine from '../../core/Engine';
 import { exactExecutionBatch } from '../../core/Delegation/caveatBuilder/exactExecutionBatchBuilder';
 import { exactExecution } from '../../core/Delegation/caveatBuilder/exactExecutionBuilder';
@@ -134,13 +135,7 @@ async function buildAuthorizationList<MessengerType extends SignMessenger>(
     throw new Error('Upgrade contract address not found');
   }
 
-  const nonceLock = await TransactionController.getNonceLock(
-    from,
-    networkClientId,
-  );
-
-  const nonce = nonceLock.nonceDetails.params.nextNetworkNonce;
-  nonceLock.releaseLock();
+  const nonce = await getNetworkNonce(from as Hex, networkClientId);
 
   const authorizationSignature = (await messenger.call(
     'KeyringController:signEip7702Authorization',
@@ -242,6 +237,21 @@ function buildUnsignedDelegation(
   log('Delegation', delegation);
 
   return delegation;
+}
+
+async function getNetworkNonce(
+  address: Hex,
+  networkClientId: string,
+): Promise<number> {
+  const { NetworkController } = Engine.context;
+  const networkClient = NetworkController.getNetworkClientById(networkClientId);
+  const ethQuery = new EthQuery(networkClient.provider);
+  const nonceHex = (await query(ethQuery, 'getTransactionCount', [
+    address,
+    'pending',
+  ])) as string;
+
+  return parseInt(nonceHex, 16);
 }
 
 function buildCaveats(

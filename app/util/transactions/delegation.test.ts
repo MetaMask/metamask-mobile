@@ -7,7 +7,12 @@ import { SignMessenger, getDelegationTransaction } from './delegation';
 import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 
-const mockGetNonceLock = jest.fn();
+const mockQuery = jest.fn();
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  query: (...args: unknown[]) => mockQuery(...args),
+}));
 
 const mockIsAtomicBatchSupported: jest.MockedFn<
   TransactionController['isAtomicBatchSupported']
@@ -18,9 +23,11 @@ jest.spyOn(Math, 'random').mockReturnValue(0);
 jest.mock('../../core/Engine', () => ({
   context: {
     TransactionController: {
-      getNonceLock: () => mockGetNonceLock(),
       isAtomicBatchSupported: (request: IsAtomicBatchSupportedRequest) =>
         mockIsAtomicBatchSupported(request),
+    },
+    NetworkController: {
+      getNetworkClientById: jest.fn().mockReturnValue({ provider: {} }),
     },
   },
 }));
@@ -81,10 +88,7 @@ describe('Transaction Delegation Utils', () => {
       },
     ]);
 
-    mockGetNonceLock.mockResolvedValue({
-      nonceDetails: { params: { nextNetworkNonce: NONCE_MOCK } },
-      releaseLock: jest.fn(),
-    });
+    mockQuery.mockResolvedValue(`0x${NONCE_MOCK.toString(16)}`);
   });
 
   describe('getDelegationTransaction', () => {
@@ -149,7 +153,7 @@ describe('Transaction Delegation Utils', () => {
       });
     });
 
-    it('calls KeyringController to sign authorization', async () => {
+    it('calls KeyringController to sign authorization with pending nonce', async () => {
       await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
 
       expect(sign7702Mock).toHaveBeenCalledWith({
@@ -158,6 +162,16 @@ describe('Transaction Delegation Utils', () => {
         from: TRANSACTION_META_MOCK.txParams.from,
         nonce: NONCE_MOCK,
       });
+    });
+
+    it('fetches nonce using pending block tag', async () => {
+      await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
+
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.anything(),
+        'getTransactionCount',
+        [TRANSACTION_META_MOCK.txParams.from, 'pending'],
+      );
     });
 
     it('throws if chain does not support EIP-7702', async () => {
