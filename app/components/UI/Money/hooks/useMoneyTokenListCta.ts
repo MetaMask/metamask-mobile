@@ -18,35 +18,54 @@ import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 
+const TOKEN_LIST_CTA_LABEL_KEY = 'money.token_list_cta.get_apy';
+
 /**
  * Provides Money Token List Item CTA and its deposit action.
  *
  * This hook is consumed once per list surface, avoiding per-row Money account
  * and analytics hook subscriptions.
  */
-export const useMoneyTokenListCta = () => {
+export const useMoneyTokenListCta = (screenName: SCREEN_NAMES) => {
   const { shouldShowMoneyTokenListItemCta } = useMoneyCtaVisibility();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const { apyPercent } = useMoneyAccountBalance();
-  const { trackButtonClicked } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.WALLET_HOME,
+  const { trackTokenButtonClicked } = useMoneyAnalytics({
+    screen_name: screenName,
     component_name: COMPONENT_NAMES.MONEY_TOKEN_LIST_ITEM_CTA,
   });
 
-  const label = useMemo(
+  const localizedLabel = useMemo(
     () =>
       apyPercent === undefined
         ? undefined
-        : strings('money.token_list_cta.get_apy', { apy: apyPercent }),
+        : strings(TOKEN_LIST_CTA_LABEL_KEY, { apy: apyPercent }),
+    [apyPercent],
+  );
+
+  const englishLabel = useMemo(
+    () =>
+      apyPercent === undefined
+        ? undefined
+        : strings(TOKEN_LIST_CTA_LABEL_KEY, { apy: apyPercent, locale: 'en' }),
     [apyPercent],
   );
 
   const handleMoneyTokenListItemCtaPress = useCallback(
-    async (asset?: TokenI) => {
-      if (!asset?.address || !asset.chainId || !label) {
+    async (
+      asset?: TokenI,
+      context?: { tokenPositionInList: number; tokensInList: number },
+    ) => {
+      if (
+        !asset?.address ||
+        !asset.chainId ||
+        !localizedLabel ||
+        !englishLabel ||
+        !context
+      ) {
         Logger.error(
-          new Error('Asset, chain ID, or APY label is not set'),
+          new Error('Asset, chain ID, APY label, or token context is not set'),
           '[Money Account] Failed to initiate deposit from token list CTA',
         );
         return;
@@ -63,16 +82,20 @@ export const useMoneyTokenListCta = () => {
         },
       });
 
-      trackButtonClicked({
+      trackTokenButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: redirectedToOnboarding
           ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
           : MONEY_BUTTON_INTENTS.ADD_MONEY,
-        label_en: label,
-        label_localized: label,
+        label_en: englishLabel,
+        label_localized: localizedLabel,
         redirect_target: redirectedToOnboarding
           ? SCREEN_NAMES.MONEY_ONBOARDING
           : SCREEN_NAMES.MONEY_DEPOSIT,
+        token_symbol: asset.symbol,
+        token_position_in_list: context.tokenPositionInList,
+        token_chain_id: asset.chainId,
+        tokens_in_list: context.tokensInList,
       });
 
       if (redirectedToOnboarding) {
@@ -90,20 +113,30 @@ export const useMoneyTokenListCta = () => {
         );
       }
     },
-    [initiateDeposit, label, redirectToOnboardingIfNeeded, trackButtonClicked],
+    [
+      englishLabel,
+      initiateDeposit,
+      localizedLabel,
+      redirectToOnboardingIfNeeded,
+      trackTokenButtonClicked,
+    ],
   );
 
   const tokenListItemCta = useMemo<TokenListItemCta | undefined>(
     () =>
-      label
+      localizedLabel
         ? {
-            label,
+            label: localizedLabel,
             color: TextColor.SuccessDefault,
             shouldShow: shouldShowMoneyTokenListItemCta,
             onPress: handleMoneyTokenListItemCtaPress,
           }
         : undefined,
-    [handleMoneyTokenListItemCtaPress, label, shouldShowMoneyTokenListItemCta],
+    [
+      handleMoneyTokenListItemCtaPress,
+      localizedLabel,
+      shouldShowMoneyTokenListItemCta,
+    ],
   );
 
   return { tokenListItemCta };

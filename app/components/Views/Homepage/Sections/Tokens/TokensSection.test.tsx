@@ -1,4 +1,6 @@
 import React from 'react';
+import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TokensSection from './TokensSection';
@@ -129,9 +131,9 @@ const mockTokenListItemCta = {
   onPress: jest.fn(),
 };
 jest.mock('../../../../UI/Money/hooks/useMoneyTokenListCta', () => ({
-  useMoneyTokenListCta: () => ({
+  useMoneyTokenListCta: jest.fn(() => ({
     tokenListItemCta: mockTokenListItemCta,
-  }),
+  })),
 }));
 
 // Mock ErrorState to avoid design system import chain and enable testID queries
@@ -211,10 +213,14 @@ const MockTokenListItem = ({
   assetKey,
   showRemoveMenu,
   tokenListItemCta,
+  tokenPositionInList,
+  tokensInList,
 }: {
   assetKey: { address: string; chainId?: string };
   showRemoveMenu?: (token: unknown) => void;
   tokenListItemCta?: { label: string };
+  tokenPositionInList?: number;
+  tokensInList?: number;
 }) => {
   const ReactActual = jest.requireActual('react');
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
@@ -244,6 +250,11 @@ const MockTokenListItem = ({
           tokenListItemCta.label,
         )
       : null,
+    ReactActual.createElement(
+      Text,
+      { testID: `token-context-${assetKey.address}` },
+      `${tokenPositionInList}/${tokensInList}`,
+    ),
   );
 };
 
@@ -254,6 +265,8 @@ jest.mock(
       assetKey: { address: string; chainId?: string };
       showRemoveMenu?: (token: unknown) => void;
       tokenListItemCta?: { label: string };
+      tokenPositionInList?: number;
+      tokensInList?: number;
     }) => MockTokenListItem(props),
   }),
 );
@@ -591,6 +604,7 @@ describe('TokensSection', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
+      { chainId: '0x1', address: '0xtoken2', isStaked: false },
     ]);
 
     renderWithProvider(
@@ -600,6 +614,25 @@ describe('TokensSection', () => {
     expect(screen.getByTestId('token-cta-0xtoken1')).toHaveTextContent(
       'Get 4% APY',
     );
+    expect(screen.getByTestId('token-context-0xtoken1')).toHaveTextContent(
+      '1/2',
+    );
+    expect(screen.getByTestId('token-context-0xtoken2')).toHaveTextContent(
+      '2/2',
+    );
+  });
+
+  it('initializes Money CTA analytics for Wallet home', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(useMoneyTokenListCta).toHaveBeenCalledWith(SCREEN_NAMES.WALLET_HOME);
   });
 
   it('limits displayed tokens to MAX_TOKENS_DISPLAYED (5)', () => {

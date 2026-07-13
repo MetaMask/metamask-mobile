@@ -689,7 +689,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(queryByText('Get 4% APY')).toBeNull();
     });
 
-    it('forwards selected asset to Money deposit CTA', async () => {
+    it('forwards selected asset and list context to Money deposit CTA', async () => {
       prepareMocks({
         asset: usdcAsset,
         isMoneyTokenListItemCtaVisible: true,
@@ -702,6 +702,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
           tokenListItemCta={createTokenListItemCta()}
+          tokenPositionInList={2}
+          tokensInList={5}
         />,
       );
 
@@ -713,7 +715,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
       });
 
-      expect(mockTokenListItemCtaPress).toHaveBeenCalledWith(usdcAsset);
+      expect(mockTokenListItemCtaPress).toHaveBeenCalledWith(usdcAsset, {
+        tokenPositionInList: 2,
+        tokensInList: 5,
+      });
     }, 10000);
   });
 

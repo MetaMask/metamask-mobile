@@ -87,11 +87,19 @@ import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
+export interface TokenListItemCtaPressContext {
+  tokenPositionInList: number;
+  tokensInList: number;
+}
+
 export interface TokenListItemCta {
   label: string;
   color: TextColor;
   shouldShow: (asset?: TokenI) => boolean;
-  onPress: (asset?: TokenI) => Promise<void>;
+  onPress: (
+    asset?: TokenI,
+    context?: TokenListItemCtaPressContext,
+  ) => Promise<void>;
 }
 
 const createStyles = (colors: Colors) =>
@@ -144,6 +152,8 @@ interface TokenListItemProps {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   tokenListItemCta?: TokenListItemCta;
+  tokenPositionInList?: number;
+  tokensInList?: number;
   /**
    * When true, mUSD rows render only the native balance on the secondary row
    * (no token price / 24h change). Used by the Money Hub.
@@ -160,6 +170,8 @@ export const TokenListItem = React.memo(
     showPercentageChange = true,
     isFullView = false,
     tokenListItemCta,
+    tokenPositionInList,
+    tokensInList,
     hideSecondaryPriceRow = false,
   }: TokenListItemProps) => {
     const navigation = useNavigation();
@@ -316,8 +328,13 @@ export const TokenListItem = React.memo(
     ]);
 
     const handleTokenListItemCtaPress = useCallback(async () => {
-      await tokenListItemCta?.onPress(asset);
-    }, [asset, tokenListItemCta]);
+      await tokenListItemCta?.onPress(
+        asset,
+        tokenPositionInList !== undefined && tokensInList !== undefined
+          ? { tokenPositionInList, tokensInList }
+          : undefined,
+      );
+    }, [asset, tokenListItemCta, tokenPositionInList, tokensInList]);
 
     // Secondary balance shows percentage change (if available and not on testnet)
     const hasPercentageChange =

@@ -30,7 +30,7 @@ jest.mock('./useMoneyNavigation');
 
 const mockInitiateDeposit = jest.fn();
 const mockRedirectToOnboardingIfNeeded = jest.fn();
-const mockTrackButtonClicked = jest.fn();
+const mockTrackTokenButtonClicked = jest.fn();
 const mockShouldShowMoneyTokenListItemCta = jest.fn();
 
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
@@ -47,6 +47,11 @@ const asset = {
   symbol: 'USDC',
 } as TokenI;
 
+const tokenContext = {
+  tokenPositionInList: 2,
+  tokensInList: 5,
+};
+
 describe('useMoneyTokenListCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,7 +65,7 @@ describe('useMoneyTokenListCta', () => {
       apyPercent: 4,
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockUseMoneyAnalytics.mockReturnValue({
-      trackButtonClicked: mockTrackButtonClicked,
+      trackTokenButtonClicked: mockTrackTokenButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
     mockUseMoneyCtaVisibility.mockReturnValue({
       shouldShowMoneyTokenListItemCta: mockShouldShowMoneyTokenListItemCta,
@@ -75,13 +80,17 @@ describe('useMoneyTokenListCta', () => {
       apyPercent: undefined,
     } as ReturnType<typeof useMoneyAccountBalance>);
 
-    const { result } = renderHook(() => useMoneyTokenListCta());
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
 
     expect(result.current.tokenListItemCta).toBeUndefined();
   });
 
   it('returns CTA with localized APY label', () => {
-    const { result } = renderHook(() => useMoneyTokenListCta());
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
 
     expect(result.current.tokenListItemCta).toEqual(
       expect.objectContaining({
@@ -93,7 +102,7 @@ describe('useMoneyTokenListCta', () => {
   });
 
   it('initializes Money analytics for token-list CTA', () => {
-    renderHook(() => useMoneyTokenListCta());
+    renderHook(() => useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME));
 
     expect(mockUseMoneyAnalytics).toHaveBeenCalledWith({
       screen_name: SCREEN_NAMES.WALLET_HOME,
@@ -101,34 +110,69 @@ describe('useMoneyTokenListCta', () => {
     });
   });
 
+  it('initializes Money analytics with the supplied screen name', () => {
+    renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.TOKENS_SECTION_FULL_VIEW),
+    );
+
+    expect(mockUseMoneyAnalytics).toHaveBeenCalledWith({
+      screen_name: SCREEN_NAMES.TOKENS_SECTION_FULL_VIEW,
+      component_name: COMPONENT_NAMES.MONEY_TOKEN_LIST_ITEM_CTA,
+    });
+  });
+
   it('logs error without starting deposit when asset address is absent', async () => {
-    const { result } = renderHook(() => useMoneyTokenListCta());
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
 
     await act(async () => {
-      await result.current.tokenListItemCta?.onPress({
-        ...asset,
-        address: '',
-      } as TokenI);
+      await result.current.tokenListItemCta?.onPress(
+        {
+          ...asset,
+          address: '',
+        } as TokenI,
+        tokenContext,
+      );
     });
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       '[Money Account] Failed to initiate deposit from token list CTA',
     );
-    expect(mockTrackButtonClicked).not.toHaveBeenCalled();
+    expect(mockTrackTokenButtonClicked).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('logs error without starting deposit when token context is absent', async () => {
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
+
+    await act(async () => {
+      await result.current.tokenListItemCta?.onPress(asset);
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      '[Money Account] Failed to initiate deposit from token list CTA',
+    );
+    expect(mockTrackTokenButtonClicked).not.toHaveBeenCalled();
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
   it('redirects new users to onboarding without starting deposit', async () => {
     mockRedirectToOnboardingIfNeeded.mockReturnValue(true);
-    const { result } = renderHook(() => useMoneyTokenListCta());
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
     const preferredPaymentToken = {
       address: toHex(asset.address),
       chainId: asset.chainId,
     };
 
     await act(async () => {
-      await result.current.tokenListItemCta?.onPress(asset);
+      await result.current.tokenListItemCta?.onPress(asset, tokenContext);
     });
 
     expect(mockRedirectToOnboardingIfNeeded).toHaveBeenCalledWith({
@@ -137,33 +181,49 @@ describe('useMoneyTokenListCta', () => {
         preferredPaymentToken,
       },
     });
-    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+    expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-      label_en: strings('money.token_list_cta.get_apy', { apy: 4 }),
+      label_en: strings('money.token_list_cta.get_apy', {
+        apy: 4,
+        locale: 'en',
+      }),
       label_localized: strings('money.token_list_cta.get_apy', { apy: 4 }),
       redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      token_symbol: asset.symbol,
+      token_position_in_list: tokenContext.tokenPositionInList,
+      token_chain_id: asset.chainId,
+      tokens_in_list: tokenContext.tokensInList,
     });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
   it('initiates deposit for users who completed onboarding', async () => {
-    const { result } = renderHook(() => useMoneyTokenListCta());
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
     const preferredPaymentToken = {
       address: toHex(asset.address),
       chainId: asset.chainId,
     };
 
     await act(async () => {
-      await result.current.tokenListItemCta?.onPress(asset);
+      await result.current.tokenListItemCta?.onPress(asset, tokenContext);
     });
 
-    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+    expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_en: strings('money.token_list_cta.get_apy', { apy: 4 }),
+      label_en: strings('money.token_list_cta.get_apy', {
+        apy: 4,
+        locale: 'en',
+      }),
       label_localized: strings('money.token_list_cta.get_apy', { apy: 4 }),
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      token_symbol: asset.symbol,
+      token_position_in_list: tokenContext.tokenPositionInList,
+      token_chain_id: asset.chainId,
+      tokens_in_list: tokenContext.tokensInList,
     });
     expect(mockInitiateDeposit).toHaveBeenCalledWith({ preferredPaymentToken });
   });
@@ -171,10 +231,12 @@ describe('useMoneyTokenListCta', () => {
   it('logs rejected deposits', async () => {
     const error = new Error('deposit failed');
     mockInitiateDeposit.mockRejectedValue(error);
-    const { result } = renderHook(() => useMoneyTokenListCta());
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
 
     await act(async () => {
-      await result.current.tokenListItemCta?.onPress(asset);
+      await result.current.tokenListItemCta?.onPress(asset, tokenContext);
     });
 
     expect(Logger.error).toHaveBeenCalledWith(

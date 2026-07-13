@@ -6,6 +6,7 @@ import AppConstants from '../../../../core/AppConstants';
  */
 export enum SCREEN_NAMES {
   WALLET_HOME = 'wallet_home',
+  TOKENS_SECTION_FULL_VIEW = 'tokens_section_full_view',
   MONEY_HOME = 'money_home',
   MONEY_ONBOARDING = 'money_onboarding',
   CARD_HOME = 'card_home',

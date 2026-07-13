@@ -54,6 +54,7 @@ import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/consta
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
 import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -98,7 +99,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       selectAccountGroupBalanceForEmptyState,
     );
     const privacyMode = useSelector(selectPrivacyMode);
-    const { tokenListItemCta } = useMoneyTokenListCta();
+    const { tokenListItemCta } = useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME);
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
@@ -279,6 +280,8 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                     privacyMode={privacyMode}
                     showPercentageChange
                     tokenListItemCta={tokenListItemCta}
+                    tokenPositionInList={index + 1}
+                    tokensInList={displayTokenKeys.length}
                   />
                 ))
               )}

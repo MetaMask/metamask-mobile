@@ -9,6 +9,8 @@ import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
+import { useMoneyTokenListCta } from '../../Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../Money/constants/moneyEvents';
 
 // Mock external dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -57,9 +59,13 @@ jest.mock('./TokenListItem/TokenListItem', () => ({
   TokenListItem: ({
     assetKey,
     tokenListItemCta,
+    tokenPositionInList,
+    tokensInList,
   }: {
     assetKey: { address: string };
     tokenListItemCta?: { label: string };
+    tokenPositionInList?: number;
+    tokensInList?: number;
   }) => {
     const React = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
@@ -74,6 +80,11 @@ jest.mock('./TokenListItem/TokenListItem', () => ({
             tokenListItemCta.label,
           )
         : null,
+      React.createElement(
+        Text,
+        { testID: `token-context-${assetKey.address}` },
+        `${tokenPositionInList}/${tokensInList}`,
+      ),
     );
   },
   TokenListItemBip44: ({ assetKey }: { assetKey: { address: string } }) => {
@@ -228,6 +239,16 @@ describe('TokenList', () => {
 
     expect(getByTestId('token-cta-0x123')).toHaveTextContent('Get 4% APY');
     expect(getByTestId('token-cta-0x456')).toHaveTextContent('Get 4% APY');
+    expect(getByTestId('token-context-0x123')).toHaveTextContent('1/2');
+    expect(getByTestId('token-context-0x456')).toHaveTextContent('2/2');
+  });
+
+  it('initializes Money CTA analytics for the full token list screen', () => {
+    renderComponent({ isFullView: true });
+
+    expect(useMoneyTokenListCta).toHaveBeenCalledWith(
+      SCREEN_NAMES.TOKENS_SECTION_FULL_VIEW,
+    );
   });
 
   it('renders empty container when no tokens', () => {
