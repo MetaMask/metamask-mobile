@@ -301,6 +301,10 @@ describe('getAuthLabel', () => {
     passcodeAvailable: false,
   };
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('iOS', () => {
     beforeEach(() => {
       jest.replaceProperty(Platform, 'OS', 'ios');
@@ -425,6 +429,10 @@ describe('getAuthIcon', () => {
     isBiometricsAvailable: false,
     passcodeAvailable: false,
   };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   describe('ios', () => {
     beforeEach(() => {
