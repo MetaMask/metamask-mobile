@@ -35,6 +35,7 @@ interface MockRouteParams {
   tokenSymbol?: string;
   position?: Position;
   source?: string;
+  originalEntryPoint?: string;
 }
 
 const makeMockTrades = (): Trade[] => [
@@ -108,9 +109,10 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 // for design-system `BottomSheet` (see app/util/test/testSetup.js) can mount
 // QuickBuy provider/controller (bridge selectors, NetworkController, …). This
 // file intentionally uses a minimal Redux store, so we stub the sheet here.
+const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
 jest.mock('./components/QuickBuy', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: unknown) => mockTraderPositionQuickBuy(props),
 }));
 
 // Resolves the tradable perp market set used by the Trade CTA's xyz/HIP-3
@@ -1062,40 +1064,61 @@ describe('TraderPositionView', () => {
     });
   });
 
-  describe('analytics source routing', () => {
-    it('uses notification as quickBuySource when source param is notification', () => {
-      mockRouteParams = { ...mockRouteParams, source: 'notification' };
+  describe('Quick Buy analytics routing', () => {
+    it('passes profile_position source and notification original_entry_point from route params', () => {
+      mockRouteParams = {
+        ...mockRouteParams,
+        source: 'notification',
+        originalEntryPoint: 'notification',
+      };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
         screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       );
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'notification',
+        }),
+      );
     });
 
-    it('uses leaderboard as quickBuySource when source param is leaderboard', () => {
-      mockRouteParams = { ...mockRouteParams, source: 'leaderboard' };
+    it('passes forwarded original_entry_point from route params', () => {
+      mockRouteParams = {
+        ...mockRouteParams,
+        source: 'profile_position',
+        originalEntryPoint: 'leaderboard',
+      };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       fireEvent.press(
         screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
       );
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'leaderboard',
+        }),
+      );
     });
 
-    it('defaults quickBuySource to profile_position when source param is deep_link', () => {
+    it('derives original_entry_point from position source when route param is absent', () => {
       mockRouteParams = { ...mockRouteParams, source: 'deep_link' };
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      expect(
-        screen.getByTestId(TraderPositionViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(mockTraderPositionQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'profile_position',
+          originalEntryPoint: 'deep_link',
+        }),
+      );
     });
   });
 
