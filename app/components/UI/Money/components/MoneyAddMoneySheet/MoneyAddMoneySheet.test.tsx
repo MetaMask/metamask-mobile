@@ -70,7 +70,7 @@ jest.mock('../../../../../selectors/tokenBalancesController', () => ({
 
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
-  selectTransactions: jest.fn(() => []),
+  selectHasUnapprovedTransactions: jest.fn(() => false),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({

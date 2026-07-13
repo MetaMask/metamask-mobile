@@ -9,10 +9,7 @@ import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
-import {
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { createProjectLogger, Hex } from '@metamask/utils';
 import {
   BottomSheet,
@@ -36,7 +33,7 @@ import {
 } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
-import { selectTransactions } from '../../../../../selectors/transactionController';
+import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import MoneySheetOptionsList, {
   type MoneySheetOption,
@@ -69,7 +66,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
-  const transactions = useSelector(selectTransactions);
+  const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
   const regionHasNativeFiatProvider = useRegionHasNativeFiatProvider();
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
@@ -81,14 +78,6 @@ const MoneyAddMoneySheet: React.FC = () => {
   });
 
   useMountEffect(trackBottomSheetViewed);
-
-  const hasPendingTransaction = useMemo(
-    () =>
-      (transactions ?? []).some(
-        (tx) => tx.status === TransactionStatus.unapproved,
-      ),
-    [transactions],
-  );
 
   // When a deposit is requested while a stale transaction is still pending, we
   // reject it and stash the requested options here until it clears — see the
@@ -118,13 +107,13 @@ const MoneyAddMoneySheet: React.FC = () => {
     (options?: InitiateDepositOptions) => {
       if (hasPendingTransaction) {
         log('Rejecting pending transaction before starting deposit');
-        rejectPendingTransactions(transactions ?? []);
+        rejectPendingTransactions();
         setDeferredDeposit({ options });
         return;
       }
       closeAndStartDeposit(options);
     },
-    [hasPendingTransaction, transactions, closeAndStartDeposit],
+    [hasPendingTransaction, closeAndStartDeposit],
   );
 
   useEffect(() => {

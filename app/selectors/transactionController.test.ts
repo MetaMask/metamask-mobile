@@ -6,6 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import {
   selectTransactions,
+  selectHasUnapprovedTransactions,
   selectLastUsedPaymentMethod,
   selectLastWithdrawTokenByType,
   selectLocalTransactions,
@@ -68,6 +69,58 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactions(state)).toStrictEqual([]);
+    });
+  });
+
+  describe('selectHasUnapprovedTransactions', () => {
+    it('returns true when an unapproved transaction exists', () => {
+      const transactions = [
+        { id: '1', status: TransactionStatus.confirmed },
+        { id: '2', status: TransactionStatus.unapproved },
+      ];
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectHasUnapprovedTransactions(state)).toBe(true);
+    });
+
+    it('returns false when no transaction is unapproved', () => {
+      const transactions = [
+        { id: '1', status: TransactionStatus.confirmed },
+        { id: '2', status: TransactionStatus.submitted },
+      ];
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectHasUnapprovedTransactions(state)).toBe(false);
+    });
+
+    it('returns false when there are no transactions', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectHasUnapprovedTransactions(state)).toBe(false);
     });
   });
 

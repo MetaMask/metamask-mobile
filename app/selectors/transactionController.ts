@@ -201,6 +201,12 @@ export const selectTransactions = createDeepEqualSelector(
   },
 );
 
+export const selectHasUnapprovedTransactions = createSelector(
+  selectTransactionsStrict,
+  (transactions) =>
+    transactions.some((tx) => tx.status === TransactionStatus.unapproved),
+);
+
 export const selectNonReplacedTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) =>
