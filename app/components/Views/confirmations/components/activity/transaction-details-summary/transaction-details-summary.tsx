@@ -91,14 +91,14 @@ export function TransactionDetailsSummary() {
 
   const completedCount = txCompletedCount + (hasExtraCompletedStep ? 1 : 0);
 
-  const stepCount =
-    transactions.length + (fiatOrderId ? 1 : 0) + (showSourceHash ? 1 : 0);
+  const hasMultipleSteps =
+    transactions.length > 1 || Boolean(fiatOrderId) || Boolean(showSourceHash);
 
   let heading: string | undefined;
 
   if (!isMoneyContext) {
     heading = strings('transaction_details.label.summary');
-  } else if (stepCount > 1) {
+  } else if (hasMultipleSteps) {
     heading = strings('transaction_details.label.steps_completed', {
       count: completedCount,
     });
