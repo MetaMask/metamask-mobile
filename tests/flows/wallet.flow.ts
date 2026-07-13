@@ -3,6 +3,7 @@ import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
   encapsulated,
+  FrameworkDetector,
   Matchers,
   PlatformDetector,
   PlaywrightAssertions,
@@ -25,7 +26,6 @@ import {
 } from '../framework/fixtures/FixtureUtils';
 import TermsOfUseModal from '../page-objects/Onboarding/TermsOfUseModal';
 import CreatePasswordView from '../page-objects/Onboarding/CreatePasswordView';
-import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessView';
 import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
@@ -51,12 +51,16 @@ import PlaywrightUtilities, {
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
-import OnboardingCryptoExperienceQuestionnaireView from '../page-objects/Onboarding/OnboardingCryptoExperienceQuestionnaireView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
-import { isWalletHomeReadyOnIOS } from './wallet-home-readiness';
+import {
+  isLoginScreenDisplayed,
+  isWalletHomeReadyOnAndroidStable,
+  isWalletHomeReadyOnAppium,
+  isWalletHomeReadyOnIOS,
+} from './wallet-home-readiness';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -95,6 +99,23 @@ export const waitForWalletHomePlaywright = async (
   throw new Error(
     `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
   );
+};
+
+const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
+  if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+    return isWalletHomeReadyOnAndroidStable();
+  }
+  if (!(await isWalletHomeReadyOnAppium())) {
+    return false;
+  }
+  return !(await isLoginScreenDisplayed());
+};
+
+const completeUnlockedWalletHome = async (
+  dismissPostLoginModals: () => Promise<void>,
+): Promise<void> => {
+  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await dismissPostLoginModals();
 };
 
 /**
@@ -303,6 +324,53 @@ export const closeOnboardingModals = async (
   }
 };
 
+/** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
+
+/**
+ * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
+ * No-op when the app navigates straight to the wallet home (common on some builds/flags).
+ */
+export const dismissOnboardingInterestQuestionnaire =
+  async (): Promise<void> => {
+    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const walletContainer = await asPlaywrightElement(WalletView.container);
+        if (await walletContainer.unwrap().isExisting()) {
+          logger.debug(
+            'Wallet home already visible; skipping interest questionnaire',
+          );
+          return;
+        }
+
+        const skipButton = await asPlaywrightElement(
+          OnboardingInterestQuestionnaireView.skipButton,
+        );
+        if (await skipButton.unwrap().isExisting()) {
+          await PlaywrightGestures.waitAndTap(skipButton, {
+            timeout: 5000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+          await skipButton
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 5000 });
+          return;
+        }
+      } catch {
+        // Stale element / screen transition while the next route loads.
+      }
+      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
+    }
+
+    logger.debug(
+      'Onboarding Interest Questionnaire not shown within poll window; continuing',
+    );
+  };
+
 /**
  * Imports a wallet using a secret recovery phrase during the onboarding process.
  *
@@ -373,14 +441,13 @@ export const importWalletWithRecoveryPhrase = async ({
     await MetaMetricsOptInView.tapAgreeButton();
   }
   if (optInToMetrics) {
-    await OnboardingInterestQuestionnaireView.tapContinueButton();
-    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
+    await dismissOnboardingInterestQuestionnaire();
+    await Assertions.expectElementToBeVisible(WalletView.container, {
+      description: 'Wallet home should be visible after onboarding completion',
+      timeout: 15000,
+    });
   }
   //'Should dismiss Enable device Notifications checks alert'
-  await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-    description: 'Onboarding Success View should be visible',
-  });
-  await OnboardingSuccessView.tapDone();
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -497,14 +564,13 @@ export const CreateNewWallet = async ({
   await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   if (optInToMetrics) {
-    await OnboardingInterestQuestionnaireView.tapContinueButton();
-    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
+    await dismissOnboardingInterestQuestionnaire();
+    await Assertions.expectElementToBeVisible(WalletView.container, {
+      description: 'Wallet home should be visible after onboarding completion',
+      timeout: 15000,
+    });
   }
 
-  await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-    description: 'Onboarding Success View should be visible',
-  });
-  await OnboardingSuccessView.tapDone();
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
@@ -670,42 +736,39 @@ export const loginToAppPlaywright = async (
   };
 
   await dismissAndroidSystemOverlaysPlaywright();
-  await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
 
-  // Fast path: already on wallet home (e.g. session persisted across tests).
-  try {
-    await waitForWalletHomePlaywright(2_000);
-    await dismissPostLoginModals();
+  if (await isUnlockedWalletHomeReady()) {
+    await completeUnlockedWalletHome(dismissPostLoginModals);
     return;
-  } catch {
-    // Login screen expected — continue below.
   }
 
-  // Dev menu overlays wallet/explore, not the login screen. Probing it while
-  // login is visible wastes ~20s on absent Continue/xmark/Close elements.
-  const onLoginScreen = await Utilities.isElementVisible(
-    LoginView.container,
-    1500,
-  );
-  if (!onLoginScreen) {
+  const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
+
+  if (readyScreen === 'wallet') {
+    await completeUnlockedWalletHome(dismissPostLoginModals);
+    return;
+  }
+
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.passwordInput),
+      {
+        description: 'Login password input',
+        timeout: 3_000,
+      },
+    );
+  } catch {
+    // Dev menu can overlay login on local builds — dismiss and retry once.
     await dismissDeveloperMenuPlaywright();
     await dismissAndroidSystemOverlaysPlaywright();
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.passwordInput),
+      {
+        description: 'Login password input',
+        timeout: 5_000,
+      },
+    );
   }
-
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login view container',
-      timeout: 5_000,
-    },
-  );
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.passwordInput),
-    {
-      description: 'Login password input',
-      timeout: 3_000,
-    },
-  );
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock
@@ -781,93 +844,6 @@ export const selectAccountByDevice = async (
   const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
 };
-
-/** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
-const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
-const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
-
-/**
- * Advances past the optional crypto experience questionnaire (Playwright / Appium only).
- * No-op when the screen is not shown.
- */
-export const dismissOnboardingCryptoExperienceQuestionnaire =
-  async (): Promise<void> => {
-    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
-
-    while (Date.now() < deadline) {
-      try {
-        const successDoneButton = await asPlaywrightElement(
-          OnboardingSuccessView.doneButton,
-        );
-        if (await successDoneButton.unwrap().isExisting()) {
-          return;
-        }
-
-        const continueButton = await asPlaywrightElement(
-          OnboardingCryptoExperienceQuestionnaireView.continueButton,
-        );
-        if (await continueButton.unwrap().isExisting()) {
-          await PlaywrightGestures.waitAndTap(continueButton, {
-            timeout: 10_000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
-          await continueButton
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 10_000 });
-          return;
-        }
-      } catch {
-        // Stale element / screen transition while the next route loads.
-      }
-      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
-    }
-  };
-
-/**
- * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
- * No-op when the app navigates straight to onboarding success (common on some builds/flags).
- */
-export const dismissOnboardingInterestQuestionnaire =
-  async (): Promise<void> => {
-    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
-
-    while (Date.now() < deadline) {
-      try {
-        const successDoneButton = await asPlaywrightElement(
-          OnboardingSuccessView.doneButton,
-        );
-        if (await successDoneButton.unwrap().isExisting()) {
-          logger.debug(
-            'Onboarding success already visible; skipping interest questionnaire',
-          );
-          return;
-        }
-
-        const continueButton = await asPlaywrightElement(
-          OnboardingInterestQuestionnaireView.continueButton,
-        );
-        if (await continueButton.unwrap().isExisting()) {
-          await PlaywrightGestures.waitAndTap(continueButton, {
-            timeout: 5000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
-          await continueButton
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 5000 });
-          return;
-        }
-      } catch {
-        // Stale element / screen transition while the next route loads.
-      }
-      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
-    }
-
-    logger.debug(
-      'Onboarding Interest Questionnaire not shown within poll window; continuing',
-    );
-  };
 
 const PREDICT_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
 
@@ -1003,12 +979,6 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
-  await dismissOnboardingCryptoExperienceQuestionnaire();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(OnboardingSuccessView.doneButton),
-    { timeout: 30_000 },
-  );
-  await OnboardingSuccessView.tapDone();
   const productionFeatureFlags = await fetchProductionFeatureFlags(
     'main',
     testEnvironment,

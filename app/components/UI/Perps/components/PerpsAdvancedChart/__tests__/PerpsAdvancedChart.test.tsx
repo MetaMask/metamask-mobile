@@ -5,7 +5,6 @@ import PerpsAdvancedChart, {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
-import { advancedChartLineChromePresets } from '../../../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import type { AdvancedChartProps } from '../../../../Charts/AdvancedChart/AdvancedChart.types';
 import { getPerpsVolumeColors, hexToRgba } from '../../../utils/chartColors';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
@@ -110,12 +109,33 @@ describe('PerpsAdvancedChart', () => {
 
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({
-        lineChrome: advancedChartLineChromePresets.perps.lineChrome,
         currentPriceLineColorOverride: mockTheme.colors.text.default,
         volumeSuccessColorOverride: volumeColors.success,
         volumeErrorColorOverride: volumeColors.error,
       }),
     );
+  });
+
+  it('passes market-aware price decimals to AdvancedChart', () => {
+    renderChart({ szDecimals: 2 });
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        priceDecimals: 4,
+      }),
+    );
+  });
+
+  it('omits market-aware price decimals when szDecimals is not provided', () => {
+    renderChart();
+
+    expect(advancedChartProps().priceDecimals).toBeUndefined();
+  });
+
+  it('passes zero price decimals when szDecimals uses full Hyperliquid precision', () => {
+    renderChart({ szDecimals: 6 });
+
+    expect(advancedChartProps().priceDecimals).toBe(0);
   });
 
   it('passes pagination duration into the adapter', () => {
