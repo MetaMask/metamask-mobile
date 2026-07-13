@@ -154,6 +154,7 @@ export const DEFAULT_MOCKS = {
   ],
   POST: [
     ...(authMocks.POST || []),
+    ...(DEFAULT_BRIDGE_API_MOCKS.POST || []),
     ...(DAPP_SCANNING_MOCKS.POST || []),
     ...(WALLETCONNECT_MOCKS.POST || []),
     ...(METAMETRICS_API_MOCKS.POST || []),
@@ -212,6 +213,12 @@ export const DEFAULT_MOCKS = {
     },
     ...(DEFAULT_REWARDS_MOCKS.POST || []),
     ...(PERPS_HYPERLIQUID_MOCKS.POST || []),
+    {
+      urlEndpoint:
+        /^https:\/\/notification\.api\.cx\.metamask\.io\/api\/v4\/notifications$/,
+      responseCode: 200,
+      response: [],
+    },
   ],
   PUT: [
     ...(USER_STORAGE_MOCK.PUT || []),

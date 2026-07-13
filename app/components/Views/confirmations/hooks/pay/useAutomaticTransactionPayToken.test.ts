@@ -465,7 +465,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('selects preferred token from feature flags sorted by highest success rate', () => {
+  it('selects preferred token with highest fiat balance among eligible tokens', () => {
     selectMetaMaskPayTokensFlagsMock.mockReturnValue({
       preferredTokens: {
         default: [],
@@ -515,6 +515,59 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: TOKEN_ADDRESS_1_MOCK,
       chainId: CHAIN_ID_1_MOCK,
+    });
+  });
+
+  it('selects higher balance token over higher successRate token', () => {
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+      preferredTokens: {
+        default: [],
+        overrides: {
+          perpsDeposit: [
+            {
+              address: TOKEN_ADDRESS_1_MOCK,
+              chainId: CHAIN_ID_1_MOCK,
+              successRate: 0.95,
+            },
+            {
+              address: TOKEN_ADDRESS_2_MOCK,
+              chainId: CHAIN_ID_2_MOCK,
+              successRate: 0.7,
+            },
+          ],
+        },
+      },
+      minimumRequiredTokenBalance: 10,
+      blockedTokens: {
+        default: {
+          chainIds: [],
+          tokens: [],
+        },
+        overrides: {},
+      },
+    } as MetaMaskPayTokensFlags);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+          fiat: { balance: 15 },
+        },
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+          fiat: { balance: 500 },
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    runHook();
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
     });
   });
 

@@ -10,6 +10,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN,
@@ -26,6 +27,7 @@ import {
   type ActivityListItem,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
+  isUnlimitedApprovalAmount,
   shouldShowPlusSign,
   type TokenAmount,
   toMarketRateLookupToken,
@@ -39,6 +41,10 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
+import {
+  ACTIVITY_FALLBACK_TITLE_RESOLVERS,
+  TOKEN_ACTION_LABELS,
+} from './titleLabels';
 
 function isPerpsFundsKind(type: ActivityKind): boolean {
   return type === 'perpsAddFunds' || type === 'perpsWithdraw';
@@ -48,12 +54,23 @@ function isPerpsFundingKind(type: ActivityKind): boolean {
   return type === 'perpsPaidFundingFees' || type === 'perpsReceivedFundingFees';
 }
 
+/**
+ * Perps trade fills, whose amount is realized PnL (gains green, losses red).
+ * Excludes orders, funds, and funding — they show a notional and stay neutral.
+ */
+function isPerpsPnlKind(type: ActivityKind): boolean {
+  return (
+    type.startsWith('perps') &&
+    !isPerpsFundsKind(type) &&
+    !isPerpsFundingKind(type)
+  );
+}
+
 function isPerpsTradeKind(type: ActivityKind): boolean {
   return (
-    (type.startsWith('perps') &&
-      !isPerpsFundsKind(type) &&
-      !isPerpsFundingKind(type)) ||
+    isPerpsPnlKind(type) ||
     type.startsWith('market') ||
+    type.startsWith('limit') ||
     type.startsWith('stopMarket')
   );
 }
@@ -261,47 +278,6 @@ function statusTitle(
   return titles.success;
 }
 
-const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
-  Record<ActivityKind, () => string>
-> = {
-  predictionsAddFunds: () =>
-    strings('transactions.activity_prediction_account_funded'),
-  predictionsWithdrawFunds: () =>
-    strings('transactions.activity_prediction_withdrawal'),
-  predictionClaimWinnings: () => strings('predict.transactions.claim_title'),
-  predictionCashedOut: () => strings('predict.transactions.sell_title'),
-  // Design board copy: "Prediction placed" (not the legacy "Predicted").
-  predictionPlaced: () => strings('transactions.activity_prediction_placed'),
-  perpsAddFunds: () => strings('transactions.activity_perps_account_funded'),
-  perpsWithdraw: () => strings('transactions.activity_perps_withdrawal'),
-  perpsOpenLong: () => strings('transactions.activity_perps_open_long'),
-  perpsCloseLong: () => strings('transactions.activity_perps_close_long'),
-  perpsCloseLongLiquidated: () =>
-    strings('transactions.activity_perps_close_long_liquidated'),
-  perpsCloseLongStopLoss: () =>
-    strings('transactions.activity_perps_close_long_stop_loss'),
-  perpsOpenShort: () => strings('transactions.activity_perps_open_short'),
-  perpsCloseShort: () => strings('transactions.activity_perps_close_short'),
-  perpsCloseShortLiquidated: () =>
-    strings('transactions.activity_perps_close_short_liquidated'),
-  perpsCloseShortStopLoss: () =>
-    strings('transactions.activity_perps_close_short_stop_loss'),
-  perpsPaidFundingFees: () =>
-    strings('transactions.activity_perps_paid_funding_fees'),
-  perpsReceivedFundingFees: () =>
-    strings('transactions.activity_perps_received_funding_fees'),
-  perpsCloseShortTakeProfit: () =>
-    strings('transactions.activity_perps_close_short_take_profit'),
-  perpsCloseLongTakeProfit: () =>
-    strings('transactions.activity_perps_close_long_take_profit'),
-  marketShort: () => strings('transactions.activity_market_short'),
-  stopMarketCloseShort: () =>
-    strings('transactions.activity_stop_market_close_short'),
-  marketCloseShort: () => strings('transactions.activity_market_close_short'),
-  limitShort: () => strings('transactions.activity_limit_short'),
-  limitCloseShort: () => strings('transactions.activity_limit_close_short'),
-};
-
 // Domain (perps/predict) rows have no bespoke failed copy, so mark a
 // failed/cancelled status with an em-dash "—Failed" suffix, mirroring the perps
 // severity suffix style (e.g. "Closed short—liquidated"). The failed color is
@@ -311,10 +287,10 @@ function withDomainStatusSuffix(
   status: ActivityListItem['status'],
 ): string {
   if (status === 'failed') {
-    return `${title}—${strings('transaction.failed')}`;
+    return `${title} — ${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.canceled')}`;
+    return `${title} — ${strings('transaction.canceled')}`;
   }
   return title;
 }
@@ -358,6 +334,40 @@ function enrichStablecoinTokenMetadata(
     ...token,
     decimals: token.decimals ?? MUSD_DECIMALS,
     assetId: token.assetId ?? MUSD_TOKEN_ASSET_ID_BY_CHAIN[hexChainId],
+  };
+}
+
+function isSpendingCapKind(type: ActivityKind): boolean {
+  return (
+    type === 'approveSpendingCap' ||
+    type === 'increaseSpendingCap' ||
+    type === 'revokeSpendingCap'
+  );
+}
+
+/**
+ * Fills a spending-cap token's missing symbol/decimals from the tokens API
+ * and re-derives the "unlimited" flag now that decimals are known,
+ * so the cap renders as e.g. "Unlimited USDC" / "50,000 USDC".
+ */
+function enrichSpendingCapToken(
+  token: TokenAmount | undefined,
+  listToken: { symbol?: string; decimals?: number } | undefined,
+): TokenAmount | undefined {
+  if (!token) {
+    return token;
+  }
+  const symbol = token.symbol ?? listToken?.symbol;
+  const decimals = token.decimals ?? listToken?.decimals;
+  const isUnlimitedApproval =
+    token.amount !== undefined
+      ? isUnlimitedApprovalAmount(token.amount, decimals)
+      : token.isUnlimitedApproval;
+  return {
+    ...token,
+    ...(symbol ? { symbol } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
+    ...(isUnlimitedApproval ? { isUnlimitedApproval: true } : {}),
   };
 }
 
@@ -587,37 +597,27 @@ function resolveCoreContent(
     case 'buy':
     case 'sell':
     case 'claim':
+    case 'stake':
+    case 'unstake':
     case 'deposit': {
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
-      const labels =
-        item.type === 'buy'
-          ? { success: 'Bought', pending: 'Buying', failed: 'Buy failed' }
-          : item.type === 'sell'
-            ? { success: 'Sold', pending: 'Selling', failed: 'Sell failed' }
-            : item.type === 'claim'
-              ? {
-                  success: 'Claimed',
-                  pending: 'Claiming',
-                  failed: 'Claim failed',
-                }
-              : {
-                  success: 'Deposited',
-                  pending: 'Depositing',
-                  failed: 'Deposit failed',
-                };
+      // Pooled staking is ETH-only, so stake/unstake read the full asset name
+      // ("Staked Ethereum" / "Unstaked Ethereum") rather than the "ETH" symbol.
+      const isStakingKind = item.type === 'stake' || item.type === 'unstake';
+      let displayNoun = symbol;
+      if (isStakingKind) {
+        displayNoun = 'Ethereum';
+      } else if (isNamelessNftBuy) {
+        displayNoun = 'NFT';
+      }
+      const labels = TOKEN_ACTION_LABELS[item.type];
 
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol(
-            labels.success,
-            isNamelessNftBuy ? 'NFT' : symbol,
-          ),
-          pending: withOptionalSymbol(
-            labels.pending,
-            isNamelessNftBuy ? 'NFT' : symbol,
-          ),
+          success: withOptionalSymbol(labels.success, displayNoun),
+          pending: withOptionalSymbol(labels.pending, displayNoun),
           failed: labels.failed,
         }),
         subtitle: protocolSubtitle(item),
@@ -1110,9 +1110,34 @@ export function useActivityListItemRowContent(
       : undefined,
   );
 
+  // Spending caps: resolve the token's symbol/decimals from the tokens API by
+  // its asset id (mirroring the extension's ApprovalDetails), so the row/details
+  // show the token avatar + cap amount instead of a generic "unknown" fallback.
+  const isSpendingCap = isSpendingCapKind(item.type);
+  const spendingCapAssetId =
+    isSpendingCap && 'token' in item.data
+      ? item.data.token?.assetId
+      : undefined;
+  const spendingCapTokenData = useTokensData(
+    spendingCapAssetId ? [spendingCapAssetId] : [],
+  );
+  const spendingCapToken =
+    isSpendingCap && 'token' in item.data
+      ? enrichSpendingCapToken(
+          item.data.token,
+          spendingCapAssetId
+            ? spendingCapTokenData[spendingCapAssetId.toLowerCase()]
+            : undefined,
+        )
+      : undefined;
+
   const content = resolveCoreContent(item, bridgeHistoryItem);
   const primaryToken = enrichStablecoinTokenMetadata(
-    content.primaryToken,
+    isSpendingCap
+      ? spendingCapToken?.amount
+        ? spendingCapToken
+        : undefined
+      : content.primaryToken,
     networkChainId,
   );
   const secondaryToken = enrichStablecoinTokenMetadata(
@@ -1182,12 +1207,16 @@ export function useActivityListItemRowContent(
 
   return {
     ...content,
-    avatarTokens: resolveAvatarTokens(item, bridgeHistoryItem),
+    avatarTokens:
+      isSpendingCap && spendingCapToken
+        ? [spendingCapToken]
+        : resolveAvatarTokens(item, bridgeHistoryItem),
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
     primaryToken,
     secondaryToken,
     primaryAmount,
     secondaryAmount,
+    isPnlAmount: isPerpsPnlKind(item.type),
   };
 }

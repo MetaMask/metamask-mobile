@@ -2,9 +2,7 @@ import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type ChartLabelStyleOverrides,
-  type LineChromeOptions,
   type LegendOverlayConfig,
-  resolveLineChromeOptions,
   resolveCurrentPriceColor,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
@@ -48,6 +46,19 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
+const formatTradingViewCssColor = (hex: string): string => {
+  if (hex.length !== 9 || !hex.startsWith('#')) {
+    return hex;
+  }
+
+  const red = Number.parseInt(hex.slice(1, 3), 16);
+  const green = Number.parseInt(hex.slice(3, 5), 16);
+  const blue = Number.parseInt(hex.slice(5, 7), 16);
+  const alpha = Number.parseInt(hex.slice(7, 9), 16) / 255;
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
+};
+
 const getChartSuccessColor = (theme: Theme): string =>
   theme.themeAppearance === AppThemeKey.light
     ? LIGHT_MODE_SUCCESS_GREEN
@@ -56,14 +67,19 @@ const getChartSuccessColor = (theme: Theme): string =>
 interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
-  lineChrome?: LineChromeOptions;
   useSubscriptPriceFormat?: boolean;
+  priceDecimals?: number;
+  hidePaneSeparator?: boolean;
+  gridLineColorOverride?: string;
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
   currentPriceLineColorOverride?: string;
   labelStyleOverrides?: ChartLabelStyleOverrides;
+  volumeSuccessColorOverride?: string;
+  volumeErrorColorOverride?: string;
   legendOverlay?: LegendOverlayConfig;
+  showBuiltInLegend?: boolean;
 }
 
 const createConfigScript = (
@@ -71,7 +87,6 @@ const createConfigScript = (
   theme: Theme,
   features: ChartFeatures,
 ): string => {
-  const lc = resolveLineChromeOptions(features.lineChrome);
   const successColor =
     features.successColorOverride ?? getChartSuccessColor(theme);
   const lineColor = features.lineColorOverride ?? successColor;
@@ -96,6 +111,9 @@ const createConfigScript = (
     successColorOverride: features.successColorOverride,
     themeSuccessDefault: getChartSuccessColor(theme),
   });
+  const volumeSuccessColor =
+    features.volumeSuccessColorOverride ?? successColor;
+  const volumeErrorColor = features.volumeErrorColorOverride ?? errorColor;
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
@@ -111,22 +129,22 @@ window.CONFIG = {
     textAlternativeColor: '${legendTextColor}',
     successColor: '${successColor}',
     lineColor: '${lineColor}',
+    gridLineColor: '${features.gridLineColorOverride ? formatTradingViewCssColor(features.gridLineColorOverride) : 'transparent'}',
     errorColor: '${errorColor}',
+    volumeSuccessColor: '${volumeSuccessColor}',
+    volumeErrorColor: '${volumeErrorColor}',
     primaryColor: '${theme.colors.primary.default}',
     currentPriceColor: '${resolvedCurrentPriceColor}'
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
-    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])}
-  },
-  lineChrome: {
-    hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
-    useCustomLineEndMarker: ${lc.useCustomLineEndMarker ? 'true' : 'false'},
-    useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
-    useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
+    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
+    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'},
+    showBuiltInLegend: ${features.showBuiltInLegend ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
+  priceDecimals: ${typeof features.priceDecimals === 'number' && Number.isFinite(features.priceDecimals) ? Math.max(0, features.priceDecimals) : 'null'},
   indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };
 `;
@@ -144,6 +162,8 @@ export const createAdvancedChartTemplate = (
 ): string => {
   const resolvedLineColor =
     features.lineColorOverride ?? getChartSuccessColor(theme);
+  const resolvedCurrentPriceLabelColor =
+    features.currentPriceLineColorOverride ?? resolvedLineColor;
   const configInline = createConfigScript(
     CHARTING_LIBRARY_URL,
     theme,
@@ -257,18 +277,19 @@ export const createAdvancedChartTemplate = (
             transform: translateX(-50%);
         }
         /*
-         * Last-close: green pill (matches TV last-price line), same stacking context as the overlay.
+         * Last-close: filled pill matching the current-price line override when supplied,
+         * otherwise matching the default chart line color.
          */
         #last-close-price-label {
             z-index: 50;
-            background: ${stripHexAlpha(resolvedLineColor)};
+            background: ${resolvedCurrentPriceLabelColor};
             color: ${stripHexAlpha(theme.colors.success.inverse)};
         }
         /*
          * Visible-edge outline pill: same pill metrics as .crosshair-label + .crosshair-price-label
          * as the filled last-close label, but transparent fill + success border and success (green)
          * text for readability on the chart background. Shown only when the series tail is off-screen
-         * and lineChrome.useCustomPriceLabels is true (chartLogic.js).
+         * and lineChrome.useCustomPriceLabels is true.
          */
         #custom-series-last-value-label {
             z-index: 55;
@@ -283,7 +304,7 @@ export const createAdvancedChartTemplate = (
             z-index: 60;
         }
         /*
-         * Study legend pills (chartLogic.js): semi-transparent background via color-mix.
+         * Study legend pills: semi-transparent background via color-mix.
          */
         .legend-pill {
             display: inline-flex;
@@ -324,12 +345,6 @@ export const createAdvancedChartTemplate = (
     <div id="loading-overlay" class="loading-overlay">Loading chart...</div>
     <div id="chart_surface">
         <div id="tv_chart_container"></div>
-        <div id="custom-crosshair-overlay" aria-hidden="true">
-            <div id="last-close-price-label" class="crosshair-label crosshair-price-label" style="display: none;"></div>
-            <div id="custom-series-last-value-label" class="crosshair-label crosshair-price-label" style="display: none;" aria-hidden="true"></div>
-            <div id="crosshair-price-label" class="crosshair-label crosshair-price-label"></div>
-            <div id="crosshair-time-label" class="crosshair-label crosshair-time-label"></div>
-        </div>
     </div>
 
     <script type="text/javascript">

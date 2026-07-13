@@ -14,6 +14,7 @@ import { toDateFormat } from '../../../../util/date';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
+  CHART_INTERVAL_CONFIGS,
   isTokenOverviewChartInterval,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
@@ -33,7 +34,6 @@ import {
 import TimeRangeSelector, {
   TIME_RANGE_CONFIGS,
   type TimeRange,
-  type OHLCVTimePeriod,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
@@ -77,18 +77,6 @@ const WS_INTERVAL_BY_TIME_RANGE: Record<TimeRange, string> = {
   '1W': '1h',
   '1M': '1d',
   '1Y': '1d',
-};
-
-/**
- * Maps each candle interval to the API timePeriod that returns enough history.
- * Without this, e.g. interval=1d + timePeriod=1d returns only ~1 bar.
- */
-const INTERVAL_TO_TIME_PERIOD: Record<string, OHLCVTimePeriod> = {
-  '1m': '1d',
-  '5m': '1d',
-  '15m': '1d',
-  '1h': '1w',
-  '1d': '1m',
 };
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
@@ -393,7 +381,7 @@ const PriceAdvanced = ({
   const chartInterval = displayInterval.toLowerCase();
 
   const effectiveTimePeriod = isTechnicalIndicatorsEnabled
-    ? INTERVAL_TO_TIME_PERIOD[chartInterval]
+    ? CHART_INTERVAL_CONFIGS[chartInterval]
     : config.timePeriod;
 
   const effectiveInterval = isTechnicalIndicatorsEnabled
@@ -409,13 +397,10 @@ const PriceAdvanced = ({
     [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
-  /** Stable WebView key for interval hot-reload (technical-indicators path only). */
-  const webViewInstanceKey = useMemo(
-    () =>
-      isTechnicalIndicatorsEnabled
-        ? `${assetId}|${currentCurrency}`
-        : undefined,
-    [isTechnicalIndicatorsEnabled, assetId, currentCurrency],
+  /** Stable per-asset session key — time-range switches must not reset chart init state. */
+  const chartWebViewSessionKey = useMemo(
+    () => `${assetId}|${currentCurrency}`,
+    [assetId, currentCurrency],
   );
 
   const assetIdRef = useRef(assetId);
@@ -497,14 +482,10 @@ const PriceAdvanced = ({
     activeVisibilityTraceRef.current = null;
   }, []);
 
-  const chartSessionResetKey = isTechnicalIndicatorsEnabled
-    ? webViewInstanceKey
-    : ohlcvSeriesKey;
-
   useEffect(() => {
     setChartInitFailed(null);
     setHasChartBeenRevealed(false);
-  }, [chartSessionResetKey]);
+  }, [chartWebViewSessionKey]);
 
   const {
     ohlcvData,
@@ -634,10 +615,9 @@ const PriceAdvanced = ({
   /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
   const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
 
-  /** Technical-indicators path: first visit only; interval refresh keeps chart/bars visible. */
-  const isInitialChartPending = isTechnicalIndicatorsEnabled
-    ? !hasChartBeenRevealed && isAdvancedChartUiPending
-    : isAdvancedChartUiPending;
+  /** First visit only; time-range / interval refresh keeps selector and bars visible. */
+  const isInitialChartPending =
+    !hasChartBeenRevealed && isAdvancedChartUiPending;
 
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
@@ -1044,7 +1024,9 @@ const PriceAdvanced = ({
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
               webViewInstanceKey={
-                isTechnicalIndicatorsEnabled ? webViewInstanceKey : undefined
+                isTechnicalIndicatorsEnabled
+                  ? chartWebViewSessionKey
+                  : undefined
               }
               realtimeBar={realtimeBar}
               height={chartHeight}
@@ -1058,9 +1040,6 @@ const PriceAdvanced = ({
               chartType={chartType}
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
-              lineChrome={
-                advancedChartLineChromePresets.tokenOverview.lineChrome
-              }
               subPaneHeightRatio={
                 advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
               }

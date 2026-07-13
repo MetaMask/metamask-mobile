@@ -14,15 +14,13 @@ import {
   EIP712Domain,
   HASH_ZERO_BYTES32,
   POLYGON_MAINNET_CHAIN_ID,
-  ROUNDING_CONFIG,
 } from '../constants';
+import { type OrderType, SignatureType, UtilsSide } from '../types';
 import {
-  type OrderType,
-  SignatureType,
-  type TickSize,
-  UtilsSide,
-} from '../types';
-import { generateSalt, roundOrderAmount } from '../utils';
+  generateSalt,
+  getTickSizeRoundConfig,
+  roundOrderAmount,
+} from '../utils';
 import type { PolymarketProtocolDefinition } from './definitions';
 import { getMinAmountReceivedWithSlippage } from './slippage';
 
@@ -126,7 +124,9 @@ function getProtocolOrderTypes() {
 }
 
 function getTakerAmountWithSlippage(preview: OrderPreview): string {
-  const roundConfig = ROUNDING_CONFIG[preview.tickSize.toString() as TickSize];
+  const { roundConfig } = getTickSizeRoundConfig({
+    tickSize: preview.tickSize,
+  });
   const decimals = roundConfig.amount ?? 4;
   const minAmountWithSlippage = getMinAmountReceivedWithSlippage(preview);
 

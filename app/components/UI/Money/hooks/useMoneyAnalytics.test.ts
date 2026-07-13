@@ -33,6 +33,9 @@ jest.mock('../../../../core/AppConstants', () => ({
       MONEY_LANDING: 'https://mock.money.landing',
       MUSD_PRICE: 'https://mock.musd.price',
     },
+    CARD: {
+      CARD_FEES_URL: 'https://mock.card.fees',
+    },
   },
 }));
 

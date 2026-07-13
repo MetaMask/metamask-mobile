@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from '@metamask/design-system-react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { PerpsMarketData } from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -98,6 +99,20 @@ describe('PerpsMarketInlineHeader', () => {
 
     expect(onFavoritePress).toHaveBeenCalled();
     expect(onCategorySearchPress).toHaveBeenCalled();
+  });
+
+  it('renders endAccessory when provided', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsMarketInlineHeader
+        market={mockMarket}
+        testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
+        endAccessory={<Text testID="custom-end-accessory">Grouping</Text>}
+      />,
+      { state: initialState },
+    );
+
+    expect(getByTestId('custom-end-accessory')).toBeTruthy();
   });
 
   it('renders without maxLeverage badge', () => {

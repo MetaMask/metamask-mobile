@@ -124,6 +124,7 @@ jobs:
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ inputs.source_branch }}
+      should_cache: ${{ startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -186,9 +187,9 @@ jobs:
       checkout-submodules: true
       platform: ${{ matrix.platform }}
       build_name: ${{ inputs.build_name }}
-      use-cache: ${{ startsWith(github.ref_name, 'release/') }}
-      use-tarball: ${{ !startsWith(github.ref_name, 'release/') }}
-      upload-artifact: ${{ !startsWith(github.ref_name, 'release/') }}
+      use-cache: ${{ needs.prepare.outputs.should_cache == 'true' }}
+      use-tarball: ${{ needs.prepare.outputs.should_cache != 'true' }}
+      upload-artifact: ${{ needs.prepare.outputs.should_cache != 'true' }}
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
       runner_provider: ${{ inputs.runner_provider }}
@@ -245,10 +246,10 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      # release/* branches: restore node_modules from GitHub Actions cache (fast, no artifact download).
+      # release/* branches and manual workflow_dispatch: restore node_modules from GitHub Actions cache (fast, no artifact download).
       - name: Compute node_modules cache key
         id: cache-key
-        if: ${{ startsWith(github.ref_name, 'release/') }}
+        if: ${{ needs.prepare.outputs.should_cache == 'true' }}
         run: |
           NODE_VERSION=$(node --version | sed 's/v//')
           KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ matrix.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
@@ -256,7 +257,7 @@ jobs:
           echo "Cache key: ${KEY}"
 
       - name: Restore node_modules cache
-        if: ${{ startsWith(github.ref_name, 'release/') }}
+        if: ${{ needs.prepare.outputs.should_cache == 'true' }}
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -269,13 +270,13 @@ jobs:
 
       # All other branches: download tarball artifact from setup-dependencies job.
       - name: Download node_modules tarball
-        if: ${{ !startsWith(github.ref_name, 'release/') }}
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
       - name: Ensure zstd is available
-        if: ${{ !startsWith(github.ref_name, 'release/') }}
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
         shell: bash
         run: |
           if command -v zstd >/dev/null 2>&1; then
@@ -289,7 +290,7 @@ jobs:
           fi
 
       - name: Extract tarball (preserves symlinks)
-        if: ${{ !startsWith(github.ref_name, 'release/') }}
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
         run: |
           echo "📦 Extracting tarball..."
           tar --use-compress-program 'zstd -d' -xf node-modules-${{ matrix.platform }}.tar.zst

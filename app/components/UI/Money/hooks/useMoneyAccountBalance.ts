@@ -7,7 +7,7 @@ import {
 import { useQuery } from '@metamask/react-data-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
-import { moneyFormatFiat } from '../utils/moneyFormatFiat';
+import { moneyFormatUsd } from '../utils/moneyFormatFiat';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
@@ -20,8 +20,6 @@ import {
   setLastKnownMoneyBalance,
 } from '../../../../core/redux/slices/moneyBalance';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
-import { selectMusdFiatRate } from '../selectors/musdRate';
-import useRefreshMusdFiatRate from './useRefreshMusdFiatRate';
 
 const DEFAULT_REFETCH_INTERVAL = 30 * 1000; // 30 seconds
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
@@ -83,11 +81,6 @@ const useMoneyAccountBalance = (
     refetchInterval: FIVE_MINUTES_MS,
   }) as UseQueryResult<NormalizedVaultApyResponse>;
 
-  const musdFiatRate = useSelector(selectMusdFiatRate);
-  const isMusdFiatRateMissing = musdFiatRate === undefined;
-
-  const refreshMusdFiatRate = useRefreshMusdFiatRate();
-
   /**
    * True while the balance query is loading with no cached data (even if stale).
    */
@@ -137,82 +130,31 @@ const useMoneyAccountBalance = (
       const computedTokenTotal =
         isBalanceLoading || isBalanceFetchError ? undefined : totalDecimal;
 
-      if (isMusdFiatRateMissing) {
-        // Undefined during loading or error so callers can distinguish from a genuine zero.
-        const settledTokenTotal =
-          isBalanceLoading || isBalanceFetchError ? undefined : totalDecimal;
-
-        return {
-          musdFiat: undefined,
-          musdSHFvdFiat: undefined,
-          tokenTotal: settledTokenTotal,
-          // A zero balance is $0.00 regardless of the missing rate — 0 tokens
-          // convert to 0 fiat without one. Only a non-zero balance is genuinely
-          // unavailable when there's no rate to convert it.
-          totalFiat: settledTokenTotal?.isZero() ? new BigNumber(0) : undefined,
-          withdrawableFiat: computedWithdrawableMusd?.isZero()
-            ? new BigNumber(0)
-            : undefined,
-          withdrawableMusd: computedWithdrawableMusd,
-        };
-      }
-
+      // mUSD is USD-pegged 1:1, so the dollar value equals the token amount —
+      // no conversion rate is needed to show the balance in dollars.
       return {
         tokenTotal: computedTokenTotal,
-        totalFiat: isBalanceFetchError
-          ? undefined
-          : totalDecimal.times(musdFiatRate),
-        withdrawableFiat: isBalanceFetchError
-          ? undefined
-          : vmusdDecimal.times(musdFiatRate),
+        totalFiat: computedTokenTotal,
+        withdrawableFiat: computedWithdrawableMusd,
         withdrawableMusd: computedWithdrawableMusd,
       };
-    }, [
-      isBalanceLoading,
-      isBalanceFetchError,
-      moneyBalanceQuery.data,
-      isMusdFiatRateMissing,
-      musdFiatRate,
-    ]);
+    }, [isBalanceLoading, isBalanceFetchError, moneyBalanceQuery.data]);
 
   const totalFiatFormatted =
-    !isBalanceFetchError && totalFiat
-      ? moneyFormatFiat(totalFiat, currentCurrency)
-      : undefined;
+    !isBalanceFetchError && totalFiat ? moneyFormatUsd(totalFiat) : undefined;
 
   const totalFiatRaw =
     !isBalanceFetchError && totalFiat ? totalFiat.toString() : undefined;
 
   const withdrawableFiatFormatted =
     !isBalanceFetchError && withdrawableFiat
-      ? moneyFormatFiat(withdrawableFiat, currentCurrency)
+      ? moneyFormatUsd(withdrawableFiat)
       : undefined;
 
   const withdrawableFiatRaw =
     !isBalanceFetchError && withdrawableFiat
       ? withdrawableFiat.toString()
       : undefined;
-
-  // If the mUSD price is missing for a non-zero balance, refresh the mUSD price.
-  useEffect(() => {
-    const isRateMissingForNonZeroBalance =
-      Boolean(moneyAccountAddress) &&
-      !isBalanceLoading &&
-      !isBalanceFetchError &&
-      isMusdFiatRateMissing &&
-      !!tokenTotal &&
-      !tokenTotal.isZero();
-    if (isRateMissingForNonZeroBalance) {
-      refreshMusdFiatRate();
-    }
-  }, [
-    moneyAccountAddress,
-    isBalanceLoading,
-    isBalanceFetchError,
-    isMusdFiatRateMissing,
-    tokenTotal,
-    refreshMusdFiatRate,
-  ]);
 
   // Persist every successful balance so it can be shown as the "last known"
   // figure (for the current account/currency) the next time the live balance
@@ -242,8 +184,8 @@ const useMoneyAccountBalance = (
     isBalanceLoading,
   ]);
 
-  // True whenever there is no fresh balance to show — still loading, a fetch
-  // error, or a missing formatting dependency (e.g. rate not ready).
+  // True whenever there is no fresh balance to show — still loading or a fetch
+  // error.
   const isBalanceUnavailable = totalFiatFormatted === undefined;
 
   // Last successfully fetched balance, but only when it still matches the

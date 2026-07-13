@@ -12,13 +12,13 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Keyboard,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import {
   KeyboardAwareScrollView,
-  KeyboardProvider,
   KeyboardStickyView,
   useKeyboardState,
 } from 'react-native-keyboard-controller';
@@ -64,6 +64,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
+import Engine from '../../../core/Engine';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
@@ -102,6 +103,11 @@ import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
+import {
+  selectQrSyncImportMnemonic,
+  selectQrSyncPrimaryMnemonic,
+} from '../../../selectors/qrSyncController';
+import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -118,6 +124,10 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
+  const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
+  const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
+  const qrSyncImportMnemonic = useSelector(selectQrSyncImportMnemonic);
+  const qrSyncMnemonic = qrSyncImportMnemonic ?? qrSyncPrimaryMnemonic;
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -167,6 +177,13 @@ const ImportFromSecretRecoveryPhrase = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
+
+  useEffect(() => {
+    if (isQrSyncImport && qrSyncMnemonic) {
+      setSeedPhrase(qrSyncMnemonic.split(SPACE_CHAR));
+      setCurrentStep(1);
+    }
+  }, [isQrSyncImport, qrSyncMnemonic]);
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
@@ -232,7 +249,10 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 
   const onBackPress = () => {
-    if (currentStep === 0) {
+    if (isQrSyncImport) {
+      Engine.context.QrSyncController.resetState();
+    }
+    if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
       navigation.goBack();
     } else {
       animateToStep(currentStep - 1);
@@ -320,7 +340,7 @@ const ImportFromSecretRecoveryPhrase = ({
     }
     animateToStep(currentStep + 1);
     // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
       passwordSetupAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
@@ -388,8 +408,8 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
-        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
+        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
         trace({
           name: TraceName.OnboardingSRPAccountImportTime,
           op: TraceOperation.OnboardingUserJourney,
@@ -418,6 +438,7 @@ const ImportFromSecretRecoveryPhrase = ({
           authData,
           parsedSeed,
           true,
+          isQrSyncImport,
         );
 
         setBiometryType(authData.availableBiometryType);
@@ -442,7 +463,10 @@ const ImportFromSecretRecoveryPhrase = ({
             {
               name: Routes.ONBOARDING.SUCCESS_FLOW,
               params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+                screen: Routes.ONBOARDING.SUCCESS,
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+                },
               },
             },
           ],
@@ -455,10 +479,8 @@ const ImportFromSecretRecoveryPhrase = ({
           navigation.dispatch(resetAction);
         } else {
           navigation.navigate('OptinMetrics', {
-            onContinue: () => {
-              navigation.dispatch(resetAction);
-            },
             accountType: AccountType.Imported,
+            successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
           });
         }
       } catch (error) {
@@ -469,7 +491,7 @@ const ImportFromSecretRecoveryPhrase = ({
           error_type: error.toString(),
         });
 
-        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
         if (onboardingTraceCtx) {
           trace({
             name: TraceName.OnboardingPasswordSetupError,
@@ -540,7 +562,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const uniqueId = useMemo(() => uuidv4(), []);
 
-  const content = (
+  return (
     <Box twClassName="flex-1 bg-default">
       <HeaderStandard
         includesTopInset
@@ -567,7 +589,7 @@ const ImportFromSecretRecoveryPhrase = ({
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
         showsVerticalScrollIndicator={false}
-        enabled={currentStep === 0}
+        enabled
       >
         <Animated.View
           style={[
@@ -682,7 +704,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   onFocus={() => setIsPasswordFieldFocused(true)}
                   onBlur={() => setIsPasswordFieldFocused(false)}
                   secureTextEntry={showPasswordIndex.includes(0)}
-                  returnKeyType={'next'}
+                  returnKeyType="next"
                   autoCapitalize="none"
                   autoComplete="new-password"
                   keyboardAppearance={themeAppearance || 'light'}
@@ -736,11 +758,12 @@ const ImportFromSecretRecoveryPhrase = ({
                   onChangeText={onPasswordConfirmChange}
                   secureTextEntry={showPasswordIndex.includes(1)}
                   autoComplete="new-password"
-                  returnKeyType={'next'}
+                  returnKeyType="done"
                   autoCapitalize="none"
                   value={confirmPassword}
                   isError={isError}
                   keyboardAppearance={themeAppearance || 'light'}
+                  onSubmitEditing={Keyboard.dismiss}
                   endAccessory={
                     <Icon
                       name={
@@ -809,30 +832,31 @@ const ImportFromSecretRecoveryPhrase = ({
                   }
                 />
               </Box>
-
-              <SafeAreaView
-                edges={['bottom']}
-                style={tw.style(
-                  'w-full gap-y-4 mt-auto',
-                  Platform.OS === 'android' ? 'mb-6' : 'mb-4',
-                )}
-              >
-                <Button
-                  isLoading={loading}
-                  isFullWidth
-                  variant={ButtonVariant.Primary}
-                  onPress={onPressImport}
-                  size={ButtonSize.Lg}
-                  isDisabled={isContinueButtonDisabled}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                >
-                  {strings('import_from_seed.import_create_password_cta')}
-                </Button>
-              </SafeAreaView>
             </Box>
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
+      {currentStep === 1 && (
+        <SafeAreaView
+          edges={['bottom']}
+          style={tw.style(
+            'px-4 w-full gap-y-4',
+            Platform.OS === 'android' ? 'mb-6' : 'mb-4',
+          )}
+        >
+          <Button
+            isLoading={loading}
+            isFullWidth
+            variant={ButtonVariant.Primary}
+            onPress={onPressImport}
+            size={ButtonSize.Lg}
+            isDisabled={isContinueButtonDisabled}
+            testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+          >
+            {strings('import_from_seed.import_create_password_cta')}
+          </Button>
+        </SafeAreaView>
+      )}
       {currentStep === 0 && (
         <SafeAreaView
           edges={['bottom']}
@@ -866,8 +890,6 @@ const ImportFromSecretRecoveryPhrase = ({
       <ScreenshotDeterrent enabled isSRP />
     </Box>
   );
-
-  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 ImportFromSecretRecoveryPhrase.propTypes = {

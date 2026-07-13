@@ -26,6 +26,7 @@ export {
   ActivityDetailsDualAmountHeader,
 } from './ActivityDetailsAmountHeader';
 export { ActivityDetailsMetadata } from './ActivityDetailsMetadata';
+export { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
 export {
   ActivityDetailsFeesAndTotal,
   ActivityDetailsFeeRows,

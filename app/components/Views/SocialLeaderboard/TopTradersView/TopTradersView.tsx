@@ -7,6 +7,8 @@ import React, {
   useTransition,
 } from 'react';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   FontWeight,
   HeaderStandardAnimated,
@@ -34,24 +36,33 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   selectSocialLeaderboardEnabled,
   selectSocialLeaderboardPerpsEnabled,
 } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../util/Logger';
+import NotificationService from '../../../../util/notifications/services/NotificationService';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
+import { useNotificationPreferences } from '../NotificationPreferences/hooks';
+import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
+import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
 import {
   TraderRow,
   TraderRowSkeleton,
@@ -72,12 +83,43 @@ import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
 type TabFilter = 'all' | 'tokens' | 'perps';
 
+// How long the post-onboarding "turn on notifications" nudge stays up before it
+// auto-dismisses (ms). Long enough to notice and act on after landing here, but
+// still transient so it never becomes permanent chrome.
+const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
+
+interface IdleCallbackGlobals {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout?: number },
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+}
+
 interface TabFilterItem {
   key: TabFilter;
   label: string;
 }
 
 const LEADERBOARD_LIMIT = 50;
+const INITIAL_TRADER_ROWS_TO_RENDER = 6;
+const SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS = 1000;
+
+const scheduleIdleTask = (task: () => void) => {
+  const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
+
+  if (!idleGlobals.requestIdleCallback) {
+    return undefined;
+  }
+
+  const idleCallbackId = idleGlobals.requestIdleCallback(task, {
+    timeout: SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS,
+  });
+
+  return () => {
+    idleGlobals.cancelIdleCallback?.(idleCallbackId);
+  };
+};
 
 const getTabFilters = (isPerpsEnabled: boolean): TabFilterItem[] => {
   const allFilter = {
@@ -171,10 +213,12 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
 
   const handleTabPress = useCallback(
     (next: TabFilter) => {
+      if (optimisticSelectedTab === next) return;
+      playSelection().catch(() => undefined);
       setOptimisticSelectedTab(next);
       onTabPress(next);
     },
-    [onTabPress],
+    [onTabPress, optimisticSelectedTab],
   );
 
   return (
@@ -215,13 +259,37 @@ const TopTradersView = () => {
     hasNotificationPreferences,
     isLoading: isLoadingNotificationPreferences,
   } = useNotificationStoragePreferences();
+  const {
+    preferences: notificationPreferences,
+    hasNotificationPreferences: hasSocialAiPreferences,
+    isTraderNotificationEnabled,
+    toggleTraderNotification,
+  } = useNotificationPreferences();
+  const showMuteChip = hasSocialAiPreferences;
+  const needsNotificationSetup =
+    hasSocialAiPreferences &&
+    areTradingSignalsChannelsDisabled(notificationPreferences);
+  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
   const title = strings('social_leaderboard.top_traders_view.title');
 
   const [renderedTab, setRenderedTab] = useState<TabFilter>('all');
+  const [queryEnabledTabs, setQueryEnabledTabs] = useState<
+    Record<TabFilter, boolean>
+  >({
+    all: true,
+    tokens: false,
+    perps: false,
+  });
   const [, startTabTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
+  // One-shot nudge shown when onboarding reports the user tapped "Allow
+  // notifications" but the OS denied it. Seeded from the route param so it only
+  // appears on that hand-off, never on normal tab visits.
+  const [showNotificationsBanner, setShowNotificationsBanner] = useState(
+    Boolean(route.params?.showNotificationsBanner),
+  );
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
@@ -243,17 +311,17 @@ const TopTradersView = () => {
   const allResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: allChains,
-    enabled: isEnabled,
+    enabled: isEnabled && queryEnabledTabs.all,
   });
   const tokensResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: SPOT_CHAINS,
-    enabled: isEnabled && isPerpsEnabled,
+    enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.tokens,
   });
   const perpsResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: PERP_CHAINS,
-    enabled: isEnabled && isPerpsEnabled,
+    enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.perps,
   });
 
   const resultsByTab = useMemo(
@@ -268,6 +336,14 @@ const TopTradersView = () => {
   const activeTab = isPerpsEnabled ? renderedTab : 'all';
   const activeResult = resultsByTab[activeTab];
   const { traders, isLoading, toggleFollow } = activeResult;
+  const shouldPrefetchSecondaryTabs =
+    isEnabled &&
+    isPerpsEnabled &&
+    activeTab === 'all' &&
+    !allResult.isLoading &&
+    (!queryEnabledTabs.tokens || !queryEnabledTabs.perps);
+  const shouldRefreshTokens = isPerpsEnabled && queryEnabledTabs.tokens;
+  const shouldRefreshPerps = isPerpsEnabled && queryEnabledTabs.perps;
 
   useEffect(() => {
     if (!isEnabled) {
@@ -291,6 +367,20 @@ const TopTradersView = () => {
     });
   }, [isEnabled, source, track]);
 
+  useEffect(() => {
+    if (!shouldPrefetchSecondaryTabs) {
+      return undefined;
+    }
+
+    return scheduleIdleTask(() => {
+      setQueryEnabledTabs((current) => ({
+        ...current,
+        tokens: true,
+        perps: true,
+      }));
+    });
+  }, [shouldPrefetchSecondaryTabs]);
+
   const handleTabPress = useCallback(
     (next: TabFilter) => {
       if (!isPerpsEnabled && next !== 'all') return;
@@ -302,6 +392,9 @@ const TopTradersView = () => {
         [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: previousTab,
       });
       startTabTransition(() => {
+        setQueryEnabledTabs((current) =>
+          current[next] ? current : { ...current, [next]: true },
+        );
         setRenderedTab(next);
       });
     },
@@ -309,16 +402,23 @@ const TopTradersView = () => {
   );
 
   const handleFollowPress = useCallback(
-    (traderId: string) => {
+    async (traderId: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      toggleFollow(traderId, {
-        source: 'leaderboard',
-        traderAddress: trader?.address ?? '',
-        traderUsername: trader?.username,
-        traderRank: trader?.rank,
-      });
+      const wasFollowing = trader?.isFollowing ?? false;
+      const performFollow = () =>
+        toggleFollow(traderId, {
+          source: 'leaderboard',
+          traderAddress: trader?.address ?? '',
+          traderUsername: trader?.username,
+          traderRank: trader?.rank,
+          traderAvatarUri: trader?.avatarUri,
+        });
+      if (!wasFollowing && openSetupIfNeeded(performFollow)) {
+        return;
+      }
+      await performFollow();
     },
-    [traders, toggleFollow],
+    [traders, toggleFollow, openSetupIfNeeded],
   );
 
   const {
@@ -350,6 +450,28 @@ const TopTradersView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  // Auto-dismiss the notifications nudge after a fixed window so it never lingers
+  // as permanent chrome. Cleared on manual close/unmount via the effect cleanup.
+  useEffect(() => {
+    if (!showNotificationsBanner) {
+      return undefined;
+    }
+    const timeoutId = setTimeout(
+      () => setShowNotificationsBanner(false),
+      NOTIFICATIONS_BANNER_AUTO_DISMISS_MS,
+    );
+    return () => clearTimeout(timeoutId);
+  }, [showNotificationsBanner]);
+
+  const handleDismissNotificationsBanner = useCallback(() => {
+    setShowNotificationsBanner(false);
+  }, []);
+
+  const handleOpenNotificationSettings = useCallback(() => {
+    setShowNotificationsBanner(false);
+    NotificationService.openSystemSettings();
+  }, []);
 
   const handleNotificationPreferencesPress = useCallback(() => {
     if (isLoadingNotificationPreferences) {
@@ -385,9 +507,8 @@ const TopTradersView = () => {
       );
       await Promise.all([
         allResult.refresh(),
-        ...(isPerpsEnabled
-          ? [tokensResult.refresh(), perpsResult.refresh()]
-          : []),
+        ...(shouldRefreshTokens ? [tokensResult.refresh()] : []),
+        ...(shouldRefreshPerps ? [perpsResult.refresh()] : []),
         minDuration,
       ]);
     } catch (err) {
@@ -404,7 +525,13 @@ const TopTradersView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [allResult, tokensResult, perpsResult, isPerpsEnabled]);
+  }, [
+    allResult,
+    tokensResult,
+    perpsResult,
+    shouldRefreshTokens,
+    shouldRefreshPerps,
+  ]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
@@ -428,15 +555,47 @@ const TopTradersView = () => {
     [navigation, traders, activeTab, track],
   );
 
+  const handleMuteToggle = useCallback(
+    (traderId: string) => {
+      // Tapping a bell that only looks disabled because notifications are off
+      // means "enable"; forward an idempotent unmute rather than a toggle.
+      const ensureUnmuted = () => {
+        if (!isTraderNotificationEnabled(traderId)) {
+          // Symmetric with the Follow button: same Light impact on any real toggle.
+          playImpact(ImpactMoment.FollowToggle);
+          toggleTraderNotification(traderId);
+        }
+      };
+      if (openSetupIfNeeded(ensureUnmuted)) {
+        return;
+      }
+      playImpact(ImpactMoment.FollowToggle);
+      toggleTraderNotification(traderId);
+    },
+    [openSetupIfNeeded, toggleTraderNotification, isTraderNotificationEnabled],
+  );
+
   const renderTraderRow = useCallback(
     ({ item }: { item: TopTrader }) => (
       <TraderRow
         trader={item}
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
+        showMute={showMuteChip}
+        isMuted={
+          !isTraderNotificationEnabled(item.id) || needsNotificationSetup
+        }
+        onMuteToggle={handleMuteToggle}
       />
     ),
-    [handleFollowPress, handleTraderPress],
+    [
+      handleFollowPress,
+      handleTraderPress,
+      showMuteChip,
+      needsNotificationSetup,
+      isTraderNotificationEnabled,
+      handleMuteToggle,
+    ],
   );
 
   const listHeader = useMemo(
@@ -491,6 +650,23 @@ const TopTradersView = () => {
         testID={TopTradersViewSelectorsIDs.HEADER}
       />
 
+      {showNotificationsBanner && (
+        <Box twClassName="px-4 pt-2">
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            description={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.description',
+            )}
+            actionButtonLabel={strings(
+              'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+            )}
+            actionButtonOnPress={handleOpenNotificationSettings}
+            onClose={handleDismissNotificationsBanner}
+            testID={TopTradersViewSelectorsIDs.NOTIFICATIONS_BANNER}
+          />
+        </Box>
+      )}
+
       <Box twClassName="flex-1">
         {isLoading && traders.length === 0 ? (
           <Animated.ScrollView
@@ -524,7 +700,8 @@ const TopTradersView = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('pb-6')}
             testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-            initialNumToRender={15}
+            initialNumToRender={INITIAL_TRADER_ROWS_TO_RENDER}
+            maxToRenderPerBatch={INITIAL_TRADER_ROWS_TO_RENDER}
             windowSize={5}
             onScroll={onScroll}
             scrollEventThrottle={16}

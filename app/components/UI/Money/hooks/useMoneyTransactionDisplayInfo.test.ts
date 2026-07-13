@@ -781,7 +781,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
     expect(result.current.primaryAmount).toContain('mUSD');
   });
 
-  it('converts mUSD to EUR via the peg (ignoring market rate)', () => {
+  it('always shows mUSD in USD via the peg, ignoring preferred currency', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -817,8 +817,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
       { state },
     );
 
-    expect(result.current.fiatAmount).toMatch(/^\+/);
-    expect(result.current.fiatAmount).toMatch(/920/);
+    expect(result.current.fiatAmount).toBe('+$1,000.00');
     expect(result.current.primaryAmount).toMatch(/1,000\.00/);
     expect(result.current.primaryAmount).toContain('mUSD');
   });

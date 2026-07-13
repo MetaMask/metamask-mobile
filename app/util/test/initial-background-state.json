@@ -289,6 +289,10 @@
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
       },
+      "stellar": {
+        "stellar:pubnet": true,
+        "stellar:testnet": false
+      },
       "tron": {
         "tron:2494104990": false,
         "tron:3448148188": false,
@@ -514,6 +518,10 @@
       "mainnet": [],
       "testnet": []
     },
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "tradeConfigurations": {
       "mainnet": {},
       "testnet": {}
@@ -524,6 +532,10 @@
     },
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
@@ -642,6 +654,18 @@
         "name": "Solana Devnet",
         "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
       },
+      "stellar:pubnet": {
+        "chainId": "stellar:pubnet",
+        "isEvm": false,
+        "name": "Stellar",
+        "nativeCurrency": "stellar:pubnet/slip44:148"
+      },
+      "stellar:testnet": {
+        "chainId": "stellar:testnet",
+        "isEvm": false,
+        "name": "Stellar Testnet",
+        "nativeCurrency": "stellar:testnet/slip44:148"
+      },
       "tron:2494104990": {
         "chainId": "tron:2494104990",
         "isEvm": false,
@@ -694,6 +718,7 @@
     "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
+    "quoteUpdateStatusStore": {},
     "txHistory": {}
   },
   "CardController": {
@@ -706,6 +731,12 @@
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null
+  },
+  "ConfigRegistryController": {
+    "configs": { "networks": {} },
+    "etag": null,
+    "lastFetched": null,
+    "version": null
   },
   "ClientController": {
     "isUiOpen": false
@@ -798,6 +829,7 @@
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
     "clientVersionRequirements": null,
+    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -824,6 +856,15 @@
     "activeBuyOrders": {},
     "selectedPaymentToken": null,
     "accountMeta": {}
+  },
+  "QrSyncController": {
+    "phase": "idle",
+    "connectionStatus": "disconnected",
+    "pendingSecretImports": null,
+    "provisioningMetadata": null,
+    "provisioningStatus": null,
+    "otp": null,
+    "error": null
   },
   "AiDigestController": {
     "marketInsights": {},

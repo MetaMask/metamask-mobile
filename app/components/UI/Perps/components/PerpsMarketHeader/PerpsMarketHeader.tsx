@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import PerpsMarketInlineHeader from '../PerpsMarketInlineHeader';
 
@@ -14,6 +14,7 @@ interface PerpsMarketHeaderProps {
   fullscreenButtonTestID?: string;
   /** Current price from candle stream - syncs header with chart */
   currentPrice: number;
+  endAccessory?: ReactNode;
 }
 
 const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = (props) => (

@@ -94,6 +94,15 @@ import {
   ConnectivityControllerState,
 } from '@metamask/connectivity-controller';
 import {
+  ConfigRegistryController,
+  type ConfigRegistryControllerState,
+  type ConfigRegistryControllerEvents,
+  ConfigRegistryControllerActions,
+  ConfigRegistryApiServiceActions,
+  ConfigRegistryApiServiceEvents,
+  ConfigRegistryApiService,
+} from '@metamask/config-registry-controller';
+import {
   KeyringController,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -343,6 +352,16 @@ import type {
   CardControllerActions,
   CardControllerEvents,
 } from './controllers/card-controller/types';
+import { QrSyncController } from '../QrSync/QrSyncController';
+import type {
+  QrSyncControllerState,
+  QrSyncControllerActions,
+  QrSyncControllerEvents,
+} from '../QrSync/controller-types';
+import {
+  QrSyncProvisioningService,
+  type QrSyncProvisioningServiceActions,
+} from '../QrSync/services/qr-sync-provisioning-service';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -592,6 +611,8 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | CardControllerActions
+  | QrSyncControllerActions
+  | QrSyncProvisioningServiceActions
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
@@ -614,6 +635,8 @@ export type GlobalActions =
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions
+  | ConfigRegistryControllerActions
+  | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions;
 
@@ -627,6 +650,8 @@ export type GlobalEvents =
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
+  | ConfigRegistryControllerEvents
+  | ConfigRegistryApiServiceEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
@@ -683,6 +708,7 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | CardControllerEvents
+  | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
@@ -753,6 +779,8 @@ export type MessengerClients = {
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
+  ConfigRegistryController: ConfigRegistryController;
+  ConfigRegistryApiService: ConfigRegistryApiService;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
@@ -821,6 +849,8 @@ export type MessengerClients = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   CardController: CardController;
+  QrSyncController: QrSyncController;
+  QrSyncProvisioningService: QrSyncProvisioningService;
   ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
@@ -859,6 +889,7 @@ export type EngineState = {
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
+  ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
@@ -911,6 +942,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
@@ -956,9 +988,10 @@ export type MessengerClientsToInitialize =
   | 'SamplePetnamesController'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTrackerController'
-  | 'AddressBookController'
   | 'AssetsContractController'
   | 'AssetsController'
+  | 'ConfigRegistryController'
+  | 'ConfigRegistryApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
@@ -1013,6 +1046,8 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'CardController'
+  | 'QrSyncController'
+  | 'QrSyncProvisioningService'
   | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'

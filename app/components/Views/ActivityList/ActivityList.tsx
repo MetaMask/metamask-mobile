@@ -99,6 +99,8 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isSpendingCapWithAmount,
+  type ActivityKind,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
 import {
@@ -108,7 +110,7 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
-import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
+import { getActivityDetailsRoute } from './getActivityDetailsRoute';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
@@ -178,6 +180,7 @@ interface ActivityListProps {
   scrollY?: SharedValue<number>;
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
+  subFilterKinds?: ReadonlySet<ActivityKind>;
 }
 
 export interface ActivityListHandle {
@@ -186,7 +189,18 @@ export interface ActivityListHandle {
 }
 
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
-  ({ header, chainId, location, scrollY, typeFilter, networkFilter }, ref) => {
+  (
+    {
+      header,
+      chainId,
+      location,
+      scrollY,
+      typeFilter,
+      networkFilter,
+      subFilterKinds,
+    },
+    ref,
+  ) => {
     const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
@@ -336,13 +350,24 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           .map((item) => item.hash?.toLowerCase())
           .filter(Boolean) as string[],
       );
+      const confirmedItemByHash = new Map<string, ActivityListItem>();
+      for (const confirmed of allConfirmedForConfiguredChains) {
+        const hash = confirmed.hash?.toLowerCase();
+        if (hash && !confirmedItemByHash.has(hash)) {
+          confirmedItemByHash.set(hash, confirmed);
+        }
+      }
 
       const localDomainKindHashes = new Set(
         localActivityItems
           .filter(
             (item) =>
               (item.type === 'predictionsAddFunds' ||
-                item.type === 'predictionsWithdrawFunds') &&
+                item.type === 'predictionsWithdrawFunds' ||
+                item.type === 'deposit' ||
+                item.type === 'claim' ||
+                item.type === 'unstake' ||
+                item.type === 'smartAccountUpgrade') &&
               item.raw?.type === 'localTransaction',
           )
           .map((item) =>
@@ -352,6 +377,29 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           )
           .filter(Boolean) as string[],
       );
+
+      const localWinsHashes = new Set(localDomainKindHashes);
+      for (const localItem of localActivityItems) {
+        if (localItem.raw?.type !== 'localTransaction') continue;
+        const hash = localItem.raw.data.primaryTransaction.hash?.toLowerCase();
+        if (!hash) continue;
+        const confirmed = confirmedItemByHash.get(hash);
+        if (!confirmed) continue;
+        const localOutCategorizesConfirmed =
+          confirmed.type !== localItem.type &&
+          localItem.type !== 'contractInteraction' &&
+          localItem.type !== 'swapIncomplete';
+        // Same-kind spending caps: the accounts API returns no calldata for an
+        // approve, so its confirmed copy has no cap amount. Prefer the local
+        // copy, which decodes the amount from calldata.
+        const localHasRicherSpendingCap =
+          confirmed.type === localItem.type &&
+          isSpendingCapWithAmount(localItem) &&
+          !isSpendingCapWithAmount(confirmed);
+        if (localOutCategorizesConfirmed || localHasRicherSpendingCap) {
+          localWinsHashes.add(hash);
+        }
+      }
 
       // localActivityItems are already mapped from TransactionMeta via the adapter;
       // here we apply the same chain-filter and EVM-confirmed dedup that existed before.
@@ -371,10 +419,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         // Dedup against confirmed by hash — bridge txns are exempt from nonce dedup
         const hash = tx.hash?.toLowerCase();
-        // Domain-specific local kinds win over the generic confirmed copy.
-        const isLocalDomainKind = !!hash && localDomainKindHashes.has(hash);
-        if (hash && confirmedHashes.has(hash) && !isLocalDomainKind)
-          return false;
+        // Local copies that out-categorize their confirmed copy win over it.
+        const localWins = !!hash && localWinsHashes.has(hash);
+        if (hash && confirmedHashes.has(hash) && !localWins) return false;
 
         // Nonce dedup: skip local if a confirmed tx has the same nonce+from+chain
         // (bridge txns exempt, as they may have same nonce as their approval)
@@ -382,7 +429,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           tx,
           bridgeHistoryValues,
         );
-        if (!isBridgeTx && !isLocalDomainKind) {
+        if (!isBridgeTx && !localWins) {
           const nonce = tx.txParams?.nonce;
           const from = tx.txParams?.from?.toLowerCase();
           if (nonce !== undefined && nonce !== null && from) {
@@ -434,12 +481,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
       const nonEvmItems = mapNonEvmTransactions(filteredNonEvmForMalicious);
 
+      // Drop confirmed copies whose local copy won above, so the winning local
+      // copy isn't rendered alongside a duplicate confirmed row.
       const confirmedEvmItems =
-        localDomainKindHashes.size === 0
+        localWinsHashes.size === 0
           ? allConfirmedForConfiguredChains
           : allConfirmedForConfiguredChains.filter((item) => {
               const hash = item.hash?.toLowerCase();
-              return !(hash && localDomainKindHashes.has(hash));
+              return !(hash && localWinsHashes.has(hash));
             });
 
       return {
@@ -476,6 +525,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           activityKindMatchesTypeFilter(item.type, typeFilter),
         );
       }
+      if (subFilterKinds) {
+        filtered = filtered.filter((item) => subFilterKinds.has(item.type));
+      }
       if (networkFilter && networkFilter.length > 0) {
         const allowedChains = new Set(
           networkFilter.map((caipChainId) => caipChainId.toLowerCase()),
@@ -489,6 +541,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }, [
       unifiedTransactionSource,
       typeFilter,
+      subFilterKinds,
       networkFilter,
       isPerpsEnabled,
       perpsSource.items,
@@ -765,28 +818,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
-        // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
-        // to the new ActivityDetails screen, replacing the legacy detail sheets.
-        // Specialized flows (bridge) keep their dedicated
-        // screens until they get redesigned templates — ActivityDetails only
-        // resolves local/API/non-EVM/domain items, so it can't render those yet.
-        const hasDedicatedScreen =
-          raw.type === 'localTransaction' &&
-          raw.data.primaryTransaction?.type === TransactionType.bridge;
-        if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
-          // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
-          // outside their source tree, so hand the row off via the transient
-          // store and pass only its key in the (serializable) params.
-          const preloadKey =
-            raw.type === 'perpsTransaction' || raw.type === 'predictActivity'
-              ? stashPreloadedActivityItem(item)
-              : undefined;
-          navigation.navigate(Routes.ACTIVITY_DETAILS, {
-            chainId: item.chainId,
-            txIdentifier: item.hash,
-            ...(preloadKey ? { preloadKey } : {}),
-          });
-          return;
+        if (isTransactionsRedesignEnabled) {
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
         }
 
         const pressToken = (activityPressTokenRef.current += 1);
@@ -1104,7 +1141,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }, [typeFilter, networkFilter]);
+    }, [typeFilter, networkFilter, subFilterKinds]);
 
     const runAutoScroll = useCallback(() => {
       handleScroll();
@@ -1119,9 +1156,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       },
     });
 
+    const perpsSubFilterActive =
+      typeFilter === ActivityTypeFilter.Perps &&
+      Boolean(subFilterKinds) &&
+      isPerpsEnabled &&
+      perpsSource.items.length > 0;
+
     const renderEmptyList = () => (
       <View style={styles.emptyList}>
-        <ActivityEmptyState typeFilter={typeFilter ?? ActivityTypeFilter.All} />
+        <ActivityEmptyState
+          typeFilter={typeFilter ?? ActivityTypeFilter.All}
+          perpsSubFilterActive={perpsSubFilterActive}
+        />
       </View>
     );
 

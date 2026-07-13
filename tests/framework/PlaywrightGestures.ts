@@ -99,6 +99,7 @@ export default class PlaywrightGestures {
    */
   private static async isElementInteractive(
     elem: PlaywrightElement,
+    memo?: { hasClickableAncestor?: boolean },
   ): Promise<boolean> {
     if (!(await elem.isEnabled())) {
       return false;
@@ -113,7 +114,31 @@ export default class PlaywrightGestures {
         elem.getAttribute('clickable'),
         elem.getAttribute('enabled'),
       ]);
-      return clickableAttr !== 'false' && enabledAttr !== 'false';
+      if (enabledAttr === 'false') {
+        return false;
+      }
+      if (clickableAttr !== 'false') {
+        return true;
+      }
+      // RN often attaches testIDs to non-clickable Text/View children whose
+      // touchable ancestor receives the tap (Appium clicks by coordinates), and
+      // whether the child is merged into the touchable's accessibility node is
+      // nondeterministic. A genuinely disabled control has no clickable ancestor.
+      if (memo?.hasClickableAncestor) {
+        return true;
+      }
+      // findElements returns [] for the ancestor axis on UiAutomator2 even when
+      // the ancestor exists, so probe with a scoped findElement and check error.
+      const ancestor = await elem
+        .unwrap()
+        .$('./ancestor::*[@clickable="true"]');
+      const hasClickableAncestor = ancestor.error === undefined;
+      if (hasClickableAncestor && memo) {
+        // The probe costs seconds (full page-source xpath); a positive verdict
+        // is structural and stable for the duration of one interactive wait.
+        memo.hasClickableAncestor = true;
+      }
+      return hasClickableAncestor;
     } catch {
       return true;
     }
@@ -131,9 +156,10 @@ export default class PlaywrightGestures {
     const requiredStableReads = options?.requiredStableReads ?? 6;
     const start = Date.now();
     let consecutiveInteractive = 0;
+    const memo: { hasClickableAncestor?: boolean } = {};
 
     while (Date.now() - start < timeout - interval) {
-      if (await this.isElementInteractive(elem)) {
+      if (await this.isElementInteractive(elem, memo)) {
         consecutiveInteractive += 1;
         if (consecutiveInteractive >= requiredStableReads) {
           return;
@@ -509,6 +535,19 @@ export default class PlaywrightGestures {
   }
 
   /**
+   * Submit the focused Android URL field via KEYCODE_ENTER (66).
+   * Matches the ↵ key on the URL keyboard (no "Go" label on most IMEs).
+   */
+  @boxedStep
+  static async submitAndroidUrlBar(): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    logger.debug('submitAndroidUrlBar: pressKeyCode(66) ENTER');
+    await drv.pressKeyCode(66);
+  }
+
+  /**
    * Press a return key on the soft keyboard (e.g. 'Next', 'Done', 'Go').
    * Use when tapOutside cannot dismiss the keyboard (keyboardDismissMode="none")
    * or when onSubmitEditing must fire to advance the flow.
@@ -521,13 +560,7 @@ export default class PlaywrightGestures {
     logger.debug(`Tapping keyboard return key: ${keyName}`);
 
     if (PlatformDetector.isAndroid()) {
-      try {
-        await drv.execute('mobile: performEditorAction', [
-          { action: keyName.toLowerCase() },
-        ]);
-      } catch {
-        await drv.hideKeyboard();
-      }
+      await drv.pressKeyCode(66);
       return;
     }
 

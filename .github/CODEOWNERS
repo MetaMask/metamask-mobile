@@ -142,22 +142,24 @@ app/core/Engine/controllers/bridge-controller            @MetaMask/swaps-enginee
 app/core/Engine/controllers/bridge-status-controller     @MetaMask/swaps-engineers
 
 # Engagement Team
+# Braze
 **/*Braze*/ @MetaMask/engagement
 **/*Braze* @MetaMask/engagement
 **/*braze*/ @MetaMask/engagement
 **/*braze* @MetaMask/engagement
-app/components/Views/Notifications @MetaMask/engagement
-app/components/Views/Settings/NotificationsSettings @MetaMask/engagement
+# Notifications — directories (list, details, state, controllers, tests)
 **/Notifications/** @MetaMask/engagement
 **/Notification/** @MetaMask/engagement
 **/notifications/** @MetaMask/engagement
 **/notification/** @MetaMask/engagement
+# Notifications — paths not covered by directory wildcards above
+app/components/Views/Settings/NotificationsSettings/ @MetaMask/engagement
+app/core/NotificationManager.js @MetaMask/engagement
+app/core/NotificationsManager.test.ts @MetaMask/engagement
+# Engagement
 **/Engagement/** @MetaMask/engagement
 **/engagement/** @MetaMask/engagement
-**/*engagement* @MetaMask/engagement
-**/*Engagement* @MetaMask/engagement
-**/*notification* @MetaMask/engagement
-**/*Notification* @MetaMask/engagement
+app/constants/engagement.ts @MetaMask/engagement
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -285,6 +287,7 @@ app/components/Views/NetworkSelector             @MetaMask/mobile-core-ux
 app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
 app/components/Views/QRScanner                   @MetaMask/mobile-core-ux
 app/components/Views/Settings                    @MetaMask/mobile-core-ux
+app/components/Views/Settings/NotificationsSettings @MetaMask/mobile-core-ux @MetaMask/engagement
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
@@ -313,7 +316,10 @@ app/components/Views/transactions @MetaMask/transactions
 # Web3auth Team
 app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
+app/core/Engine/controllers/qr-sync-controller-init.ts      @MetaMask/web3auth
+app/core/Engine/messengers/qr-sync-controller-messenger     @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
+app/core/QrSync                                             @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/components/Views/OnboardingSheet                        @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
@@ -389,7 +395,7 @@ tests/websocket/                                                @MetaMask/qa
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
 app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/money-movement
 
-# Wallet Library initialization  
+# Wallet Library initialization
 app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations

@@ -18,6 +18,15 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingVertical: 12,
       paddingHorizontal: 16,
     },
+    inputCardsWrapper: {
+      position: 'relative',
+    },
+    tokenCard: {
+      backgroundColor: theme.colors.background.section,
+      borderRadius: 16,
+      paddingHorizontal: 12,
+      paddingVertical: 24,
+    },
     buttonContainer: {
       width: '100%',
       paddingHorizontal: 16,
@@ -44,7 +53,6 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     scrollViewContent: {
       flexGrow: 1,
-      paddingBottom: 16,
     },
     loadingContainer: {
       paddingTop: 8,
@@ -54,12 +62,6 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     destTokenArea: {
       // marginTop: 16,
-    },
-    keypadBottomSheet: {
-      marginBottom: -1,
-      marginHorizontal: -1,
-      borderColor: theme.colors.border.muted,
-      borderBottomColor: theme.colors.background.default,
     },
   });
 };

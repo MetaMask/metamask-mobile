@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { type ReactNode, useMemo } from 'react';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -27,6 +27,7 @@ export interface PerpsMarketInlineHeaderProps {
   isFavorite?: boolean;
   testID?: string;
   fullscreenButtonTestID?: string;
+  endAccessory?: ReactNode;
 }
 
 export const PerpsMarketInlineHeader = ({
@@ -40,6 +41,7 @@ export const PerpsMarketInlineHeader = ({
   isFavorite = false,
   testID,
   fullscreenButtonTestID,
+  endAccessory,
 }: PerpsMarketInlineHeaderProps) => {
   const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
 
@@ -74,6 +76,7 @@ export const PerpsMarketInlineHeader = ({
         testID:
           fullscreenButtonTestID ??
           `${testID ?? 'perps-market-header'}-fullscreen-button`,
+        accessibilityLabel: strings('perps.market_details.fullscreen_chart'),
       });
     }
 
@@ -126,7 +129,8 @@ export const PerpsMarketInlineHeader = ({
           />
         ) : undefined
       }
-      endButtonIconProps={endButtonIconProps}
+      endAccessory={endAccessory}
+      endButtonIconProps={endAccessory ? undefined : endButtonIconProps}
       avatar={
         <PerpsTokenLogo
           symbol={market.symbol}

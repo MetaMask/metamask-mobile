@@ -1,4 +1,10 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -26,7 +32,7 @@ import Input from '../../../../../component-library/components/Form/TextField/fo
 import { TokenButton } from '../TokenButton';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { BigNumber } from 'ethers';
-import { BridgeToken } from '../../types';
+import { BridgeToken, TokenSelectorType } from '../../types';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import OldButton, {
@@ -44,7 +50,12 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
-import { isNativeAddress } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  formatAddressToAssetId,
+  isNativeAddress,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
@@ -53,6 +64,8 @@ import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLo
 import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
+import { normalizeTokenAddress } from '../../utils/tokenUtils';
+import Engine from '../../../../../core/Engine';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -65,7 +78,7 @@ const createStyles = ({
 }) =>
   StyleSheet.create({
     content: {
-      paddingVertical: 16,
+      paddingVertical: 0,
     },
     row: {
       flexDirection: 'row',
@@ -236,16 +249,38 @@ export const TokenInputArea = forwardRef<
     }));
 
     const navigation = useNavigation();
+    const tokenSelectorType =
+      tokenType === TokenInputAreaType.Source || isSourceToken
+        ? TokenSelectorType.Source
+        : TokenSelectorType.Dest;
+
+    const trackAssetPickerOpened = useCallback((type: TokenSelectorType) => {
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location:
+            type === TokenSelectorType.Source ? 'source' : 'destination',
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+        },
+      );
+    }, []);
+
+    const handleTokenButtonPress = useCallback(() => {
+      trackAssetPickerOpened(tokenSelectorType);
+      onTokenPress?.();
+    }, [onTokenPress, tokenSelectorType, trackAssetPickerOpened]);
 
     const navigateToDestTokenSelector = () => {
+      trackAssetPickerOpened(TokenSelectorType.Dest);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'dest',
+        type: TokenSelectorType.Dest,
       });
     };
 
     const navigateToSourceTokenSelector = () => {
+      trackAssetPickerOpened(TokenSelectorType.Source);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'source',
+        type: TokenSelectorType.Source,
       });
     };
 
@@ -301,6 +336,17 @@ export const TokenInputArea = forwardRef<
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
+    const tokenSecurityBadgeAssetId = useMemo(
+      () =>
+        token
+          ? formatAddressToAssetId(
+              normalizeTokenAddress(token.address, token.chainId),
+              token.chainId,
+            )
+          : undefined,
+      [token],
+    );
+
     const subtitle =
       tokenType === TokenInputAreaType.Source
         ? formattedBalance
@@ -328,7 +374,7 @@ export const TokenInputArea = forwardRef<
 
     return (
       <Box style={style}>
-        <Box style={styles.content} gap={4}>
+        <Box style={styles.content} gap={2}>
           <Box style={styles.row}>
             <Box style={styles.amountContainer} onLayout={onContainerLayout}>
               {isLoading ? (
@@ -386,7 +432,8 @@ export const TokenInputArea = forwardRef<
                 networkImageSource={networkImageSource}
                 networkName={networkName}
                 testID={testID}
-                onPress={onTokenPress}
+                onPress={handleTokenButtonPress}
+                securityBadgeAssetId={tokenSecurityBadgeAssetId}
               />
             ) : (
               <Button

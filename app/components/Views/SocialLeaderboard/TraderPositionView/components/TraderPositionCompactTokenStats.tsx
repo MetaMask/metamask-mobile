@@ -9,7 +9,9 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
+import PerpBadges from '../../components/PerpBadges';
 import { formatPercent } from '../../utils/formatters';
+import type { PerpDirection } from '../../utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 
 export interface TraderPositionCompactTokenStatsProps {
@@ -19,6 +21,8 @@ export interface TraderPositionCompactTokenStatsProps {
   traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
+  perpDirection?: PerpDirection | null;
+  perpLeverage?: number | null;
   onTraderPress: () => void;
 }
 
@@ -31,6 +35,8 @@ const TraderPositionCompactTokenStats: React.FC<
   traderName,
   traderImageUrl,
   traderAddress,
+  perpDirection,
+  perpLeverage,
   onTraderPress,
 }) => {
   const hasChange = pricePercentChange != null;
@@ -40,15 +46,30 @@ const TraderPositionCompactTokenStats: React.FC<
       alignItems={BoxAlignItems.Center}
       testID={TraderPositionViewSelectorsIDs.COMPACT_TOKEN_STATS}
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Bold}
-        color={TextColor.TextDefault}
-        numberOfLines={1}
-        testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+        twClassName="max-w-full"
       >
-        {symbol}
-      </Text>
+        <Box twClassName="min-w-0 flex-shrink">
+          <TraderHeaderIdentity
+            traderName={traderName}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            variant="breadcrumb"
+            onPress={onTraderPress}
+            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TRADER_LINK}
+          />
+        </Box>
+        {perpDirection ? (
+          <PerpBadges
+            direction={perpDirection}
+            leverage={perpLeverage}
+            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_PERP_BADGES}
+          />
+        ) : null}
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -56,6 +77,16 @@ const TraderPositionCompactTokenStats: React.FC<
         twClassName="max-w-full px-1"
         testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE}
       >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+          twClassName="shrink"
+          testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_SYMBOL}
+        >
+          {symbol}
+        </Text>
         {hasChange ? (
           <>
             <Text
@@ -66,7 +97,7 @@ const TraderPositionCompactTokenStats: React.FC<
                   : 'text-error-default'
               }
             >
-              {`${formatPercent(pricePercentChange)} `}
+              {formatPercent(pricePercentChange)}
             </Text>
             <Text
               variant={TextVariant.BodySm}
@@ -80,19 +111,6 @@ const TraderPositionCompactTokenStats: React.FC<
             {'\u2014'}
           </Text>
         )}
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {' \u00b7 '}
-        </Text>
-        <Box twClassName="min-w-0 flex-shrink">
-          <TraderHeaderIdentity
-            traderName={traderName}
-            traderImageUrl={traderImageUrl}
-            traderAddress={traderAddress}
-            variant="breadcrumb"
-            onPress={onTraderPress}
-            testID={TraderPositionViewSelectorsIDs.HEADER_COMPACT_TRADER_LINK}
-          />
-        </Box>
       </Box>
     </Box>
   );

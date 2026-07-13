@@ -30,6 +30,21 @@ import {
   endTrace,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
+import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
+import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
+
+const mockQrSyncResetState = jest.fn();
+
+jest.mock('../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      QrSyncController: {
+        resetState: () => mockQrSyncResetState(),
+      },
+    },
+  },
+}));
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
@@ -95,6 +110,13 @@ const initialState = {
   user: {
     passwordSet: true,
     seedphraseBackedUp: false,
+  },
+  engine: {
+    backgroundState: {
+      QrSyncController: {
+        ...defaultQrSyncControllerState,
+      },
+    },
   },
 };
 
@@ -175,6 +197,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(
         getByText(
           strings('import_from_seed.enter_your_secret_recovery_phrase'),
+          { exact: false },
         ),
       ).toBeOnTheScreen();
     });
@@ -1193,6 +1216,145 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
   });
 
+  describe('QR sync import flow', () => {
+    const qrSyncMnemonic =
+      'say devote wasp video cool lunch brief add fever uncover novel offer';
+
+    const qrSyncImportState = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          QrSyncController: {
+            ...defaultQrSyncControllerState,
+            pendingSecretImports: [
+              {
+                index: 0,
+                value: qrSyncMnemonic,
+                type: QrSyncSecretTypes.MNEMONIC,
+                isPrimary: true,
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    it('prefills the seed phrase and opens the password step for QR sync imports', async () => {
+      const { getByText, queryByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: qrSyncImportState },
+        { qrSyncImport: true },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.metamask_password')),
+        ).toBeOnTheScreen();
+      });
+
+      expect(
+        queryByPlaceholderText(strings('import_from_seed.srp_placeholder')),
+      ).toBeNull();
+    });
+
+    it('calls navigation.goBack when back is pressed on the password step', async () => {
+      const mockGoBack = jest.fn();
+      const Stack = createNativeStackNavigator();
+
+      const { getByTestId } = renderWithProvider(
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen
+              name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+              initialParams={{ qrSyncImport: true }}
+            >
+              {({ navigation, route }) => {
+                jest.spyOn(navigation, 'goBack').mockImplementation(mockGoBack);
+                return (
+                  <ImportFromSecretRecoveryPhrase
+                    navigation={navigation}
+                    route={route}
+                  />
+                );
+              }}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>,
+        { state: qrSyncImportState },
+        false,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not prefill the seed phrase when qrSyncImport is false', async () => {
+      const { getByPlaceholderText, queryByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: qrSyncImportState },
+      );
+
+      expect(
+        getByPlaceholderText(strings('import_from_seed.srp_placeholder')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+      ).toBeNull();
+    });
+
+    it('preserves QR sync provisioning state after a successful vault import', async () => {
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce();
+
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: qrSyncImportState },
+        { qrSyncImport: true },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(
+        getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        'StrongPass123!',
+      );
+      fireEvent.changeText(
+        getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
+        'StrongPass123!',
+      );
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
+      fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
+
+      await waitFor(() => {
+        expect(newWalletAndRestoreSpy).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockQrSyncResetState).not.toHaveBeenCalled();
+    });
+  });
+
   const renderCreatePasswordUI = async (onboardingTraceCtx?: {
     traceId: string;
   }) => {
@@ -1270,6 +1432,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Toggle visibility for confirm password
       fireEvent.press(confirmPasswordVisibilityIcon);
       expect(confirmPasswordInput).toHaveProp('secureTextEntry', false);
+    });
+
+    it('shows Done keyboard action on confirm password field', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      expect(confirmPasswordInput).toHaveProp('returnKeyType', 'done');
     });
 
     it('error message is shown when passwords do not match', async () => {

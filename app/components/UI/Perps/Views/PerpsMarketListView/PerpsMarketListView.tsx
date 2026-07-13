@@ -1,12 +1,18 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
-  HeaderStandard,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
-import { View, Animated, ScrollView } from 'react-native';
+  View,
+  Animated,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,14 +25,21 @@ import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFie
 import PerpsMarketFiltersBar from './components/PerpsMarketFiltersBar';
 import PerpsMarketList from '../../components/PerpsMarketList';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
+import PerpsRecentlyViewedRail, {
+  RECENTLY_VIEWED_SOURCE_SECTION,
+} from '../../components/PerpsRecentlyViewedRail';
 import {
   usePerpsMarketListView,
   usePerpsMeasurement,
   usePerpsNavigation,
 } from '../../hooks';
-import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsWatchlistEnabledFlag,
+  selectPerpsRecentlyViewedEnabledFlag,
+} from '../../selectors/featureFlags';
 import { usePerpsLivePositions, usePerpsLiveAccount } from '../../hooks/stream';
 import PerpsMarketRowSkeleton from './components/PerpsMarketRowSkeleton';
+import PerpsMarketListEmptyState from './components/PerpsMarketListEmptyState';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import {
@@ -44,7 +57,7 @@ import {
 } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -60,6 +73,11 @@ const PerpsMarketListView = ({
   showWatchlistOnly: propShowWatchlistOnly,
 }: PerpsMarketListViewProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const insets = useSafeAreaInsets();
+  const listContentContainerStyle = useMemo(
+    () => ({ paddingBottom: insets.bottom }),
+    [insets.bottom],
+  );
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
 
@@ -79,6 +97,9 @@ const PerpsMarketListView = ({
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  const isRecentlyViewedEnabled = useSelector(
+    selectPerpsRecentlyViewedEnabledFlag,
+  );
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
@@ -89,6 +110,7 @@ const PerpsMarketListView = ({
     sortState,
     favoritesState,
     marketTypeFilterState,
+    recentlyViewedState,
     isLoading: isLoadingMarkets,
     error,
   } = usePerpsMarketListView({
@@ -117,16 +139,23 @@ const PerpsMarketListView = ({
   // Destructure market type filter state
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
 
+  // Destructure recently viewed state
+  const { recentlyViewedMarketObjects } = recentlyViewedState;
+
   // Handler for market press (defined early to avoid use-before-define)
   const handleMarketPress = useCallback(
-    (market: PerpsMarketData) => {
+    (market: PerpsMarketData, sourceSectionOverride?: string) => {
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
-        // Compute source_section so asset_details can include it in PERPS_SCREEN_VIEWED
+        // Compute source_section so asset_details can include it in PERPS_SCREEN_VIEWED.
+        // Callers like the Recently Viewed rail pass an explicit override since
+        // that section is orthogonal to the current search/watchlist/category state.
         let source_section: string;
         const trimmedQuery = searchQuery.trim();
-        if (trimmedQuery) {
+        if (sourceSectionOverride) {
+          source_section = sourceSectionOverride;
+        } else if (trimmedQuery) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.ACTIVE_SEARCH;
         } else if (showFavoritesOnly) {
           source_section = PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST;
@@ -349,38 +378,24 @@ const PerpsMarketListView = ({
         !visibleSuggestedMarkets?.length
       ) {
         return (
-          <View
-            style={styles.emptyStateContainer}
-            testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-          >
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Xl}
-              color={IconColor.IconMuted}
-              style={styles.emptyStateIcon}
-            />
-            <Text
-              variant={TextVariant.HeadingSM}
-              color={TextColor.Default}
-              style={styles.emptyStateTitle}
-            >
-              {strings('perps.no_tokens_found')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.emptyStateDescription}
-            >
-              {strings('perps.no_tokens_found_description', { searchQuery })}
-            </Text>
-          </View>
+          <PerpsMarketListEmptyState
+            containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+            title={strings('perps.no_tokens_found')}
+            description={strings('perps.no_tokens_found_description', {
+              searchQuery,
+            })}
+            ctaLabel={strings('perps.clear_search')}
+            onCtaPress={() => setSearchQuery('')}
+            ctaTestID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+          />
         );
       }
 
       return (
         <ScrollView
           style={styles.watchlistScrollContainer}
-          contentContainerStyle={styles.watchlistScrollContent}
+          contentContainerStyle={listContentContainerStyle}
+          showsVerticalScrollIndicator={false}
         >
           <PerpsWatchlistMarkets
             markets={visibleWatchlistMarkets}
@@ -393,36 +408,54 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty search results - show when user has typed and no markets match
-    if (searchQuery.trim() && filteredMarkets.length === 0) {
+    const hasSearchQuery = searchQuery.trim().length > 0;
+    const hasActiveFilter = marketTypeFilter !== 'all';
+
+    // Filter-priority: both search and category filter active, no results.
+    // Show a filter-aware description and a "Clear filter" CTA so the user
+    // can widen results without losing their search term.
+    if (hasSearchQuery && hasActiveFilter && filteredMarkets.length === 0) {
       return (
-        <View
-          style={styles.emptyStateContainer}
-          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
-        >
-          <Icon
-            name={IconName.Search}
-            size={IconSize.Xl}
-            color={IconColor.IconMuted}
-            style={styles.emptyStateIcon}
-          />
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Default}
-            style={styles.emptyStateTitle}
-          >
-            {strings('perps.no_tokens_found')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.emptyStateDescription}
-          >
-            {searchQuery.trim()
-              ? strings('perps.no_tokens_found_description', { searchQuery })
-              : strings('perps.search_by_token_symbol')}
-          </Text>
-        </View>
+        <PerpsMarketListEmptyState
+          containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+          title={strings('perps.no_markets_found')}
+          description={strings('perps.no_markets_search_description', {
+            searchQuery: searchQuery.trim(),
+          })}
+          ctaLabel={strings('perps.clear_filter')}
+          onCtaPress={() => setMarketTypeFilter('all')}
+          ctaTestID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+        />
+      );
+    }
+
+    // Search-only: search active, no category filter, no results.
+    if (hasSearchQuery && filteredMarkets.length === 0) {
+      return (
+        <PerpsMarketListEmptyState
+          containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+          title={strings('perps.no_tokens_found')}
+          description={strings('perps.no_tokens_found_description', {
+            searchQuery,
+          })}
+          ctaLabel={strings('perps.clear_search')}
+          onCtaPress={() => setSearchQuery('')}
+          ctaTestID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+        />
+      );
+    }
+
+    // Filter-only: category filter active, no search term, no results.
+    if (hasActiveFilter && filteredMarkets.length === 0) {
+      return (
+        <PerpsMarketListEmptyState
+          containerTestID={PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER}
+          title={strings('perps.no_markets_found')}
+          description={strings('perps.no_markets_found_description')}
+          ctaLabel={strings('perps.clear_filter')}
+          onCtaPress={() => setMarketTypeFilter('all')}
+          ctaTestID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+        />
       );
     }
 
@@ -437,6 +470,7 @@ const PerpsMarketListView = ({
           sortBy={sortBy}
           showBadge={false}
           filterKey={marketTypeFilter}
+          contentContainerStyle={listContentContainerStyle}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
@@ -444,8 +478,9 @@ const PerpsMarketListView = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <HeaderStandard
+        includesTopInset
         title={title || strings('perps.home.markets')}
         onBack={handleBackPressed}
         backButtonProps={{
@@ -466,6 +501,9 @@ const PerpsMarketListView = ({
             onPressClearButton={() => setSearchQuery('')}
             placeholder={strings('perps.search_by_token_symbol')}
             testID={PerpsMarketListViewSelectorsIDs.SEARCH_BAR}
+            autoComplete="off"
+            autoCorrect={false}
+            autoCapitalize="none"
             clearButtonProps={{
               testID: PerpsMarketListViewSelectorsIDs.SEARCH_CLEAR_BUTTON,
             }}
@@ -479,15 +517,49 @@ const PerpsMarketListView = ({
           onSortPress={() => setIsSortFieldSheetVisible(true)}
           marketTypeFilter={marketTypeFilter}
           onCategorySelect={handleCategorySelect}
+          marketCount={filteredMarkets.length}
           showWatchlistBadge={isWatchlistEnabled}
           isWatchlistSelected={showFavoritesOnly}
           onWatchlistToggle={handleWatchlistToggle}
+          showSortRow={false}
           testID={PerpsMarketListViewSelectorsIDs.SORT_FILTERS}
         />
       )}
 
-      {/* Market List - Single list with JavaScript filtering */}
-      <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
+      {isRecentlyViewedEnabled &&
+        !isLoadingMarkets &&
+        !error &&
+        !searchQuery.trim() &&
+        !(isWatchlistEnabled && showFavoritesOnly) && (
+          <PerpsRecentlyViewedRail
+            markets={recentlyViewedMarketObjects}
+            onMarketPress={(market) =>
+              handleMarketPress(market, RECENTLY_VIEWED_SOURCE_SECTION)
+            }
+          />
+        )}
+
+      {!isLoadingMarkets && !error && (
+        <PerpsMarketFiltersBar
+          selectedOptionId={selectedOptionId}
+          onSortPress={() => setIsSortFieldSheetVisible(true)}
+          marketTypeFilter={marketTypeFilter}
+          onCategorySelect={handleCategorySelect}
+          marketCount={filteredMarkets.length}
+          isWatchlistSelected={showFavoritesOnly}
+          showCategoryRow={false}
+          testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
+        />
+      )}
+
+      {/* Market List - wrapped in KeyboardAvoidingView so empty-state CTAs
+          remain visible and tappable when the search keyboard is open */}
+      <KeyboardAvoidingView
+        style={styles.listContainerWithTabBar}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        {renderMarketList()}
+      </KeyboardAvoidingView>
 
       {/* Sort Field Bottom Sheet */}
       <PerpsMarketSortFieldBottomSheet
@@ -498,7 +570,7 @@ const PerpsMarketListView = ({
         onOptionSelect={handleOptionChange}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-field-sheet`}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

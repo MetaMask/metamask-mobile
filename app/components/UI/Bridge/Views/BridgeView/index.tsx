@@ -23,6 +23,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getBridgeTokenSecurityConfig,
@@ -47,6 +49,7 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectQuoteStreamComplete,
   selectBridgeBalanceRefreshKey,
+  selectBridgeControllerState,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
@@ -79,10 +82,11 @@ import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
   Pressable,
   ScrollView,
+  View,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -106,7 +110,13 @@ import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOption
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
-import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
+import SwapDiscoveryFeed from '../../components/SwapDiscoveryFeed/SwapDiscoveryFeed';
+import {
+  SWAP_DISCOVERY_FEED_REVAMP_AB_KEY,
+  SWAP_DISCOVERY_FEED_REVAMP_EXPOSURE_METADATA,
+  SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
+} from '../../components/SwapDiscoveryFeed/abTestConfig';
+import { useABTest } from '../../../../../hooks/useABTest';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
@@ -136,18 +146,19 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
-  // Inline selector because this is a temporary feature flag
-  // TODO: Remove this once trending tokens feature is prod hardened
-  const isSwapsTrendingTokensEnabled = useSelector(
-    (state: RootState) =>
-      selectRemoteFeatureFlags(state).swapsTrendingTokens === true,
-  );
   const isFiatToggleEnabled = useSelector(
     (state: RootState) =>
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
   );
 
+  const { variant: discoveryFeedVariant } = useABTest(
+    SWAP_DISCOVERY_FEED_REVAMP_AB_KEY,
+    SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
+    SWAP_DISCOVERY_FEED_REVAMP_EXPOSURE_METADATA,
+  );
+
   const { styles } = useStyles(createStyles);
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
@@ -226,7 +237,11 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
-  useBridgeViewOnFocus({ inputRef, keypadRef });
+  useBridgeViewOnFocus({
+    inputRef,
+    keypadRef,
+    autoFocusSourceAmountInput: route.params?.autoFocusSourceAmountInput,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -280,6 +295,35 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
+
+  const { quotesLastFetched } = useSelector(selectBridgeControllerState);
+
+  const isFooterVisible = useMemo(() => {
+    if (isLoading && !activeQuote && !needsNewQuote) {
+      return false;
+    }
+    if (needsNewQuote) {
+      return true;
+    }
+    if (!activeQuote) {
+      return false;
+    }
+    return Boolean(isValidSourceAmount && activeQuote && quotesLastFetched);
+  }, [
+    isLoading,
+    activeQuote,
+    needsNewQuote,
+    isValidSourceAmount,
+    quotesLastFetched,
+  ]);
+
+  const scrollContentContainerStyle = useMemo(
+    () => [
+      styles.scrollViewContent,
+      { paddingBottom: isFooterVisible ? 0 : bottomInset },
+    ],
+    [styles.scrollViewContent, isFooterVisible, bottomInset],
+  );
 
   const hasValidBridgeInputs =
     isValidSourceAmount &&
@@ -443,8 +487,11 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     return 'quote';
   };
   const contentMode = getContentMode();
-  const shouldShowTrendingTokens =
-    contentMode === 'zero' && isSwapsTrendingTokensEnabled;
+  const shouldShowDiscoveryFeed = contentMode === 'zero';
+  const hasInteractiveDiscoverySurface =
+    shouldShowDiscoveryFeed && discoveryFeedVariant.mode !== 'empty';
+  const shouldTrackNearBottom =
+    shouldShowDiscoveryFeed && discoveryFeedVariant.mode === 'control';
 
   const dismissInputAndKeypad = useCallback(() => {
     inputRef.current?.blur();
@@ -464,10 +511,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   );
 
   return (
-    <SafeAreaView
-      style={styles.screenWrapper}
-      edges={['bottom', 'left', 'right']}
-    >
+    <View style={styles.screenWrapper}>
       <HeaderStandard
         title={headerTitle}
         onBack={() => navigation.goBack()}
@@ -476,83 +520,89 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
       <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>
         <Box
           style={styles.content}
-          onStartShouldSetResponder={() => !shouldShowTrendingTokens}
+          onStartShouldSetResponder={() => !hasInteractiveDiscoverySurface}
           onResponderRelease={dismissInputAndKeypad}
         >
           <ScrollView
             ref={scrollViewRef}
             testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
+            contentContainerStyle={scrollContentContainerStyle}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
             onScrollBeginDrag={
-              shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+              hasInteractiveDiscoverySurface ? dismissInputAndKeypad : undefined
             }
-            onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
+            onScroll={shouldTrackNearBottom ? handleScroll : undefined}
           >
             <Box style={styles.inputsContainer}>
-              <TokenInputArea
-                ref={inputRef}
-                amount={sourceAmountInput.amount}
-                selection={sourceAmountInput.selection}
-                token={sourceToken}
-                tokenBalance={latestSourceBalance?.displayBalance}
-                networkImageSource={
-                  sourceToken?.chainId
-                    ? getNetworkImageSource({
-                        chainId: sourceToken?.chainId,
-                      })
-                    : undefined
-                }
-                testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
-                tokenType={TokenInputAreaType.Source}
-                onInputPress={() => keypadRef.current?.open()}
-                onFocus={sourceAmountInput.handleFocus}
-                onSelectionChange={sourceAmountInput.handleSelectionChange}
-                onTokenPress={handleSourceTokenPress}
-                onMaxPress={handleSourceMaxPress}
-                latestAtomicBalance={latestSourceBalance?.atomicBalance}
-                isSourceToken
-                isQuoteSponsored={isQuoteSponsored}
-                inputPrefix={sourceAmountInput.inputPrefix}
-                secondaryValue={sourceAmountInput.secondaryValue}
-                balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
-                onAmountTypeTogglePress={
-                  sourceAmountInput.canToggle
-                    ? sourceAmountInput.handleToggle
-                    : undefined
-                }
-                amountTypeToggleTestID={
-                  BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE
-                }
-              />
-              <FLipQuoteButton
-                onPress={handleFlipTokensPress}
-                disabled={
-                  !destChainId ||
-                  !destToken ||
-                  !sourceToken ||
-                  !isDestNetworkEnabled
-                }
-              />
-              <TokenInputArea
-                amount={destTokenAmount}
-                token={destToken}
-                networkImageSource={
-                  destToken
-                    ? getNetworkImageSource({ chainId: destToken?.chainId })
-                    : undefined
-                }
-                testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
-                tokenType={TokenInputAreaType.Destination}
-                onInputPress={() => keypadRef.current?.close()}
-                onTokenPress={handleDestTokenPress}
-                isLoading={!destTokenAmount && isLoading}
-                style={styles.destTokenArea}
-                isQuoteSponsored={isQuoteSponsored}
-                showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
-              />
+              <Box style={styles.inputCardsWrapper}>
+                <Box style={styles.tokenCard}>
+                  <TokenInputArea
+                    ref={inputRef}
+                    amount={sourceAmountInput.amount}
+                    selection={sourceAmountInput.selection}
+                    token={sourceToken}
+                    tokenBalance={latestSourceBalance?.displayBalance}
+                    networkImageSource={
+                      sourceToken?.chainId
+                        ? getNetworkImageSource({
+                            chainId: sourceToken?.chainId,
+                          })
+                        : undefined
+                    }
+                    testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
+                    tokenType={TokenInputAreaType.Source}
+                    onInputPress={() => keypadRef.current?.open()}
+                    onFocus={sourceAmountInput.handleFocus}
+                    onSelectionChange={sourceAmountInput.handleSelectionChange}
+                    onTokenPress={handleSourceTokenPress}
+                    onMaxPress={handleSourceMaxPress}
+                    latestAtomicBalance={latestSourceBalance?.atomicBalance}
+                    isSourceToken
+                    isQuoteSponsored={isQuoteSponsored}
+                    inputPrefix={sourceAmountInput.inputPrefix}
+                    secondaryValue={sourceAmountInput.secondaryValue}
+                    balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
+                    onAmountTypeTogglePress={
+                      sourceAmountInput.canToggle
+                        ? sourceAmountInput.handleToggle
+                        : undefined
+                    }
+                    amountTypeToggleTestID={
+                      BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE
+                    }
+                  />
+                </Box>
+                <FLipQuoteButton
+                  onPress={handleFlipTokensPress}
+                  disabled={
+                    !destChainId ||
+                    !destToken ||
+                    !sourceToken ||
+                    !isDestNetworkEnabled
+                  }
+                />
+                <Box style={styles.tokenCard}>
+                  <TokenInputArea
+                    amount={destTokenAmount}
+                    token={destToken}
+                    networkImageSource={
+                      destToken
+                        ? getNetworkImageSource({ chainId: destToken?.chainId })
+                        : undefined
+                    }
+                    testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
+                    tokenType={TokenInputAreaType.Destination}
+                    onInputPress={() => keypadRef.current?.close()}
+                    onTokenPress={handleDestTokenPress}
+                    isLoading={!destTokenAmount && isLoading}
+                    style={styles.destTokenArea}
+                    isQuoteSponsored={isQuoteSponsored}
+                    showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  />
+                </Box>
+              </Box>
             </Box>
 
             <Box gap={3} twClassName="mx-4">
@@ -564,6 +614,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                       backgroundColor: colors.error.muted,
                       paddingLeft: 8,
                     };
+                    const quoteStreamErrorMessage = getQuoteStreamReasonString(
+                      quoteStreamComplete?.reason,
+                    );
                     return (
                       <BannerBase
                         style={quoteStreamErrorBannerStyle}
@@ -574,9 +627,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                             size={IconSize.Lg}
                           />
                         }
-                        description={getQuoteStreamReasonString(
-                          quoteStreamComplete?.reason,
-                        )}
+                        description={
+                          <Text
+                            testID={BridgeViewSelectorsIDs.NO_QUOTES_BANNER}
+                            variant={TextVariant.BodySm}
+                          >
+                            {quoteStreamErrorMessage}
+                          </Text>
+                        }
                       />
                     );
                   })()
@@ -707,7 +765,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
             <Box
               style={styles.dynamicContent}
               onTouchEnd={
-                shouldShowTrendingTokens ? dismissInputAndKeypad : undefined
+                hasInteractiveDiscoverySurface
+                  ? dismissInputAndKeypad
+                  : undefined
               }
             >
               {contentMode === 'loading' ? (
@@ -723,8 +783,11 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                   />
                 </Box>
               ) : null}
-              {shouldShowTrendingTokens ? (
-                <BridgeTrendingTokensSection isNearBottom={isNearBottom} />
+              {shouldShowDiscoveryFeed ? (
+                <SwapDiscoveryFeed
+                  mode={discoveryFeedVariant.mode}
+                  isNearBottom={isNearBottom}
+                />
               ) : null}
             </Box>
           </ScrollView>
@@ -761,7 +824,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
           </SwapsKeypad>
         </Box>
       </ScreenView>
-    </SafeAreaView>
+    </View>
   );
 };
 

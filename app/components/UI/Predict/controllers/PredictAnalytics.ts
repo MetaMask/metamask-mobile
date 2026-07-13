@@ -64,18 +64,63 @@ export interface MarketDetailsOpenedArgs {
 }
 
 export interface FeedViewedArgs {
-  sessionId: string;
-  feedTab: string;
+  sessionId?: string;
+  feedTab?: string;
+  /** Generic feed (PredictFeedView) identity — lightweight one-shot path. */
+  feedId?: string;
+  tabId?: string;
+  filterId?: string;
+  /**
+   * Distinguishes the two call paths that share the `PREDICT_FEED_VIEWED` event:
+   * - `'focus'` — lightweight one-shot fired by `PredictFeedView` on each screen focus (no session fields).
+   * - `'session'` — legacy full-session tracking via `PredictFeedSessionManager` (includes `sessionId`, `numPagesViewed`, etc.).
+   *
+   * Omit for legacy callers that pre-date this field.
+   */
+  trackingMode?: 'focus' | 'session';
   predictScreen?: string;
   predictComponent?: string;
-  numPagesViewed: number;
-  sessionTime: number;
+  numPagesViewed?: number;
+  sessionTime?: number;
   entryPoint?: string;
   isSessionEnd?: boolean;
   openPositionsCount?: number;
   claimablePositionsCount?: number;
   hasClaimableWinnings?: boolean;
   portfolioModuleEnabled?: boolean;
+}
+
+export interface HomeViewedArgs {
+  entryPoint?: string;
+}
+
+export interface HomeSectionInteractionArgs {
+  sectionId: string;
+  actionType: string;
+  filterId?: string;
+  isDynamicFilter?: boolean;
+  categoryName?: string;
+  entryPoint?: string;
+}
+
+export interface FeedTabChangedArgs {
+  feedId: string;
+  tabId: string;
+  filterId?: string;
+  entryPoint?: string;
+}
+
+export interface FeedFilterChangedArgs {
+  feedId: string;
+  tabId?: string;
+  filterId: string;
+  isDynamicFilter?: boolean;
+  entryPoint?: string;
+}
+
+export interface CategoryClickedArgs {
+  categoryName: string;
+  entryPoint?: string;
 }
 
 export interface BannerArgs {
@@ -428,12 +473,16 @@ export class PredictAnalytics {
   public trackFeedViewed({
     sessionId,
     feedTab,
+    feedId,
+    tabId,
+    filterId,
+    trackingMode,
     predictScreen,
     predictComponent,
     numPagesViewed,
     sessionTime,
     entryPoint,
-    isSessionEnd = false,
+    isSessionEnd,
     openPositionsCount,
     claimablePositionsCount,
     hasClaimableWinnings,
@@ -442,6 +491,10 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('feedViewed', {
       sessionId,
       feedTab,
+      feedId,
+      tabId,
+      filterId,
+      trackingMode,
       predictScreen,
       predictComponent,
       numPagesViewed,
@@ -459,12 +512,32 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('bannerAction', params);
   }
 
+  public trackCategoryClicked(params: CategoryClickedArgs): void {
+    this.trackConfiguredEvent('categoryClicked', params);
+  }
+
   public trackShareAction(params: ShareActionArgs): void {
     this.trackConfiguredEvent('shareAction', params);
   }
 
   public trackSearchInteracted(params: SearchInteractedArgs): void {
     this.trackConfiguredEvent('searchInteracted', params);
+  }
+
+  public trackHomeViewed(params: HomeViewedArgs): void {
+    this.trackConfiguredEvent('homeViewed', params);
+  }
+
+  public trackHomeSectionInteraction(params: HomeSectionInteractionArgs): void {
+    this.trackConfiguredEvent('homeSectionInteraction', params);
+  }
+
+  public trackFeedTabChanged(params: FeedTabChangedArgs): void {
+    this.trackConfiguredEvent('feedTabChanged', params);
+  }
+
+  public trackFeedFilterChanged(params: FeedFilterChangedArgs): void {
+    this.trackConfiguredEvent('feedFilterChanged', params);
   }
 
   private trackConfiguredEvent(
@@ -489,7 +562,18 @@ export class PredictAnalytics {
 
     analytics.trackEvent(eventBuilder.build());
 
-    if (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') {
+    // ASSET_VIEWED is only meaningful for session-aware feed views (full
+    // session fields present). The lightweight PredictFeedView one-shot path
+    // (tracking_mode: 'focus') lacks session context and would produce
+    // malformed/noisy ASSET_VIEWED records, so we skip it there.
+    const isFocusOnlyFeedView =
+      configKey === 'feedViewed' &&
+      (eventArgs as Record<string, unknown>).trackingMode === 'focus';
+
+    if (
+      (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') &&
+      !isFocusOnlyFeedView
+    ) {
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
           .addProperties(
