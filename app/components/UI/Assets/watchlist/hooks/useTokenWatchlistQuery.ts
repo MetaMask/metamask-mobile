@@ -45,7 +45,7 @@ export const useTokenWatchlistQuery = (
   return useQuery({
     queryKey: suggestedTokens
       ? tokenWatchlistQueryKeys.suggested
-      : tokenWatchlistQueryKeys.blob,
+      : tokenWatchlistQueryKeys.hydrated,
     staleTime: WATCHLIST_QUERY_STALE_TIME_MS,
     enabled: isWatchlistEnabled,
     queryFn: async (): Promise<WatchlistTokenMetadata[]> => {
