@@ -512,11 +512,19 @@ jest.mock(
   }),
 );
 
+let mockPerpsAdvancedChartEnabled = false;
+
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(() => jest.fn()),
   useSelector: jest.fn((selector) => {
+    if (
+      selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
+      selector.toString().includes('perpsAdvancedChart')
+    ) {
+      return mockPerpsAdvancedChartEnabled;
+    }
     if (selector.toString().includes('selectTokenList')) {
       return {};
     }
@@ -815,6 +823,7 @@ const defaultMockHooks = {
 const createMockStreamManager = () => {
   // Using Map to track subscribers for potential cleanup
   const subscribers = new Map<string, (data: unknown) => void>();
+  let subscriberCounter = 0;
 
   return {
     prices: {
@@ -825,7 +834,7 @@ const createMockStreamManager = () => {
         symbols: string[];
         callback: (data: unknown) => void;
       }) => {
-        const id = Math.random().toString();
+        const id = `mock-price-subscriber-${++subscriberCounter}`;
         subscribers.set(id, callback);
         // Immediately provide mock price data
         const mockPrices: Record<string, unknown> = {};
@@ -867,7 +876,7 @@ const createMockStreamManager = () => {
         symbol: string;
         callback: (data: unknown) => void;
       }) => {
-        const id = Math.random().toString();
+        const id = `mock-tob-subscriber-${++subscriberCounter}`;
         subscribers.set(id, callback);
         // Immediately provide mock top of book data
         const mockTopOfBook = {
@@ -919,6 +928,7 @@ global.requestAnimationFrame = jest.fn((cb) => {
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPerpsAdvancedChartEnabled = false;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
