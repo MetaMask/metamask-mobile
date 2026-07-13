@@ -208,7 +208,10 @@ function PayWithRowInteractive() {
   }, [hasAccountNoFunds, isWithdraw, payToken, defaultWithdrawToken]);
 
   const balanceUsdFormatted = useMemo(
-    () => formatFiat(new BigNumber(accountBalanceUsd)),
+    () =>
+      formatFiat(
+        new BigNumber(accountBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
+      ),
     [formatFiat, accountBalanceUsd],
   );
 
