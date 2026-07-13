@@ -5,8 +5,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FontWeight,
@@ -17,6 +24,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -117,6 +125,10 @@ const OVERLAY_TEXT_PRESETS = {
   },
 } as const;
 
+type MoneyOnboardingRouteProp = RouteProp<
+  RootStackParamList,
+  'MoneyOnboarding'
+>;
 interface OnboardingTextContent {
   title: string;
   content: string;
@@ -237,6 +249,8 @@ const MoneyOnboardingTextOverlay = ({
 
 const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<MoneyOnboardingRouteProp>();
+  const preferredPaymentToken = route.params?.preferredPaymentToken;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -250,6 +264,7 @@ const MoneyOnboardingView = () => {
   });
 
   const { apyPercent } = useMoneyAccountBalance();
+  const { initiateDeposit } = useMoneyAccountDeposit();
 
   const [ref, riveRef] = useRive();
 
@@ -327,6 +342,29 @@ const MoneyOnboardingView = () => {
     });
   }, [navigation]);
 
+  const navigateToPostOnboardingDestination = useCallback(async () => {
+    if (!preferredPaymentToken) {
+      navigateToMoneyHome();
+      return;
+    }
+
+    try {
+      await initiateDeposit({
+        preferredPaymentToken,
+        replaceConfirmation: true,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
+    }
+  }, [initiateDeposit, navigateToMoneyHome, preferredPaymentToken]);
+
+  const postOnboardingRedirectTarget = preferredPaymentToken
+    ? SCREEN_NAMES.MONEY_DEPOSIT
+    : SCREEN_NAMES.MONEY_HOME;
+
   const handleClose = useCallback(
     (stepIndex: number) => {
       playImpact(ImpactMoment.PageNavigation);
@@ -335,13 +373,19 @@ const MoneyOnboardingView = () => {
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: TOTAL_ONBOARDING_STEPS,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
-        redirect_target: SCREEN_NAMES.MONEY_HOME,
+        redirect_target: postOnboardingRedirectTarget,
       });
 
       dispatch(setMoneyOnboardingSeen(true));
-      navigateToMoneyHome();
+      return navigateToPostOnboardingDestination();
     },
-    [dispatch, navigateToMoneyHome, stepTitlesEnglish, trackOnboardingEvent],
+    [
+      dispatch,
+      navigateToPostOnboardingDestination,
+      postOnboardingRedirectTarget,
+      stepTitlesEnglish,
+      trackOnboardingEvent,
+    ],
   );
 
   const handleStepViewed = useCallback(
@@ -365,12 +409,18 @@ const MoneyOnboardingView = () => {
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: TOTAL_ONBOARDING_STEPS,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
-        redirect_target: SCREEN_NAMES.MONEY_HOME,
+        redirect_target: postOnboardingRedirectTarget,
       });
 
-      navigateToMoneyHome();
+      return navigateToPostOnboardingDestination();
     },
-    [dispatch, navigateToMoneyHome, stepTitlesEnglish, trackOnboardingEvent],
+    [
+      dispatch,
+      navigateToPostOnboardingDestination,
+      postOnboardingRedirectTarget,
+      stepTitlesEnglish,
+      trackOnboardingEvent,
+    ],
   );
 
   useRiveTrigger(riveRef, CLOSE_TRIGGER, () => {

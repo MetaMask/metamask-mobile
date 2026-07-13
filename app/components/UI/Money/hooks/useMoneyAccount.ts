@@ -48,6 +48,7 @@ export interface InitiateDepositOptions {
   };
   intent?: MoneyAccountDepositIntent;
   autoSelectFiatPayment?: boolean;
+  replaceConfirmation?: boolean;
 }
 
 function resolveNetworkClientId(chainId: Hex): string {
@@ -111,12 +112,17 @@ export function useMoneyAccountDeposit() {
         provider,
       });
 
-      // Navigate early for better UX; recover on failure below.
-      navigateToConfirmation({
+      const confirmationParams = {
         loader: ConfirmationLoader.AdvancedCustomAmount,
-        stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
+      };
+
+      // Navigate early for better UX; recover on failure below.
+      navigateToConfirmation({
+        ...confirmationParams,
+        stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+        replace: options?.replaceConfirmation,
       });
 
       try {

@@ -15,6 +15,7 @@ import { useMoneyAccountDeposit } from './useMoneyAccount';
 import useMoneyAccountBalance from './useMoneyAccountBalance';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
+import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
 
 /**
  * Provides Money Token List Item CTA and its deposit action.
@@ -25,10 +26,11 @@ import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
 export const useMoneyTokenListCta = () => {
   const { shouldShowMoneyTokenListItemCta } = useMoneyCtaVisibility();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const { apyPercent } = useMoneyAccountBalance();
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.WALLET_HOME,
-    component_name: COMPONENT_NAMES.TOKEN_LIST_ITEM,
+    component_name: COMPONENT_NAMES.MONEY_TOKEN_LIST_ITEM_CTA,
   });
 
   const label = useMemo(
@@ -49,21 +51,33 @@ export const useMoneyTokenListCta = () => {
         return;
       }
 
-      // TODO: Update event properties depending on whether the Money onboarding has been seen already.
+      const preferredPaymentToken = {
+        address: toHex(asset.address),
+        chainId: toHex(asset.chainId),
+      };
+      const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+        preferredPaymentToken,
+      });
+
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        button_intent: redirectedToOnboarding
+          ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
+          : MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_en: label,
         label_localized: label,
-        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        redirect_target: redirectedToOnboarding
+          ? SCREEN_NAMES.MONEY_ONBOARDING
+          : SCREEN_NAMES.MONEY_DEPOSIT,
       });
+
+      if (redirectedToOnboarding) {
+        return;
+      }
 
       try {
         await initiateDeposit({
-          preferredPaymentToken: {
-            address: toHex(asset.address),
-            chainId: toHex(asset.chainId),
-          },
+          preferredPaymentToken,
         });
       } catch (error) {
         Logger.error(
@@ -72,7 +86,7 @@ export const useMoneyTokenListCta = () => {
         );
       }
     },
-    [initiateDeposit, label, trackButtonClicked],
+    [initiateDeposit, label, redirectToOnboardingIfNeeded, trackButtonClicked],
   );
 
   const tokenListItemCta = useMemo<TokenListItemCta | undefined>(

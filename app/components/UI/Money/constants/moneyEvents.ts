@@ -113,7 +113,7 @@ export enum COMPONENT_NAMES {
   MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
   MONEY_FOOTER = 'money_footer',
   MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
-  TOKEN_LIST_ITEM = 'token_list_item',
+  MONEY_TOKEN_LIST_ITEM_CTA = 'money_token_list_item_cta',
   MONEY_MORE = 'money_more',
 
   // — How It Works / FAQ —

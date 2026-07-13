@@ -1,4 +1,5 @@
 import type { AccountsApiActivity } from './moneyActivity';
+import type { Hex } from '@metamask/utils';
 
 /**
  * Nested-navigation params for the Money container stacks (MoneyScreens /
@@ -10,6 +11,13 @@ import type { AccountsApiActivity } from './moneyActivity';
 interface MoneyNestedNavigationParams {
   screen?: string;
   params?: object;
+}
+
+export interface MoneyOnboardingParams {
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
 }
 
 /**
@@ -26,7 +34,7 @@ export interface MoneyNavigationParamList {
   MoneyHowItWorks: undefined;
 
   // Flat screens registered on the root MainNavigator
-  MoneyOnboarding: undefined;
+  MoneyOnboarding: MoneyOnboardingParams | undefined;
   MoneyFirstTimeDeposit: undefined;
   MoneyPotentialEarnings: undefined;
   MoneyTransactionDetails: { transactionId: string };
