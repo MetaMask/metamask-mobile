@@ -7,6 +7,8 @@ export const ASSET_VIEWED_PROPERTY = {
   TRADE_TYPE: 'trade_type',
   IMPLEMENTATION_TYPE: 'implementation_type',
   OPEN_POSITIONS_COUNT: 'open_positions_count',
+  MARKET_ID: 'market_id',
+  ITEM_CLICKED: 'item_clicked',
 } as const;
 
 export type AssetViewedTradeType = 'Predict' | 'Perps' | 'Swaps';
@@ -56,12 +58,35 @@ function normalizeAssetViewedBaseProperties(
   return normalized;
 }
 
+function enrichPredictMarketId(
+  properties: Record<string, unknown>,
+): Record<string, unknown> {
+  const marketId = properties[ASSET_VIEWED_PROPERTY.MARKET_ID];
+  if (marketId !== undefined && marketId !== null && marketId !== '') {
+    return properties;
+  }
+
+  const itemClicked = properties[ASSET_VIEWED_PROPERTY.ITEM_CLICKED];
+  if (typeof itemClicked === 'string' && itemClicked.length > 0) {
+    return {
+      ...properties,
+      [ASSET_VIEWED_PROPERTY.MARKET_ID]: itemClicked,
+    };
+  }
+
+  return properties;
+}
+
 export function mergeAssetViewedProperties(
   tradeType: AssetViewedTradeType,
   baseProperties: Record<string, unknown> = {},
 ): Record<string, unknown> {
+  const normalized = normalizeAssetViewedBaseProperties(baseProperties);
+  const enriched =
+    tradeType === 'Predict' ? enrichPredictMarketId(normalized) : normalized;
+
   return {
-    ...normalizeAssetViewedBaseProperties(baseProperties),
+    ...enriched,
     [ASSET_VIEWED_PROPERTY.TRADE_TYPE]: tradeType,
     [ASSET_VIEWED_PROPERTY.IMPLEMENTATION_TYPE]:
       ASSET_VIEWED_IMPLEMENTATION_TYPE_NATIVE,

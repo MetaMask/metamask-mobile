@@ -68,4 +68,35 @@ describe('mergeAssetViewedProperties', () => {
         ASSET_VIEWED_IMPLEMENTATION_TYPE_NATIVE,
     });
   });
+
+  it('maps item_clicked to market_id for Predict Asset Viewed', () => {
+    expect(
+      mergeAssetViewedProperties('Predict', {
+        item_clicked: 'market-abc',
+        asset_type: 'prediction',
+      }),
+    ).toEqual({
+      item_clicked: 'market-abc',
+      asset_type: 'prediction',
+      market_id: 'market-abc',
+      [ASSET_VIEWED_PROPERTY.TRADE_TYPE]: 'Predict',
+      [ASSET_VIEWED_PROPERTY.IMPLEMENTATION_TYPE]:
+        ASSET_VIEWED_IMPLEMENTATION_TYPE_NATIVE,
+    });
+  });
+
+  it('keeps an explicit market_id when item_clicked is also present', () => {
+    expect(
+      mergeAssetViewedProperties('Predict', {
+        market_id: 'market-1',
+        item_clicked: 'market-2',
+      }),
+    ).toEqual({
+      market_id: 'market-1',
+      item_clicked: 'market-2',
+      [ASSET_VIEWED_PROPERTY.TRADE_TYPE]: 'Predict',
+      [ASSET_VIEWED_PROPERTY.IMPLEMENTATION_TYPE]:
+        ASSET_VIEWED_IMPLEMENTATION_TYPE_NATIVE,
+    });
+  });
 });

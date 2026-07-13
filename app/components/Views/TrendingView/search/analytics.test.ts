@@ -4,6 +4,7 @@ import { analytics } from '../../../../util/analytics/analytics';
 import {
   getExploreSearchResultCount,
   getTotalSectionResultCount,
+  trackExploreInteracted,
   trackExplorePredictTrendingAssetViewed,
   trackExploreSectionSeeAll,
   useInstrumentedSearchEffect,
@@ -252,6 +253,83 @@ describe('Explore search analytics', () => {
       trackExploreSectionSeeAll({
         tabName: 'Crypto',
         sectionName: 'tokens_trending',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].name).toBe(
+        MetaMetricsEvents.EXPLORE_INTERACTED.category,
+      );
+    });
+  });
+
+  describe('trackExploreInteracted', () => {
+    it('tracks Asset Viewed with market_id for prediction section item taps', () => {
+      trackExploreInteracted({
+        interaction_type: 'section_item_tapped',
+        tab_name: 'Now',
+        section_name: 'predictions_trending',
+        asset_type: 'prediction',
+        position: 2,
+        item_clicked: 'market-123',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+
+      const exploreEvent = mockTrackEvent.mock.calls[0][0];
+      const assetViewedEvent = mockTrackEvent.mock.calls[1][0];
+
+      expect(exploreEvent.name).toBe(
+        MetaMetricsEvents.EXPLORE_INTERACTED.category,
+      );
+      expect(assetViewedEvent.name).toBe(
+        MetaMetricsEvents.ASSET_VIEWED.category,
+      );
+      expect(assetViewedEvent.properties).toMatchObject({
+        interaction_type: 'section_item_tapped',
+        tab_name: 'Now',
+        section_name: 'predictions_trending',
+        asset_type: 'prediction',
+        position: 2,
+        item_clicked: 'market-123',
+        market_id: 'market-123',
+        trade_type: 'Predict',
+        implementation_type: 'native',
+      });
+    });
+
+    it('tracks Asset Viewed with market_id for prediction_voted interactions', () => {
+      trackExploreInteracted({
+        interaction_type: 'prediction_voted',
+        tab_name: 'Sports',
+        section_name: 'predictions_football',
+        item_clicked: 'market-456',
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+
+      const assetViewedEvent = mockTrackEvent.mock.calls[1][0];
+
+      expect(assetViewedEvent.name).toBe(
+        MetaMetricsEvents.ASSET_VIEWED.category,
+      );
+      expect(assetViewedEvent.properties).toMatchObject({
+        interaction_type: 'prediction_voted',
+        tab_name: 'Sports',
+        section_name: 'predictions_football',
+        item_clicked: 'market-456',
+        market_id: 'market-456',
+        trade_type: 'Predict',
+        implementation_type: 'native',
+      });
+    });
+
+    it('does not track Asset Viewed for non-prediction section item taps', () => {
+      trackExploreInteracted({
+        interaction_type: 'section_item_tapped',
+        tab_name: 'Crypto',
+        section_name: 'tokens_trending',
+        asset_type: 'token',
+        item_clicked: 'asset-1',
       });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
