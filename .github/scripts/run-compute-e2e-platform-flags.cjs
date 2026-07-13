@@ -1,16 +1,12 @@
 #!/usr/bin/env node
 /**
- * GitHub Actions entrypoint for compute-e2e-platform-flags.ts.
+ * GitHub Actions entrypoint for compute-e2e-platform-flags.cjs.
  */
-
-require('esbuild-register/dist/node').register({
-  target: 'node18',
-});
 
 const fs = require('node:fs');
 const {
   computeE2EPlatformFlags,
-} = require('./compute-e2e-platform-flags.ts');
+} = require('./compute-e2e-platform-flags.cjs');
 
 function readBool(value) {
   return value === 'true';

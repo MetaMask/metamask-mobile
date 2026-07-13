@@ -1,4 +1,4 @@
-import { computeE2EPlatformFlags } from './compute-e2e-platform-flags';
+const { computeE2EPlatformFlags } = require('./compute-e2e-platform-flags.cjs');
 
 describe('computeE2EPlatformFlags', () => {
   const baseInput = {

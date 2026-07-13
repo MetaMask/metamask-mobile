@@ -166,4 +166,4 @@ jobs:
           IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
           ANDROID_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.android_or_ignorable_count }}
           IOS_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.ios_or_ignorable_count }}
-        run: node -r esbuild-register .github/scripts/run-compute-e2e-platform-flags.cjs
+        run: node .github/scripts/run-compute-e2e-platform-flags.cjs

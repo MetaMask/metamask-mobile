@@ -2,35 +2,11 @@
  * Pure decision logic for CI E2E platform and native-build requirements.
  */
 
-export interface E2EPlatformFlagsInput {
-  githubEventName: string;
-  isFork: boolean;
-  shouldSkipE2E: boolean;
-  allChangesCount: number;
-  ignorableCount: number;
-  e2eTestFilesCount: number;
-  e2eTestOrIgnorableCount: number;
-  e2eWorkflowsCount: number;
-  androidCount: number;
-  iosCount: number;
-  androidOrIgnorableCount: number;
-  iosOrIgnorableCount: number;
-  allChangesFiles?: string;
-}
-
-export interface E2EPlatformFlagsResult {
-  android: boolean;
-  ios: boolean;
-  e2eNeeded: boolean;
-  nativeBuildNeeded: boolean;
-  runSmartE2ESelection: boolean;
-  message: string;
-  changedFiles: string;
-}
-
-export function computeE2EPlatformFlags(
-  input: E2EPlatformFlagsInput,
-): E2EPlatformFlagsResult {
+/**
+ * @param {object} input
+ * @returns {object}
+ */
+function computeE2EPlatformFlags(input) {
   const {
     githubEventName,
     isFork,
@@ -126,3 +102,7 @@ export function computeE2EPlatformFlags(
     changedFiles: changed,
   };
 }
+
+module.exports = {
+  computeE2EPlatformFlags,
+};
