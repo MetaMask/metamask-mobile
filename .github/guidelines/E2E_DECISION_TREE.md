@@ -34,7 +34,7 @@ The native build fingerprint for test-only PRs is computed from **`main` HEAD** 
 
 This applies when all changed files match `e2e_test_files` or `e2e_ignorable` filters in `.github/rules/filter-rules.yml`, with at least one E2E test file changed, and no E2E-relevant workflow files were modified.
 
-Use the `force-builds` label or `[force-builds]` commit tag to override reuse and compile fresh builds.
+Use the `force-builds` label or `[force-builds]` commit tag to override reuse and compile fresh builds — including on test-only PRs that would otherwise require main-branch artifacts.
 
 ## E2E tests skipped by default on new PRs
 

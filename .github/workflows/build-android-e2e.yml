@@ -310,7 +310,10 @@ jobs:
         id: gate
         run: |
           if [[ "${{ inputs.reuse-main-builds-only }}" == "true" ]]; then
-            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+            if [[ "${{ steps.force-builds.outputs.force }}" == "true" ]]; then
+              echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+              echo "force-builds override on test-only PR — compiling fresh native build."
+            elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
                && "${{ steps.download-reusable-apk.outcome }}" == "success" \
                && "${{ steps.download-reusable-test-apk.outcome }}" == "success" ]]; then
               echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
