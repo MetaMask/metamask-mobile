@@ -163,7 +163,7 @@ describe('WatchlistSection', () => {
     expect(getByText('You have no watchlist items yet')).toBeDefined();
   });
 
-  it('renders up to 3 tokens when watchlist has items', () => {
+  it('renders up to 3 tokens when watchlist has items (newest first)', () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [
         makeWatchlistToken('eth'),
@@ -179,10 +179,11 @@ describe('WatchlistSection', () => {
       <WatchlistSection sectionIndex={1} totalSectionsLoaded={5} />,
     );
 
-    expect(getByTestId('row-eth')).toBeDefined();
-    expect(getByTestId('row-btc')).toBeDefined();
+    // Storage appends newest last; section reverses so newest appears first.
+    expect(getByTestId('row-doge')).toBeDefined();
     expect(getByTestId('row-sol')).toBeDefined();
-    expect(queryByTestId('row-doge')).toBeNull();
+    expect(getByTestId('row-btc')).toBeDefined();
+    expect(queryByTestId('row-eth')).toBeNull();
   });
 
   it('renders section header with watchlist testID', () => {
