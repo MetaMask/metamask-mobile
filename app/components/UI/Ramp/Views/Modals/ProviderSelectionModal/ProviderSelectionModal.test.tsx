@@ -30,9 +30,6 @@ const mockNavigationState = {
 };
 
 const mockNavigate = jest.fn();
-const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
-  callback?.();
-});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -164,12 +161,9 @@ jest.mock('@metamask/design-system-react-native', () => {
           children: React.ReactNode;
           onClose?: (hasPendingAction?: boolean) => void;
         },
-        ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+        _ref: React.Ref<unknown>,
       ) => {
         capturedOnClose = onClose;
-        ReactActual.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
-        }));
         return <>{children}</>;
       },
     ),
@@ -237,27 +231,6 @@ describe('ProviderSelectionModal', () => {
       expect.objectContaining({ id: '/providers/transak' }),
     );
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-  });
-
-  it('navigates to payment selection when provider is selected with returnToPaymentSelection', () => {
-    mockUseParams.mockReturnValue({
-      amount: 100,
-      returnToPaymentSelection: true,
-    });
-    const { getByText } = renderWithProvider(ProviderSelectionModal);
-
-    fireEvent.press(getByText('MoonPay'));
-
-    expect(mockSetSelectedProvider).toHaveBeenCalledWith(
-      expect.objectContaining({ id: '/providers/moonpay' }),
-    );
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.MODALS.ID, {
-      screen: Routes.RAMP.MODALS.PAYMENT_SELECTION,
-      params: { amount: 100 },
-    });
-    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('calls goBack when back button is pressed', () => {
