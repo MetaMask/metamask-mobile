@@ -825,6 +825,10 @@ export type RootStackParamList = {
         /** Analytics entry-point that opened the leaderboard. Narrowed at the
          * receiver to LeaderboardScreenViewedSource. */
         source?: string;
+        /** Set by onboarding when the user tapped "Allow notifications" but the
+         * OS denied permission. Shows a one-shot, auto-dismissing nudge banner
+         * on the leaderboard with a CTA to open device settings. */
+        showNotificationsBanner?: boolean;
       }
     | undefined;
   TraderProfileView: {
@@ -839,6 +843,7 @@ export type RootStackParamList = {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
+  SocialLeaderboardOnboarding: undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes

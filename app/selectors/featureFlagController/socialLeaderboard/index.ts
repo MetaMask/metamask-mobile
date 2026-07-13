@@ -35,6 +35,16 @@ export const selectSocialFeedEnabled = createSelector(
   },
 );
 
+export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.aiSocialLeaderboardOnboardingEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
+  },
+);
+
 export const selectSocialAIQuickBuyStreamQuotesEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
