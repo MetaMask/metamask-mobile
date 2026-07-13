@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { type TransakBuyQuote } from '@metamask/ramps-controller';
+import {
+  RampsOrderStatus,
+  type TransakBuyQuote,
+} from '@metamask/ramps-controller';
 import { useTransakRouting } from './useTransakRouting';
 import { extractOrderCode } from '../utils/extractOrderCode';
 
@@ -116,6 +119,15 @@ jest.mock('./useAnalytics', () => ({
   __esModule: true,
   default: () => mockTrackEvent,
 }));
+
+const mockEmitTerminalOrderAnalyticsFromCallback = jest.fn();
+jest.mock(
+  '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    emitTerminalOrderAnalyticsFromCallback: (order: unknown) =>
+      mockEmitTerminalOrderAnalyticsFromCallback(order),
+  }),
+);
 
 const mockGetUserDetails = jest.fn();
 const mockGetKycRequirement = jest.fn();
@@ -245,6 +257,13 @@ jest.mock('@metamask/ramps-controller', () => ({
     ),
   },
   normalizeProviderCode: (code: string) => code.replace(/^\/providers\//, ''),
+  RampsOrderStatus: {
+    Pending: 'PENDING',
+    Completed: 'COMPLETED',
+    Failed: 'FAILED',
+    Cancelled: 'CANCELLED',
+    IdExpired: 'ID_EXPIRED',
+  },
 }));
 
 jest.mock('../constants', () => ({
@@ -1693,7 +1712,11 @@ describe('useTransakRouting', () => {
       // ramp_surface is undefined here.
       expect(mockTrackEvent).toHaveBeenCalledWith(
         'RAMPS_TRANSACTION_CONFIRMED',
-        expect.objectContaining({ ramp_type: 'HEADLESS', region: 'us-ca' }),
+        expect.objectContaining({
+          ramp_type: 'HEADLESS',
+          region: 'us-ca',
+          provider_order_id: 'order-hs',
+        }),
       );
       expect(mockReset).not.toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1732,6 +1755,7 @@ describe('useTransakRouting', () => {
           ramp_type: 'HEADLESS',
           ramp_surface: 'money_account',
           region: 'us-ca',
+          provider_order_id: 'order-hs',
         }),
       );
       // Writes the headless context for the terminal-failed subscriber
@@ -1740,6 +1764,42 @@ describe('useTransakRouting', () => {
         rampSurface: 'money_account',
         region: 'us-ca',
       });
+    });
+
+    it('does NOT emit RAMPS_TRANSACTION_CONFIRMED for a terminal-failed order; emits the terminal failure instead (TRAM-3691)', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        params: { rampSurface: 'money_account' },
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      // Widget payment failed: refreshOrder returns a terminal-failed order.
+      mockRefreshOrder.mockResolvedValue({
+        ...refreshedOrder,
+        status: RampsOrderStatus.Failed,
+      });
+
+      const handler = await runApprovedFlowHeadless();
+      expect(handler).not.toBeNull();
+      if (!handler) return;
+
+      await act(async () => {
+        await handler({
+          url: 'https://redirect.example.com?orderId=order-hs',
+        });
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        'RAMPS_TRANSACTION_CONFIRMED',
+        expect.anything(),
+      );
+      expect(mockEmitTerminalOrderAnalyticsFromCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ status: RampsOrderStatus.Failed }),
+      );
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
@@ -1873,6 +1933,8 @@ describe('useTransakRouting', () => {
           ramp_surface: 'money_account',
           region: 'us-ca',
           error_message: expect.any(String),
+          // orderId from the callback URL is the provider order id (TRAM-3696).
+          provider_order_id: 'order-hs',
         }),
       );
     });
@@ -1957,6 +2019,7 @@ describe('useTransakRouting', () => {
           ramp_type: 'HEADLESS',
           ramp_surface: 'money_account',
           region: 'us-ca',
+          provider_order_id: 'order-bank-1',
         }),
       );
       // Manual-bank headless branch also writes the terminal-failed context

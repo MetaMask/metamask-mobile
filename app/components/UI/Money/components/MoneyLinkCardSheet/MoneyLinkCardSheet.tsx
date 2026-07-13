@@ -29,7 +29,6 @@ import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styleSheet from './MoneyLinkCardSheet.styles';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -62,7 +61,6 @@ const MoneyLinkCardSheet = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const cardHomeData = useSelector(selectCardHomeData);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
-  const surfaceClass = useElevatedSurface();
   const isMetalCard = cardHomeData?.card?.type === CardType.METAL;
   const routeParams = route.params as MoneyLinkCardSheetRouteParams | undefined;
   const originEntryPoint =
@@ -163,7 +161,6 @@ const MoneyLinkCardSheet = () => {
       goBack={handleGoBack}
       testID={MoneyLinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

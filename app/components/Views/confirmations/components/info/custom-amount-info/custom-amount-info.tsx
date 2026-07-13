@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { View } from 'react-native';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -26,6 +27,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './custom-amount-info.styles';
 import { useTransactionCustomAmount } from '../../../hooks/transactions/useTransactionCustomAmount';
 import { useTransactionCustomAmountAlerts } from '../../../hooks/transactions/useTransactionCustomAmountAlerts';
+import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import {
   SetPayTokenRequest,
@@ -86,6 +88,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
+import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
@@ -169,6 +172,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] =
       useState(!isAddMusdIntent);
+    const keyboardEverShown = useRef(!isAddMusdIntent);
+
+    useMMPayNavigation(
+      isKeyboardVisible,
+      setIsKeyboardVisible,
+      keyboardEverShown,
+    );
+
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
@@ -190,7 +201,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { toastRef } = useContext(ToastContext);
 
     const isResultReady =
-      useIsResultReady({ isKeyboardVisible }) || isAddMusdIntent;
+      useIsResultReady({ isKeyboardVisible }) ||
+      (isAddMusdIntent && !isKeyboardVisible);
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
     const hasSourceAmount = useTransactionPayHasSourceAmount();
@@ -271,11 +283,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, [isPrefillPending, handleDone]);
 
     const handleAmountPress = useCallback(() => {
+      keyboardEverShown.current = true;
       setIsKeyboardVisible(true);
     }, []);
 
     const isAccountSelectionNeeded =
       supportAccountSelection && !accountOverride;
+    const hideDetailsForNoFunds = hasAccountNoFunds && Boolean(accountOverride);
+    const hideBuyForNoFunds =
+      Boolean(accountOverride) && (hasAccountNoFunds || isQuotesLoading);
 
     const { headlessBuyError } = useConfirmationContext();
 
@@ -309,7 +325,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           style={styles.bottomBlock}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
-          {!isResultReady && (
+          {!isResultReady && !(isKeyboardVisible && isAddMusdIntent) && (
             <>
               {supportAccountSelection &&
                 !selectedFiatPaymentMethodId &&
@@ -332,25 +348,26 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {showPaymentDetails ? (
-                <>
-                  <BridgeFeeRow />
-                  <BridgeTimeRow />
-                  {canSelectWithdrawToken ? (
-                    <ReceiveRow inputAmountUsd={amountFiat} />
-                  ) : (
-                    <TotalRow />
-                  )}
-                </>
-              ) : (
-                isAddMusdIntent && (
+              {!hideDetailsForNoFunds &&
+                (showPaymentDetails ? (
                   <>
-                    <InfoRowSkeleton />
-                    <InfoRowSkeleton />
-                    <InfoRowSkeleton />
+                    <BridgeFeeRow />
+                    <BridgeTimeRow />
+                    {canSelectWithdrawToken ? (
+                      <ReceiveRow inputAmountUsd={amountFiat} />
+                    ) : (
+                      <TotalRow />
+                    )}
                   </>
-                )
-              )}
+                ) : (
+                  isAddMusdIntent && (
+                    <>
+                      <InfoRowSkeleton />
+                      <InfoRowSkeleton />
+                      <InfoRowSkeleton />
+                    </>
+                  )
+                ))}
               <PercentageRow />
             </Box>
           )}
@@ -381,7 +398,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               }
             />
           )}
-          {!hasPaymentOption && !hasAccountNoFunds && <BuySection />}
+          {(!hasPaymentOption || hasAccountNoFunds) && !hideBuyForNoFunds && (
+            <BuySection />
+          )}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
@@ -411,6 +430,27 @@ export function CustomAmountInfoSkeleton() {
         <DepositKeyboardSkeleton />
       </Box>
     </Box>
+  );
+}
+
+export function AdvancedCustomAmountInfoSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <View
+      style={styles.container}
+      testID="advanced-custom-amount-info-skeleton"
+    >
+      <View style={styles.inputContainer}>
+        <CustomAmountSkeleton />
+        <PayTokenAmountSkeleton />
+      </View>
+      <View>
+        <AccountSelectorSkeleton />
+        <PayWithRowSkeleton />
+        <DepositKeyboardSkeleton />
+      </View>
+    </View>
   );
 }
 

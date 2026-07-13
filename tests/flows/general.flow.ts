@@ -15,7 +15,7 @@ import { PlatformDetector } from '../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import {
   isLoginScreenDisplayed,
-  isWalletHomeReadyOnAndroid,
+  isWalletHomeReadyOnAndroidStable,
   isWalletHomeReadyOnIOS,
 } from './wallet-home-readiness';
 // eslint-disable-next-line import-x/no-nodejs-modules
@@ -265,8 +265,11 @@ export const waitForAppReady = async (
           logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
           return 'login';
         }
+        // Login flickered during rehydration — skip wallet probe this iteration.
+        await sleep(pollIntervalMs);
+        continue;
       }
-      if (await isWalletHomeReadyOnAndroid()) {
+      if (await isWalletHomeReadyOnAndroidStable()) {
         logger.debug(
           `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
         );
