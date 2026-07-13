@@ -2657,6 +2657,11 @@
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
+    "balance_error": {
+      "title": "Couldn't load your balance",
+      "description": "Your funds are safe. Check your connection and try again.",
+      "retry": "Retry"
+    },
     "portfolio": {
       "available_amount": "{{amount}} available",
       "value_accessibility": "Portfolio value, {{value}}",
