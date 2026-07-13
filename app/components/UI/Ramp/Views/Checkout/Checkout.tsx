@@ -13,7 +13,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
-import { normalizeProviderCode } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -301,7 +300,7 @@ const Checkout = () => {
     registeredOrderIdsRef.current.add(effectiveOrderId);
     addPrecreatedOrder({
       orderId: effectiveOrderId,
-      providerCode: normalizeProviderCode(providerCode),
+      providerCode,
       walletAddress,
       chainId: network || undefined,
     });
