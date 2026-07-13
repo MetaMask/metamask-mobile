@@ -51,9 +51,10 @@ appiumTest.describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
           await TrendingView.tapSearchButton();
 
           await Assertions.expectElementToBeVisible(
-            TrendingView.searchInputContainer,
+            TrendingView.searchCancelButton,
             {
-              description: 'Search input should be visible',
+              description:
+                'Search cancel button should be visible (search mode active)',
             },
           );
 

@@ -1,18 +1,19 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeWalletPlatform } from '../../tags.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
-import { navigateToBrowserView } from '../../flows/browser.flow.js';
+import {
+  navigateToBrowserView,
+  waitForTestDappToLoad,
+} from '../../flows/browser.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
+import { getDappUrlForFixture } from '../../framework/fixtures/FixtureUtils.js';
 import { DappVariants } from '../../framework/Constants.js';
 import { Mockttp } from 'mockttp';
-import Assertions from '../../framework/Assertions.js';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks.js';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers.js';
 import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
-import Browser from '../../page-objects/Browser/BrowserView.js';
-import TestDApp from '../../page-objects/Browser/TestDApp.js';
 
 appiumTest.describe(
   SmokeWalletPlatform('Trending Feature Browser Test'),
@@ -36,9 +37,13 @@ appiumTest.describe(
                 dappVariant: DappVariants.TEST_DAPP,
               },
             ],
-            fixture: new FixtureBuilder()
-              .withPermissionControllerConnectedToTestDapp()
-              .build(),
+            fixture: (() => {
+              const built = new FixtureBuilder()
+                .withPermissionControllerConnectedToTestDapp()
+                .build();
+              built.state.browser.tabs[0].url = getDappUrlForFixture(0);
+              return built;
+            })(),
             restartDevice: true,
             currentDeviceDetails,
             testSpecificMock,
@@ -48,14 +53,7 @@ appiumTest.describe(
 
             await navigateToBrowserView();
 
-            await Browser.navigateToTestDApp();
-
-            await Assertions.expectElementToBeVisible(
-              TestDApp.testDappPageTitle,
-              {
-                description: 'Test Dapp page title should be visible',
-              },
-            );
+            await waitForTestDappToLoad();
           },
         );
       },
