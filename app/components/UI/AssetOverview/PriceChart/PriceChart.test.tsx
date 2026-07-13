@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import PriceChart from './PriceChart';
+import PriceChart, { findNearestIndex } from './PriceChart';
 import { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { PriceChartProvider } from './PriceChart.context';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -314,6 +314,128 @@ describe('PriceChart', () => {
       // Release
       fireEvent(chartArea, 'responderRelease', createResponderEvent(200, 55));
       expect(mockOnChartIndexChange).toHaveBeenCalledTimes(3);
+    });
+
+    it('uses time-based updatePosition when timePeriodMs is provided', () => {
+      const now = Date.now();
+      const prices: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
+        String(now - 86_400_000 + i * 20_000_000),
+        100 + i,
+      ]) as TokenPrice[];
+
+      const { getByTestId } = render(
+        <PriceChartProvider>
+          <PriceChart
+            {...defaultProps}
+            prices={prices}
+            priceDiff={5}
+            timePeriodMs={86_400_000}
+          />
+        </PriceChartProvider>,
+      );
+
+      const chartArea = getByTestId('price-chart-area');
+      fireEvent(chartArea, 'responderGrant', createResponderEvent(50, 50));
+      expect(mockOnChartIndexChange).toHaveBeenCalled();
+      const idx = mockOnChartIndexChange.mock.calls[0][0];
+      expect(idx).toBeGreaterThanOrEqual(0);
+      expect(idx).toBeLessThan(prices.length);
+    });
+  });
+
+  describe('findNearestIndex', () => {
+    it('returns -1 for an empty array', () => {
+      expect(findNearestIndex([], 100)).toBe(-1);
+    });
+
+    it('returns 0 for a single-element array', () => {
+      const prices: TokenPrice[] = [['1000', 42]];
+      expect(findNearestIndex(prices, 999)).toBe(0);
+      expect(findNearestIndex(prices, 1000)).toBe(0);
+      expect(findNearestIndex(prices, 1001)).toBe(0);
+    });
+
+    it('returns exact match index', () => {
+      const prices: TokenPrice[] = [
+        ['100', 1],
+        ['200', 2],
+        ['300', 3],
+      ];
+      expect(findNearestIndex(prices, 200)).toBe(1);
+    });
+
+    it('returns the closer element when target is between two points', () => {
+      const prices: TokenPrice[] = [
+        ['100', 1],
+        ['200', 2],
+        ['300', 3],
+      ];
+      expect(findNearestIndex(prices, 190)).toBe(1);
+      expect(findNearestIndex(prices, 110)).toBe(0);
+    });
+
+    it('returns 0 when target is before all data', () => {
+      const prices: TokenPrice[] = [
+        ['100', 1],
+        ['200', 2],
+      ];
+      expect(findNearestIndex(prices, 50)).toBe(0);
+    });
+
+    it('returns last index when target is after all data', () => {
+      const prices: TokenPrice[] = [
+        ['100', 1],
+        ['200', 2],
+        ['300', 3],
+      ];
+      expect(findNearestIndex(prices, 999)).toBe(2);
+    });
+  });
+
+  describe('Time-based rendering', () => {
+    it('renders the chart with time-based xAccessor when timePeriodMs is provided', () => {
+      const prices = fiveTokenPrices();
+      const { getByTestId } = render(
+        <PriceChart
+          {...defaultProps}
+          prices={prices}
+          priceDiff={5}
+          timePeriodMs={86_400_000}
+        />,
+      );
+      expect(getByTestId('price-chart-area')).toBeOnTheScreen();
+    });
+
+    it('renders the chart with index-based xAccessor when timePeriodMs is undefined', () => {
+      const prices = fiveTokenPrices();
+      const { getByTestId } = render(
+        <PriceChart {...defaultProps} prices={prices} priceDiff={5} />,
+      );
+      expect(getByTestId('price-chart-area')).toBeOnTheScreen();
+    });
+
+    it('renders EndDot using time-based x position when timePeriodMs is set', () => {
+      const prices = fiveTokenPrices();
+      const result = render(
+        <PriceChart
+          {...defaultProps}
+          prices={prices}
+          priceDiff={5}
+          timePeriodMs={86_400_000}
+        />,
+      );
+
+      const chartArea = result.getByTestId('price-chart-area');
+      const layoutViews = chartArea.findAll(
+        (node) => typeof node.props?.onLayout === 'function',
+      );
+      layoutViews.forEach((v) =>
+        fireEvent(v, 'layout', {
+          nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 200 } },
+        }),
+      );
+
+      expect(result.getByTestId('price-chart-end-dot')).toBeOnTheScreen();
     });
   });
 });
