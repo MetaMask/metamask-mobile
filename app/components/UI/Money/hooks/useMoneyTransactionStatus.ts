@@ -9,6 +9,7 @@ import { ethers } from 'ethers';
 import { useEffect, useRef } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import EngineService from '../../../../core/EngineService';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
@@ -36,12 +37,14 @@ import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import {
   isMoneyAccountTx,
   isMoneyDepositTx,
+  isPerpsPredictMoneyActivity,
   isPerpsPredictMoneyDeposit,
   isPerpsPredictMoneyWithdraw,
   nestedTxWithType,
   perpsPredictServiceFamily,
   resolveMoneyDepositIntent,
 } from '../utils/moneyTransactionGuards';
+import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -184,8 +187,22 @@ function latestTransactionMeta(
   );
 }
 
+// Activity rows render transaction status from the Redux copy of
+// TransactionController state, which trails these messenger events behind
+// EngineService's update batcher; under a busy JS thread the rows visibly lag
+// the toasts. Flushing here makes rows update in the same frame as the toast.
+function flushActivityState(transactionMeta: TransactionMeta) {
+  if (
+    !isMoneyAccountTx(transactionMeta) &&
+    !isPerpsPredictMoneyActivity(transactionMeta)
+  ) {
+    return;
+  }
+  EngineService.flushState();
+}
+
 export const useMoneyTransactionStatus = () => {
-  const { showToast, MoneyToastOptions } = useMoneyToasts();
+  const { showToast, closeToast, MoneyToastOptions } = useMoneyToasts();
   const shownToastsRef = useRef<Set<string>>(new Set());
   const pendingInProgressRef = useRef<
     Map<string, ReturnType<typeof setTimeout>>
@@ -274,6 +291,13 @@ export const useMoneyTransactionStatus = () => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
       const isReceive = isPerpsPredictMoneyWithdraw(transactionMeta);
       if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
+      // The in-progress toast has no timeout and is normally dismissed by the
+      // final toast replacing it. It has actually been displayed only if its
+      // key was reserved and its deferral timer already fired.
+      const inProgressToastDisplayed =
+        shownToastsRef.current.has(
+          `${transactionMeta.id}-${IN_PROGRESS_KEY}`,
+        ) && !pendingInProgress.has(transactionMeta.id);
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
       const onPress = () =>
@@ -333,10 +357,24 @@ export const useMoneyTransactionStatus = () => {
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
-        const intent = resolveDepositIntent(transactionMeta);
-        showToast(
-          MoneyToastOptions.deposit.success({ amountFiat, intent, onPress }),
-        );
+        // A first deposit is confirmed by the full-page animation takeover
+        // instead of a toast, so the lingering in-progress toast must be
+        // closed explicitly rather than replaced by the success toast.
+        if (
+          shouldShowMoneyFirstTimeDepositAnimation(
+            store.getState(),
+            transactionMeta,
+          )
+        ) {
+          if (inProgressToastDisplayed) {
+            closeToast();
+          }
+        } else {
+          const intent = resolveDepositIntent(transactionMeta);
+          showToast(
+            MoneyToastOptions.deposit.success({ amountFiat, intent, onPress }),
+          );
+        }
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         const destination =
@@ -354,6 +392,7 @@ export const useMoneyTransactionStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
+      flushActivityState(transactionMeta);
       switch (transactionMeta.status) {
         case TransactionStatus.approved:
           showInProgressFor(transactionMeta);
@@ -376,6 +415,7 @@ export const useMoneyTransactionStatus = () => {
 
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
+      flushActivityState(transactionMeta);
       showConfirmedFor(transactionMeta);
     };
 
@@ -407,5 +447,6 @@ export const useMoneyTransactionStatus = () => {
     MoneyToastOptions.withdraw,
     MoneyToastOptions.send,
     showToast,
+    closeToast,
   ]);
 };
