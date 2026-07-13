@@ -7,8 +7,8 @@ import type { CaipChainId } from '@metamask/utils';
 export type FeedAudience = 'all' | 'following';
 
 /**
- * Feed type filter (visual-only for now). Mirrors the leaderboard chain
- * filters: everything, spot tokens, or perps.
+ * Feed type filter. Mirrors the leaderboard chain filters: everything, spot
+ * tokens, or perps. Applied client-side over the loaded feed pages.
  */
 export type FeedTypeFilter = 'all' | 'tokens' | 'perps';
 
@@ -33,9 +33,9 @@ interface FeedItemBase {
   timestamp: number;
   /** Pre-formatted sub-header, e.g. "$120K at $900K MC" (matches Figma). */
   subHeader: string;
-  /** Pre-formatted current value, e.g. "$123,000.5". */
+  /** Pre-formatted current value, e.g. "$123,000.5". Empty when the API omits it. */
   valueLabel: string;
-  /** Pre-formatted P&L, e.g. "+12%". */
+  /** Pre-formatted P&L, e.g. "+12%". Empty when the API omits it. */
   pnlLabel: string;
   /** Whether the API supplied a value for the top-right figure. */
   hasValueData: boolean;

@@ -6,6 +6,7 @@ import FeedView from './FeedView';
 import {
   FeedViewSelectorsIDs,
   getFeedTradeButtonTestId,
+  getFeedTypeOptionTestId,
 } from './FeedView.testIds';
 import type { FeedItem, FeedSection } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
@@ -65,6 +66,9 @@ const buildResult = (
   return {
     items,
     sections,
+    hasLoadedItems:
+      overrides.hasLoadedItems ??
+      (overrides.items ?? [spotItem, perpItem]).length > 0,
     isLoading: false,
     isFetchingNextPage: false,
     hasNextPage: false,
@@ -222,6 +226,89 @@ describe('FeedView', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  it('shows the audience empty state when the raw feed has no loaded items', () => {
+    mockFeedResult = buildResult({ items: [], hasLoadedItems: false });
+
+    renderWithProvider(<FeedView />);
+
+    expect(
+      screen.getByTestId(FeedViewSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the type-filter empty state with Load more when filtered rows are empty but pages remain', () => {
+    mockFeedResult = buildResult({
+      items: [],
+      sections: [],
+      hasLoadedItems: true,
+      hasNextPage: true,
+    });
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
+    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('tokens')));
+
+    expect(
+      screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(FeedViewSelectorsIDs.LOAD_MORE_BUTTON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.LOAD_MORE_BUTTON));
+    expect(mockLoadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show the footer spinner while paginating an empty filtered list', () => {
+    mockFeedResult = buildResult({
+      items: [],
+      sections: [],
+      hasLoadedItems: true,
+      hasNextPage: true,
+      isFetchingNextPage: true,
+    });
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
+    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+
+    expect(
+      screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(FeedViewSelectorsIDs.FOOTER_LOADING),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the terminal type-filter empty state when the feed is exhausted', () => {
+    mockFeedResult = buildResult({
+      items: [],
+      sections: [],
+      hasLoadedItems: true,
+      hasNextPage: false,
+    });
+
+    renderWithProvider(<FeedView />);
+
+    fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.TYPE_SELECTOR));
+    fireEvent.press(screen.getByTestId(getFeedTypeOptionTestId('perps')));
+
+    expect(
+      screen.getByTestId(FeedViewSelectorsIDs.TYPE_EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.feed.empty_type.perps.title'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(FeedViewSelectorsIDs.LOAD_MORE_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('exposes a RefreshControl on the skeleton loading state', () => {

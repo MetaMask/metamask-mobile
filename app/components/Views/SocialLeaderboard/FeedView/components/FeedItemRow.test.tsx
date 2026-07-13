@@ -68,11 +68,11 @@ describe('FeedItemRow', () => {
     expect(screen.getByText('dutchiono')).toBeOnTheScreen();
   });
 
-  it('renders muted "no data" labels when position value and PnL are missing', () => {
+  it('omits value and PnL labels when both fields are missing from the API', () => {
     const item: FeedSpotItem = {
       ...spotItem,
-      valueLabel: 'social_leaderboard.feed.no_data',
-      pnlLabel: 'social_leaderboard.feed.no_data',
+      valueLabel: '',
+      pnlLabel: '',
       hasValueData: false,
       hasPnlData: false,
       isPnlPositive: false,
@@ -80,9 +80,22 @@ describe('FeedItemRow', () => {
 
     renderWithProvider(<FeedItemRow item={item} onTradePress={jest.fn()} />);
 
-    expect(screen.getAllByText('social_leaderboard.feed.no_data')).toHaveLength(
-      2,
-    );
+    expect(screen.getByText('PEPE')).toBeOnTheScreen();
+    expect(screen.queryByText('$123,000.5')).toBeNull();
+    expect(screen.queryByText('+12%')).toBeNull();
+  });
+
+  it('renders only the available value label when PnL is missing', () => {
+    const item: FeedSpotItem = {
+      ...spotItem,
+      pnlLabel: '',
+      hasPnlData: false,
+    };
+
+    renderWithProvider(<FeedItemRow item={item} onTradePress={jest.fn()} />);
+
+    expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
+    expect(screen.queryByText('+12%')).toBeNull();
   });
 
   it('calls onTradePress with the item when Trade is pressed', () => {

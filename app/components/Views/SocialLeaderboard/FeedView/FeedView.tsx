@@ -36,6 +36,7 @@ import {
 import FeedAudienceToggle from './components/FeedAudienceToggle';
 import FeedItemRow from './components/FeedItemRow';
 import FeedItemRowSkeleton from './components/FeedItemRowSkeleton';
+import FeedTypeEmptyState from './components/FeedTypeEmptyState';
 import FeedTypeSelector from './components/FeedTypeSelector';
 import FeedTypeSheet from './components/FeedTypeSheet';
 import FollowingEmptyState from './components/FollowingEmptyState';
@@ -69,9 +70,9 @@ export interface FeedViewProps {
  *
  * Fetches real data via `useTraderFeed` (`SocialService:fetchFeed`) with cursor
  * pagination. The audience toggle switches scope (All -> leaderboard, Following
- * -> following); the type selector is visual-only for now. The Trade button is
- * wired: spot rows open the QuickBuy sheet, perps rows navigate to the Perps
- * market detail page.
+ * -> following); the type selector filters spot/perps client-side over loaded
+ * pages. The Trade button is wired: spot rows open the QuickBuy sheet, perps
+ * rows navigate to the Perps market detail page.
  */
 const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   const tw = useTailwind();
@@ -93,13 +94,14 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   const {
     sections,
     items,
+    hasLoadedItems,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
     loadMore,
     error,
     refresh,
-  } = useTraderFeed({ audience, enabled: isActive });
+  } = useTraderFeed({ audience, typeFilter, enabled: isActive });
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -182,7 +184,9 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
   );
 
   const renderFooter = useCallback(() => {
-    if (!isFetchingNextPage) {
+    // When the list is empty, `ListEmptyComponent` owns the loading affordance
+    // (e.g. the type-filter empty state's spinner) — skip the footer duplicate.
+    if (!isFetchingNextPage || items.length === 0) {
       return null;
     }
     return (
@@ -194,7 +198,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         <ActivityIndicator size="small" color={colors.icon.default} />
       </Box>
     );
-  }, [isFetchingNextPage, colors.icon.default]);
+  }, [isFetchingNextPage, items.length, colors.icon.default]);
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage) {
@@ -243,8 +247,28 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
       );
     }
 
+    if (typeFilter !== 'all' && hasLoadedItems) {
+      return (
+        <FeedTypeEmptyState
+          typeFilter={typeFilter}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          onLoadMore={loadMore}
+        />
+      );
+    }
+
     return <FollowingEmptyState audience={audience} />;
-  }, [error, refresh, audience]);
+  }, [
+    error,
+    refresh,
+    audience,
+    typeFilter,
+    hasLoadedItems,
+    hasNextPage,
+    isFetchingNextPage,
+    loadMore,
+  ]);
 
   const content = useMemo(() => {
     if (isLoading && items.length === 0) {

@@ -59,4 +59,23 @@ describe('FeedAudienceToggle', () => {
     expect(onChange).not.toHaveBeenCalled();
     expect(mockPlaySelection).not.toHaveBeenCalled();
   });
+
+  it('marks the pressed option selected before the parent value prop updates', () => {
+    const onChange = jest.fn();
+    renderWithProvider(<FeedAudienceToggle value="all" onChange={onChange} />);
+
+    fireEvent.press(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')),
+    );
+
+    expect(onChange).toHaveBeenCalledWith('following');
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('all')).props
+        .accessibilityState?.selected,
+    ).toBe(false);
+  });
 });

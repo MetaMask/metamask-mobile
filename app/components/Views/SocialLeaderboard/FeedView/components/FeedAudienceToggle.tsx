@@ -6,7 +6,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -26,6 +26,11 @@ import {
   FeedViewSelectorsIDs,
   getFeedAudienceOptionTestId,
 } from '../FeedView.testIds';
+
+const SPRING_CONFIG = {
+  duration: 150,
+  dampingRatio: 0.75,
+} as const;
 
 const styles = StyleSheet.create({
   row: {
@@ -48,6 +53,10 @@ export interface FeedAudienceToggleProps {
 /**
  * Following / All segmented toggle with an animated sliding pill, modeled on
  * the QuickBuy Buy/Sell toggle. Fires a selection haptic on change.
+ *
+ * Label styling follows local `displayValue` so the active segment turns white
+ * on tap, without waiting for the parent feed to finish re-rendering after a
+ * scope change.
  */
 const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   value,
@@ -62,19 +71,42 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   const allWidthSV = useSharedValue(0);
 
   const prevValueRef = useRef<FeedAudience | null>(null);
+  const [displayValue, setDisplayValue] = useState(value);
   const [followingLayout, setFollowingLayout] =
     useState<LayoutRectangle | null>(null);
   const [allWidth, setAllWidth] = useState(0);
 
+  useEffect(() => {
+    setDisplayValue(value);
+  }, [value]);
+
+  const animateSlideTo = useCallback(
+    (next: FeedAudience) => {
+      if (!followingLayout) {
+        return;
+      }
+      const target = next === 'following' ? 0 : 1;
+      prevValueRef.current = next;
+      slideProgress.value = withSpring(target, SPRING_CONFIG);
+    },
+    [followingLayout, slideProgress],
+  );
+
   const handlePress = (next: FeedAudience) => {
-    if (value !== next) {
-      playSelection().catch(() => undefined);
-      onChange(next);
+    if (displayValue === next) {
+      return;
     }
+
+    playSelection().catch(() => undefined);
+    setDisplayValue(next);
+    animateSlideTo(next);
+    onChange(next);
   };
 
   useEffect(() => {
-    if (!followingLayout) return;
+    if (!followingLayout) {
+      return;
+    }
     const target = value === 'following' ? 0 : 1;
 
     if (prevValueRef.current === null) {
@@ -85,10 +117,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
 
     if (prevValueRef.current !== value) {
       prevValueRef.current = value;
-      slideProgress.value = withSpring(target, {
-        duration: 150,
-        dampingRatio: 0.75,
-      });
+      slideProgress.value = withSpring(target, SPRING_CONFIG);
     }
   }, [value, followingLayout, slideProgress]);
 
@@ -103,7 +132,7 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   }));
 
   const sliderWidth =
-    value === 'following' ? (followingLayout?.width ?? 0) : allWidth;
+    displayValue === 'following' ? (followingLayout?.width ?? 0) : allWidth;
 
   return (
     <Box
@@ -131,17 +160,19 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
             followingXSV.value = layout.x;
           }}
           accessibilityRole="button"
-          accessibilityState={{ selected: value === 'following' }}
+          accessibilityState={{ selected: displayValue === 'following' }}
           testID={getFeedAudienceOptionTestId('following')}
         >
           <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={
-                value === 'following' ? FontWeight.Medium : FontWeight.Regular
+                displayValue === 'following'
+                  ? FontWeight.Medium
+                  : FontWeight.Regular
               }
               color={
-                value === 'following'
+                displayValue === 'following'
                   ? TextColor.TextDefault
                   : TextColor.TextAlternative
               }
@@ -159,17 +190,17 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
             allWidthSV.value = width;
           }}
           accessibilityRole="button"
-          accessibilityState={{ selected: value === 'all' }}
+          accessibilityState={{ selected: displayValue === 'all' }}
           testID={getFeedAudienceOptionTestId('all')}
         >
           <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={
-                value === 'all' ? FontWeight.Medium : FontWeight.Regular
+                displayValue === 'all' ? FontWeight.Medium : FontWeight.Regular
               }
               color={
-                value === 'all'
+                displayValue === 'all'
                   ? TextColor.TextDefault
                   : TextColor.TextAlternative
               }

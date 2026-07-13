@@ -2,6 +2,8 @@ export const FeedViewSelectorsIDs = {
   CONTAINER: 'feed-view-container',
   LIST: 'feed-view-list',
   EMPTY_STATE: 'feed-view-empty-state',
+  TYPE_EMPTY_STATE: 'feed-view-type-empty-state',
+  LOAD_MORE_BUTTON: 'feed-view-load-more-button',
   LOADING: 'feed-view-loading',
   FOOTER_LOADING: 'feed-view-footer-loading',
   ERROR_STATE: 'feed-view-error-state',

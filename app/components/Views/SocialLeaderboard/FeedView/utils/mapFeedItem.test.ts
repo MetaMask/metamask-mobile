@@ -175,7 +175,7 @@ describe('mapFeedItem', () => {
     expect(result?.subHeader).toContain('at');
   });
 
-  it('shows "no data" when open-position value and PnL fields are missing', () => {
+  it('leaves value and PnL labels empty when open-position fields are missing', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
         currentValueUSD: null,
@@ -184,8 +184,8 @@ describe('mapFeedItem', () => {
       }),
     );
 
-    expect(result?.valueLabel).toBe('social_leaderboard.feed.no_data');
-    expect(result?.pnlLabel).toBe('social_leaderboard.feed.no_data');
+    expect(result?.valueLabel).toBe('');
+    expect(result?.pnlLabel).toBe('');
     expect(result?.hasValueData).toBe(false);
     expect(result?.hasPnlData).toBe(false);
   });

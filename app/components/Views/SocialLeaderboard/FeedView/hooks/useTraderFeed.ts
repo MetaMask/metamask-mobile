@@ -18,7 +18,12 @@ import {
 } from '../../../../../util/social/socialServiceTelemetry';
 import { formatTradeDayLabel } from '../../utils/formatters';
 import { mapFeedItem } from '../utils/mapFeedItem';
-import type { FeedAudience, FeedItem, FeedSection } from '../types';
+import type {
+  FeedAudience,
+  FeedItem,
+  FeedSection,
+  FeedTypeFilter,
+} from '../types';
 
 /** Feed scope the social API expects, derived from the audience toggle. */
 type FeedScope = NonNullable<FetchFeedOptions['scope']>;
@@ -32,6 +37,11 @@ export interface UseTraderFeedOptions {
    * to the per-user `following` scope.
    */
   audience?: FeedAudience;
+  /**
+   * Client-side type filter. `tokens` shows spot rows, `perps` shows perp
+   * rows, `all` shows everything. Does not affect the fetch query key.
+   */
+  typeFilter?: FeedTypeFilter;
   /** Gate the query (defaults to enabled). Always additionally gated on unlock. */
   enabled?: boolean;
 }
@@ -41,6 +51,8 @@ export interface UseTraderFeedResult {
   sections: FeedSection[];
   /** Flat list of items (ungrouped), newest first. */
   items: FeedItem[];
+  /** True when the unfiltered loaded page set has at least one item. */
+  hasLoadedItems: boolean;
   /** True during the initial fetch (never for a disabled or background query). */
   isLoading: boolean;
   /** True while a follow-up page is being fetched. */
@@ -56,6 +68,20 @@ export interface UseTraderFeedResult {
 }
 
 const EMPTY_ITEMS: FeedItem[] = [];
+
+/** Maps the UI type filter to the `FeedItem.type` discriminant. */
+const matchesTypeFilter = (
+  item: FeedItem,
+  typeFilter: FeedTypeFilter,
+): boolean => {
+  if (typeFilter === 'all') {
+    return true;
+  }
+  if (typeFilter === 'tokens') {
+    return item.type === 'spot';
+  }
+  return item.type === 'perps';
+};
 
 /** Groups feed items into day sections, newest day first. */
 const groupByDay = (items: FeedItem[]): FeedSection[] => {
@@ -87,7 +113,7 @@ const groupByDay = (items: FeedItem[]): FeedSection[] => {
 export const useTraderFeed = (
   options: UseTraderFeedOptions = {},
 ): UseTraderFeedResult => {
-  const { audience = 'all', enabled = true } = options;
+  const { audience = 'all', typeFilter = 'all', enabled = true } = options;
   const isUnlocked = useSelector(selectIsUnlocked);
 
   const scope: FeedScope =
@@ -126,7 +152,7 @@ export const useTraderFeed = (
 
   const pages = query.data?.pages ?? undefined;
 
-  const items = useMemo(() => {
+  const loadedItems = useMemo(() => {
     if (!pages || pages.length === 0) {
       return EMPTY_ITEMS;
     }
@@ -135,6 +161,15 @@ export const useTraderFeed = (
       .map(mapFeedItem)
       .filter((item): item is FeedItem => item !== null);
   }, [pages]);
+
+  const hasLoadedItems = loadedItems.length > 0;
+
+  const items = useMemo(() => {
+    if (typeFilter === 'all') {
+      return loadedItems;
+    }
+    return loadedItems.filter((item) => matchesTypeFilter(item, typeFilter));
+  }, [loadedItems, typeFilter]);
 
   const sections = useMemo(() => groupByDay(items), [items]);
 
@@ -176,6 +211,7 @@ export const useTraderFeed = (
   return {
     sections,
     items,
+    hasLoadedItems,
     // `isInitialLoading` (not `isLoading`) so a disabled query never reports
     // loading and a background refetch doesn't flash the skeleton.
     isLoading: query.isInitialLoading,

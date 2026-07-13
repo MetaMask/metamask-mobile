@@ -138,34 +138,33 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
           </Text>
         </Box>
 
-        <Box alignItems={BoxAlignItems.End}>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={
-              item.hasValueData
-                ? TextColor.TextDefault
-                : TextColor.TextAlternative
-            }
-            numberOfLines={1}
-          >
-            {item.valueLabel}
-          </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            color={item.hasPnlData ? undefined : TextColor.TextAlternative}
-            twClassName={
-              item.hasPnlData
-                ? item.isPnlPositive
-                  ? 'text-success-default'
-                  : 'text-error-default'
-                : undefined
-            }
-            numberOfLines={1}
-          >
-            {item.pnlLabel}
-          </Text>
-        </Box>
+        {(item.hasValueData || item.hasPnlData) && (
+          <Box alignItems={BoxAlignItems.End}>
+            {item.hasValueData ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+              >
+                {item.valueLabel}
+              </Text>
+            ) : null}
+            {item.hasPnlData ? (
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName={
+                  item.isPnlPositive
+                    ? 'text-success-default'
+                    : 'text-error-default'
+                }
+                numberOfLines={1}
+              >
+                {item.pnlLabel}
+              </Text>
+            ) : null}
+          </Box>
+        )}
       </Box>
     </Box>
   );

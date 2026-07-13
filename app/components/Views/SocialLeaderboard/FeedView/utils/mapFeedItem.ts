@@ -11,7 +11,6 @@ import {
   isPerpPosition,
 } from '../../utils/perp';
 import { chainNameToId } from '../../utils/chainMapping';
-import { strings } from '../../../../../../locales/i18n';
 import {
   formatAbbreviatedUsd,
   formatPercent,
@@ -19,8 +18,6 @@ import {
   formatUsd,
 } from '../../utils/formatters';
 import type { FeedAction, FeedItem } from '../types';
-
-const feedNoDataLabel = () => strings('social_leaderboard.feed.no_data');
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -135,8 +132,8 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
     ? isClosed
       ? formatSignedUsd(pnlValue)
       : formatUsd(coreItem.currentValueUSD)
-    : feedNoDataLabel();
-  const pnlLabel = hasPnlData ? formatPercent(pnlPercent) : feedNoDataLabel();
+    : '';
+  const pnlLabel = hasPnlData ? formatPercent(pnlPercent) : '';
   const pnlSignSource = isClosed
     ? pnlValue
     : (coreItem.pnlValueUsd ?? pnlPercent);

@@ -179,6 +179,63 @@ describe('useTraderFeed', () => {
 
     await waitFor(() => expect(result.current.error).toBe('boom'));
     expect(result.current.items).toHaveLength(0);
+    expect(result.current.hasLoadedItems).toBe(false);
     expect(result.current.hasNextPage).toBe(false);
+  });
+
+  it('filters loaded items to spot rows for the tokens type filter', async () => {
+    mockCall.mockResolvedValue(
+      mockFeedResponse([mockSpotFeedItem(), mockPerpFeedItem()]),
+    );
+
+    const { result } = renderHook(
+      () => useTraderFeed({ typeFilter: 'tokens' }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.hasLoadedItems).toBe(true));
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.items[0]?.type).toBe('spot');
+  });
+
+  it('filters loaded items to perp rows for the perps type filter', async () => {
+    mockCall.mockResolvedValue(
+      mockFeedResponse([mockSpotFeedItem(), mockPerpFeedItem()]),
+    );
+
+    const { result } = renderHook(
+      () => useTraderFeed({ typeFilter: 'perps' }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => expect(result.current.hasLoadedItems).toBe(true));
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.items[0]?.type).toBe('perps');
+  });
+
+  it('does not refetch when the type filter changes', async () => {
+    mockCall.mockResolvedValue(
+      mockFeedResponse([mockSpotFeedItem(), mockPerpFeedItem()]),
+    );
+
+    const { result, rerender } = renderHook(
+      ({ typeFilter }: { typeFilter: 'tokens' | 'perps' }) =>
+        useTraderFeed({ typeFilter }),
+      {
+        wrapper: createWrapper(),
+        initialProps: { typeFilter: 'tokens' as const },
+      },
+    );
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(mockCall).toHaveBeenCalledTimes(1);
+
+    mockCall.mockClear();
+    rerender({ typeFilter: 'perps' });
+
+    expect(mockCall).not.toHaveBeenCalled();
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.items[0]?.type).toBe('perps');
+    expect(result.current.hasLoadedItems).toBe(true);
   });
 });
