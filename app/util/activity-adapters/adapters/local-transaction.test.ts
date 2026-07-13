@@ -899,6 +899,107 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps a typed lendingDeposit to the underlying token when it is transferred to the reserve aToken, not the pool', () => {
+    // Aave V3 sends the underlying from the user to the reserve aToken (not the
+    // pool the tx is addressed to), so the deposit log must still resolve when
+    // the recipient is not txParams.to.
+    const baseAToken = '0x4e65fe4dba92790696d040ac24aa414708f5c0ab';
+    const transaction = {
+      chainId: base,
+      hash: '0x4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1b2c3',
+      status: TransactionStatus.confirmed,
+      time: 1779892154611,
+      type: TransactionType.lendingDeposit,
+      txParams: {
+        from,
+        to: baseAavePool,
+        value: '0x0',
+      },
+      txReceipt: {
+        logs: [
+          // Transfer FROM the user (topics[1]) TO the reserve aToken (topics[2]),
+          // which is NOT the pool address the tx was sent to.
+          {
+            address: baseUsdc,
+            data: '0x00000000000000000000000000000000000000000000000000000000000186a0',
+            topics: [
+              erc20TransferTopic,
+              addressTopic(from),
+              addressTopic(baseAToken),
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'lendingDeposit',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1779892154611,
+      hash: '0x4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1b2c3',
+      data: {
+        sourceToken: {
+          amount: '100000',
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('prefers the outgoing transfer to the pool over an earlier unrelated outgoing transfer (e.g. a gas-fee token)', () => {
+    const feeToken = '0x1111111111111111111111111111111111111111';
+    const paymaster =
+      '0x0000000000000000000000002222222222222222222222222222222222222222';
+    const transaction = {
+      chainId: base,
+      hash: '0x5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809a1b2c3d4',
+      status: TransactionStatus.confirmed,
+      time: 1779892154611,
+      type: TransactionType.lendingDeposit,
+      txParams: {
+        from,
+        to: baseAavePool,
+        value: '0x0',
+      },
+      txReceipt: {
+        logs: [
+          // An unrelated outgoing transfer from the user (gas-fee token), earlier
+          // in the log — must NOT be picked as the deposited token.
+          {
+            address: feeToken,
+            data: '0x0000000000000000000000000000000000000000000000000000000000002710',
+            topics: [erc20TransferTopic, addressTopic(from), paymaster],
+          },
+          // The actual deposit: user -> pool.
+          {
+            address: baseUsdc,
+            data: '0x00000000000000000000000000000000000000000000000000000000000186a0',
+            topics: [
+              erc20TransferTopic,
+              addressTopic(from),
+              addressTopic(baseAavePool),
+            ],
+          },
+        ],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction))) as {
+      data: { sourceToken?: { assetId?: string; amount?: string } };
+    };
+
+    expect(result.data.sourceToken?.assetId).toBe(
+      toAssetId(baseUsdc, 'eip155:8453'),
+    );
+    expect(result.data.sourceToken?.amount).toBe('100000');
+  });
+
   it('maps a typed lendingDeposit with neither simulation data nor a matching transfer log to the pool-address token (prior behavior)', () => {
     const otherSender =
       '0x0000000000000000000000001111111111111111111111111111111111111111';

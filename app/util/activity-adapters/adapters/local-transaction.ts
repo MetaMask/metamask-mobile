@@ -299,28 +299,36 @@ export function mapLocalTransaction(
       });
     }
 
-    // Post-confirmation fallback: the outgoing Transfer log for the deposit —
-    // sent FROM the user (topics[1]) TO the pool (topics[2] === txParams.to).
-    // Requiring the pool recipient avoids matching an unrelated outgoing
-    // transfer from the same account (e.g. a gas-fee token) earlier in the log.
+    // Post-confirmation fallback: the outgoing Transfer log for the deposit
+    // (sent FROM the user, topics[1]). Prefer the transfer whose recipient
+    // (topics[2]) is the pool (txParams.to) when present — this disambiguates
+    // from an unrelated outgoing transfer such as a gas-fee token. Otherwise fall
+    // back to the first outgoing transfer from the user: Aave V3 sends the
+    // underlying to the reserve aToken, not the pool address, so a strict
+    // pool-recipient match would miss the real deposit log.
     const fromAddress = from.toLowerCase();
     const poolAddress = to.toLowerCase();
-    const sentTokenLog = (initialTransaction.txReceipt?.logs ?? []).find(
-      ({ topics: [eventTopic, logFrom, logTo] = [] }) => {
-        const senderAddress = logFrom
-          ? `0x${logFrom.slice(-40)}`.toLowerCase()
-          : undefined;
+    const logs = initialTransaction.txReceipt?.logs ?? [];
+    const isUserOutgoingTransfer = (topics: string[] = []): boolean => {
+      const [eventTopic, logFrom] = topics;
+      const senderAddress = logFrom
+        ? `0x${logFrom.slice(-40)}`.toLowerCase()
+        : undefined;
+      return (
+        eventTopic?.toLowerCase() === environment.tokenTransferLogTopicHash &&
+        senderAddress === fromAddress
+      );
+    };
+    const sentTokenLog =
+      logs.find(({ topics = [] }) => {
+        const logTo = topics[2];
         const recipientAddress = logTo
           ? `0x${logTo.slice(-40)}`.toLowerCase()
           : undefined;
-
         return (
-          eventTopic?.toLowerCase() === environment.tokenTransferLogTopicHash &&
-          senderAddress === fromAddress &&
-          recipientAddress === poolAddress
+          isUserOutgoingTransfer(topics) && recipientAddress === poolAddress
         );
-      },
-    );
+      }) ?? logs.find(({ topics = [] }) => isUserOutgoingTransfer(topics));
 
     if (sentTokenLog) {
       return getContractToken({
