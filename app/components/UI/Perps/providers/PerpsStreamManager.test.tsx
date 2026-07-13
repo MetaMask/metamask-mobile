@@ -171,6 +171,10 @@ describe('PerpsStreamManager', () => {
     jest.clearAllTimers();
     jest.useRealTimers();
     jest.clearAllMocks();
+    // Restore original implementations for all jest.spyOn() spies so spy
+    // wrappers don't leak into subsequent tests (clearAllMocks only resets
+    // call state, it does not undo the spy).
+    jest.restoreAllMocks();
   });
 
   it('renders children correctly', () => {
