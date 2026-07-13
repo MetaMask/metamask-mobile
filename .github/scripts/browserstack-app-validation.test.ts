@@ -1,11 +1,12 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
 const {
   assertBrowserStackAppUrl,
   assertBrowserStackCustomId,
   writeGithubOutputs,
 } = require('./browserstack-app-validation.cjs');
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
 
 describe('browserstack-app-validation', () => {
   it('accepts valid BrowserStack app URLs', () => {
