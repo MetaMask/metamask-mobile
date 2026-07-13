@@ -353,3 +353,5 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 });
+
+// MMQA-1667: verify test-only PR skips native build
