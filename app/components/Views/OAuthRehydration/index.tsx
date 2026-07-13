@@ -880,9 +880,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 {strings('login.password')}
               </Label>
               {renderPasswordField()}
+              {renderHelperText()}
             </Box>
-
-            {renderHelperText()}
 
             <Box
               alignItems={BoxAlignItems.Center}
