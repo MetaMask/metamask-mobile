@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -39,6 +40,7 @@ import PerpsTokenLogo from '../PerpsTokenLogo';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { Theme } from '@metamask/design-tokens';
+import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 
 const styleSheet = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
@@ -49,6 +51,9 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       backgroundColor: theme.colors.background.defaultPressed,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    name: {
+      flexShrink: 1,
     },
   });
 
@@ -68,6 +73,8 @@ const PerpsMarketRowItem = ({
   });
 
   const { styles } = useStyles(styleSheet, {});
+
+  const showFullAssetNames = useSelector(selectPerpsShowFullAssetNamesFlag);
 
   // Merge live price into market data
   const displayMarket = useMemo(() => {
@@ -173,6 +180,14 @@ const PerpsMarketRowItem = ({
 
   const badgeType = getMarketBadgeType(displayMarket);
 
+  const assetLabel = useMemo(() => {
+    const label =
+      showFullAssetNames && displayMarket.name
+        ? displayMarket.name
+        : displayMarket.symbol;
+    return getPerpsDisplaySymbol(label);
+  }, [showFullAssetNames, displayMarket.name, displayMarket.symbol]);
+
   return (
     <Card
       onPress={handlePress}
@@ -184,7 +199,7 @@ const PerpsMarketRowItem = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-1"
+        twClassName="flex-1 mr-2"
       >
         <Box marginRight={4}>
           <PerpsTokenLogo
@@ -198,14 +213,23 @@ const PerpsMarketRowItem = ({
         </Box>
 
         <Box twClassName="flex-1">
-          {/* Symbol + leverage */}
+          {/* Asset label + leverage */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
           >
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {getPerpsDisplaySymbol(displayMarket.symbol)}
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={styles.name}
+              testID={getPerpsMarketRowItemSelector.assetLabel(
+                displayMarket.symbol,
+              )}
+            >
+              {assetLabel}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </Box>

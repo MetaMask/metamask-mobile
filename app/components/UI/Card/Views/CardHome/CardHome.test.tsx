@@ -99,7 +99,9 @@ import {
   selectCardholderAccounts,
   selectCardUserLocation,
   selectCardHomeDataStatus,
+  selectMoneyAccountVedaTokenConfig,
 } from '../../../../../selectors/cardController';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
@@ -293,6 +295,19 @@ interface RegistrationSettingsHookReturn {
 jest.mock('../../hooks/useCardHomeData', () => ({
   __esModule: true,
   useCardHomeData: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCreditBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    wallet: null,
+    creditBalance: '0',
+    creditBalanceNumber: 0,
+    creditCurrency: undefined,
+    creditFiatNumber: undefined,
+    hasCredit: false,
+    isLoading: false,
+  })),
 }));
 
 jest.mock('../../hooks/useCardFreeze', () => ({
@@ -673,6 +688,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Enter your wallet password to view your card PIN.',
       'card.card_home.manage_card_options.cashback_description':
         'Earn on all spending',
+      'card.card_home.manage_card_options.unlink_money_account':
+        'Unlink Money account',
+      'card.card_home.manage_card_options.unlink_money_account_description':
+        'Change your Card funding source',
+      'money.metamask_card.unlink_card_sheet_another_money_account':
+        'another Money account',
       'money.metamask_card.link_title': 'Link MetaMask Card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
@@ -743,6 +764,12 @@ function setupMockSelectors(
     userLocation: 'us' | 'international';
     isMetalCardCheckoutEnabled: boolean;
     cardHomeDataStatus: 'idle' | 'loading' | 'success' | 'error';
+    primaryMoneyAccount: { address: string } | undefined;
+    vedaConfig: {
+      caipChainId: string;
+      address: string;
+      decimals: number;
+    } | null;
   }>,
 ) {
   const defaults = {
@@ -757,6 +784,8 @@ function setupMockSelectors(
     userLocation: 'international' as const,
     isMetalCardCheckoutEnabled: true,
     cardHomeDataStatus: 'success' as const,
+    primaryMoneyAccount: { address: mockCurrentAddress },
+    vedaConfig: null,
   };
 
   const config = { ...defaults, ...overrides };
@@ -774,6 +803,10 @@ function setupMockSelectors(
       return config.lastUnauthenticatedReason;
     if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectCardHomeDataStatus) return config.cardHomeDataStatus;
+    if (selector === selectPrimaryMoneyAccount)
+      return config.primaryMoneyAccount;
+    if (selector === selectMoneyAccountVedaTokenConfig)
+      return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
 
@@ -1466,6 +1499,212 @@ describe('CardHome Component', () => {
       expect(cardImage.props.address).not.toBe(
         'card.card_spending_limit.money_account_label',
       );
+    });
+
+    it('shows the unlink row when the active primary Money Account owns the Money Account spending source', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Unlink Money account')).toBeOnTheScreen();
+      expect(
+        screen.getByText('Change your Card funding source'),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the unlink row when the active primary Money Account does not own the Money Account spending source', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        primaryMoneyAccount: {
+          address: '0x0000000000000000000000000000000000000abc',
+        },
+      });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the unlink row when there is no active primary Money Account', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        primaryMoneyAccount: undefined,
+      });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the unlink row when the Money Account spending source has no wallet address', () => {
+      const moneyAccountTokenWithoutWallet = {
+        ...moneyAccountPriorityToken,
+        walletAddress: undefined,
+      } as unknown as typeof mockPriorityToken;
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountTokenWithoutWallet,
+        allTokens: [moneyAccountTokenWithoutWallet],
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the unlink row for a non-Money Account primary spending source', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: mockPriorityToken,
+        allTokens: [mockPriorityToken],
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the no-other-token unlink sheet when no other delegated token exists', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken],
+      });
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource: undefined,
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
+    });
+
+    it('opens the other-token unlink sheet when another enabled token exists', () => {
+      const otherDelegatedToken = {
+        ...mockPriorityToken,
+        address: '0x456',
+        symbol: 'USDT',
+        name: 'Tether USD',
+        walletAddress: '0xabc',
+        fundingStatus: FundingStatus.Enabled,
+      };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken, otherDelegatedToken],
+      });
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource: 'USDT',
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
+    });
+
+    it('opens the other-token unlink sheet when another limited token exists', () => {
+      const otherDelegatedToken = {
+        ...mockPriorityToken,
+        address: '0x456',
+        symbol: 'USDT',
+        name: 'Tether USD',
+        walletAddress: '0xabc',
+        fundingStatus: FundingStatus.Limited,
+      };
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken, otherDelegatedToken],
+      });
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource: 'USDT',
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
+    });
+
+    it('uses another Money account when the fallback token is also a Money Account', () => {
+      const otherMoneyAccountToken = {
+        ...mockPriorityToken,
+        address: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
+        symbol: 'VEDA',
+        name: 'Veda',
+        caipChainId: 'eip155:143',
+        walletAddress: '0xabc',
+        fundingStatus: FundingStatus.Enabled,
+      };
+      setupMockSelectors({
+        isAuthenticated: true,
+        vedaConfig: {
+          caipChainId: 'eip155:143',
+          address: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
+          decimals: 6,
+        },
+      });
+      setupLoadCardDataMock({
+        priorityToken: moneyAccountPriorityToken,
+        allTokens: [moneyAccountPriorityToken, otherMoneyAccountToken],
+      });
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource: 'another Money account',
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
     });
 
     it('navigates to MoneyAddMoneySheet and skips switchToFundingAccountIfNeeded when add funds is pressed', async () => {

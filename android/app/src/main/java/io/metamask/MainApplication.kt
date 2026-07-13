@@ -31,6 +31,7 @@ import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
 import com.braze.BrazeActivityLifecycleCallbackListener
+import com.margelo.nitro.nitrofetch.AutoPrefetcher
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -88,6 +89,24 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         // Enable debugging WebView from Chrome DevTools
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true)
+        }
+
+        try {
+            AutoPrefetcher.registerPrefetch(
+                this,
+                "https://phishing-detection.api.cx.metamask.io/v1/stalelist",
+                "phishing-stalelist",
+                emptyMap(),
+            )
+            AutoPrefetcher.registerPrefetch(
+                this,
+                "https://client-side-detection.api.cx.metamask.io/v1/request-blocklist",
+                "phishing-c2-blocklist",
+                emptyMap(),
+            )
+            AutoPrefetcher.prefetchOnStart(this)
+        } catch (_: Throwable) {
+            // Non-fatal: if prefetch fails the app continues on the standard fetch path.
         }
 
         loadReactNative(this)

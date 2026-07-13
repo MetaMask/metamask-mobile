@@ -57,10 +57,13 @@ export const TokenDetailsInlineHeader = ({
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
 
-  const contractAddress = useMemo(
-    () => resolveTokenContractAddress(token),
-    [token],
-  );
+  const isNativeToken = token.isETH || token.isNative;
+  const contractAddress = useMemo(() => {
+    if (isNativeToken) {
+      return null;
+    }
+    return resolveTokenContractAddress(token);
+  }, [token, isNativeToken]);
   const handleCopyContractAddress = useCopyTokenContractAddress(
     contractAddress,
     onCopyAddress,
@@ -157,10 +160,9 @@ export const TokenDetailsInlineHeader = ({
     }
 
     return (
-      // TODO: Replace this with ButtonIcon size XS when available
       <ButtonIcon
         iconName={IconName.Copy}
-        size={ButtonIconSize.Sm}
+        size={ButtonIconSize.Xs}
         onPress={handleCopyContractAddress}
         iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
         testID="copy-contract-address-button"

@@ -3,6 +3,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 import { RootMessenger } from '../../types';
 
@@ -16,7 +18,7 @@ type AllowedEvents = MessengerEvents<PerpsControllerMessenger>;
  * PerpsController uses the messenger for all cross-controller communication:
  * NetworkController, KeyringController, TransactionController,
  * RemoteFeatureFlagController, AccountsController, AccountTreeController,
- * AuthenticationController.
+ * AuthenticationController, AuthenticatedUserStorageService.
  * The root messenger already registers actions for these controllers,
  * so the child messenger can call them through the parent.
  *
@@ -32,7 +34,12 @@ export function getPerpsControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    messenger,
+    messenger: messenger as Messenger<
+      'PerpsController',
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'GeolocationController:getGeolocation',
       'NetworkController:getState',
@@ -45,6 +52,8 @@ export function getPerpsControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AuthenticationController:getBearerToken',
+      'AuthenticatedUserStorageService:getNotificationPreferences',
+      'AuthenticatedUserStorageService:putNotificationPreferences',
     ],
     events: [
       'RemoteFeatureFlagController:stateChange',

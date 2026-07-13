@@ -44,16 +44,22 @@ import Button, {
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import MoneyIcon from '../../../../../images/money.png';
 
+const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
+  card: 'money.api_activity_details.you_spent',
+  cashback: 'money.api_activity_details.you_earned',
+  refund: 'money.api_activity_details.you_were_refunded',
+};
+
 const iconStyles = StyleSheet.create({
   moneyIconWrapper: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 16,
+    height: 16,
+    borderRadius: 4,
     overflow: 'hidden' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   },
-  moneyIcon: { width: 32, height: 32 },
+  moneyIcon: { width: 21.33, height: 21.33 },
   heroMoneyIcon: { width: 32, height: 32, borderRadius: 16 },
 });
 
@@ -152,14 +158,10 @@ function MoneyApiActivityDetailsContent({
       />
       <ScrollView>
         <Box style={styles.container} gap={12}>
-          {/* Hero: "You spent" / "You earned" */}
+          {/* Hero: "You spent" / "You earned" / "You were refunded" */}
           <Box gap={4}>
             <Text color={TextColor.Alternative}>
-              {strings(
-                isCard
-                  ? 'money.api_activity_details.you_spent'
-                  : 'money.api_activity_details.you_earned',
-              )}
+              {strings(HERO_COPY_KEY[activity.kind])}
             </Text>
             <Box
               flexDirection={FlexDirection.Row}

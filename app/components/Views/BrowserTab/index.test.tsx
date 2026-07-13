@@ -234,6 +234,27 @@ describe('BrowserTab', () => {
         expect.anything(),
       );
     });
+
+    it('navigates to Money Home when close button is pressed and opened from money', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} fromMoney />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-tab-close-button'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
+    });
   });
 
   describe('WebView originWhitelist', () => {

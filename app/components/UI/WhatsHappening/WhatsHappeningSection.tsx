@@ -14,9 +14,16 @@ import {
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, TextVariant } from '@metamask/design-system-react-native';
-import SectionHeader from '../../Views/TrendingView/components/SectionHeader';
-import TempSectionHeader from '../../../component-library/components-temp/SectionHeader';
+import {
+  Box,
+  SectionHeader,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import ExploreSectionHeader from '../../Views/TrendingView/components/SectionHeader';
+import type {
+  ExploreTabName,
+  ExploreSectionName,
+} from '../../Views/TrendingView/search/analytics';
 import ErrorState from '../../Views/Homepage/components/ErrorState';
 import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../Views/Homepage/types';
@@ -65,16 +72,18 @@ interface WhatsHappeningSectionProps {
   source: WhatsHappeningSourceValue;
   /** Optional callback fired when the section header is pressed, before navigation. */
   onHeaderPress?: () => void;
-  /** When true, the parent Explore feed supplies the section header. */
-  hideHeader?: boolean;
   /** Optional pre-fetched feed state (avoids duplicate requests in Explore). */
   feed?: UseWhatsHappeningResult;
+  /** Tab context for Explore section analytics — pair with sectionName. */
+  tabName?: ExploreTabName;
+  /** Section context for Explore section analytics — pair with tabName. */
+  sectionName?: ExploreSectionName;
 }
 
 const WhatsHappeningSection = forwardRef<
   SectionRefreshHandle,
   WhatsHappeningSectionProps
->(({ source, onHeaderPress, hideHeader = false, feed }, ref) => {
+>(({ source, onHeaderPress, feed, tabName, sectionName }, ref) => {
   const currentIndexRef = useRef<number>(0);
   const tw = useTailwind();
   const navigation = useNavigation();
@@ -140,12 +149,20 @@ const WhatsHappeningSection = forwardRef<
     return null;
   }
 
-  const useExploreLayout =
-    hideHeader && source === WhatsHappeningSource.Explore;
+  const isExploreSection = tabName !== undefined && sectionName !== undefined;
 
-  const header = hideHeader ? null : (
-    <TempSectionHeader
+  const header = isExploreSection ? (
+    <ExploreSectionHeader
       title={title}
+      onViewAll={handleViewAll}
+      testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
+      tabName={tabName}
+      sectionName={sectionName}
+    />
+  ) : (
+    <SectionHeader
+      title={title}
+      isInteractive
       onPress={handleViewAll}
       testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
     />
@@ -197,24 +214,20 @@ const WhatsHappeningSection = forwardRef<
     return null;
   }
 
-  if (useExploreLayout) {
+  if (isExploreSection) {
     return (
       <Box>
-        <SectionHeader
-          title={title}
-          onViewAll={handleViewAll}
-          testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
-        />
-        <Box twClassName="-mx-4">{carouselContent}</Box>
+        {header}
+        {carouselContent}
       </Box>
     );
   }
 
   return (
-    <View style={styles.sectionGap}>
+    <Box paddingBottom={3} style={styles.sectionGap}>
       {header}
       {carouselContent}
-    </View>
+    </Box>
   );
 });
 

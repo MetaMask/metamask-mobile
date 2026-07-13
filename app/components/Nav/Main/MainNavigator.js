@@ -220,10 +220,6 @@ const AssetStackFlow = (props) => (
       component={SecurityTrustScreen}
     />
     <NativeStack.Screen
-      name={Routes.TRANSACTION_DETAILS}
-      component={TransactionDetails}
-    />
-    <NativeStack.Screen
       name={Routes.CREATE_PRICE_ALERT}
       component={CreatePriceAlertView}
     />
@@ -286,16 +282,6 @@ const TransactionsHome = () => {
       <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
         component={ActivityView}
-      />
-      <NativeStack.Screen
-        name={Routes.TRANSACTION_DETAILS}
-        component={TransactionDetails}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.ACTIVITY_DETAILS}
-        component={ActivityDetails}
-        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
@@ -1098,6 +1084,16 @@ const MainNavigator = () => {
         name="Asset"
         component={AssetNavigator}
         options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.ACTIVITY_DETAILS}
+        component={ActivityDetails}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.TRANSACTION_DETAILS}
+        component={TransactionDetails}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="TrendingTokensFullView"

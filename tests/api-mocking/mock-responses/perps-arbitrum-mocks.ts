@@ -44,13 +44,17 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_blockNumber - latest block
   eth_blockNumber: '0x1234567',
 
-  // eth_getBlockByNumber - block data
+  // eth_getBlockByNumber - block data. `baseFeePerGas` marks the chain as
+  // EIP-1559 so transactions resolve maxFeePerGas/maxPriorityFeePerGas. Without
+  // it, EIP-7702 (type 0x4) batches fail with "Invalid transaction envelope
+  // type: specified type 0x4 but included a gasPrice".
   eth_getBlockByNumber: {
     number: '0x1234567',
     hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
     timestamp: '0x' + Math.floor(Date.now() / 1000).toString(16),
     gasLimit: '0x1c9c380',
     gasUsed: '0x5208',
+    baseFeePerGas: '0x989680',
     transactions: [],
   },
 

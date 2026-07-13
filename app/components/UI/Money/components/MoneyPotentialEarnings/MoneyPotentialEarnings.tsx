@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
 import {
   Box,
   Button,
@@ -18,7 +17,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
@@ -37,11 +35,8 @@ interface MoneyPotentialEarningsProps {
   apyDecimal: number | undefined;
   /**
    * Returns true when the given token qualifies for a subsidised (no-fee)
-   * deposit into the Money account (target: Monad mUSD). Used to render the
-   * "No fee" badge on each token row. Sourced from the
-   * `confirmations_relay_fixed_spread` remote feature flag via
-   * useMoneyEarnableTokens — tokens with a route into Monad mUSD, plus Monad
-   * mUSD itself, are tagged.
+   * deposit into the Money account. Used to render the "No fee" badge on
+   * each token row.
    */
   isNoFeeToken?: (token: AssetType) => boolean;
   onTokenCardPress?: (
@@ -73,13 +68,11 @@ const MoneyPotentialEarnings = ({
   onHeaderPress,
   onInfoPress,
 }: MoneyPotentialEarningsProps) => {
-  const currentCurrency = useSelector(selectCurrentCurrency);
-
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
   // the visible five would contradict that affordance.
-  const { eligibleTokens, totalAssetsFiat, projectedAmount } =
+  const { eligibleTokens, totalAssetsFiat, projectedAmount, currency } =
     useProjectedEarnings(tokens, apyDecimal);
   const visibleTokens = useMemo(
     () => eligibleTokens.slice(0, VISIBLE_TOKENS_COUNT),
@@ -126,7 +119,7 @@ const MoneyPotentialEarnings = ({
               {
                 total: moneyFormatFiat(
                   new BigNumber(totalAssetsFiat),
-                  currentCurrency,
+                  currency,
                 ),
               },
             )} `}
@@ -135,7 +128,7 @@ const MoneyPotentialEarnings = ({
               fontWeight={FontWeight.Medium}
               color={TextColor.SuccessDefault}
             >
-              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currentCurrency)}`}
+              {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
             </Text>
             {` ${strings(
               'money.potential_earnings.description_with_amounts_suffix',

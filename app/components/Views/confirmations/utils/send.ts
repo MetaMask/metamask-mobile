@@ -109,7 +109,11 @@ export const handleSendPageNavigation = (
 ) => {
   const { location, asset, predefinedRecipient } = params;
   captureSendStartedEvent(location);
-  let screen = Routes.SEND.ASSET;
+  type SendStackScreen =
+    | typeof Routes.SEND.ASSET
+    | typeof Routes.SEND.RECIPIENT
+    | typeof Routes.SEND.AMOUNT;
+  let screen: SendStackScreen = Routes.SEND.ASSET;
   if (asset) {
     if (asset.standard === TokenStandard.ERC721) {
       screen = Routes.SEND.RECIPIENT;

@@ -30,6 +30,16 @@ const cashback: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
+const refund: AccountsApiActivity = {
+  kind: 'refund',
+  hash: '0xrefund' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f' as Hex,
+  token,
+  amount: '1500000',
+  receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
+};
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 let mockRouteParams: { activity?: AccountsApiActivity } | undefined;
@@ -234,6 +244,46 @@ describe('MoneyApiActivityDetailsView', () => {
       ).toBeTruthy();
       expect(getByTestId('counterparty-name')).toHaveTextContent(
         cashback.receivedFrom,
+      );
+    });
+  });
+
+  describe('refund', () => {
+    beforeEach(() => {
+      mockRouteParams = { activity: refund };
+    });
+
+    it('renders the Refund title', () => {
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+      expect(getByTestId('header-title')).toHaveTextContent(
+        'money.transaction.refund',
+      );
+    });
+
+    it('renders the refunded amount with a plus sign', () => {
+      const { getByText } = render(<MoneyApiActivityDetailsView />);
+      expect(getByText(/\+1\.50 mUSD/)).toBeTruthy();
+    });
+
+    it('renders the "You were refunded" label, not "You earned"', () => {
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(
+        getByText('money.api_activity_details.you_were_refunded'),
+      ).toBeTruthy();
+      expect(queryByText('money.api_activity_details.you_earned')).toBeNull();
+    });
+
+    it('renders the "Received from" row with the sender', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(
+        getByText('money.api_activity_details.received_from'),
+      ).toBeTruthy();
+      expect(getByTestId('counterparty-name')).toHaveTextContent(
+        refund.receivedFrom,
       );
     });
   });

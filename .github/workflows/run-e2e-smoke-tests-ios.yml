@@ -204,24 +204,6 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  seedless-onboarding-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: seedless-onboarding-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeSeedlessOnboarding'
-      split_number: ${{ matrix.split }}
-      total_splits: 1
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
   browser-ios-smoke:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeBrowser')
     strategy:
@@ -283,7 +265,6 @@ jobs:
       - prediction-market-ios-smoke
       - money-ios-smoke
       - multichain-api-ios-smoke
-      - seedless-onboarding-ios-smoke
       - browser-ios-smoke
       - snaps-ios-smoke
     steps:
