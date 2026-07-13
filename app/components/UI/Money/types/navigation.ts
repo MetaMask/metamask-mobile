@@ -1,41 +1,33 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { AccountsApiActivity } from './moneyActivity';
 
 /**
- * Nested-navigation params for the Money container stacks (MoneyScreens /
- * MoneyModals / MoneyConfirmations), which are navigated via
- * `navigate(container, { screen, params })`.
- *
- * Kept local to avoid a circular import with NavigationService/types.
+ * Param list for screens inside the Money tab stack (`MoneyTabScreenStack`).
  */
-interface MoneyNestedNavigationParams {
-  screen?: string;
-  params?: object;
-}
-
-/**
- * Param list for the screens registered across the Money navigators
- * (`MoneyTabScreenStack`, `MoneyModalStack`, `MoneyConfirmationScreenStack`)
- * and the flat Money screens registered on the root MainNavigator.
- *
- * Param shapes mirror what each screen reads via `useParams` / `useRoute`.
- */
-export interface MoneyNavigationParamList {
-  // MoneyScreens tab stack
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyScreensStackParamList = {
   MoneyHome: undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
+};
 
-  // Flat screens registered on the root MainNavigator
-  MoneyOnboarding: undefined;
-  MoneyFirstTimeDeposit: undefined;
-  MoneyPotentialEarnings: undefined;
-  MoneyTransactionDetails: { transactionId: string };
-  MoneyCardTransactionDetails: { activity?: AccountsApiActivity } | undefined;
+/**
+ * Param list for screens inside the Money confirmation stack
+ * (`MoneyConfirmationScreenStack`).
+ */
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyConfirmationsNavigationParamList = {
+  RedesignedConfirmations: undefined;
+};
 
-  // Confirmation stack (nested navigator)
-  MoneyConfirmations: MoneyNestedNavigationParams | undefined;
-
-  // MoneyModals modal stack
+/**
+ * Param list for screens inside the Money modal stack (`MoneyModalStack`).
+ */
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyModalsNavigationParamList = {
   MoneyAddMoneySheet: undefined;
   MoneyMoreSheet: undefined;
   MoneyTransferSheet: undefined;
@@ -45,4 +37,27 @@ export interface MoneyNavigationParamList {
   MoneyLinkCardSheet: { entrypoint?: string } | undefined;
   MoneyEarnCryptoInfoSheet: { variant?: 'default' | 'deposit' } | undefined;
   MoneyGeoBlockSheet: undefined;
-}
+};
+
+/**
+ * Feature-level Money navigation params: nested stacks, flat root screens, and
+ * typed `{ screen, params }` entry points for cross-stack navigation.
+ */
+// Intersection (`&`) requires `type`; `interface` cannot express this.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyNavigationParamList = MoneyScreensStackParamList &
+  MoneyModalsNavigationParamList &
+  MoneyConfirmationsNavigationParamList & {
+    MoneyOnboarding: undefined;
+    MoneyFirstTimeDeposit: undefined;
+    MoneyPotentialEarnings: undefined;
+    MoneyTransactionDetails: { transactionId: string };
+    MoneyCardTransactionDetails: { activity?: AccountsApiActivity } | undefined;
+    MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;
+    MoneyModals:
+      | NavigatorScreenParams<MoneyModalsNavigationParamList>
+      | undefined;
+    MoneyConfirmations:
+      | NavigatorScreenParams<MoneyConfirmationsNavigationParamList>
+      | undefined;
+  };
