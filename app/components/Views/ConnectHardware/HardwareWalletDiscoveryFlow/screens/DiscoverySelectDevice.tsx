@@ -46,10 +46,20 @@ const DiscoverySelectDeviceScreen: React.FC<
   const tw = useTailwind();
   const surfaceClass = useElevatedSurface();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const hasValidSelection = devices.some(
+    (deviceSelected) => deviceSelected.id === selectedDeviceId,
+  );
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
+
+  const handleSave = useCallback(() => {
+    if (!hasValidSelection) {
+      return;
+    }
+    onSave();
+  }, [hasValidSelection, onSave]);
 
   return (
     <BottomSheet
@@ -116,7 +126,8 @@ const DiscoverySelectDeviceScreen: React.FC<
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={onSave}
+          isDisabled={!hasValidSelection}
+          onPress={handleSave}
           testID="discovery-save-button"
         >
           {strings('ledger.save_device_selection')}

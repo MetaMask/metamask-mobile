@@ -177,7 +177,10 @@ describe('DiscoverySelectDeviceScreen', () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId('discovery-save-button'));
+    const saveButton = screen.getByTestId('discovery-save-button');
+    expect(saveButton).toBeEnabled();
+
+    fireEvent.press(saveButton);
     fireEvent.press(screen.getByTestId('discovery-close-sheet'));
 
     expect(onSave).toHaveBeenCalledTimes(1);
@@ -271,12 +274,53 @@ describe('DiscoverySelectDeviceScreen', () => {
     ).toBeNull();
   });
 
+  it('disables Save when selectedDeviceId is empty', () => {
+    const onSave = jest.fn();
+
+    render(
+      <DiscoverySelectDeviceScreen
+        {...defaultProps}
+        selectedDeviceId=""
+        onSave={onSave}
+      />,
+    );
+
+    const saveButton = screen.getByTestId('discovery-save-button');
+    expect(saveButton).toBeDisabled();
+
+    fireEvent.press(saveButton);
+
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('disables Save when selectedDeviceId does not match any device', () => {
+    const onSave = jest.fn();
+
+    render(
+      <DiscoverySelectDeviceScreen
+        {...defaultProps}
+        selectedDeviceId="unknown-id"
+        onSave={onSave}
+      />,
+    );
+
+    const saveButton = screen.getByTestId('discovery-save-button');
+    expect(saveButton).toBeDisabled();
+
+    fireEvent.press(saveButton);
+
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   it('renders with an empty devices list', () => {
+    const onSave = jest.fn();
+
     render(
       <DiscoverySelectDeviceScreen
         {...defaultProps}
         devices={[]}
         selectedDeviceId=""
+        onSave={onSave}
       />,
     );
 
@@ -285,6 +329,13 @@ describe('DiscoverySelectDeviceScreen', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Select device')).toBeOnTheScreen();
     expect(screen.getByText('Save')).toBeOnTheScreen();
+
+    const saveButton = screen.getByTestId('discovery-save-button');
+    expect(saveButton).toBeDisabled();
+
+    fireEvent.press(saveButton);
+
+    expect(onSave).not.toHaveBeenCalled();
   });
 
   it('uses the deviceIcon from config', () => {
