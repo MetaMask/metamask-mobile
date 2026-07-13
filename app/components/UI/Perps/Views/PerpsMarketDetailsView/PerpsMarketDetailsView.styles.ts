@@ -34,11 +34,14 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       backgroundColor: theme.colors.background.default,
     },
     section: {
+      paddingHorizontal: 16,
+    },
+    chromeBlock: {
       paddingVertical: 16,
       paddingHorizontal: 16,
     },
-    sectionTitle: {
-      marginBottom: 12,
+    positionsOrdersContainer: {
+      paddingHorizontal: 16,
     },
     chartSection: {
       paddingTop: 0,

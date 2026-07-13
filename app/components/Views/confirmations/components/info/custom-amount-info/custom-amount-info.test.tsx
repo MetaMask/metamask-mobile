@@ -329,8 +329,11 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
       isInputChanged: false,
       isPrefillPending: false,
+      isDepositPrefillLoading: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: jest.fn(),
@@ -619,8 +622,11 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
       isInputChanged: false,
       isPrefillPending: false,
+      isDepositPrefillLoading: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -666,8 +672,11 @@ describe('CustomAmountInfo', () => {
       amountHumanDebounced: '0',
       amountFiatDebounced: '0',
       hasInput: true,
+      isDepositPrefillEnabled: false,
+      isDepositPrefilled: false,
       isInputChanged: false,
       isPrefillPending: false,
+      isDepositPrefillLoading: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -784,8 +793,11 @@ describe('CustomAmountInfo', () => {
         amountHumanDebounced: '0',
         amountFiatDebounced: '0',
         hasInput: false,
+        isDepositPrefillEnabled: false,
+        isDepositPrefilled: false,
         isInputChanged: false,
         isPrefillPending: false,
+        isDepositPrefillLoading: false,
         updatePendingAmount: noop,
         updatePendingAmountPercentage: noop,
         updateTokenAmount: jest.fn(),
@@ -1100,6 +1112,21 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(mockRampsTrackEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('PayWithRow visibility for moneyAccountDeposit', () => {
+    it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      expect(getByTestId('pay-with')).toBeOnTheScreen();
     });
   });
 
