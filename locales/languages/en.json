@@ -5229,6 +5229,17 @@
     "enable_device_passcode_ios": "Unlock with device passcode?",
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
+  "balance_breakdown": {
+    "predict_more_categories": "+{{count}} categories",
+    "predict_positions_count": "{{count}} positions",
+    "available_balance": "Available balance",
+    "drilldown_empty_tokens": "No tokens to display.",
+    "drilldown_empty_positions": "No positions to display.",
+    "tokens_across_networks": "{{count}} networks",
+    "token_drilldown_subtitle": "{{percent}}% · {{amount}}",
+    "token_drilldown_subtitle_multichain": "{{percent}}% · {{amount}} · {{networkLabel}}",
+    "token_drilldown_other_subtitle": "{{percent}}%"
+  },
   "authentication": {
     "auth_prompt_desc": "Please authenticate in order to use MetaMask"
   },

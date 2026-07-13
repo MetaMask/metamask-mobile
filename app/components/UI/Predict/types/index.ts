@@ -512,6 +512,8 @@ export type PredictPosition = {
   outcomeId: string;
   outcome: string;
   outcomeTokenId: string;
+  /** Market slug from provider (used for category heuristics in balance breakdown). */
+  slug?: string;
   currentValue: number;
   title: string;
   icon: string;

@@ -1775,6 +1775,7 @@ export const parsePolymarketPositions = async ({
       avgPrice: position.avgPrice,
       endDate: position.endDate,
       title: position.title,
+      slug: position.slug,
       icon: position.icon,
       size: position.size,
       claimable: position.redeemable,

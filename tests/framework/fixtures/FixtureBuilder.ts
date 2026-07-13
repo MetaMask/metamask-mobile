@@ -180,6 +180,25 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Enables the homepageBalanceBreakdownEnabled remote feature flag so the
+   * Balance Breakdown screen is accessible by tapping the account balance.
+   */
+  withHomepageBalanceBreakdownEnabled() {
+    const { remoteFeatureFlags } =
+      this.fixture.state.engine.backgroundState.RemoteFeatureFlagController as {
+        remoteFeatureFlags: Record<string, unknown>;
+      };
+    merge(remoteFeatureFlags, {
+      homepageBalanceBreakdownEnabled: {
+        enabled: true,
+        featureVersion: null,
+        minimumVersion: null,
+      },
+    });
+    return this;
+  }
+
   withSolanaFeatureSheetDisplayed() {
     if (!this.fixture.asyncState) {
       this.fixture.asyncState = {};
@@ -1466,6 +1485,31 @@ class FixtureBuilder {
       allTokens: {
         [chainId]: {
           [account]: tokens,
+        },
+      },
+    });
+    return this;
+  }
+
+  /**
+   * Adds USDC on Ethereum mainnet for balance-breakdown / token drilldown smoke tests.
+   */
+  withTokensControllerERC20() {
+    return this.withTokens([
+      {
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        decimals: 6,
+        name: 'USD Coin',
+        symbol: 'USDC',
+      },
+    ]);
+  }
+
+  withDetectedTokens(tokens: Record<string, unknown>[]) {
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allDetectedTokens: {
+        [CHAIN_IDS.MAINNET]: {
+          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
         },
       },
     });

@@ -1,0 +1,16 @@
+export const BalanceBreakdownTestIds = {
+  CONTAINER: 'balance-breakdown-container',
+  DONUT_CHART: 'balance-breakdown-donut-chart',
+  HERO_TOTAL: 'balance-breakdown-hero-total',
+  HERO_DELTA: 'balance-breakdown-hero-delta',
+  LEGEND_ROW: (key: string) => `balance-breakdown-legend-row-${key}`,
+  LEGEND_VALUE: (key: string) => `balance-breakdown-legend-value-${key}`,
+  LEGEND_PERCENT: (key: string) => `balance-breakdown-legend-percent-${key}`,
+  DRILLDOWN_LIST: 'balance-breakdown-drilldown-list',
+  DRILLDOWN_ROW: (key: string) => `balance-breakdown-drilldown-row-${key}`,
+  ACTION_FOOTER: 'balance-breakdown-action-footer',
+  ACTION_BUTTON: 'balance-breakdown-action-button',
+  WARNING_BANNER: 'balance-breakdown-warning-banner',
+  RESET_OVERVIEW: 'balance-breakdown-reset-overview',
+  DRILLDOWN_TOP_GLOW: 'balance-breakdown-drilldown-top-glow',
+};

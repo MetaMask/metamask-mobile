@@ -10,6 +10,18 @@ import {
   ONBOARDING_CHECKLIST_STEPPER_VARIANTS,
 } from '../../../components/UI/WalletHomeOnboardingSteps/abTestConfig';
 
+const homepageBalanceBreakdownKey = 'homepageBalanceBreakdownEnabled';
+
+export const selectHomepageBalanceBreakdownEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => true //{
+  //   const remoteFlag = remoteFeatureFlags[
+  //     homepageBalanceBreakdownKey
+  //   ] as unknown as VersionGatedFeatureFlag;
+  //   return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  // },
+);
+
 export const selectHubPageDiscoveryTabsABTest = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
