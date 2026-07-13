@@ -63,7 +63,7 @@ jest.mock('./usePredictTrading', () => ({
 }));
 
 jest.mock('../selectors/predictController', () => ({
-  selectPredictPendingDepositByAddress: () => () => null,
+  selectPredictPendingDepositByAddress: () => null,
 }));
 
 jest.mock('../utils/accounts', () => ({
