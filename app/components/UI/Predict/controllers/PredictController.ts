@@ -437,8 +437,12 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackBannerAction',
   'trackBetslipDismissed',
   'trackCategoryClicked',
+  'trackFeedFilterChanged',
+  'trackFeedTabChanged',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
+  'trackHomeSectionInteraction',
+  'trackHomeViewed',
   'trackMarketDetailsOpened',
   'trackPositionViewed',
   'trackPortfolioPositionsButtonTapped',
@@ -1491,6 +1495,51 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackSearchInteracted']>[0],
   ): void {
     this.analytics.trackSearchInteracted(args);
+  }
+
+  /**
+   * Track Predict Home Viewed analytics event (redesigned home)
+   *
+   * @public
+   */
+  public trackHomeViewed(
+    args: Parameters<PredictAnalytics['trackHomeViewed']>[0],
+  ): void {
+    this.analytics.trackHomeViewed(args);
+  }
+
+  /**
+   * Track Predict Home Section Interaction analytics event
+   * (section viewed / tapped / see-all)
+   *
+   * @public
+   */
+  public trackHomeSectionInteraction(
+    args: Parameters<PredictAnalytics['trackHomeSectionInteraction']>[0],
+  ): void {
+    this.analytics.trackHomeSectionInteraction(args);
+  }
+
+  /**
+   * Track Predict Feed Tab Changed analytics event (generic feed)
+   *
+   * @public
+   */
+  public trackFeedTabChanged(
+    args: Parameters<PredictAnalytics['trackFeedTabChanged']>[0],
+  ): void {
+    this.analytics.trackFeedTabChanged(args);
+  }
+
+  /**
+   * Track Predict Feed Filter Changed analytics event (generic feed)
+   *
+   * @public
+   */
+  public trackFeedFilterChanged(
+    args: Parameters<PredictAnalytics['trackFeedFilterChanged']>[0],
+  ): void {
+    this.analytics.trackFeedFilterChanged(args);
   }
 
   /**
