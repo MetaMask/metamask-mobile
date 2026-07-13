@@ -87,6 +87,21 @@ describe('getTokens', () => {
     expect(result).toStrictEqual([]);
   });
 
+  it('re-sorts results to match the caller-supplied assetIds order', async () => {
+    const apiResponse = [
+      { assetId: 'eip155:1/erc20:0xbbb', symbol: 'B', name: 'B', decimals: 1 },
+      { assetId: 'eip155:1/erc20:0xaaa', symbol: 'A', name: 'A', decimals: 1 },
+    ];
+    mockedHandleFetch.mockResolvedValue(apiResponse);
+
+    const result = await getTokens([
+      'eip155:1/erc20:0xaaa',
+      'eip155:1/erc20:0xbbb',
+    ]);
+
+    expect(result.map((t) => t.symbol)).toStrictEqual(['A', 'B']);
+  });
+
   it('propagates network errors so the calling query can react', async () => {
     const networkError = new Error('boom');
     mockedHandleFetch.mockRejectedValue(networkError);

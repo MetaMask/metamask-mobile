@@ -48,6 +48,8 @@ const WatchlistSection = forwardRef<
   const displayTokens = useMemo(
     () =>
       (data ?? [])
+        .slice()
+        .reverse()
         .slice(0, MAX_ITEMS_DISPLAYED)
         .map(mapWatchlistTokenToTrendingAsset),
     [data],

@@ -117,9 +117,20 @@ export const getTokens = async (
     batches.map((batch) => handleFetch(buildAssetsUrl(batch))),
   );
 
-  return responses.flatMap((response) =>
+  const normalised = responses.flatMap((response) =>
     Array.isArray(response)
       ? (response as RawTokenAsset[]).map(normaliseTokenAsset)
       : [],
   );
+
+  // Re-sort to match the caller's requested order — the Token API does
+  // not guarantee it returns assets in the same order they were requested.
+  const orderIndex = new Map(assetIds.map((id, i) => [id.toLowerCase(), i]));
+  normalised.sort((a, b) => {
+    const ai = orderIndex.get(String(a.assetId).toLowerCase()) ?? Infinity;
+    const bi = orderIndex.get(String(b.assetId).toLowerCase()) ?? Infinity;
+    return ai - bi;
+  });
+
+  return normalised;
 };
