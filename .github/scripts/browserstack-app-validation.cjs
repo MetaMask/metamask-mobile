@@ -6,8 +6,14 @@
 /** BrowserStack app URLs use the bs:// scheme with an opaque app hash. */
 const BROWSERSTACK_APP_URL_PATTERN = /^bs:\/\/[A-Za-z0-9]+$/;
 
-const WITH_SRP_CUSTOM_ID_PATTERN = /^MetaMask-Android-With-SRP-\d+$/;
-const WITHOUT_SRP_CUSTOM_ID_PATTERN = /^MetaMask-Android-Without-SRP-\d+$/;
+const WITH_SRP_CUSTOM_ID_PATTERN =
+  /^MetaMask-Android-With-SRP-[A-Za-z0-9._-]+-\d+$/;
+const WITHOUT_SRP_CUSTOM_ID_PATTERN =
+  /^MetaMask-Android-Without-SRP-[A-Za-z0-9._-]+-\d+$/;
+
+const MAIN_BRANCH_BROWSERSTACK_SLUG = 'main';
+const MAIN_WITH_SRP_CUSTOM_ID_PREFIX = `MetaMask-Android-With-SRP-${MAIN_BRANCH_BROWSERSTACK_SLUG}-`;
+const MAIN_WITHOUT_SRP_CUSTOM_ID_PREFIX = `MetaMask-Android-Without-SRP-${MAIN_BRANCH_BROWSERSTACK_SLUG}-`;
 
 /**
  * @param {unknown} value
@@ -63,6 +69,9 @@ module.exports = {
   BROWSERSTACK_APP_URL_PATTERN,
   WITH_SRP_CUSTOM_ID_PATTERN,
   WITHOUT_SRP_CUSTOM_ID_PATTERN,
+  MAIN_BRANCH_BROWSERSTACK_SLUG,
+  MAIN_WITH_SRP_CUSTOM_ID_PREFIX,
+  MAIN_WITHOUT_SRP_CUSTOM_ID_PREFIX,
   assertBrowserStackAppUrl,
   assertBrowserStackCustomId,
   writeGithubOutputs,

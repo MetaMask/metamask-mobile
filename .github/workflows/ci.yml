@@ -159,7 +159,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed != 'false' }}
+          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed == 'true' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -1079,7 +1079,7 @@ jobs:
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
-      reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed != 'true' }}
+      reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
     permissions:
       contents: write
@@ -1111,7 +1111,7 @@ jobs:
       metamask_environment: 'e2e'
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
-      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed != 'true' }}
+      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
   prepare-e2e-timings:
@@ -1210,7 +1210,7 @@ jobs:
     with:
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
-      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed != 'true' }}
+      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
   ios-tests-ready:

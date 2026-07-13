@@ -5,6 +5,8 @@
  */
 
 const {
+  MAIN_WITH_SRP_CUSTOM_ID_PREFIX,
+  MAIN_WITHOUT_SRP_CUSTOM_ID_PREFIX,
   assertBrowserStackAppUrl,
   assertBrowserStackCustomId,
   writeGithubOutputs,
@@ -87,9 +89,9 @@ async function main() {
     }
   }
 
-  const withSrp = findLatestApp('MetaMask-Android-With-SRP-', 'with-srp');
+  const withSrp = findLatestApp(MAIN_WITH_SRP_CUSTOM_ID_PREFIX, 'with-srp');
   const withoutSrp = findLatestApp(
-    'MetaMask-Android-Without-SRP-',
+    MAIN_WITHOUT_SRP_CUSTOM_ID_PREFIX,
     'without-srp',
   );
 
