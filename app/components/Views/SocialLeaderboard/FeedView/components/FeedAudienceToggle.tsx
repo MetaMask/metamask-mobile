@@ -6,7 +6,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -42,6 +48,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderRadius: 12,
   },
+  labelWrap: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  labelActive: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 export interface FeedAudienceToggleProps {
@@ -54,9 +70,10 @@ export interface FeedAudienceToggleProps {
  * Following / All segmented toggle with an animated sliding pill, modeled on
  * the QuickBuy Buy/Sell toggle. Fires a selection haptic on change.
  *
- * Label styling follows local `displayValue` so the active segment turns white
- * on tap, without waiting for the parent feed to finish re-rendering after a
- * scope change.
+ * The active (white) label cross-fades in on the same `slideProgress` spring as
+ * the pill, so the colour tracks the slide rather than snapping. The scope
+ * change is dispatched in a transition so the toggle paints before the feed
+ * re-renders.
  */
 const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   value,
@@ -98,9 +115,16 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
     }
 
     playSelection().catch(() => undefined);
+    // Flip the label color + slide the pill immediately so the
+    // toggle feels responsive.
     setDisplayValue(next);
     animateSlideTo(next);
-    onChange(next);
+    // The scope change triggers an expensive feed re-render (new
+    // query + skeleton). Marking it a transition lets React commit the urgent
+    // toggle paint first instead of batching it behind the heavy work.
+    startTransition(() => {
+      onChange(next);
+    });
   };
 
   useEffect(() => {
@@ -129,6 +153,15 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
       [followingWidthSV.value, allWidthSV.value],
     ),
     transform: [{ translateX: slideProgress.value * followingWidthSV.value }],
+  }));
+
+  // Cross-fade the active (white) label in sync with the pill: driven by the
+  // same spring, so the colour transition tracks the slide instead of snapping.
+  const followingActiveStyle = useAnimatedStyle(() => ({
+    opacity: Math.max(0, Math.min(1, 1 - slideProgress.value)),
+  }));
+  const allActiveStyle = useAnimatedStyle(() => ({
+    opacity: Math.max(0, Math.min(1, slideProgress.value)),
   }));
 
   const sliderWidth =
@@ -164,21 +197,27 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           testID={getFeedAudienceOptionTestId('following')}
         >
           <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={
-                displayValue === 'following'
-                  ? FontWeight.Medium
-                  : FontWeight.Regular
-              }
-              color={
-                displayValue === 'following'
-                  ? TextColor.TextDefault
-                  : TextColor.TextAlternative
-              }
-            >
-              {strings('social_leaderboard.feed.following')}
-            </Text>
+            <Box style={styles.labelWrap}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Regular}
+                color={TextColor.TextAlternative}
+              >
+                {strings('social_leaderboard.feed.following')}
+              </Text>
+              <Animated.View
+                style={[styles.labelActive, followingActiveStyle]}
+                pointerEvents="none"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('social_leaderboard.feed.following')}
+                </Text>
+              </Animated.View>
+            </Box>
           </Box>
         </TouchableOpacity>
 
@@ -194,19 +233,27 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           testID={getFeedAudienceOptionTestId('all')}
         >
           <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={
-                displayValue === 'all' ? FontWeight.Medium : FontWeight.Regular
-              }
-              color={
-                displayValue === 'all'
-                  ? TextColor.TextDefault
-                  : TextColor.TextAlternative
-              }
-            >
-              {strings('social_leaderboard.feed.all')}
-            </Text>
+            <Box style={styles.labelWrap}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Regular}
+                color={TextColor.TextAlternative}
+              >
+                {strings('social_leaderboard.feed.all')}
+              </Text>
+              <Animated.View
+                style={[styles.labelActive, allActiveStyle]}
+                pointerEvents="none"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('social_leaderboard.feed.all')}
+                </Text>
+              </Animated.View>
+            </Box>
           </Box>
         </TouchableOpacity>
       </Box>

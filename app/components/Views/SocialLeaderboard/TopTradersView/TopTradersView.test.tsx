@@ -73,12 +73,14 @@ const mockHasNotificationPreferences = jest.fn(() => true);
 const mockToggleTraderNotification = jest.fn();
 const mockIsTraderNotificationEnabled = jest.fn((_traderId: string) => true);
 
-let mockNotificationPreferences = {
+const defaultNotificationPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
   mutedTraderProfileIds: [
     ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
   ],
 };
+
+let mockNotificationPreferences = { ...defaultNotificationPreferences };
 
 const channelsDisabledPreferences = {
   ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -277,12 +279,7 @@ describe('TopTradersView', () => {
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
-    mockNotificationPreferences = {
-      ...DEFAULT_SOCIAL_AI_PREFERENCES,
-      mutedTraderProfileIds: [
-        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
-      ],
-    };
+    mockNotificationPreferences = { ...defaultNotificationPreferences };
     mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 

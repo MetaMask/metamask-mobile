@@ -2,6 +2,7 @@ import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTraderFeed } from './useTraderFeed';
+import type { FeedTypeFilter } from '../types';
 import {
   mockFeedResponse,
   mockPerpFeedItem,
@@ -219,11 +220,11 @@ describe('useTraderFeed', () => {
     );
 
     const { result, rerender } = renderHook(
-      ({ typeFilter }: { typeFilter: 'tokens' | 'perps' }) =>
+      ({ typeFilter }: { typeFilter: FeedTypeFilter }) =>
         useTraderFeed({ typeFilter }),
       {
         wrapper: createWrapper(),
-        initialProps: { typeFilter: 'tokens' as const },
+        initialProps: { typeFilter: 'tokens' },
       },
     );
 
