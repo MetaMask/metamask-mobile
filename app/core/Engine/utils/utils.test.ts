@@ -1,13 +1,13 @@
 import { AccountsController } from '@metamask/accounts-controller';
 import {
-  PreferencesController,
-  PreferencesControllerMessenger,
-} from '@metamask/preferences-controller';
+  LoggingController,
+  LoggingControllerMessenger,
+} from '@metamask/logging-controller';
 import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { merge } from 'lodash';
 
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { preferencesControllerInit } from '../controllers/preferences-controller-init';
+import { loggingControllerInit } from '../controllers/logging-controller-init';
 import { createMockMessengerClientInitFunction } from './test-utils';
 import { getMessengerClientOrThrow, initMessengerClients } from './utils';
 import { permissionControllerInit } from '../controllers/permission-controller-init';
@@ -21,12 +21,12 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Wallet } from '@metamask/wallet';
 
-jest.mock('../controllers/preferences-controller-init');
+jest.mock('../controllers/logging-controller-init');
 jest.mock('../controllers/permission-controller-init');
 jest.mock('../controllers/delegation/delegation-controller-init');
 
 describe('initMessengerClients', () => {
-  const mockPreferencesControllerInit = jest.mocked(preferencesControllerInit);
+  const mockLoggingControllerInit = jest.mocked(loggingControllerInit);
   const mockPermissionControllerInit = jest.mocked(permissionControllerInit);
 
   function buildModularizedControllerRequest(
@@ -36,7 +36,7 @@ describe('initMessengerClients', () => {
       {
         wallet: { getInstance: jest.fn() } as unknown as Wallet,
         initFunctions: {
-          PreferencesController: mockPreferencesControllerInit,
+          LoggingController: mockLoggingControllerInit,
           PermissionController: mockPermissionControllerInit,
         },
         persistedState: {},
@@ -62,8 +62,8 @@ describe('initMessengerClients', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockPreferencesControllerInit.mockReturnValue({
-      controller: {} as unknown as PreferencesController,
+    mockLoggingControllerInit.mockReturnValue({
+      controller: {} as unknown as LoggingController,
     });
     mockPermissionControllerInit.mockReturnValue({
       controller: {} as unknown as PermissionController<
@@ -77,9 +77,7 @@ describe('initMessengerClients', () => {
     const request = buildModularizedControllerRequest();
     const controllers = initMessengerClients(request);
 
-    expect(
-      controllers.messengerClientsByName.PreferencesController,
-    ).toBeDefined();
+    expect(controllers.messengerClientsByName.LoggingController).toBeDefined();
     expect(
       controllers.messengerClientsByName.PermissionController,
     ).toBeDefined();
@@ -98,9 +96,9 @@ describe('initMessengerClients', () => {
   it('throws when controller is not found', async () => {
     const request = buildModularizedControllerRequest({
       initFunctions: {
-        PreferencesController: createMockMessengerClientInitFunction<
-          PreferencesController,
-          PreferencesControllerMessenger
+        LoggingController: createMockMessengerClientInitFunction<
+          LoggingController,
+          LoggingControllerMessenger
         >('GasFeeController'),
       },
     });

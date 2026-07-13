@@ -10,6 +10,7 @@ import {
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
 import type { RootState } from '../../../reducers';
+import { getPreferencesControllerInitialState } from './instance-options/preferences-controller';
 
 const mockWalletInit = jest.fn().mockResolvedValue([]);
 jest.mock('@metamask/wallet', () => ({
@@ -42,6 +43,11 @@ jest.mock('./instance-options/transaction-controller', () => ({
 jest.mock('./messengers/transaction-controller-messenger', () => ({
   getTransactionControllerInitMessenger: jest.fn(() => 'tx-init-messenger'),
 }));
+jest.mock('./instance-options/preferences-controller', () => ({
+  getPreferencesControllerInitialState: jest.fn(() => ({
+    ipfsGateway: 'seeded-preferences-state',
+  })),
+}));
 
 describe('initializeWallet', () => {
   const messenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
@@ -57,7 +63,10 @@ describe('initializeWallet', () => {
 
     expect(Wallet).toHaveBeenCalledWith({
       messenger,
-      state,
+      state: {
+        ...state,
+        PreferencesController: { ipfsGateway: 'seeded-preferences-state' },
+      },
       instanceOptions: {
         approvalController: 'approval-options',
         keyringController: 'keyring-options',
@@ -78,6 +87,7 @@ describe('initializeWallet', () => {
       messenger,
       state,
     });
+    expect(getPreferencesControllerInitialState).toHaveBeenCalledWith(state);
   });
 
   it('builds the TransactionController options and listeners with the init messenger', () => {
