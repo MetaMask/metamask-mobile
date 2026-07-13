@@ -13,7 +13,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import styleSheet from './MoneyApyInfoSheet.styles';
 import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
@@ -30,7 +29,6 @@ const MoneyApyInfoSheet = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { apy, variant = 'default' } = useParams<MoneyApyInfoSheetParams>();
-  const surfaceClass = useElevatedSurface();
 
   const { trackBottomSheetViewed } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_APY_INFO_SHEET,
@@ -74,7 +72,6 @@ const MoneyApyInfoSheet = () => {
       goBack={handleGoBack}
       testID={MoneyApyInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>
