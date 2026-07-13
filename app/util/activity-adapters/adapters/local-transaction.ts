@@ -299,19 +299,25 @@ export function mapLocalTransaction(
       });
     }
 
-    // Post-confirmation fallback: the outgoing Transfer log (token sent FROM the
-    // user). Mirrors getLendingWithdrawalDestinationToken but matches on the
-    // sender (topics[1]) instead of the recipient (topics[2]).
+    // Post-confirmation fallback: the outgoing Transfer log for the deposit —
+    // sent FROM the user (topics[1]) TO the pool (topics[2] === txParams.to).
+    // Requiring the pool recipient avoids matching an unrelated outgoing
+    // transfer from the same account (e.g. a gas-fee token) earlier in the log.
     const fromAddress = from.toLowerCase();
+    const poolAddress = to.toLowerCase();
     const sentTokenLog = (initialTransaction.txReceipt?.logs ?? []).find(
-      ({ topics: [eventTopic, logFrom] = [] }) => {
+      ({ topics: [eventTopic, logFrom, logTo] = [] }) => {
         const senderAddress = logFrom
           ? `0x${logFrom.slice(-40)}`.toLowerCase()
+          : undefined;
+        const recipientAddress = logTo
+          ? `0x${logTo.slice(-40)}`.toLowerCase()
           : undefined;
 
         return (
           eventTopic?.toLowerCase() === environment.tokenTransferLogTopicHash &&
-          senderAddress === fromAddress
+          senderAddress === fromAddress &&
+          recipientAddress === poolAddress
         );
       },
     );
