@@ -121,7 +121,7 @@ const PotentialEarningsTokenRow = ({
               twClassName="gap-1"
             >
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {token.symbol}
+                {token.name || token.symbol}
               </Text>
               {hasSubsidizedFee && (
                 <Box twClassName="rounded bg-primary-muted px-1.5">

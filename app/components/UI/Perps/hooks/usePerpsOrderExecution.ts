@@ -7,8 +7,6 @@ import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import {
   PERPS_CONSTANTS,
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
   type OrderParams,
   type OrderResult,
   type Position,
@@ -34,6 +32,14 @@ import {
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
 } from '../constants/perpsCufTags';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
+
+interface PerpsChartTrackingData {
+  chartLibrary?: string;
+}
 
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange. */
@@ -172,6 +178,17 @@ export function usePerpsOrderExecution(
         }
       }, PERPS_CUF_STREAM_TIMEOUT_MS);
 
+      const chartLibrary = (
+        orderParams.trackingData as PerpsChartTrackingData | undefined
+      )?.chartLibrary;
+      const chartAnalyticsProperties = chartLibrary
+        ? {
+            [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+            [PERPS_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+          }
+        : undefined;
+
       try {
         setIsPlacing(true);
         setError(undefined);
@@ -221,6 +238,9 @@ export function usePerpsOrderExecution(
             if (orderParams.trackingData?.source) {
               partialProps[PERPS_EVENT_PROPERTY.SOURCE] =
                 orderParams.trackingData.source;
+            }
+            if (chartAnalyticsProperties) {
+              Object.assign(partialProps, chartAnalyticsProperties);
             }
             if (orderParams.trackingData?.tradeWithToken === true) {
               if (orderParams.trackingData.mmPayTokenSelected != null) {
@@ -372,6 +392,9 @@ export function usePerpsOrderExecution(
             failedProps[PERPS_EVENT_PROPERTY.SOURCE] =
               orderParams.trackingData.source;
           }
+          if (chartAnalyticsProperties) {
+            Object.assign(failedProps, chartAnalyticsProperties);
+          }
           if (orderParams.trackingData?.tradeWithToken === true) {
             if (orderParams.trackingData.mmPayTokenSelected != null) {
               failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
@@ -444,6 +467,9 @@ export function usePerpsOrderExecution(
         if (orderParams.trackingData?.source) {
           exceptionProps[PERPS_EVENT_PROPERTY.SOURCE] =
             orderParams.trackingData.source;
+        }
+        if (chartAnalyticsProperties) {
+          Object.assign(exceptionProps, chartAnalyticsProperties);
         }
         if (orderParams.trackingData?.tradeWithToken === true) {
           if (orderParams.trackingData.mmPayTokenSelected != null) {

@@ -318,6 +318,7 @@ function TradeWalletActions() {
   );
 
   const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
+  const bottomShapeMaskWidth = buttonLayout.width * 2;
 
   const actionList = (
     <>
@@ -341,7 +342,6 @@ function TradeWalletActions() {
           onPress={onBatchSell}
           testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
           isDisabled={!isSwapsEnabled}
-          style={tw.style('bg-transparent')}
         />
       )}
       {AppConstants.SWAPS.ACTIVE && (
@@ -352,7 +352,6 @@ function TradeWalletActions() {
           onPress={goToSwaps}
           testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
           isDisabled={!isSwapsEnabled}
-          style={tw.style('bg-transparent')}
         />
       )}
       {isPerpsEnabled && (
@@ -363,7 +362,6 @@ function TradeWalletActions() {
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
-          style={tw.style('bg-transparent')}
         />
       )}
       {isPredictEnabled && (
@@ -374,7 +372,6 @@ function TradeWalletActions() {
           onPress={onPredict}
           testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
           isDisabled={!canSignTransactions}
-          style={tw.style('bg-transparent')}
         />
       )}
       {isEarnWalletActionEnabled && isEarnEligible && (
@@ -385,7 +382,6 @@ function TradeWalletActions() {
           onPress={onEarn}
           testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
           isDisabled={!canSignTransactions}
-          style={tw.style('bg-transparent')}
         />
       )}
     </>
@@ -413,7 +409,7 @@ function TradeWalletActions() {
             )}
           />
           <BottomShape
-            width={buttonLayout.width * 4}
+            width={bottomShapeMaskWidth}
             height={bottomMaskHeight}
             peakHeight={16}
             peakBezierLength={25}
@@ -433,7 +429,7 @@ function TradeWalletActions() {
               testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
             >
               <BottomShape
-                width={buttonLayout.width * 4}
+                width={bottomShapeMaskWidth + 4}
                 height={bottomMaskHeight}
                 peakHeight={16}
                 peakBezierLength={25}
@@ -441,7 +437,7 @@ function TradeWalletActions() {
                 strokeOnly
                 pathProps={{
                   stroke: colors.border.muted,
-                  strokeWidth: 1,
+                  strokeWidth: 2,
                 }}
               />
             </View>
