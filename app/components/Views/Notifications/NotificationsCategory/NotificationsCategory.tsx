@@ -1,33 +1,40 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  SegmentButton,
-  SegmentGroup,
+  FilterButton,
+  FilterButtonGroup,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../locales/i18n';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-
+import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import {
-  NotificationCategoryId,
-  NotificationsCategoryProps,
-} from './NotificationsCategory.types';
-import { NotificationsCategorySelectorsIDs } from './NotificationsCategory.testIds';
+  ALL_NOTIFICATIONS_CATEGORY_ID,
+  getCategoryTitle,
+  getNotificationsSettingsSectionConfigs,
+  useNotificationCategories,
+} from '../../../../util/notifications/categories';
+
+import { NotificationsCategoryProps } from './NotificationsCategory.types';
+import {
+  categoryTestID,
+  NotificationsCategorySelectorsIDs,
+} from './NotificationsCategory.testIds';
+import NotificationsCategorySkeleton from './NotificationsCategorySkeleton';
 
 interface CategoryTab {
-  key: NotificationCategoryId;
+  key: string;
   label: string;
   testID: string;
 }
 
 /**
  * Horizontally scrollable category filter for the notifications list, built on
- * the design-system `SegmentGroup` / `SegmentButton`. The set of categories is
- * gated by feature flags: the activity-related categories only appear when
- * MetaMask notifications are enabled, and "Trading Signals" only when the social
- * leaderboard flag is on.
+ * the design-system `SegmentGroup` / `SegmentButton`. Tabs are driven by the
+ * BE-provided category catalog; the "Trading Signals" category is additionally
+ * filtered out when the social leaderboard flag is off.
  */
 const NotificationsCategory = ({
   onSelect,
@@ -40,64 +47,69 @@ const NotificationsCategory = ({
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const isPriceAlertsEnabled = useSelector(selectPriceAlertsEnabled);
+  const { categories, isLoading } = useNotificationCategories();
 
-  const [selectedCategory, setSelectedCategory] =
-    useState<NotificationCategoryId>(NotificationCategoryId.All);
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    ALL_NOTIFICATIONS_CATEGORY_ID,
+  );
 
   const tabs = useMemo<CategoryTab[]>(() => {
+    if (!isMetamaskNotificationsEnabled) {
+      return [];
+    }
+
     const items: CategoryTab[] = [
       {
-        key: NotificationCategoryId.All,
+        key: ALL_NOTIFICATIONS_CATEGORY_ID,
         label: strings('app_settings.notifications_opts.all_title'),
         testID: NotificationsCategorySelectorsIDs.ALL,
       },
     ];
 
-    if (isMetamaskNotificationsEnabled) {
-      items.push(
-        {
-          key: NotificationCategoryId.WalletActivity,
-          label: strings(
-            'app_settings.notifications_opts.wallet_activity_title',
-          ),
-          testID: NotificationsCategorySelectorsIDs.WALLET_ACTIVITY,
-        },
-        {
-          key: NotificationCategoryId.Perps,
-          label: strings('app_settings.notifications_opts.perps_title'),
-          testID: NotificationsCategorySelectorsIDs.PERPS,
-        },
-      );
+    const sectionConfigs = getNotificationsSettingsSectionConfigs(categories, {
+      isSocialLeaderboardEnabled,
+      isPriceAlertsEnabled,
+    });
 
-      if (isSocialLeaderboardEnabled) {
-        items.push({
-          key: NotificationCategoryId.SocialAI,
-          label: strings('app_settings.notifications_opts.social_ai_title'),
-          testID: NotificationsCategorySelectorsIDs.SOCIAL_AI,
-        });
-      }
-
+    sectionConfigs.forEach((category) => {
       items.push({
-        key: NotificationCategoryId.Marketing,
-        label: strings('app_settings.notifications_opts.marketing_title'),
-        testID: NotificationsCategorySelectorsIDs.MARKETING,
+        key: category.categoryId,
+        label: getCategoryTitle(category.categoryId),
+        testID: categoryTestID(category.categoryId),
       });
-    }
+    });
 
     return items;
-  }, [isMetamaskNotificationsEnabled, isSocialLeaderboardEnabled]);
+  }, [
+    categories,
+    isMetamaskNotificationsEnabled,
+    isPriceAlertsEnabled,
+    isSocialLeaderboardEnabled,
+  ]);
 
   const handleSelect = useCallback(
     (key: string) => {
-      const category = key as NotificationCategoryId;
-      setSelectedCategory(category);
-      onSelect(category);
+      setSelectedCategory(key);
+      onSelect(key);
     },
     [onSelect],
   );
 
+  if (!isMetamaskNotificationsEnabled) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <NotificationsCategorySkeleton />;
+  }
+
+  if (tabs.length === 0) {
+    return null;
+  }
+
   return (
-    <SegmentGroup
+    <FilterButtonGroup
       value={selectedCategory}
       onChange={handleSelect}
       twClassName="gap-2 px-4 py-1"
@@ -105,11 +117,11 @@ const NotificationsCategory = ({
       testID={testID ?? NotificationsCategorySelectorsIDs.CONTAINER}
     >
       {tabs.map((tab) => (
-        <SegmentButton key={tab.key} value={tab.key} testID={tab.testID}>
+        <FilterButton key={tab.key} value={tab.key} testID={tab.testID}>
           {tab.label}
-        </SegmentButton>
+        </FilterButton>
       ))}
-    </SegmentGroup>
+    </FilterButtonGroup>
   );
 };
 

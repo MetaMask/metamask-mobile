@@ -77,7 +77,8 @@ const marketingDisclaimer =
 
 const renderSection = (
   params: NotificationSettingsSectionProps['route']['params'] = {
-    type: 'socialAI',
+    categoryId: 'socialAI',
+    ausKeys: ['socialAI'],
     title: 'Trading Signals',
     description: 'SocialAI notification preferences',
   },
@@ -119,7 +120,8 @@ describe('NotificationSettingsSection', () => {
 
   it('renders the marketing disclaimer for marketing preferences', () => {
     renderSection({
-      type: 'marketing',
+      categoryId: 'marketing',
+      ausKeys: ['marketing'],
       title: 'Updates and Rewards',
       description: 'Product updates, feature announcements, and new releases',
     });
@@ -129,7 +131,8 @@ describe('NotificationSettingsSection', () => {
 
   it('renders a wallet activity deselect all button when any account is enabled', () => {
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet Activity',
       description: 'Buy, sells, transfers, swaps and rewards',
     });
@@ -148,7 +151,8 @@ describe('NotificationSettingsSection', () => {
     mockHasEnabledAccount = false;
 
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet Activity',
       description: 'Buy, sells, transfers, swaps and rewards',
     });
@@ -232,7 +236,8 @@ describe('NotificationSettingsSection', () => {
       }),
     );
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet Activity',
       description: 'Buy, sells, transfers, swaps and rewards',
     });
@@ -273,7 +278,8 @@ describe('NotificationSettingsSection', () => {
       )
       .mockResolvedValueOnce(undefined);
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet Activity',
       description: 'Buy, sells, transfers, swaps and rewards',
     });
