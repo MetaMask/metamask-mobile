@@ -294,6 +294,29 @@ describe('PerpsMarketRowItem', () => {
       ).toHaveTextContent('TSLA');
     });
 
+    it('does not show ticker suffix when the HIP-3 bare symbol equals the name', () => {
+      mockSelectors(true);
+
+      render(
+        <PerpsMarketRowItem
+          market={{ ...mockMarketData, symbol: 'xyz:AAPL', name: 'AAPL' }}
+        />,
+      );
+
+      // Asset label should show the bare ticker 'AAPL' (name == stripped symbol)
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.assetLabel('xyz:AAPL'),
+        ),
+      ).toHaveTextContent('AAPL');
+      // No suffix — it would be a duplicate of the asset label
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.tickerSuffix('xyz:AAPL'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
     it('falls back to the ticker when the flag is enabled but name is missing', () => {
       mockSelectors(true);
 

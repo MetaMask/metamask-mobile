@@ -197,7 +197,8 @@ const PerpsMarketRowItem = ({
     () =>
       showFullAssetNames &&
       Boolean(displayMarket.name) &&
-      displayMarket.name !== displayMarket.symbol,
+      displayMarket.name !== displayMarket.symbol &&
+      getPerpsDisplaySymbol(displayMarket.symbol) !== displayMarket.name,
     [showFullAssetNames, displayMarket.name, displayMarket.symbol],
   );
 
