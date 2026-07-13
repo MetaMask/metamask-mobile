@@ -5,7 +5,6 @@ import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
   ChartType,
-  resolveLineChromeOptions,
   type OHLCVBar,
   type AdvancedChartRef,
   type PositionLines,
@@ -61,6 +60,16 @@ describe('AdvancedChart', () => {
   it('renders without crashing', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+  });
+
+  it('serializes configured price decimals into the WebView template', () => {
+    const { getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} priceDecimals={4} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+
+    expect(webView.props.source.html).toMatch(/priceDecimals:\s*4/);
   });
 
   it('keeps loading overlay while isLoading until parent clears it', () => {
@@ -1355,30 +1364,6 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'REALTIME_UPDATE',
         payload: { bar: newBar },
-      }),
-    );
-  });
-
-  it('sends SET_LINE_CHROME with resolved defaults after onLoadEnd and CHART_READY', () => {
-    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
-
-    const webView = getByTestId('mock-webview');
-    act(() => {
-      webView.props.onLoadEnd();
-    });
-
-    act(() => {
-      webView.props.onMessage({
-        nativeEvent: {
-          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
-        },
-      });
-    });
-
-    expect(mockPostMessage).toHaveBeenCalledWith(
-      JSON.stringify({
-        type: 'SET_LINE_CHROME',
-        payload: resolveLineChromeOptions(),
       }),
     );
   });

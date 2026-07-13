@@ -5,14 +5,20 @@
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { Alert, Image, InteractionManager, View, Linking } from 'react-native';
+import {
+  Alert,
+  DeviceEventEmitter,
+  Image,
+  InteractionManager,
+  View,
+  Linking,
+} from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import {
   Camera,
   useCameraDevice,
-  useCameraPermission,
   useCodeScanner,
   Code,
 } from 'react-native-vision-camera';
@@ -51,6 +57,27 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import { getQRType } from './utils';
+import {
+  ADD_DEVICE_QR_DETECTED_DELAY_MS,
+  AddDeviceScannerUiState,
+  classifyAddDeviceScanContent,
+} from './addDeviceScannerUtils';
+import { useQrScannerCameraPermission } from './useQrScannerCameraPermission';
+import AddDeviceScannerRecovery, {
+  AddDeviceScannerPermissionDenied,
+} from './AddDeviceScannerRecovery';
+import { EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT } from '../../../core/ExtensionAccountSync/types';
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+
+const ADD_DEVICE_ERROR_STATES = new Set<AddDeviceScannerUiState>([
+  AddDeviceScannerUiState.InvalidQr,
+  AddDeviceScannerUiState.ExpiredQr,
+  AddDeviceScannerUiState.ConnectionFailed,
+]);
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import-x/no-commonjs
 
@@ -62,22 +89,29 @@ const QRScanner = ({
   onScanError,
   onStartScan,
   origin,
+  shouldDismissOnScan = true,
 }: {
   onScanSuccess: (data: ScanSuccess, content?: string) => void;
   onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
   origin?: string;
+  shouldDismissOnScan?: boolean;
 }) => {
   const navigation = useNavigation();
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
-  const [permissionCheckCompleted, setPermissionCheckCompleted] =
-    useState(false);
   const [isCameraActive, setIsCameraActive] = useState(true);
+  const [addDeviceScannerUiState, setAddDeviceScannerUiState] =
+    useState<AddDeviceScannerUiState>(AddDeviceScannerUiState.Searching);
+
+  const isAddDeviceScanner = origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET;
 
   const cameraDevice = useCameraDevice('back');
-  const { hasPermission, requestPermission } = useCameraPermission();
+  const { hasPermission, permissionCheckCompleted } =
+    useQrScannerCameraPermission({
+      isActive: isCameraActive,
+    });
 
   const { navigateToSendPage } = useSendNavigation();
 
@@ -87,23 +121,42 @@ const QRScanner = ({
 
   const hasTrackedScannerOpened = useRef(false);
 
+  const resetAddDeviceScanning = useCallback(() => {
+    setAddDeviceScannerUiState(AddDeviceScannerUiState.Searching);
+    shouldReadBarCodeRef.current = true;
+    setIsCameraActive(true);
+  }, []);
+
   useEffect(() => {
-    const checkPermission = async () => {
-      if (!hasPermission && !permissionCheckCompleted) {
-        try {
-          await requestPermission();
-        } finally {
-          setPermissionCheckCompleted(true);
-        }
-      } else {
-        setPermissionCheckCompleted(true);
-      }
-    };
+    if (!isAddDeviceScanner) {
+      return undefined;
+    }
 
-    checkPermission();
-  }, [hasPermission, requestPermission, permissionCheckCompleted]);
+    const subscription = DeviceEventEmitter.addListener(
+      EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT,
+      () => {
+        setAddDeviceScannerUiState(AddDeviceScannerUiState.ConnectionFailed);
+        shouldReadBarCodeRef.current = false;
+        setIsCameraActive(false);
+      },
+    );
 
-  // Track QR Scanner Opened when permission is granted and camera is available
+    return () => subscription.remove();
+  }, [isAddDeviceScanner]);
+
+  useFocusEffect(
+    useCallback(() => {
+      mountedRef.current = true;
+      shouldReadBarCodeRef.current = true;
+      setIsCameraActive(true);
+
+      return () => {
+        mountedRef.current = false;
+        shouldReadBarCodeRef.current = false;
+        setIsCameraActive(false);
+      };
+    }, []),
+  );
   useEffect(() => {
     if (
       permissionCheckCompleted &&
@@ -124,25 +177,14 @@ const QRScanner = ({
     createEventBuilder,
   ]);
 
-  // Reset camera state when screen is focused (e.g., when navigating back from send screen)
-  useFocusEffect(
-    useCallback(() => {
-      mountedRef.current = true;
-      shouldReadBarCodeRef.current = true;
-      setIsCameraActive(true);
-
-      return () => {
-        mountedRef.current = false;
-        shouldReadBarCodeRef.current = false;
-        setIsCameraActive(false);
-      };
-    }, []),
-  );
-
   const end = useCallback(() => {
     mountedRef.current = false;
-    navigation.goBack();
-  }, [mountedRef, navigation]);
+    shouldReadBarCodeRef.current = false;
+    setIsCameraActive(false);
+    if (shouldDismissOnScan) {
+      navigation.goBack();
+    }
+  }, [navigation, shouldDismissOnScan]);
 
   const showAlertForInvalidAddress = () => {
     Alert.alert(
@@ -201,6 +243,55 @@ const QRScanner = ({
         return;
       }
 
+      const addDeviceDeeplink = content;
+
+      if (isAddDeviceScanner) {
+        const classification = classifyAddDeviceScanContent(content);
+
+        if (classification !== 'valid') {
+          shouldReadBarCodeRef.current = false;
+          setIsCameraActive(false);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: false,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]:
+                  ScanResult.UNRECOGNIZED_QR_CODE,
+              })
+              .build(),
+          );
+          setAddDeviceScannerUiState(
+            classification === 'expired'
+              ? AddDeviceScannerUiState.ExpiredQr
+              : AddDeviceScannerUiState.InvalidQr,
+          );
+          return;
+        }
+
+        shouldReadBarCodeRef.current = false;
+        setAddDeviceScannerUiState(AddDeviceScannerUiState.Detected);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+            .addProperties({
+              [QRScannerEventProperties.SCAN_SUCCESS]: true,
+              [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+              [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+            })
+            .build(),
+        );
+
+        await sleep(ADD_DEVICE_QR_DETECTED_DELAY_MS);
+
+        if (!mountedRef.current) {
+          return;
+        }
+
+        end();
+        onScanSuccess({ content: addDeviceDeeplink }, addDeviceDeeplink);
+        return;
+      }
+
       if (
         origin === Routes.SEND_FLOW.SEND_TO ||
         origin === Routes.SETTINGS.CONTACT_FORM
@@ -223,22 +314,6 @@ const QRScanner = ({
       }
 
       if (SDKConnectV2.isMwpDeeplink(response.data)) {
-        if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
-          shouldReadBarCodeRef.current = false;
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
-              .addProperties({
-                [QRScannerEventProperties.SCAN_SUCCESS]: true,
-                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
-                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
-              })
-              .build(),
-          );
-          end();
-          onScanSuccess({ content }, content);
-          return;
-        }
-
         // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
         // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
         // parent components don't need to be notified.
@@ -680,6 +755,7 @@ const QRScanner = ({
     },
     [
       origin,
+      isAddDeviceScanner,
       end,
       showAlertForURLRedirection,
       navigation,
@@ -713,6 +789,18 @@ const QRScanner = ({
     );
   }, []);
 
+  const getScannerOverlayLabel = useCallback(() => {
+    if (isAddDeviceScanner) {
+      if (addDeviceScannerUiState === AddDeviceScannerUiState.Detected) {
+        return strings('app_settings.add_device.scanner.detected_label');
+      }
+
+      return strings('app_settings.add_device.scanner.searching_label');
+    }
+
+    return strings('qr_scanner.label');
+  }, [addDeviceScannerUiState, isAddDeviceScanner]);
+
   const onError = useCallback(
     (error: Error) => {
       navigation.goBack();
@@ -728,6 +816,14 @@ const QRScanner = ({
   // Only show the camera permission alert if:
   // 1. Permission check has been completed
   // 2. Permission is not granted
+  if (isAddDeviceScanner && permissionCheckCompleted && !hasPermission) {
+    return (
+      <View style={styles.container}>
+        <AddDeviceScannerPermissionDenied />
+      </View>
+    );
+  }
+
   if (permissionCheckCompleted && !hasPermission) {
     showCameraNotAuthorizedAlert();
     return null;
@@ -748,6 +844,20 @@ const QRScanner = ({
     );
   }
 
+  if (
+    isAddDeviceScanner &&
+    ADD_DEVICE_ERROR_STATES.has(addDeviceScannerUiState)
+  ) {
+    return (
+      <View style={styles.container}>
+        <AddDeviceScannerRecovery
+          state={addDeviceScannerUiState}
+          onTryAgain={resetAddDeviceScanning}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Camera
@@ -763,7 +873,7 @@ const QRScanner = ({
 
         <View style={styles.overlayContainerRow}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.overlayText}>
-            {strings('qr_scanner.label')}
+            {getScannerOverlayLabel()}
           </Text>
           <View style={styles.overlay} />
           <Image source={frameImage} style={styles.frame} />
