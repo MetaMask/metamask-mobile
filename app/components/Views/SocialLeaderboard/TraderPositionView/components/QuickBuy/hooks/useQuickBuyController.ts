@@ -690,8 +690,15 @@ export function useQuickBuyController(
       caip19,
       amountUsd: quotedAmountUsd,
       source: analyticsContext?.source,
+      originalEntryPoint: analyticsContext?.originalEntryPoint,
     }),
-    [traderAddress, caip19, quotedAmountUsd, analyticsContext?.source],
+    [
+      traderAddress,
+      caip19,
+      quotedAmountUsd,
+      analyticsContext?.source,
+      analyticsContext?.originalEntryPoint,
+    ],
   );
 
   const {

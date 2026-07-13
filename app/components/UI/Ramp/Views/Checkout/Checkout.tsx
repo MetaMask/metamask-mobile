@@ -53,7 +53,6 @@ import {
   extractHostname,
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface CheckoutParams {
   url: string;
@@ -598,7 +597,6 @@ const Checkout = () => {
     /* no-op until initialized */
   });
   const closeHeadlessOnUnmountRef = useRef<() => void>(() => undefined);
-  const surfaceClass = useElevatedSurface();
   closeHeadlessOnUnmountRef.current = () => {
     if (!headlessSessionId || hasTerminatedHeadlessSessionRef.current) {
       return;
@@ -663,7 +661,6 @@ const Checkout = () => {
         goBack={navigation.goBack}
         isFullscreen
         keyboardAvoidingViewEnabled={false}
-        twClassName={surfaceClass}
       >
         {sharedHeader}
         <ScreenLayout>
@@ -698,7 +695,6 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
-        twClassName={surfaceClass}
       >
         {sharedHeader}
         <WebView
@@ -775,7 +771,6 @@ const Checkout = () => {
       goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       {sharedHeader}
       <ScreenLayout>

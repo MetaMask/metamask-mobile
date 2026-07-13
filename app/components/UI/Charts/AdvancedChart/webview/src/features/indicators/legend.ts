@@ -8,13 +8,14 @@
 // The overlay is a `<div id="study-legend-overlay">` injected into
 // #tv_chart_container that holds one `.legend-pill` per active indicator.
 // Theme-aware text colors are computed from CONFIG.theme; per-plot colors
-// come from CONFIG.indicatorColors.
+// come from the legend config supplied by RN.
 //
 // `LEGEND_RENDERED` is posted to RN once the overlay has settled (either
 // real values returned by chart.exportData() or after the retry timeout).
 
 import { postToRN } from '../../core/bridge';
 import {
+  doesLegendOwnLayoutSettle,
   getActiveStudies,
   getLegendStudyOrder,
   getMaStudies,
@@ -22,11 +23,13 @@ import {
   getVolumeStudyId,
   getWidget,
   isChartReady,
+  setLegendOwnsLayoutSettle,
 } from '../../core/state';
 import { eachChartDocument } from '../../widget/tvDomHelpers';
 import type {
-  IndicatorColors,
+  LegendIndicatorCfg,
   LegendOverlayConfig,
+  LegendPlotCfg,
   StudyId,
   TVActiveChart,
   TVExportData,
@@ -42,17 +45,19 @@ let exportGeneration = 0;
 let retryCount = 0;
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
 let legendOverlayEnabled = false;
-let indicatorColors: IndicatorColors | undefined;
+/** Typed legend config from RN — the single source of truth for legend rendering. */
+let legendConfig: Record<string, LegendIndicatorCfg> | undefined;
+/** Sub-pane overlay elements keyed by indicator name. */
+const subPaneOverlays = new Map<string, HTMLDivElement>();
 
 // ----- Lifecycle ---------------------------------------------------------
 
 /** Called once on chart-ready to set up the DOM container. */
 export function setupLegendOverlay(
   config: LegendOverlayConfig | undefined,
-  colors: IndicatorColors | undefined,
 ): void {
   legendOverlayEnabled = Boolean(config?.enabled);
-  indicatorColors = colors;
+  legendConfig = config?.config;
   if (!legendOverlayEnabled) return;
   createOverlayElement();
   injectHideLegendButtonsCSS();
@@ -65,11 +70,13 @@ export function setupLegendOverlay(
  */
 export function attachLegendResizeListener(widget: {
   subscribe(event: 'panes_height_changed', handler: () => void): void;
+  activeChart(): TVActiveChart;
 }): void {
   try {
     widget.subscribe('panes_height_changed', () => {
       const el = document.getElementById(OVERLAY_ID);
       if (el) updateLegendOverlayLayout();
+      repositionSubPaneOverlays(widget.activeChart());
     });
   } catch {
     // TV may throw if subscribe isn't ready; safe to ignore.
@@ -113,95 +120,12 @@ function injectHideLegendButtonsCSS(): void {
 
 // ----- Legend rebuild ---------------------------------------------------
 
-interface PlotCfg {
-  tvTitle: string;
-  label: string;
-  color: string | null;
-}
-
-interface IndicatorLegendCfg {
-  plots: PlotCfg[];
-  isMA?: boolean;
-  combineInOnePill?: boolean;
-  title?: string;
-  useIndex?: boolean;
-}
-
-function getMACDColors(): Record<string, string | undefined> {
-  return indicatorColors?.MACD ?? {};
-}
-function getRSIColors(): Record<string, string | undefined> {
-  return indicatorColors?.RSI ?? {};
-}
-function getBOLColors(): Record<string, string | undefined> {
-  return indicatorColors?.BOL ?? {};
-}
-function getMAColors(): Record<string, string | undefined> {
-  return indicatorColors?.MA ?? {};
-}
-
-function buildPresetMap(): Record<string, IndicatorLegendCfg> {
-  const macd = getMACDColors();
-  const rsi = getRSIColors();
-  const bol = getBOLColors();
-  const ma = getMAColors();
-  return {
-    MACD: {
-      plots: [
-        { tvTitle: 'MACD', label: 'MACD(12,26)', color: macd.macd ?? null },
-        { tvTitle: 'Signal', label: 'Signal', color: macd.signal ?? null },
-        {
-          tvTitle: 'Histogram',
-          label: 'Hist',
-          color: macd.histogramPositive ?? null,
-        },
-      ],
-      useIndex: true,
-    },
-    RSI: {
-      plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: rsi.plot ?? null }],
-      useIndex: true,
-    },
-    BOL: {
-      combineInOnePill: true,
-      title: 'BB(20,2)',
-      plots: [
-        { tvTitle: 'Upper', label: 'U:', color: bol.upper ?? null },
-        { tvTitle: 'Median', label: 'M:', color: bol.basis ?? null },
-        { tvTitle: 'Lower', label: 'L:', color: bol.lower ?? null },
-      ],
-      useIndex: true,
-    },
-    Volume: {
-      plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
-      useIndex: true,
-    },
-    MA5: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: ma.MA5 ?? null }],
-    },
-    MA10: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: ma.MA10 ?? null }],
-    },
-    MA20: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: ma.MA20 ?? null }],
-    },
-    MA50: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: ma.MA50 ?? null }],
-    },
-    MA200: {
-      isMA: true,
-      useIndex: true,
-      plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: ma.MA200 ?? null }],
-    },
-  };
+/**
+ * Returns the per-indicator legend config supplied by RN via legendOverlay.config.
+ * Consumers must pass their own config — there is no built-in fallback.
+ */
+function getPresetMap(): Record<string, LegendIndicatorCfg> {
+  return legendConfig ?? {};
 }
 
 function getLegendAltColor(): string {
@@ -229,8 +153,8 @@ function isEmptyValue(v: string): boolean {
 }
 
 function plotValue(
-  cfg: IndicatorLegendCfg,
-  plotCfg: PlotCfg,
+  cfg: LegendIndicatorCfg,
+  plotCfg: LegendPlotCfg,
   plotIndex: number,
   values: StudyValueEntry[],
 ): string {
@@ -248,7 +172,7 @@ function wrapPill(innerHtml: string, color?: string): string {
 
 function buildHTML(entries: StudyDataEntry[]): string {
   const altColor = getLegendAltColor();
-  const presets = buildPresetMap();
+  const presets = getPresetMap();
   const successColor = getTheme()?.successColor ?? 'rgb(38,166,154)';
   const pills: string[] = [];
 
@@ -343,7 +267,13 @@ function hasAnyEmpty(entries: StudyDataEntry[]): boolean {
 
 function notifyLegendRendered(): void {
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => postToRN('LEGEND_RENDERED', {}));
+    requestAnimationFrame(() => {
+      postToRN('LEGEND_RENDERED', {});
+      if (doesLegendOwnLayoutSettle()) {
+        setLegendOwnsLayoutSettle(false);
+        postToRN('CHART_LAYOUT_SETTLED', {});
+      }
+    });
   });
 }
 
@@ -378,10 +308,49 @@ function scheduleRetry(gen: number): void {
 }
 
 function renderOverlay(entries: StudyDataEntry[]): void {
-  const overlay = document.getElementById(OVERLAY_ID);
-  if (!overlay) return;
-  overlay.innerHTML = buildHTML(entries);
+  const presets = getPresetMap();
+  const widget = getWidget();
+  const chart = widget?.activeChart();
+  const activeStudies = getActiveStudies();
+
+  const mainEntries: StudyDataEntry[] = [];
+  const subPaneEntries: {
+    name: string;
+    paneIdx: number;
+    entry: StudyDataEntry;
+  }[] = [];
+
+  for (const entry of entries) {
+    const cfg = presets[entry.name];
+    if (cfg?.subPaneLegend && chart) {
+      const studyId = activeStudies.get(entry.name);
+      const study = studyId ? chart.getStudyById(studyId) : null;
+      const paneIdx = study?.paneIndex?.();
+      if (paneIdx !== undefined && paneIdx > 0) {
+        subPaneEntries.push({ name: entry.name, paneIdx, entry });
+        continue;
+      }
+    }
+    mainEntries.push(entry);
+  }
+
+  const mainOverlay = document.getElementById(OVERLAY_ID);
+  if (mainOverlay) {
+    mainOverlay.innerHTML = buildHTML(mainEntries);
+  }
+
+  const activeNames = new Set(subPaneEntries.map((s) => s.name));
+  for (const name of subPaneOverlays.keys()) {
+    if (!activeNames.has(name)) removeSubPaneOverlay(name);
+  }
+
+  for (const { name, paneIdx, entry } of subPaneEntries) {
+    const overlay = ensureSubPaneOverlay(name, paneIdx, chart ?? undefined);
+    if (overlay) overlay.innerHTML = buildHTML([entry]);
+  }
+
   updateLegendOverlayLayout();
+  if (chart) repositionSubPaneOverlays(chart);
 }
 
 export function refreshStudyLegendFromExport(): void {
@@ -395,6 +364,7 @@ export function refreshStudyLegendFromExport(): void {
   const studyIds = Object.keys(studyIdMap);
   if (studyIds.length === 0) {
     overlay.innerHTML = '';
+    removeAllSubPaneOverlays();
     retryCount = 0;
     clearTimer();
     return;
@@ -499,7 +469,9 @@ export function subscribeStudyDataLoaded(
   try {
     const study = chart.getStudyById(studyId);
     if (study?.onDataLoaded) {
-      study.onDataLoaded().subscribe(null, () => scheduleLegendRefresh());
+      study.onDataLoaded().subscribe(null, () => {
+        scheduleLegendRefresh();
+      });
       return;
     }
   } catch {
@@ -508,40 +480,99 @@ export function subscribeStudyDataLoaded(
   scheduleLegendRefresh();
 }
 
+// ----- Sub-pane overlay management ----------------------------------------
+
+function subPaneOverlayId(name: string): string {
+  return `${OVERLAY_ID}-pane-${name}`;
+}
+
+function getSubPaneTopPx(paneIndex: number, chart: TVActiveChart): number {
+  const heights = chart.getAllPanesHeight();
+  let top = 0;
+  for (let i = 0; i < paneIndex && i < heights.length; i++) {
+    top += heights[i];
+  }
+  return top + 4;
+}
+
+function ensureSubPaneOverlay(
+  name: string,
+  paneIndex: number,
+  chart?: TVActiveChart,
+): HTMLDivElement | null {
+  const existing = subPaneOverlays.get(name);
+  if (existing && document.contains(existing)) return existing;
+
+  const container = document.getElementById('tv_chart_container');
+  if (!container) return null;
+
+  const div = document.createElement('div');
+  div.id = subPaneOverlayId(name);
+  const topPx = chart ? getSubPaneTopPx(paneIndex, chart) : 0;
+  div.style.cssText =
+    `position:absolute;top:${topPx}px;left:${OVERLAY_LEFT_PX}px;z-index:5;` +
+    `pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-start;` +
+    `column-gap:8px;row-gap:2px;`;
+  container.appendChild(div);
+  subPaneOverlays.set(name, div);
+  return div;
+}
+
+export function removeSubPaneOverlay(name: string): void {
+  const el = subPaneOverlays.get(name);
+  if (el) {
+    el.remove();
+    subPaneOverlays.delete(name);
+  }
+}
+
+function removeAllSubPaneOverlays(): void {
+  for (const el of subPaneOverlays.values()) el.remove();
+  subPaneOverlays.clear();
+}
+
+function repositionSubPaneOverlays(chart: TVActiveChart): void {
+  const activeStudies = getActiveStudies();
+  for (const [name, el] of subPaneOverlays) {
+    const studyId = activeStudies.get(name);
+    const study = studyId ? chart.getStudyById(studyId) : null;
+    const paneIdx = study?.paneIndex?.();
+    if (paneIdx !== undefined && paneIdx > 0) {
+      el.style.top = `${getSubPaneTopPx(paneIdx, chart)}px`;
+    }
+  }
+}
+
 // ----- Layout ------------------------------------------------------------
 
-function getMainPriceAxisLeftRelativeTo(el: HTMLElement): number | null {
-  if (!el?.getBoundingClientRect) return null;
-  const orect = el.getBoundingClientRect();
-  let bestLeft: number | null = null;
-  let bestTop = Infinity;
-  eachChartDocument((doc) => {
-    const nodes = doc.querySelectorAll('.price-axis-container');
-    for (const node of Array.from(nodes)) {
-      const r = node.getBoundingClientRect();
-      if (r.width < 2 || r.height < 16) continue;
-      if (r.top < bestTop) {
-        bestTop = r.top;
-        bestLeft = r.left - orect.left;
-      }
-    }
-  });
-  if (bestLeft === null || Number.isNaN(bestLeft)) return null;
-  const maxW = el.clientWidth;
-  if (maxW <= 0) return null;
-  return Math.max(0, Math.min(bestLeft, maxW));
+const FALLBACK_SCALE_WIDTH = 48;
+const SCALE_GAP = 4;
+
+function getPriceScaleWidth(): number {
+  const widget = getWidget();
+  if (!widget) return FALLBACK_SCALE_WIDTH;
+  const chart = widget.activeChart();
+  const panes = chart.getPanes?.();
+  if (!panes || panes.length === 0) return FALLBACK_SCALE_WIDTH;
+  const scales = panes[0].getRightPriceScales?.();
+  const w = scales?.[0]?.width?.();
+  return w && w > 0 ? w : FALLBACK_SCALE_WIDTH;
 }
 
 export function updateLegendOverlayLayout(): void {
-  const overlay = document.getElementById(OVERLAY_ID);
   const container = document.getElementById('tv_chart_container');
-  if (!overlay || !container) return;
-  const scaleGap = 4;
-  const boundaryLeft = getMainPriceAxisLeftRelativeTo(container);
-  if (boundaryLeft !== null && boundaryLeft > OVERLAY_LEFT_PX + scaleGap) {
-    overlay.style.maxWidth = `${boundaryLeft - OVERLAY_LEFT_PX - scaleGap}px`;
-  } else {
-    overlay.style.maxWidth = 'calc(100% - 56px)';
+  if (!container) return;
+  const containerWidth = container.clientWidth;
+  if (containerWidth <= 0) return;
+
+  const scaleWidth = getPriceScaleWidth();
+  const maxWidth = `${containerWidth - OVERLAY_LEFT_PX - scaleWidth - SCALE_GAP}px`;
+
+  const overlay = document.getElementById(OVERLAY_ID);
+  if (overlay) overlay.style.maxWidth = maxWidth;
+
+  for (const el of subPaneOverlays.values()) {
+    el.style.maxWidth = maxWidth;
   }
 }
 
@@ -551,5 +582,6 @@ export function __resetLegendForTests(): void {
   retryCount = 0;
   clearTimer();
   legendOverlayEnabled = false;
-  indicatorColors = undefined;
+  legendConfig = undefined;
+  removeAllSubPaneOverlays();
 }

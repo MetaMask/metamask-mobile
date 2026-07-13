@@ -150,7 +150,7 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   );
 };
 
-interface MarketInsightsRouteParams {
+export interface MarketInsightsRouteParams {
   assetSymbol: string;
   /** Asset identifier: CAIP-19 ID for tokens, or a perps market symbol (e.g. "ETH") */
   assetIdentifier: string;
