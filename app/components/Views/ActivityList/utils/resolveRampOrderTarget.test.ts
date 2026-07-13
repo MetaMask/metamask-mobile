@@ -5,7 +5,35 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
-import { resolveRampOrderTarget } from './resolveRampOrderTarget';
+import {
+  navigateToRampOrderTarget,
+  resolveRampOrderTarget,
+} from './resolveRampOrderTarget';
+
+jest.mock(
+  '../../../UI/Ramp/Aggregator/Views/OrderDetails/OrderDetails',
+  () => ({
+    createOrderDetailsNavDetails: jest.fn(
+      ({ orderId }: { orderId: string }) => ['OrderDetails', { orderId }],
+    ),
+  }),
+);
+jest.mock('../../../UI/Ramp/Views/OrderDetails', () => ({
+  createRampsOrderDetailsNavDetails: jest.fn(
+    ({ orderId }: { orderId: string }) => ['RampsOrderDetails', { orderId }],
+  ),
+}));
+jest.mock(
+  '../../../UI/Ramp/Views/OrderDetails/DepositOrderDetails/DepositOrderDetails',
+  () => ({
+    createDepositOrderDetailsNavDetails: jest.fn(
+      ({ orderId }: { orderId: string }) => [
+        'DepositOrderDetails',
+        { orderId },
+      ],
+    ),
+  }),
+);
 
 const fiatBase = {
   id: 'fiat-1',
@@ -84,5 +112,57 @@ describe('resolveRampOrderTarget', () => {
         state: FIAT_ORDER_STATES.COMPLETED,
       }),
     ).toBe('aggregator-details');
+  });
+});
+
+describe('navigateToRampOrderTarget', () => {
+  const navigation = { navigate: jest.fn() };
+  const goToBuy = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('navigates native RampsOrder with providerOrderId (OrdersList parity)', () => {
+    navigateToRampOrderTarget({
+      data: rampsBase,
+      navigation,
+      goToBuy,
+    });
+
+    expect(navigation.navigate).toHaveBeenCalledWith('RampsOrderDetails', {
+      orderId: 'po-1',
+    });
+    expect(navigation.navigate).not.toHaveBeenCalledWith(
+      'RampsOrderDetails',
+      expect.objectContaining({ orderId: rampsBase.id }),
+    );
+  });
+
+  it('does not navigate when native RampsOrder lacks providerOrderId', () => {
+    navigateToRampOrderTarget({
+      data: { ...rampsBase, providerOrderId: '' },
+      navigation,
+      goToBuy,
+    });
+
+    expect(navigation.navigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates FiatOrder RAMPS_V2 shim with FiatOrder.id', () => {
+    navigateToRampOrderTarget({
+      data: {
+        ...fiatBase,
+        id: 'legacy-v2-id',
+        provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+        state: FIAT_ORDER_STATES.COMPLETED,
+      },
+      navigation,
+      goToBuy,
+    });
+
+    expect(navigation.navigate).toHaveBeenCalledWith('RampsOrderDetails', {
+      orderId: 'legacy-v2-id',
+    });
   });
 });

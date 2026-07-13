@@ -69,12 +69,14 @@ export function navigateToRampOrderTarget({
   }
 
   if (isRampRampsOrder(data)) {
-    if (!data.id) {
+    // OrdersList/DisplayOrder keys v2 rows by providerOrderId; Ramps OrderDetails
+    // resolves via getOrderById → providerOrderId match only. Use that for
+    // flag-OFF nav — not RampsOrder.id (canonical Activity identifier).
+    const orderId = data.providerOrderId;
+    if (!orderId) {
       return;
     }
-    navigation.navigate(
-      ...createRampsOrderDetailsNavDetails({ orderId: data.id }),
-    );
+    navigation.navigate(...createRampsOrderDetailsNavDetails({ orderId }));
     return;
   }
 
