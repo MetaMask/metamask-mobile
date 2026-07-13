@@ -49,6 +49,26 @@ const FeedTypeEmptyState: React.FC<FeedTypeEmptyStateProps> = ({
       ? 'social_leaderboard.feed.empty_type.tokens.title'
       : 'social_leaderboard.feed.empty_type.perps.title';
 
+  const renderLoadMoreAction = () => {
+    if (!hasNextPage) {
+      return null;
+    }
+    if (isFetchingNextPage) {
+      return <ActivityIndicator size="small" color={colors.icon.default} />;
+    }
+    return (
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Sm}
+        onPress={onLoadMore}
+        twClassName="self-center"
+        testID={FeedViewSelectorsIDs.LOAD_MORE_BUTTON}
+      >
+        {strings('social_leaderboard.feed.load_more')}
+      </Button>
+    );
+  };
+
   return (
     <Box
       alignItems={BoxAlignItems.Center}
@@ -76,21 +96,7 @@ const FeedTypeEmptyState: React.FC<FeedTypeEmptyStateProps> = ({
       >
         {strings('social_leaderboard.feed.empty_type.description')}
       </Text>
-      {hasNextPage ? (
-        isFetchingNextPage ? (
-          <ActivityIndicator size="small" color={colors.icon.default} />
-        ) : (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={onLoadMore}
-            twClassName="self-center"
-            testID={FeedViewSelectorsIDs.LOAD_MORE_BUTTON}
-          >
-            {strings('social_leaderboard.feed.load_more')}
-          </Button>
-        )
-      ) : null}
+      {renderLoadMoreAction()}
     </Box>
   );
 };
