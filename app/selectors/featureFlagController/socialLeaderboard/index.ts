@@ -31,7 +31,7 @@ export const selectAiSocialLeaderboardOnboardingEnabled = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.aiSocialLeaderboardOnboardingEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 
