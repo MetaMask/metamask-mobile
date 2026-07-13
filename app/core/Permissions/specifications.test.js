@@ -68,6 +68,9 @@ describe('PermissionController specifications', () => {
       expect(caveatSpecifications.keyringCapabilities.type).toStrictEqual(
         SnapCaveatType.KeyringCapabilities,
       );
+      expect(caveatSpecifications.messengerScopes.type).toStrictEqual(
+        SnapCaveatType.MessengerScopes,
+      );
     });
 
     describe(`${Caip25CaveatType}`, () => {
