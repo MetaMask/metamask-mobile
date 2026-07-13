@@ -10198,6 +10198,7 @@
       "trending_tokens": "Trending",
       "trending_perpetuals": "Trending perpetuals",
       "trending_predictions": "Trending predictions",
+      "watchlist": "Watchlist",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
@@ -10242,6 +10243,8 @@
   },
   "token_watchlist": {
     "added_to_watchlist": "Added to Watchlist",
-    "removed_from_watchlist": "Removed from Watchlist"
+    "removed_from_watchlist": "Removed from Watchlist",
+    "home_empty_title": "Watchlist",
+    "home_empty_subtitle": "You have no watchlist items yet"
   }
 }

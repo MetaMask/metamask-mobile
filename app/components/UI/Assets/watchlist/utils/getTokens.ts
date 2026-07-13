@@ -1,8 +1,7 @@
 import { handleFetch } from '@metamask/controller-utils';
 import type { CaipAssetType } from '@metamask/utils';
 
-/** OpenAPI spec: https://token.dev-api.cx.metamask.io/docs-json (`/assets`). */
-export const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
+export const TOKEN_API_BASE_URL = 'https://token.api.cx.metamask.io';
 
 export interface WatchlistTokenMarketData {
   price?: number;
@@ -23,15 +22,68 @@ export interface WatchlistTokenMetadata {
   marketData?: WatchlistTokenMarketData;
 }
 
+interface RawMarketData {
+  price?: string | number;
+  pricePercentChange1d?: string | number;
+  pricePercentChange1h?: string | number;
+  pricePercentChange7d?: string | number;
+  marketCap?: number;
+  totalVolume?: number;
+  volume24h?: number;
+}
+
+interface RawTokenAsset {
+  assetId: string;
+  symbol: string;
+  name: string;
+  decimals: number;
+  iconUrl?: string;
+  marketData?: RawMarketData;
+}
+
+/**
+ * Normalises a single raw token asset from the Token API response into the
+ * shape the rest of the watchlist code expects. Handles differences such as
+ * `price` arriving as a string and `pricePercentChange1d` instead of `24h`.
+ */
+const normaliseTokenAsset = (raw: RawTokenAsset): WatchlistTokenMetadata => {
+  const md = raw.marketData;
+  return {
+    assetId: raw.assetId,
+    symbol: raw.symbol,
+    name: raw.name,
+    decimals: raw.decimals,
+    iconUrl: raw.iconUrl,
+    marketData: md
+      ? {
+          price: md.price != null ? Number(md.price) : undefined,
+          pricePercentChange24h:
+            md.pricePercentChange1d != null
+              ? Number(md.pricePercentChange1d)
+              : undefined,
+          pricePercentChange1h:
+            md.pricePercentChange1h != null
+              ? Number(md.pricePercentChange1h)
+              : undefined,
+          pricePercentChange7d:
+            md.pricePercentChange7d != null
+              ? Number(md.pricePercentChange7d)
+              : undefined,
+          marketCap: md.marketCap,
+          totalVolume: md.totalVolume,
+          volume24h: md.volume24h,
+        }
+      : undefined,
+  };
+};
+
 const buildAssetsUrl = (assetIds: readonly string[]): string => {
   const params = new URLSearchParams({
     assetIds: assetIds.join(','),
-    includeIconUrl: 'true',
     includeMarketData: 'true',
     includeRwaData: 'true',
-    includeTokenSecurityData: 'true',
   });
-  return `${TOKEN_API_V3_BASE_URL}/assets?${params.toString()}`;
+  return `${TOKEN_API_BASE_URL}/assets?${params.toString()}`;
 };
 
 /**
@@ -66,6 +118,8 @@ export const getTokens = async (
   );
 
   return responses.flatMap((response) =>
-    Array.isArray(response) ? (response as WatchlistTokenMetadata[]) : [],
+    Array.isArray(response)
+      ? (response as RawTokenAsset[]).map(normaliseTokenAsset)
+      : [],
   );
 };
