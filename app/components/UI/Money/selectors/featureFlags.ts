@@ -8,7 +8,10 @@ import {
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import { WildcardTokenList } from '../../Earn/utils/wildcardTokenList';
-import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import {
+  MUSD_TOKEN_ADDRESS,
+  getTokenDisplaySymbol,
+} from '../../Earn/constants/musd';
 import {
   MONEY_NO_FEE_TOKENS_FALLBACK,
   ensureMonadMusdListed,
@@ -180,17 +183,16 @@ const AAVE_TOKEN_ALIASES = new Set(['ausdc', 'ausdt', 'adai', 'ausdcn']);
  * Converts a raw token alias (e.g. "eth_usdc", "eth_ausdc", "musd") to its
  * display symbol:
  * - Strip the chain prefix ("eth_usdc" → "usdc")
- * - mUSD keeps its branded casing: "musd" → "mUSD"
  * - Known aave tokens (see AAVE_TOKEN_ALIASES): "ausdc" → "aUSDC"
  * - All others: full uppercase ("usdc" → "USDC")
+ *
+ * mUSD casing is handled by address via getTokenDisplaySymbol at the call
+ * site, not by alias here.
  */
 const normalizeTokenSymbol = (tokenAlias: string): string => {
   const underscoreIdx = tokenAlias.indexOf('_');
   const raw =
     underscoreIdx >= 0 ? tokenAlias.slice(underscoreIdx + 1) : tokenAlias;
-  if (raw.toLowerCase() === MUSD_TOKEN.symbol.toLowerCase()) {
-    return MUSD_TOKEN.symbol;
-  }
   if (AAVE_TOKEN_ALIASES.has(raw.toLowerCase())) {
     return 'a' + raw.slice(1).toUpperCase();
   }
@@ -236,7 +238,9 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
       }
 
       const srcChainHex = route.sourceChain.toLowerCase();
-      const symbol = normalizeTokenSymbol(route.sourceTokenAlias);
+      const normalized = normalizeTokenSymbol(route.sourceTokenAlias);
+      const symbol =
+        getTokenDisplaySymbol(route.sourceToken, normalized) ?? normalized;
 
       if (!catalog[srcChainHex]) catalog[srcChainHex] = [];
       if (!catalog[srcChainHex].includes(symbol)) {
