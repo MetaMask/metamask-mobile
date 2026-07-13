@@ -173,13 +173,13 @@ describe('selectAiSocialLeaderboardOnboardingEnabled', () => {
     expect(result).toBe(false);
   });
 
-  it('defaults to true when remote flag is absent (hardcoded-on)', () => {
+  it('defaults to false when remote flag is absent', () => {
     const result = selectAiSocialLeaderboardOnboardingEnabled.resultFunc({});
 
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 
-  it('defaults to true when remote flag has an invalid shape', () => {
+  it('defaults to false when remote flag has an invalid shape', () => {
     const result = selectAiSocialLeaderboardOnboardingEnabled.resultFunc({
       aiSocialLeaderboardOnboardingEnabled: {
         enabled: 'invalid',
@@ -187,7 +187,7 @@ describe('selectAiSocialLeaderboardOnboardingEnabled', () => {
       },
     });
 
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 
   it('returns false when enabled but version requirement is not met', () => {

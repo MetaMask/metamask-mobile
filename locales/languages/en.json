@@ -2203,6 +2203,8 @@
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
     },
+    "recently_viewed": "Recently viewed",
+    "recently_searched": "Recently searched",
     "market_count": "{{count}} market",
     "market_count_plural": "{{count}} markets",
     "no_tokens_found": "No tokens found",
