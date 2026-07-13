@@ -99,6 +99,116 @@ describe('usePerpsLiveMovers', () => {
     ]);
   });
 
+  describe('no deferred empty/stale frame on input changes', () => {
+    it('reflects new items on the same render, without waiting for an effect', () => {
+      mockSubscribeToSymbols.mockReturnValue(jest.fn());
+
+      const { result, rerender } = renderHook(
+        ({ items }: { items: PerpsFeedItem[] }) =>
+          usePerpsLiveMovers({ items, direction: 'gainers', maxCount: 12 }),
+        { initialProps: { items: [] as PerpsFeedItem[] } },
+      );
+
+      expect(result.current).toEqual([]);
+
+      const itemsV2 = [makeFeedItem('A', 5), makeFeedItem('B', 3)];
+      rerender({ items: itemsV2 });
+
+      // No waitFor / follow-up act needed — the ranked slice must already
+      // reflect the new items on the very render triggered by the prop
+      // change, so a "loading finished" frame never shows stale/empty data.
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'A',
+        'B',
+      ]);
+    });
+
+    it('reflects a direction change on the same render with no extra effect-driven render', () => {
+      mockSubscribeToSymbols.mockReturnValue(jest.fn());
+      const items = [makeFeedItem('GAINER', 5), makeFeedItem('LOSER', -3)];
+
+      let renderCount = 0;
+      const { result, rerender } = renderHook(
+        ({ direction }: { direction: 'gainers' | 'losers' }) => {
+          renderCount++;
+          return usePerpsLiveMovers({ items, direction, maxCount: 12 });
+        },
+        {
+          initialProps: { direction: 'gainers' } as {
+            direction: 'gainers' | 'losers';
+          },
+        },
+      );
+
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'GAINER',
+      ]);
+
+      const renderCountBeforeToggle = renderCount;
+      rerender({ direction: 'losers' });
+
+      // Exactly the render `rerender` itself causes — no follow-up
+      // effect-driven render lagging behind it.
+      expect(renderCount).toBe(renderCountBeforeToggle + 1);
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'LOSER',
+      ]);
+    });
+
+    it('resumes with the last-known live percents immediately on re-enable, without waiting for a fresh tick', () => {
+      const mockUnsubscribe = jest.fn();
+      let capturedCallback: (prices: PriceUpdatePayload) => void = jest.fn();
+      mockSubscribeToSymbols.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return mockUnsubscribe;
+      });
+
+      const items = [
+        makeFeedItem('HIGH_GAINER', 5),
+        makeFeedItem('LOW_GAINER', 1),
+      ];
+
+      const { result, rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          usePerpsLiveMovers({
+            items,
+            direction: 'gainers',
+            maxCount: 12,
+            enabled,
+          }),
+        { initialProps: { enabled: true } },
+      );
+
+      // LOW_GAINER overtakes HIGH_GAINER while still enabled.
+      act(() => {
+        capturedCallback({
+          HIGH_GAINER: { percentChange24h: '2' },
+          LOW_GAINER: { percentChange24h: '9' },
+        });
+      });
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'LOW_GAINER',
+        'HIGH_GAINER',
+      ]);
+
+      act(() => {
+        rerender({ enabled: false });
+      });
+
+      act(() => {
+        rerender({ enabled: true });
+      });
+
+      // Re-subscribing delivers no cached tick synchronously in this mock,
+      // yet the ranking already reflects the live percents merged before
+      // the pause — no empty/stale frame while waiting for a fresh tick.
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'LOW_GAINER',
+        'HIGH_GAINER',
+      ]);
+    });
+  });
+
   it('does not re-render when a push does not change the displayed top-N', async () => {
     let capturedCallback: (prices: PriceUpdatePayload) => void = jest.fn();
     mockSubscribeToSymbols.mockImplementation((params) => {
@@ -343,6 +453,57 @@ describe('usePerpsLiveMovers', () => {
       expect(
         result.current.map((item) => item.market.change24hPercent),
       ).toEqual(['+6.00%', '+3.00%']);
+    });
+
+    it('recomputes the first tick after subscribe promptly instead of waiting a full interval', async () => {
+      let capturedCallback: (prices: PriceUpdatePayload) => void = jest.fn();
+      mockSubscribeToSymbols.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      const items = [
+        makeFeedItem('HIGH_GAINER', 5),
+        makeFeedItem('LOW_GAINER', 1),
+      ];
+
+      const { result } = renderHook(() =>
+        usePerpsLiveMovers({
+          items,
+          direction: 'gainers',
+          maxCount: 12,
+          recomputeIntervalMs: 10000,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.map((item) => item.market.symbol)).toEqual([
+          'HIGH_GAINER',
+          'LOW_GAINER',
+        ]);
+      });
+
+      jest.useFakeTimers();
+
+      // The first delivery after (re)subscribe carries the stream's cached
+      // snapshot — here LOW_GAINER has overtaken HIGH_GAINER.
+      act(() => {
+        capturedCallback({
+          HIGH_GAINER: { percentChange24h: '2' },
+          LOW_GAINER: { percentChange24h: '9' },
+        });
+      });
+
+      // Advancing far less than the interval must already surface it: the
+      // first tick is not held behind the items effect's fresh timestamp.
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'LOW_GAINER',
+        'HIGH_GAINER',
+      ]);
     });
 
     it('cancels a pending recompute when disabled', async () => {

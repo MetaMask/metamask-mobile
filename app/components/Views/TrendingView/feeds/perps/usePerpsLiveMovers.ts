@@ -17,12 +17,14 @@ export interface UsePerpsLiveMoversOptions {
   /** Throttle delay for the underlying price subscription. @default 3000 */
   throttleMs?: number;
   /**
-   * Minimum time between recomputes of the rank/filter/sort/fingerprint work
+   * Minimum time between throttled recomputes triggered by live ticks alone
    * (a full pass over every market). Ticks arriving inside the interval
-   * still merge into the ref for free; only the recompute itself is batched
-   * to at most once per interval, using the most recently accumulated
-   * percents when it runs. `0` recomputes on every tick (still gated by
-   * `throttleMs` above).
+   * still merge into the ref for free; only the resulting re-render is
+   * batched to at most once per interval, using the most recently
+   * accumulated percents when it fires. Base data changes (new `items`,
+   * a `direction`/`maxCount` change, or `enabled` toggling) always render
+   * immediately — this interval only throttles tick-driven updates.
+   * `0` re-renders on every tick (still gated by `throttleMs` above).
    * @default 0
    */
   recomputeIntervalMs?: number;
@@ -36,6 +38,68 @@ export interface UsePerpsLiveMoversOptions {
 
 const EMPTY_ITEMS: PerpsFeedItem[] = [];
 
+interface RankedMovers {
+  items: PerpsFeedItem[];
+  fingerprint: string;
+}
+
+/**
+ * Pure rank/filter/sort/slice pass, extracted so both the render-time memo
+ * below and the off-render tick-throttling logic share one implementation.
+ *
+ * Reuses `previousItems`' object identity for any symbol whose displayed
+ * value is unchanged, so memoized pill components relying on shallow prop
+ * comparison skip re-rendering too.
+ */
+const rankMovers = (
+  baseItems: PerpsFeedItem[],
+  direction: PerpsPriceChangeDirection,
+  maxCount: number,
+  livePercents: Record<string, number>,
+  previousItems: PerpsFeedItem[],
+): RankedMovers => {
+  const merged = baseItems.map((item) => {
+    const livePercent = livePercents[item.market.symbol];
+    if (livePercent === undefined) return item.market;
+    return {
+      ...item.market,
+      change24hPercent: formatPercentage(livePercent),
+    };
+  });
+  const sorted = filterAndSortByPriceChangeDirection(merged, direction).slice(
+    0,
+    maxCount,
+  );
+
+  const fingerprint = sorted
+    .map((market) => `${market.symbol}:${market.change24hPercent}`)
+    .join('|');
+
+  const baseBySymbol = new Map(
+    baseItems.map((item) => [item.market.symbol, item]),
+  );
+  const previousBySymbol = new Map(
+    previousItems.map((item) => [item.market.symbol, item]),
+  );
+
+  const rankedItems = sorted
+    .map((market) => {
+      const base = baseBySymbol.get(market.symbol);
+      if (!base) return undefined;
+      const previous = previousBySymbol.get(market.symbol);
+      if (
+        previous &&
+        previous.market.change24hPercent === market.change24hPercent
+      ) {
+        return previous;
+      }
+      return { ...base, market };
+    })
+    .filter((item): item is PerpsFeedItem => item !== undefined);
+
+  return { items: rankedItems, fingerprint };
+};
+
 /**
  * Ranks perps markets by live 24h price-change percentage for a movers pill
  * strip, without paying a re-render for every WebSocket tick.
@@ -43,18 +107,22 @@ const EMPTY_ITEMS: PerpsFeedItem[] = [];
  * Correct gainers/losers ranking requires observing every market's live
  * percent change — a market outside the currently displayed set can move
  * into it. The WebSocket already delivers all-market updates regardless of
- * what any component subscribes to, so this hook keeps the merge/filter/sort
- * work on a ref between ticks and only commits React state when the
- * *displayed* top `maxCount` slice actually changes (by symbol, order, or
- * rounded percent). Idle ticks where the visible movers don't change cost
- * zero renders.
+ * what any component subscribes to, so live ticks are merged onto a ref
+ * (`livePercentsRef`) that doesn't itself trigger a render.
  *
- * Items whose displayed value didn't change keep their previous object
- * reference, so memoized pill components skip re-rendering too.
+ * The ranked slice is derived with `useMemo` directly from `items`,
+ * `direction`, `maxCount`, and `enabled` — so a base-data load, a
+ * gainers/losers toggle, or a resume-from-pause is reflected on the very
+ * same render, using whatever live percents are already available. There is
+ * no one-frame gap where the caller sees stale or empty data while loading
+ * has already finished.
  *
- * `recomputeIntervalMs` batches the recompute itself (not just the state
- * commit) so callers with a large market set can bound how often the full
- * pass runs, independent of the subscription's own `throttleMs`.
+ * Live ticks alone don't change those memo inputs, so between ticks the
+ * memo doesn't re-run any work. A throttled check (bounded by
+ * `recomputeIntervalMs`) runs off the render path and only requests a
+ * render (by bumping a counter, which *is* a memo input) when the visible
+ * top-`maxCount` slice actually changed. Idle ticks where the visible
+ * movers don't change cost zero renders.
  */
 export const usePerpsLiveMovers = ({
   items,
@@ -65,14 +133,22 @@ export const usePerpsLiveMovers = ({
   enabled = true,
 }: UsePerpsLiveMoversOptions): PerpsFeedItem[] => {
   const stream = usePerpsStream();
-  const [displayed, setDisplayed] = useState<PerpsFeedItem[]>(EMPTY_ITEMS);
 
-  const itemsRef = useRef<PerpsFeedItem[]>(items);
-  const displayedRef = useRef<PerpsFeedItem[]>(EMPTY_ITEMS);
-  const fingerprintRef = useRef<string>('');
+  // Bumped only when the throttled tick check below finds the visible
+  // fingerprint changed — forces the memo to re-run even though
+  // items/direction/maxCount haven't.
+  const [tickVersion, setTickVersion] = useState(0);
+
   // Latest live percent-change per symbol. A ref (not state) so ticks don't
-  // trigger a render by themselves — only the fingerprint check below does.
+  // trigger a render by themselves — only a fingerprint change does, via
+  // tickVersion.
   const livePercentsRef = useRef<Record<string, number>>({});
+  // The last actually-rendered slice/fingerprint. Synced *after* each commit
+  // (in an effect below) rather than written during the memo itself, so the
+  // memo stays a pure read of its inputs. Used both for identity reuse and
+  // as the basis the tick throttle compares fresh ticks against.
+  const previousItemsRef = useRef<PerpsFeedItem[]>(EMPTY_ITEMS);
+  const renderedFingerprintRef = useRef<string>('');
 
   const symbols = useMemo(
     () => items.map(({ market }) => market.symbol),
@@ -82,68 +158,44 @@ export const usePerpsLiveMovers = ({
   // changes but its contents don't (mirrors usePerpsLivePrices).
   const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
 
-  const recompute = useCallback(() => {
-    const baseItems = itemsRef.current;
-    const merged = baseItems.map((item) => {
-      const livePercent = livePercentsRef.current[item.market.symbol];
-      if (livePercent === undefined) return item.market;
+  const { items: displayed, fingerprint } = useMemo(() => {
+    // Disabled: keep whatever was last rendered frozen, and skip the
+    // rank/sort pass entirely rather than churning on background data
+    // (e.g. a REST refresh) the caller isn't showing anyway.
+    if (!enabled) {
       return {
-        ...item.market,
-        change24hPercent: formatPercentage(livePercent),
+        items: previousItemsRef.current,
+        fingerprint: renderedFingerprintRef.current,
       };
-    });
-    const sorted = filterAndSortByPriceChangeDirection(merged, direction).slice(
-      0,
-      maxCount,
-    );
-
-    const fingerprint = sorted
-      .map((market) => `${market.symbol}:${market.change24hPercent}`)
-      .join('|');
-    if (fingerprint === fingerprintRef.current) {
-      return;
     }
-    fingerprintRef.current = fingerprint;
-
-    const baseBySymbol = new Map(
-      baseItems.map((item) => [item.market.symbol, item]),
+    return rankMovers(
+      items,
+      direction,
+      maxCount,
+      livePercentsRef.current,
+      previousItemsRef.current,
     );
-    const previousBySymbol = new Map(
-      displayedRef.current.map((item) => [item.market.symbol, item]),
-    );
+    // tickVersion is intentionally a dependency purely to force a re-run
+    // when a live tick (which doesn't otherwise change any of these inputs)
+    // changes the visible ranking.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, direction, maxCount, enabled, tickVersion]);
 
-    const next = sorted
-      .map((market) => {
-        const base = baseBySymbol.get(market.symbol);
-        if (!base) return undefined;
-        const previous = previousBySymbol.get(market.symbol);
-        // Reuse the previous item's identity when its displayed value is
-        // unchanged so React.memo'd pills relying on shallow prop
-        // comparison skip re-rendering too.
-        if (
-          previous &&
-          previous.market.change24hPercent === market.change24hPercent
-        ) {
-          return previous;
-        }
-        return { ...base, market };
-      })
-      .filter((item): item is PerpsFeedItem => item !== undefined);
-
-    displayedRef.current = next;
-    setDisplayed(next);
-  }, [direction, maxCount]);
-
-  // Latest recompute, readable from the subscription callback below without
-  // making the subscription effect resubscribe on every direction/maxCount
-  // change.
-  const recomputeRef = useRef(recompute);
   useEffect(() => {
-    recomputeRef.current = recompute;
-  }, [recompute]);
+    previousItemsRef.current = displayed;
+    renderedFingerprintRef.current = fingerprint;
+  }, [displayed, fingerprint]);
 
-  // Wall-clock instant of the last recompute pass, used to schedule the next
-  // one no sooner than recomputeIntervalMs after it.
+  // Latest ranking params, readable from the subscription callback below
+  // without making the subscription effect resubscribe on every
+  // direction/maxCount change. Declared (and thus committed) ahead of the
+  // subscription effect so a synchronous cached delivery on (re)subscribe
+  // always sees the freshest params.
+  const paramsRef = useRef({ items, direction, maxCount });
+  useEffect(() => {
+    paramsRef.current = { items, direction, maxCount };
+  }, [items, direction, maxCount]);
+
   const lastRecomputeAtRef = useRef<number>(0);
   const pendingRecomputeTimerRef = useRef<
     ReturnType<typeof setTimeout> | undefined
@@ -156,15 +208,44 @@ export const usePerpsLiveMovers = ({
     }
   }, []);
 
-  // Trailing-throttle (not debounce) the recompute pass: a strict debounce
-  // would never fire under a continuous stream of ticks. At most one
-  // recompute runs per recomputeIntervalMs, always using the freshest
-  // accumulated ref data by the time it fires, so batched ticks are never
-  // lost — just coalesced into fewer full passes.
+  // Off-render-path check: does the freshest accumulated live data actually
+  // change the *rendered* fingerprint? Only if so is a render requested.
+  // This is the one place that still pays for a full rank/filter/sort pass
+  // outside of a render — but bounded to at most once per
+  // recomputeIntervalMs, not once per tick.
+  const maybeRequestRender = useCallback(() => {
+    const {
+      items: baseItems,
+      direction: dir,
+      maxCount: max,
+    } = paramsRef.current;
+    const { fingerprint: nextFingerprint } = rankMovers(
+      baseItems,
+      dir,
+      max,
+      livePercentsRef.current,
+      previousItemsRef.current,
+    );
+    if (nextFingerprint === renderedFingerprintRef.current) return;
+    setTickVersion((version) => version + 1);
+  }, []);
+
+  // Latest maybeRequestRender, readable from the subscription callback
+  // below without making the subscription effect resubscribe.
+  const maybeRequestRenderRef = useRef(maybeRequestRender);
+  useEffect(() => {
+    maybeRequestRenderRef.current = maybeRequestRender;
+  }, [maybeRequestRender]);
+
+  // Trailing-throttle (not debounce) the tick-driven render request: a
+  // strict debounce would never fire under a continuous stream of ticks. At
+  // most one check-and-request runs per recomputeIntervalMs, always using
+  // the freshest accumulated ref data by the time it fires, so batched ticks
+  // are never lost — just coalesced into fewer full passes.
   const scheduleRecompute = useCallback(() => {
     if (recomputeIntervalMs <= 0) {
       lastRecomputeAtRef.current = Date.now();
-      recomputeRef.current();
+      maybeRequestRenderRef.current();
       return;
     }
 
@@ -176,25 +257,19 @@ export const usePerpsLiveMovers = ({
     pendingRecomputeTimerRef.current = setTimeout(() => {
       pendingRecomputeTimerRef.current = undefined;
       lastRecomputeAtRef.current = Date.now();
-      recomputeRef.current();
+      maybeRequestRenderRef.current();
     }, delay);
   }, [recomputeIntervalMs]);
 
-  // Recompute from the base feed whenever it (or the ranking params) change
-  // — e.g. initial load, pull-to-refresh, or the gainers/losers toggle.
-  // Gated on `enabled` so a hidden/unfocused strip stays frozen rather than
-  // picking up REST refreshes in the background. Runs immediately (bypassing
-  // recomputeIntervalMs) since these are user-initiated, not tick-driven.
-  useEffect(() => {
-    if (!enabled) return;
-    itemsRef.current = items;
-    clearPendingRecompute();
-    lastRecomputeAtRef.current = Date.now();
-    recompute();
-  }, [enabled, recompute, items, clearPendingRecompute]);
-
   useEffect(() => {
     if (!enabled || symbols.length === 0) return;
+
+    // The stream delivers its cached snapshot synchronously on (re)subscribe.
+    // Reset the throttle anchor so that first cached delivery — mount, tab
+    // resume, or a symbol-set change — is checked promptly instead of
+    // waiting up to a full recomputeIntervalMs behind a stale timestamp.
+    lastRecomputeAtRef.current = 0;
+    clearPendingRecompute();
 
     const unsubscribe = stream.prices.subscribeToSymbols({
       symbols,
@@ -203,7 +278,7 @@ export const usePerpsLiveMovers = ({
         for (const symbol of Object.keys(newPrices)) {
           const percentChange24h = newPrices[symbol]?.percentChange24h;
           if (!percentChange24h) continue;
-          const parsed = parseFloat(percentChange24h);
+          const parsed = Number.parseFloat(percentChange24h);
           if (Number.isNaN(parsed)) continue;
           livePercentsRef.current[symbol] = parsed;
         }
