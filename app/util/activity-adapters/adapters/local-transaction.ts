@@ -309,8 +309,10 @@ export function mapLocalTransaction(
     const fromAddress = from.toLowerCase();
     const poolAddress = to.toLowerCase();
     const logs = initialTransaction.txReceipt?.logs ?? [];
-    const isUserOutgoingTransfer = (topics: string[] = []): boolean => {
-      const [eventTopic, logFrom] = topics;
+    const isUserOutgoingTransfer = (
+      eventTopic: string | undefined,
+      logFrom: string | undefined,
+    ): boolean => {
       const senderAddress = logFrom
         ? `0x${logFrom.slice(-40)}`.toLowerCase()
         : undefined;
@@ -320,15 +322,18 @@ export function mapLocalTransaction(
       );
     };
     const sentTokenLog =
-      logs.find(({ topics = [] }) => {
-        const logTo = topics[2];
+      logs.find(({ topics: [eventTopic, logFrom, logTo] = [] }) => {
         const recipientAddress = logTo
           ? `0x${logTo.slice(-40)}`.toLowerCase()
           : undefined;
         return (
-          isUserOutgoingTransfer(topics) && recipientAddress === poolAddress
+          isUserOutgoingTransfer(eventTopic, logFrom) &&
+          recipientAddress === poolAddress
         );
-      }) ?? logs.find(({ topics = [] }) => isUserOutgoingTransfer(topics));
+      }) ??
+      logs.find(({ topics: [eventTopic, logFrom] = [] }) =>
+        isUserOutgoingTransfer(eventTopic, logFrom),
+      );
 
     if (sentTokenLog) {
       return getContractToken({

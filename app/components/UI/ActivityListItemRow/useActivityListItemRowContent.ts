@@ -1149,20 +1149,28 @@ export function useActivityListItemRowContent(
   const lendingTokenData = useTokensData(lendingAssetIds);
 
   const content = resolveCoreContent(item, bridgeHistoryItem);
+
+  let basePrimaryToken: TokenAmount | undefined;
+  if (isSpendingCap) {
+    basePrimaryToken = spendingCapToken?.amount ? spendingCapToken : undefined;
+  } else if (isLending) {
+    basePrimaryToken = enrichTokenFromApi(
+      content.primaryToken,
+      lendingTokenData,
+    );
+  } else {
+    basePrimaryToken = content.primaryToken;
+  }
   const primaryToken = enrichStablecoinTokenMetadata(
-    isSpendingCap
-      ? spendingCapToken?.amount
-        ? spendingCapToken
-        : undefined
-      : isLending
-        ? enrichTokenFromApi(content.primaryToken, lendingTokenData)
-        : content.primaryToken,
+    basePrimaryToken,
     networkChainId,
   );
+
+  const baseSecondaryToken = isLending
+    ? enrichTokenFromApi(content.secondaryToken, lendingTokenData)
+    : content.secondaryToken;
   const secondaryToken = enrichStablecoinTokenMetadata(
-    isLending
-      ? enrichTokenFromApi(content.secondaryToken, lendingTokenData)
-      : content.secondaryToken,
+    baseSecondaryToken,
     networkChainId,
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
@@ -1226,14 +1234,18 @@ export function useActivityListItemRowContent(
     ? getPredictActivity(item)?.icon
     : undefined;
 
+  let avatarTokens: TokenAmount[];
+  if (isSpendingCap && spendingCapToken) {
+    avatarTokens = [spendingCapToken];
+  } else if (isLending && primaryToken) {
+    avatarTokens = [primaryToken];
+  } else {
+    avatarTokens = resolveAvatarTokens(item, bridgeHistoryItem);
+  }
+
   return {
     ...content,
-    avatarTokens:
-      isSpendingCap && spendingCapToken
-        ? [spendingCapToken]
-        : isLending && primaryToken
-          ? [primaryToken]
-          : resolveAvatarTokens(item, bridgeHistoryItem),
+    avatarTokens,
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
     primaryToken,

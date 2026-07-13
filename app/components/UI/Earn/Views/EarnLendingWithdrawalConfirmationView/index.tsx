@@ -20,7 +20,6 @@ import Badge, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import {
   IMetaMetricsEvent,
