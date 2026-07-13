@@ -25,6 +25,7 @@ import {
   applyDisplaySign,
   type ActivityKind,
   type ActivityListItem,
+  enrichTokenFromApi,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isUnlimitedApprovalAmount,
@@ -368,26 +369,6 @@ function enrichSpendingCapToken(
     ...(symbol ? { symbol } : {}),
     ...(decimals === undefined ? {} : { decimals }),
     ...(isUnlimitedApproval ? { isUnlimitedApproval: true } : {}),
-  };
-}
-
-function enrichTokenFromApi(
-  token: TokenAmount | undefined,
-  dataByAssetId: Record<string, { symbol?: string; decimals?: number }>,
-): TokenAmount | undefined {
-  if (!token?.assetId) {
-    return token;
-  }
-  const listToken = dataByAssetId[token.assetId.toLowerCase()];
-  if (!listToken) {
-    return token;
-  }
-  const symbol = token.symbol ?? listToken.symbol;
-  const decimals = token.decimals ?? listToken.decimals;
-  return {
-    ...token,
-    ...(symbol ? { symbol } : {}),
-    ...(decimals === undefined ? {} : { decimals }),
   };
 }
 

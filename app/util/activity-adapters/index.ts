@@ -36,6 +36,7 @@ export {
 } from './fiat';
 export {
   activityMatchesAssetId,
+  enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
