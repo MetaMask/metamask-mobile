@@ -1297,7 +1297,7 @@ const AppFlow = () => {
           headerShown: false,
           gestureEnabled: true,
           presentation: 'modal',
-          contentStyle: { backgroundColor: importedColors.white },
+          contentStyle: { backgroundColor: colors.background.default },
         }}
       />
       <NativeStack.Screen
@@ -1311,7 +1311,7 @@ const AppFlow = () => {
           headerShown: true,
           gestureEnabled: true,
           presentation: 'modal',
-          contentStyle: { backgroundColor: importedColors.white },
+          contentStyle: { backgroundColor: colors.background.default },
         }}
       />
     </NativeStack.Navigator>

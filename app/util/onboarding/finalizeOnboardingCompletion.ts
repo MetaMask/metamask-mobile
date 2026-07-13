@@ -19,6 +19,7 @@ export interface FinalizeOnboardingCompletionParams {
   walletSetupAttributionProps: WalletSetupCompletedAttributionAnalyticsPayload;
   dispatch: Dispatch<AnyAction>;
   discoverAccountsLogContext?: string;
+  needsQrProvisioning?: boolean;
 }
 
 /**
@@ -39,6 +40,7 @@ export function finalizeOnboardingCompletion({
   walletSetupAttributionProps,
   dispatch,
   discoverAccountsLogContext = 'finalizeOnboardingCompletion',
+  needsQrProvisioning = false,
 }: FinalizeOnboardingCompletionParams): void {
   if (!successFlow) {
     return;
@@ -69,7 +71,16 @@ export function finalizeOnboardingCompletion({
     );
 
     const keyrings = Engine.context.KeyringController.state.keyrings;
-    if (keyrings?.length > 0) {
+    if (needsQrProvisioning) {
+      Engine.context.QrSyncProvisioningService.provisionFromMetadata().catch(
+        (error: unknown) => {
+          Logger.error(
+            error as Error,
+            `${discoverAccountsLogContext}: provisionFromMetadata failed`,
+          );
+        },
+      );
+    } else if (keyrings?.length > 0) {
       discoverAccounts(keyrings[0].metadata.id).catch((error: unknown) => {
         Logger.error(
           error as Error,

@@ -316,6 +316,8 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Upstream journey attribution for Quick Buy when opened from the trade screen. */
+      originalEntryPoint?: string;
       /** Whether the tapped position came from the closed list. Authoritative
        * closed/open signal (more reliable than re-deriving from fields). */
       isClosed?: boolean;
@@ -337,6 +339,8 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Upstream journey attribution for Quick Buy when opened from the trade screen. */
+      originalEntryPoint?: string;
       /** Deep links have no list context; resolved heuristically downstream. */
       isClosed?: never;
       /** Notification subtype forwarded from the social-trader-position
@@ -818,6 +822,10 @@ export type RootStackParamList = {
         /** Analytics entry-point that opened the leaderboard. Narrowed at the
          * receiver to LeaderboardScreenViewedSource. */
         source?: string;
+        /** Set by onboarding when the user tapped "Allow notifications" but the
+         * OS denied permission. Shows a one-shot, auto-dismissing nudge banner
+         * on the leaderboard with a CTA to open device settings. */
+        showNotificationsBanner?: boolean;
       }
     | undefined;
   TraderProfileView: {
@@ -832,6 +840,7 @@ export type RootStackParamList = {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
+  SocialLeaderboardOnboarding: undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
