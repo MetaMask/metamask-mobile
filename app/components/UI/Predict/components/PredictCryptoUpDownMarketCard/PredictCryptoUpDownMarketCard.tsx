@@ -862,6 +862,7 @@ const ProgressLogo = React.memo(
               source={{ uri: imageUrl }}
               style={tw.style('h-full w-full')}
               contentFit="cover"
+              recyclingKey={imageUrl}
             />
           ) : (
             <Box twClassName="h-full w-full bg-muted" />

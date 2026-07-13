@@ -214,6 +214,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     source={{ uri: market.image }}
                     style={tw.style('w-full h-full')}
                     contentFit="cover"
+                    recyclingKey={market.image}
                   />
                 </Box>
               )}

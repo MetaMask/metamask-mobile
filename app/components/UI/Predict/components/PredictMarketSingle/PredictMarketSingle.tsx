@@ -257,6 +257,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                   source={{ uri: getImageUrl() }}
                   style={tw.style('w-full h-full')}
                   contentFit="cover"
+                  recyclingKey={getImageUrl()}
                 />
               ) : (
                 <Box twClassName="w-full h-full bg-muted" />

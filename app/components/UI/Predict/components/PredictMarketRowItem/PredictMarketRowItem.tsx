@@ -111,6 +111,7 @@ const PredictMarketRowItem = ({
               source={{ uri: market.image }}
               style={tw.style('w-full h-full')}
               contentFit="cover"
+              recyclingKey={market.image}
             />
           ) : null)}
       </Box>
