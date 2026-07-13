@@ -6,8 +6,9 @@
  * @type {import('metro-config').MetroConfig}
  */
 
-const { getDefaultConfig } = require('expo/metro-config');
+const { getDefaultConfig: getExpoDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
+const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 const { lockdownSerializer } = require('@lavamoat/react-native-lockdown');
 
 // eslint-disable-next-line import-x/no-nodejs-modules
@@ -52,7 +53,12 @@ const {
 } = require('react-native-reanimated/metro-config');
 
 module.exports = function (baseConfig) {
-  const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
+  return getSentryExpoConfig(__dirname, {
+    getDefaultConfig: (projectRoot, options) => {
+      const defaultConfig = mergeConfig(
+        baseConfig,
+        getExpoDefaultConfig(projectRoot, options),
+      );
   const {
     resolver: { assetExts, sourceExts },
   } = defaultConfig;
@@ -274,4 +280,6 @@ module.exports = function (baseConfig) {
       maxWorkers,
     }),
   );
+    },
+  });
 };
