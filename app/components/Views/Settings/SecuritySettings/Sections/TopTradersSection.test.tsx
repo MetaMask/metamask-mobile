@@ -2,12 +2,20 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import React from 'react';
 
 import { strings } from '../../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds';
 import TopTradersSection from './TopTradersSection';
 
 const mockMessengerCall = jest.fn().mockResolvedValue(undefined);
 const mockLoggerError = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+});
 let mockLeaderboardEnabled = true;
 let mockOptFlowEnabled = true;
 
@@ -19,6 +27,13 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   error: (...args: unknown[]) => mockLoggerError(...args),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 jest.mock(
@@ -109,6 +124,44 @@ describe('TopTradersSection', () => {
     );
   });
 
+  it('tracks the visibility-toggled event on a successful opt-out', async () => {
+    renderWith(true);
+    const toggle = screen.getByTestId(
+      SecurityPrivacyViewSelectorsIDs.SHOW_ACCOUNT_ON_LEADERBOARD_TOGGLE,
+    );
+
+    fireEvent(toggle, 'valueChange', false);
+
+    await waitFor(() =>
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_VISIBILITY_TOGGLED,
+      ),
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      show_account_on_leaderboard: false,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks the visibility-toggled event on a successful opt-in', async () => {
+    renderWith(false);
+    const toggle = screen.getByTestId(
+      SecurityPrivacyViewSelectorsIDs.SHOW_ACCOUNT_ON_LEADERBOARD_TOGGLE,
+    );
+
+    fireEvent(toggle, 'valueChange', true);
+
+    await waitFor(() =>
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_VISIBILITY_TOGGLED,
+      ),
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      show_account_on_leaderboard: true,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
   it('reverts and logs when the request fails', async () => {
     mockMessengerCall.mockRejectedValueOnce(new Error('network down'));
     renderWith(true);
@@ -120,5 +173,18 @@ describe('TopTradersSection', () => {
 
     await waitFor(() => expect(mockLoggerError).toHaveBeenCalled());
     expect(toggle.props.value).toBe(true);
+  });
+
+  it('does not track the event when the request fails', async () => {
+    mockMessengerCall.mockRejectedValueOnce(new Error('network down'));
+    renderWith(true);
+    const toggle = screen.getByTestId(
+      SecurityPrivacyViewSelectorsIDs.SHOW_ACCOUNT_ON_LEADERBOARD_TOGGLE,
+    );
+
+    fireEvent(toggle, 'valueChange', false);
+
+    await waitFor(() => expect(mockLoggerError).toHaveBeenCalled());
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });

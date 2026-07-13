@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../locales/i18n';
 import { setShowAccountOnLeaderboard } from '../../../../../actions/settings';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
 import {
@@ -12,6 +13,7 @@ import {
   selectSocialLeaderboardOptFlowEnabled,
 } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../../util/Logger';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { SecurityOptionToggle } from '../../../../UI/SecurityOptionToggle';
 import { useStyles } from '../../../../hooks/useStyles';
 import createStyles from '../SecuritySettings.styles';
@@ -27,6 +29,7 @@ import { SecurityPrivacyViewSelectorsIDs } from '../SecurityPrivacyView.testIds'
 const TopTradersSection = () => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
@@ -52,6 +55,14 @@ const TopTradersSection = () => {
             ? 'SocialController:optInToLeaderboard'
             : 'SocialController:optOutOfLeaderboard',
         );
+        // Track only after the backend confirms
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_VISIBILITY_TOGGLED,
+          )
+            .addProperties({ show_account_on_leaderboard: enabled })
+            .build(),
+        );
       } catch (error) {
         Logger.error(
           error as Error,
@@ -63,7 +74,7 @@ const TopTradersSection = () => {
         setIsUpdating(false);
       }
     },
-    [dispatch, isUpdating],
+    [createEventBuilder, dispatch, isUpdating, trackEvent],
   );
 
   if (!isSocialLeaderboardEnabled || !isLeaderboardOptFlowEnabled) {
