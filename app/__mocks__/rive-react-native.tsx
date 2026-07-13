@@ -95,6 +95,21 @@ const Alignment = {
   Center: 'center',
 } as const;
 
+/** Mirrors `RNRiveErrorType` from rive-react-native for module-level error classification. */
+export const RNRiveErrorType = {
+  FileNotFound: 'FileNotFound',
+  UnsupportedRuntimeVersion: 'UnsupportedRuntimeVersion',
+  IncorrectRiveFileUrl: 'IncorrectRiveFileUrl',
+  IncorrectAnimationName: 'IncorrectAnimationName',
+  MalformedFile: 'MalformedFile',
+  IncorrectArtboardName: 'IncorrectArtboardName',
+  IncorrectStateMachineName: 'IncorrectStateMachineName',
+  IncorrectStateMachineInput: 'IncorrectStateMachineInput',
+  TextRunNotFoundError: 'TextRunNotFoundError',
+  DataBindingError: 'DataBindingError',
+  UnusedReferencedAssetError: 'UnusedReferencedAssetError',
+} as const;
+
 export const __getLastMockedMethods = (): RiveRef | undefined =>
   lastMockedMethods;
 

@@ -1059,7 +1059,31 @@
         "all": "All",
         "tokens": "Tokens",
         "perps": "Perps"
+      },
+      "notifications_banner": {
+        "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
+        "open_settings": "Open settings"
       }
+    },
+    "onboarding": {
+      "slide_trade": {
+        "title": "Trade like a pro",
+        "description": "Track in real time when they swap or trade perps, tokens, and real-world assets."
+      },
+      "slide_follow": {
+        "title": "Follow the best",
+        "description": "Tap to follow the top three traders who are up big this week."
+      },
+      "slide_notify": {
+        "title": "Never miss a move",
+        "description_followed": "When a trader you follow makes a move, you'll get a notification. One tap to do the same.",
+        "description_default": "When you're ready, follow a trader to get notified the moment they make a move."
+      },
+      "next": "Next",
+      "follow_top_three": "Follow the top three",
+      "maybe_later": "Maybe later",
+      "got_it": "Got it",
+      "allow_notifications": "Allow notifications"
     },
     "notification_preferences": {
       "title": "Top traders",
@@ -4023,6 +4047,12 @@
         "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
         "reset_prompt": "Reset push pre-prompt"
       },
+      "social_leaderboard": {
+        "title": "Social Leaderboard",
+        "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
+        "onboarding_seen": "Onboarding seen: {{seen}}",
+        "reset_onboarding": "Reset onboarding"
+      },
       "haptics": {
         "title": "Haptics",
         "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
@@ -4084,6 +4114,20 @@
         "four": "Enter the security code on your extension"
       },
       "scan_qr_code_button": "Scan QR code",
+      "scanner": {
+        "searching_label": "Scan the code on your other device",
+        "detected_label": "Code detected",
+        "invalid_qr_title": "Unrecognized QR code",
+        "invalid_qr_description": "Scan the QR code from MetaMask extension's Import to mobile flow.",
+        "expired_qr_title": "QR code expired",
+        "expired_qr_description": "Generate a new QR code on your extension and scan it again within 60 seconds.",
+        "connection_failed_title": "Connection failed",
+        "connection_failed_description": "We couldn't connect to your extension. Try scanning again.",
+        "try_again": "Try again",
+        "permission_title": "Turn on camera access",
+        "permission_description": "To scan a QR code, you'll need to give MetaMask camera access from your device's settings menu.",
+        "open_settings": "Open Settings"
+      },
       "enter_code_on_extension": "Enter code on extension",
       "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
       "done": "Done",
@@ -5216,7 +5260,14 @@
     "enable_device_passcode_android": "Unlock with device PIN?"
   },
   "authentication": {
-    "auth_prompt_desc": "Please authenticate in order to use MetaMask"
+    "auth_prompt_desc": "Please authenticate in order to use MetaMask",
+    "labels": {
+      "remember_me": "Remember Me",
+      "face_id": "Face ID",
+      "touch_id": "Touch ID",
+      "device_authentication": "Device Authentication",
+      "device_passcode": "Device Passcode"
+    }
   },
   "accountApproval": {
     "title": "CONNECT REQUEST",
@@ -7254,7 +7305,8 @@
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
+      "description_with_amounts_prefix": "Convert your",
+      "description_with_amounts_middle": "in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
       "add": "Add",
       "convert_cta": "Convert your crypto",
@@ -7321,7 +7373,6 @@
       "convert_crypto": "Convert crypto",
       "deposit_funds": "Debit card or Apple Pay",
       "bank_account": "Bank account",
-      "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
       "coming_soon": "Coming soon"
@@ -10225,5 +10276,9 @@
   },
   "stepper_card": {
     "more_information": "More information"
+  },
+  "token_watchlist": {
+    "added_to_watchlist": "Added to Watchlist",
+    "removed_from_watchlist": "Removed from Watchlist"
   }
 }

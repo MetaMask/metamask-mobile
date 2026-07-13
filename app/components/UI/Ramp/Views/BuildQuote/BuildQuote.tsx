@@ -40,10 +40,7 @@ import styleSheet from './BuildQuote.styles';
 import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import {
-  RampsOrderStatus,
-  normalizeProviderCode,
-} from '@metamask/ramps-controller';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
@@ -477,10 +474,10 @@ function BuildQuote() {
     ) {
       return null;
     }
-    const targetProvider = normalizeProviderCode(selectedProvider.id);
+    const targetProvider = selectedProvider.id;
     return (
       quotesResponse.success.find(
-        (quote) => normalizeProviderCode(quote.provider) === targetProvider,
+        (quote) => quote.provider === targetProvider,
       ) ?? null
     );
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);

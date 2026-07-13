@@ -268,11 +268,7 @@ const ManualBackupStep1 = () => {
             marginBottom={5}
             twClassName="flex-1"
           >
-            <Box
-              marginBottom={2}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="flex-1"
-            >
+            <Box marginBottom={2}>
               <Label color={TextColor.TextDefault}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
@@ -303,11 +299,7 @@ const ManualBackupStep1 = () => {
               )}
             </Box>
           </Box>
-          <Box
-            marginTop={0}
-            justifyContent={BoxJustifyContent.End}
-            twClassName="flex-1"
-          >
+          <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
             <Button
               variant={ButtonVariant.Primary}
               onPress={tryUnlock}
@@ -326,75 +318,68 @@ const ManualBackupStep1 = () => {
 
   const renderSeedphraseView = () => (
     <Box twClassName="flex-1 justify-between">
-      <Box twClassName="flex-1">
-        <Box
-          twClassName="flex-1 flex-col gap-4"
-          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
-        >
-          <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
-            {strings('manual_backup_step_1.action')}
+      <Box
+        twClassName="flex-1 flex-col gap-4"
+        testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
+      >
+        <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+          {strings('manual_backup_step_1.action')}
+        </Text>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {strings('manual_backup_step_1.info-1')}{' '}
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.PrimaryDefault}
+            onPress={showWhatIsSeedphrase}
+          >
+            {strings('manual_backup_step_1.info-2')}{' '}
           </Text>
-          <Box justifyContent={BoxJustifyContent.Start}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('manual_backup_step_1.info-1')}{' '}
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryDefault}
-                onPress={showWhatIsSeedphrase}
-              >
-                {strings('manual_backup_step_1.info-2')}{' '}
-              </Text>
-              {strings('manual_backup_step_1.info-3')}{' '}
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('manual_backup_step_1.info-4')}
-              </Text>
-            </Text>
+          {strings('manual_backup_step_1.info-3')}{' '}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {strings('manual_backup_step_1.info-4')}
+          </Text>
+        </Text>
+        {seedPhraseHidden ? (
+          <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
+            {renderSeedPhraseConcealer()}
           </Box>
-          {seedPhraseHidden ? (
-            <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
-              {renderSeedPhraseConcealer()}
-            </Box>
-          ) : (
-            <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
-              <FlatList
-                data={words}
-                numColumns={3}
-                keyExtractor={(_, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                      maxFontSizeMultiplier={1}
-                    >
-                      {index + 1}.
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                      key={index}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.7}
-                      style={tw.style('flex-1')}
-                      testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                      maxFontSizeMultiplier={1}
-                    >
-                      {item}
-                    </Text>
-                  </Box>
-                )}
-              />
-            </Box>
-          )}
-        </Box>
+        ) : (
+          <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
+            <FlatList
+              data={words}
+              numColumns={3}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item, index }) => (
+                <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    maxFontSizeMultiplier={1}
+                  >
+                    {index + 1}.
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    key={index}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                    style={tw.style('flex-1')}
+                    testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
+                    maxFontSizeMultiplier={1}
+                  >
+                    {item}
+                  </Text>
+                </Box>
+              )}
+            />
+          </Box>
+        )}
       </Box>
       <Box
         twClassName={`px-0 gap-4 flex justify-center items-center ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}

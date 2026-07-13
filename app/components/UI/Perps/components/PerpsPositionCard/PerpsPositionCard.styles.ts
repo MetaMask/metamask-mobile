@@ -66,9 +66,6 @@ const styleSheet = (params: StyleSheetParams) => {
     positionItem: {
       flex: 1,
     },
-    detailsSection: {
-      marginLeft: 16,
-    },
     toggle: {
       width: 48,
       height: 28,

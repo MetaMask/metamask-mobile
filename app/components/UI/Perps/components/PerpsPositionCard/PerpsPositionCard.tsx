@@ -100,6 +100,8 @@ interface PerpsPositionCardProps {
   iconSize?: number;
   /** When true, shows a small skeleton placeholder for the TP/SL field instead of "No TP/SL" */
   tpSlLoading?: boolean;
+  /** Market size decimals, used to derive Hyperliquid price precision for TP/SL display. */
+  szDecimals?: number | null;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -117,6 +119,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   testID,
   iconSize = 40,
   tpSlLoading = false,
+  szDecimals: _szDecimals,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
