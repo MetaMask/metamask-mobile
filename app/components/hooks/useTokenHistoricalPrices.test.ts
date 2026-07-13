@@ -42,22 +42,28 @@ describe('hasInsufficientTimeCoverage', () => {
     expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(true);
   });
 
-  it('returns true when 1d data covers exactly 50% of expected duration', () => {
+  it('returns false when 1d data covers exactly 50% of expected duration', () => {
     const halfDay = 12 * HOUR_MS;
     const prices = makeTimeSeries(now, 50, halfDay / 49);
+    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(false);
+  });
+
+  it('returns true when 1d data covers only 40% of expected duration', () => {
+    const fortyPct = 0.4 * 24 * HOUR_MS;
+    const prices = makeTimeSeries(now, 50, fortyPct / 49);
     expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(true);
   });
 
-  it('returns true when 1d data covers 80% of expected duration', () => {
+  it('returns false when 1d data covers 80% of expected duration', () => {
     const eightyPct = 0.8 * 24 * HOUR_MS;
     const prices = makeTimeSeries(now, 50, eightyPct / 49);
-    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(true);
+    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(false);
   });
 
-  it('returns true when 1d data covers 22 hours (~91.7%)', () => {
+  it('returns false when 1d data covers 22 hours (~91.7%)', () => {
     const twentyTwoHours = 22 * HOUR_MS;
     const prices = makeTimeSeries(now, 50, twentyTwoHours / 49);
-    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(true);
+    expect(hasInsufficientTimeCoverage(prices, '1d')).toBe(false);
   });
 
   it('returns false when 1d data covers 23 hours (~95.8%)', () => {

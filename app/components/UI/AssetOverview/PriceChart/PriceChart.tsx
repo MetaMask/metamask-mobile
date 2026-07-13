@@ -52,7 +52,7 @@ interface PriceChartProps {
   chartColorOverride?: string;
   /**
    * When true, the historical-prices API returned data covering less than
-   * 75% of the requested time period. The chart shows a "no data" overlay
+   * 50% of the requested time period. The chart shows a "no data" overlay
    * instead of rendering a misleading partial chart.
    */
   hasInsufficientCoverage?: boolean;
