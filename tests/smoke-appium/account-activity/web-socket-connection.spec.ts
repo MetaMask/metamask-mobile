@@ -11,6 +11,7 @@ import PlaywrightGestures from '../../framework/PlaywrightGestures.js';
 import {
   assertSubscriptionCountAtLeast,
   assertSubscriptionCountIncreased,
+  ACCOUNT_ACTIVITY_WS_TEST_TIMEOUT_MS,
   LOGIN_SUBSCRIPTION_TIMEOUT_MS,
 } from '../../helpers/account-activity/subscription.helpers.js';
 import { sendAppToHome } from '../../helpers/account-activity/app-background.helpers.js';
@@ -19,6 +20,10 @@ import { lockApp } from '../seedless/helpers/seedless-helpers.js';
 appiumTest.describe(
   SmokeWalletPlatform('Account Activity WebSocket Connection'),
   () => {
+    appiumTest.describe.configure({
+      timeout: ACCOUNT_ACTIVITY_WS_TEST_TIMEOUT_MS,
+    });
+
     appiumTest(
       'subscribes to account activity when user logs in',
       async ({ driver: _driver, currentDeviceDetails }) => {
