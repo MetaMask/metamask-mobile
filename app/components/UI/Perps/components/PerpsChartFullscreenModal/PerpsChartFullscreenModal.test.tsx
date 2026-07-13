@@ -490,6 +490,7 @@ describe('PerpsChartFullscreenModal', () => {
           symbol="BTC"
           tpslLines={mockTpslLines}
           positionSize="0.5"
+          szDecimals={2}
         />,
       );
 
@@ -501,6 +502,7 @@ describe('PerpsChartFullscreenModal', () => {
           visibleCandleCount: expect.any(Number),
           tpslLines: mockTpslLines,
           positionSize: '0.5',
+          szDecimals: 2,
           fallbackCandleData: mockCandleData,
         }),
       );
