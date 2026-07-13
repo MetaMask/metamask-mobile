@@ -34,7 +34,7 @@ import { handleUnapprovedTransactionAddedForMoneyAccount } from '../../controlle
 import { TransactionControllerInitMessenger } from '../messengers/transaction-controller-messenger';
 
 type TransactionControllerInstanceOptions = NonNullable<
-  NonNullable<WalletOptions['instanceOptions']>['transactionController']
+  WalletOptions['instanceOptions']['transactionController']
 >;
 
 interface GetTransactionControllerInstanceOptionsRequest {
