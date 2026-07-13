@@ -233,6 +233,42 @@ function canonicalizeTypedMessageData(data: string): string {
   }
 }
 
+const ALLOWED_TYPED_MESSAGE_KEYS = new Set([
+  'types',
+  'primaryType',
+  'domain',
+  'message',
+  'metadata',
+]);
+
+/**
+ * Rejects EIP-712 payloads with top-level keys outside the EIP-712 schema.
+ * Extra keys bypass the confirmation UI but appear in the "Copy raw data"
+ * export, enabling spoofing in multisig workflows. Mirrors the
+ * validateTypedMessageKeys check from @metamask/eth-json-rpc-middleware
+ * that the extension applies on V4 (and should apply on V3).
+ */
+function rejectExtraneousTypedMessageKeys(data: string): void {
+  if (typeof data !== 'string') {
+    return;
+  }
+  try {
+    const keys = Object.keys(JSON.parse(data));
+    if (keys.some((key) => !ALLOWED_TYPED_MESSAGE_KEYS.has(key))) {
+      throw rpcErrors.invalidInput();
+    }
+  } catch (e) {
+    if (
+      typeof e === 'object' &&
+      e !== null &&
+      'code' in e &&
+      (e as { code: number }).code === -32000
+    ) {
+      throw e;
+    }
+  }
+}
+
 const generateRawSignature = async ({
   version,
   req,
@@ -294,9 +330,12 @@ const generateRawSignature = async ({
     networkClientId: req.networkClientId,
   });
 
+  const canonicalData = canonicalizeTypedMessageData(req.params[1]);
+  rejectExtraneousTypedMessageKeys(canonicalData);
+
   const rawSig = await signatureController.newUnsignedTypedMessage(
     {
-      data: canonicalizeTypedMessageData(req.params[1]),
+      data: canonicalData,
       from: req.params[0],
       requestId: req.id,
       ...pageMeta,
