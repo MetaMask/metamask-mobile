@@ -17,6 +17,8 @@ import { PredictPosition, PredictPositionStatus } from '../../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
+const FIXED_VALID_UNTIL = 9999999999999;
+
 const makeWonPosition = (
   overrides: Partial<PredictPosition> = {},
 ): PredictPosition =>
@@ -805,15 +807,15 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0x456': {
           balance: 2000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0xabc': {
           balance: 500,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -886,15 +888,15 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0x456': {
           balance: 2000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0xabc': {
           balance: 500,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -921,7 +923,7 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -948,7 +950,7 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -1013,19 +1015,19 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0x456': {
           balance: 2000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0xabc': {
           balance: 500,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0xdef': {
           balance: 750,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -1059,7 +1061,7 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 0,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 

@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { waitFor } from '@testing-library/react-native';
 import { usePredictDeposit } from './usePredictDeposit';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
@@ -135,7 +136,7 @@ describe('usePredictDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDepositWithConfirmation.mockReturnValue(Promise.resolve());
-    mockSelectPredictPendingDepositByAddress.mockReturnValue(null);
+    mockSelectPredictPendingDepositByAddress.mockReturnValue(undefined);
 
     const { getEvmAccountFromSelectedAccountGroup } =
       jest.requireMock('../utils/accounts');
@@ -248,12 +249,12 @@ describe('usePredictDeposit', () => {
     // Act
     await act(async () => {
       await result.current.deposit();
-      // Allow fire-and-forget promise to settle and error handler to run
-      await new Promise((resolve) => setTimeout(resolve, 10));
     });
 
     // Assert
-    expect(Logger.error).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalled();
+    });
   });
 
   it('navigates back when deposit fails', async () => {
@@ -265,11 +266,11 @@ describe('usePredictDeposit', () => {
     // Act
     await act(async () => {
       await result.current.deposit();
-      // Allow fire-and-forget promise to settle and error handler to run
-      await new Promise((resolve) => setTimeout(resolve, 10));
     });
 
     // Assert
-    expect(mockGoBack).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
   });
 });
