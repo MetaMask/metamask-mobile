@@ -60,6 +60,12 @@ function resolveNetworkClientId(chainId: Hex): string {
   return networkClientId;
 }
 
+function waitForNextFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
+}
+
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
@@ -102,16 +108,6 @@ export function useMoneyAccountDeposit() {
         depositIntentByBatchId.set(batchId.toLowerCase(), options.intent);
       }
 
-      const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-        amount: BigInt(0),
-        chainId: chainIdHex,
-        boringVault,
-        tellerAddress,
-        accountantAddress,
-        lensAddress,
-        provider,
-      });
-
       const confirmationParams = {
         loader: ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
@@ -126,6 +122,19 @@ export function useMoneyAccountDeposit() {
       });
 
       try {
+        // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
+        await waitForNextFrame();
+
+        const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+          amount: BigInt(0),
+          chainId: chainIdHex,
+          boringVault,
+          tellerAddress,
+          accountantAddress,
+          lensAddress,
+          provider,
+        });
+
         // We only set the transaction from the money account perspective.
         // MM Pay selects the user's account and moves funds to the money account,
         // so `from` must be the money account and `networkClientId` its chain.
@@ -151,12 +160,9 @@ export function useMoneyAccountDeposit() {
         });
       } catch (error) {
         depositIntentByBatchId.delete(batchId.toLowerCase());
-        Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
-        showDevErrorAlert(
-          `${LOG_TAG} Deposit transaction failed`,
-          error as Error,
-        );
-        // Rethrow so the caller can roll back navigation / surface a toast.
+        Logger.error(error as Error, `${LOG_TAG} Deposit setup failed`);
+        showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, error as Error);
+        // Rethrow so the caller can log the failed initiation.
         throw error;
       }
     },
@@ -194,25 +200,28 @@ export function useMoneyAccountWithdrawal() {
     const networkClientId = resolveNetworkClientId(chainIdHex);
     const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
 
-    // Placeholder amount — MM Pay re-encodes both calls via
-    // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
-    const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-      amount: BigInt(0),
-      chainId: chainIdHex,
-      tellerAddress: tellerAddress as Hex,
-      accountantAddress: accountantAddress as Hex,
-      moneyAccountAddress: primaryMoneyAccount.address as Hex,
-      recipient: recipient as Hex,
-      provider,
-    });
-
-    // Navigate early for better UX; recover on failure below.
+    // Show the confirmation skeleton while the withdrawal batch is created.
     navigateToConfirmation({
       loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     try {
+      // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
+      await waitForNextFrame();
+
+      // Placeholder amount — MM Pay re-encodes both calls via
+      // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
+      const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+        amount: BigInt(0),
+        chainId: chainIdHex,
+        tellerAddress: tellerAddress as Hex,
+        accountantAddress: accountantAddress as Hex,
+        moneyAccountAddress: primaryMoneyAccount.address as Hex,
+        recipient: recipient as Hex,
+        provider,
+      });
+
       await addTransactionBatch({
         disableHook: true,
         disableSequential: true,
