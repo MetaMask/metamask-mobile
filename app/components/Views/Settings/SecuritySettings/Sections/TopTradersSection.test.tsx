@@ -9,6 +9,7 @@ import TopTradersSection from './TopTradersSection';
 const mockMessengerCall = jest.fn().mockResolvedValue(undefined);
 const mockLoggerError = jest.fn();
 let mockLeaderboardEnabled = true;
+let mockOptFlowEnabled = true;
 
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -24,6 +25,7 @@ jest.mock(
   '../../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialLeaderboardEnabled: () => mockLeaderboardEnabled,
+    selectSocialLeaderboardOptFlowEnabled: () => mockOptFlowEnabled,
   }),
 );
 
@@ -36,6 +38,7 @@ describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLeaderboardEnabled = true;
+    mockOptFlowEnabled = true;
     mockMessengerCall.mockResolvedValue(undefined);
   });
 
@@ -59,6 +62,15 @@ describe('TopTradersSection', () => {
 
   it('renders nothing when the leaderboard feature is disabled', () => {
     mockLeaderboardEnabled = false;
+    renderWith(true);
+
+    expect(
+      screen.queryByTestId(SecurityPrivacyViewSelectorsIDs.TOP_TRADERS_SECTION),
+    ).toBeNull();
+  });
+
+  it('renders nothing when the leaderboard opt-flow flag is disabled', () => {
+    mockOptFlowEnabled = false;
     renderWith(true);
 
     expect(

@@ -7,7 +7,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { setShowAccountOnLeaderboard } from '../../../../../actions/settings';
 import Engine from '../../../../../core/Engine';
 import { RootState } from '../../../../../reducers';
-import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  selectSocialLeaderboardEnabled,
+  selectSocialLeaderboardOptFlowEnabled,
+} from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../../util/Logger';
 import { SecurityOptionToggle } from '../../../../UI/SecurityOptionToggle';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -26,6 +29,9 @@ const TopTradersSection = () => {
   const dispatch = useDispatch();
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
+  );
+  const isLeaderboardOptFlowEnabled = useSelector(
+    selectSocialLeaderboardOptFlowEnabled,
   );
   const showAccountOnLeaderboard = useSelector(
     (state: RootState) => state.settings.showAccountOnLeaderboard ?? true,
@@ -60,7 +66,7 @@ const TopTradersSection = () => {
     [dispatch, isUpdating],
   );
 
-  if (!isSocialLeaderboardEnabled) {
+  if (!isSocialLeaderboardEnabled || !isLeaderboardOptFlowEnabled) {
     return null;
   }
 
