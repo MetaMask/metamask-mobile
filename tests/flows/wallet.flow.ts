@@ -3,6 +3,7 @@ import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
   encapsulated,
+  FrameworkDetector,
   Matchers,
   PlatformDetector,
   PlaywrightAssertions,
@@ -54,7 +55,12 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
-import { isWalletHomeReadyOnIOS } from './wallet-home-readiness';
+import {
+  isLoginScreenDisplayed,
+  isWalletHomeReadyOnAndroidStable,
+  isWalletHomeReadyOnAppium,
+  isWalletHomeReadyOnIOS,
+} from './wallet-home-readiness';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -93,6 +99,23 @@ export const waitForWalletHomePlaywright = async (
   throw new Error(
     `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
   );
+};
+
+const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
+  if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+    return isWalletHomeReadyOnAndroidStable();
+  }
+  if (!(await isWalletHomeReadyOnAppium())) {
+    return false;
+  }
+  return !(await isLoginScreenDisplayed());
+};
+
+const completeUnlockedWalletHome = async (
+  dismissPostLoginModals: () => Promise<void>,
+): Promise<void> => {
+  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await dismissPostLoginModals();
 };
 
 /**
@@ -713,42 +736,39 @@ export const loginToAppPlaywright = async (
   };
 
   await dismissAndroidSystemOverlaysPlaywright();
-  await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
 
-  // Fast path: already on wallet home (e.g. session persisted across tests).
-  try {
-    await waitForWalletHomePlaywright(2_000);
-    await dismissPostLoginModals();
+  if (await isUnlockedWalletHomeReady()) {
+    await completeUnlockedWalletHome(dismissPostLoginModals);
     return;
-  } catch {
-    // Login screen expected — continue below.
   }
 
-  // Dev menu overlays wallet/explore, not the login screen. Probing it while
-  // login is visible wastes ~20s on absent Continue/xmark/Close elements.
-  const onLoginScreen = await Utilities.isElementVisible(
-    LoginView.container,
-    1500,
-  );
-  if (!onLoginScreen) {
+  const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
+
+  if (readyScreen === 'wallet') {
+    await completeUnlockedWalletHome(dismissPostLoginModals);
+    return;
+  }
+
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.passwordInput),
+      {
+        description: 'Login password input',
+        timeout: 3_000,
+      },
+    );
+  } catch {
+    // Dev menu can overlay login on local builds — dismiss and retry once.
     await dismissDeveloperMenuPlaywright();
     await dismissAndroidSystemOverlaysPlaywright();
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(LoginView.passwordInput),
+      {
+        description: 'Login password input',
+        timeout: 5_000,
+      },
+    );
   }
-
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.container),
-    {
-      description: 'Login view container',
-      timeout: 5_000,
-    },
-  );
-  await PlaywrightAssertions.expectElementToBeVisible(
-    asPlaywrightElement(LoginView.passwordInput),
-    {
-      description: 'Login password input',
-      timeout: 3_000,
-    },
-  );
 
   const password = getPasswordForScenario(scenarioType);
   // Type password and unlock

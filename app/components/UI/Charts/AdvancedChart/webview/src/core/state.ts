@@ -52,8 +52,6 @@ interface CoreState {
   hasExplicitCurrentPriceLine: boolean;
   /** Sequence counter for setResolution callbacks; stale callbacks bail when mismatched. */
   hotReloadSeq: number;
-  /** True between setResolution call and its callback; getBars returns noData during this window. */
-  inHotReloadPreResetPhase: boolean;
   /** SLB scoping flag — activates Strategy C (bulk back-fill) pagination. */
   slbMode: boolean;
   /**
@@ -62,6 +60,12 @@ interface CoreState {
    * so re-centering only happens on a fresh SET_OHLCV_DATA.
    */
   slbCenteringPending: boolean;
+  /**
+   * When true, the legend module owns the CHART_LAYOUT_SETTLED signal.
+   * ohlcvIngestion skips its early 2-rAF-tick emit and lets the legend
+   * fire it after the first successful render post-reset.
+   */
+  legendOwnsLayoutSettle: boolean;
 }
 
 const emptyPagination = (): OHLCVPaginationConfig => ({
@@ -95,9 +99,9 @@ const state: CoreState = {
   rnBackedPagination: { enabled: false },
   hasExplicitCurrentPriceLine: false,
   hotReloadSeq: 0,
-  inHotReloadPreResetPhase: false,
   slbMode: false,
   slbCenteringPending: false,
+  legendOwnsLayoutSettle: false,
 };
 
 // ----- Widget lifecycle ---------------------------------------------------
@@ -344,14 +348,6 @@ export function getHotReloadSeq(): number {
   return state.hotReloadSeq;
 }
 
-export function isInHotReloadPreResetPhase(): boolean {
-  return state.inHotReloadPreResetPhase;
-}
-
-export function setInHotReloadPreResetPhase(phase: boolean): void {
-  state.inHotReloadPreResetPhase = phase;
-}
-
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 
 export function getSlbMode(): boolean {
@@ -368,6 +364,16 @@ export function isSlbCenteringPending(): boolean {
 
 export function setSlbCenteringPending(pending: boolean): void {
   state.slbCenteringPending = pending;
+}
+
+// ----- Legend owns layout settle ---------------------------------------------
+
+export function setLegendOwnsLayoutSettle(owns: boolean): void {
+  state.legendOwnsLayoutSettle = owns;
+}
+
+export function doesLegendOwnLayoutSettle(): boolean {
+  return state.legendOwnsLayoutSettle;
 }
 
 // ----- Explicit current price line -------------------------------------------
@@ -409,7 +415,7 @@ export function __resetStateForTests(): void {
   state.rnBackedPagination = { enabled: false };
   state.hasExplicitCurrentPriceLine = false;
   state.hotReloadSeq = 0;
-  state.inHotReloadPreResetPhase = false;
   state.slbMode = false;
   state.slbCenteringPending = false;
+  state.legendOwnsLayoutSettle = false;
 }

@@ -11,7 +11,6 @@ import {
   getOhlcvPagination,
   getRealtimeCallbacks,
   getRnBackedPagination,
-  isInHotReloadPreResetPhase,
   registerRealtimeCallback,
   unregisterRealtimeCallback,
 } from '../core/state';
@@ -29,6 +28,7 @@ import type {
 import { fetchOlderBarsFromPriceApi } from '../pagination/priceApi';
 import { requestOlderBarsFromRN } from '../pagination/rnBacked';
 import { slbHandleGetBars } from '../overlays/socialLeaderboard';
+import { getConfiguredPriceDecimals } from './priceFormatter';
 
 const SUPPORTED_RESOLUTIONS: TVResolution[] = [
   '1',
@@ -47,7 +47,7 @@ const SUPPORTED_RESOLUTIONS: TVResolution[] = [
   '1M',
 ];
 
-const VARIABLE_TICK_SIZE = [
+const DEFAULT_VARIABLE_TICK_SIZE = [
   '0.0000000001',
   '0.000001',
   '0.00000001',
@@ -60,6 +60,28 @@ const VARIABLE_TICK_SIZE = [
   '10000',
   '0.1',
 ].join(' ');
+
+const PERPS_VARIABLE_TICK_SIZE = [
+  '0.0000000001',
+  '0.000001',
+  '0.00000001',
+  '0.0001',
+  '0.000001',
+  '0.01',
+  '0.0001',
+  '10000',
+  '1',
+].join(' ');
+
+function getVariableTickSize(): string {
+  return getConfiguredPriceDecimals() !== null
+    ? PERPS_VARIABLE_TICK_SIZE
+    : DEFAULT_VARIABLE_TICK_SIZE;
+}
+
+function getPriceScale(): number {
+  return getConfiguredPriceDecimals() !== null ? 10000000000 : 100;
+}
 
 /** Strips internal fields from an OHLCVBar to the shape TV expects. */
 function toTVBar(bar: OHLCVBar): TVBar {
@@ -126,8 +148,8 @@ export const customDatafeed: TVDatafeed = {
       timezone: 'Etc/UTC',
       exchange: '',
       minmov: 1,
-      pricescale: 100,
-      variable_tick_size: VARIABLE_TICK_SIZE,
+      pricescale: getPriceScale(),
+      variable_tick_size: getVariableTickSize(),
       has_intraday: true,
       has_daily: true,
       has_weekly_and_monthly: true,
@@ -149,11 +171,6 @@ export const customDatafeed: TVDatafeed = {
       const fromMs = periodParams.from * 1000;
       const toMs = periodParams.to * 1000;
       const { countBack, firstDataRequest } = periodParams;
-
-      if (firstDataRequest && isInHotReloadPreResetPhase()) {
-        onResult([], { noData: true });
-        return;
-      }
 
       const bars = filterBarsForRange(fromMs, toMs, countBack);
       if (bars.length > 0) {
