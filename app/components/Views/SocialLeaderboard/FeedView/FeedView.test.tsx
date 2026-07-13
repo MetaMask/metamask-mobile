@@ -100,12 +100,22 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
+
 jest.mock('../TraderPositionView/components/QuickBuy', () => {
   const { View } = jest.requireActual('react-native');
   return {
     QuickBuy: {
-      Root: ({ isVisible }: { isVisible: boolean }) =>
-        isVisible ? <View testID="mock-quick-buy-open" /> : null,
+      Root: ({
+        isVisible,
+        analyticsContext,
+      }: {
+        isVisible: boolean;
+        analyticsContext?: { source?: string };
+      }) => {
+        mockQuickBuyAnalyticsContext = analyticsContext;
+        return isVisible ? <View testID="mock-quick-buy-open" /> : null;
+      },
     },
     TOP_TRADERS_QUICK_BUY_FEATURES: {},
   };
@@ -115,6 +125,7 @@ describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
+    mockQuickBuyAnalyticsContext = undefined;
   });
 
   it('renders the type selector, audience toggle, and feed list when items exist', () => {
@@ -172,6 +183,7 @@ describe('FeedView', () => {
 
     expect(mockPlayImpact).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
+    expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'social_feed' });
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

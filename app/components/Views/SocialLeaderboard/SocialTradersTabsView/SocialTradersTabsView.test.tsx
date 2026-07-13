@@ -48,7 +48,12 @@ jest.mock('../FeedView', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="mock-feed" />,
+    default: ({ isActive }: { isActive?: boolean }) => (
+      <View
+        testID="mock-feed"
+        accessibilityState={{ selected: isActive === true }}
+      />
+    ),
   };
 });
 
@@ -99,5 +104,25 @@ describe('SocialTradersTabsView', () => {
     );
 
     expect(mockPlaySelection).not.toHaveBeenCalled();
+  });
+
+  it('passes isActive=false to FeedView while the leaderboard tab is selected', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    expect(
+      screen.getByTestId('mock-feed').props.accessibilityState?.selected,
+    ).toBe(false);
+  });
+
+  it('passes isActive=true to FeedView when the feed tab is selected', () => {
+    renderWithProvider(<SocialTradersTabsView />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialTradersTabsViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(
+      screen.getByTestId('mock-feed').props.accessibilityState?.selected,
+    ).toBe(true);
   });
 });

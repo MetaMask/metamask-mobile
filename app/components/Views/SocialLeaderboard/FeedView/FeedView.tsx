@@ -352,7 +352,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         target={quickBuyTarget}
         onClose={handleQuickBuyClose}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'leaderboard' }}
+        analyticsContext={{ source: 'social_feed' }}
       />
     </Box>
   );

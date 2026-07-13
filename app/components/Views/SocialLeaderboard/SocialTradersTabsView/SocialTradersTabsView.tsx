@@ -31,6 +31,7 @@ import SocialTradersTabBar, {
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
 
 const LEADERBOARD_INDEX = 0;
+const FEED_INDEX = 1;
 
 /**
  * Container that adds the Leaderboard | Feed tabs on top of the Follow Trading
@@ -181,7 +182,7 @@ const SocialTradersTabsView: React.FC = () => {
           collapsable={false}
           testID={SocialTradersTabsViewSelectorsIDs.FEED_PAGE}
         >
-          <FeedView />
+          <FeedView isActive={activeIndex === FEED_INDEX} />
         </View>
       </PagerView>
     </SafeAreaView>
