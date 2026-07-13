@@ -3852,11 +3852,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsAbtestButtonColor: {
-    name: 'perpsAbtestButtonColor',
+  perpsTAT1937AbtestButtonColor: {
+    name: 'perpsTAT1937AbtestButtonColor',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: 'monochrome',
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 
@@ -4981,6 +4981,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           },
           depositLimit: {
             moneyAccountDeposit: 100000,
+          },
+          prefilledAmount: {
+            default: {
+              enabled: false,
+            },
+            overrides: {
+              moneyAccountDeposit: {
+                enabled: true,
+              },
+            },
           },
           enableDepositWalletWithdraw: true,
           enableMoneyAccountTransactions: {

@@ -68,6 +68,7 @@ interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   useSubscriptPriceFormat?: boolean;
+  priceDecimals?: number;
   hidePaneSeparator?: boolean;
   gridLineColorOverride?: string;
   lineColorOverride?: string;
@@ -143,6 +144,7 @@ window.CONFIG = {
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
+  priceDecimals: ${typeof features.priceDecimals === 'number' && Number.isFinite(features.priceDecimals) ? Math.max(0, features.priceDecimals) : 'null'},
   indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };
 `;

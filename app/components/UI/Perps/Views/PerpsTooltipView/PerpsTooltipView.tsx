@@ -16,7 +16,7 @@ import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip
 import { tooltipContentRegistry } from '../../components/PerpsBottomSheetTooltip/content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 
-interface PerpsTooltipViewRouteParams {
+export interface PerpsTooltipViewRouteParams {
   contentKey: PerpsTooltipContentKey;
   data?: Record<string, unknown>;
 }
