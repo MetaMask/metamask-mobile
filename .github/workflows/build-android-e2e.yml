@@ -43,6 +43,13 @@ on:
         required: false
         default: false
         type: boolean
+      reuse-main-builds-only:
+        description: >-
+          When true, only reuse native artifacts from the base branch (main) and skip
+          JS repacking. Fails if no reusable main build is found.
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build-android-apks:
@@ -185,9 +192,10 @@ jobs:
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
           metadata-artifact-name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           github-token: ${{ github.token }}
+          main-branch-only: ${{ inputs.reuse-main-builds-only }}
 
       - name: Restore APKs matching fingerprint from branch cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && inputs.reuse-main-builds-only != true }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -198,7 +206,7 @@ jobs:
           key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && inputs.include_arm64 == false }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && inputs.include_arm64 == false && inputs.reuse-main-builds-only != true }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -300,7 +308,18 @@ jobs:
       - name: Compute native-build gate
         id: gate
         run: |
-          if [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
+          if [[ "${{ inputs.reuse-main-builds-only }}" == "true" ]]; then
+            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+               && "${{ steps.validate-reusable-metadata.outputs.valid }}" == "true" \
+               && "${{ steps.download-reusable-apk.outcome }}" == "success" \
+               && "${{ steps.download-reusable-test-apk.outcome }}" == "success" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Test-only PR: reusing main branch Android artifacts without repack."
+            else
+              echo "::error::Test-only PR requires reusable Android builds from main, but none were found."
+              exit 1
+            fi
+          elif [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
             echo "Namespace APK cache hit; heavy Android setup + Gradle restore will be skipped."
           elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
@@ -559,7 +578,7 @@ jobs:
           echo "Namespace APK cache marker + APKs written to ${CACHE_DIR}."
 
       - name: Repack APK with JS updates using @expo/repack-app
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' }}
+        if: ${{ steps.gate.outputs.needs-native-build != 'true' && inputs.reuse-main-builds-only != true }}
         run: |
           echo "📦 Repacking APK with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app

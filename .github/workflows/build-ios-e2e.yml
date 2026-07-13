@@ -31,6 +31,13 @@ on:
         required: false
         type: string
         default: current
+      reuse-main-builds-only:
+        description: >-
+          When true, only reuse native artifacts from the base branch (main) and skip
+          JS repacking. Fails if no reusable main build is found.
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build-ios-apps:
@@ -154,6 +161,7 @@ jobs:
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
           metadata-artifact-name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           github-token: ${{ github.token }}
+          main-branch-only: ${{ inputs.reuse-main-builds-only }}
 
       - name: Download reusable iOS build metadata from prior run
         id: download-reusable-metadata
@@ -235,7 +243,17 @@ jobs:
       - name: Compute native-build gate
         id: gate
         run: |
-          if [[ "${{ inputs.runner_provider }}" == "bitrise" && "${{ vars.BITRISE_FORCE_NATIVE_BUILD }}" == "true" ]]; then
+          if [[ "${{ inputs.reuse-main-builds-only }}" == "true" ]]; then
+            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+               && "${{ steps.validate-reusable-metadata.outputs.valid }}" == "true" \
+               && "${{ steps.download-reusable-app.outcome }}" == "success" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Test-only PR: reusing main branch iOS artifacts without repack."
+            else
+              echo "::error::Test-only PR requires reusable iOS builds from main, but none were found."
+              exit 1
+            fi
+          elif [[ "${{ inputs.runner_provider }}" == "bitrise" && "${{ vars.BITRISE_FORCE_NATIVE_BUILD }}" == "true" ]]; then
             echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
             echo "BITRISE_FORCE_NATIVE_BUILD=true — skipping GitHub artifact reuse to exercise Bitrise RN Build Cache."
           elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
@@ -542,7 +560,7 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
 
       - name: Repack iOS app with JS updates using @expo/repack-app
-        if: ${{ steps.gate.outputs.needs-native-build != 'true' || (inputs.runner_provider == 'bitrise' && (steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true')) }}
+        if: ${{ inputs.reuse-main-builds-only != true && (steps.gate.outputs.needs-native-build != 'true' || (inputs.runner_provider == 'bitrise' && (steps.cache-restore.outputs.cache-hit == 'true' || steps.cache-restore-main.outputs.cache-hit == 'true'))) }}
         run: |
           echo "📦 Repacking iOS app with updated JavaScript bundle using @expo/repack-app..."
           # Use the optimized repack script which uses @expo/repack-app

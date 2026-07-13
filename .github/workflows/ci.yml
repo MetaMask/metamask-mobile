@@ -1073,6 +1073,7 @@ jobs:
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       pr_number: ${{ github.event.pull_request.number }}
+      reuse_main_builds: ${{ needs.get_requirements.outputs.native_build_needed != 'true' }}
     secrets: inherit
     permissions:
       contents: write
@@ -1104,6 +1105,7 @@ jobs:
       metamask_environment: 'e2e'
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
+      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed != 'true' }}
     secrets: inherit
 
   prepare-e2e-timings:
@@ -1202,6 +1204,7 @@ jobs:
     with:
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
+      reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed != 'true' }}
     secrets: inherit
 
   ios-tests-ready:

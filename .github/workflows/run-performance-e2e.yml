@@ -96,6 +96,13 @@ on:
         required: false
         type: string
         default: ''
+      reuse_main_builds:
+        description: >-
+          When true, skip fresh Android BrowserStack builds and reuse the latest
+          uploaded apps from main-branch CI instead.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -283,11 +290,40 @@ jobs:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     needs: [determine-branch-name]
-    if: (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
+    if: >-
+      !inputs.reuse_main_builds &&
+      (!inputs.browserstack_app_url_android_onboarding && !inputs.browserstack_app_url_android_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
     secrets: inherit
+
+  resolve-main-browserstack-urls:
+    name: Resolve main-branch BrowserStack Android apps
+    runs-on: ubuntu-latest
+    if: >-
+      inputs.reuse_main_builds &&
+      !inputs.browserstack_app_url_android_onboarding &&
+      !inputs.browserstack_app_url_android_imported_wallet
+    outputs:
+      with-srp-browserstack-url: ${{ steps.resolve.outputs.with-srp-browserstack-url }}
+      without-srp-browserstack-url: ${{ steps.resolve.outputs.without-srp-browserstack-url }}
+      with-srp-version: ${{ steps.resolve.outputs.with-srp-version }}
+      without-srp-version: ${{ steps.resolve.outputs.without-srp-version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            .github/scripts/resolve-main-browserstack-apps.mjs
+          sparse-checkout-cone-mode: false
+
+      - name: Resolve latest main BrowserStack apps
+        id: resolve
+        run: node .github/scripts/resolve-main-browserstack-apps.mjs
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
   trigger-ios-dual-versions:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
@@ -311,19 +347,35 @@ jobs:
       [
         read-device-matrix,
         trigger-android-dual-versions,
+        resolve-main-browserstack-urls,
         set-build-names,
         determine-branch-name,
         compute-test-selection,
       ]
-    if: always() && !failure() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: >-
+      always() && !failure() && !cancelled() &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      (
+        needs.trigger-android-dual-versions.result == 'skipped' ||
+        needs.trigger-android-dual-versions.result == 'success'
+      ) &&
+      (
+        needs.resolve-main-browserstack-urls.result == 'skipped' ||
+        needs.resolve-main-browserstack-urls.result == 'success'
+      ) &&
+      (
+        inputs.browserstack_app_url_android_onboarding != '' ||
+        needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '' ||
+        needs.resolve-main-browserstack-urls.outputs.without-srp-browserstack-url != ''
+      )
     with:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.resolve-main-browserstack-urls.outputs.without-srp-browserstack-url || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
+      app_version: ${{ needs.resolve-main-browserstack-urls.outputs.without-srp-version || needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
@@ -376,20 +428,36 @@ jobs:
       [
         read-device-matrix,
         trigger-android-dual-versions,
+        resolve-main-browserstack-urls,
         wait-for-onboarding-completion,
         set-build-names,
         determine-branch-name,
         compute-test-selection,
       ]
-    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: >-
+      always() && !cancelled() &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      (
+        needs.trigger-android-dual-versions.result == 'skipped' ||
+        needs.trigger-android-dual-versions.result == 'success'
+      ) &&
+      (
+        needs.resolve-main-browserstack-urls.result == 'skipped' ||
+        needs.resolve-main-browserstack-urls.result == 'success'
+      ) &&
+      (
+        inputs.browserstack_app_url_android_imported_wallet != '' ||
+        needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '' ||
+        needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url != ''
+      )
     with:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      app_version: ${{ needs.resolve-main-browserstack-urls.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
@@ -464,20 +532,36 @@ jobs:
       [
         read-device-matrix,
         trigger-android-dual-versions,
+        resolve-main-browserstack-urls,
         fetch-rn-playground-apk-upload-to-browserstack,
         set-build-names,
         determine-branch-name,
         compute-test-selection,
       ]
-    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: >-
+      always() && !cancelled() &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      (
+        needs.trigger-android-dual-versions.result == 'skipped' ||
+        needs.trigger-android-dual-versions.result == 'success'
+      ) &&
+      (
+        needs.resolve-main-browserstack-urls.result == 'skipped' ||
+        needs.resolve-main-browserstack-urls.result == 'success'
+      ) &&
+      (
+        inputs.browserstack_app_url_android_imported_wallet != '' ||
+        needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '' ||
+        needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url != ''
+      )
     with:
       platform: android
       build_type: mm-connect
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_mm_connect_matrix }}
-      browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
+      browserstack_app_url: ${{ needs.resolve-main-browserstack-urls.outputs.with-srp-browserstack-url || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
+      app_version: ${{ needs.resolve-main-browserstack-urls.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
       browserstack_playground_url: ${{ needs.fetch-rn-playground-apk-upload-to-browserstack.outputs.browserstack-playground-url }}
