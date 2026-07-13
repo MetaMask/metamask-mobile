@@ -170,14 +170,7 @@
       "prettier --write"
     ]
   },
-  "previewBuilds": {
-    "@metamask/ramps-controller": {
-      "type": "non-breaking",
-      "previewVersion": "16.0.0-preview-2fd14c0c3"
-    }
-  },
   "resolutions": {
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@16.0.0-preview-2fd14c0c3",
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
@@ -332,7 +325,7 @@
     "@metamask/preinstalled-example-snap": "^0.8.1",
     "@metamask/profile-metrics-controller": "^4.0.1",
     "@metamask/profile-sync-controller": "^28.3.0",
-    "@metamask/ramps-controller": "^16.0.0",
+    "@metamask/ramps-controller": "^17.0.0",
     "@metamask/react-data-query": "^0.2.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",

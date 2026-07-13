@@ -9919,16 +9919,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@16.0.0-preview-2fd14c0c3":
-  version: 16.0.0-preview-2fd14c0c3
-  resolution: "@metamask-previews/ramps-controller@npm:16.0.0-preview-2fd14c0c3"
+"@metamask/ramps-controller@npm:^15.1.0":
+  version: 15.1.0
+  resolution: "@metamask/ramps-controller@npm:15.1.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/profile-sync-controller": "npm:^28.2.0"
+  checksum: 10/54f664646ece5a30dba4913c8d00d4a77a8894b640cf54a61d50ebe0dd5c582e8fa55df3113d5c87cd352c2440b4418a8e50f5658aee17de7b53a1fe835eae1b
+  languageName: node
+  linkType: hard
+
+"@metamask/ramps-controller@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "@metamask/ramps-controller@npm:17.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
-  checksum: 10/25671831622375f2d913c93bd7c2f317e7c06e1f6d2a3221ae21d8b80341c74be5383f3c8386d1974c017d0e377e71abf6334dd943f87ca67ee0cf311a3bb043
+  checksum: 10/45980e93d79bf72c00edc44e2cd075a738c44a1c0b3dd695a7bce688f7954f80f28988b56c7a5774b1747e335b66c16f6a7d36833030bf116cefafc7b2e5f223
   languageName: node
   linkType: hard
 
@@ -35904,7 +35916,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^16.0.0"
+    "@metamask/ramps-controller": "npm:^17.0.0"
     "@metamask/react-data-query": "npm:^0.2.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
