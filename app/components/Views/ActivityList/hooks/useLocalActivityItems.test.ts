@@ -258,4 +258,94 @@ describe('useLocalActivityItems', () => {
       },
     });
   });
+
+  it('enriches a swap from the bridge quote when the TransactionMeta has no legacy swap fields', () => {
+    // Unified swaps keep token metadata in the quote, not on the TransactionMeta,
+    // so on-device fields are absent — the row would otherwise be swapIncomplete.
+    selectorState.bridgeHistory = {
+      'swap-id': {
+        quote: {
+          srcChainId: '0x89',
+          destChainId: '0x89',
+          srcAsset: {
+            symbol: 'POL',
+            decimals: 18,
+            assetId: 'eip155:137/slip44:966',
+          },
+          destAsset: {
+            symbol: 'USDT',
+            decimals: 6,
+            assetId:
+              'eip155:137/erc20:0xc2132d05d31c914a87c6611c10748aeb04b58e8f',
+          },
+          srcTokenAmount: '1000000000000000000',
+          destTokenAmount: '900000',
+        },
+      },
+    };
+    selectorState.localTransactions = [
+      makeTx({
+        hash: '0xnativeswap',
+        id: 'swap-id',
+        type: TransactionType.swap,
+        txParams: { from, nonce: '0x3', to: usdc, value: '0x1' },
+      } as Partial<TransactionMeta>),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    // Resolves to a full swap (not swapIncomplete) with tokens + amounts from the quote.
+    expect(result.current[0]).toMatchObject({
+      type: 'swap',
+      data: {
+        sourceToken: {
+          direction: 'out',
+          symbol: 'POL',
+          decimals: 18,
+          amount: '1000000000000000000',
+        },
+        destinationToken: {
+          direction: 'in',
+          symbol: 'USDT',
+          decimals: 6,
+          amount: '900000',
+        },
+      },
+    });
+  });
+
+  it('prefers the bridge quote over legacy TransactionMeta swap fields', () => {
+    selectorState.bridgeHistory = {
+      'swap-id': {
+        quote: {
+          srcChainId: '0x89',
+          destChainId: '0x89',
+          srcAsset: { symbol: 'POL', decimals: 18 },
+          destAsset: { symbol: 'USDT', decimals: 6 },
+          srcTokenAmount: '1000000000000000000',
+          destTokenAmount: '900000',
+        },
+      },
+    };
+    selectorState.localTransactions = [
+      makeTx({
+        // Stale/partial legacy fields; the quote is authoritative.
+        destinationTokenSymbol: 'STALE',
+        sourceTokenSymbol: 'STALE',
+        hash: '0xnativeswap',
+        id: 'swap-id',
+        type: TransactionType.swap,
+        txParams: { from, nonce: '0x4', to: usdc, value: '0x1' },
+      } as Partial<TransactionMeta>),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current[0]).toMatchObject({
+      data: {
+        sourceToken: { symbol: 'POL', amount: '1000000000000000000' },
+        destinationToken: { symbol: 'USDT', amount: '900000' },
+      },
+    });
+  });
 });

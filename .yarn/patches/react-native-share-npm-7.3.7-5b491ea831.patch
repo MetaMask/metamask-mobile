@@ -1,0 +1,31 @@
+diff --git a/android/src/main/java/cl/json/social/ShareIntent.java b/android/src/main/java/cl/json/social/ShareIntent.java
+index c9e6d29d965c02c86279a648d40b4de66864038a..7d31b02dc37593bb5df56ea2b4d469bc34b1cb3c 100644
+--- a/android/src/main/java/cl/json/social/ShareIntent.java
++++ b/android/src/main/java/cl/json/social/ShareIntent.java
+@@ -278,14 +278,22 @@ public abstract class ShareIntent {
+         if (ShareIntent.hasValidKey("excludedActivityTypes", options)) {
+             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                 chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, getExcludedComponentArray(options.getArray("excludedActivityTypes")));
+-                activity.startActivityForResult(chooser, RNShareModule.SHARE_REQUEST_CODE);
+             } else {
+-                activity.startActivityForResult(excludeChooserIntent(this.getIntent(),options), RNShareModule.SHARE_REQUEST_CODE);
++                chooser = excludeChooserIntent(this.getIntent(), options);
+             }
+-        } else {
+-            activity.startActivityForResult(chooser, RNShareModule.SHARE_REQUEST_CODE);
+         }
+ 
++        // Use startActivity instead of startActivityForResult. The latter
++        // notifies every registered ActivityEventListener with a null intent
++        // when the chooser is dismissed, crashing modules whose onActivityResult
++        // dereferences `data` without a null check.
++        activity.startActivity(chooser);
++
++        // On API 22+ (IntentSender supported) the real chosen-target callback is
++        // delivered via TargetChosenReceiver only when the user actually picks a
++        // target, so we must not emit a premature success here (doing so reports
++        // success even when the user cancels). Only the pre-22 path, which has no
++        // chosen-target callback, needs the immediate best-effort callback.
+         if (intentSender == null) {
+             TargetChosenReceiver.sendCallback(true, true, "OK");
+         }

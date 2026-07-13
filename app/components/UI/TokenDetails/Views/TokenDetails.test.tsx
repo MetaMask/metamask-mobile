@@ -9,7 +9,11 @@ import {
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
+import {
+  selectNetworkConfigurationByChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
@@ -18,6 +22,7 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
+import { selectTokenWatchlistEnabled } from '../../Assets/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   AMBIENT_NEGATIVE_COLOR,
@@ -108,6 +113,16 @@ jest.mock('../hooks/useTokenPrice', () => ({
 const mockUseTokenBalance = jest.fn();
 jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
+}));
+
+const mockToggleWatchlist = jest.fn();
+const mockUseTokenWatchlist = jest.fn(() => ({
+  isWatched: false,
+  isLoading: false,
+  toggle: mockToggleWatchlist,
+}));
+jest.mock('../../Assets/watchlist/hooks/useTokenWatchlist', () => ({
+  useTokenWatchlist: () => mockUseTokenWatchlist(),
 }));
 
 const mockUseTokenBuyability = jest.fn();
@@ -254,6 +269,15 @@ jest.mock(
 
 jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurationByChainId: jest.fn(() => ({ name: 'Ethereum' })),
+  selectNetworkConfigurations: jest.fn(() => ({
+    '0x1': { nativeCurrency: 'ETH' },
+  })),
+}));
+
+jest.mock('../../../../selectors/currencyRateController', () => ({
+  selectCurrencyRates: jest.fn(() => ({
+    ETH: { conversionRate: 1, usdConversionRate: 1 },
+  })),
 }));
 
 jest.mock('../../Perps', () => ({
@@ -288,6 +312,10 @@ jest.mock('../../../../selectors/featureFlagController/priceAlerts', () => ({
   selectPriceAlertsEnabled: jest.fn(() => false),
 }));
 
+jest.mock('../../Assets/selectors/featureFlags', () => ({
+  selectTokenWatchlistEnabled: jest.fn(() => false),
+}));
+
 const mockUseIsPriceAlertsChainSupported = jest.fn<
   boolean,
   [string | null | undefined, { enabled?: boolean }?]
@@ -301,15 +329,6 @@ jest.mock(
     ) => mockUseIsPriceAlertsChainSupported(assetId, options),
   }),
 );
-
-const mockUsePriceInUsd = jest.fn<
-  number | null,
-  [string | null | undefined, number]
->(() => 100);
-jest.mock('../../Assets/PriceAlerts/hooks/usePriceInUsd', () => ({
-  usePriceInUsd: (chainId: string | null | undefined, price: number) =>
-    mockUsePriceInUsd(chainId, price),
-}));
 
 jest.mock('../../Ramp/Aggregator/utils', () => ({
   isNetworkRampNativeTokenSupported: jest.fn(() => true),
@@ -325,6 +344,14 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+const mockShowToast = jest.fn();
+jest.mock('../../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: (...args: unknown[]) => mockShowToast(...args),
+  },
 }));
 
 const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
@@ -423,7 +450,6 @@ describe('TokenDetails', () => {
       networkModal: null,
     });
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
-    mockUsePriceInUsd.mockReturnValue(100);
 
     mockUseTokenBalance.mockReturnValue({
       balance: '1.5',
@@ -435,12 +461,18 @@ describe('TokenDetails', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectNetworkConfigurationByChainId)
         return { name: 'Ethereum' };
+      if (selector === selectNetworkConfigurations)
+        return { '0x1': { nativeCurrency: 'ETH' } };
+      if (selector === selectCurrencyRates)
+        // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
+        return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
       if (selector === selectPerpsEnabledFlag) return false;
       if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
       if (selector === selectPriceAlertsEnabled) return false;
+      if (selector === selectTokenWatchlistEnabled) return false;
       return undefined;
     });
   });
@@ -800,6 +832,11 @@ describe('TokenDetails', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectNetworkConfigurationByChainId)
           return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates)
+          // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
+          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
         if (selector === selectPerpsEnabledFlag) return false;
         if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
         if (selector === getRampNetworks) return [];
@@ -841,7 +878,6 @@ describe('TokenDetails', () => {
         ...defaultUseTokenPriceReturn,
         currentPrice: 0,
       });
-      mockUsePriceInUsd.mockReturnValue(0);
 
       render(<TokenDetails />);
 
@@ -883,9 +919,22 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('passes undefined onPriceAlertPress when usePriceInUsd returns null', () => {
-      enablePriceAlerts();
-      mockUsePriceInUsd.mockReturnValue(null);
+    it('passes undefined onPriceAlertPress when USD conversion rates are unavailable', () => {
+      // Override to return no currency rates — calcUsdAmountFromFiat returns undefined → null
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates) return {};
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectPriceAlertsEnabled) return true;
+        return undefined;
+      });
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 100,
@@ -898,14 +947,108 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('always navigates to MANAGE_PRICE_ALERTS with currentCurrency usd regardless of user fiat setting', () => {
+    it('shows the price alert button for a Solana token when the chain is supported', () => {
       enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 150,
+      });
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        symbol: 'SOL',
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          onPriceAlertPress: expect.any(Function),
+        }),
+      );
+    });
+
+    it('shows the price alert button for a Bitcoin token using the native currency CAIP-19 fallback', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 60000,
+      });
+      // Bitcoin's address is "native" — formatAddressToAssetId cannot resolve it,
+      // so caip19AssetId falls back to AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS
+      // nativeCurrency = "bip122:000000000019d6689c085ae165831e93/slip44:0"
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: 'native',
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+        symbol: 'BTC',
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          onPriceAlertPress: expect.any(Function),
+        }),
+      );
+    });
+
+    it('navigates with the Bitcoin native CAIP-19 asset id when the price alert button is pressed', () => {
+      enablePriceAlerts();
+      mockUseTokenPrice.mockReturnValue({
+        ...defaultUseTokenPriceReturn,
+        currentPrice: 60000,
+      });
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: 'native',
+        chainId: 'bip122:000000000019d6689c085ae165831e93',
+        symbol: 'BTC',
+      });
+
+      render(<TokenDetails />);
+
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1)?.[0] as {
+        onPriceAlertPress?: () => void;
+      };
+      act(() => {
+        lastCall.onPriceAlertPress?.();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MANAGE_PRICE_ALERTS,
+        expect.objectContaining({
+          symbol: 'BTC',
+          currentPrice: 60000,
+          currentCurrency: 'usd',
+          assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        }),
+      );
+    });
+
+    it('always navigates to MANAGE_PRICE_ALERTS with currentCurrency usd regardless of user fiat setting', () => {
+      // 2800 EUR × (3000 USD/ETH ÷ 2800 EUR/ETH) = 3000 USD
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates)
+          return { ETH: { conversionRate: 2800, usdConversionRate: 3000 } };
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectPriceAlertsEnabled) return true;
+        return undefined;
+      });
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         currentPrice: 2800,
         currentCurrency: 'eur',
       });
-      mockUsePriceInUsd.mockReturnValue(3000);
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -938,7 +1081,6 @@ describe('TokenDetails', () => {
         currentPrice: 2500,
         currentCurrency: 'USD',
       });
-      mockUsePriceInUsd.mockReturnValue(2500);
       mockRouteParams.mockReturnValue({
         ...defaultRouteParams,
         address: '0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -1384,6 +1526,143 @@ describe('TokenDetails', () => {
       });
 
       expect(getTokenDetailsClosedCallCount()).toBe(2);
+    });
+  });
+
+  describe('watchlist star toggle', () => {
+    const enableWatchlist = () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectNetworkConfigurations)
+          return { '0x1': { nativeCurrency: 'ETH' } };
+        if (selector === selectCurrencyRates)
+          return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectPriceAlertsEnabled) return false;
+        if (selector === selectTokenWatchlistEnabled) return true;
+        return undefined;
+      });
+    };
+
+    afterEach(() => {
+      mockToggleWatchlist.mockClear();
+      mockShowToast.mockClear();
+    });
+
+    it('passes onStarPress to header when watchlist is enabled and caip19AssetId is resolved', () => {
+      enableWatchlist();
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          onStarPress: expect.any(Function),
+          isWatched: false,
+        }),
+      );
+    });
+
+    it('passes undefined onStarPress when watchlist flag is disabled', () => {
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onStarPress: undefined }),
+      );
+    });
+
+    it('passes undefined onStarPress when caip19AssetId cannot be resolved', () => {
+      enableWatchlist();
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        address: '',
+        chainId: undefined,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ onStarPress: undefined }),
+      );
+    });
+
+    it('passes isWatched=true to header when token is on watchlist', () => {
+      enableWatchlist();
+      mockUseTokenWatchlist.mockReturnValue({
+        isWatched: true,
+        isLoading: false,
+        toggle: mockToggleWatchlist,
+      });
+
+      render(<TokenDetails />);
+
+      expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isWatched: true }),
+      );
+    });
+
+    it('calls toggleWatchlist and shows toast when star is pressed', () => {
+      enableWatchlist();
+
+      render(<TokenDetails />);
+
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
+      const { onStarPress } = lastCall?.[0] as { onStarPress: () => void };
+
+      act(() => {
+        onStarPress();
+      });
+
+      expect(mockToggleWatchlist).toHaveBeenCalledTimes(1);
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires WATCHLIST_TOKEN_ADDED analytics when adding to watchlist', () => {
+      enableWatchlist();
+      mockUseTokenWatchlist.mockReturnValue({
+        isWatched: false,
+        isLoading: false,
+        toggle: mockToggleWatchlist,
+      });
+
+      render(<TokenDetails />);
+
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
+      const { onStarPress } = lastCall?.[0] as { onStarPress: () => void };
+
+      act(() => {
+        onStarPress();
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WATCHLIST_TOKEN_ADDED,
+      );
+    });
+
+    it('fires WATCHLIST_TOKEN_REMOVED analytics when removing from watchlist', () => {
+      enableWatchlist();
+      mockUseTokenWatchlist.mockReturnValue({
+        isWatched: true,
+        isLoading: false,
+        toggle: mockToggleWatchlist,
+      });
+
+      render(<TokenDetails />);
+
+      const lastCall = mockTokenDetailsInlineHeader.mock.calls.at(-1);
+      const { onStarPress } = lastCall?.[0] as { onStarPress: () => void };
+
+      act(() => {
+        onStarPress();
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED,
+      );
     });
   });
 });

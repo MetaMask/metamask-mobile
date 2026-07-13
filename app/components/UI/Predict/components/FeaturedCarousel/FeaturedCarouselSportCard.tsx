@@ -21,6 +21,7 @@ import {
   PredictMarket,
   PredictMarketGame,
   PredictMarketStatus,
+  PredictOutcome,
   PredictOutcomeToken,
   PredictSportTeam,
 } from '../../types';
@@ -35,6 +36,7 @@ import { usePredictPreviewSheet } from '../../contexts';
 import { usePredictGame } from '../../hooks/usePredictGame';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { isDrawCapableLeague } from '../../constants/sports';
+import { resolvePredictSportCardButtons } from '../../utils/sports';
 import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
@@ -101,28 +103,18 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
     : null;
   const footerTimeText = timeRemaining ?? scheduledTime;
 
-  const outcome = market.outcomes[0];
-  const matchesTeam = (
-    tokenTitle: string | undefined,
-    team: { name?: string; alias?: string },
-  ) => {
-    if (!tokenTitle) return false;
-    const lower = tokenTitle.toLowerCase();
-    return (
-      lower === team.name?.toLowerCase() ||
-      (team.alias != null && lower === team.alias.toLowerCase())
-    );
-  };
-
-  const homeToken =
-    outcome?.tokens?.find((t) => matchesTeam(t.title, game.homeTeam)) ??
-    outcome?.tokens?.[0];
-  const awayToken =
-    outcome?.tokens?.find((t) => matchesTeam(t.title, game.awayTeam)) ??
-    outcome?.tokens?.[1];
-  const drawToken = showDraw
-    ? outcome?.tokens?.find((t) => t.title?.toLowerCase() === 'draw')
-    : undefined;
+  const buttonResolution = useMemo(
+    () =>
+      resolvePredictSportCardButtons({
+        outcomes: market.outcomes,
+        game,
+        showDraw,
+      }),
+    [game, market.outcomes, showDraw],
+  );
+  const homeToken = buttonResolution.home?.token;
+  const drawToken = buttonResolution.draw?.token;
+  const awayToken = buttonResolution.away?.token;
   const tokenIds = useMemo(
     () =>
       [homeToken, drawToken, awayToken]
@@ -163,13 +155,13 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
   }, [market, entryPoint, navigation]);
 
   const handleBuy = useCallback(
-    (token: PredictOutcomeToken) => {
-      if (!outcome) return;
+    (token: PredictOutcomeToken, selectedOutcome?: PredictOutcome) => {
+      if (!selectedOutcome) return;
       executeGuardedAction(
         () => {
           openBuySheet({
             market,
-            outcome,
+            outcome: selectedOutcome,
             outcomeToken: token,
             entryPoint,
           });
@@ -177,11 +169,11 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT },
       );
     },
-    [market, outcome, entryPoint, executeGuardedAction, openBuySheet],
+    [market, entryPoint, executeGuardedAction, openBuySheet],
   );
 
   const totalVolume = calculateTotalVolume(market.outcomes);
-  const remainingOptions = Math.max(0, market.outcomes.length - 1);
+  const remainingOptions = buttonResolution.remainingOptions;
 
   const renderTeamLogo = (team: PredictSportTeam, testID?: string) =>
     config.TeamIcon ? (
@@ -325,7 +317,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {homeToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(homeToken)}
+                  onPress={() =>
+                    handleBuy(homeToken, buttonResolution.home?.outcome)
+                  }
                   twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
@@ -345,7 +339,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {drawToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(drawToken)}
+                  onPress={() =>
+                    handleBuy(drawToken, buttonResolution.draw?.outcome)
+                  }
                   isFullWidth
                   size={ButtonBaseSize.Lg}
                 >
@@ -365,7 +361,9 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             {awayToken && (
               <Box twClassName="flex-1">
                 <Button
-                  onPress={() => handleBuy(awayToken)}
+                  onPress={() =>
+                    handleBuy(awayToken, buttonResolution.away?.outcome)
+                  }
                   twClassName="bg-success-muted"
                   isFullWidth
                   size={ButtonBaseSize.Lg}
