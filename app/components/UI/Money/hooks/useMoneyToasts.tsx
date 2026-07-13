@@ -144,6 +144,7 @@ const MONEY_TOASTS_DEFAULT_OPTIONS: Partial<MoneyToastOptions> = {
 
 const useMoneyToasts = (): {
   showToast: (config: MoneyToastOptions) => void;
+  closeToast: () => void;
   MoneyToastOptions: MoneyToastOptionsConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
@@ -414,7 +415,7 @@ const useMoneyToasts = (): {
     moneyBaseToastOptions.success,
   ]);
 
-  return { showToast, MoneyToastOptions };
+  return { showToast, closeToast, MoneyToastOptions };
 };
 
 export default useMoneyToasts;

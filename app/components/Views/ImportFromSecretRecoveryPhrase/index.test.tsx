@@ -197,6 +197,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(
         getByText(
           strings('import_from_seed.enter_your_secret_recovery_phrase'),
+          { exact: false },
         ),
       ).toBeOnTheScreen();
     });
@@ -1428,6 +1429,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Toggle visibility for confirm password
       fireEvent.press(confirmPasswordVisibilityIcon);
       expect(confirmPasswordInput).toHaveProp('secureTextEntry', false);
+    });
+
+    it('shows Done keyboard action on confirm password field', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      expect(confirmPasswordInput).toHaveProp('returnKeyType', 'done');
     });
 
     it('error message is shown when passwords do not match', async () => {

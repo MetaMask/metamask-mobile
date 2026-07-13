@@ -3,6 +3,7 @@ import { Hex } from '@metamask/utils';
 import { AssetsContractController } from '@metamask/assets-controllers';
 import { NetworkClientId } from '@metamask/network-controller';
 import { getTokenDetails } from '../../../../util/address';
+import { RelayFixedSpreadConfig } from './relayFixedSpread';
 
 export type TokenDetailsERC20 = Awaited<
   ReturnType<
@@ -26,6 +27,19 @@ export type TokenDetails =
   | TokenDetailsERC20
   | TokenDetailsERC721
   | TokenDetailsERC1155;
+
+export function isStablecoin(
+  address: string,
+  chainId: Hex,
+  config: RelayFixedSpreadConfig,
+): boolean {
+  const lowerAddress = address.toLowerCase();
+  return config.routes.some(
+    (route) =>
+      (route.sourceChain === chainId && route.sourceToken === lowerAddress) ||
+      (route.targetChain === chainId && route.targetToken === lowerAddress),
+  );
+}
 
 export const ERC20_DEFAULT_DECIMALS = 18;
 
