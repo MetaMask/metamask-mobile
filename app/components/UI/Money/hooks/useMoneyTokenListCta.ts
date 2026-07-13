@@ -16,6 +16,7 @@ import useMoneyAccountBalance from './useMoneyAccountBalance';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
+import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 
 /**
  * Provides Money Token List Item CTA and its deposit action.
@@ -56,7 +57,10 @@ export const useMoneyTokenListCta = () => {
         chainId: toHex(asset.chainId),
       };
       const redirectedToOnboarding = redirectToOnboardingIfNeeded({
-        preferredPaymentToken,
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken,
+        },
       });
 
       trackButtonClicked({

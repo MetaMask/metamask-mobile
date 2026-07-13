@@ -59,6 +59,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
 import onboardingFlowV24Animation from '../../../../../animations/onboarding_flow_v24.riv';
+import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -250,7 +251,7 @@ const MoneyOnboardingTextOverlay = ({
 const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
-  const preferredPaymentToken = route.params?.preferredPaymentToken;
+  const postOnboardingRedirect = route.params?.postOnboardingRedirect;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -343,14 +344,16 @@ const MoneyOnboardingView = () => {
   }, [navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
-    if (!preferredPaymentToken) {
+    if (
+      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
+    ) {
       navigateToMoneyHome();
       return;
     }
 
     try {
       await initiateDeposit({
-        preferredPaymentToken,
+        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
         replaceConfirmation: true,
       });
     } catch (error) {
@@ -359,11 +362,12 @@ const MoneyOnboardingView = () => {
         '[Money Account] Failed to initiate deposit after onboarding',
       );
     }
-  }, [initiateDeposit, navigateToMoneyHome, preferredPaymentToken]);
+  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
 
-  const postOnboardingRedirectTarget = preferredPaymentToken
-    ? SCREEN_NAMES.MONEY_DEPOSIT
-    : SCREEN_NAMES.MONEY_HOME;
+  const postOnboardingRedirectTarget =
+    postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT
+      ? SCREEN_NAMES.MONEY_DEPOSIT
+      : SCREEN_NAMES.MONEY_HOME;
 
   const handleClose = useCallback(
     (stepIndex: number) => {

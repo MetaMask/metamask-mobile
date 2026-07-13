@@ -13,10 +13,18 @@ interface MoneyNestedNavigationParams {
   params?: object;
 }
 
+export enum MoneyPostOnboardingRedirectType {
+  DEPOSIT = 'deposit',
+}
+export interface MoneyPreferredPaymentToken {
+  address: Hex;
+  chainId: Hex;
+}
+
 export interface MoneyOnboardingParams {
-  preferredPaymentToken?: {
-    address: Hex;
-    chainId: Hex;
+  postOnboardingRedirect?: {
+    type: MoneyPostOnboardingRedirectType;
+    preferredPaymentToken?: MoneyPreferredPaymentToken;
   };
 }
 
