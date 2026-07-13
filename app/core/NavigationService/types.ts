@@ -266,7 +266,10 @@ import type {
 
 // Rewards params
 import { BenefitFullViewRouteParams } from '../../components/UI/Rewards/Views/BenefitFullView.types.ts';
-import type { RewardsNavigationParamList } from '../../components/UI/Rewards/types/navigation';
+import type {
+  RewardsNavigationParamList,
+  RewardsStackParamList,
+} from '../../components/UI/Rewards/types/navigation';
 
 // Webview params
 import type {
@@ -485,7 +488,7 @@ export type RootStackParamList = {
   TransactionDetails: TransactionDetailsParams | undefined;
   ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
-  RewardsFlow: NestedNavigationParams | undefined;
+  RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
