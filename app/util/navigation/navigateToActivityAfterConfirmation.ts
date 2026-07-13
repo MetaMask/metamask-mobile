@@ -45,10 +45,17 @@ export function navigateToActivityAfterConfirmation(
 ): void {
   const rootNavigation = navigation.getParent?.();
 
-  if (!rootNavigation) {
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+  // `StackActions.replace(TRANSACTIONS_VIEW)` only works when Activity is a
+  // screen registered on the root navigator — which it is when the Money-account
+  // feature is enabled (the case that produces the stale-confirmation bug). When
+  // it isn't (flag off, Activity lives under the tabs) `replace` would not
+  // resolve, so fall back to a plain `navigate`, matching the previous behavior.
+  if (
+    rootNavigation?.getState().routeNames.includes(Routes.TRANSACTIONS_VIEW)
+  ) {
+    rootNavigation.dispatch(StackActions.replace(Routes.TRANSACTIONS_VIEW));
     return;
   }
 
-  rootNavigation.dispatch(StackActions.replace(Routes.TRANSACTIONS_VIEW));
+  navigation.navigate(Routes.TRANSACTIONS_VIEW);
 }

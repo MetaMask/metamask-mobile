@@ -3,6 +3,7 @@ import { Text } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import {
   NavigationContainer,
+  StackActions,
   createNavigationContainerRef,
   useNavigation,
   type NavigationState,
@@ -229,5 +230,56 @@ describe('navigateToActivityAfterConfirmation', () => {
       ref.goBack();
     });
     expect(focusedRouteName(ref)).toBe(Routes.HOME_TABS);
+  });
+});
+
+describe('navigateToActivityAfterConfirmation — routing by Activity route location', () => {
+  const makeNavigation = (routeNames?: string[]) => {
+    const dispatch = jest.fn();
+    const navigate = jest.fn();
+    const getParent =
+      routeNames === undefined
+        ? () => undefined
+        : () => ({ getState: () => ({ routeNames }), dispatch });
+    return {
+      navigation: { navigate, getParent } as never,
+      dispatch,
+      navigate,
+    };
+  };
+
+  it('replaces the flow stack when Activity is a root route (Money-account on)', () => {
+    const { navigation, dispatch, navigate } = makeNavigation([
+      Routes.HOME_TABS,
+      Routes.SEND.DEFAULT,
+      Routes.TRANSACTIONS_VIEW,
+    ]);
+
+    navigateToActivityAfterConfirmation(navigation);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.TRANSACTIONS_VIEW),
+    );
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('falls back to navigate when Activity is not a root route (Money-account off)', () => {
+    const { navigation, dispatch, navigate } = makeNavigation([
+      Routes.HOME_TABS,
+      Routes.SEND.DEFAULT,
+    ]);
+
+    navigateToActivityAfterConfirmation(navigation);
+
+    expect(navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('falls back to navigate when there is no parent navigator', () => {
+    const { navigation, navigate } = makeNavigation(undefined);
+
+    navigateToActivityAfterConfirmation(navigation);
+
+    expect(navigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 });
