@@ -322,8 +322,8 @@ jobs:
               echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
               echo "Test-only PR: reusing main branch Android artifacts from Cirrus APK cache (no repack)."
             else
-              echo "::error::Test-only PR requires reusable Android builds from main, but none were found (GitHub artifacts or main APK cache)."
-              exit 1
+              echo "::warning::Test-only PR could not reuse main Android builds yet (GitHub artifacts or main APK cache). Falling back to fresh native build."
+              echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
             fi
           elif [[ "${{ steps.namespace-apk-cache.outputs.cache-hit }}" == "true" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"

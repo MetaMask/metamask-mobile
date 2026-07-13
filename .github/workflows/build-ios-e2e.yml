@@ -253,8 +253,8 @@ jobs:
               echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
               echo "Test-only PR: reusing main branch iOS artifacts from GitHub Actions (no repack)."
             else
-              echo "::error::Test-only PR requires reusable iOS builds from main, but none were found."
-              exit 1
+              echo "::warning::Test-only PR could not reuse main iOS builds yet. Falling back to fresh native build."
+              echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
             fi
           elif [[ "${{ inputs.runner_provider }}" == "bitrise" && "${{ vars.BITRISE_FORCE_NATIVE_BUILD }}" == "true" ]]; then
             echo "needs-native-build=true" >> "$GITHUB_OUTPUT"

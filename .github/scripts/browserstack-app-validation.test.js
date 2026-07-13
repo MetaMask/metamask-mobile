@@ -23,16 +23,31 @@ describe('browserstack-app-validation', () => {
     ).toThrow('Invalid test');
   });
 
-  it('accepts expected custom_id formats', () => {
-    expect(assertBrowserStackCustomId('MetaMask-Android-With-SRP-123', 'with-srp')).toBe(
-      'MetaMask-Android-With-SRP-123',
-    );
+  it('accepts expected custom_id formats with branch slug', () => {
     expect(
       assertBrowserStackCustomId(
-        'MetaMask-Android-Without-SRP-456',
+        'MetaMask-Android-With-SRP-main-123',
+        'with-srp',
+      ),
+    ).toBe('MetaMask-Android-With-SRP-main-123');
+    expect(
+      assertBrowserStackCustomId(
+        'MetaMask-Android-Without-SRP-main-456',
         'without-srp',
       ),
-    ).toBe('MetaMask-Android-Without-SRP-456');
+    ).toBe('MetaMask-Android-Without-SRP-main-456');
+    expect(
+      assertBrowserStackCustomId(
+        'MetaMask-Android-With-SRP-feature_x-789',
+        'with-srp',
+      ),
+    ).toBe('MetaMask-Android-With-SRP-feature_x-789');
+  });
+
+  it('rejects legacy custom_id formats without branch slug', () => {
+    expect(() =>
+      assertBrowserStackCustomId('MetaMask-Android-With-SRP-123', 'with-srp'),
+    ).toThrow('Invalid with-srp custom_id');
   });
 
   it('writes only validated single-line GitHub outputs', () => {
