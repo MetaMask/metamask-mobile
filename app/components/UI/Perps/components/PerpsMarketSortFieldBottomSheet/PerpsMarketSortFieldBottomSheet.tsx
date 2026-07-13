@@ -20,7 +20,6 @@ import {
   type SortOptionId,
   type SortDirection,
 } from '@metamask/perps-controller';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 /**
  * PerpsMarketSortFieldBottomSheet Component
@@ -54,7 +53,6 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   testID,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
 
   useEffect(() => {
     if (isVisible) {
@@ -91,12 +89,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={onClose}
-      twClassName={surfaceClass}
-      testID={testID}
-    >
+    <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
       <BottomSheetHeader onClose={handleClose}>
         {strings('perps.sort.sort_by')}
       </BottomSheetHeader>

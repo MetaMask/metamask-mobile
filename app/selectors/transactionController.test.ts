@@ -59,6 +59,16 @@ describe('TransactionController Selectors', () => {
 
       expect(selectTransactions(state)).toStrictEqual(transactions);
     });
+
+    it('returns an empty array if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      expect(selectTransactions(state)).toStrictEqual([]);
+    });
   });
 
   describe('selectNonReplacedTransactions', () => {
@@ -115,6 +125,16 @@ describe('TransactionController Selectors', () => {
           },
         },
       } as unknown as RootState;
+      expect(selectSwapsTransactions(state)).toStrictEqual({});
+    });
+
+    it('returns an empty object if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
       expect(selectSwapsTransactions(state)).toStrictEqual({});
     });
   });
@@ -484,6 +504,18 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactionBatchMetadataById(state, 'batch-id')).toBe(batch);
+    });
+
+    it('returns undefined if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      expect(
+        selectTransactionBatchMetadataById(state, 'batch-id'),
+      ).toBeUndefined();
     });
   });
 

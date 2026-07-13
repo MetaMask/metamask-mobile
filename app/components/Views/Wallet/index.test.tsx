@@ -261,6 +261,7 @@ import {
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import Engine from '../../../core/Engine';
+import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
@@ -722,7 +723,6 @@ const render = (Component: React.ComponentType) =>
 /** Provider preloaded state must match useSelector mock implementation for connected Wallet. */
 const renderWalletWithRootState = (rootState: typeof mockInitialState) =>
   renderScreen(
-    // @ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     Wallet,
     {
       name: Routes.WALLET_VIEW,
@@ -753,13 +753,11 @@ describe('Wallet', () => {
   });
 
   it('should render correctly', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
     expect(capturedContext).toBeDefined();
   });
 
   it('should render homepage scroll context', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
 
     expect(capturedContext).toBeDefined();
@@ -771,7 +769,6 @@ describe('Wallet', () => {
       .mockImplementation((callback: (state: unknown) => unknown) =>
         callback(mockInitialState),
       );
-    //@ts-expect-error we are ignoring the navigation params on purpose
     render(Wallet);
     expect(capturedContext).toBeDefined();
   });
@@ -787,7 +784,6 @@ describe('Wallet', () => {
     });
 
     it('passes required props to AssetDetailsActions', () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       expect(getAssetDetailsActionsProps()).toMatchObject({
@@ -844,7 +840,7 @@ describe('Wallet', () => {
         .mocked(useSelector)
         .mockImplementation((callback) => callback(mockStateWithReceiveData));
 
-      //@ts-expect-error we are ignoring the navigation params on purpose
+      // @ts-expect-error partial root state intentionally provided for testing
       renderWalletWithRootState(mockStateWithReceiveData);
       getAssetDetailsActionsProps().onReceive();
 
@@ -879,7 +875,7 @@ describe('Wallet', () => {
           callback(mockStateWithMultichainAccounts),
         );
 
-      //@ts-expect-error we are ignoring the navigation params on purpose
+      // @ts-expect-error partial root state intentionally provided for testing
       renderWalletWithRootState(mockStateWithMultichainAccounts);
       getAssetDetailsActionsProps().onReceive();
 
@@ -890,7 +886,6 @@ describe('Wallet', () => {
     });
 
     it('opens Send flow from onSend when native ticker is set', async () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       await getAssetDetailsActionsProps().onSend();
@@ -926,7 +921,6 @@ describe('Wallet', () => {
           callback(stateWithoutNativeCurrency),
         );
 
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       await getAssetDetailsActionsProps().onSend();
@@ -938,7 +932,6 @@ describe('Wallet', () => {
     });
 
     it('omits onBuy while still passing buyButtonActionID', () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       const passedProps = getAssetDetailsActionsProps();
@@ -947,7 +940,6 @@ describe('Wallet', () => {
     });
 
     it('passes goToSwaps as a function', () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       expect(typeof getAssetDetailsActionsProps().goToSwaps).toBe('function');
@@ -977,7 +969,6 @@ describe('Wallet', () => {
           throw new Error('Transaction initialization failed');
         });
       try {
-        //@ts-expect-error we are ignoring the navigation params on purpose
         render(Wallet);
         await getAssetDetailsActionsProps().onSend();
         expect(mockNavigate.mock.calls.some((call) => call[0] === 'Send')).toBe(
@@ -1412,9 +1403,7 @@ describe('HomepageScrollContext callbacks', () => {
     capturedContext = null;
   });
 
-  const renderWalletWithSections = () =>
-    //@ts-expect-error we are ignoring navigation params on purpose
-    render(Wallet);
+  const renderWalletWithSections = () => render(Wallet);
 
   it('getVisitMaxDepth returns -1 before any section is viewed', () => {
     renderWalletWithSections();
@@ -1688,6 +1677,65 @@ describe('HomepageDiscoveryTabs AB test', () => {
     expect(mockHomepageDiscoveryTabsRefresh).toHaveBeenCalled();
   });
 
+  it('updates wallet header height from HeaderRoot layout in treatment', () => {
+    mockDiscoveryTabsVariantName = 'treatment';
+
+    const { getByTestId } = renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+      'layout',
+      {
+        nativeEvent: { layout: { height: 120, width: 320, x: 0, y: 0 } },
+      },
+    );
+
+    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
+      walletHeaderHeight?: number;
+    };
+
+    expect(props.walletHeaderHeight).toBe(120);
+  });
+
+  it('logs error when wallet refresh fails in treatment', async () => {
+    mockDiscoveryTabsVariantName = 'treatment';
+    mockHomepageDiscoveryTabsRefresh.mockRejectedValueOnce(
+      new Error('refresh failed'),
+    );
+    const loggerErrorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
+      refreshControl?: React.ReactElement<{ onRefresh: () => Promise<void> }>;
+    };
+
+    await act(async () => {
+      await props.refreshControl?.props.onRefresh();
+    });
+
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'refresh failed' }),
+      'Error refreshing wallet',
+    );
+
+    loggerErrorSpy.mockRestore();
+  });
+
   it('renders Homepage scroll view (not HomepageDiscoveryTabs) when variant is control', () => {
     mockDiscoveryTabsVariantName = 'control';
 
@@ -1917,7 +1965,6 @@ describe('MoneyBalanceCard slot', () => {
   it('renders the MoneyBalanceCard when Money account is enabled', () => {
     mockMoneyAccountEnabled = true;
 
-    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     const { getByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
@@ -1926,7 +1973,6 @@ describe('MoneyBalanceCard slot', () => {
   it('does not render the MoneyBalanceCard when Money account is disabled', () => {
     mockMoneyAccountEnabled = false;
 
-    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     const { queryByTestId } = render(Wallet);
 
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();

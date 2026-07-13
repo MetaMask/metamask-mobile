@@ -12,7 +12,6 @@ import type {
   TimeDuration,
 } from '@metamask/perps-controller';
 import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
-import { advancedChartLineChromePresets } from '../../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
   type CrosshairData,
@@ -46,6 +45,8 @@ export interface PerpsAdvancedChartProps {
   tpslLines?: TPSLLines;
   /** Signed position size string; used to derive long/short side for position lines. */
   positionSize?: string;
+  /** Hyperliquid size decimals; price precision is derived as 6 - szDecimals. */
+  szDecimals?: number | null;
   onCrosshairDataChange?: (data: OhlcData | null) => void;
   onLatestPriceChange?: (price: number | undefined) => void;
   onError?: (error: string) => void;
@@ -167,6 +168,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   height,
   tpslLines,
   positionSize,
+  szDecimals,
   onCrosshairDataChange,
   onLatestPriceChange,
   onError,
@@ -225,6 +227,13 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     () => getPerpsPositionLineColors(colors),
     [colors],
   );
+
+  const priceDecimals = useMemo(() => {
+    if (typeof szDecimals !== 'number' || !Number.isFinite(szDecimals)) {
+      return undefined;
+    }
+    return Math.max(0, 6 - szDecimals);
+  }, [szDecimals]);
 
   const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
   const webViewInstanceKey = useMemo(() => `${symbol}|perps`, [symbol]);
@@ -413,10 +422,10 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       realtimeBar={realtimeBar}
       height={height}
       chartType={ChartType.Candles}
-      lineChrome={advancedChartLineChromePresets.perps.lineChrome}
       showVolume
       volumeOverlay={false}
       hidePaneSeparator
+      priceDecimals={priceDecimals}
       gridLineColorOverride={colors.border.muted}
       isLoading={isLoading}
       positionLines={positionLines}

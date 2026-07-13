@@ -60,8 +60,7 @@ export function FilterOptionSheet<T extends string>({
   return (
     <BottomSheet ref={sheetRef} onClose={onClose} testID={sheetTestID}>
       <BottomSheetHeader>{title}</BottomSheetHeader>
-
-      <Box twClassName="pb-4">
+      <Box twClassName="pb-2">
         {options.map((option) => {
           const isSelected = option === selected;
           return (
@@ -69,7 +68,7 @@ export function FilterOptionSheet<T extends string>({
               key={option}
               onPress={() => handleSelect(option)}
               style={tw.style(
-                'flex-row items-center justify-between px-4 py-4',
+                'flex-row items-center justify-between px-4 py-3',
                 isSelected && 'bg-muted',
               )}
               testID={getOptionTestID(option)}

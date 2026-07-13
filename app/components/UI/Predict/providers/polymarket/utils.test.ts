@@ -324,8 +324,12 @@ describe('polymarket utils', () => {
       createSportsMarket({ id: 'totals', sportsMarketType: 'totals' }),
       createSportsMarket({ id: 'points', sportsMarketType: 'points' }),
       createSportsMarket({
-        id: 'first-half-moneyline',
-        sportsMarketType: 'first_half_moneyline',
+        id: 'halftime-result',
+        sportsMarketType: 'soccer_halftime_result',
+      }),
+      createSportsMarket({
+        id: 'second-half-result',
+        sportsMarketType: 'soccer_second_half_result',
       }),
     ]);
 
@@ -339,18 +343,20 @@ describe('polymarket utils', () => {
         'spreads',
         'totals',
         'points',
-        'first_half_moneyline',
+        'soccer_halftime_result',
+        'soccer_second_half_result',
       ],
     });
 
-    expect(market.outcomes).toHaveLength(5);
+    expect(market.outcomes).toHaveLength(6);
     expect(market.outcomes.map((outcome) => outcome.sportsMarketType)).toEqual(
       expect.arrayContaining([
         'moneyline',
         'spreads',
         'totals',
         'points',
-        'first_half_moneyline',
+        'soccer_halftime_result',
+        'soccer_second_half_result',
       ]),
     );
     expect(market.outcomeGroups).toEqual([
@@ -361,6 +367,73 @@ describe('polymarket utils', () => {
           expect.objectContaining({ key: 'moneyline' }),
           expect.objectContaining({ key: 'spreads' }),
           expect.objectContaining({ key: 'totals' }),
+        ],
+      }),
+      expect.objectContaining({
+        key: 'halves',
+        outcomes: [],
+        subgroups: [
+          expect.objectContaining({ key: 'soccer_halftime_result' }),
+          expect.objectContaining({ key: 'soccer_second_half_result' }),
+        ],
+      }),
+    ]);
+  });
+
+  it('builds player goal subgroups per player', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({
+        id: 'player-a-1',
+        sportsMarketType: 'soccer_player_goals',
+        overrides: {
+          groupItemTitle: 'Player A: 1+ goals',
+          conditionId: 'player-a-1',
+        },
+      }),
+      createSportsMarket({
+        id: 'player-a-2',
+        sportsMarketType: 'soccer_player_goals',
+        overrides: {
+          groupItemTitle: 'Player A: 2+ goals',
+          conditionId: 'player-a-2',
+        },
+      }),
+      createSportsMarket({
+        id: 'player-b-1',
+        sportsMarketType: 'soccer_player_goals',
+        overrides: {
+          groupItemTitle: 'Player B: 1+ goals',
+          conditionId: 'player-b-1',
+        },
+      }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+      enabledSportsMarketTypes: ['soccer_player_goals'],
+    });
+
+    expect(market.outcomeGroups).toEqual([
+      expect.objectContaining({
+        key: 'goals',
+        outcomes: [],
+        subgroups: [
+          expect.objectContaining({
+            key: 'soccer_player_goals-player-a',
+            title: 'Player A',
+            outcomes: [
+              expect.objectContaining({ id: 'player-a-1' }),
+              expect.objectContaining({ id: 'player-a-2' }),
+            ],
+          }),
+          expect.objectContaining({
+            key: 'soccer_player_goals-player-b',
+            title: 'Player B',
+            outcomes: [expect.objectContaining({ id: 'player-b-1' })],
+          }),
         ],
       }),
     ]);
@@ -671,6 +744,116 @@ describe('polymarket utils', () => {
           expect.objectContaining({
             id: 'token-draw-no',
             title: 'No',
+          }),
+        ],
+      }),
+    );
+  });
+
+  it('parses World Cup team-to-advance tokens with team logos', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      fra: {
+        id: 'team-fra',
+        name: 'France',
+        logo: 'fra.png',
+        abbreviation: 'fra',
+        color: 'blue',
+        alias: 'FRA',
+        league: 'fifwc',
+      },
+      mar: {
+        id: 'team-mar',
+        name: 'Morocco',
+        logo: 'mar.png',
+        abbreviation: 'mar',
+        color: 'red',
+        alias: 'MAR',
+        league: 'fifwc',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: 'event-team-to-advance',
+      slug: 'fifwc-fra-mar-2026-07-09',
+      title: 'France vs Morocco',
+      description: 'World Cup match',
+      icon: 'event-icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '11433',
+          slug: 'world-cup',
+          title: 'World Cup',
+          recurrence: 'none',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-team-to-advance',
+          question: 'France vs. Morocco: Team to Advance',
+          description: 'Team to advance market',
+          icon: 'soccer-ball.png',
+          image: 'soccer-ball.png',
+          groupItemTitle: 'Team to Advance',
+          groupItemThreshold: 11,
+          sportsMarketType: 'soccer_team_to_advance',
+          status: 'open',
+          volumeNum: 1889622.657849014,
+          liquidity: 3102688.1944,
+          negRisk: false,
+          clobTokenIds: '["token-fra","token-mar"]',
+          outcomes: '["France","Morocco"]',
+          outcomePrices: '["0.785","0.215"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'games', label: 'Games', slug: 'games' },
+        { id: 'world-cup', label: 'World Cup', slug: 'fifa-world-cup' },
+      ],
+      liquidity: 3102688.1944,
+      volume: 1889622.657849014,
+      gameId: 'game-fra-mar',
+      startTime: '2026-07-09T20:00:00.000Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: 'game-fra-mar',
+        league: 'fifwc',
+        homeTeam: expect.objectContaining({ abbreviation: 'fra' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'mar' }),
+      }),
+    );
+    expect(market.outcomes[0]).toEqual(
+      expect.objectContaining({
+        image: 'soccer-ball.png',
+        groupItemTitle: 'Team to Advance',
+        sportsMarketType: 'soccer_team_to_advance',
+        tokens: [
+          expect.objectContaining({
+            id: 'token-fra',
+            title: 'France',
+            shortTitle: 'fra',
+            image: 'fra.png',
+          }),
+          expect.objectContaining({
+            id: 'token-mar',
+            title: 'Morocco',
+            shortTitle: 'mar',
+            image: 'mar.png',
           }),
         ],
       }),
@@ -2209,7 +2392,7 @@ describe('polymarket utils', () => {
         side: Side.SELL,
       }),
     );
-    expect(preview.fees).toBeUndefined();
+    expect(preview.fees).toBeDefined();
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,

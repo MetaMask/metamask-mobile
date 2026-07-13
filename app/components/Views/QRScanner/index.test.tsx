@@ -1,11 +1,11 @@
 import React from 'react';
-import { waitFor, act, screen } from '@testing-library/react-native';
+import { waitFor, act, screen, fireEvent } from '@testing-library/react-native';
 import {
   useCameraPermission,
   useCameraDevice,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { Linking } from 'react-native';
+import { Linking, DeviceEventEmitter } from 'react-native';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import QrScanner from './';
@@ -13,6 +13,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { QRType, QRScannerEventProperties, ScanResult } from './constants';
 import Routes from '../../../constants/navigation/Routes';
+import { classifyAddDeviceScanContent } from './addDeviceScannerUtils';
+import { EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT } from '../../../core/ExtensionAccountSync/types';
 import { QR_SYNC_MWP_DEEPLINK_PREFIX } from '../../../core/QrSync/services/qr-sync-validation';
 
 const mockNavigate = jest.fn();
@@ -33,6 +35,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      canGoBack: jest.fn(() => true),
     }),
     useFocusEffect: jest.fn(() => {
       // No-op to avoid infinite loops during render
@@ -115,6 +118,14 @@ jest.mock('eth-url-parser', () => ({
     chain_id: '1',
   }),
 }));
+
+jest.mock('./addDeviceScannerUtils', () => {
+  const actual = jest.requireActual('./addDeviceScannerUtils');
+  return {
+    ...actual,
+    classifyAddDeviceScanContent: jest.fn(actual.classifyAddDeviceScanContent),
+  };
+});
 
 jest.mock('react-native/Libraries/Alert/Alert', () => {
   const alert = {
@@ -275,6 +286,22 @@ describe('QrScanner', () => {
 
     onCodeScannedCallback = null;
     lastCameraIsActive = undefined;
+
+    const addDeviceScannerUtilsActual = jest.requireActual(
+      './addDeviceScannerUtils',
+    );
+    jest
+      .mocked(classifyAddDeviceScanContent)
+      .mockImplementation(
+        addDeviceScannerUtilsActual.classifyAddDeviceScanContent,
+      );
+
+    const SDKConnectV2Module = jest.requireMock('../../../core/SDKConnectV2');
+    (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReset();
+    (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+      false,
+    );
+    (SDKConnectV2Module.default.handleMwpDeeplink as jest.Mock).mockReset();
 
     mockNavigate.mockImplementation(() => undefined);
   });
@@ -550,9 +577,9 @@ describe('QrScanner', () => {
         const connectionRequest = {
           sessionRequest: {
             id: '11111111-2222-3333-4444-555555555555',
-            publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
+            publicKeyB64: Buffer.alloc(33, 1).toString('base64'),
             channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
-            mode: 'trusted',
+            mode: 'untrusted',
             expiresAt: Date.now() + 600_000,
           },
         };
@@ -598,6 +625,7 @@ describe('QrScanner', () => {
       });
 
       it('allows add device QR scans while the wallet is locked', async () => {
+        jest.useFakeTimers();
         const validatorsModule = jest.requireMock('../../../util/validators');
         (validatorsModule.isValidMnemonic as jest.Mock).mockReturnValue(false);
         (
@@ -609,11 +637,21 @@ describe('QrScanner', () => {
           EngineModule.context.KeyringController.isUnlocked as jest.Mock
         ).mockReturnValue(false);
 
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          true,
+        );
+        jest.mocked(classifyAddDeviceScanContent).mockReturnValue('valid');
+
         const mockOnScanSuccess = jest.fn();
+        const qrPayload = 'metamask://connect/mwp?p=abc';
         renderWithProvider(
           <QrScanner
             onScanSuccess={mockOnScanSuccess}
             origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+            shouldDismissOnScan={false}
           />,
           {
             state: initialState,
@@ -624,10 +662,12 @@ describe('QrScanner', () => {
           expect(onCodeScannedCallback).toBeDefined();
         });
 
-        const qrPayload = '{"sessionRequest":{"id":"test"}}';
-
         await act(async () => {
           onCodeScannedCallback?.([{ value: qrPayload }]);
+        });
+
+        await act(async () => {
+          jest.advanceTimersByTime(400);
         });
 
         await waitFor(() => {
@@ -641,6 +681,8 @@ describe('QrScanner', () => {
             qrPayload,
           );
         });
+
+        jest.useRealTimers();
       });
 
       it('tracks QR_SCANNED with send flow type when scanning ethereum address', async () => {
@@ -1794,6 +1836,191 @@ describe('QrScanner', () => {
 
         // Camera should be deactivated to prevent multiple scans
         // This is tested indirectly through the shouldReadBarCodeRef behavior
+      });
+    });
+
+    describe('Add device scanner', () => {
+      it('shows add-device searching label for add-device origin', async () => {
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={jest.fn()}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          />,
+          { state: initialState },
+        );
+
+        await waitFor(() => {
+          expect(
+            screen.getByText('Scan the code on your other device'),
+          ).toBeOnTheScreen();
+        });
+      });
+
+      it('shows permission denied UI for add-device origin', async () => {
+        mockUseCameraPermission.mockReturnValue({
+          hasPermission: false,
+          requestPermission: jest.fn().mockResolvedValue('denied'),
+        });
+
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={jest.fn()}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          />,
+          { state: initialState },
+        );
+
+        await waitFor(() => {
+          expect(screen.getByText('Turn on camera access')).toBeOnTheScreen();
+          expect(screen.getByText('Open Settings')).toBeOnTheScreen();
+        });
+      });
+
+      it('shows invalid QR recovery UI and allows retry', async () => {
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          false,
+        );
+
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={jest.fn()}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          />,
+          { state: initialState },
+        );
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: 'not-a-valid-qr' }]);
+        });
+
+        await waitFor(() => {
+          expect(screen.getByText('Unrecognized QR code')).toBeOnTheScreen();
+          expect(screen.getByText('Try again')).toBeOnTheScreen();
+        });
+
+        await act(async () => {
+          fireEvent.press(screen.getByText('Try again'));
+        });
+
+        await waitFor(() => {
+          expect(
+            screen.getByText('Scan the code on your other device'),
+          ).toBeOnTheScreen();
+        });
+      });
+
+      it('shows detected state then forwards valid MWP deeplink to onScanSuccess', async () => {
+        jest.useFakeTimers();
+        const mockOnScanSuccess = jest.fn();
+        const deeplink = 'metamask://connect/mwp?p=abc';
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          true,
+        );
+
+        jest.mocked(classifyAddDeviceScanContent).mockReturnValue('valid');
+
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={mockOnScanSuccess}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+            shouldDismissOnScan={false}
+          />,
+          { state: initialState },
+        );
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: deeplink }]);
+        });
+
+        expect(screen.getByText('Code detected')).toBeOnTheScreen();
+
+        await act(async () => {
+          jest.advanceTimersByTime(400);
+        });
+
+        await waitFor(() => {
+          expect(mockOnScanSuccess).toHaveBeenCalledWith(
+            { content: deeplink },
+            deeplink,
+          );
+        });
+
+        expect(mockGoBack).not.toHaveBeenCalled();
+        jest.useRealTimers();
+      });
+
+      it('shows expired QR recovery UI', async () => {
+        const SDKConnectV2Module = jest.requireMock(
+          '../../../core/SDKConnectV2',
+        );
+        (SDKConnectV2Module.default.isMwpDeeplink as jest.Mock).mockReturnValue(
+          true,
+        );
+        jest.mocked(classifyAddDeviceScanContent).mockReturnValue('expired');
+
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={jest.fn()}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          />,
+          { state: initialState },
+        );
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([
+            { value: 'metamask://connect/mwp?p=expired' },
+          ]);
+        });
+
+        await waitFor(() => {
+          expect(screen.getByText('QR code expired')).toBeOnTheScreen();
+          expect(screen.getByText('Try again')).toBeOnTheScreen();
+        });
+      });
+
+      it('shows connection failed recovery UI when pairing fails', async () => {
+        renderWithProvider(
+          <QrScanner
+            onScanSuccess={jest.fn()}
+            origin={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+          />,
+          { state: initialState },
+        );
+
+        await waitFor(() => {
+          expect(
+            screen.getByText('Scan the code on your other device'),
+          ).toBeOnTheScreen();
+        });
+
+        await act(async () => {
+          DeviceEventEmitter.emit(
+            EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT,
+          );
+        });
+
+        await waitFor(() => {
+          expect(screen.getByText('Connection failed')).toBeOnTheScreen();
+          expect(screen.getByText('Try again')).toBeOnTheScreen();
+        });
       });
     });
   });

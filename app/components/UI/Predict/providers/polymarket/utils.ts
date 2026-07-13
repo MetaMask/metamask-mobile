@@ -29,12 +29,15 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
-  getNegRiskMoneylineTeamLogo,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
-  resolveNegRiskMoneylineShortTitles,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
+import { getTokenImage } from '../../utils/sports';
+import {
+  getSportsMarketTeamLogo,
+  resolveNegRiskMoneylineShortTitles,
+} from './sportsUtils';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -813,10 +816,17 @@ const parsePolymarketMarketOutcomes = (
         shortTitle = negRiskShort.noShort;
       }
 
+      const tokenImage = getTokenImage({
+        sportsMarketType: market.sportsMarketType,
+        tokenTitle: title,
+        game,
+      });
+
       return {
         id: tokenId,
         title,
         ...(shortTitle && { shortTitle }),
+        ...(tokenImage && { image: tokenImage }),
         price: parseFloat(outcomePrices[index]),
       };
     },
@@ -915,8 +925,7 @@ export const parsePolymarketMarket = (
   marketId: event.id,
   title: market.question,
   description: market.description,
-  image:
-    getNegRiskMoneylineTeamLogo(market, game) ?? market.icon ?? market.image,
+  image: getSportsMarketTeamLogo(market, game) ?? market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   groupItemThreshold:
     market.groupItemThreshold != null
@@ -2423,6 +2432,11 @@ export const previewOrder = async (
     amount: dollarAmount,
     decimals: roundConfig.amount,
   });
+  const serviceFees = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: takerAmount,
+  });
   return {
     marketId,
     outcomeId,
@@ -2438,6 +2452,6 @@ export const previewOrder = async (
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,
-    // no fees for sell orders
+    fees: serviceFees,
   };
 };

@@ -10,12 +10,16 @@ import {
   ButtonIconSize,
   FilterButton,
   HeaderSubpage,
-  IconName as HeaderIconName,
+  IconColor,
+  IconName,
   ListItemSelect,
   SegmentedControl,
   SelectButton,
   SelectButtonVariant,
   SelectButtonSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
@@ -25,11 +29,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { Modal, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
   PerpsMarketHeaderSelectorsIDs,
@@ -39,17 +40,7 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -78,12 +69,14 @@ import { usePerpsTopOfBook } from '../../hooks/stream/usePerpsTopOfBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderBookGrouping } from '../../hooks/usePerpsOrderBookGrouping';
-import { selectPerpsButtonColorTestVariant } from '../../selectors/featureFlags';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
-import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
+import { useABTest } from '../../../../../hooks/useABTest';
+import {
+  BUTTON_COLOR_VARIANTS,
+  PERPS_BUTTON_COLOR_AB_TEST_KEY,
+} from '../../abTestConfig';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -111,19 +104,19 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { symbol, marketData: routeMarketData } = route.params || {};
   const displaySymbol = getPerpsDisplaySymbol(symbol || '');
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
   const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
 
   // A/B Testing: Button color test (TAT-1937)
-  const {
-    variantName: buttonColorVariant,
-    isEnabled: isButtonColorTestEnabled,
-  } = usePerpsABTest({
-    test: BUTTON_COLOR_TEST,
-    featureFlagSelector: selectPerpsButtonColorTestVariant,
-  });
+  const { variantName: buttonColorVariant } = useABTest(
+    PERPS_BUTTON_COLOR_AB_TEST_KEY,
+    BUTTON_COLOR_VARIANTS,
+    {
+      experimentName: 'Long/Short Button Color Test',
+      variationNames: { control: 'White/White', colors: 'Green/Red' },
+    },
+  );
 
   // Geo-restriction eligibility check
   const isEligible = useSelector(selectPerpsEligibility);
@@ -330,9 +323,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     return formatGroupingLabel(currentGrouping);
   }, [currentGrouping]);
 
-  // Dynamic footer style with safe area insets
+  // Footer bottom padding accounts for home indicator when SafeAreaView is not used
   const footerStyle = useMemo(
-    () => [styles.footer, { paddingBottom: 16 + insets.bottom }],
+    () => [styles.footer, { paddingBottom: insets.bottom }],
     [styles.footer, insets.bottom],
   );
 
@@ -381,14 +374,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       <HeaderSubpage
         includesTopInset
         twClassName="min-h-14 h-auto bg-default justify-center"
-        startAccessory={
-          <ButtonIcon
-            iconName={HeaderIconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={handleBack}
-            testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
-          />
-        }
+        onBack={handleBack}
+        backButtonProps={{
+          testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,
+        }}
         endAccessory={groupingSelectButton}
         avatar={
           <PerpsTokenLogo
@@ -507,9 +496,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
           [PERPS_EVENT_PROPERTY.SOURCE]:
             PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-          ...(isButtonColorTestEnabled && {
-            [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-          }),
         });
 
         navigateToOrder({
@@ -518,15 +504,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_LONG_BUTTON,
         });
       }),
-    [
-      gate,
-      isEligible,
-      symbol,
-      navigateToOrder,
-      track,
-      isButtonColorTestEnabled,
-      buttonColorVariant,
-    ],
+    [gate, isEligible, symbol, navigateToOrder, track],
   );
 
   // Handle Short button press
@@ -552,9 +530,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.SHORT,
           [PERPS_EVENT_PROPERTY.SOURCE]:
             PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-          ...(isButtonColorTestEnabled && {
-            [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-          }),
         });
 
         navigateToOrder({
@@ -563,15 +538,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           source: PERPS_EVENT_VALUE.SOURCE.ORDER_BOOK_SHORT_BUTTON,
         });
       }),
-    [
-      gate,
-      isEligible,
-      symbol,
-      navigateToOrder,
-      track,
-      isButtonColorTestEnabled,
-      buttonColorVariant,
-    ],
+    [gate, isEligible, symbol, navigateToOrder, track],
   );
 
   // Handle Close position button press
@@ -622,27 +589,19 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Error state
   if (error) {
     return (
-      <SafeAreaView
-        style={styles.container}
-        edges={['bottom', 'left', 'right']}
-        testID={testID}
-      >
+      <View style={styles.container} testID={testID}>
         {orderBookHeader}
         <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
             {strings('perps.order_book.error')}
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={['bottom', 'left', 'right']}
-      testID={testID}
-    >
+    <View style={styles.container} testID={testID}>
       {orderBookHeader}
 
       {/* Controls Row - Unit Toggle */}
@@ -702,28 +661,30 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         {/* Spread Row */}
         {spreadMetrics && (
           <View style={styles.spreadContainer}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {strings('perps.order_book.spread')}:
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {formatPerpsFiat(spreadMetrics.spread, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })}
             </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               ({spreadMetrics.spreadPercentage}%)
             </Text>
-            <TouchableOpacity
+            <ButtonIcon
+              iconName={IconName.Info}
+              size={ButtonIconSize.Xs}
+              iconProps={{ color: IconColor.IconAlternative }}
               onPress={() => handleTooltipPress('spread')}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               testID={PerpsOrderBookViewSelectorsIDs.SPREAD_INFO_BUTTON}
-            >
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.Muted}
-              />
-            </TouchableOpacity>
+            />
           </View>
         )}
 
@@ -754,17 +715,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           </View>
         ) : (
           <View style={styles.actionsContainer} accessible={false}>
-            {buttonColorVariant === 'monochrome' ? (
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleLongPress}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </Button>
-            ) : (
+            {buttonColorVariant === 'colors' ? (
               <ButtonSemantic
                 severity={ButtonSemanticSeverity.Success}
                 onPress={handleLongPress}
@@ -774,19 +725,19 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               >
                 {strings('perps.market.long')}
               </ButtonSemantic>
-            )}
-
-            {buttonColorVariant === 'monochrome' ? (
+            ) : (
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                onPress={handleShortPress}
+                onPress={handleLongPress}
                 style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
               >
-                {strings('perps.market.short')}
+                {strings('perps.market.long')}
               </Button>
-            ) : (
+            )}
+
+            {buttonColorVariant === 'colors' ? (
               <ButtonSemantic
                 severity={ButtonSemanticSeverity.Danger}
                 onPress={handleShortPress}
@@ -796,6 +747,16 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               >
                 {strings('perps.market.short')}
               </ButtonSemantic>
+            ) : (
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleShortPress}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+              >
+                {strings('perps.market.short')}
+              </Button>
             )}
           </View>
         )}
@@ -806,7 +767,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         <BottomSheet
           ref={depthBandSheetRef}
           onClose={handleDepthBandSheetClose}
-          twClassName={surfaceClass}
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET}
         >
           <BottomSheetHeader
@@ -869,7 +829,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           testID={`${PerpsOrderBookViewSelectorsIDs.CONTAINER}-geo-block-tooltip`}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
