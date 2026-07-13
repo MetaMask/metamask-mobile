@@ -1,16 +1,18 @@
 /**
- * Fully-qualified key path for the `user_key` in Encrypted User Storage.
+ * Fully-qualified key path for the `local_user_secret` in Encrypted User
+ * Storage.
  */
-export const UKYC_USER_KEY_PATH = `ukyc.user_key` as const;
+export const UKYC_LOCAL_USER_SECRET_PATH = `ukyc.local_user_secret` as const;
 
 /**
- * Size of the `user_key` in bytes. 32 bytes (256 bits) provides high entropy
- * and matches the input length expected by the HKDF-SHA256 derivations below.
+ * Size of the `local_user_secret` in bytes. 32 bytes (256 bits) provides high
+ * entropy and matches the input length expected by the HKDF-SHA256 derivations
+ * below.
  */
-export const UKYC_USER_KEY_SIZE_BYTES = 32;
+export const UKYC_LOCAL_USER_SECRET_SIZE_BYTES = 32;
 
 /**
- * Byte length of each value derived from `user_key`.
+ * Byte length of each value derived from `local_user_secret`.
  *
  * `storageSigningSeed` is 32 bytes because it is used directly as the Ed25519
  * private-key seed for the `storage_signing_key`.

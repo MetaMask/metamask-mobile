@@ -5,13 +5,13 @@ import { bytesToBase64, stringToBytes } from '@metamask/utils';
 import { UKYC_DERIVED_KEY_SIZES, UKYC_KDF_INFO } from './constants';
 
 /**
- * Derives UKYC client material from the root `user_key` using HKDF-SHA256 with
- * domain-separated `info` labels — see the architecture doc, section
- * "Client-Derived Material".
+ * Derives UKYC client material from the root `local_user_secret` using
+ * HKDF-SHA256 with domain-separated `info` labels — see the architecture doc,
+ * section "Client-Derived Material".
  */
 
 /**
- * The set of values derived from `user_key`.
+ * The set of values derived from `local_user_secret`.
  */
 export interface UkycClientMaterial {
   /** Opaque lookup key for the encrypted KYC object. */
@@ -44,55 +44,58 @@ export interface EncodedUkycClientMaterial {
 }
 
 /**
- * Derives a single labeled value from `user_key`.
+ * Derives a single labeled value from `local_user_secret`.
  *
- * No salt is used: `user_key` is already a high-entropy uniformly-random secret,
- * so per-output domain separation comes entirely from the `info` label.
+ * No salt is used: `local_user_secret` is already a high-entropy
+ * uniformly-random secret, so per-output domain separation comes entirely from
+ * the `info` label.
  *
- * @param userKey - The root `user_key` bytes.
+ * @param localUserSecret - The root `local_user_secret` bytes.
  * @param info - Domain-separation label for this output.
  * @param length - Desired output length in bytes.
  * @returns The derived bytes.
  */
 function deriveLabeled(
-  userKey: Uint8Array,
+  localUserSecret: Uint8Array,
   info: string,
   length: number,
 ): Uint8Array {
-  return hkdf(sha256, userKey, undefined, stringToBytes(info), length);
+  return hkdf(sha256, localUserSecret, undefined, stringToBytes(info), length);
 }
 
 /**
- * Derives all UKYC client material from the root `user_key`.
+ * Derives all UKYC client material from the root `local_user_secret`.
  *
- * This is a pure function of `user_key`: the same input always yields the same
- * outputs, which is what makes `storage_id` and `storage_signing_key` stable
+ * This is a pure function of `local_user_secret`: the same input always yields
+ * the same outputs, which is what makes `storage_id` and `signing_key` stable
  * across sessions and devices.
  *
- * @param userKey - The `user_key` produced by `getOrCreateUserKey`.
+ * @param localUserSecret - The `local_user_secret` produced by
+ * `getOrCreateLocalUserSecret`.
  * @returns The derived {@link UkycClientMaterial}.
  */
-export function deriveClientMaterial(userKey: Uint8Array): UkycClientMaterial {
+export function deriveClientMaterial(
+  localUserSecret: Uint8Array,
+): UkycClientMaterial {
   const storageId = deriveLabeled(
-    userKey,
+    localUserSecret,
     UKYC_KDF_INFO.storageId,
     UKYC_DERIVED_KEY_SIZES.storageId,
   );
 
   const contentEncryptionKey = deriveLabeled(
-    userKey,
     UKYC_KDF_INFO.contentEncryptionKey,
     UKYC_DERIVED_KEY_SIZES.contentEncryptionKey,
+    localUserSecret,
   );
 
   const storageSigningSeed = deriveLabeled(
-    userKey,
     UKYC_KDF_INFO.storageSigningSeed,
     UKYC_DERIVED_KEY_SIZES.storageSigningSeed,
   );
 
   const relayTunnelKey = deriveLabeled(
-    userKey,
+    localUserSecret,
     UKYC_KDF_INFO.relayTunnelKey,
     UKYC_DERIVED_KEY_SIZES.relayTunnelKey,
   );
