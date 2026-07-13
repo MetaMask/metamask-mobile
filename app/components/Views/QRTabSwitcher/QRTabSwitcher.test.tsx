@@ -4,7 +4,11 @@ import QRTabSwitcher, { QRTabSwitcherScreens } from './QRTabSwitcher';
 import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  QrSyncPhases,
+  QrSyncProvisioningStatuses,
+  QrSyncSecretTypes,
+} from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import type { RootState } from '../../../reducers';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
@@ -184,17 +188,15 @@ describe('QRTabSwitcher', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to import when sync-ready arrives for new-user add-device flow', () => {
+  it('navigates to import when awaiting password with pending secrets for new users', async () => {
     renderAddDeviceFlow(
       {
-        phase: QrSyncPhases.REVIEWING_IMPORT,
-        importPlan: [
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports: [
           {
             index: 0,
             value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
+            type: QrSyncSecretTypes.MNEMONIC,
             isPrimary: false,
           },
         ],
@@ -202,30 +204,30 @@ describe('QRTabSwitcher', () => {
       false,
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-      {
-        initialStep: 1,
-        qrSyncImport: true,
-      },
-    );
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        {
+          initialStep: 1,
+          qrSyncImport: true,
+        },
+      );
+    });
     expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
   });
 
-  it('auto-imports and navigates home when sync-ready arrives for existing users', async () => {
+  it('auto-imports and navigates home when awaiting password for existing users', async () => {
     const mnemonic =
       'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
 
     renderAddDeviceFlow(
       {
-        phase: QrSyncPhases.REVIEWING_IMPORT,
-        importPlan: [
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports: [
           {
             index: 0,
             value: mnemonic,
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
+            type: QrSyncSecretTypes.MNEMONIC,
             isPrimary: false,
           },
         ],
