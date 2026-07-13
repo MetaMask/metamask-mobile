@@ -45,6 +45,7 @@ import {
   buildFollowTradingTokenContext,
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
+  type TraderProfileScreenViewedSource,
 } from '../analytics';
 
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
@@ -66,6 +67,7 @@ import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import { useTraderPositions, useTraderProfile } from './hooks';
+import { resolveQuickBuyOriginalEntryPointFromProfile } from '../TraderPositionView/components/QuickBuy/analytics';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -137,7 +139,8 @@ const TraderProfileView = () => {
     source: sourceParam,
     traderRank,
   } = route.params;
-  const source = sourceParam ?? 'deep_link';
+  const source = (sourceParam ??
+    'deep_link') as TraderProfileScreenViewedSource;
   const { track } = useSocialLeaderboardAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
 
@@ -294,6 +297,8 @@ const TraderProfileView = () => {
         tokenSymbol: position.tokenSymbol,
         position,
         source: 'profile_position',
+        originalEntryPoint:
+          resolveQuickBuyOriginalEntryPointFromProfile(source),
         isClosed: !isOpenTab,
       });
     },
@@ -303,6 +308,7 @@ const TraderProfileView = () => {
       traderName,
       profile?.profile.imageUrl,
       traderAddress,
+      source,
       track,
     ],
   );

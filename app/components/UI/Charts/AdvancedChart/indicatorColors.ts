@@ -129,6 +129,7 @@ export const buildIndicatorLegendConfig = (
 
   return {
     MACD: {
+      subPaneLegend: true,
       plots: [
         { tvTitle: 'MACD', label: 'MACD(12,26)', color: colors.MACD.macd },
         { tvTitle: 'Signal', label: 'Signal', color: colors.MACD.signal },
@@ -141,6 +142,7 @@ export const buildIndicatorLegendConfig = (
       useIndex: true,
     },
     RSI: {
+      subPaneLegend: true,
       plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: colors.RSI.plot }],
       useIndex: true,
     },
@@ -168,6 +170,16 @@ export const getTokenDetailsLegendOverlay = (
   enabled: true,
   config: buildIndicatorLegendConfig(getIndicatorColorSet(themeAppearance)),
 });
+
+/**
+ * Sub-pane indicator names derived from legend config so there's a single
+ * source of truth — adding `subPaneLegend: true` to a new entry is enough.
+ */
+export const SUB_PANE_INDICATORS = Object.entries(
+  buildIndicatorLegendConfig(getIndicatorColorSet()),
+)
+  .filter(([, cfg]) => cfg.subPaneLegend === true)
+  .map(([name]) => name) as readonly string[];
 
 export const getIndicatorColorsForWebview = (
   themeAppearance: ChartThemeAppearance = AppThemeKey.dark,

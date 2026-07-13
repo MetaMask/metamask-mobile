@@ -208,6 +208,15 @@ export const getPerpsRelatedMarketsSelector = {
 };
 
 // ========================================
+// PERPS RECENTLY VIEWED RAIL SELECTORS
+// ========================================
+
+export const PerpsRecentlyViewedRailSelectorsIDs = {
+  RAIL: 'perps-recently-viewed-rail',
+  PILL_GRID: 'perps-recently-viewed-pill-grid',
+};
+
+// ========================================
 // PERPS ORDER HEADER SELECTORS
 // ========================================
 
