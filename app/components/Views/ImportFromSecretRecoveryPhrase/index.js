@@ -598,7 +598,7 @@ const ImportFromSecretRecoveryPhrase = ({
           ]}
         >
           {currentStep === 0 && (
-            <>
+            <Box twClassName="gap-y-1.5">
               <Text
                 variant={TextVariant.DisplayMd}
                 color={TextColor.TextDefault}
@@ -606,68 +606,66 @@ const ImportFromSecretRecoveryPhrase = ({
               >
                 {strings('import_from_seed.title')}
               </Text>
-              <Box twClassName="mt-1.5">
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings(
-                      'import_from_seed.enter_your_secret_recovery_phrase',
-                    )}
-                    {isAddDeviceSyncEnabled && (
-                      <>
-                        {' '}
-                        {strings('import_from_seed.or')}{' '}
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          color={TextColor.PrimaryDefault}
-                          onPress={() =>
-                            navigation.navigate(
-                              Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-                            )
-                          }
-                        >
-                          {strings(
-                            'import_from_seed.import_wallet_from_extension',
-                          )}
-                        </Text>
-                      </>
-                    )}
-                  </Text>
-                  {!isAddDeviceSyncEnabled && (
-                    <TouchableOpacity
-                      onPress={showWhatIsSeedPhrase}
-                      testID={
-                        ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
-                      }
-                    >
-                      <Icon
-                        name={IconName.Info}
-                        size={IconSize.Md}
-                        color={colors.icon.alternative}
-                      />
-                    </TouchableOpacity>
+                  {strings(
+                    'import_from_seed.enter_your_secret_recovery_phrase',
                   )}
-                </Box>
-                <SrpInputGrid
-                  ref={srpInputGridRef}
-                  seedPhrase={seedPhrase}
-                  onSeedPhraseChange={setSeedPhrase}
-                  onError={setError}
-                  externalError={error}
-                  testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
-                  placeholderText={strings('import_from_seed.srp_placeholder')}
-                  uniqueId={uniqueId}
-                  onCurrentWordChange={setCurrentInputWord}
-                  autoFocus={false}
-                />
+                  {isAddDeviceSyncEnabled && (
+                    <>
+                      {' '}
+                      {strings('import_from_seed.or')}{' '}
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.PrimaryDefault}
+                        onPress={() =>
+                          navigation.navigate(
+                            Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+                          )
+                        }
+                      >
+                        {strings(
+                          'import_from_seed.import_wallet_from_extension',
+                        )}
+                      </Text>
+                    </>
+                  )}
+                </Text>
+                {!isAddDeviceSyncEnabled && (
+                  <TouchableOpacity
+                    onPress={showWhatIsSeedPhrase}
+                    testID={
+                      ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
+                    }
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Md}
+                      color={colors.icon.alternative}
+                    />
+                  </TouchableOpacity>
+                )}
               </Box>
-            </>
+              <SrpInputGrid
+                ref={srpInputGridRef}
+                seedPhrase={seedPhrase}
+                onSeedPhraseChange={setSeedPhrase}
+                onError={setError}
+                externalError={error}
+                testIdPrefix={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
+                placeholderText={strings('import_from_seed.srp_placeholder')}
+                uniqueId={uniqueId}
+                onCurrentWordChange={setCurrentInputWord}
+                autoFocus={false}
+              />
+            </Box>
           )}
 
           {currentStep === 1 && (
