@@ -15,7 +15,11 @@ import {
 import type { OrderPreview } from '../types';
 import { Side, type PredictActivity, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
-import { PolymarketProvider } from './PolymarketProvider';
+import {
+  ACCOUNT_STATE_CACHE_TTL_MS,
+  ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS,
+  PolymarketProvider,
+} from './PolymarketProvider';
 import { OrderType, SignatureType } from './types';
 import {
   executeDepositWalletBatch,
@@ -999,6 +1003,74 @@ describe('PolymarketProvider', () => {
     await expect(
       createProvider().getAccountState({ ownerAddress: signer.address }),
     ).rejects.toThrow('Failed to fetch Polymarket activity');
+  });
+
+  it('serves cached account state within the TTL without refetching', async () => {
+    const provider = createProvider();
+
+    const first = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const second = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    expect(second).toEqual(first);
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-fetches account state once the deployed-wallet TTL expires', async () => {
+    const provider = createProvider();
+    const start = 1_700_000_000_000;
+    // The global test setup replaces Date.now with a jest.fn — reassign (and
+    // restore) rather than spyOn, since mockRestore would wipe the global mock.
+    const originalDateNow = Date.now;
+    Date.now = jest.fn(() => start);
+
+    try {
+      await provider.getAccountState({ ownerAddress: signer.address });
+
+      Date.now = jest.fn(() => start + ACCOUNT_STATE_CACHE_TTL_MS + 1);
+      await provider.getAccountState({ ownerAddress: signer.address });
+
+      expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(2);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    } finally {
+      Date.now = originalDateNow;
+    }
+  });
+
+  it('expires not-deployed account states on the shorter TTL', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(false);
+    const provider = createProvider();
+    const start = 1_700_000_000_000;
+    const originalDateNow = Date.now;
+    Date.now = jest.fn(() => start);
+
+    try {
+      const accountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+      expect(accountState.isDeployed).toBe(false);
+      expect(mockResolveDepositWalletAddress).toHaveBeenCalledTimes(1);
+
+      // Still cached within the not-deployed TTL.
+      Date.now = jest.fn(
+        () => start + ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS - 1,
+      );
+      await provider.getAccountState({ ownerAddress: signer.address });
+      expect(mockResolveDepositWalletAddress).toHaveBeenCalledTimes(1);
+
+      // Expired past the not-deployed TTL — must refetch.
+      Date.now = jest.fn(
+        () => start + ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS + 1,
+      );
+      await provider.getAccountState({ ownerAddress: signer.address });
+      expect(mockResolveDepositWalletAddress).toHaveBeenCalledTimes(2);
+    } finally {
+      Date.now = originalDateNow;
+    }
   });
 
   describe('getActivity', () => {
