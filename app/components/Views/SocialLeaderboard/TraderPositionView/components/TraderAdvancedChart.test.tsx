@@ -60,9 +60,21 @@ const mockUseOHLCVChart = useOHLCVChart as jest.MockedFunction<
   typeof useOHLCVChart
 >;
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
 const makeBars = (n: number): OHLCVBar[] =>
   Array.from({ length: n }, (_, i) => ({
     time: 1_700_000_000_000 + i * 60_000,
+    open: 100 + i,
+    high: 101 + i,
+    low: 99 + i,
+    close: 100 + i,
+    volume: 10,
+  }));
+
+const makeDailyBars = (n: number): OHLCVBar[] =>
+  Array.from({ length: n }, (_, i) => ({
+    time: 1_700_000_000_000 + i * DAY_MS,
     open: 100 + i,
     high: 101 + i,
     low: 99 + i,
@@ -91,21 +103,19 @@ const defaultProps = {
   onChartIndexChange: jest.fn(),
 };
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 describe('getRecommendedTradeFocusPeriod', () => {
   const now = 1_700_000_000_000;
   const ago = (ms: number) => now - ms;
 
-  it('uses only 1M and All for spot trade focus', () => {
+  it('recommends the smallest period that can contain a recent spot trade', () => {
     expect(
       getRecommendedTradeFocusPeriod(ago(30 * 60 * 1000), false, now),
-    ).toBe('1M');
+    ).toBe('1H');
     expect(
       getRecommendedTradeFocusPeriod(ago(12 * 60 * 60 * 1000), false, now),
-    ).toBe('1M');
+    ).toBe('1D');
     expect(getRecommendedTradeFocusPeriod(ago(3 * DAY_MS), false, now)).toBe(
-      '1M',
+      '1W',
     );
     expect(getRecommendedTradeFocusPeriod(ago(30 * DAY_MS), false, now)).toBe(
       '1M',
@@ -115,10 +125,13 @@ describe('getRecommendedTradeFocusPeriod', () => {
     );
   });
 
-  it('uses only 1M and All for perp trade focus', () => {
+  it('recommends the smallest period that can contain a recent perp trade', () => {
     expect(getRecommendedTradeFocusPeriod(ago(30 * 60 * 1000), true, now)).toBe(
-      '1M',
+      '1H',
     );
+    expect(
+      getRecommendedTradeFocusPeriod(ago(12 * 60 * 60 * 1000), true, now),
+    ).toBe('1D');
     expect(getRecommendedTradeFocusPeriod(ago(30 * DAY_MS), true, now)).toBe(
       '1M',
     );
@@ -193,6 +206,7 @@ describe('mapTradesToAdvancedMarkers', () => {
 describe('TraderAdvancedChart', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseOHLCVChart.mockReset();
   });
 
   it('renders the AdvancedChart with mapped trade markers when OHLCV data is sufficient', () => {
@@ -229,9 +243,22 @@ describe('TraderAdvancedChart', () => {
     );
   });
 
-  it('passes ALL trades as markers, even ones outside the loaded window (draw-on-pan)', () => {
+  it('opts into SLB-scoped chart behavior via slbMode', () => {
+    setOHLCV(makeBars(20));
+
+    render(<TraderAdvancedChart {...defaultProps} />);
+
+    // Gates the SocialLeaderboard-only WebView paths (centering, back-fill
+    // pagination, full-window focus guard) so they never affect other consumers.
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({ slbMode: true }),
+    );
+  });
+
+  it('passes ALL trades as markers and frames a trade older than the loaded page when more history can be paginated', () => {
     const bars = makeBars(20); // window: 1_700_000_000_000 .. +19*60_000
-    setOHLCV(bars);
+    setOHLCV(bars, { hasMore: true, nextCursor: 'next' });
+    const oldTradeTime = bars[0].time - 60_000_000;
 
     const trades: Trade[] = [
       {
@@ -247,7 +274,7 @@ describe('TraderAdvancedChart', () => {
         direction: 'sell',
         tokenAmount: 1,
         usdCost: 100,
-        timestamp: (bars[0].time - 60_000_000) / 1000, // long before the window
+        timestamp: oldTradeTime / 1000, // long before the loaded page
         transactionHash: '0xoutside',
       },
     ];
@@ -257,13 +284,101 @@ describe('TraderAdvancedChart', () => {
     const lastCall = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
       tradeMarkers: { id: string }[];
       visibleFromMs: number;
+      visibleToMs: number;
     };
     // Both markers are sent — the WebView decides which to draw as candles load.
     expect(lastCall.tradeMarkers.map((m) => m.id).sort()).toEqual([
       '0xinside',
       '0xoutside',
     ]);
-    // The out-of-window trade must NOT pull the initial viewport before the data.
+    // The viewport frames the first→last trade (with padding). Because more
+    // history can be paginated, `from` is allowed below the loaded page so the
+    // WebView datafeed pages the older trade in; `to` clamps to the last loaded
+    // candle so there is no blank gap past the available data.
+    const span = bars[5].time - oldTradeTime;
+    const pad = Math.max(span, DAY_MS * 0.5) * 0.2;
+    expect(lastCall.visibleFromMs).toBe(oldTradeTime - pad);
+    expect(lastCall.visibleToMs).toBe(bars[bars.length - 1].time);
+  });
+
+  it('frames the first→last loaded trade with padding instead of a fixed period-wide window', () => {
+    const bars = makeDailyBars(12);
+    setOHLCV(bars);
+
+    const firstTradeTime = bars[2].time;
+    const lastTradeTime = bars[5].time;
+    const trades: Trade[] = [
+      {
+        intent: 'enter',
+        direction: 'buy',
+        tokenAmount: 1,
+        usdCost: 100,
+        timestamp: firstTradeTime / 1000,
+        transactionHash: '0xbuy',
+      },
+      {
+        intent: 'exit',
+        direction: 'sell',
+        tokenAmount: 1,
+        usdCost: 110,
+        timestamp: lastTradeTime / 1000,
+        transactionHash: '0xsell',
+      },
+    ];
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1W"
+        trades={trades}
+      />,
+    );
+
+    const lastCall = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      visibleFromMs: number;
+      visibleToMs: number;
+    };
+    // Window is sized to the trades + padding (not the full 1W `durationMs`),
+    // so a short position fills the screen without a blank gap.
+    const span = lastTradeTime - firstTradeTime;
+    const pad = Math.max(span, 7 * DAY_MS * 0.5) * 0.2;
+    expect(lastCall.visibleFromMs).toBe(firstTradeTime - pad);
+    expect(lastCall.visibleToMs).toBe(lastTradeTime + pad);
+  });
+
+  it('clamps the viewport to the oldest loaded candle when no older history can be paginated (no blank gap)', () => {
+    const bars = makeDailyBars(12);
+    // hasMore: false — the asset has no more history to page in.
+    setOHLCV(bars, { hasMore: false, nextCursor: null });
+
+    // A trade at the very first loaded candle: padding would push the framed
+    // `from` before the data, which previously left a blank gap on the left.
+    const tradeTime = bars[0].time;
+    const trades: Trade[] = [
+      {
+        intent: 'enter',
+        direction: 'buy',
+        tokenAmount: 1,
+        usdCost: 100,
+        timestamp: tradeTime / 1000,
+        transactionHash: '0xopen',
+      },
+    ];
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1W"
+        trades={trades}
+      />,
+    );
+
+    const lastCall = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      visibleFromMs: number;
+      visibleToMs: number;
+    };
+    // No blank gap: the viewport starts no earlier than the oldest loaded bar.
+    expect(lastCall.visibleFromMs).toBe(bars[0].time);
     expect(lastCall.visibleFromMs).toBeGreaterThanOrEqual(bars[0].time);
   });
 
@@ -351,7 +466,6 @@ describe('TraderAdvancedChart', () => {
           id: '0xbuy',
           timestamp: 1_700_000_060,
           nonce: 1,
-          timePeriod: '1D',
           spanMs: getTradeFocusSpanMs('1D'),
         }}
       />,
@@ -369,13 +483,55 @@ describe('TraderAdvancedChart', () => {
           id: '0xbuy',
           timestamp: 1_700_000_060,
           nonce: 2,
-          timePeriod: '1D',
           spanMs: getTradeFocusSpanMs('1D'),
         }}
       />,
     );
     expect(mockFocusTime).toHaveBeenCalledTimes(2);
     expect(mockPulseTradeMarker).toHaveBeenCalledTimes(2);
+  });
+
+  it('still focuses a pending trade after the active period changes (not pinned to the tap-time period)', () => {
+    // A focus request arrives while the chart is still loading, so it can't be
+    // handled yet. The auto-period selection then changes the active period
+    // (e.g. widening) before the request resolves. The request must NOT be pinned
+    // to the period that was active at tap time — it should resolve against the
+    // new active period once its data is ready. Regression for "focus stalls
+    // after hook period change".
+    setOHLCV(makeBars(20), { isLoading: true });
+    const { rerender } = render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1D"
+        focusRequest={{
+          id: '0xbuy',
+          timestamp: 1_700_000_060,
+          nonce: 1,
+          spanMs: getTradeFocusSpanMs('1D'),
+        }}
+      />,
+    );
+    expect(mockFocusTime).not.toHaveBeenCalled();
+
+    // Data settles and the active period has since widened to 1W (same request).
+    setOHLCV(makeBars(20), { isLoading: false });
+    rerender(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1W"
+        focusRequest={{
+          id: '0xbuy',
+          timestamp: 1_700_000_060,
+          nonce: 1,
+          spanMs: getTradeFocusSpanMs('1W'),
+        }}
+      />,
+    );
+
+    expect(mockFocusTime).toHaveBeenCalledWith(1_700_000_060_000, {
+      spanMs: getTradeFocusSpanMs('1W'),
+    });
+    expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xbuy');
   });
 
   it('does not focus when the selected widest period still lacks the trade time', () => {
@@ -391,7 +547,6 @@ describe('TraderAdvancedChart', () => {
           id: '0xold',
           timestamp: bars[0].time - DAY_MS,
           nonce: 1,
-          timePeriod: 'All',
           spanMs: getTradeFocusSpanMs('All'),
         }}
         onRequestTimePeriod={mockRequestTimePeriod}
@@ -416,7 +571,6 @@ describe('TraderAdvancedChart', () => {
           id: '0xold',
           timestamp: bars[0].time - DAY_MS,
           nonce: 1,
-          timePeriod: '1M',
           spanMs: getTradeFocusSpanMs('1M'),
         }}
         onRequestTimePeriod={mockRequestTimePeriod}
@@ -426,6 +580,50 @@ describe('TraderAdvancedChart', () => {
     expect(mockFocusTime).not.toHaveBeenCalled();
     expect(mockPulseTradeMarker).not.toHaveBeenCalled();
     expect(mockRequestTimePeriod).toHaveBeenCalledWith('All');
+  });
+
+  it('auto-requests the first loaded spot period that contains every trade', () => {
+    const oldTradeTime = 1_700_000_000_000;
+    const recentBars = makeBars(20).map((bar) => ({
+      ...bar,
+      time: oldTradeTime + 30 * DAY_MS + (bar.time - 1_700_000_000_000),
+    }));
+    const coveringBars = makeDailyBars(40);
+    let call = 0;
+    mockUseOHLCVChart.mockImplementation(() => {
+      call += 1;
+      const bars = call === 3 ? coveringBars : recentBars;
+      return {
+        ohlcvData: bars,
+        isLoading: false,
+        error: null,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      } as unknown as ReturnType<typeof useOHLCVChart>;
+    });
+    const mockRequestTimePeriod = jest.fn();
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1H"
+        shouldAutoRequestTimePeriod
+        trades={[
+          {
+            intent: 'enter',
+            direction: 'buy',
+            tokenAmount: 1,
+            usdCost: 100,
+            timestamp: oldTradeTime / 1000,
+            transactionHash: '0xold',
+          },
+        ]}
+        onRequestTimePeriod={mockRequestTimePeriod}
+      />,
+    );
+
+    expect(mockRequestTimePeriod).toHaveBeenCalledWith('1W');
   });
 
   describe('stale-while-revalidate interval switching', () => {

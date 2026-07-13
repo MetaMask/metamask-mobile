@@ -38,6 +38,8 @@ export const TokenDetailsInlineHeader = ({
   onBackPress,
   onPriceAlertPress,
   onSharePress,
+  onStarPress,
+  isWatched,
   onCopyAddress,
   iconColor,
   useAmbientColor = false,
@@ -47,6 +49,8 @@ export const TokenDetailsInlineHeader = ({
   onBackPress: () => void;
   onPriceAlertPress?: () => void;
   onSharePress?: () => void;
+  onStarPress?: () => void;
+  isWatched?: boolean;
   onCopyAddress?: () => void;
   /** Hex color string for the back button icon (A/B test). */
   iconColor?: string;
@@ -57,10 +61,13 @@ export const TokenDetailsInlineHeader = ({
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
 
-  const contractAddress = useMemo(
-    () => resolveTokenContractAddress(token),
-    [token],
-  );
+  const isNativeToken = token.isETH || token.isNative;
+  const contractAddress = useMemo(() => {
+    if (isNativeToken) {
+      return null;
+    }
+    return resolveTokenContractAddress(token);
+  }, [token, isNativeToken]);
   const handleCopyContractAddress = useCopyTokenContractAddress(
     contractAddress,
     onCopyAddress,
@@ -128,11 +135,18 @@ export const TokenDetailsInlineHeader = ({
   ]);
 
   const endButtonIconProps = useMemo(() => {
-    if (!shouldShowEndButtons) {
-      return undefined;
-    }
     const buttons = [];
-    if (onSharePress) {
+    if (onStarPress) {
+      buttons.push({
+        iconName: isWatched ? IconName.StarFilled : IconName.Star,
+        onPress: onStarPress,
+        testID: 'watchlist-star-button',
+        accessibilityLabel: isWatched
+          ? 'Remove from watchlist'
+          : 'Add to watchlist',
+      });
+    }
+    if (shouldShowEndButtons && onSharePress) {
       buttons.push({
         iconName: IconName.Share,
         onPress: onSharePress,
@@ -140,7 +154,7 @@ export const TokenDetailsInlineHeader = ({
         accessibilityLabel: 'Share token',
       });
     }
-    if (onPriceAlertPress) {
+    if (shouldShowEndButtons && onPriceAlertPress) {
       buttons.push({
         iconName: IconName.Notification,
         onPress: onPriceAlertPress,
@@ -149,7 +163,13 @@ export const TokenDetailsInlineHeader = ({
       });
     }
     return buttons.length > 0 ? buttons : undefined;
-  }, [shouldShowEndButtons, onSharePress, onPriceAlertPress]);
+  }, [
+    shouldShowEndButtons,
+    onStarPress,
+    isWatched,
+    onSharePress,
+    onPriceAlertPress,
+  ]);
 
   const descriptionEndAccessory = useMemo(() => {
     if (!contractAddress) {

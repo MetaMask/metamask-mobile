@@ -6,6 +6,7 @@ import {
 import { getVedaTokenConfig } from '../../../../../components/UI/Card/util/vedaToken';
 import {
   hasMoneyAccountCardRequirements,
+  isAnyMoneyAccountDelegatedForCard,
   isMoneyAccountDelegatedForCard,
   resolveMoneyAccountCardToken,
 } from './moneyAccountCardToken';
@@ -291,5 +292,61 @@ describe('isMoneyAccountDelegatedForCard', () => {
         vedaConfig,
       }),
     ).toBe(true);
+  });
+});
+
+describe('isAnyMoneyAccountDelegatedForCard', () => {
+  const vedaConfig = getVedaTokenConfig(createDelegationSettings());
+
+  const createFundingToken = (
+    overrides: Partial<CardFundingToken> = {},
+  ): CardFundingToken =>
+    ({
+      address: VEDA_ADDRESS,
+      symbol: 'veda',
+      name: 'veda',
+      decimals: 6,
+      caipChainId: 'eip155:143',
+      walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
+      fundingStatus: FundingStatus.Enabled,
+      spendableBalance: '0',
+      delegationContract: DELEGATION_CONTRACT,
+      priority: undefined,
+      stagingTokenAddress: undefined,
+      displaySymbol: 'mUSD',
+      ...overrides,
+    }) as CardFundingToken;
+
+  it('returns true for a delegated Veda token on any (non-primary) wallet address', () => {
+    expect(
+      isAnyMoneyAccountDelegatedForCard({
+        fundingTokens: [
+          createFundingToken({
+            walletAddress: '0x9999999999999999999999999999999999999999',
+          }),
+        ],
+        vedaConfig,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false when no Veda token is enabled', () => {
+    expect(
+      isAnyMoneyAccountDelegatedForCard({
+        fundingTokens: [
+          createFundingToken({ fundingStatus: FundingStatus.NotEnabled }),
+        ],
+        vedaConfig,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false when vedaConfig is null', () => {
+    expect(
+      isAnyMoneyAccountDelegatedForCard({
+        fundingTokens: [createFundingToken()],
+        vedaConfig: null,
+      }),
+    ).toBe(false);
   });
 });

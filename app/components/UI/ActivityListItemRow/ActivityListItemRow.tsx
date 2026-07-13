@@ -27,6 +27,7 @@ function isSingleNetworkDomainKind(type: ActivityKind): boolean {
     type.startsWith('perps') ||
     type.startsWith('prediction') ||
     type.startsWith('market') ||
+    type.startsWith('limit') ||
     type.startsWith('stopMarket')
   );
 }
@@ -66,7 +67,7 @@ function ResolvedActivityListItemRow({
 
   const nftImageUrl = useNftActivityImage(item);
   const styles = createStyles(colors, typography);
-  const isFailed = item.status === 'failed' || item.status === 'cancelled';
+  const isFailed = item.status === 'failed';
   const fallbackIconName = resolveTransactionIconName(item.type);
   const networkImageSource = isSingleNetworkDomainKind(item.type)
     ? undefined
@@ -98,6 +99,7 @@ function ResolvedActivityListItemRow({
       onPress={handlePress}
       primaryAmount={content.primaryAmount}
       primaryToken={content.primaryToken}
+      amountIsPnl={content.isPnlAmount}
       secondaryAmount={content.secondaryAmount}
       styles={styles}
       subtitle={content.subtitle}

@@ -67,6 +67,14 @@ export const PredictEventProperties = {
   SESSION_ID: 'session_id',
   IS_SESSION_END: 'is_session_end',
 
+  // Redesigned home + generic feed IA (PRED-834)
+  FEED_ID: 'feed_id',
+  TAB_ID: 'tab_id',
+  FILTER_ID: 'filter_id',
+  SECTION_ID: 'section_id',
+  IS_DYNAMIC_FILTER: 'is_dynamic_filter',
+  TRACKING_MODE: 'tracking_mode',
+
   // Payment token (buy-with-any-token flow only)
   PAYMENT_TOKEN_ADDRESS: 'payment_token_address',
   PAYMENT_TOKEN_SYMBOL: 'payment_token_symbol',
@@ -128,6 +136,8 @@ export const PredictEventValues = {
     MM_PREDICT_DEPOSIT: 'mm_predict_deposit',
     MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
     MM_PREDICT_CLAIM: 'mm_predict_claim',
+    MM_PREDICT_TRANSACTION_SUBMISSION: 'mm_predict_transaction_submission',
+    MM_PREDICT_WALLET_CREATION: 'mm_predict_wallet_creation',
   },
   CLAIM_FAILURE_REASON: {
     PENDING_RESOLUTION: 'pending_resolution',
@@ -172,6 +182,13 @@ export const PredictEventValues = {
   ACTION_TYPE: {
     VIEWED: 'viewed',
     CLICKED: 'clicked',
+    SEE_ALL: 'see_all',
+  },
+  SECTION_ID: {
+    LIVE_NOW: 'live_now',
+    CATEGORIES: 'categories',
+    POPULAR_TODAY: 'popular_today',
+    TRENDING: 'trending',
   },
   BANNER_TYPE: {
     WORLD_CUP: 'world_cup',
@@ -193,6 +210,7 @@ export const PredictTradeStatus = {
   SUBMITTED: 'submitted',
   SUCCEEDED: 'succeeded',
   FAILED: 'failed',
+  CANCELLED: 'cancelled',
   SWAP_INITIATED: 'swap_initiated',
   SWAP_SUCCESS: 'swap_success',
   SWAP_FAILED: 'swap_failed',

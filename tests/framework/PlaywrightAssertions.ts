@@ -1,8 +1,9 @@
-import { BASE_DEFAULTS, sleep } from './Utilities.ts';
+import Utilities, { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import {
   addOverhead,
   isOverheadTrackingActive,
@@ -14,6 +15,11 @@ const logger = createPlaywrightLogger('PlaywrightAssertions');
 
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
+}
+
+export interface TextDisplayedOptions extends AssertionOptions {
+  /** When set, asserts text on this element instead of searching the screen. */
+  within?: PlaywrightElement | Promise<PlaywrightElement>;
 }
 
 /**
@@ -241,6 +247,13 @@ export default class PlaywrightAssertions {
   ): Promise<void> {
     try {
       const el = await targetElement;
+      try {
+        if (!(await el.unwrap().isExisting())) {
+          return;
+        }
+      } catch {
+        // Fall through to waitForDisplayed when existence cannot be determined.
+      }
       await el.waitForDisplayed({
         reverse: true,
         timeout: this.getTimeout(options),
@@ -254,16 +267,98 @@ export default class PlaywrightAssertions {
       ) {
         return;
       }
+      if (
+        error instanceof TypeError &&
+        error.message.includes('waitForDisplayed')
+      ) {
+        return;
+      }
       throw error;
     }
   }
 
   static async expectTextDisplayed(
     text: string,
+    options: TextDisplayedOptions = {},
+  ): Promise<void> {
+    const { within, ...assertionOptions } = options;
+    if (within) {
+      await this.expectElementText(within, text, assertionOptions);
+      return;
+    }
+    const timeout = this.getTimeout(assertionOptions);
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = await PlaywrightMatchers.getElementByText(text);
+        await el.waitForDisplayed({ timeout: 100 });
+      },
+      {
+        timeout,
+        description: `Assert text "${text}" is displayed`,
+      },
+    );
+  }
+
+  static async expectElementToHaveLabel(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    expectedLabel: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const el = await PlaywrightMatchers.getElementByText(text);
-    await el.waitForDisplayed({ timeout: this.getTimeout(options) });
+    const timeout = this.getTimeout(options);
+    const interval = 300;
+    const start = Date.now();
+    const el = await targetElement;
+
+    const normalize = (value: string): string =>
+      value
+        .replace(/[\s,]+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+    const matchesLabel = (actual: string): boolean => {
+      const normalizedActual = normalize(actual);
+      const normalizedExpected = normalize(expectedLabel);
+      if (normalizedActual.includes(normalizedExpected)) {
+        return true;
+      }
+
+      return expectedLabel
+        .split(',')
+        .map((part) => normalize(part))
+        .every((part) => part.length > 0 && normalizedActual.includes(part));
+    };
+
+    while (Date.now() - start < timeout) {
+      const label = await this.getElementAccessibilityLabel(el);
+      if (matchesLabel(label)) {
+        return;
+      }
+      await sleep(interval);
+    }
+
+    const lastLabel = await this.getElementAccessibilityLabel(el);
+    throw new Error(
+      `Expected label "${expectedLabel}" but got "${lastLabel}" within ${timeout}ms`,
+    );
+  }
+
+  private static async getElementAccessibilityLabel(
+    el: PlaywrightElement,
+  ): Promise<string> {
+    const raw = el.unwrap();
+    const isAndroid = await PlatformDetector.isAndroid();
+    const accessibilityText = isAndroid
+      ? ((await raw.getAttribute('content-desc')) ?? '')
+      : ((await raw.getAttribute('label')) ??
+        (await raw.getAttribute('name')) ??
+        '');
+    let text = '';
+    try {
+      text = await raw.getText();
+    } catch {
+      text = '';
+    }
+    return [accessibilityText, text].filter(Boolean).join(', ');
   }
 
   static async expectTextNotDisplayed(

@@ -289,6 +289,10 @@
         "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
         "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1": false
       },
+      "stellar": {
+        "stellar:pubnet": true,
+        "stellar:testnet": false
+      },
       "tron": {
         "tron:2494104990": false,
         "tron:3448148188": false,
@@ -514,6 +518,10 @@
       "mainnet": [],
       "testnet": []
     },
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "tradeConfigurations": {
       "mainnet": {},
       "testnet": {}
@@ -720,6 +728,12 @@
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null
   },
+  "ConfigRegistryController": {
+    "configs": { "networks": {} },
+    "etag": null,
+    "lastFetched": null,
+    "version": null
+  },
   "ClientController": {
     "isUiOpen": false
   },
@@ -811,6 +825,7 @@
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
     "clientVersionRequirements": null,
+    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -841,9 +856,11 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "pendingSecretImports": null,
+    "provisioningMetadata": null,
+    "provisioningStatus": null,
     "otp": null,
-    "error": null,
-    "importPlan": null
+    "error": null
   },
   "AiDigestController": {
     "marketInsights": {},

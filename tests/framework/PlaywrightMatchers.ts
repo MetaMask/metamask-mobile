@@ -66,19 +66,25 @@ export default class PlaywrightMatchers {
     options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
     if (elementId instanceof RegExp) {
-      const escaped = this.escapeRegexPattern(elementId);
-      this.logFind('id pattern', elementId.source);
       const isAndroid = await PlatformDetector.isAndroid();
+      const escaped = isAndroid
+        ? this.escapeRegexPatternForUiAutomator(elementId)
+        : this.escapeRegexPattern(elementId);
+      this.logFind('id pattern', elementId.source);
+      // Android resource IDs are package-qualified (e.g. io.metamask:id/browser-tab-1).
+      // Detox by.id(RegExp) matches the suffix; UiAutomator resourceIdMatches needs .*…*.
+      const androidPattern = `.*${escaped}.*`;
       const locator = isAndroid
-        ? `android=new UiSelector().resourceIdMatches("${escaped}")`
+        ? `android=new UiSelector().resourceIdMatches("${androidPattern}")`
         : `-ios predicate string:name MATCHES "${escaped}"`;
 
       const drv = getDriver();
       if (!drv) throw new Error('Driver is not available');
       if (options.index !== undefined) {
-        const elements = await drv.$$(locator);
-        return wrapElement(
-          elements[options.index] as unknown as ChainablePromiseElement,
+        return this.resolveIndexedElementByLocator(
+          locator,
+          options.index,
+          `resource id pattern ${elementId.source}`,
         );
       }
       const element = await drv.$(locator);
@@ -104,9 +110,10 @@ export default class PlaywrightMatchers {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     if (options.index !== undefined) {
-      const elements = await drv.$$(locator);
-      return wrapElement(
-        elements[options.index] as unknown as ChainablePromiseElement,
+      return this.resolveIndexedElementByLocator(
+        locator,
+        options.index,
+        `id ${String(elementId)}`,
       );
     }
     const element = await drv.$(locator);
@@ -124,9 +131,11 @@ export default class PlaywrightMatchers {
     options: MatcherOptions = {},
   ): Promise<PlaywrightElement> {
     if (text instanceof RegExp) {
-      const escaped = this.escapeRegexPattern(text);
-      this.logFind('text pattern', text.source);
       const isAndroid = await PlatformDetector.isAndroid();
+      const escaped = isAndroid
+        ? this.escapeRegexPatternForUiAutomator(text)
+        : this.escapeRegexPattern(text);
+      this.logFind('text pattern', text.source);
       const locator = isAndroid
         ? `android=new UiSelector().textMatches("${escaped}")`
         : `-ios predicate string:label MATCHES "${escaped}" OR name MATCHES "${escaped}"`;
@@ -162,6 +171,46 @@ export default class PlaywrightMatchers {
 
   private static escapeRegexPattern(pattern: RegExp): string {
     return pattern.source.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  }
+
+  /**
+   * UiAutomator `*Matches()` uses Java regex but does not support `\d` / `\D` shorthands.
+   */
+  private static escapeRegexPatternForUiAutomator(pattern: RegExp): string {
+    return this.escapeRegexPattern(pattern)
+      .replace(/\\d/g, '[0-9]')
+      .replace(/\\D/g, '[^0-9]');
+  }
+
+  /**
+   * Resolves an indexed element from a multi-match locator.
+   * When `$$` returns no matches, falls back to a lazy `$` ref so negative
+   * assertions (e.g. expectElementToNotBeVisible) can poll until absent.
+   * Throws when matches exist but the requested index is out of range.
+   */
+  private static async resolveIndexedElementByLocator(
+    locator: string,
+    index: number,
+    targetDescription: string,
+  ): Promise<PlaywrightElement> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const elements = await drv.$$(locator);
+    const matchCount = await elements.length;
+    const element = elements[index] as unknown as
+      | ChainablePromiseElement
+      | undefined;
+    if (element) {
+      return wrapElement(element);
+    }
+    if (matchCount === 0) {
+      return wrapElement(
+        (await drv.$(locator)) as unknown as ChainablePromiseElement,
+      );
+    }
+    throw new Error(
+      `No element at index ${index} for ${targetDescription} (found ${matchCount} match(es)).`,
+    );
   }
 
   /**
