@@ -303,6 +303,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     closeToast,
   }));
 
+  // Toast height can change after the first render when text layout updates
+  // top-alignment styles. We avoid restarting the entrance animation and update
+  // the dismiss position after the final size is measured to keep animation and
+  // auto-dismiss timing consistent.
   const onAnimatedViewLayout = (e: LayoutChangeEvent) => {
     if (toastOptions) {
       const { height } = e.nativeEvent.layout;
@@ -311,9 +315,6 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
 
       hiddenTranslateY.value = nextHiddenTranslateY;
 
-      // Text layout can change top-alignment styles and trigger another layout
-      // pass. Only run the entrance animation on the first layout, but keep
-      // dismiss targets in sync with the latest measured height.
       if (animationStartedRef.current) {
         syncDismissTargetAfterRemeasure();
         return;
