@@ -145,7 +145,9 @@ export const usePerpsLiveMovers = ({
   // Wall-clock instant of the last recompute pass, used to schedule the next
   // one no sooner than recomputeIntervalMs after it.
   const lastRecomputeAtRef = useRef<number>(0);
-  const pendingRecomputeTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const pendingRecomputeTimerRef = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
 
   const clearPendingRecompute = useCallback(() => {
     if (pendingRecomputeTimerRef.current !== undefined) {

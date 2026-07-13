@@ -420,7 +420,11 @@ describe('usePerpsLiveMovers', () => {
             maxCount: 12,
             recomputeIntervalMs: 10000,
           }),
-        { initialProps: { direction: 'gainers' as const } },
+        {
+          initialProps: { direction: 'gainers' } as {
+            direction: 'gainers' | 'losers';
+          },
+        },
       );
 
       await waitFor(() => {
