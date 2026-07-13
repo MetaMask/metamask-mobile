@@ -470,6 +470,10 @@ jest.mock('./NetworkPills', () => ({
         onPress: () => onChainSelect(MOCK_CHAIN_IDS.polygon),
       }),
       createElement(TouchableOpacity, {
+        testID: 'select-all-networks',
+        onPress: () => onChainSelect(undefined),
+      }),
+      createElement(TouchableOpacity, {
         testID: 'open-network-modal',
         onPress: onMorePress,
       }),
@@ -571,6 +575,31 @@ jest.mock('../TokenSelectorItem', () => ({
 jest.mock('react-native-gesture-handler', () => {
   const { FlatList, ScrollView } = jest.requireActual('react-native');
   return { FlatList, ScrollView };
+});
+
+const mockFlashListScrollToIndex = jest.fn().mockResolvedValue(undefined);
+const mockFlashListMount = jest.fn();
+const mockFlashListUnmount = jest.fn();
+
+jest.mock('@shopify/flash-list', () => {
+  const ReactMock = jest.requireActual('react');
+  const { FlatList } = jest.requireActual('react-native');
+
+  const MockFlashList = ReactMock.forwardRef(
+    (props: Record<string, unknown>, ref: React.ForwardedRef<unknown>) => {
+      ReactMock.useImperativeHandle(ref, () => ({
+        scrollToIndex: mockFlashListScrollToIndex,
+      }));
+      ReactMock.useEffect(() => {
+        mockFlashListMount();
+        return () => mockFlashListUnmount();
+      }, []);
+
+      return ReactMock.createElement(FlatList, props);
+    },
+  );
+
+  return { FlashList: MockFlashList };
 });
 
 const resetMocks = () => {
@@ -958,6 +987,41 @@ describe('BridgeTokenSelector', () => {
   });
 
   describe('chain selection', () => {
+    it('resets the mounted list after scrolling and changing networks', async () => {
+      const { getByTestId, UNSAFE_getByType } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      const initialMountCount = mockFlashListMount.mock.calls.length;
+      const { FlatList } = jest.requireActual('react-native');
+
+      await act(async () => {
+        UNSAFE_getByType(FlatList).props.onScroll({
+          nativeEvent: {
+            layoutMeasurement: { height: 500 },
+            contentOffset: { y: 500 },
+            contentSize: { height: 2000 },
+          },
+        });
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('select-eth-network'));
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId('select-all-networks'));
+      });
+
+      await waitFor(() => {
+        expect(mockFlashListScrollToIndex).toHaveBeenCalledTimes(1);
+        expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+          index: 0,
+          animated: false,
+        });
+      });
+      expect(mockFlashListMount).toHaveBeenCalledTimes(initialMountCount);
+      expect(mockFlashListUnmount).not.toHaveBeenCalled();
+    });
+
     it('cancels search and resets when chain changes', async () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       fireEvent.changeText(getByTestId('bridge-token-search-input'), 'ETH');
@@ -1046,6 +1110,26 @@ describe('BridgeTokenSelector', () => {
   });
 
   describe('pagination', () => {
+    it('disables visible-content position maintenance', () => {
+      const { UNSAFE_getByType } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      const { FlatList } = jest.requireActual('react-native');
+
+      expect(
+        UNSAFE_getByType(FlatList).props.maintainVisibleContentPosition,
+      ).toEqual({ disabled: true });
+    });
+
+    it('sets a frame-rate scroll event throttle', () => {
+      const { UNSAFE_getByType } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      const { FlatList } = jest.requireActual('react-native');
+
+      expect(UNSAFE_getByType(FlatList).props.scrollEventThrottle).toBe(16);
+    });
+
     it('triggers load more on scroll near bottom with cursor', async () => {
       mockSearchTokensState = {
         ...mockSearchTokensState,
