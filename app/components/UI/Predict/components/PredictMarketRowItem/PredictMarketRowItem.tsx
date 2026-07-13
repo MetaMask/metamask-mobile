@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View, Image } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -109,7 +110,7 @@ const PredictMarketRowItem = ({
             <Image
               source={{ uri: market.image }}
               style={tw.style('w-full h-full')}
-              resizeMode="cover"
+              contentFit="cover"
             />
           ) : null)}
       </Box>

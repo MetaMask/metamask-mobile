@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
   Box,

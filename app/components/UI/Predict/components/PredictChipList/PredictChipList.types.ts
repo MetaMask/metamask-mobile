@@ -1,9 +1,9 @@
-import type { ImageSourcePropType } from 'react-native';
+import type { ImageSource } from 'expo-image';
 
 export interface PredictChipItem {
   key: string;
   label: string;
-  imageSource?: ImageSourcePropType;
+  imageSource?: ImageSource;
 }
 
 export interface PredictChipListProps {
