@@ -125,19 +125,7 @@ const setupIosTask = {
       {
         title: 'Install bundler gem',
         task: async (_, task) => {
-          if (GITHUB_CI) {
-            // In GitHub CI, we still need bundler for self-hosted runners
-            try {
-              await $`gem install bundler -v 2.5.8`;
-            } catch (error) {
-              // If bundler is already installed, continue
-              if (!error.stderr?.includes('already installed')) {
-                throw error;
-              }
-            }
-          } else {
-            await $`gem install bundler -v 2.5.8`;
-          }
+          await $`gem install bundler -v 2.5.8`;
         },
       },
       {
