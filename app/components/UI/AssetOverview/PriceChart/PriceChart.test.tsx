@@ -258,8 +258,10 @@ describe('PriceChart', () => {
      * Synthetic responder event with the touchHistory shape
      * that PanResponder's internal state machine expects.
      */
+    const FIXED_TIMESTAMP = 1_736_761_237_983;
+
     const createResponderEvent = (locationX: number, locationY: number) => {
-      const timestamp = Date.now();
+      const timestamp = FIXED_TIMESTAMP;
       return {
         nativeEvent: {
           locationX,

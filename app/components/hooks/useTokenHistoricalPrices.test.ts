@@ -18,7 +18,7 @@ function makeTimeSeries(
 }
 
 describe('hasInsufficientTimeCoverage', () => {
-  const now = Date.now();
+  const now = 1_000_000_000_000;
 
   it('returns false for "all" time period (no expected duration)', () => {
     const prices = makeTimeSeries(now, 10, HOUR_MS);
