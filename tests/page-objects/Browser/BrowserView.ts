@@ -492,7 +492,12 @@ class Browser {
     await this.tapUrlInputBox();
     // Cancel dismiss resets the bar to the fixture tab URL (…/health-check) if
     // navigation has not committed yet — skip until the dapp page has loaded.
-    await this.navigateToURL(getDappUrl(0), { skipUrlEditorDismissal: true });
+    // Only skip in Appium; Detox needs the dismiss so the top bar controls are
+    // visible after navigation (e.g. the network avatar button).
+    const navigateOptions = FrameworkDetector.isAppium()
+      ? { skipUrlEditorDismissal: true as const }
+      : {};
+    await this.navigateToURL(getDappUrl(0), navigateOptions);
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
