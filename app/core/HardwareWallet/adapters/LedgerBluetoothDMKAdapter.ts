@@ -23,7 +23,6 @@ import {
   requestMultiple,
   request,
 } from 'react-native-permissions';
-import { getSystemVersion } from 'react-native-device-info';
 import {
   DiscoveredDevice,
   HardwareWalletAdapter,
@@ -51,7 +50,17 @@ import { getDmk } from '../../Ledger/dmk';
 const log = (...args: unknown[]) => console.log(...args);
 
 const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
+// APDU status word for "app not installed" (0x6807). Not present in
+// hw-wallet-sdk's LEDGER_ERROR_MAPPINGS, so it needs explicit handling here
+// and in the error parser to avoid surfacing as a generic unknown error.
+const APP_NOT_INSTALLED_STATUS_CODE = 0x6807;
 const LEDGER_OPERATION_TIMEOUT_MS = 10000;
+// Opening an app requires the user to physically confirm on the device.
+// Per Ledger's DMK guidance the app-open user-confirmation timeout defaults
+// to 30s — the 10s LEDGER_OPERATION_TIMEOUT_MS is for pure APDU round-trips
+// (status checks) and regularly expires while a user is still reading the
+// on-device prompt.
+const LEDGER_OPEN_APP_TIMEOUT_MS = 30000;
 const DEFAULT_SCAN_TIMEOUT_MS = 30000;
 const MAX_DISCONNECT_RETRIES = 3;
 const CONNECT_RETRIES = 2;
@@ -106,7 +115,10 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     }
 
     if (this.#connectInFlight) {
-      await this.#connectInFlight;
+      // Wait for the in-flight attempt but don't rethrow its failure as ours:
+      // that attempt's initiator already received (and handled) the error. If
+      // it failed, fall through and make a fresh attempt below.
+      await this.#connectInFlight.catch(() => undefined);
       if (
         this.#sessionId &&
         this.#deviceId === deviceId &&
@@ -167,6 +179,15 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   ): Promise<boolean> {
     // Strategy 1: Direct connect using cached device info (no scan).
     // The bridge's connect() only uses device.id + transport.
+    //
+    // Delegates to this.connect() rather than calling connectLedgerDmkDevice
+    // directly: connect() owns the #connectInFlight latch, so a concurrent
+    // UI-triggered connect() cannot interleave a second bridge.connect() —
+    // interleaved connects can leave #sessionId pointing at the session the
+    // bridge middleware just disconnected, producing a dead "connected"
+    // adapter. connect() also reuses the destroy-guard, retry, session
+    // monitoring, and Connected-event logic that the previous inline
+    // implementation duplicated.
     if (
       this.#lastConnectedDevice &&
       this.#lastConnectedDevice.id === targetDeviceId
@@ -176,38 +197,21 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         targetDeviceId,
       );
       try {
-        const sessionId = await connectLedgerDmkDevice(
-          this.#lastConnectedDevice,
-        );
-        if (this.#isDestroyed) {
-          try {
-            await disconnectLedgerDmkSession();
-          } catch {
-            /* ignore */
-          }
-          return false;
+        // Seed the discovery cache so connect() finds the device without a
+        // scan — device IDs are stateless for the BLE transport.
+        this.#discoveredDevices.set(targetDeviceId, this.#lastConnectedDevice);
+        await this.connect(targetDeviceId);
+        if (this.isConnected() && this.#deviceId === targetDeviceId) {
+          log('[LedgerDMK] backgroundReconnect - direct connect succeeded');
+          return true;
         }
-
-        this.#sessionId = sessionId;
-        this.#sessionConnected = true;
-        this.#deviceId = targetDeviceId;
-
-        void this.#startSessionMonitoring();
-        this.#emitEvent({
-          event: DeviceEvent.Connected,
-          deviceId: targetDeviceId,
-        });
-        log(
-          '[LedgerDMK] backgroundReconnect - direct connect succeeded, sessionId:',
-          sessionId,
-        );
-        return true;
       } catch (error) {
         log(
           '[LedgerDMK] backgroundReconnect - direct connect failed, falling back to scan:',
           error,
         );
       }
+      if (this.#isDestroyed) return false;
     }
 
     // Strategy 2: Scan for the device (fallback).
@@ -252,6 +256,10 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         },
       );
 
+      // Same rationale as stopDeviceDiscovery(): unsubscribing does not stop
+      // the transport's native scan — stop it explicitly on every exit path.
+      this.#stopDmkScan();
+
       if (!discovered) {
         log(
           '[LedgerDMK] backgroundReconnect - device not found within timeout',
@@ -274,14 +282,20 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   async #doConnect(deviceId: string): Promise<void> {
     const discoveredDevice = this.#discoveredDevices.get(deviceId);
     if (!discoveredDevice) {
+      // Throw (don't resolve) so connect() has a single contract:
+      // resolves ⇒ a session exists. Previously this branch emitted
+      // ConnectionFailed but resolved successfully, so callers awaiting
+      // connect() proceeded to readiness checks against a non-existent
+      // session and surfaced a second, misleading failure one layer down.
+      const error = new Error(
+        `No cached DiscoveredDevice for deviceId: ${deviceId}`,
+      );
       this.#clearTransportState();
       this.#emitEvent({
         event: DeviceEvent.ConnectionFailed,
-        error: new Error(
-          `No cached DiscoveredDevice for deviceId: ${deviceId}`,
-        ),
+        error,
       });
-      return;
+      throw error;
     }
 
     let lastError: unknown;
@@ -311,7 +325,10 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         this.#deviceId = deviceId;
         this.#lastConnectedDevice = discoveredDevice;
 
-        void this.#startSessionMonitoring();
+        // Fire-and-forget: monitoring failures are logged internally and must
+        // not fail the connect. (.catch instead of `void` per the no-void
+        // lint rule.)
+        this.#startSessionMonitoring().catch(() => undefined);
 
         this.#emitEvent({
           event: DeviceEvent.Connected,
@@ -428,7 +445,10 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
    */
   reset(): void {
     log('[LedgerDMK] Resetting adapter state (session preserved)');
-    this.#flowComplete = false;
+    // Delegates so the two interface-mandated methods can never drift apart —
+    // they are intentionally identical for this adapter (both preserve the
+    // DMK session; only disconnect()/destroy() release it).
+    this.resetFlowState();
   }
 
   markFlowComplete(): void {
@@ -548,8 +568,15 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     if (this.#scanSubscription) {
       this.#scanSubscription.unsubscribe();
       this.#scanSubscription = null;
-      // The bridge exposes no stopDiscovering; unsubscribing the discovery
-      // stream stops event delivery. The underlying DMK scan may persist.
+      // Unsubscribing alone does NOT stop the native BLE scan:
+      // RNBleTransport's listenToAvailableDevices() has no unsubscribe
+      // teardown — the scan (startDeviceScan with allowDuplicates + a 1s
+      // interval) only stops via transport.stopDiscovering() or a connect()
+      // on the SAME transport. Our connects go through the keyring bridge's
+      // separate DMK instance, so without this call the scan would run for
+      // the rest of the app session: battery drain, degraded GATT (APDU)
+      // throughput, and Android scan throttling that breaks later scans.
+      this.#stopDmkScan();
     }
 
     if (this.#scanTimeoutId) {
@@ -558,18 +585,36 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     }
   }
 
+  /**
+   * Stop the discovery DMK instance's native BLE scan. Safe to call when no
+   * scan is running. Fire-and-forget: stopping the scan must never fail a
+   * caller's flow.
+   */
+  #stopDmkScan(): void {
+    try {
+      getDmk()
+        .stopDiscovering()
+        .catch((error: unknown) => {
+          log('[LedgerDMK] stopDiscovering failed:', error);
+        });
+    } catch (error) {
+      log('[LedgerDMK] stopDiscovering threw synchronously:', error);
+    }
+  }
+
   async ensurePermissions(): Promise<boolean> {
     if (Platform.OS !== 'android') {
       return true;
     }
 
-    // getSystemVersion() returns the Android version string (e.g. "12", "13",
-    // "14.1"). Coercing via Number() gives a numeric major version we can
-    // compare against 12 (the API 31 split where BLUETOOTH_CONNECT/SCAN
-    // replaced ACCESS_FINE_LOCATION for BLE).
-    const version = Number(getSystemVersion()) || 0;
+    // Platform.Version is the numeric Android API level — no string parsing.
+    // The previous Number(getSystemVersion()) approach fell back to 0 on any
+    // non-numeric release string, silently routing an Android 12+ device to
+    // the legacy ACCESS_FINE_LOCATION branch, where the grant is useless for
+    // BLE (API 31+ requires BLUETOOTH_SCAN/CONNECT). API 31 == Android 12.
+    const apiLevel = Number(Platform.Version) || 0;
 
-    if (version >= 12) {
+    if (apiLevel >= 31) {
       const result = await requestMultiple([
         PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
         PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
@@ -579,13 +624,24 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         result[PERMISSIONS.ANDROID.BLUETOOTH_SCAN] === RESULTS.GRANTED;
 
       if (!allGranted) {
-        await Linking.openSettings();
+        // Only bounce to Settings when the OS will no longer show the
+        // permission dialog (BLOCKED / "never ask again"). A plain DENIED is
+        // re-requestable — jumping to Settings on a first-time decline is
+        // disorienting and unnecessary.
+        const anyBlocked =
+          result[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT] === RESULTS.BLOCKED ||
+          result[PERMISSIONS.ANDROID.BLUETOOTH_SCAN] === RESULTS.BLOCKED;
+        if (anyBlocked) {
+          await Linking.openSettings();
+        }
         return false;
       }
     } else {
       const result = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
       if (result !== RESULTS.GRANTED) {
-        await Linking.openSettings();
+        if (result === RESULTS.BLOCKED) {
+          await Linking.openSettings();
+        }
         return false;
       }
     }
@@ -708,10 +764,9 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
       log('[LedgerDMK] Got app name:', currentAppName);
 
       if (currentAppName === 'Ethereum') {
-        log('[LedgerDMK] Ethereum app confirmed, verifying unlocked...');
-        const verified = await this.#verifyEthereumAppUnlocked();
-        log('[LedgerDMK] Verification result:', verified);
-        return verified;
+        log('[LedgerDMK] Ethereum app confirmed');
+        this.#emitEthereumAppOpened();
+        return true;
       }
 
       await this.#handleWrongApp(currentAppName);
@@ -731,23 +786,21 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
   }
 
   /**
-   * Verify the Ethereum app is unlocked by requesting an address.
-   * Rethrows transient BLE errors to allow retry in ensureDeviceReady.
+   * Emit AppOpened for the Ethereum app.
+   *
+   * Renamed from `#verifyEthereumAppUnlocked`: this method performs no
+   * verification. The bridge's session-state stream only exposes
+   * `{ connected }` (no LOCKED granularity), so a locked device cannot be
+   * pre-detected here — it is surfaced via `DeviceLockedError` on the next
+   * operation, caught by `#isDeviceLocked` in the callers. If the bridge
+   * ever exposes `deviceStatus`, this is where a real pre-flight lock check
+   * belongs (DMK signing-flow Step 3).
    */
-  async #verifyEthereumAppUnlocked(): Promise<boolean> {
-    // The bridge's session-state stream only exposes `{ connected }` (no
-    // LOCKED granularity), so a locked device cannot be pre-detected here. It
-    // is instead surfaced via `DeviceLockedError` on the next operation,
-    // caught by `#isDeviceLocked` in the callers.
-    log(
-      '[LedgerDMK] Ethereum app detected; assuming unlocked (LOCKED detected via error path)',
-    );
-
+  #emitEthereumAppOpened(): void {
     this.#emitEvent({
       event: DeviceEvent.AppOpened,
       currentAppName: 'Ethereum',
     });
-    return true;
   }
 
   /**
@@ -768,14 +821,33 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
     if (appName === 'BOLOS') {
       try {
         log('[LedgerDMK] Requesting Ethereum app to open...');
+        // 30s, not the 10s APDU timeout: the open prompt waits on a physical
+        // user confirmation (see LEDGER_OPEN_APP_TIMEOUT_MS).
         await this.#withTimeout(
           openEthereumAppOnLedger(),
-          LEDGER_OPERATION_TIMEOUT_MS,
+          LEDGER_OPEN_APP_TIMEOUT_MS,
           'Device unresponsive while opening Ethereum app',
           () => this.#closeSession('timeout'),
         );
         log('[LedgerDMK] Open app command sent');
       } catch (openError) {
+        // A locked device typically still reports "BOLOS" to the app check,
+        // so the lock is only discovered HERE, when the open command fails
+        // with 0x5515. Swallowing it (the old behavior) told the user to
+        // "open the Ethereum app" when the actual fix is entering their PIN.
+        // Rethrow so #doEnsureDeviceReady's catch classifies it and emits
+        // DeviceEvent.DeviceLocked. Same for 0x6807 (app not installed) —
+        // the user must install the app via Ledger Live, and looping on
+        // "open the app" can never succeed.
+        if (
+          this.#isDeviceLocked(openError) ||
+          this.#isAppNotInstalled(openError)
+        ) {
+          throw openError;
+        }
+        // Everything else (transient BLE drops during the app switch, etc.)
+        // keeps the old swallow-and-return-false behavior: the AppNotOpen
+        // event already emitted drives the retry UI.
         log('[LedgerDMK] Failed to send open app command:', openError);
         await this.#closeSession('handleWrongApp-error');
       }
@@ -790,6 +862,10 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
         );
         log('[LedgerDMK] Close app command sent');
       } catch (closeError) {
+        // See the open-path catch above for the rationale.
+        if (this.#isDeviceLocked(closeError)) {
+          throw closeError;
+        }
         log('[LedgerDMK] Failed to close app:', closeError);
         await this.#closeSession('closeApp-error');
       }
@@ -1027,6 +1103,29 @@ export class LedgerBluetoothDMKAdapter implements HardwareWalletAdapter {
       message.includes('ble error') ||
       message.includes('bluetooth connection') ||
       message.includes('bluetooth transfer')
+    );
+  }
+
+  /**
+   * Check if error indicates the required app is not installed (0x6807).
+   *
+   * Covers both surfaces of the code: a legacy-shaped TransportStatusError
+   * (the keyring bridge translates DMK command errors into these) carrying
+   * `statusCode`, and a raw DMK error carrying `errorCode` as a hex string
+   * (possibly nested in `originalError` for UnknownDeviceExchangeError).
+   */
+  #isAppNotInstalled(error: unknown): boolean {
+    if (error === null || typeof error !== 'object') return false;
+    const err = error as {
+      statusCode?: number;
+      errorCode?: string;
+      originalError?: { errorCode?: string };
+    };
+    if (err.statusCode === APP_NOT_INSTALLED_STATUS_CODE) return true;
+    const code = err.errorCode ?? err.originalError?.errorCode;
+    return (
+      typeof code === 'string' &&
+      parseInt(code, 16) === APP_NOT_INSTALLED_STATUS_CODE
     );
   }
 

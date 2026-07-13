@@ -29,6 +29,9 @@ describe('useDeviceEventHandlers', () => {
     mockAdapter = {
       walletType: HardwareWalletType.Ledger,
       requiresDeviceDiscovery: true,
+      deviceId: 'device-123',
+      destroy: jest.fn(),
+      onTransportStateChange: jest.fn().mockReturnValue(jest.fn()),
       connect: jest.fn(),
       disconnect: jest.fn(),
       getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),

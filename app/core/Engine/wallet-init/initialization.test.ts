@@ -55,7 +55,12 @@ describe('initializeWallet', () => {
   it('threads the messenger and state through to the builders that need them', () => {
     initializeWallet({ messenger, state });
 
-    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(messenger);
+    // Second arg is the resolved ledgerDmk flag, threaded into the keyring
+    // builders so the Ledger bridge choice matches the adapter choice.
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      expect.any(Boolean),
+    );
     expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
       messenger,
       state,

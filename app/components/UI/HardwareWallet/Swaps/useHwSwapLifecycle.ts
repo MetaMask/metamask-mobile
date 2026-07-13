@@ -146,7 +146,13 @@ export function useHwSwapLifecycle({
     approvalRequestId: strategy.submitOptions.approvalRequestId,
     submissionParams: strategy.submitOptions.submissionParams,
     ensureDeviceReady,
-    setPendingOperationAddress,
+    // useHardwareWalletSubmit requires this (the DMK bridge flow signs
+    // through the keyring directly, so the pending-address gate must be
+    // maintained). The context types it optional for consumers rendered
+    // outside a HardwareWalletProvider; inside the provider — the only place
+    // this screen renders — it is always defined, so the no-op fallback only
+    // satisfies the type at the boundary.
+    setPendingOperationAddress: setPendingOperationAddress ?? (() => undefined),
   });
 
   // ── Derived ──────────────────────────────────────────────────────

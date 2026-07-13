@@ -160,7 +160,19 @@ export const connectLedgerDmkHardware = async (
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setDeviceId(deviceId);
     const ledgerBridge = keyring.bridge as unknown as LedgerBridgeConnection;
-    await ledgerBridge.updateSessionId?.(sessionId);
+    // Fail loudly on a feature-flag mismatch instead of optional-chaining:
+    // if the keyring was built with the legacy LedgerMobileBridge (DMK flag
+    // off at engine init) while the DMK adapter is active, silently skipping
+    // updateSessionId would make every subsequent command fail with an
+    // unrelated-looking error. This should be impossible now that the flag is
+    // latched at init (see app/core/Ledger/dmk.ts), but the guard turns any
+    // regression into a diagnosable error.
+    if (typeof ledgerBridge.updateSessionId !== 'function') {
+      throw new Error(
+        'Ledger DMK adapter is paired with a non-DMK keyring bridge — ledgerDmk feature-flag mismatch between engine init and adapter creation',
+      );
+    }
+    await ledgerBridge.updateSessionId(sessionId);
     return ledgerBridge;
   });
 
@@ -181,14 +193,14 @@ export const connectLedgerDmkHardware = async (
  * is created on the bridge's own DMK instance and stored internally by the
  * bridge, so it is valid for subsequent bridge commands (app checks, signing).
  *
- * @param device - A discovered device (from `getDmk().listenToAvailableDevices`).
+ * @param discoveredDevice - A discovered device (from `getDmk().listenToAvailableDevices`).
  * @returns The DMK session ID.
  */
 export const connectLedgerDmkDevice = async (
-  device: DiscoveredDevice,
+  discoveredDevice: DiscoveredDevice,
 ): Promise<string> => {
   const bridge = await getLedgerDmkBridge();
-  return bridge.connect({ device });
+  return bridge.connect({ device: discoveredDevice });
 };
 
 /**
@@ -208,8 +220,23 @@ export const getLedgerDmkSessionState = async (): Promise<
 /**
  * Disconnect the bridge's DMK session by tearing down the bridge's transport
  * middleware. The bridge is reconnectable on the next `connect`.
+ *
+ * No-ops when no Ledger keyring exists: `withLedgerKeyring` *creates* the
+ * keyring when missing, and this function runs on teardown paths (adapter
+ * `destroy()`/`disconnect()`, including provider unmount right after a
+ * "forget device"). Without the guard, forgetting a Ledger and unmounting
+ * would silently re-persist an empty Ledger keyring into the vault.
  */
 export const disconnectLedgerDmkSession = async (): Promise<void> => {
+  const hasLedgerKeyring = Engine.context.KeyringController.state.keyrings.some(
+    (keyring) => keyring.type === LegacyLedgerKeyring.type,
+  );
+  if (!hasLedgerKeyring) {
+    DevLogger.log(
+      '[Ledger] disconnectLedgerDmkSession - no Ledger keyring, nothing to disconnect',
+    );
+    return;
+  }
   const bridge = await getLedgerDmkBridge();
   await bridge.destroy();
 };

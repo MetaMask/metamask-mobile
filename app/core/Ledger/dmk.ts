@@ -17,9 +17,9 @@ import { FeatureFlagNames } from '../../constants/featureFlags';
  * evaluated via `validatedVersionGatedFeatureFlag`. Defaults to `false`. Mirrors
  * the `selectLedgerDmkEnabled` Redux selector.
  *
- * Both the keyring (at engine init, reading persisted state) and the adapter
- * factory (in `useAdapterLifecycle`, reading live state) call this, so they
- * agree as long as the flag is stable across the two reads.
+ * The keyring reads this once at engine init and latches the result via
+ * `setDmkEnabled`; the adapter factory reads the latch (`getDmkEnabled`), so
+ * both sides are guaranteed to agree for the whole app session.
  */
 export const isDmkEnabled = (
   flags: Record<string, unknown> | null | undefined = {},
@@ -32,7 +32,40 @@ export const isDmkEnabled = (
     : (validatedVersionGatedFeatureFlag(raw) ?? false);
 };
 
-const state: { dmk: DeviceManagementKit | null } = { dmk: null };
+const state: {
+  dmk: DeviceManagementKit | null;
+  /**
+   * DMK flag value resolved once at engine init (see `setDmkEnabled`).
+   * `null` until `initializeWallet` runs.
+   */
+  dmkEnabled: boolean | null;
+} = { dmk: null, dmkEnabled: null };
+
+/**
+ * Latch the resolved DMK flag at engine init.
+ *
+ * Why: the keyring builders are fixed for the app session at engine init,
+ * but the adapter factory used to re-evaluate the flag from *live* Redux
+ * state on every adapter creation. The two readers could disagree (remote
+ * flag refetch mid-session, or `selectRemoteFeatureFlags` returning `{}`
+ * when basic functionality is disabled while the init-time read is ungated),
+ * silently pairing a DMK adapter with a legacy bridge (or vice versa) —
+ * both combinations break Ledger entirely. Latching the init-time value
+ * makes the adapter choice atomically consistent with the keyring choice;
+ * a flag change takes effect on the next app launch for BOTH sides.
+ */
+export const setDmkEnabled = (enabled: boolean): void => {
+  state.dmkEnabled = enabled;
+};
+
+/**
+ * The DMK flag as the keyring saw it at engine init. Falls back to a live
+ * evaluation only if the latch was never set (defensive: engine init always
+ * runs before any adapter is created).
+ */
+export const getDmkEnabled = (
+  fallbackFlags?: Record<string, unknown> | null,
+): boolean => state.dmkEnabled ?? isDmkEnabled(fallbackFlags);
 
 export const getDmk = (): DeviceManagementKit => {
   if (!state.dmk) {
@@ -54,5 +87,13 @@ export const getDmk = (): DeviceManagementKit => {
 
 export const resetDmk = (): void => {
   DevLogger.log('[DMK] Resetting DeviceManagementKit instance');
+  // Close before dropping the reference: DMK owns a native BleManager and a
+  // BLE-state subscription. Nulling without close() leaks that stack, and the
+  // next getDmk() would run a second live BLE manager alongside the orphan.
+  try {
+    state.dmk?.close();
+  } catch (error) {
+    DevLogger.log('[DMK] Error closing DeviceManagementKit:', error);
+  }
   state.dmk = null;
 };

@@ -85,8 +85,12 @@ export const useDeviceConnectionFlow = ({
         existing?.walletType,
         ')',
       );
-      // eslint-disable-next-line no-empty-function
-      existing?.disconnect().catch(() => {});
+      // destroy(), not disconnect(): only destroy() stops the adapter's own
+      // BLE-state monitoring and clears its transport callbacks. The replaced
+      // adapter is orphaned right after this call, so a disconnect() here
+      // leaked one live BLE listener per wallet-type swap. Matches the
+      // replacement path in useAdapterLifecycle.
+      existing?.destroy();
       const adapter = createAdapterWithCallbacks(targetType);
       initializeAdapter(adapter);
       return adapter;
@@ -159,20 +163,6 @@ export const useDeviceConnectionFlow = ({
       return isReady;
     },
     [updateConnectionState],
-  );
-
-  const ensureDeviceReadyOrError = useCallback(
-    async (
-      adapter: HardwareWalletAdapter,
-      targetDeviceId: string,
-    ): Promise<boolean> => {
-      const isReady = await adapter.ensureDeviceReady(targetDeviceId);
-      if (!isReady) {
-        handleError(new Error('Device not ready'));
-      }
-      return isReady;
-    },
-    [handleError],
   );
 
   const connect = useCallback(
@@ -264,6 +254,15 @@ export const useDeviceConnectionFlow = ({
         adapter.resetFlowState();
       }
 
+      // Fast paths below resolve immediately ONLY when the device reports
+      // ready. A not-ready result (wrong app open, dashboard) must NOT be
+      // treated as a terminal error: the adapter has already emitted the
+      // guiding event (AppNotOpen / DeviceLocked), and the main flow's
+      // blocking promise lets the user fix the device and continue — exactly
+      // what happens on a first connection. Returning an error here instead
+      // made a second operation on a connected-but-wrong-app device fail
+      // hard (e.g. swaps dispatched TransactionFailed) where the first
+      // operation would have shown "open the Ethereum app" and waited.
       if (
         targetDeviceId &&
         adapter.isConnected?.() &&
@@ -274,7 +273,13 @@ export const useDeviceConnectionFlow = ({
         );
         try {
           refs.abortControllerRef.current = new AbortController();
-          return await ensureDeviceReadyOrError(adapter, targetDeviceId);
+          const isReady = await tryEnsureReady(adapter, targetDeviceId);
+          if (isReady) {
+            return true;
+          }
+          DevLogger.log(
+            '[HardwareWallet] Device not ready on fast path, falling through to guided flow',
+          );
         } catch (error) {
           DevLogger.log(
             '[HardwareWallet] Direct readiness check failed, falling through to full flow',
@@ -301,11 +306,20 @@ export const useDeviceConnectionFlow = ({
             DevLogger.log(
               '[HardwareWallet] Background reconnect succeeded, checking readiness',
             );
-            return await ensureDeviceReadyOrError(adapter, targetDeviceId);
+            // Same rule as the fast path above: only a ready device resolves
+            // here; not-ready falls through to the guided blocking flow.
+            const isReady = await tryEnsureReady(adapter, targetDeviceId);
+            if (isReady) {
+              return true;
+            }
+            DevLogger.log(
+              '[HardwareWallet] Reconnected but device not ready, falling through to guided flow',
+            );
+          } else {
+            DevLogger.log(
+              '[HardwareWallet] Background reconnect failed, falling through to scanning UI',
+            );
           }
-          DevLogger.log(
-            '[HardwareWallet] Background reconnect failed, falling through to scanning UI',
-          );
         } catch (error) {
           DevLogger.log(
             '[HardwareWallet] Background reconnect error, falling through to scanning UI',
@@ -387,7 +401,6 @@ export const useDeviceConnectionFlow = ({
       updateConnectionState,
       resolveOrCreateAdapter,
       tryEnsureReady,
-      ensureDeviceReadyOrError,
       checkTransportEnabledOrShowError,
       createBlockingPromise,
       onFlowStart,

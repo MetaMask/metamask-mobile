@@ -27,8 +27,16 @@ jest.mock('./helpers', () => ({
 const mockAdapterInstance = {
   walletType: HardwareWalletType.Ledger,
   requiresDeviceDiscovery: true,
+  deviceId: 'device-123',
   connect: jest.fn().mockResolvedValue(undefined),
   disconnect: jest.fn().mockResolvedValue(undefined),
+  // Mirrors the legacy Ledger adapter: hideAwaitingConfirmation now calls
+  // this optional hook instead of a blanket disconnect(), so the DMK adapter
+  // can keep its session alive. The legacy implementation delegates to
+  // disconnect(), which the tests below assert on.
+  releaseAfterOperation: jest.fn(() => {
+    mockAdapterInstance.disconnect();
+  }),
   getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
   ensureDeviceReady: jest.fn().mockResolvedValue(true),
   isConnected: jest.fn().mockReturnValue(true),
@@ -209,12 +217,15 @@ describe('HardwareWalletProvider', () => {
       renderProvider();
 
       await waitFor(() => {
+        // Third arg is the resolved DMK flag (enableDmk), threaded through
+        // so the adapter choice matches the keyring-bridge choice.
         expect(mockCreateAdapter).toHaveBeenCalledWith(
           HardwareWalletType.Ledger,
           expect.objectContaining({
             onDisconnect: expect.any(Function),
             onDeviceEvent: expect.any(Function),
           }),
+          expect.any(Boolean),
         );
       });
     });
@@ -231,6 +242,7 @@ describe('HardwareWalletProvider', () => {
           onDisconnect: expect.any(Function),
           onDeviceEvent: expect.any(Function),
         }),
+        expect.any(Boolean),
       );
     });
   });
@@ -459,6 +471,7 @@ describe('HardwareWalletProvider', () => {
           expect(mockCreateAdapter).toHaveBeenCalledWith(
             HardwareWalletType.Ledger,
             expect.any(Object),
+            expect.any(Boolean),
           );
         });
 
@@ -730,6 +743,7 @@ describe('HardwareWalletProvider', () => {
           expect(mockCreateAdapter).toHaveBeenCalledWith(
             HardwareWalletType.Ledger,
             expect.any(Object),
+            expect.any(Boolean),
           );
         });
 
@@ -1224,6 +1238,7 @@ describe('HardwareWalletProvider', () => {
         expect(mockCreateAdapter).toHaveBeenCalledWith(
           HardwareWalletType.Ledger,
           expect.any(Object),
+          expect.any(Boolean),
         );
       });
 

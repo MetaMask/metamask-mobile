@@ -42,6 +42,9 @@ jest.mock('react-native-ble-plx', () => ({
 // bridge helpers (mocked below).
 const mockDmk = {
   listenToAvailableDevices: jest.fn(),
+  // stopDeviceDiscovery now explicitly stops the native scan (unsubscribing
+  // the observable alone does not stop RNBleTransport's scan).
+  stopDiscovering: jest.fn().mockResolvedValue(undefined),
 };
 jest.mock('../../Ledger/dmk', () => ({
   getDmk: () => mockDmk,
