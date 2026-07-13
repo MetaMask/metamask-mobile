@@ -66,6 +66,7 @@ import {
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import { ShowConfirmDeleteModalState, infuraNetwork } from './types';
+import { getTokenNetworkFilterAfterNetworkDelete } from './utils/getTokenNetworkFilterAfterNetworkDelete';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -903,20 +904,13 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
 
       // set tokenNetworkFilter
       const { PreferencesController } = Engine.context;
-      if (!isAllNetwork) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      } else {
-        // Remove the chainId from the tokenNetworkFilter
-        const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
-        PreferencesController.setTokenNetworkFilter({
-          // TODO fix type of preferences controller level
-          // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(newTokenNetworkFilter as any),
-        });
-      }
+      PreferencesController.setTokenNetworkFilter(
+        getTokenNetworkFilterAfterNetworkDelete(
+          isAllNetwork,
+          tokenNetworkFilter,
+          chainId,
+        ) as Record<string, boolean>,
+      );
 
       setShowConfirmDeleteModal({
         isVisible: false,
