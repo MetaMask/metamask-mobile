@@ -273,34 +273,34 @@ export function usePerpsOrderForm(
   }, [balanceForMax, maxPossibleAmount, orderForm.amount]);
 
   // Update entire form
-  const updateOrderForm = (updates: Partial<OrderFormState>) => {
+  const updateOrderForm = useCallback((updates: Partial<OrderFormState>) => {
     setOrderForm((prev) => ({ ...prev, ...updates }));
-  };
+  }, []);
 
   // Individual setters for common operations
-  const setAmount = (amount: string) => {
+  const setAmount = useCallback((amount: string) => {
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
-  };
+  }, []);
 
-  const setLeverage = (leverage: number) => {
+  const setLeverage = useCallback((leverage: number) => {
     setOrderForm((prev) => ({ ...prev, leverage }));
-  };
+  }, []);
 
-  const setDirection = (direction: 'long' | 'short') => {
+  const setDirection = useCallback((direction: 'long' | 'short') => {
     setOrderForm((prev) => ({ ...prev, direction }));
-  };
+  }, []);
 
-  const setAsset = (asset: string) => {
+  const setAsset = useCallback((asset: string) => {
     setOrderForm((prev) => ({ ...prev, asset }));
-  };
+  }, []);
 
-  const setTakeProfitPrice = (price?: string) => {
+  const setTakeProfitPrice = useCallback((price?: string) => {
     // Convert empty string to undefined for proper clearing
     const cleanedPrice = price === '' || price === null ? undefined : price;
     setOrderForm((prev) => ({ ...prev, takeProfitPrice: cleanedPrice }));
-  };
+  }, []);
 
-  const setStopLossPrice = (price?: string) => {
+  const setStopLossPrice = useCallback((price?: string) => {
     // Convert empty string to undefined for proper clearing
     const cleanedPrice = price === '' || price === null ? undefined : price;
     setOrderForm((prev) => {
@@ -313,18 +313,18 @@ export function usePerpsOrderForm(
       });
       return newState;
     });
-  };
+  }, []);
 
-  const setLimitPrice = (price?: string) => {
+  const setLimitPrice = useCallback((price?: string) => {
     setOrderForm((prev) => {
       const newState = { ...prev, limitPrice: price };
       return newState;
     });
-  };
+  }, []);
 
-  const setOrderType = (type: OrderType) => {
+  const setOrderType = useCallback((type: OrderType) => {
     setOrderForm((prev) => ({ ...prev, type }));
-  };
+  }, []);
 
   // Handle percentage-based amount selection (respects custom token amount when set).
   // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
@@ -361,21 +361,40 @@ export function usePerpsOrderForm(
     }));
   }, [currentNetwork]);
 
-  return {
-    orderForm,
-    updateOrderForm,
-    setAmount,
-    setLeverage,
-    setDirection,
-    setAsset,
-    setTakeProfitPrice,
-    setStopLossPrice,
-    setLimitPrice,
-    setOrderType,
-    handlePercentageAmount,
-    handleMaxAmount,
-    handleMinAmount,
-    maxPossibleAmount,
-    balanceForValidation: balanceForMax,
-  };
+  return useMemo(
+    () => ({
+      orderForm,
+      updateOrderForm,
+      setAmount,
+      setLeverage,
+      setDirection,
+      setAsset,
+      setTakeProfitPrice,
+      setStopLossPrice,
+      setLimitPrice,
+      setOrderType,
+      handlePercentageAmount,
+      handleMaxAmount,
+      handleMinAmount,
+      maxPossibleAmount,
+      balanceForValidation: balanceForMax,
+    }),
+    [
+      orderForm,
+      updateOrderForm,
+      setAmount,
+      setLeverage,
+      setDirection,
+      setAsset,
+      setTakeProfitPrice,
+      setStopLossPrice,
+      setLimitPrice,
+      setOrderType,
+      handlePercentageAmount,
+      handleMaxAmount,
+      handleMinAmount,
+      maxPossibleAmount,
+      balanceForMax,
+    ],
+  );
 }

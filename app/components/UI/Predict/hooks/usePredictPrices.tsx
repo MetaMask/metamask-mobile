@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -62,7 +62,10 @@ export const usePredictPrices = (
     }
   }, [enabled]);
 
-  const queriesKey = JSON.stringify(queries);
+  // Memoize so the (potentially large) serialization only runs when the
+  // queries array identity actually changes, not on every re-render driven
+  // by live price ticks.
+  const queriesKey = useMemo(() => JSON.stringify(queries), [queries]);
 
   const fetchPrices = useCallback(async () => {
     if (!enabled) {

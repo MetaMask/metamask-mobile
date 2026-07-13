@@ -9,6 +9,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   subscriptions: {},
   subscriptionBenefits: {},
   vipDashboard: {},
+  vipRefereeDashboard: {},
   vipPerpsFees: {},
   seasons: {},
   subscriptionReferralDetails: {},
@@ -32,6 +33,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   predictThePitchPositions: {},
   predictThePitchPrizePool: {},
   clientVersionRequirements: null,
+  firstPredictOnUs: null,
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });

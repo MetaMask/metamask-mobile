@@ -3,11 +3,34 @@ import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../../locales/i18n';
+import Routes from '../../../../../../../constants/navigation/Routes';
 import type { PredictMarket } from '../../../../types';
 import { CRYPTO_TAG, UP_OR_DOWN_TAG } from '../../../../utils/cryptoUpDown';
+import { PredictEventValues } from '../../../../constants/eventNames';
 import PredictLiveNowSection from './PredictLiveNowSection';
 import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
 import { usePredictLiveNowSection } from './usePredictLiveNowSection';
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+const mockTrackHomeSectionInteraction = jest.fn();
+
+jest.mock('../../../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackHomeSectionInteraction: (...args: unknown[]) =>
+          mockTrackHomeSectionInteraction(...args),
+      },
+    },
+  },
+}));
 
 // Mock only the data boundary: the section's own data hook. The hook's own
 // logic (params, filtering, interleave, loading) is covered by
@@ -189,18 +212,29 @@ describe('PredictLiveNowSection', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders a non-pressable "Live now" header without a navigation chevron', () => {
+  it('renders a pressable "Live now" header that navigates to the live feed', () => {
     setSection({ items: [createLiveMarket('L1')] });
 
-    const { getByTestId, queryByTestId, getByText } = renderSection();
+    const { getByTestId, getByText } = renderSection();
 
-    expect(
-      getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER),
-    ).toBeOnTheScreen();
+    const header = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER);
+    expect(header).toBeOnTheScreen();
     expect(getByText(strings('predict.home.live_now_title'))).toBeOnTheScreen();
-    // The chevron only renders when the header is pressable (onPress set); the
-    // "See all" target route does not exist yet, so it must be absent.
-    expect(queryByTestId('section-header-arrow-icon')).not.toBeOnTheScreen();
+
+    fireEvent.press(header);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.FEED,
+      params: {
+        feedId: 'live',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      },
+    });
+    expect(mockTrackHomeSectionInteraction).toHaveBeenCalledWith({
+      sectionId: PredictEventValues.SECTION_ID.LIVE_NOW,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
   });
 
   it('renders pagination dots when there are 2+ items after load', () => {

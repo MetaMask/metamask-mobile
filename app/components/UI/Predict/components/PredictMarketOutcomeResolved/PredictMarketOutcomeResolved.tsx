@@ -3,17 +3,16 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { PredictOutcome } from '../../types';
 import { formatVolume } from '../../utils/format';
 
@@ -25,18 +24,32 @@ interface PredictMarketOutcomeResolvedProps {
 const PredictMarketOutcomeResolved: React.FC<
   PredictMarketOutcomeResolvedProps
 > = ({ outcome, noContainer = false }) => {
-  const tokenOnePrice = outcome.tokens[0].price;
-  const tokenTwoPrice = outcome.tokens[1].price;
-  const tokenOneIsWinner = tokenOnePrice > tokenTwoPrice;
-  const tokenTwoIsWinner = tokenTwoPrice > tokenOnePrice;
+  const resolvedTokens = outcome.tokens.filter((token) =>
+    Number.isFinite(token.price),
+  );
+  const winningToken = resolvedTokens.reduce(
+    (currentWinner, token) =>
+      !currentWinner || token.price > currentWinner.price
+        ? token
+        : currentWinner,
+    resolvedTokens[0],
+  );
+  const winningTokenCount = winningToken
+    ? resolvedTokens.filter((token) => token.price === winningToken.price)
+        .length
+    : 0;
+  const hasBinaryWinner = resolvedTokens.length > 1 && winningTokenCount === 1;
+  const singleTokenIsWinner =
+    resolvedTokens.length === 1 && (winningToken?.price ?? 0) > 0.5;
+  const hasWinner = hasBinaryWinner || singleTokenIsWinner;
 
-  const winnerTitle = tokenOneIsWinner
-    ? outcome.tokens[0].title
-    : tokenTwoIsWinner
-      ? outcome.tokens[1].title
+  const winnerTitle = hasWinner
+    ? (winningToken?.title ?? strings('predict.outcome_draw'))
+    : resolvedTokens.length === 1
+      ? strings('predict.outcome_loser')
       : strings('predict.outcome_draw');
 
-  const textColor = tokenOneIsWinner
+  const textColor = hasWinner
     ? TextColor.TextDefault
     : TextColor.TextAlternative;
 
@@ -79,11 +92,11 @@ const PredictMarketOutcomeResolved: React.FC<
           >
             {winnerTitle}
           </Text>
-          {tokenOneIsWinner && (
+          {hasWinner && (
             <Icon
               name={IconName.Confirmation}
               size={IconSize.Md}
-              color={IconColor.Success}
+              color={IconColor.SuccessDefault}
             />
           )}
         </Box>

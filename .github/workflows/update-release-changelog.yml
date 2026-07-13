@@ -52,12 +52,22 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      id-token: write
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
+
       - name: Checkout release branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
-          token: ${{ secrets.PR_TOKEN }}
+          token: ${{ steps.get-token.outputs.token }}
           fetch-depth: 0
 
       - name: Checkout github-tools
@@ -75,15 +85,13 @@ jobs:
       - name: Update Release Changelog
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.PR_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
           GIT_AUTHOR_NAME: metamaskbot
           GIT_AUTHOR_EMAIL: metamaskbot@users.noreply.github.com
         run: |
           set -euo pipefail
           git config user.name metamaskbot
           git config user.email metamaskbot@users.noreply.github.com
-          corepack enable
-          yarn install --immutable
           bash .github/scripts/run-update-release-changelog-mobile.sh \
             "${{ github.ref_name }}" \
             mobile \

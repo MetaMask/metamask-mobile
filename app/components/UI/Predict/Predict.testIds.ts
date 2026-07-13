@@ -53,6 +53,11 @@ export const PredictHomeSelectorsIDs = {
   CATEGORIES_SECTION: 'predict-home-categories-section',
   POPULAR_TODAY_SECTION: 'predict-home-popular-today-section',
   TRENDING_SECTION: 'predict-home-trending-section',
+  // Wrappers that measure each section for scroll-into-view impression tracking.
+  LIVE_NOW_IMPRESSION: 'predict-home-live-now-impression',
+  CATEGORIES_IMPRESSION: 'predict-home-categories-impression',
+  POPULAR_TODAY_IMPRESSION: 'predict-home-popular-today-impression',
+  TRENDING_IMPRESSION: 'predict-home-trending-impression',
 } as const;
 
 // ========================================
@@ -116,6 +121,27 @@ export const getPredictFeedSelector = {
     `skeleton-footer-${category}-${index}`,
   searchSkeleton: (index: number) => `search-skeleton-${index}`,
   marketList: (category: string) => `predict-market-list-${category}`,
+};
+
+// ========================================
+// PREDICT FEED VIEW (GENERIC, CONFIG-DRIVEN) SELECTORS
+// ========================================
+
+export const PredictFeedViewSelectorsIDs = {
+  CONTAINER: 'predict-feed-view-container',
+  HEADER: 'predict-feed-view-header',
+  TABS: 'predict-feed-view-tabs',
+  FILTERS: 'predict-feed-view-filters',
+  MARKET_LIST: 'predict-feed-view-market-list',
+  EMPTY_STATE: 'predict-feed-view-empty-state',
+  ERROR_STATE: 'predict-feed-view-error-state',
+} as const;
+
+export const getPredictFeedViewSelector = {
+  marketCard: (index: number) => `predict-feed-view-market-card-${index}`,
+  skeleton: (index: number) => `predict-feed-view-skeleton-${index}`,
+  skeletonFooter: (index: number) =>
+    `predict-feed-view-skeleton-footer-${index}`,
 };
 
 // PredictFeed unit test mock selectors (used by PredictFeed.test.tsx mocks)

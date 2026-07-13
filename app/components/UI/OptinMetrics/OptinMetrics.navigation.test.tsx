@@ -10,6 +10,8 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import Routes from '../../../constants/navigation/Routes';
 import { analytics } from '../../../util/analytics/analytics';
 import Logger from '../../../util/Logger';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -35,6 +37,7 @@ jest.mock('react-redux', () => {
     useSelector: jest.fn((selector) =>
       selector({
         ...rootState,
+        settings: { basicFunctionalityEnabled: true },
         onboarding: {
           ...rootState.onboarding,
           events: mockOptinMetricsTestOnboardingSlice.events,
@@ -45,11 +48,29 @@ jest.mock('react-redux', () => {
   };
 });
 
-const mockGetShouldShow = jest.fn();
+const mockEligibility = {
+  shouldShowQuestionnaire: true,
+  variantName: 'treatment',
+  isActive: true,
+};
 jest.mock(
-  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
+  '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
   () => ({
-    useOnboardingInterestQuestionnaireEligibility: () => mockGetShouldShow,
+    useOnboardingInterestQuestionnaireEligibility: () => mockEligibility,
+  }),
+);
+
+jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
+  getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
+  getWalletSetupCompletedAttributionAnalyticsProps: jest
+    .fn()
+    .mockReturnValue({}),
+}));
+
+jest.mock(
+  '../../../util/analytics/walletSetupCompletedAttributionReplay',
+  () => ({
+    scheduleBufferedOnboardingEventReplay: jest.fn(),
   }),
 );
 
@@ -66,19 +87,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
     trackView: jest.fn(),
     isOptedIn: jest.fn().mockResolvedValue(false),
   },
-}));
-
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
-    .MetaMetricsEvents,
-  getInstance: jest.fn(() => ({
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  })),
 }));
 
 jest.mock(
@@ -107,8 +115,55 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
 }));
 
+const mockProvisionFromMetadata = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../core/Engine/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [{ metadata: { id: 'mock-keyring-id' } }],
+      },
+    },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: (...args: unknown[]) =>
+        mockProvisionFromMetadata(...args),
+    },
+  },
+}));
+
+const mockDiscoverAccounts = jest.fn().mockResolvedValue(0);
+jest.mock('../../../multichain-accounts/discovery', () => ({
+  discoverAccounts: (...args: Parameters<typeof mockDiscoverAccounts>) =>
+    mockDiscoverAccounts(...args),
+}));
+
+jest.mock('../../../util/metrics/metricsOptInUIUtils', () => ({
+  markMetricsOptInUISeen: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../selectors/qrSyncController', () => ({
+  ...jest.requireActual('../../../selectors/qrSyncController'),
+  selectQrSyncNeedsProvisioning: jest.fn(),
+}));
+
+const mockSetWalletHomeOnboardingStepsEligibleAction = jest
+  .fn()
+  .mockReturnValue({ type: 'SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE' });
+jest.mock('../../../actions/onboarding', () => ({
+  ...jest.requireActual('../../../actions/onboarding'),
+  setWalletHomeOnboardingStepsEligible: (
+    ...args: Parameters<typeof mockSetWalletHomeOnboardingStepsEligibleAction>
+  ) => mockSetWalletHomeOnboardingStepsEligibleAction(...args),
+  clearOnboardingEvents: jest
+    .fn()
+    .mockReturnValue({ type: 'CLEAR_ONBOARDING_EVENTS' }),
+}));
+
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
+const mockDispatchAction = jest.fn();
+
+let mockRouteParams: Record<string, unknown> | undefined;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -119,12 +174,12 @@ jest.mock('@react-navigation/native', () => {
       reset: mockReset,
       setOptions: jest.fn(),
       goBack: jest.fn(),
-      dispatch: jest.fn(),
+      dispatch: mockDispatchAction,
     }),
     useRoute: () => ({
       key: 'OptinMetrics',
       name: 'OptinMetrics',
-      params: undefined,
+      params: mockRouteParams,
     }),
   };
 });
@@ -135,7 +190,13 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
   beforeEach(() => {
     mockOptinMetricsTestOnboardingSlice.events = [];
     mockOptinMetricsTestOnboardingSlice.accountType = undefined;
+    mockRouteParams = undefined;
+    mockEligibility.shouldShowQuestionnaire = true;
+    mockEligibility.variantName = 'treatment';
+    mockEligibility.isActive = true;
     jest.clearAllMocks();
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(false);
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: (event) => mockAnalytics.trackEvent(event),
@@ -163,7 +224,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
   describe('when basic usage data is unchecked', () => {
     it('does not navigate to the interest questionnaire regardless of eligibility', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
+      mockEligibility.shouldShowQuestionnaire = true;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -186,9 +247,32 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
   });
 
-  describe('when basic usage data is checked and eligibility returns false', () => {
-    it('calls navigation reset to HomeNav instead of navigating to questionnaire', async () => {
-      mockGetShouldShow.mockResolvedValue(false);
+  describe('when basic usage data is checked and AB test assigns treatment', () => {
+    it('navigates to the interest questionnaire', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({
+            onComplete: expect.any(Function),
+          }),
+        );
+      });
+    });
+  });
+
+  describe('when basic usage data is checked and AB test assigns control', () => {
+    it('skips the interest questionnaire and continues navigation', async () => {
+      mockEligibility.shouldShowQuestionnaire = false;
+      mockEligibility.variantName = 'control';
+      mockEligibility.isActive = false;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -203,83 +287,12 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
           Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
           expect.anything(),
         );
-        expect(mockReset).toHaveBeenCalledWith(
-          expect.objectContaining({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          }),
-        );
       });
     });
   });
 
-  describe('when basic usage data is checked and eligibility throws', () => {
-    it('falls back to resetting navigation so onboarding is not blocked', async () => {
-      mockGetShouldShow.mockRejectedValue(new Error('eligibility failed'));
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          expect.anything(),
-        );
-        expect(mockReset).toHaveBeenCalledWith(
-          expect.objectContaining({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          }),
-        );
-      });
-    });
-
-    it('logs Error rejections from the eligibility check', async () => {
-      mockGetShouldShow.mockRejectedValue(new Error('eligibility failed'));
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({ message: 'eligibility failed' }),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      });
-    });
-
-    it('wraps non-Error rejections before logging', async () => {
-      mockGetShouldShow.mockRejectedValue('string failure');
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({ message: 'string failure' }),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      });
-    });
-  });
-
-  describe('when basic usage data is checked and eligibility returns true', () => {
+  describe('interest questionnaire navigation params', () => {
     it('navigates to the interest questionnaire with onComplete callback', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
-
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -299,7 +312,6 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
 
     it('includes accountType in navigation params when onboarding account type is set in Redux', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
       mockOptinMetricsTestOnboardingSlice.accountType = 'imported';
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
@@ -317,6 +329,248 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
             onComplete: expect.any(Function),
             accountType: 'imported',
           }),
+        );
+      });
+    });
+
+    it('onComplete callback resets navigation to HOME_NAV via continueNavigation', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({
+            onComplete: expect.any(Function),
+          }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      mockReset.mockClear();
+      await onComplete();
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith(
+          expect.objectContaining({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          }),
+        );
+      });
+    });
+  });
+
+  describe('SRP import flow with successFlow param', () => {
+    const mockOnContinue = jest.fn();
+
+    beforeEach(() => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+        onContinue: mockOnContinue,
+        accountType: 'imported',
+      };
+    });
+
+    it('navigates to interest questionnaire then dispatches setWalletHomeOnboardingStepsEligible on onComplete', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
+        expect(
+          mockSetWalletHomeOnboardingStepsEligibleAction,
+        ).toHaveBeenCalledWith(true, { skipInitialBalanceWait: true });
+      });
+    });
+
+    it('calls discoverAccounts via onComplete when successFlow is IMPORT_FROM_SEED_PHRASE', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
+        expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
+      });
+      expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
+    });
+
+    it('calls provisionFromMetadata instead of discoverAccounts for QR sync users via onComplete', async () => {
+      jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
+        expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+      });
+      expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+    });
+
+    it('logs provisionFromMetadata failure without blocking navigation via onComplete', async () => {
+      jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
+      mockProvisionFromMetadata.mockRejectedValueOnce(
+        new Error('provisioning failed'),
+      );
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
+        expect(mockOnContinue).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'provisioning failed' }),
+          'OptinMetrics: provisionFromMetadata failed',
+        );
+      });
+    });
+
+    it('calls onContinue via onComplete after running handleOnDone logic', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
+        expect(mockOnContinue).toHaveBeenCalled();
+      });
+    });
+
+    it('logs discoverAccounts failure without blocking navigation via onComplete', async () => {
+      mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
+        expect(mockOnContinue).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'discovery failed' }),
+          'OptinMetrics: discoverAccounts failed',
         );
       });
     });

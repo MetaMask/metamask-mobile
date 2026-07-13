@@ -39,6 +39,7 @@ import Networks, {
   isTestNet,
   getNetworkImageSource,
   isMainNet,
+  canDeleteNetwork,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import {
@@ -571,35 +572,33 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
               isSendFlow ? (
                 name
               ) : (
-                <View>
-                  <Box twClassName="flex-row gap-2 items-center">
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      numberOfLines={1}
-                      style={styles.networkNameText}
+                <Box twClassName="w-full flex-row gap-2 items-center self-stretch">
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    numberOfLines={1}
+                    style={styles.networkNameText}
+                  >
+                    {name}
+                  </Text>
+                  {!isHardwareWallet &&
+                  isGasFeesSponsoredNetworkEnabled(chainId) ? (
+                    <TagColored
+                      color={TagColor.Success}
+                      style={styles.noNetworkFeeContainer}
+                      labelProps={{
+                        variant: TextVariant.BodySM,
+                        style: {
+                          textTransform: 'none',
+                          textAlign: 'center',
+                          bottom: 1,
+                          fontWeight: 'normal',
+                        },
+                      }}
                     >
-                      {name}
-                    </Text>
-                    {!isHardwareWallet &&
-                    isGasFeesSponsoredNetworkEnabled(chainId) ? (
-                      <TagColored
-                        color={TagColor.Success}
-                        style={styles.noNetworkFeeContainer}
-                        labelProps={{
-                          variant: TextVariant.BodySM,
-                          style: {
-                            textTransform: 'none',
-                            textAlign: 'center',
-                            bottom: 1,
-                            fontWeight: 'normal',
-                          },
-                        }}
-                      >
-                        {strings('networks.no_network_fee')}
-                      </TagColored>
-                    ) : undefined}
-                  </Box>
-                </View>
+                      {strings('networks.no_network_fee')}
+                    </TagColored>
+                  ) : undefined}
+                </Box>
               )
             }
             tertiaryText={
@@ -628,7 +627,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
             }
             buttonProps={{
               onButtonClick: () => {
-                openModal(chainId, true, rpcUrl, false);
+                openModal(chainId, canDeleteNetwork(chainId), rpcUrl, false);
               },
             }}
             onTextClick={() =>
@@ -638,7 +637,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
               })
             }
             onLongPress={() => {
-              openModal(chainId, true, rpcUrl, false);
+              openModal(chainId, canDeleteNetwork(chainId), rpcUrl, false);
             }}
           />
         );

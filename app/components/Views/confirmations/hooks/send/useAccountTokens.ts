@@ -12,6 +12,7 @@ import { selectAccountToGroupMap } from '../../../../../selectors/multichainAcco
 import { isTestNet } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
@@ -20,6 +21,8 @@ import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import type { RootState } from '../../../../../reducers';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
+import { isNetworkTestnet } from './useNetworkFilter';
 
 export interface EnrichTokenRequest {
   chainId: Hex;
@@ -64,8 +67,18 @@ export function useAccountTokens({
   const accountOverride = useTransactionAccountOverride();
   const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
   const accountAssets = useAccountGroupAssets(accountOverride);
-  const assets = accountAssets ?? globalAssets;
-  const fiatCurrency = useSelector(selectCurrentCurrency);
+  // When an account override is active, always use its assets (even if empty)
+  // to avoid showing stale tokens from the globally selected account.
+  const assets = useMemo(
+    () =>
+      accountOverride !== undefined ? (accountAssets ?? {}) : globalAssets,
+    [accountOverride, accountAssets, globalAssets],
+  );
+
+  const preferredCurrency = useSelector(selectCurrentCurrency);
+  const payCurrency = useTransactionPayCurrency();
+  const fiatCurrency = payCurrency ?? preferredCurrency;
+  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
   const assetIds = useMemo(
     () =>
@@ -109,20 +122,31 @@ export function useAccountTokens({
       return haveBalance || isTestNetAsset;
     });
 
+    // "Show conversion on test networks" setting: when disabled, testnet
+    // assets must not display fiat values nor be ranked by them.
+    const isFiatHidden = (chainId?: string) =>
+      !showFiatOnTestnets &&
+      Boolean(chainId) &&
+      isNetworkTestnet(chainId as string);
+
     const processedAssets = assetsWithBalance.map((asset) => {
       const fiatAmount = new BigNumber(asset.fiat?.balance || 0);
       const hasDecimals = !fiatAmount.isInteger();
 
-      let balanceInSelectedCurrency: string;
-      try {
-        balanceInSelectedCurrency = getIntlNumberFormatter(I18n.locale, {
-          style: 'currency',
-          currency: fiatCurrency,
-          minimumFractionDigits: hasDecimals ? 2 : 0,
-        }).format(fiatAmount.toFixed() as unknown as number);
-      } catch (error) {
-        Logger.error(error as Error);
-        balanceInSelectedCurrency = `${fiatAmount.toFixed()} ${fiatCurrency}`;
+      let balanceInSelectedCurrency: string | undefined;
+      if (isFiatHidden(asset.chainId)) {
+        balanceInSelectedCurrency = undefined;
+      } else {
+        try {
+          balanceInSelectedCurrency = getIntlNumberFormatter(I18n.locale, {
+            style: 'currency',
+            currency: fiatCurrency,
+            minimumFractionDigits: hasDecimals ? 2 : 0,
+          }).format(fiatAmount.toFixed() as unknown as number);
+        } catch (error) {
+          Logger.error(error as Error);
+          balanceInSelectedCurrency = `${fiatAmount.toFixed()} ${fiatCurrency}`;
+        }
       }
 
       return {
@@ -180,16 +204,19 @@ export function useAccountTokens({
       }
     }
 
+    const sortableFiatBalance = (asset: AssetType) =>
+      isFiatHidden(asset.chainId)
+        ? new BigNumber(0)
+        : new BigNumber(asset.fiat?.balance || 0);
+
     return processedAssets.sort(
-      (a, b) =>
-        new BigNumber(b.fiat?.balance || 0).comparedTo(
-          new BigNumber(a.fiat?.balance || 0),
-        ) || 0,
+      (a, b) => sortableFiatBalance(b).comparedTo(sortableFiatBalance(a)) || 0,
     );
   }, [
     assets,
     includeNoBalance,
     fiatCurrency,
+    showFiatOnTestnets,
     tokenFilter,
     enrichTokenRequests,
     assetIds,

@@ -6,5 +6,6 @@ import type { BridgeToken } from '../../../../../UI/Bridge/types';
  * both the "Pay with" (buy) and "Receive" (sell) flows so row keys and
  * selection comparisons behave identically.
  */
-export const getTokenKey = (token: BridgeToken): string =>
-  `${token.address.toLowerCase()}:${token.chainId}`;
+export const getTokenKey = (
+  token: Pick<BridgeToken, 'address' | 'chainId'>,
+): string => `${token.address.toLowerCase()}:${token.chainId}`;

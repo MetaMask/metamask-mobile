@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionType } from '@metamask/transaction-controller';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
@@ -11,6 +12,7 @@ import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
 import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
@@ -23,6 +25,7 @@ export const useConfirmActions = () => {
     approvalRequest,
   } = useApprovalRequest();
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
+  const transactionMetadata = useTransactionMetadataRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
   const {
     cancelQRScanRequestIfPresent,
@@ -93,12 +96,22 @@ export const useConfirmActions = () => {
 
   const sharedConfirmOptions = useMemo(
     () => ({
+      fromAddress:
+        (approvalRequest?.requestData?.from as string) ||
+        (transactionMetadata?.txParams?.from as string),
       onReject,
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
     }),
-    [onReject, onTransactionConfirm, executeApproval, isTransactionReq],
+    [
+      approvalRequest?.requestData?.from,
+      transactionMetadata?.txParams?.from,
+      onReject,
+      onTransactionConfirm,
+      executeApproval,
+      isTransactionReq,
+    ],
   );
 
   const { onConfirm: onLedgerConfirm } = useLedgerConfirm(sharedConfirmOptions);
@@ -111,6 +124,20 @@ export const useConfirmActions = () => {
     }
 
     if (isQrAccount) {
+      // MM-native sends (simpleSend / tokenMethodTransfer) defer to the
+      // HardwareWalletsSwaps step-progress screen instead of routing
+      // through onQrConfirm, which calls executeHardwareWalletOperation
+      // and shows an awaiting-confirmation bottom sheet that gets
+      // orphaned when deferHwSend navigates away immediately after.
+      if (
+        isTransactionReq &&
+        transactionMetadata &&
+        (transactionMetadata.type === TransactionType.simpleSend ||
+          transactionMetadata.type === TransactionType.tokenMethodTransfer)
+      ) {
+        await onTransactionConfirm();
+        return;
+      }
       await onQrConfirm();
       return;
     }
@@ -140,6 +167,7 @@ export const useConfirmActions = () => {
     executeApproval,
     onLedgerConfirm,
     onQrConfirm,
+    transactionMetadata,
   ]);
 
   return { onConfirm, onReject };

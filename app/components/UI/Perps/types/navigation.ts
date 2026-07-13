@@ -1,4 +1,4 @@
-import { ParamListBase } from '@react-navigation/native';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import {
   type Position,
   type Order,
@@ -12,13 +12,39 @@ import {
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/PerpsTooltipView';
 
-/**
- * PERPS navigation parameter types
- */
-export interface PerpsNavigationParamList extends ParamListBase {
-  [key: string]: object | undefined;
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsModalsNavigationParamList = {
+  PerpsQuoteExpiredModal: undefined;
+  PerpsGTMModal: undefined;
+  PerpsCloseAllPositions: undefined;
+  PerpsCancelAllOrders: undefined;
+  PerpsCrossMarginWarning: undefined;
+  PerpsSelectProvider: undefined;
+  PerpsSelectModifyAction: {
+    position: Position;
+  };
+  PerpsSelectAdjustMarginAction: {
+    position: Position;
+  };
+  PerpsSelectOrderType: {
+    currentOrderType: OrderType;
+    asset: string;
+    direction: 'long' | 'short';
+  };
+};
 
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsClosePositionModalsNavigationParamList = {
+  PerpsTooltip: PerpsTooltipViewRouteParams;
+};
+
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsStackParamList = {
   // Order flow routes
   PerpsOrder: {
     direction: 'long' | 'short';
@@ -101,6 +127,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
+    source_section?: string;
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
@@ -226,9 +253,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
     showBackButton?: boolean;
   };
 
-  // Root perps view
-  Perps: undefined;
-
   /** Params for RedesignedConfirmations when shown in Perps stack (header options) */
   RedesignedConfirmations: {
     showPerpsHeader?: boolean;
@@ -242,7 +266,51 @@ export interface PerpsNavigationParamList extends ParamListBase {
     fromTokenDetails?: boolean;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
-}
+
+  // Screen names registered in the Perps stack (may differ from legacy aliases above)
+  PerpsTrendingView: {
+    source?: string;
+    variant?: 'full' | 'minimal';
+    title?: string;
+    showBalanceActions?: boolean;
+    showBottomNav?: boolean;
+    showWatchlistOnly?: boolean;
+    defaultMarketTypeFilter?: MarketTypeFilter;
+    defaultSortOptionId?: SortOptionId;
+    defaultSortDirection?: SortDirection;
+    fromHome?: boolean;
+    button_clicked?: string;
+    button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  };
+  PerpsOrderDetailsView: {
+    order: Order;
+    action?: 'view' | 'edit' | 'cancel';
+  };
+  PerpsHIP3Debug: undefined;
+  PerpsClosePositionModals:
+    | NavigatorScreenParams<PerpsClosePositionModalsNavigationParamList>
+    | undefined;
+  PerpsModals:
+    | NavigatorScreenParams<PerpsModalsNavigationParamList>
+    | undefined;
+  PerpsQuoteExpiredModal: undefined;
+  PerpsGTMModal: undefined;
+  PerpsCloseAllPositions: undefined;
+  PerpsCancelAllOrders: undefined;
+  PerpsTooltip: undefined;
+  PerpsCrossMarginWarning: undefined;
+  PerpsSelectProvider: undefined;
+  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithBottomSheet: undefined;
+};
+
+/** Screens inside the Perps stack plus the root `Perps` entry for cross-stack navigation. */
+// Intersection (`&`) requires `type`; `interface` cannot express this.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsNavigationParamList = PerpsStackParamList & {
+  Perps: NavigatorScreenParams<PerpsStackParamList> | undefined;
+};
 
 /**
  * Type helper for PERPS route parameters

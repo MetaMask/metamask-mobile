@@ -1,4 +1,4 @@
-import { PredictSportsLeague } from '../types';
+import type { PredictMarketGame, PredictSportsLeague } from '../types';
 
 /**
  * Leagues with live game data support.
@@ -57,6 +57,15 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'atp',
   'wta',
   'itf',
+];
+
+export const WORLD_CUP_LEAGUE: PredictSportsLeague = 'fifwc';
+export const SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE = 'soccer_team_to_advance';
+
+export const DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES = [
+  SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE,
+  'soccer_extra_time',
+  'soccer_penalty_shootout',
 ];
 
 export const filterSupportedLeagues = (
@@ -126,20 +135,34 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'first_half_moneyline',
   'soccer_halftime_result',
+  'soccer_second_half_result',
+  'soccer_first_to_score',
+  SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE,
   'tennis_first_set_winner',
 ]);
 
 export const isMoneylineLikeMarketType = (type?: string): boolean =>
   type !== undefined && MONEYLINE_MARKET_TYPES.has(type.toLowerCase());
 
-export const getPrimaryMoneylineOutcomes = <
-  T extends { sportsMarketType?: string },
->(
-  outcomes: T[],
-): T[] => {
-  const moneylineOutcomes = outcomes.filter(
-    (outcome) => outcome.sportsMarketType?.toLowerCase() === 'moneyline',
-  );
+export const isTeamToAdvanceMarketType = (type?: string): boolean =>
+  type?.toLowerCase() === SOCCER_TEAM_TO_ADVANCE_MARKET_TYPE;
 
-  return moneylineOutcomes.length > 0 ? moneylineOutcomes : outcomes;
+export const shouldShowRegTimeTag = ({
+  game,
+  sportsMarketType,
+  nonRegTimeSportsMarketTypes = [],
+}: {
+  game?: PredictMarketGame;
+  sportsMarketType?: string;
+  nonRegTimeSportsMarketTypes?: string[];
+}): boolean => {
+  if (game?.league !== WORLD_CUP_LEAGUE) {
+    return false;
+  }
+
+  if (!sportsMarketType) {
+    return true;
+  }
+
+  return !nonRegTimeSportsMarketTypes.includes(sportsMarketType.toLowerCase());
 };

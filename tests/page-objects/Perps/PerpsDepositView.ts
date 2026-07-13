@@ -21,7 +21,7 @@ const TIMEOUT = {
 
 class PerpsDepositView {
   // Custom deposit keypad container
-  get keypad(): DetoxElement {
+  get keypad(): EncapsulatedElementType {
     return Matchers.getElementByID('deposit-keyboard');
   }
 
@@ -63,7 +63,7 @@ class PerpsDepositView {
   // Add funds (confirm) button on review screen. Uses testID for reliability:
   // the confirmation screen shows at most one "Add funds" (ConfirmButton);
   // index 1 was failing when no second "Add funds" existed in the hierarchy.
-  get confirmButton(): DetoxElement {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID('confirm-button');
   }
 
@@ -84,7 +84,7 @@ class PerpsDepositView {
     });
   }
 
-  get usdcOption(): DetoxElement {
+  get usdcOption(): EncapsulatedElementType {
     return Matchers.getElementByText('USDC');
   }
 

@@ -10,33 +10,27 @@
 /** Property-key constants for analytics property bags. */
 export const SocialLeaderboardEventProperties = {
   ACTION: 'action',
-  AMOUNT_SELECTION_METHOD: 'amount_selection_method',
-  AMOUNT_TOKEN: 'amount_token',
-  AMOUNT_USD: 'amount_usd',
   ASSET_NAME: 'asset_name',
   CAIP19: 'caip19',
+  PERPS_MARKET: 'perps_market',
   CHAIN_FILTER: 'chain_filter',
-  DISMISS_STAGE: 'dismiss_stage',
-  EXECUTION_TIME_MS: 'execution_time_ms',
+  CTA_TYPE: 'cta_type',
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
-  LATENCY_MS: 'latency_ms',
-  MARKET_CAP: 'market_cap',
-  NOTIFICATION_TYPE: 'notification_type',
-  PAY_WITH_TOKEN: 'pay_with_token',
-  RECEIVE_TOKEN: 'receive_token',
-  PRESET_VALUE: 'preset_value',
+  NOTIFICATION_SUBTYPE: 'notification_subtype',
+  INTERACTION_TYPE: 'interaction_type',
+  NUX_STEP: 'nux_step',
+  NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
   PREVIOUS_CHAIN_FILTER: 'previous_chain_filter',
-  QUOTE_COUNT: 'quote_count',
+  SCREEN: 'screen',
   SOURCE: 'source',
-  STATUS: 'status',
   TAB: 'tab',
   TRADER_ADDRESS: 'trader_address',
+  TRADER_HAS_PROFILE_PICTURE_SET: 'trader_has_profile_picture_set',
   TRADER_RANK: 'trader_rank',
-  TRADER_TRADE_TYPE: 'trader_trade_type',
-  TRADE_TYPE: 'trade_type',
   TRADER_USERNAME: 'trader_username',
-  TX_HASH: 'tx_hash',
+  TRADERS_FOLLOWED_COUNT: 'traders_followed_count',
+  TRADERS_PRE_SELECTED_COUNT: 'traders_pre_selected_count',
 } as const;
 
 /** Closed-set property values used by enum-typed properties. */
@@ -45,27 +39,27 @@ export const SocialLeaderboardEventValues = {
     FOLLOW: 'follow',
     UNFOLLOW: 'unfollow',
   },
-  AMOUNT_SELECTION_METHOD: {
-    PRESET: 'preset',
-    CUSTOM_INPUT: 'custom_input',
-    SLIDER: 'slider',
+  INTERACTION_TYPE: {
+    ALLOW_NOTIFICATIONS: 'allow_notifications',
+    BACK: 'back',
+    CONTINUE: 'continue',
+    DISMISSED: 'dismissed',
+    FOLLOW_TOP_THREE: 'follow_top_three',
+    GOT_IT: 'got_it',
+    MAYBE_LATER: 'maybe_later',
   },
-  DISMISS_STAGE: {
-    TOKEN_DETAIL: 'token_detail',
-    AMOUNT_SELECTION: 'amount_selection',
-    CONFIRMATION: 'confirmation',
-  },
-  STATUS: {
-    SUCCESS: 'success',
-    FAILED: 'failed',
+  NUX_STEP: {
+    STEP_1: 'step_1',
+    STEP_2: 'step_2',
+    STEP_3: 'step_3',
   },
   TAB: {
     OPEN: 'open',
     CLOSED: 'closed',
   },
-  TRADER_TRADE_TYPE: {
+  CTA_TYPE: {
     BUY: 'buy',
-    SELL: 'sell',
+    TRADE: 'trade',
   },
 } as const;
 
@@ -85,7 +79,14 @@ export type SocialLeaderboardSource =
   | 'trader_profile'
   | 'profile_position'
   | 'asset_details'
-  | 'market_insights';
+  | 'market_insights'
+  | 'security_trust'
+  | 'explore_search'
+  | 'explore_crypto'
+  | 'explore_now'
+  | 'explore_rwas'
+  | 'explore_trending'
+  | 'explore_stocks';
 
 export type LeaderboardScreenViewedSource = Extract<
   SocialLeaderboardSource,
@@ -104,19 +105,10 @@ export type TraderProfileScreenViewedSource = Extract<
 
 export type TraderFollowInteractionSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'trader_profile' | 'home_carousel'
+  'leaderboard' | 'trader_profile' | 'home_carousel' | 'nux'
 >;
 
 export type FollowTradingTokenSource = Extract<
   SocialLeaderboardSource,
   'leaderboard' | 'trader_profile' | 'notification' | 'deep_link'
->;
-
-export type QuickBuySheetSource = Extract<
-  SocialLeaderboardSource,
-  | 'notification'
-  | 'profile_position'
-  | 'leaderboard'
-  | 'asset_details'
-  | 'market_insights'
 >;

@@ -10,6 +10,7 @@ import { AccountType } from '../../../constants/onboarding';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -34,31 +35,25 @@ jest.mock('../../../util/analytics/analytics', () => ({
 }));
 
 jest.mock(
-  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
+  '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
   () => ({
-    useOnboardingInterestQuestionnaireEligibility: () => (): Promise<boolean> =>
-      Promise.resolve(false),
+    useOnboardingInterestQuestionnaireEligibility: () => ({
+      shouldShowQuestionnaire: false,
+      variantName: 'control',
+      isActive: false,
+    }),
   }),
 );
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
-// Mock MetaMetrics for events and getInstance
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
-    .MetaMetricsEvents,
-  getInstance: jest.fn(() => ({
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  })),
-}));
-
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
+import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
+
+const mockAppStateEventProcessor = AppStateEventProcessor as jest.Mocked<
+  typeof AppStateEventProcessor
+>;
 
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
 
@@ -88,6 +83,32 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
 }));
 
+jest.mock('../../../core/AppStateEventListener', () => ({
+  AppStateEventProcessor: {
+    pendingDeeplink: null as string | null,
+    clearPendingDeeplink: jest.fn(),
+  },
+}));
+
+jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
+  getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
+  getWalletSetupCompletedAttributionAnalyticsProps: jest
+    .fn()
+    .mockReturnValue({}),
+}));
+
+jest.mock(
+  '../../../util/analytics/walletSetupCompletedAttributionReplay',
+  () => ({
+    scheduleBufferedOnboardingEventReplay: jest.fn(),
+  }),
+);
+
+jest.mock('../../../selectors/qrSyncController', () => ({
+  ...jest.requireActual('../../../selectors/qrSyncController'),
+  selectQrSyncNeedsProvisioning: jest.fn(),
+}));
+
 jest.doMock('react-native', () => {
   const originalRN = jest.requireActual('react-native');
   return {
@@ -101,6 +122,8 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(false);
+    mockAppStateEventProcessor.pendingDeeplink = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: (event) => mockAnalytics.trackEvent(event),
@@ -170,13 +193,33 @@ describe('OptinMetrics', () => {
 
   describe('sets traits and sends metric event on confirm', () => {
     it('without marketing consent', async () => {
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      const { store } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        {
+          state: {
+            attribution: {
+              attribution: {
+                utm_source: 'stale_campaign',
+                capturedAt: Date.now(),
+              },
+            },
+          },
+        },
+      );
       fireEvent.press(
         screen.getByRole('button', {
           name: strings('privacy_policy.continue'),
         }),
       );
       await waitFor(() => {
+        expect(store.getState().attribution.attribution).toEqual({
+          utm_source: 'stale_campaign',
+          capturedAt: expect.any(Number),
+        });
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
@@ -245,6 +288,78 @@ describe('OptinMetrics', () => {
           deviceProp: 'Device value',
           userProp: 'User value',
         });
+      });
+    });
+
+    it('clears persisted attribution without marketing consent while keeping pending deeplink', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
+      });
+    });
+
+    it('keeps pending deeplink after marketing opt-in', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/home?utm_source=campaign&utm_campaign=summer';
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByText(strings('privacy_policy.checkbox_marketing')),
+      );
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
+      });
+    });
+
+    it('keeps pending deeplink when install link also targets navigation', async () => {
+      const pendingDeeplink =
+        'https://link.metamask.io/rewards?utm_source=campaign&utm_campaign=summer';
+      mockAppStateEventProcessor.pendingDeeplink = pendingDeeplink;
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+      fireEvent.press(
+        screen.getByText(strings('privacy_policy.checkbox_marketing')),
+      );
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          mockAppStateEventProcessor.clearPendingDeeplink,
+        ).not.toHaveBeenCalled();
+        expect(mockAppStateEventProcessor.pendingDeeplink).toBe(
+          pendingDeeplink,
+        );
       });
     });
   });

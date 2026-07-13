@@ -28,7 +28,10 @@ import {
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
   type SetTokenOverviewChartTypeAction,
+  type SetTokenOverviewChartIntervalAction,
+  type SetTokenIndicatorsAction,
   type SetOnboardingStepperStepAction,
+  type SetAppInstallEventFiredAction,
   UserActionType,
 } from './types';
 
@@ -253,6 +256,30 @@ export function setTokenOverviewChartType(
 }
 
 /**
+ * Action to set token overview candle interval preference (technical indicators path).
+ */
+export function setTokenOverviewChartInterval(
+  interval: string,
+): SetTokenOverviewChartIntervalAction {
+  return {
+    type: UserActionType.SET_TOKEN_OVERVIEW_CHART_INTERVAL,
+    payload: { interval },
+  };
+}
+
+/**
+ * Action to set active technical indicators for token charts
+ */
+export function setTokenIndicators(
+  indicators: string[],
+): SetTokenIndicatorsAction {
+  return {
+    type: UserActionType.SET_TOKEN_INDICATORS,
+    payload: { indicators },
+  };
+}
+
+/**
  * Action to set the current step for a named onboarding stepper.
  * Keyed by stepperId to support multiple independent steppers without
  * adding new Redux fields per product.
@@ -264,5 +291,11 @@ export function setOnboardingStepperStep(
   return {
     type: UserActionType.SET_ONBOARDING_STEPPER_STEP,
     payload: { stepperId, step },
+  };
+}
+
+export function setAppInstallEventFired(): SetAppInstallEventFiredAction {
+  return {
+    type: UserActionType.SET_APP_INSTALL_EVENT_FIRED,
   };
 }

@@ -1,15 +1,16 @@
 import React, { memo } from 'react';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import type { PerpsOICapWarningProps } from './PerpsOICapWarning.types';
@@ -56,7 +57,7 @@ const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
         <Icon
           name={IconName.Warning}
           size={IconSize.Md}
-          color={IconColor.Default}
+          color={IconColor.IconDefault}
           style={styles.icon}
         />
         <View style={styles.textContainer}>

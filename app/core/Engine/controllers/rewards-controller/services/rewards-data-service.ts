@@ -42,7 +42,9 @@ import type {
   PredictThePitchPositionsDto,
   PredictThePitchCampaignParticipantOutcomeDto,
   PredictThePitchPrizePoolDto,
+  FirstPredictOnUsDto,
   VipDashboardDto,
+  VipRefereeMeDto,
   VipFeesResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
@@ -232,6 +234,11 @@ export interface RewardsDataServiceGetClientVersionRequirementsAction {
   handler: RewardsDataService['getClientVersionRequirements'];
 }
 
+export interface RewardsDataServiceGetFirstPredictOnUsAction {
+  type: `${typeof SERVICE_NAME}:getFirstPredictOnUs`;
+  handler: RewardsDataService['getFirstPredictOnUs'];
+}
+
 export interface RewardsDataServiceGetOndoCampaignLeaderboardAction {
   type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboard`;
   handler: RewardsDataService['getOndoCampaignLeaderboard'];
@@ -341,6 +348,11 @@ export interface RewardsDataServiceGetVIPDashboardAction {
   handler: RewardsDataService['getVIPDashboard'];
 }
 
+export interface RewardsDataServiceGetVipRefereeDashboardAction {
+  type: `${typeof SERVICE_NAME}:getVipRefereeDashboard`;
+  handler: RewardsDataService['getVipRefereeDashboard'];
+}
+
 export interface RewardsDataServiceGetVipFeesAction {
   type: `${typeof SERVICE_NAME}:getVipFees`;
   handler: RewardsDataService['getVipFees'];
@@ -383,10 +395,12 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetBenefitsAction
   | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipRefereeDashboardAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
+  | RewardsDataServiceGetFirstPredictOnUsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
   | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
@@ -634,6 +648,10 @@ export class RewardsDataService {
       this.getVIPDashboard.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getVipRefereeDashboard`,
+      this.getVipRefereeDashboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipFees`,
       this.getVipFees.bind(this),
     );
@@ -644,6 +662,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClientVersionRequirements`,
       this.getClientVersionRequirements.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getFirstPredictOnUs`,
+      this.getFirstPredictOnUs.bind(this),
     );
   }
 
@@ -708,6 +730,26 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as ClientVersionRequirementDto;
+  }
+
+  /**
+   * Fetch the visible first predict on us content from the public API.
+   * @returns The first predict on us DTO, or null when no visible entry exists.
+   */
+  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
+    const response = await this.makeRequest('/public/first-predict-on-us', {
+      method: 'GET',
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get first predict on us failed: ${response.status}`);
+    }
+
+    return (await response.json()) as FirstPredictOnUsDto;
   }
 
   /**
@@ -1042,7 +1084,9 @@ export class RewardsDataService {
    * @param code - The referral code to validate.
    * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
    */
-  async validateReferralCode(code: string): Promise<{ valid: boolean }> {
+  async validateReferralCode(
+    code: string,
+  ): Promise<{ valid: boolean; isVipCode?: boolean }> {
     const response = await this.makeRequest(
       `/referral/validate?code=${encodeURIComponent(code)}`,
       {
@@ -1056,7 +1100,7 @@ export class RewardsDataService {
       );
     }
 
-    return (await response.json()) as { valid: boolean };
+    return (await response.json()) as { valid: boolean; isVipCode?: boolean };
   }
 
   /**
@@ -1597,6 +1641,33 @@ export class RewardsDataService {
   }
 
   /**
+   * Get the VIP referee stats for the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The referee stats, or null when the user is not a VIP referee.
+   */
+  async getVipRefereeDashboard(
+    subscriptionId: string,
+  ): Promise<VipRefereeMeDto | null> {
+    const response = await this.makeRequest(
+      '/vip/referee/me',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get VIP referee dashboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as VipRefereeMeDto;
+  }
+
+  /**
    * Get the VIP fee table for the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The VIP fee response (tier 0 will have fees=null).
@@ -1622,12 +1693,14 @@ export class RewardsDataService {
    * @param subscriptionId - The subscription ID for authentication.
    * @param benefitId - The benefit ID to record impression for.
    * @param benefitType - The benefit type to record impression for.
+   * @param walletAddress - The wallet address that viewed the benefit. Optional; omitted from the body when not provided.
    * @returns Promise that resolves when the impression is recorded successfully.
    */
   async postBenefitImpression(
     subscriptionId: string,
     benefitId: number,
     benefitType: number,
+    walletAddress?: string,
   ): Promise<void> {
     const response = await this.makeRequest(
       `/benefits/impression`,
@@ -1636,6 +1709,7 @@ export class RewardsDataService {
         body: JSON.stringify({
           benefitId,
           benefitType,
+          ...(walletAddress ? { walletAddress } : {}),
         }),
       },
       subscriptionId,

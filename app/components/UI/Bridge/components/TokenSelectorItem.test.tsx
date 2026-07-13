@@ -1,24 +1,30 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text as RNText } from 'react-native';
+import { Text as RNText, View } from 'react-native';
 import { TokenSelectorItem, getSecurityTag } from './TokenSelectorItem';
 import { SecurityDataType } from '../types';
 import { ethers } from 'ethers';
-import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutVariant,
+} from './TokenSelectorItem.abTestConfig';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => []),
-}));
+jest.mock('../../shared/StockBadge', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
 
-jest.mock('../../../../hooks', () => ({
-  useABTest: jest.fn(),
-}));
+  return {
+    __esModule: true,
+    default: ({ token }: { token: { symbol: string } }) =>
+      createElement(Text, { testID: `stock-badge-${token.symbol}` }, 'Stock'),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -46,6 +52,8 @@ jest.mock('../../../../component-library/hooks', () => {
       tokenSymbol: {},
       verifiedIcon: {},
       childrenWrapper: {},
+      pressTargetContent: { flex: 1 },
+      itemWrapperWithChildren: { alignItems: 'center' },
     },
   }));
 
@@ -184,18 +192,9 @@ jest.mock('../../../../component-library/components/Tags/Tag', () => {
 
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
-  const mockUseABTest = jest.mocked(useABTest);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockReturnValue({
-      variant: {
-        showTokenBalanceFirst: false,
-        removeTickerFromTokenBalance: false,
-      },
-      variantName: 'control',
-      isActive: false,
-    });
   });
 
   describe('rendering', () => {
@@ -364,6 +363,50 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(UNSAFE_root).toBeTruthy();
+    });
+
+    it('routes presses on children through the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      fireEvent.press(getByTestId('token-row-child'));
+
+      expect(mockOnPress).toHaveBeenCalledWith(token);
+    });
+
+    it('uses checkbox accessibility on the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          isSelected
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityRole',
+        'checkbox',
+      );
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: true }),
+      );
     });
 
     it('renders network badge when networkImageSource is provided', () => {
@@ -687,7 +730,15 @@ describe('TokenSelectorItem', () => {
       });
 
       const controlRender = render(
-        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          balanceLayoutConfigOverride={
+            TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+              TokenSelectorBalanceLayoutVariant.Control
+            ]
+          }
+        />,
       );
       expect(controlRender.getByText('50 USDC')).toBeOnTheScreen();
 
@@ -700,15 +751,6 @@ describe('TokenSelectorItem', () => {
     });
 
     it('shows token balance first without the ticker in the treatment layout', () => {
-      mockUseABTest.mockReturnValue({
-        variant: {
-          showTokenBalanceFirst: true,
-          removeTickerFromTokenBalance: true,
-        },
-        variantName: 'treatment',
-        isActive: true,
-      });
-
       const token = createMockTokenWithBalance({
         balance: '50.0',
         balanceFiat: '$500',
@@ -716,7 +758,15 @@ describe('TokenSelectorItem', () => {
       });
 
       const treatmentRender = render(
-        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          balanceLayoutConfigOverride={
+            TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+              TokenSelectorBalanceLayoutVariant.Treatment
+            ]
+          }
+        />,
       );
       expect(treatmentRender.getByText('50')).toBeOnTheScreen();
       expect(treatmentRender.queryByText('50 USDC')).not.toBeOnTheScreen();

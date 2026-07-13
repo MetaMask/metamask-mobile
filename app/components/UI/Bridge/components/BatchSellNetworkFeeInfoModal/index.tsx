@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import {
   BottomSheet,
@@ -15,22 +15,17 @@ import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellNetworkFeeInfoModalSelectorsIDs } from './BatchSellNetworkFeeInfoModal.testIds';
 import { BatchSellNetworkFeeInfoModalParams } from './BatchSellNetworkFeeInfoModal.types';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellNetworkFeeInfoModal() {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellNetworkFeeInfoModalParams>();
   const handleBack = sourceModal
     ? () => navigation.replace(sourceModal.screen, sourceModal.params)
     : undefined;
-  const surfaceClass = useElevatedSurface();
-
   return (
     <BottomSheet
       testID={BatchSellNetworkFeeInfoModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onBack={handleBack}
@@ -47,7 +42,7 @@ export function BatchSellNetworkFeeInfoModal() {
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={BatchSellNetworkFeeInfoModalSelectorsIDs.DESCRIPTION}
         >

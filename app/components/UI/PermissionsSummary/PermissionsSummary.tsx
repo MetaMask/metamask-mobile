@@ -18,10 +18,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import styleSheet from './PermissionsSummary.styles';
@@ -66,13 +62,16 @@ import AvatarFavicon from '../../../component-library/components/Avatars/Avatar/
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import AccountConnectCreateInitialAccount from '../../Views/MultichainAccounts/shared/AccountConnectCreateInitialAccount';
 import { SolScope } from '@metamask/keyring-api';
-import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { WalletClientType } from '../../../core/SnapKeyring/types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import {
   Text as TextComponent,
   TextVariant,
   TextColor,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 const PermissionsSummary = ({
@@ -671,11 +670,10 @@ const PermissionsSummary = ({
           {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 testID={
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
                 }
-                label={strings('accounts.disconnect_all')}
                 onPress={toggleRevokeAllPermissionsModal}
                 startIconName={IconName.Logout}
                 isDanger
@@ -683,7 +681,9 @@ const PermissionsSummary = ({
                 style={{
                   ...styles.disconnectButton,
                 }}
-              />
+              >
+                {strings('accounts.disconnect_all')}
+              </Button>
             </View>
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
@@ -717,8 +717,7 @@ const PermissionsSummary = ({
             <View style={styles.nonDappNetworkSwitchButtons}>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('permissions.add_this_network')}
+                  variant={ButtonVariant.Primary}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON
                   }
@@ -727,12 +726,13 @@ const PermissionsSummary = ({
                   style={{
                     ...styles.disconnectButton,
                   }}
-                />
+                >
+                  {strings('permissions.add_this_network')}
+                </Button>
               </View>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariants.Secondary}
-                  label={strings('permissions.choose_from_permitted_networks')}
+                  variant={ButtonVariant.Secondary}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON
                   }
@@ -741,7 +741,9 @@ const PermissionsSummary = ({
                   style={{
                     ...styles.disconnectButton,
                   }}
-                />
+                >
+                  {strings('permissions.choose_from_permitted_networks')}
+                </Button>
               </View>
             </View>
           )}

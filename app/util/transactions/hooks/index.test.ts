@@ -6,6 +6,7 @@ import {
   type TransactionController,
   type TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 
 import {
@@ -125,9 +126,8 @@ describe('getTransactionControllerHooks', () => {
       bufferStep: 0.025,
       bufferSubsequent: 0.05,
       enableDepositWalletWithdraw: false,
-      enableMoneyHomePagePerpsTransaction: false,
-      enablePredictMoneyAccountTransactions: false,
-      enablePerpsMoneyAccountTransactions: false,
+      enableMoneyAccountTransactions: {},
+      prefilledAmount: { default: { enabled: false }, overrides: {} },
       slippage: 0.005,
       stxDisabled: false,
     });
@@ -185,6 +185,49 @@ describe('getTransactionControllerHooks', () => {
     expect(result).toStrictEqual({ transactionHash: '0xpredict' });
     expect(payHookMock).not.toHaveBeenCalled();
     expect(submitSmartTransactionHook).not.toHaveBeenCalled();
+  });
+
+  it('short-circuits publish when TransactionPay returns a transaction hash', async () => {
+    payHookMock.mockResolvedValue({ transactionHash: '0xpay' });
+
+    const hooks = getTransactionControllerHooks(buildRequest());
+    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+
+    expect(result).toStrictEqual({ transactionHash: '0xpay' });
+    expect(submitSmartTransactionHook).not.toHaveBeenCalled();
+  });
+
+  it('records sentinel_stx metrics when smart transaction hook publishes', async () => {
+    jest.mocked(submitSmartTransactionHook).mockResolvedValue({
+      transactionHash: '0xstx',
+    });
+
+    const hooks = getTransactionControllerHooks(buildRequest());
+    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+
+    expect(result).toStrictEqual({ transactionHash: '0xstx' });
+    expect(updateConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: MOCK_TRANSACTION_META.id,
+        params: expect.objectContaining({
+          properties: expect.objectContaining({
+            transaction_submission_method: 'sentinel_stx',
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('returns undefined hash when no hook publishes the transaction', async () => {
+    jest.mocked(accountSupports7702).mockResolvedValue(false);
+    jest.mocked(submitSmartTransactionHook).mockResolvedValue({
+      transactionHash: undefined,
+    });
+
+    const hooks = getTransactionControllerHooks(buildRequest());
+    const result = await hooks.publish?.(MOCK_TRANSACTION_META);
+
+    expect(result).toStrictEqual({ transactionHash: undefined });
   });
 
   it('records sentinel_relay metrics when the delegation hook publishes', async () => {
@@ -245,5 +288,108 @@ describe('getTransactionControllerHooks', () => {
         }),
       }),
     );
+  });
+
+  it('returns undefined from publishBatch when smart transactions are disabled', async () => {
+    jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(false);
+
+    const hooks = getTransactionControllerHooks(buildRequest());
+    const result = await hooks.publishBatch?.({
+      from: '0x123',
+      networkClientId: 'selectedNetworkClientId',
+      transactions: [
+        { id: 'tx1', signedTx: '0xaaa' as Hex },
+      ] as PublishBatchHookTransaction[],
+    });
+
+    expect(result).toBeUndefined();
+    expect(submitBatchSmartTransactionHook).not.toHaveBeenCalled();
+  });
+
+  it('throws from publishBatch when the transaction is not found', async () => {
+    jest.mocked(getTransactionById).mockReturnValue(undefined as never);
+
+    const hooks = getTransactionControllerHooks(buildRequest());
+
+    await expect(
+      hooks.publishBatch?.({
+        from: '0x123',
+        networkClientId: 'selectedNetworkClientId',
+        transactions: [
+          { id: 'missing-tx', signedTx: '0xaaa' as Hex },
+        ] as PublishBatchHookTransaction[],
+      }),
+    ).rejects.toThrow('Could not find transaction with id missing-tx');
+  });
+
+  describe('quote-required transaction types', () => {
+    it('throws when moneyAccountDeposit has no quotes', async () => {
+      const request = buildRequest({
+        initMessenger: {
+          call: jest.fn((action: string) => {
+            if (action === 'PredictController:publish') {
+              return { transactionHash: undefined };
+            }
+
+            if (action === 'TransactionPayController:getState') {
+              return {
+                transactionData: {
+                  '123': {
+                    quotes: [],
+                  },
+                },
+              };
+            }
+
+            return undefined;
+          }),
+        } as unknown as TransactionControllerHookRequest['initMessenger'],
+      });
+
+      const hooks = getTransactionControllerHooks(request);
+      const moneyAccountTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.moneyAccountDeposit,
+      };
+
+      await expect(hooks.publish?.(moneyAccountTx)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
+    });
+
+    it('does not throw for moneyAccountDeposit when quotes are present', async () => {
+      payHookMock.mockResolvedValue({
+        transactionHash: '0xpay-with-quote',
+      });
+
+      const hooks = getTransactionControllerHooks(buildRequest());
+      const moneyAccountTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.moneyAccountDeposit,
+      };
+
+      const result = await hooks.publish?.(moneyAccountTx);
+
+      expect(result).toStrictEqual({
+        transactionHash: '0xpay-with-quote',
+      });
+    });
+
+    it('does not throw when non-quote-required transaction has no quotes', async () => {
+      jest.mocked(accountSupports7702).mockResolvedValue(false);
+      jest.mocked(submitSmartTransactionHook).mockResolvedValue({
+        transactionHash: undefined,
+      });
+
+      const hooks = getTransactionControllerHooks(buildRequest());
+      const simpleSendTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.simpleSend,
+      };
+
+      const result = await hooks.publish?.(simpleSendTx);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
   });
 });

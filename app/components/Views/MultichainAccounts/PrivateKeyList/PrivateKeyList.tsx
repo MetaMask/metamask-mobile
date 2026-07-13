@@ -25,7 +25,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  Toaster,
   toast,
 } from '@metamask/design-system-react-native';
 import Engine from '../../../../core/Engine';
@@ -124,7 +123,7 @@ export const PrivateKeyList = () => {
     await Promise.all(
       pkAccounts.map(async (account: InternalAccount) => {
         const pk = await KeyringController.exportAccount(
-          password,
+          { password },
           account.address,
         );
         privateKeyMap[account.id] = pk;
@@ -188,9 +187,7 @@ export const PrivateKeyList = () => {
               privateKeys[item.account.id],
             );
             toast({
-              description: strings(
-                'multichain_accounts.private_key_list.copied',
-              ),
+              title: strings('multichain_accounts.private_key_list.copied'),
               hasNoTimeout: false,
             });
           },
@@ -326,7 +323,6 @@ export const PrivateKeyList = () => {
       />
 
       {reveal ? renderPrivateKeyList() : renderPassword()}
-      <Toaster />
     </Box>
   );
 };

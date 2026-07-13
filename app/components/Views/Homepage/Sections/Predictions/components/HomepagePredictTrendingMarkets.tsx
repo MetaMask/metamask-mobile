@@ -2,7 +2,6 @@ import React from 'react';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { UseHomepagePredictWorldCupMarketsResult } from '../hooks/useHomepagePredictWorldCupMarkets';
-import type { UseHomepagePredictTaggedMarketsResult } from '../hooks/useHomepagePredictTaggedMarkets';
 import type { PredictionsTrendingHeaderTestId } from '../predictionsSectionTypes';
 import type { PredictEmptyStateCtaName } from '../../../abTestConfig';
 import HomepagePredictWorldCupDiscovery from './HomepagePredictWorldCupDiscovery';
@@ -20,8 +19,9 @@ export interface HomepagePredictTrendingMarketsProps {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Required when `discoveryLayout` is `list` (World Cup discovery rail). */
   worldCupHomepage?: UseHomepagePredictWorldCupMarketsResult;
-  /** Required when `discoveryLayout` is `list` (NBA champion event, separate from World Cup tag). */
-  nbaChampionHomepage?: UseHomepagePredictTaggedMarketsResult;
+  /** Required when `discoveryLayout` is `list` (World Cup live games rail item). */
+  liveWorldCupHomepage?: UseHomepagePredictWorldCupMarketsResult;
+  worldCupEventCount?: number;
   emptyStateTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onEmptyStateTreatmentCtaClick?: (
     ctaName: PredictEmptyStateCtaName,
@@ -38,7 +38,8 @@ const HomepagePredictTrendingMarkets = ({
   markets,
   transactionActiveAbTests,
   worldCupHomepage,
-  nbaChampionHomepage,
+  liveWorldCupHomepage,
+  worldCupEventCount,
   emptyStateTransactionActiveAbTests,
   onEmptyStateTreatmentCtaClick,
 }: HomepagePredictTrendingMarketsProps) => {
@@ -55,7 +56,7 @@ const HomepagePredictTrendingMarkets = ({
     );
   }
 
-  if (!worldCupHomepage || !nbaChampionHomepage) {
+  if (!worldCupHomepage || !liveWorldCupHomepage) {
     return null;
   }
 
@@ -65,7 +66,8 @@ const HomepagePredictTrendingMarkets = ({
       onViewAll={onViewAll}
       headerTestIdKey={headerTestIdKey}
       worldCup={worldCupHomepage}
-      nbaChampion={nbaChampionHomepage}
+      liveWorldCup={liveWorldCupHomepage}
+      worldCupEventCount={worldCupEventCount}
       transactionActiveAbTests={emptyStateTransactionActiveAbTests}
       onTreatmentCtaClick={onEmptyStateTreatmentCtaClick}
     />

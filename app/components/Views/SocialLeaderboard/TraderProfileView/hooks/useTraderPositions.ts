@@ -1,17 +1,17 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import type {
-  PositionsResponse,
-  FetchPositionsOptions,
-  Position,
-} from '@metamask/social-controllers';
+import type { PositionsResponse, Position } from '@metamask/social-controllers';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
+import {
+  buildClosedPositionsQueryKey,
+  buildOpenPositionsQueryKey,
+} from '../../../../../util/social/traderProfileQueries';
 
 const EMPTY_POSITIONS: Position[] = [];
 const TRADER_POSITIONS_SOURCE = 'useTraderPositions';
@@ -34,7 +34,6 @@ export const useTraderPositions = (
   options?: UseTraderPositionsOptions,
 ): UseTraderPositionsResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
-  const fetchOptions: FetchPositionsOptions = { addressOrId };
 
   const {
     data: openData,
@@ -42,9 +41,10 @@ export const useTraderPositions = (
     error: openError,
     refetch: refetchOpen,
   } = useQuery<PositionsResponse>({
-    queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
+    queryKey: buildOpenPositionsQueryKey(addressOrId),
     enabled: Boolean(addressOrId) && isUnlocked,
     refetchInterval: options?.refetchInterval,
+    refetchOnMount: 'always',
   });
 
   const {
@@ -53,8 +53,10 @@ export const useTraderPositions = (
     error: closedError,
     refetch: refetchClosed,
   } = useQuery<PositionsResponse>({
-    queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
+    queryKey: buildClosedPositionsQueryKey(addressOrId),
     enabled: Boolean(addressOrId) && isUnlocked,
+    refetchInterval: options?.refetchInterval,
+    refetchOnMount: 'always',
   });
 
   useLogSocialQueryError(openError, {

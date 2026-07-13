@@ -124,11 +124,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  getRampRoutingDecision: () => 'AGGREGATOR',
-  UnifiedRampRoutingType: { AGGREGATOR: 'AGGREGATOR' },
-}));
-
 jest.mock('../../hooks/useRampAccountAddress', () => ({
   __esModule: true,
   default: () => '0x1234567890123456789012345678901234567890',
@@ -319,19 +314,6 @@ describe('createBuildQuoteNavDetails', () => {
     expect(result[1].params.params).toEqual({
       assetId: 'eip155:1/slip44:60',
       nativeFlowError: 'error',
-    });
-  });
-
-  it('forwards headlessSessionId for headless buy attempts', () => {
-    const result = createBuildQuoteNavDetails({
-      assetId: 'eip155:1/slip44:60',
-      amount: 25,
-      headlessSessionId: 'headless-abc',
-    });
-    expect(result[1].params.params).toEqual({
-      assetId: 'eip155:1/slip44:60',
-      amount: 25,
-      headlessSessionId: 'headless-abc',
     });
   });
 });
@@ -2028,54 +2010,6 @@ describe('BuildQuote', () => {
       expect(continueButton.props.accessibilityState?.disabled).not.toBe(true);
     });
 
-    it('matches quote when API returns prefixed provider ID', () => {
-      mockUseRampsQuotes.mockReturnValue({
-        data: {
-          success: [
-            { ...WIDGET_PROVIDER_QUOTE, provider: '/providers/moonpay' },
-          ],
-        },
-        loading: false,
-        error: null,
-      });
-
-      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
-    });
-
-    it('matches quote when selected provider has prefixed ID and quote has short ID', () => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [
-          { ...WIDGET_PROVIDER, id: '/providers/moonpay' },
-          NATIVE_PROVIDER,
-        ],
-        selectedProvider: { ...WIDGET_PROVIDER, id: '/providers/moonpay' },
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-      });
-
-      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
-    });
-
     it('finds matching quote even if it is not the first in the array', () => {
       mockUseRampsQuotes.mockReturnValue({
         data: {
@@ -2178,54 +2112,6 @@ describe('BuildQuote', () => {
 
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
       expect(continueButton.props.accessibilityState?.disabled).not.toBe(true);
-    });
-
-    it('matches quote when API returns prefixed provider ID', () => {
-      mockUseRampsQuotes.mockReturnValue({
-        data: {
-          success: [
-            { ...WIDGET_PROVIDER_QUOTE, provider: '/providers/moonpay' },
-          ],
-        },
-        loading: false,
-        error: null,
-      });
-
-      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
-    });
-
-    it('matches quote when selected provider has prefixed ID and quote has short ID', () => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [
-          { ...WIDGET_PROVIDER, id: '/providers/moonpay' },
-          NATIVE_PROVIDER,
-        ],
-        selectedProvider: { ...WIDGET_PROVIDER, id: '/providers/moonpay' },
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-      });
-
-      const { getByText, queryByText } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
-      expect(queryByText(noQuotesErrorPattern)).not.toBeOnTheScreen();
     });
 
     it('finds matching quote even if it is not the first in the array', () => {

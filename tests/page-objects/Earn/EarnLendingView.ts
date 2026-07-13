@@ -6,61 +6,62 @@ import {
   EarnLendingViewSelectorsIDs,
   EarnLendingViewSelectorsText,
 } from '../../selectors/Earn/EarnLendingView.selectors';
+import { EncapsulatedElementType } from '../../framework';
 
 class EarnLendingView {
-  get withdrawButton(): DetoxElement {
+  get withdrawButton(): EncapsulatedElementType {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.WITHDRAW_BUTTON);
   }
 
-  get depositButton(): DetoxElement {
+  get depositButton(): EncapsulatedElementType {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.DEPOSIT_BUTTON);
   }
 
-  get confirmationFooter(): DetoxElement {
+  get confirmationFooter(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EarnLendingViewSelectorsIDs.CONFIRMATION_FOOTER,
     );
   }
 
-  get confirmButton(): DetoxElement {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CANCEL_BUTTON);
   }
 
-  get depositInfoSection(): DetoxElement {
+  get depositInfoSection(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EarnLendingViewSelectorsIDs.DEPOSIT_INFO_SECTION,
     );
   }
 
-  get depositReceiveSection(): DetoxElement {
+  get depositReceiveSection(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EarnLendingViewSelectorsIDs.DEPOSIT_RECEIVE_SECTION,
     );
   }
 
-  get progressBar(): DetoxElement {
+  get progressBar(): EncapsulatedElementType {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.PROGRESS_BAR);
   }
 
-  get supplyTitle(): DetoxElement {
+  get supplyTitle(): EncapsulatedElementType {
     return Matchers.getElementByText(EarnLendingViewSelectorsText.SUPPLY);
   }
 
-  get reviewButton(): DetoxElement {
+  get reviewButton(): EncapsulatedElementType {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.REVIEW_BUTTON);
   }
 
-  get withdrawalTimeLabel(): DetoxElement {
+  get withdrawalTimeLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(
       EarnLendingViewSelectorsText.WITHDRAWAL_TIME,
     );
   }
 
-  get confirmButtonByLabel(): DetoxElement {
+  get confirmButtonByLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(EarnLendingViewSelectorsText.CONFIRM);
   }
 

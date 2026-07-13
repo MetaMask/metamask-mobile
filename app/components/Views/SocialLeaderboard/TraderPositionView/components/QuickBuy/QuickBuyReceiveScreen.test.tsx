@@ -14,13 +14,28 @@ jest.mock('./hooks/useChainDisplayInfos', () => ({
   useChainDisplayInfos: jest.fn(),
 }));
 
+jest.mock('./components/QuickBuyTokenSecurityBadge', () => {
+  const ReactMock = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () => ReactMock.createElement(ReactMock.Fragment),
+  };
+});
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
 jest.mock('@metamask/bridge-controller', () => ({
-  formatChainIdToHex: () => '0x1',
-  isNonEvmChainId: () => false,
+  formatChainIdToHex: (caipChainId: string) => {
+    const [namespace, reference] = caipChainId.split(':');
+    if (namespace !== 'eip155') {
+      throw new Error(`unsupported chain ${caipChainId}`);
+    }
+    return `0x${parseInt(reference, 10).toString(16)}`;
+  },
+  isNonEvmChainId: (chainId: string) =>
+    !chainId.startsWith('0x') && !chainId.startsWith('eip155:'),
   isNativeAddress: () => false,
   getNativeAssetForChainId: () => undefined,
 }));
@@ -39,11 +54,32 @@ const createToken = (overrides: Partial<BridgeToken> = {}): BridgeToken => ({
   ...overrides,
 });
 
+const SOLANA_CHAIN_ID = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const TRON_CHAIN_ID = 'tron:728126428';
+const BITCOIN_CHAIN_ID = 'bip122:000000000019d6689c085ae165831e93';
+
 const usdcToken = createToken({ symbol: 'USDC', chainId: '0x1' });
 const usdtToken = createToken({
   symbol: 'USDT',
   chainId: '0x1',
   address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+});
+const solanaUsdcToken = createToken({
+  symbol: 'USDC',
+  chainId: SOLANA_CHAIN_ID,
+  address: `${SOLANA_CHAIN_ID}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+});
+const tronNativeToken = createToken({
+  symbol: 'TRX',
+  name: 'Tron',
+  chainId: TRON_CHAIN_ID,
+  address: `${TRON_CHAIN_ID}/slip44:195`,
+});
+const bitcoinNativeToken = createToken({
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  chainId: BITCOIN_CHAIN_ID,
+  address: `${BITCOIN_CHAIN_ID}/slip44:0`,
 });
 
 const buildContext = (overrides: Record<string, unknown> = {}) => ({
@@ -120,5 +156,54 @@ describe('QuickBuyReceiveScreen', () => {
     expect(
       screen.getByText('social_leaderboard.quick_buy.receive_with_no_tokens'),
     ).toBeOnTheScreen();
+  });
+
+  it('renders Solana, Tron and Bitcoin network chips when receive options exist on those chains', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        sellDestTokenOptions: [
+          usdcToken,
+          solanaUsdcToken,
+          tronNativeToken,
+          bitcoinNativeToken,
+        ],
+        handleSelectDestStable,
+        setActiveScreen,
+      }),
+    );
+
+    render(<QuickBuyReceiveScreen />);
+
+    expect(
+      screen.getByTestId(`quick-buy-chain-filter-${SOLANA_CHAIN_ID}`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`quick-buy-chain-filter-${TRON_CHAIN_ID}`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`quick-buy-chain-filter-${BITCOIN_CHAIN_ID}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('defaults the chain filter to Solana when the position is on Solana', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        target: {
+          chain: SOLANA_CHAIN_ID,
+          tokenAddress: `${SOLANA_CHAIN_ID}/slip44:501`,
+          tokenSymbol: 'SOL',
+          tokenName: 'Solana',
+        },
+        sellDestTokenOptions: [usdcToken, solanaUsdcToken],
+        selectedDestStable: solanaUsdcToken,
+        handleSelectDestStable,
+        setActiveScreen,
+      }),
+    );
+
+    render(<QuickBuyReceiveScreen />);
+
+    expect(screen.getByTestId(getRowTestId(solanaUsdcToken))).toBeOnTheScreen();
+    expect(screen.queryByTestId(getRowTestId(usdcToken))).toBeNull();
   });
 });

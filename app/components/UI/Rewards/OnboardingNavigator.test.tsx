@@ -2,7 +2,7 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
 import OnboardingNavigator from './OnboardingNavigator';
 
@@ -76,7 +76,7 @@ jest.mock('./hooks/useGeoRewardsMetadata', () => ({
 
 describe('OnboardingNavigator', () => {
   let store: ReturnType<typeof configureStore>;
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   const createMockStore = () =>
     configureStore({

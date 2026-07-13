@@ -21,11 +21,6 @@ import { RootState } from '../../../reducers';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -38,6 +33,9 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -108,8 +106,8 @@ const DeleteWalletModal: React.FC = () => {
   };
 
   const deleteWallet = async () => {
+    setIsDeletingWallet(true);
     try {
-      setIsDeletingWallet(true);
       dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
       signOut();
       await CookieManager.clearAll(true);
@@ -122,9 +120,8 @@ const DeleteWalletModal: React.FC = () => {
     } catch (error) {
       console.error('Error during wallet deletion:', error);
       triggerClose();
-    } finally {
-      setIsDeletingWallet(false);
     }
+    setIsDeletingWallet(false);
   };
 
   return (
@@ -201,10 +198,9 @@ const DeleteWalletModal: React.FC = () => {
           </View>
 
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            label={strings('login.reset_wallet')}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             isDanger
             onPress={() => {
               setIsResetWallet(true);
@@ -213,7 +209,9 @@ const DeleteWalletModal: React.FC = () => {
               });
             }}
             testID={ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON}
-          />
+          >
+            {strings('login.reset_wallet')}
+          </Button>
         </View>
       ) : (
         <View style={styles.container}>
@@ -270,25 +268,27 @@ const DeleteWalletModal: React.FC = () => {
             </View>
             <View style={styles.buttonContainer}>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={deleteWallet}
-                label={strings('login.erase_my')}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 isDanger
                 testID={ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON}
-                loading={isDeletingWallet}
+                isLoading={isDeletingWallet}
                 isDisabled={isDeletingWallet}
-              />
+              >
+                {strings('login.erase_my')}
+              </Button>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={triggerClose}
-                label={strings('login.cancel')}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
                 isDisabled={isDeletingWallet}
-              />
+              >
+                {strings('login.cancel')}
+              </Button>
             </View>
           </View>
         </View>

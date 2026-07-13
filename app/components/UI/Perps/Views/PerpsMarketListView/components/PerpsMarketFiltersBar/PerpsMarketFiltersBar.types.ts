@@ -28,6 +28,27 @@ export interface PerpsMarketFiltersBarProps {
   onCategorySelect: (category: MarketTypeFilter) => void;
 
   /**
+   * Number of markets currently shown in the list (reflects active filters).
+   * Displayed on the left of the sort row.
+   */
+  marketCount: number;
+
+  /**
+   * Whether to show the watchlist (star) filter badge.
+   */
+  showWatchlistBadge?: boolean;
+
+  /**
+   * Whether the watchlist filter badge is currently active
+   */
+  isWatchlistSelected?: boolean;
+
+  /**
+   * Callback when the watchlist badge is pressed
+   */
+  onWatchlistToggle?: () => void;
+
+  /**
    * Optional test ID for testing
    */
   testID?: string;

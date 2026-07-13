@@ -3,6 +3,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
@@ -12,19 +13,22 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { EncapsulatedElementType, FrameworkDetector } from '../../framework';
+import WalletView from './WalletView';
+import TokensFullView from './HomeSections';
 
 class NetworkManager {
   /**
    * Button to open the network manager
    */
-  get openNetworkManagerButton(): DetoxElement {
+  get openNetworkManagerButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
   /**
    * Select the bottom sheet of the network manager
    */
-  get networkManagerBottomSheet(): DetoxElement {
+  get networkManagerBottomSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET,
     );
@@ -33,7 +37,7 @@ class NetworkManager {
   /**
    * Select the tab of the popular networks
    */
-  get popularNetworksTab(): DetoxElement {
+  get popularNetworksTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.POPULAR_NETWORKS_TAB,
     );
@@ -42,7 +46,7 @@ class NetworkManager {
   /**
    * Select the tab of the custom networks
    */
-  get customNetworksTab(): DetoxElement {
+  get customNetworksTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.CUSTOM_NETWORKS_TAB,
     );
@@ -51,7 +55,7 @@ class NetworkManager {
   /**
    * Select the container of the popular networks tab
    */
-  get popularNetworksContainer(): DetoxElement {
+  get popularNetworksContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.POPULAR_NETWORKS_CONTAINER,
     );
@@ -60,7 +64,7 @@ class NetworkManager {
   /**
    * Select the container of the custom networks tab
    */
-  get customNetworksContainer(): DetoxElement {
+  get customNetworksContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.CUSTOM_NETWORKS_CONTAINER,
     );
@@ -69,7 +73,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksSelected(): DetoxElement {
+  get selectAllPopularNetworksSelected(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_SELECTED,
     );
@@ -78,7 +82,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksNotSelected(): DetoxElement {
+  get selectAllPopularNetworksNotSelected(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED,
     );
@@ -87,7 +91,7 @@ class NetworkManager {
   /**
    * Select the network by name wether it is selected or not
    */
-  getNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
+  getNetworkByCaipChainId(caipChainId: CaipChainId): EncapsulatedElementType {
     return Matchers.getElementByID(
       new RegExp(`^network-list-item-${caipChainId}-(selected|not-selected)$`),
     );
@@ -96,7 +100,9 @@ class NetworkManager {
   /**
    * Select the network by name if it is selected
    */
-  getSelectedNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
+  getSelectedNetworkByCaipChainId(
+    caipChainId: CaipChainId,
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, true),
     );
@@ -105,7 +111,9 @@ class NetworkManager {
   /**
    * Select the network by name if it is not selected
    */
-  getNotSelectedNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
+  getNotSelectedNetworkByCaipChainId(
+    caipChainId: CaipChainId,
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, false),
     );
@@ -114,7 +122,7 @@ class NetworkManager {
   /**
    * Select the network by name in the base control bar
    */
-  getBaseControlBarText(caipChainId: CaipChainId): DetoxElement {
+  getBaseControlBarText(caipChainId: CaipChainId): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}-${caipChainId}`,
     );
@@ -124,7 +132,7 @@ class NetworkManager {
    * Get token element by symbol
    * Note: Gets the first instance in case of duplicates during render cycles
    */
-  getTokenBySymbol(symbol: string): DetoxElement {
+  getTokenBySymbol(symbol: string): EncapsulatedElementType {
     return Matchers.getElementByID(`asset-${symbol}`, 0);
   }
 
@@ -145,6 +153,7 @@ class NetworkManager {
     const tokenElement = this.getTokenBySymbol(symbol);
     await Assertions.expectElementToNotBeVisible(tokenElement, {
       elemDescription: `Token ${symbol} should not be visible`,
+      timeout: 3000,
     });
   }
 
@@ -200,13 +209,21 @@ class NetworkManager {
    * so that the network filter control bar becomes accessible.
    */
   async navigateToTokensFullView(): Promise<void> {
-    const tokensSectionHeader = Matchers.getElementByText(
-      WalletViewSelectorsText.TOKENS_SECTION,
-    );
-    await Gestures.waitAndTap(tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'Tokens Section Header (navigate to full view)',
+    await encapsulatedAction({
+      detox: async () => {
+        const tokensSectionHeader = Matchers.getElementByText(
+          WalletViewSelectorsText.TOKENS_SECTION,
+        );
+        await Gestures.waitAndTap(tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'Tokens Section Header (navigate to full view)',
+        });
+      },
+      appium: async () => {
+        await WalletView.tapOnNewTokensSection();
+      },
     });
+    await TokensFullView.waitForVisible();
   }
 
   /**
@@ -230,6 +247,7 @@ class NetworkManager {
     await this.navigateToTokensFullView();
     await Gestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button (from TokensFullView)',
+      timeout: 10_000,
     });
     await this.waitForNetworkManagerToLoad();
   }
@@ -238,7 +256,10 @@ class NetworkManager {
    * Check if the network manager is currently visible
    */
   async isNetworkManagerVisible(): Promise<boolean> {
-    return Utilities.isElementVisible(this.networkManagerBottomSheet, 1000);
+    const readinessTarget = FrameworkDetector.isAppium()
+      ? this.popularNetworksContainer
+      : this.networkManagerBottomSheet;
+    return Utilities.isElementVisible(readinessTarget, 1000);
   }
 
   /**
@@ -343,7 +364,7 @@ class NetworkManager {
   /**
    * Get network by display name (for custom networks)
    */
-  getNetworkByName(networkName: string): DetoxElement {
+  getNetworkByName(networkName: string): EncapsulatedElementType {
     return Matchers.getElementByText(networkName);
   }
 
@@ -371,9 +392,27 @@ class NetworkManager {
    * Wait for network manager to be fully loaded
    */
   async waitForNetworkManagerToLoad() {
-    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-      elemDescription: 'Network Manager Bottom Sheet',
-      timeout: 10000,
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          this.networkManagerBottomSheet,
+          {
+            elemDescription: 'Network Manager Bottom Sheet',
+            timeout: 10_000,
+          },
+        );
+      },
+      appium: async () => {
+        // iOS: `network-manager-bottom-sheet` may exist while `displayed === false`
+        // even though the Popular tab content is on screen (same as wallet-screen).
+        await Assertions.expectElementToBeVisible(
+          this.popularNetworksContainer,
+          {
+            elemDescription: 'Popular Networks Container',
+            timeout: 15_000,
+          },
+        );
+      },
     });
     // Wait for bottom sheet animation to complete
     // eslint-disable-next-line no-restricted-syntax

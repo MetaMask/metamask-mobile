@@ -14,7 +14,6 @@ export const PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME = `${prefix}previousAuthTypeB
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
 export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
-export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 /**
  * @deprecated, use AnalyticsController state (optedIn) instead
  * Keeping METRICS_OPT_IN for backward compatibility
@@ -90,6 +89,8 @@ export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBann
 export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
 export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
+
+export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;
 
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 

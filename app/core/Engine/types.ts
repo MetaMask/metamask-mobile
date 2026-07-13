@@ -94,6 +94,15 @@ import {
   ConnectivityControllerState,
 } from '@metamask/connectivity-controller';
 import {
+  ConfigRegistryController,
+  type ConfigRegistryControllerState,
+  type ConfigRegistryControllerEvents,
+  ConfigRegistryControllerActions,
+  ConfigRegistryApiServiceActions,
+  ConfigRegistryApiServiceEvents,
+  ConfigRegistryApiService,
+} from '@metamask/config-registry-controller';
+import {
   KeyringController,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -343,6 +352,16 @@ import type {
   CardControllerActions,
   CardControllerEvents,
 } from './controllers/card-controller/types';
+import { QrSyncController } from '../QrSync/QrSyncController';
+import type {
+  QrSyncControllerState,
+  QrSyncControllerActions,
+  QrSyncControllerEvents,
+} from '../QrSync/controller-types';
+import {
+  QrSyncProvisioningService,
+  type QrSyncProvisioningServiceActions,
+} from '../QrSync/services/qr-sync-provisioning-service';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -377,6 +396,11 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
+import type {
+  SnapAccountService,
+  SnapAccountServiceActions,
+  SnapAccountServiceEvents,
+} from '@metamask/snap-account-service';
 import {
   GatorPermissionsController,
   GatorPermissionsControllerActions,
@@ -407,6 +431,9 @@ import {
   ProfileMetricsService,
   ProfileMetricsServiceActions,
   ProfileMetricsServiceEvents,
+  ProofOfOwnershipService,
+  ProofOfOwnershipServiceActions,
+  ProofOfOwnershipServiceEvents,
 } from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
@@ -517,7 +544,7 @@ type SnapsGlobalEvents =
   | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
-type GlobalActions =
+export type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
@@ -557,6 +584,7 @@ type GlobalActions =
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
+  | SnapAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -583,6 +611,8 @@ type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | CardControllerActions
+  | QrSyncControllerActions
+  | QrSyncProvisioningServiceActions
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
@@ -595,6 +625,7 @@ type GlobalActions =
   | NftDetectionControllerActions
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
+  | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
@@ -604,10 +635,12 @@ type GlobalActions =
   | ComplianceControllerActions
   | ComplianceServiceActions
   | TransakServiceActions
+  | ConfigRegistryControllerActions
+  | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions;
 
-type GlobalEvents =
+export type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
@@ -617,6 +650,8 @@ type GlobalEvents =
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
+  | ConfigRegistryControllerEvents
+  | ConfigRegistryApiServiceEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
@@ -643,6 +678,7 @@ type GlobalEvents =
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
+  | SnapAccountServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -672,6 +708,7 @@ type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | CardControllerEvents
+  | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
@@ -682,6 +719,7 @@ type GlobalEvents =
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
+  | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
@@ -714,7 +752,10 @@ export const getRootExtendedMessenger = (): RootExtendedMessenger =>
  * Type definition for the root messenger used in the Engine.
  * It extends the root messenger with global actions and events.
  */
-export type RootMessenger = Messenger<'Root', GlobalActions, GlobalEvents>;
+export type RootMessenger<
+  AllowedActions extends GlobalActions = GlobalActions,
+  AllowedEvents extends GlobalEvents = GlobalEvents,
+> = Messenger<'Root', AllowedActions, AllowedEvents>;
 
 export const getRootMessenger = (): RootMessenger =>
   new Messenger<'Root', GlobalActions, GlobalEvents>({
@@ -738,6 +779,8 @@ export type MessengerClients = {
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
+  ConfigRegistryController: ConfigRegistryController;
+  ConfigRegistryApiService: ConfigRegistryApiService;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
@@ -792,6 +835,7 @@ export type MessengerClients = {
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
+  SnapAccountService: SnapAccountService;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -805,6 +849,8 @@ export type MessengerClients = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   CardController: CardController;
+  QrSyncController: QrSyncController;
+  QrSyncProvisioningService: QrSyncProvisioningService;
   ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
@@ -813,6 +859,7 @@ export type MessengerClients = {
   DelegationController: DelegationController;
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
+  ProofOfOwnershipService: ProofOfOwnershipService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
   SocialController: SocialController;
@@ -842,6 +889,7 @@ export type EngineState = {
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
+  ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
@@ -894,6 +942,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
@@ -939,10 +988,10 @@ export type MessengerClientsToInitialize =
   | 'SamplePetnamesController'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTrackerController'
-  | 'AddressBookController'
   | 'AssetsContractController'
   | 'AssetsController'
-  | 'ConnectivityController'
+  | 'ConfigRegistryController'
+  | 'ConfigRegistryApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
@@ -967,15 +1016,13 @@ export type MessengerClientsToInitialize =
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'SnapAccountService'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
   | 'LoggingController'
-  | 'NetworkController'
   | 'AccountTreeController'
-  | 'AccountsController'
-  | 'ApprovalController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'
@@ -985,7 +1032,6 @@ export type MessengerClientsToInitialize =
   | 'NftController'
   | 'NftDetectionController'
   | 'PhishingController'
-  | 'RemoteFeatureFlagController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
@@ -1000,6 +1046,8 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'CardController'
+  | 'QrSyncController'
+  | 'QrSyncProvisioningService'
   | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'
@@ -1015,6 +1063,7 @@ export type MessengerClientsToInitialize =
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
+  | 'ProofOfOwnershipService'
   | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
@@ -1177,10 +1226,19 @@ export interface InitMessengerClientsFunctionRequest {
 }
 
 /**
+ * Map of only the messenger clients that `initMessengerClients` constructs.
+ * Wallet-owned controllers (e.g. `AccountsController`) are intentionally absent;
+ * resolve those via `wallet.getInstance(...)`, not this map.
+ */
+export type InitializedMessengerClientsByName = {
+  [Name in MessengerClientsToInitialize]: MessengerClientsByName[Name];
+};
+
+/**
  * Function to initialize the messenger clients in the engine.
  */
 export type InitMessengerClientsFunction = (
   request: InitMessengerClientsFunctionRequest,
 ) => {
-  messengerClientsByName: MessengerClientsByName;
+  messengerClientsByName: InitializedMessengerClientsByName;
 };

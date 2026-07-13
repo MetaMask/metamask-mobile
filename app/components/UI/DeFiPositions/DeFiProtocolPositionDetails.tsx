@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { ImageSourcePropType, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../core/NavigationService/types';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import styleSheet from './DeFiProtocolPositionDetails.styles';
 import { useParams } from '../../../util/navigation/navUtils';
+import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import Text, {
   TextColor,
   TextVariant,
@@ -30,54 +35,68 @@ interface DeFiProtocolPositionDetailsParams {
 
 const DeFiProtocolPositionDetails: React.FC = () => {
   const { styles } = useStyles(styleSheet, undefined);
+  const navigation = useNavigation<AppStackNavigationProp>();
 
   const { protocolAggregate, networkIconAvatar } =
     useParams<DeFiProtocolPositionDetailsParams>();
   const privacyMode = useSelector(selectPrivacyMode);
 
-  return (
-    <View
-      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
-      style={styles.protocolPositionDetailsWrapper}
-    >
-      <View style={styles.detailsWrapper}>
-        <View>
-          <Text variant={TextVariant.DisplayMD}>
-            {protocolAggregate.protocolDetails.name}
-          </Text>
-          <SensitiveText
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Medium}
-            testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}
-          >
-            {formatWithThreshold(
-              protocolAggregate.aggregatedMarketValue,
-              0.01,
-              I18n.locale,
-              { style: 'currency', currency: 'USD' },
-            )}
-          </SensitiveText>
-        </View>
+  const handleBack = useCallback(() => {
+    navigation.pop();
+  }, [navigation]);
 
-        <View>
-          <DeFiAvatarWithBadge
-            networkIconAvatar={networkIconAvatar}
-            avatarName={protocolAggregate.protocolDetails.name}
-            avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
-          />
-        </View>
-      </View>
-      <View style={styles.separatorWrapper}>
-        <Summary.Separator />
-      </View>
-      <DeFiProtocolPositionGroups
-        protocolAggregate={protocolAggregate}
-        networkIconAvatar={networkIconAvatar}
-        privacyMode={privacyMode}
+  return (
+    <SafeAreaView
+      edges={['left', 'right', 'bottom']}
+      style={styles.protocolPositionDetailsWrapper}
+      testID={WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER}
+    >
+      <HeaderStandard
+        title=""
+        onBack={handleBack}
+        includesTopInset
+        backButtonProps={{ testID: CommonSelectorsIDs.BACK_ARROW_BUTTON }}
       />
-    </View>
+      <View style={styles.protocolPositionDetailsContent}>
+        <View style={styles.detailsWrapper}>
+          <View>
+            <Text variant={TextVariant.DisplayMD}>
+              {protocolAggregate.protocolDetails.name}
+            </Text>
+            <SensitiveText
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              testID={DEFI_PROTOCOL_POSITION_DETAILS_BALANCE_TEST_ID}
+            >
+              {formatWithThreshold(
+                protocolAggregate.aggregatedMarketValue,
+                0.01,
+                I18n.locale,
+                { style: 'currency', currency: 'USD' },
+              )}
+            </SensitiveText>
+          </View>
+
+          <View>
+            <DeFiAvatarWithBadge
+              networkIconAvatar={networkIconAvatar}
+              avatarName={protocolAggregate.protocolDetails.name}
+              avatarIconUrl={protocolAggregate.protocolDetails.iconUrl}
+            />
+          </View>
+        </View>
+        <View style={styles.separatorWrapper}>
+          <Summary.Separator />
+        </View>
+        <DeFiProtocolPositionGroups
+          protocolAggregate={protocolAggregate}
+          networkIconAvatar={networkIconAvatar}
+          privacyMode={privacyMode}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 

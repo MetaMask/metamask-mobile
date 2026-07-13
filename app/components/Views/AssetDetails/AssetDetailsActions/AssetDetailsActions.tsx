@@ -11,7 +11,7 @@ import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectIsSwapsEnabled } from '../../../../core/redux/slices/bridge';
 import Routes from '../../../../constants/navigation/Routes';
-import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
+import useDepositEnabled from '../../../UI/Ramp/hooks/useDepositEnabled';
 import { RootState } from '../../../../reducers';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import {

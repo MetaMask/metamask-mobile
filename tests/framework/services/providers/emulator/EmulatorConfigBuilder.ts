@@ -1,5 +1,6 @@
 import { Platform, type EmulatorConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
+import { getAppiumHost, getAppiumPort } from '../../appium/AppiumServer.ts';
 
 /**
  * Builder for Emulator WebDriver configuration (local Android/iOS).
@@ -38,10 +39,40 @@ export class EmulatorConfigBuilder {
     // - No `buildPath`: omit `appium:app` and target the existing install via
     //   bundleId / package+activity. Install presence is enforced in
     //   `EmulatorProvider.globalSetup()`.
+    // - iOS CI: globalSetup already simctl-installs from `buildPath`; set
+    //   IOS_APPIUM_USE_BUNDLE_ID_ONLY=true to skip a redundant Appium-side install.
+    // - Android CI: globalSetup already adb-installs; set
+    //   ANDROID_APPIUM_USE_PACKAGE_ONLY=true to avoid a second install at session start.
     const hasLocalApp = Boolean(buildPath);
+    const skipIosAppiumAppInstall =
+      platformName === Platform.IOS &&
+      process.env.IOS_APPIUM_USE_BUNDLE_ID_ONLY === 'true';
+    const skipAndroidAppiumAppInstall =
+      platformName === Platform.ANDROID &&
+      process.env.ANDROID_APPIUM_USE_PACKAGE_ONLY === 'true';
+    const usePreinstalledWda =
+      platformName === Platform.IOS &&
+      process.env.IOS_WDA_PREINSTALLED === 'true';
+    const usePrebuiltWda =
+      platformName === Platform.IOS &&
+      process.env.USE_PREBUILT_WDA === 'true' &&
+      !usePreinstalledWda;
+
+    const androidAdbExecTimeoutMs = 120_000;
+    const androidTimeout = androidAdbExecTimeoutMs + 30_000;
+    const iosTimeout = usePreinstalledWda
+      ? 3 * 60 * 1000
+      : usePrebuiltWda
+        ? 5 * 60 * 1000
+        : 12 * 60 * 1000;
+    const connectionRetryTimeout =
+      platformName === Platform.ANDROID ? androidTimeout : iosTimeout;
 
     return {
-      port: 4723,
+      hostname: getAppiumHost(),
+      port: getAppiumPort(),
+      connectionRetryTimeout,
+      connectionRetryCount: 0,
       capabilities: {
         'appium:deviceName': emulatorDevice.name,
         'appium:udid': emulatorDevice.udid,
@@ -52,6 +83,9 @@ export class EmulatorConfigBuilder {
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
               'appium:appActivity': this.project.use.app?.launchableActivity,
+              'appium:adbExecTimeout': androidAdbExecTimeoutMs,
+              // Fail Chromedriver attach faster than the default when WebView is stuck.
+              'appium:androidWebviewConnectTimeout': 60_000,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
@@ -59,7 +93,11 @@ export class EmulatorConfigBuilder {
         platformName,
         'appium:newCommandTimeout': 300,
         'appium:deviceOrientation': emulatorDevice.orientation,
-        ...(hasLocalApp ? { 'appium:app': buildPath } : {}),
+        ...(hasLocalApp &&
+        !skipIosAppiumAppInstall &&
+        !skipAndroidAppiumAppInstall
+          ? { 'appium:app': buildPath }
+          : {}),
         'appium:autoGrantPermissions': true,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': false,
@@ -69,7 +107,57 @@ export class EmulatorConfigBuilder {
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
         'appium:waitForIdleTimeout': 0, // Don't wait for idle
-        'appium:wdaLaunchTimeout': 300_000,
+        ...(usePreinstalledWda
+          ? {
+              // WDA was simctl-installed in prepare-ios-appium-runner; launch only.
+              'appium:usePreinstalledWDA': true,
+              'appium:updatedWDABundleId':
+                process.env.IOS_WDA_BUNDLE_ID?.trim() ||
+                'com.facebook.WebDriverAgentRunner',
+              // CI evidence shows intermittent WDA launch/proxy timeouts at 60s/10s.
+              // Give the preinstalled path more room on loaded runners.
+              'appium:wdaLaunchTimeout': 120_000,
+              'appium:wdaConnectionTimeout': 30_000,
+              'appium:simulatorStartupTimeout': 180_000,
+            }
+          : usePrebuiltWda
+            ? {
+                // Prebuilt WDA on CI: xcodebuild test-without-building (~minutes).
+                'appium:wdaLaunchTimeout': 120_000,
+                'appium:wdaConnectionTimeout': 30_000,
+                // Sim is booted in getDriver(); this covers XCUITest attach on loaded CI hosts.
+                'appium:simulatorStartupTimeout': 240_000,
+              }
+            : {
+                // Cold WDA build (local dev / cache miss): allow up to 10 min.
+                'appium:wdaLaunchTimeout': 10 * 60_000,
+                'appium:simulatorStartupTimeout': 10 * 60_000,
+              }),
+        // Pin WDA's DerivedData to a fixed path so CI can cache and restore it.
+        // When USE_PREBUILT_WDA=true (set by CI after prebuild/cache hit), xcuitest-driver
+        // skips xcodebuild entirely and installs+launches the cached WDA binary
+        // directly — cutting ~8 min off CI per run. Without it, xcodebuild runs
+        // even when DerivedData is present because actions/cache restores files
+        // with current timestamps, causing a full rebuild.
+        ...(platformName === Platform.IOS
+          ? {
+              'appium:derivedDataPath': `${process.env.HOME ?? '~'}/appium-wda`,
+              'appium:skipLogCapture': true,
+              ...(usePreinstalledWda
+                ? {
+                    'appium:useNewWDA': false,
+                    'appium:showXcodeLog': false,
+                  }
+                : usePrebuiltWda
+                  ? {
+                      'appium:usePrebuiltWDA': true,
+                      // Reuse a WDA instance already listening on the sim (retries / multi-test).
+                      'appium:useNewWDA': false,
+                      'appium:showXcodeLog': false,
+                    }
+                  : {}),
+            }
+          : {}),
         'appium:includeSafariInWebviews': true,
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
         'appium:settings[ignoreUnimportantViews]': true,
