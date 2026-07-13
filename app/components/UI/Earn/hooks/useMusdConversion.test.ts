@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useMusdConversion, selectPendingApprovalIds } from './useMusdConversion';
+import {
+  useMusdConversion,
+  selectPendingApprovalIds,
+} from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -1114,7 +1117,7 @@ describe('selectPendingApprovalIds', () => {
       },
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    }) as any;
 
   it('returns the keys of the pending approvals map', () => {
     const pendingApprovals = { '1': { id: '1' }, '2': { id: '2' } };
