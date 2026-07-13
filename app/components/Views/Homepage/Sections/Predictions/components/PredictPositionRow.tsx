@@ -36,7 +36,7 @@ interface PredictPositionRowProps {
  * Line 1: Title (e.g., "Gavin Newsom" or "Will ETF be approved?")
  * Line 2: Direction (e.g., "Yes" or "No")
  */
-export const PredictPositionRow = ({
+const PredictPositionRowBase = ({
   position,
   onPress,
   privacyMode,
@@ -112,6 +112,8 @@ export const PredictPositionRow = ({
     </TouchableOpacity>
   );
 };
+
+export const PredictPositionRow = React.memo(PredictPositionRowBase);
 
 /**
  * Skeleton for a position row with shimmer effect (matches row layout)

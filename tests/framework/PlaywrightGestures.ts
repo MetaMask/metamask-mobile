@@ -535,6 +535,19 @@ export default class PlaywrightGestures {
   }
 
   /**
+   * Submit the focused Android URL field via KEYCODE_ENTER (66).
+   * Matches the ↵ key on the URL keyboard (no "Go" label on most IMEs).
+   */
+  @boxedStep
+  static async submitAndroidUrlBar(): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    logger.debug('submitAndroidUrlBar: pressKeyCode(66) ENTER');
+    await drv.pressKeyCode(66);
+  }
+
+  /**
    * Press a return key on the soft keyboard (e.g. 'Next', 'Done', 'Go').
    * Use when tapOutside cannot dismiss the keyboard (keyboardDismissMode="none")
    * or when onSubmitEditing must fire to advance the flow.
@@ -547,13 +560,7 @@ export default class PlaywrightGestures {
     logger.debug(`Tapping keyboard return key: ${keyName}`);
 
     if (PlatformDetector.isAndroid()) {
-      try {
-        await drv.execute('mobile: performEditorAction', [
-          { action: keyName.toLowerCase() },
-        ]);
-      } catch {
-        await drv.hideKeyboard();
-      }
+      await drv.pressKeyCode(66);
       return;
     }
 

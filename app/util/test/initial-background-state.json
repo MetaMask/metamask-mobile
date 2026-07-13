@@ -860,9 +860,11 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "pendingSecretImports": null,
+    "provisioningMetadata": null,
+    "provisioningStatus": null,
     "otp": null,
-    "error": null,
-    "importPlan": null
+    "error": null
   },
   "AiDigestController": {
     "marketInsights": {},

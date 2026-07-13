@@ -314,6 +314,7 @@ export enum TraceOperation {
   HomepageSectionPerformance = 'homepage.section.performance',
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
+  MoneyAccountDataFetch = 'money.account.data_fetch',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */

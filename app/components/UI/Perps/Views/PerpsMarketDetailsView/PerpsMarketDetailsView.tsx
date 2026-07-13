@@ -10,6 +10,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -307,6 +308,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   }, [market?.symbol]);
+
+  // Record the view for the Recently Viewed rail — fires for every entry
+  // path into this screen (market list, watchlist, related markets,
+  // homepage, deep links, trade-again), not just market-list taps.
+  // useFocusEffect (rather than a mount-keyed useEffect) is required because
+  // navigation.navigate() can reveal an already-mounted MARKET_DETAILS
+  // instance (e.g. from the homepage) instead of remounting it, which would
+  // otherwise skip the view recording entirely.
+  useFocusEffect(
+    useCallback(() => {
+      if (market?.symbol) {
+        Engine.context.PerpsController.recordMarketViewed(market.symbol);
+      }
+    }, [market?.symbol]),
+  );
 
   const {
     scrollY: scrollYShared,
