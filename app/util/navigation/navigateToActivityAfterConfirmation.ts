@@ -5,38 +5,22 @@ import {
 } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
 
-// Only the navigation methods this helper needs. Using Pick avoids coupling to
-// the caller's exact NavigationProp variant (hooks override `getState`, class
-// props differ, etc.).
+// The navigation methods this helper needs (Pick avoids coupling to the caller's
+// exact NavigationProp variant).
 type ActivityRedirectNavigation = Pick<
   NavigationProp<ParamListBase>,
   'navigate' | 'getParent'
 >;
 
 /**
- * Redirects to the Activity screen after a transaction is submitted, dropping
- * the now-consumed confirmation from the back stack so "back" from Activity does
- * not land on the stale confirmation (whose approval was consumed via
- * `deleteAfterResult`, so revisiting it renders an infinite loader).
+ * Redirects to Activity after a transaction, replacing the confirmation's flow
+ * stack so "back" never lands on the consumed confirmation (which renders an
+ * infinite loader). One `StackActions.replace` keeps it to a single clean
+ * transition.
  *
- * The confirmation always lives in a nested stack that is a direct child of the
- * root navigator (the flow stack: Send, StakeScreens, EarnScreens…). Replacing
- * that whole stack with Activity, in one `StackActions.replace`, is a single
- * clean transition — no pop-then-push double animation, no half-finished pop
- * flashing on back. Native-stack can't cleanly remove a nested confirmation while
- * keeping its sibling build screen AND push a root-level Activity in one move, so
- * we replace the stack instead. What "back" lands on then depends on the flow's
- * shape:
- *
- * Same stack as the build screen (send, staking): the whole flow stack is
- * replaced, so "back" returns to Wallet home.
- *
- * Sole screen of its own root-sibling stack (lending): only the confirmation's
- * stack is replaced; its input screen lives in a sibling stack that survives, so
- * "back" returns to that input screen.
- *
- * Falls back to a plain `navigate` when the parent tree can't be resolved. See the
- * real-navigator integration tests in `navigateToActivityAfterConfirmation.test.tsx`.
+ * Back destination depends on the flow's stack shape: send/staking replace the
+ * whole flow stack (→ Wallet home); lending replaces only its own stack, whose
+ * input screen survives in a sibling stack (→ input screen).
  *
  * @param navigation - The confirmation screen's navigation object.
  */
@@ -45,11 +29,8 @@ export function navigateToActivityAfterConfirmation(
 ): void {
   const rootNavigation = navigation.getParent?.();
 
-  // `StackActions.replace(TRANSACTIONS_VIEW)` only works when Activity is a
-  // screen registered on the root navigator — which it is when the Money-account
-  // feature is enabled (the case that produces the stale-confirmation bug). When
-  // it isn't (flag off, Activity lives under the tabs) `replace` would not
-  // resolve, so fall back to a plain `navigate`, matching the previous behavior.
+  // `replace` only resolves when Activity is a root-stack screen (Money-account
+  // enabled — the case with the bug). Otherwise fall back to plain `navigate`.
   if (
     rootNavigation?.getState().routeNames.includes(Routes.TRANSACTIONS_VIEW)
   ) {

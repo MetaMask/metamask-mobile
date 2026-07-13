@@ -279,11 +279,7 @@ export function mapLocalTransaction(
         })
       : undefined;
   };
-  // The deposited token is the underlying asset (USDC/USDT/…), NOT the pool the
-  // tx is sent to. Deriving the token from `txParams.to` (the pool) leaves the
-  // row with no resolvable symbol/icon and no amount, so resolve the real token
-  // from simulation data first, then the outgoing Transfer log, and only fall
-  // back to the pool address to preserve the prior behavior.
+
   const getLendingDepositSourceToken = () => {
     const suppliedTokenBalanceChange =
       initialTransaction.simulationData?.tokenBalanceChanges?.find(
@@ -299,13 +295,6 @@ export function mapLocalTransaction(
       });
     }
 
-    // Post-confirmation fallback: the outgoing Transfer log for the deposit
-    // (sent FROM the user, topics[1]). Prefer the transfer whose recipient
-    // (topics[2]) is the pool (txParams.to) when present — this disambiguates
-    // from an unrelated outgoing transfer such as a gas-fee token. Otherwise fall
-    // back to the first outgoing transfer from the user: Aave V3 sends the
-    // underlying to the reserve aToken, not the pool address, so a strict
-    // pool-recipient match would miss the real deposit log.
     const fromAddress = from.toLowerCase();
     const poolAddress = to.toLowerCase();
     const logs = initialTransaction.txReceipt?.logs ?? [];

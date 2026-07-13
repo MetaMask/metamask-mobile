@@ -13,15 +13,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../constants/navigation/Routes';
 import { navigateToActivityAfterConfirmation } from './navigateToActivityAfterConfirmation';
 
-// This is an integration test against REAL React Navigation state (not mocked),
-// because the fix depends on how the confirmation pop and the Activity push
-// interact across nested navigators (and the ordering differs by stack shape).
-// It reconstructs the exact stack shape each flow has at transaction-submission
-// time (see the flow traces in the PR description) and asserts that after the
-// redirect:
-//   1. the user lands on the Activity screen, and
-//   2. pressing "back" returns to the transaction-building screen, not the
-//      consumed confirmation.
+// Integration test against REAL React Navigation state: it reconstructs each
+// flow's stack shape at tx-submission time and asserts that after the redirect
+// the user lands on Activity and "back" does not return to the confirmation.
 
 const RootStack = createNativeStackNavigator();
 const NestedStack = createNativeStackNavigator();
@@ -30,9 +24,8 @@ const REDESIGNED = Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS;
 
 const Probe = ({ label }: { label: string }) => <Text>{label}</Text>;
 
-// A confirmation screen whose only job is to trigger the redirect helper with
-// its own (nested) navigation object — mirroring how the real confirmation
-// footers/hooks call it.
+// Triggers the redirect helper with its own nested navigation, like the real
+// confirmation footers/hooks.
 const ConfirmationScreen = () => {
   const navigation = useNavigation();
   return (
@@ -81,9 +74,8 @@ const renderTree = (
 ) =>
   render(
     <NavigationContainer ref={ref} initialState={initialState}>
-      {/* TRANSACTIONS_VIEW is registered at the root level, as it is when the
-          Money-account feature is enabled — this is what lets a bare
-          navigate(TRANSACTIONS_VIEW) push Activity on top of a confirmation. */}
+      {/* Activity (TRANSACTIONS_VIEW) is a root route here, as it is when the
+          Money-account feature is enabled. */}
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         <RootStack.Screen name={Routes.HOME_TABS}>
           {() => <Probe label="home" />}
@@ -139,8 +131,7 @@ describe('navigateToActivityAfterConfirmation', () => {
 
     fireEvent.press(getByTestId('redirect-trigger'));
 
-    // The whole StakeScreens flow stack is replaced by Activity (the build
-    // screen is nested inside it, so it goes with it).
+    // Whole StakeScreens flow stack replaced (its nested build screen goes too).
     expect(focusedRouteName(ref)).toBe(Routes.TRANSACTIONS_VIEW);
     expect(rootRouteNames(ref)).toEqual([
       Routes.HOME_TABS,
@@ -179,8 +170,8 @@ describe('navigateToActivityAfterConfirmation', () => {
 
     fireEvent.press(getByTestId('redirect-trigger'));
 
-    // Only the EarnScreens stack (which held just the confirmation) is replaced;
-    // the sibling StakeScreens stack with the input screen survives beneath.
+    // Only EarnScreens (the confirmation) is replaced; the sibling StakeScreens
+    // input screen survives beneath.
     expect(focusedRouteName(ref)).toBe(Routes.TRANSACTIONS_VIEW);
     expect(rootRouteNames(ref)).toEqual([
       Routes.HOME_TABS,
