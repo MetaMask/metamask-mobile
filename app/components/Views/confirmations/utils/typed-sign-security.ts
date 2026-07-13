@@ -1,23 +1,27 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 
+type TypedMessageData = string | Record<string, unknown>;
+
+function toJsonString(data: TypedMessageData): string {
+  return typeof data === 'string' ? data : JSON.stringify(data);
+}
+
 /**
- * Round-trips a typed-data JSON string through JSON.parse / JSON.stringify to
- * produce a canonical representation.  JSON.parse silently drops duplicate keys
- * (keeping the last value per key), so the canonical string can never contain
- * duplicates that let a regex-based extraction diverge from the parsed object
- * used at signing time.
+ * Round-trips typed-data through JSON.parse / JSON.stringify to produce a
+ * canonical string. Handles both string and object inputs — object payloads
+ * are stringified first. JSON.parse silently drops duplicate keys (keeping
+ * the last value per key), preventing regex-based extraction from diverging
+ * from the parsed object used at signing time.
  *
  * This mirrors the normalizeTypedMessage step that the extension performs via
  * @metamask/eth-json-rpc-middleware before data reaches SignatureController.
  */
-export function canonicalizeTypedMessageData(data: string): string {
-  if (typeof data !== 'string') {
-    return data;
-  }
+export function canonicalizeTypedMessageData(data: TypedMessageData): string {
   try {
-    return JSON.stringify(JSON.parse(data));
+    const jsonString = toJsonString(data);
+    return JSON.stringify(JSON.parse(jsonString));
   } catch {
-    return data;
+    return toJsonString(data);
   }
 }
 
@@ -31,17 +35,16 @@ const ALLOWED_TYPED_MESSAGE_KEYS = new Set([
 
 /**
  * Rejects EIP-712 payloads with top-level keys outside the EIP-712 schema.
- * Extra keys bypass the confirmation UI but appear in the "Copy raw data"
- * export, enabling spoofing in multisig workflows. Mirrors the
- * validateTypedMessageKeys check from @metamask/eth-json-rpc-middleware
- * that the extension applies on V4 (and should apply on V3).
+ * Handles both string and object inputs. Extra keys bypass the confirmation
+ * UI but appear in the "Copy raw data" export, enabling spoofing in multisig
+ * workflows. Mirrors validateTypedMessageKeys from
+ * @metamask/eth-json-rpc-middleware.
  */
-export function rejectExtraneousTypedMessageKeys(data: string): void {
-  if (typeof data !== 'string') {
-    return;
-  }
+export function rejectExtraneousTypedMessageKeys(data: TypedMessageData): void {
   try {
-    const keys = Object.keys(JSON.parse(data));
+    const parsed =
+      typeof data === 'string' ? JSON.parse(data) : (data as object);
+    const keys = Object.keys(parsed);
     if (keys.some((key) => !ALLOWED_TYPED_MESSAGE_KEYS.has(key))) {
       throw rpcErrors.invalidInput();
     }
