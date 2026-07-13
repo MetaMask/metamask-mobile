@@ -118,8 +118,15 @@ function holdCenteredVisibleRange(
  *
  * The centering flag is cleared after success so subsequent REALTIME_UPDATE
  * messages don't re-trigger the slide. Only a fresh SET_OHLCV_DATA resets it.
+ *
+ * When `options.immediate` is true, applies centering synchronously instead of
+ * waiting for `onDataLoaded`. Used after `setResolution` where TradingView has
+ * already completed its data cycle by the time the callback fires.
  */
-export function slbCenterViewport(chart: TVActiveChart): void {
+export function slbCenterViewport(
+  chart: TVActiveChart,
+  options?: { immediate?: boolean },
+): void {
   if (!getSlbMode() || !isSlbCenteringPending()) return;
 
   const fromMs = getVisibleFromMs();
@@ -127,11 +134,8 @@ export function slbCenterViewport(chart: TVActiveChart): void {
   if (fromMs == null || toMs == null) return;
 
   const capturedGeneration = getOhlcvGeneration();
-  const subscription = chart.onDataLoaded();
 
-  const onLoaded = (): void => {
-    subscription.unsubscribe(null, onLoaded);
-
+  const applyCenter = (): void => {
     if (capturedGeneration !== getOhlcvGeneration()) return;
     if (!isSlbCenteringPending()) return;
 
@@ -168,6 +172,16 @@ export function slbCenterViewport(chart: TVActiveChart): void {
     }
   };
 
+  if (options?.immediate) {
+    applyCenter();
+    return;
+  }
+
+  const subscription = chart.onDataLoaded();
+  const onLoaded = (): void => {
+    subscription.unsubscribe(null, onLoaded);
+    applyCenter();
+  };
   subscription.subscribe(null, onLoaded);
 }
 

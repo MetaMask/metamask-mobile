@@ -21,6 +21,8 @@ interface MoneyActivityListProps {
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
   onItemPress?: (transaction: TransactionMeta) => void;
+  /** Whether the crypto/fiat amounts should be masked. */
+  privacyMode?: boolean;
 }
 
 const MoneyActivityList = ({
@@ -30,6 +32,7 @@ const MoneyActivityList = ({
   onViewAllPress,
   onHeaderPress,
   onItemPress,
+  privacyMode = false,
 }: MoneyActivityListProps) => {
   if (!items.length) {
     return null;
@@ -52,6 +55,7 @@ const MoneyActivityList = ({
           item={item}
           moneyAddress={moneyAddress}
           onPress={onItemPress}
+          privacyMode={privacyMode}
         />
       ))}
       {hasMoreItems && onViewAllPress && (

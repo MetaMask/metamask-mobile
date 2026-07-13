@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '../../../Box/Box';
 import {
   FlexDirection,
@@ -50,6 +51,7 @@ export const BridgeViewFooter = ({
   transactionActiveAbTests,
 }: Props) => {
   const { styles } = useStyles(createStyles);
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
@@ -74,9 +76,14 @@ export const BridgeViewFooter = ({
     return null;
   }
 
+  const footerContainerStyle = [
+    styles.buttonContainer,
+    { paddingBottom: bottomInset },
+  ];
+
   if (needsNewQuote) {
     return (
-      <Box style={styles.buttonContainer}>
+      <Box style={footerContainerStyle}>
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
@@ -99,7 +106,7 @@ export const BridgeViewFooter = ({
     isValidSourceAmount &&
     activeQuote &&
     quotesLastFetched && (
-      <Box style={styles.buttonContainer}>
+      <Box style={footerContainerStyle}>
         {isHardwareAddress && isSolanaSourced && (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
