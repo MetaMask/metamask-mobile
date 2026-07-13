@@ -14,7 +14,7 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
+import { useAdvancedGasFeeModal } from '../../../hooks/gas/useAdvancedGasFeeModal';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import BottomModal from '../../UI/bottom-modal';
 import { GasModalHeader } from '../../../components/gas/gas-modal-header';
@@ -23,8 +23,6 @@ import { GasInput } from '../../../components/gas/gas-input';
 import { MaxBaseFeeInput } from '../../../components/gas/max-base-fee-input';
 import { PriorityFeeInput } from '../../../components/gas/priority-fee-input';
 import styleSheet from './advanced-eip1559-modal.styles';
-import { usePersistGasFeePreference } from '../../../hooks/gas/usePersistGasFeePreference';
-import { hasValidCustomGasFeePreferences } from '../../../hooks/gas/gas-fee-preference-utils';
 
 export const AdvancedEIP1559Modal = ({
   setActiveModal,
@@ -35,7 +33,6 @@ export const AdvancedEIP1559Modal = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const persistGasFeePreference = usePersistGasFeePreference();
 
   const { gas, maxFeePerGas, maxPriorityFeePerGas } =
     transactionMeta?.txParams || {};
@@ -68,31 +65,13 @@ export const AdvancedEIP1559Modal = ({
     }),
     [gasParams.maxFeePerGas, gasParams.maxPriorityFeePerGas],
   );
-  const hasError = Boolean(
-    errors.gas ||
-      errors.maxFeePerGas ||
-      errors.maxPriorityFeePerGas ||
-      !hasValidCustomGasFeePreferences(savedGasFeePreferences),
-  );
-
-  const handleSaveClick = useCallback(() => {
-    if (!hasValidCustomGasFeePreferences(savedGasFeePreferences)) {
-      return;
-    }
-
-    updateTransactionGasFees(transactionMeta.id, {
-      userFeeLevel: UserFeeLevel.CUSTOM,
-      ...pickBy(gasParams, Boolean),
-    });
-    persistGasFeePreference(transactionMeta, savedGasFeePreferences);
-    handleCloseModals();
-  }, [
+  const { hasError, handleSaveClick } = useAdvancedGasFeeModal({
     transactionMeta,
     gasParams,
-    persistGasFeePreference,
-    handleCloseModals,
     savedGasFeePreferences,
-  ]);
+    errors,
+    handleCloseModals,
+  });
 
   const navigateToEstimatesModal = useCallback(() => {
     setActiveModal(GasModalType.ESTIMATES);

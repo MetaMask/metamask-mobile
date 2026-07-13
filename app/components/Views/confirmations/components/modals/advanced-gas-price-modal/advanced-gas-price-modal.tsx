@@ -14,7 +14,7 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
+import { useAdvancedGasFeeModal } from '../../../hooks/gas/useAdvancedGasFeeModal';
 import { GasModalHeader } from '../../../components/gas/gas-modal-header';
 import { GasModalType } from '../../../constants/gas';
 import { GasInput } from '../../../components/gas/gas-input';
@@ -22,8 +22,6 @@ import { GasPriceInput } from '../../../components/gas/gas-price-input';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import BottomModal from '../../UI/bottom-modal';
 import styleSheet from './advanced-gas-price-modal.styles';
-import { usePersistGasFeePreference } from '../../../hooks/gas/usePersistGasFeePreference';
-import { hasValidCustomGasFeePreferences } from '../../../hooks/gas/gas-fee-preference-utils';
 
 export const AdvancedGasPriceModal = ({
   setActiveModal,
@@ -34,7 +32,6 @@ export const AdvancedGasPriceModal = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const persistGasFeePreference = usePersistGasFeePreference();
 
   const { gas, gasPrice } = transactionMeta?.txParams || {};
 
@@ -57,30 +54,13 @@ export const AdvancedGasPriceModal = ({
     }),
     [gasParams.gasPrice],
   );
-  const hasError = Boolean(
-    errors.gas ||
-      errors.gasPrice ||
-      !hasValidCustomGasFeePreferences(savedGasFeePreferences),
-  );
-
-  const handleSaveClick = useCallback(() => {
-    if (!hasValidCustomGasFeePreferences(savedGasFeePreferences)) {
-      return;
-    }
-
-    updateTransactionGasFees(transactionMeta.id, {
-      userFeeLevel: UserFeeLevel.CUSTOM,
-      ...pickBy(gasParams, Boolean),
-    });
-    persistGasFeePreference(transactionMeta, savedGasFeePreferences);
-    handleCloseModals();
-  }, [
+  const { hasError, handleSaveClick } = useAdvancedGasFeeModal({
     transactionMeta,
     gasParams,
-    persistGasFeePreference,
-    handleCloseModals,
     savedGasFeePreferences,
-  ]);
+    errors,
+    handleCloseModals,
+  });
 
   const navigateToEstimatesModal = useCallback(() => {
     setActiveModal(GasModalType.ESTIMATES);
