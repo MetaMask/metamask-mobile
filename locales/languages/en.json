@@ -10239,5 +10239,9 @@
   },
   "stepper_card": {
     "more_information": "More information"
+  },
+  "token_watchlist": {
+    "added_to_watchlist": "Added to Watchlist",
+    "removed_from_watchlist": "Removed from Watchlist"
   }
 }
