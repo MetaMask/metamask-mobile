@@ -182,6 +182,29 @@ export enum TraceName {
   PerpsAdvancedChartInitialVisible = 'Perps Advanced Chart Initial Visible',
   /** Perps advanced chart: skeleton cleared after interval change only. */
   PerpsAdvancedChartIntervalVisible = 'Perps Advanced Chart Interval Visible',
+  // Perps user-perceived CUF spans: gesture/open -> render with live data
+  /** Tap/open -> Perps market list rendered with live prices. */
+  PerpsEntryToLiveMarketList = 'Perps Entry To Live Market List',
+  /** Market route open -> stats + chart + top-of-book live. */
+  PerpsMarketDetailLive = 'Perps Market Detail Live',
+  /** Market detail -> order form ready with current price + account state. */
+  PerpsTradePageRender = 'Perps Trade Page Render',
+  /** Order submit tap -> matching position rendered from the live stream. */
+  PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
+  /** Limit order submit tap -> resting order rendered in the live orders stream. */
+  PerpsPlaceLimitOrderToOrderRendered = 'Perps Place Limit Order To Order Rendered',
+  /** Close confirm tap -> position absent/reduced in the live stream. */
+  PerpsClosePositionToConfirmation = 'Perps Close Position To Confirmation',
+  /** Cancel tap -> order absent from the live stream. */
+  PerpsCancelOrderToConfirmation = 'Perps Cancel Order To Confirmation',
+  /** TP/SL submit -> updated values visible in the live stream. */
+  PerpsUpdateTPSLToConfirmation = 'Perps Update TPSL To Confirmation',
+  /** WebSocket price subscription -> first price delivered. */
+  PerpsWebSocketFirstPrice = 'Perps WebSocket First Price',
+  /** WebSocket top-of-book subscription -> first book delivered. */
+  PerpsWebSocketFirstOrderBook = 'Perps WebSocket First Order Book',
+  /** Reconnect start -> first fresh positions delivered. */
+  PerpsWebSocketReconnectToFreshData = 'Perps WebSocket Reconnect To Fresh Data',
   // Predict
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',
@@ -228,6 +251,10 @@ export enum TraceName {
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
+  // Money Home Performance
+  MoneyHomeTimeToContent = 'Money Home Time To Content',
+  MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
+  MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
 }
 
 export enum TraceOperation {
@@ -285,6 +312,9 @@ export enum TraceOperation {
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  // Money Home Performance
+  MoneyHomePerformance = 'money.home.performance',
+  MoneyAccountDataFetch = 'money.account.data_fetch',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */

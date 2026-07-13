@@ -41,13 +41,13 @@ export const createStyles = (params: { theme: Theme; vars: StyleVars }) => {
     button: {
       alignItems: 'center',
       justifyContent: 'center',
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 52,
+      height: 52,
+      borderRadius: 26,
       borderWidth: 6,
       borderColor: theme.colors.background.default,
       opacity: vars.disabled ? 0.5 : 1,
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.section,
       ...(vars.pressed && {
         backgroundColor: theme.colors.background.alternativePressed,
       }),

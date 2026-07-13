@@ -12,17 +12,25 @@ export const SocialLeaderboardEventProperties = {
   ACTION: 'action',
   ASSET_NAME: 'asset_name',
   CAIP19: 'caip19',
+  PERPS_MARKET: 'perps_market',
   CHAIN_FILTER: 'chain_filter',
+  CTA_TYPE: 'cta_type',
   IS_FOLLOWING: 'is_following',
   IS_OPEN: 'is_open',
-  NOTIFICATION_TYPE: 'notification_type',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
+  INTERACTION_TYPE: 'interaction_type',
+  NUX_STEP: 'nux_step',
+  NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
   PREVIOUS_CHAIN_FILTER: 'previous_chain_filter',
+  SCREEN: 'screen',
   SOURCE: 'source',
   TAB: 'tab',
   TRADER_ADDRESS: 'trader_address',
+  TRADER_HAS_PROFILE_PICTURE_SET: 'trader_has_profile_picture_set',
   TRADER_RANK: 'trader_rank',
   TRADER_USERNAME: 'trader_username',
+  TRADERS_FOLLOWED_COUNT: 'traders_followed_count',
+  TRADERS_PRE_SELECTED_COUNT: 'traders_pre_selected_count',
 } as const;
 
 /** Closed-set property values used by enum-typed properties. */
@@ -31,9 +39,27 @@ export const SocialLeaderboardEventValues = {
     FOLLOW: 'follow',
     UNFOLLOW: 'unfollow',
   },
+  INTERACTION_TYPE: {
+    ALLOW_NOTIFICATIONS: 'allow_notifications',
+    BACK: 'back',
+    CONTINUE: 'continue',
+    DISMISSED: 'dismissed',
+    FOLLOW_TOP_THREE: 'follow_top_three',
+    GOT_IT: 'got_it',
+    MAYBE_LATER: 'maybe_later',
+  },
+  NUX_STEP: {
+    STEP_1: 'step_1',
+    STEP_2: 'step_2',
+    STEP_3: 'step_3',
+  },
   TAB: {
     OPEN: 'open',
     CLOSED: 'closed',
+  },
+  CTA_TYPE: {
+    BUY: 'buy',
+    TRADE: 'trade',
   },
 } as const;
 
@@ -79,7 +105,7 @@ export type TraderProfileScreenViewedSource = Extract<
 
 export type TraderFollowInteractionSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'trader_profile' | 'home_carousel'
+  'leaderboard' | 'trader_profile' | 'home_carousel' | 'nux'
 >;
 
 export type FollowTradingTokenSource = Extract<

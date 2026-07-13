@@ -1,7 +1,10 @@
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Theme } from '@metamask/design-tokens';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
+import {
+  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
+  SupportedCaipChainId,
+} from '@metamask/multichain-network-controller';
+import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -27,7 +30,12 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
 import { RootState } from '../../../../reducers';
-import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
+import {
+  selectNetworkConfigurationByChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { TraceName, endTrace } from '../../../../util/trace';
@@ -64,7 +72,12 @@ import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
-import { usePriceInUsd } from '../../Assets/PriceAlerts/hooks/usePriceInUsd';
+import { selectTokenWatchlistEnabled } from '../../Assets/selectors/featureFlags';
+import { useTokenWatchlist } from '../../Assets/watchlist/hooks/useTokenWatchlist';
+import ToastService from '../../../../core/ToastService/ToastService';
+import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../../locales/i18n';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -189,14 +202,25 @@ const TokenDetails: React.FC<{
         return token.address as CaipAssetType;
       }
       if (!token.chainId) return null;
-      return (formatAddressToAssetId(token.address, token.chainId) ??
-        null) as CaipAssetType | null;
+      const formatted = formatAddressToAssetId(token.address, token.chainId);
+      if (formatted) return formatted as CaipAssetType;
+      // For non-EVM native tokens (e.g. Bitcoin), formatAddressToAssetId returns
+      // undefined for addresses like "native". Fall back to the chain's native
+      // currency CAIP-19 id from the multichain network configurations.
+      const nonEvmConfig =
+        AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+          token.chainId as SupportedCaipChainId
+        ];
+      return (nonEvmConfig?.nativeCurrency as CaipAssetType) ?? null;
     } catch {
       return null;
     }
   }, [token.address, token.chainId]);
 
   const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
+  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+  const { isWatched, toggle: toggleWatchlist } =
+    useTokenWatchlist(caip19AssetId);
 
   const handleShare = useCallback(() => {
     if (!caip19AssetId) {
@@ -250,6 +274,11 @@ const TokenDetails: React.FC<{
   );
   const networkName = networkConfigurationByChainId?.name;
 
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
+  );
+  const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
+
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   const {
@@ -265,10 +294,25 @@ const TokenDetails: React.FC<{
     hasInsufficientCoverage,
   } = useTokenPrice({ token });
 
-  const currentPriceUsd = usePriceInUsd(
-    isPriceAlertsFeatureEnabled ? (token.chainId as Hex) : null,
+  const currentPriceUsd = useMemo(() => {
+    if (!isPriceAlertsFeatureEnabled || !Number.isFinite(currentPrice)) {
+      return null;
+    }
+    return (
+      calcUsdAmountFromFiat({
+        tokenFiatValue: currentPrice,
+        chainId: token.chainId ?? undefined,
+        networkConfigurationsByChainId,
+        evmMultiChainCurrencyRates,
+      }) ?? null
+    );
+  }, [
+    isPriceAlertsFeatureEnabled,
     currentPrice,
-  );
+    token.chainId,
+    networkConfigurationsByChainId,
+    evmMultiChainCurrencyRates,
+  ]);
 
   const [chartPricePositive, setChartPricePositive] = useState<boolean | null>(
     null,
@@ -405,6 +449,51 @@ const TokenDetails: React.FC<{
     </>
   );
 
+  const isNativeToken = Boolean(token.isETH || token.isNative);
+
+  const handleStarToggle = useCallback(() => {
+    const wasWatched = isWatched;
+    toggleWatchlist();
+
+    ToastService.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Confirmation,
+      iconColor: theme.colors.success.default,
+      backgroundColor: theme.colors.background.section,
+      labelOptions: [
+        {
+          label: wasWatched
+            ? strings('token_watchlist.removed_from_watchlist')
+            : strings('token_watchlist.added_to_watchlist'),
+        },
+      ],
+      hasNoTimeout: false,
+    });
+
+    const eventName = wasWatched
+      ? MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED
+      : MetaMetricsEvents.WATCHLIST_TOKEN_ADDED;
+
+    trackEvent(
+      createEventBuilder(eventName)
+        .addProperties({
+          source: 'token_details',
+          asset_type: isNativeToken ? 'native' : 'erc20',
+          ...(wasWatched ? {} : { has_balance: hasBalanceValue }),
+        })
+        .build(),
+    );
+  }, [
+    isWatched,
+    toggleWatchlist,
+    trackEvent,
+    createEventBuilder,
+    isNativeToken,
+    hasBalanceValue,
+    theme.colors.success.default,
+    theme.colors.background.section,
+  ]);
+
   const renderLoader = () => (
     <View style={styles.loader}>
       <ActivityIndicator style={styles.loader} size="small" />
@@ -417,6 +506,10 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         onBackPress={() => navigation.goBack()}
         onSharePress={handleShare}
+        onStarPress={
+          isWatchlistEnabled && caip19AssetId ? handleStarToggle : undefined
+        }
+        isWatched={isWatched}
         onPriceAlertPress={
           isPriceAlertsFeatureEnabled &&
           isPriceAlertsChainSupported &&

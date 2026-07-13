@@ -49,18 +49,7 @@ const navigation = {
 
 const mockInitialState = {
   engine: {
-    backgroundState: {
-      ...backgroundState,
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          rewardsEnabled: {
-            enabled: true,
-            minimumVersion: '0.0.1',
-          },
-        },
-        cacheTimestamp: 0,
-      },
-    },
+    backgroundState,
   },
 };
 

@@ -150,6 +150,10 @@ describe('perps controller init', () => {
       selectedPaymentToken: null,
       cachedMarketDataByProvider: {},
       cachedUserDataByProvider: {},
+      recentlyViewedMarkets: {
+        testnet: [],
+        mainnet: [],
+      },
     };
 
     initRequestMock.persistedState = {
@@ -194,6 +198,14 @@ function buildSeedPrefs(
         hyperliquid: { testnet: [], mainnet: [] },
         myx: { testnet: [], mainnet: [] },
       },
+    },
+    agenticCli: {
+      inAppNotificationsEnabled: false,
+      pushNotificationsEnabled: false,
+    },
+    priceAlerts: {
+      inAppNotificationsEnabled: false,
+      pushNotificationsEnabled: false,
     },
     socialAI: {
       inAppNotificationsEnabled: false,

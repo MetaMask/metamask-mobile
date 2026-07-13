@@ -1,19 +1,10 @@
 import React, { memo, useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -42,23 +33,6 @@ export interface PerpsRelatedMarketsProps {
 const MAX_PILLS = 12;
 const ROW_COUNT = 2;
 const LIVE_PRICES_THROTTLE_MS = 3000;
-
-const styles = StyleSheet.create({
-  rail: {
-    paddingVertical: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-});
 
 const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   currentMarket,
@@ -165,28 +139,17 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   const { collection } = relatedMarketsResult;
 
   return (
-    <View
-      style={styles.rail}
+    <Box
+      paddingBottom={3}
       testID={PerpsRelatedMarketsSelectorsIDs.RAIL}
       accessibilityLabel={`${strings('perps.market.related_markets')} - ${collection.label}`}
     >
-      <TouchableOpacity
-        style={styles.header}
+      <SectionHeader
+        title={strings('perps.market.related_markets')}
+        isInteractive
         onPress={handleHeaderPress}
         testID={PerpsRelatedMarketsSelectorsIDs.HEADER}
-        accessibilityRole="button"
-      >
-        <View style={styles.headerLeft}>
-          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            {strings('perps.market.related_markets')}
-          </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.IconDefault}
-          />
-        </View>
-      </TouchableOpacity>
+      />
 
       <PillScrollList<PerpsFeedItem>
         data={feedItems}
@@ -199,7 +162,7 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
         wrapperTwClassName="bg-transparent"
         listTestId={PerpsRelatedMarketsSelectorsIDs.PILL_GRID}
       />
-    </View>
+    </Box>
   );
 };
 

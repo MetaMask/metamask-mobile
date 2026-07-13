@@ -23,7 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 140,
+      paddingBottom: 12,
     },
     section: {
       paddingHorizontal: 16,
@@ -36,16 +36,9 @@ const styleSheet = (params: { theme: Theme }) => {
       // No flex or minHeight - let content determine size
     },
     footer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
       paddingHorizontal: 16,
       paddingTop: 12,
-      // paddingBottom is calculated dynamically in component with safe area insets
       backgroundColor: colors.background.default,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
     },
     spreadContainer: {
       flexDirection: 'row',
@@ -81,20 +74,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     midPriceText: {
       marginHorizontal: 8,
-    },
-    // Bottom sheet content
-    depthBandSheetContent: {
-      paddingHorizontal: 16,
-      paddingBottom: 24,
-    },
-    depthBandOption: {
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    depthBandOptionSelected: {
-      backgroundColor: colors.primary.muted,
     },
   });
 };

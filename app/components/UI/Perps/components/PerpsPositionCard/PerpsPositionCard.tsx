@@ -10,6 +10,15 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  SectionDivider,
+  SectionHeader,
+  Text as MDSText,
+  TextColor as MDSTextColor,
+  TextVariant as MDSTextVariant,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
@@ -36,6 +45,7 @@ import {
   formatPnl,
   formatPositionSize,
   formatPercentage,
+  formatPerpsPrice,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -98,6 +108,8 @@ interface PerpsPositionCardProps {
   iconSize?: number;
   /** When true, shows a small skeleton placeholder for the TP/SL field instead of "No TP/SL" */
   tpSlLoading?: boolean;
+  /** Market size decimals, used to derive Hyperliquid price precision for TP/SL display. */
+  szDecimals?: number | null;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -115,6 +127,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   testID,
   iconSize = 40,
   tpSlLoading = false,
+  szDecimals,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
@@ -327,354 +340,375 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     );
   }
 
-  return (
-    <View style={styles.container} testID={PerpsPositionCardSelectorsIDs.CARD}>
-      {/* Header Section */}
-      <View style={styles.header} testID={PerpsPositionCardSelectorsIDs.HEADER}>
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('perps.position.card.position_title')}
-        </Text>
-        {onSharePress && (
-          <ButtonIcon
-            size={ButtonIconSizes.Sm}
-            iconName={IconName.Share}
-            onPress={onSharePress}
-            testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
-          />
-        )}
-      </View>
-
-      {/* P&L Section - Two cards side by side */}
-      <View style={styles.pnlSection}>
-        <View
-          style={[styles.pnlCard, styles.pnlCardLeft]}
-          testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('perps.position.card.pnl_label')}
-          </Text>
-          <SensitiveText
-            variant={TextVariant.BodyMD}
-            color={
-              privacyMode
-                ? TextColor.Default
-                : pnlNum >= 0
-                  ? TextColor.Success
-                  : TextColor.Error
-            }
-            testID={PerpsPositionCardSelectorsIDs.PNL_VALUE}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-          >
-            {formatPnl(pnlNum)}
-          </SensitiveText>
-        </View>
-
-        <View
-          style={[styles.pnlCard, styles.pnlCardRight]}
-          testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('perps.position.card.return_label')}
-          </Text>
-          <SensitiveText
-            variant={TextVariant.BodyMD}
-            color={
-              privacyMode
-                ? TextColor.Default
-                : roe >= 0
-                  ? TextColor.Success
-                  : TextColor.Error
-            }
-            testID={PerpsPositionCardSelectorsIDs.RETURN_VALUE}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-          >
-            {roe >= 0 ? '+' : ''}
-            {roe.toFixed(2)}%
-          </SensitiveText>
-        </View>
-      </View>
-
-      {/* Size/Margin Row */}
-      <View style={styles.sizeMarginRow}>
-        <TouchableOpacity
-          style={styles.sizeContainer}
-          onPress={handleSizeToggle}
-          testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
-        >
-          <View style={styles.sizeLeftContent}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {strings('perps.position.card.size_label')}
-            </Text>
-            <SensitiveText
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
-              testID={PerpsPositionCardSelectorsIDs.SIZE_VALUE}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-            >
-              {showSizeInUSD && currentPrice
-                ? formatPerpsFiat(absoluteSize * currentPrice, {
-                    ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  })
-                : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.symbol)}`}
-            </SensitiveText>
-          </View>
-          <View style={styles.iconButtonContainer}>
-            <ButtonIcon
-              iconName={IconName.SwapHorizontal}
-              size={ButtonIconSizes.Sm}
-              iconColor={IconColor.Default}
-              onPress={handleSizeToggle}
-              style={styles.iconButton}
-              testID={PerpsPositionCardSelectorsIDs.FLIP_ICON}
-            />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.marginContainer}
-          onPress={onMarginPress}
-          disabled={!onMarginPress}
-          testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
-        >
-          <View style={styles.marginLeftContent}>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {strings('perps.position.card.margin_label')}
-            </Text>
-            <SensitiveText
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
-              testID={PerpsPositionCardSelectorsIDs.MARGIN_VALUE}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-            >
-              {formatPerpsFiat(position.marginUsed, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
-            </SensitiveText>
-          </View>
-          {onMarginPress && (
-            <View style={styles.iconButtonContainer}>
-              <ButtonIcon
-                iconName={IconName.ArrowRight}
-                size={ButtonIconSizes.Sm}
-                iconColor={IconColor.Default}
-                onPress={onMarginPress}
-                style={styles.iconButton}
-                testID={PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON}
-              />
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Auto Close Section */}
-      <TouchableOpacity
-        style={styles.autoCloseSection}
-        onPress={handleAutoCloseButtonPress}
-        activeOpacity={0.7}
-        disabled={!onAutoClosePress}
-        testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
+  const sectionTitle = onSharePress ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="w-full"
+    >
+      <MDSText
+        variant={MDSTextVariant.HeadingMd}
+        color={MDSTextColor.TextDefault}
       >
-        <View style={styles.autoCloseTextContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {strings('perps.auto_close.title')}
-          </Text>
-          {(() => {
-            // First, check position-level TP/SL (from separate trigger orders)
-            let takeProfitPrice = position.takeProfitPrice;
-            let stopLossPrice = position.stopLossPrice;
+        {strings('perps.position.card.position_title')}
+      </MDSText>
+      <ButtonIcon
+        size={ButtonIconSizes.Sm}
+        iconName={IconName.Share}
+        onPress={onSharePress}
+        testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
+      />
+    </Box>
+  ) : (
+    strings('perps.position.card.position_title')
+  );
 
-            // If position-level TP/SL is undefined, check order-level TP/SL (from child orders)
-            if (
-              (!takeProfitPrice || !stopLossPrice) &&
-              orders &&
-              orders.length > 0
-            ) {
-              // Find the parent order for this position
-              // Parent orders: same symbol, not trigger orders, have TP/SL children
-              const parentOrder = orders.find(
-                (order) =>
-                  order.symbol === position.symbol &&
-                  !order.isTrigger &&
-                  (order.takeProfitPrice || order.stopLossPrice),
-              );
+  return (
+    <Box paddingBottom={3}>
+      <View
+        style={styles.container}
+        testID={PerpsPositionCardSelectorsIDs.CARD}
+      >
+        <SectionHeader
+          title={sectionTitle}
+          titleWrapperProps={
+            onSharePress ? { twClassName: 'w-full' } : undefined
+          }
+          testID={PerpsPositionCardSelectorsIDs.HEADER}
+        />
 
-              if (parentOrder) {
-                takeProfitPrice =
-                  takeProfitPrice || parentOrder.takeProfitPrice;
-                stopLossPrice = stopLossPrice || parentOrder.stopLossPrice;
-              }
-            }
+        <Box paddingHorizontal={4}>
+          {/* P&L Section - Two cards side by side */}
+          <View style={styles.pnlSection}>
+            <View
+              style={[styles.pnlCard, styles.pnlCardLeft]}
+              testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
+            >
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {strings('perps.position.card.pnl_label')}
+              </Text>
+              <SensitiveText
+                variant={TextVariant.BodyMD}
+                color={
+                  privacyMode
+                    ? TextColor.Default
+                    : pnlNum >= 0
+                      ? TextColor.Success
+                      : TextColor.Error
+                }
+                testID={PerpsPositionCardSelectorsIDs.PNL_VALUE}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+              >
+                {formatPnl(pnlNum)}
+              </SensitiveText>
+            </View>
 
-            const hasTakeProfit =
-              takeProfitPrice && parseFloat(takeProfitPrice) > 0;
-            const hasStopLoss = stopLossPrice && parseFloat(stopLossPrice) > 0;
+            <View
+              style={[styles.pnlCard, styles.pnlCardRight]}
+              testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
+            >
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {strings('perps.position.card.return_label')}
+              </Text>
+              <SensitiveText
+                variant={TextVariant.BodyMD}
+                color={
+                  privacyMode
+                    ? TextColor.Default
+                    : roe >= 0
+                      ? TextColor.Success
+                      : TextColor.Error
+                }
+                testID={PerpsPositionCardSelectorsIDs.RETURN_VALUE}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+              >
+                {roe >= 0 ? '+' : ''}
+                {roe.toFixed(2)}%
+              </SensitiveText>
+            </View>
+          </View>
 
-            if (hasTakeProfit || hasStopLoss) {
-              const parts: string[] = [];
-
-              if (hasTakeProfit && takeProfitPrice) {
-                const tpPrice = formatPerpsFiat(parseFloat(takeProfitPrice), {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                });
-                parts.push(`${strings('perps.order.tp')} ${tpPrice}`);
-              }
-
-              if (hasStopLoss && stopLossPrice) {
-                const slPrice = formatPerpsFiat(parseFloat(stopLossPrice), {
-                  ranges: PRICE_RANGES_UNIVERSAL,
-                });
-                parts.push(`${strings('perps.order.sl')} ${slPrice}`);
-              }
-
-              return (
+          {/* Size/Margin Row */}
+          <View style={styles.sizeMarginRow}>
+            <TouchableOpacity
+              style={styles.sizeContainer}
+              onPress={handleSizeToggle}
+              testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
+            >
+              <View style={styles.sizeLeftContent}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.size_label')}
+                </Text>
                 <SensitiveText
                   variant={TextVariant.BodyMD}
                   color={TextColor.Default}
+                  testID={PerpsPositionCardSelectorsIDs.SIZE_VALUE}
                   isHidden={privacyMode}
                   length={SensitiveTextLength.Short}
                 >
-                  {parts.join(', ')}
+                  {showSizeInUSD && currentPrice
+                    ? formatPerpsFiat(absoluteSize * currentPrice, {
+                        ranges: PRICE_RANGES_MINIMAL_VIEW,
+                      })
+                    : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.symbol)}`}
                 </SensitiveText>
-              );
-            }
+              </View>
+              <View style={styles.iconButtonContainer}>
+                <ButtonIcon
+                  iconName={IconName.SwapHorizontal}
+                  size={ButtonIconSizes.Sm}
+                  iconColor={IconColor.Default}
+                  onPress={handleSizeToggle}
+                  style={styles.iconButton}
+                  testID={PerpsPositionCardSelectorsIDs.FLIP_ICON}
+                />
+              </View>
+            </TouchableOpacity>
 
-            return (
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {strings('perps.auto_close.description')}
-              </Text>
-            );
-          })()}
-        </View>
-        {onAutoClosePress && (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
+            <TouchableOpacity
+              style={styles.marginContainer}
+              onPress={onMarginPress}
+              disabled={!onMarginPress}
+              testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
+            >
+              <View style={styles.marginLeftContent}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
+                  {strings('perps.position.card.margin_label')}
+                </Text>
+                <SensitiveText
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  testID={PerpsPositionCardSelectorsIDs.MARGIN_VALUE}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                >
+                  {formatPerpsFiat(position.marginUsed, {
+                    ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  })}
+                </SensitiveText>
+              </View>
+              {onMarginPress && (
+                <View style={styles.iconButtonContainer}>
+                  <ButtonIcon
+                    iconName={IconName.ArrowRight}
+                    size={ButtonIconSizes.Sm}
+                    iconColor={IconColor.Default}
+                    onPress={onMarginPress}
+                    style={styles.iconButton}
+                    testID={PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON}
+                  />
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Auto Close Section */}
+          <TouchableOpacity
+            style={styles.autoCloseSection}
             onPress={handleAutoCloseButtonPress}
-            style={styles.autoCloseButton}
+            activeOpacity={0.7}
+            disabled={!onAutoClosePress}
+            testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
           >
-            {hasTPSLConfigured
-              ? strings('perps.auto_close.edit_button')
-              : strings('perps.auto_close.set_button')}
-          </Button>
-        )}
-      </TouchableOpacity>
+            <View style={styles.autoCloseTextContainer}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.auto_close.title')}
+              </Text>
+              {(() => {
+                // First, check position-level TP/SL (from separate trigger orders)
+                let takeProfitPrice = position.takeProfitPrice;
+                let stopLossPrice = position.stopLossPrice;
 
-      {/* Details Section - Always expanded */}
-      <View
-        style={styles.detailsSection}
-        testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}
-      >
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.detailsTitle}
-        >
-          {strings('perps.position.card.details_title')}
-        </Text>
+                // If position-level TP/SL is undefined, check order-level TP/SL (from child orders)
+                if (
+                  (!takeProfitPrice || !stopLossPrice) &&
+                  orders &&
+                  orders.length > 0
+                ) {
+                  // Find the parent order for this position
+                  // Parent orders: same symbol, not trigger orders, have TP/SL children
+                  const parentOrder = orders.find(
+                    (order) =>
+                      order.symbol === position.symbol &&
+                      !order.isTrigger &&
+                      (order.takeProfitPrice || order.stopLossPrice),
+                  );
 
-        <View style={[styles.detailRow, styles.detailRowFirst]}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {strings('perps.position.card.direction_label')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            testID={PerpsPositionCardSelectorsIDs.DIRECTION_VALUE}
-          >
-            {direction === 'long'
-              ? strings('perps.market.long')
-              : strings('perps.market.short')}{' '}
-            {position.leverage.value}x
-          </Text>
-        </View>
+                  if (parentOrder) {
+                    takeProfitPrice =
+                      takeProfitPrice || parentOrder.takeProfitPrice;
+                    stopLossPrice = stopLossPrice || parentOrder.stopLossPrice;
+                  }
+                }
 
-        <View style={styles.detailRow}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {strings('perps.position.card.entry_label')}
-          </Text>
-          <SensitiveText
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-            testID={PerpsPositionCardSelectorsIDs.ENTRY_VALUE}
-          >
-            {formatPerpsFiat(position.entryPrice, {
-              ranges: PRICE_RANGES_UNIVERSAL,
-            })}
-          </SensitiveText>
-        </View>
+                const hasTakeProfit =
+                  takeProfitPrice && parseFloat(takeProfitPrice) > 0;
+                const hasStopLoss =
+                  stopLossPrice && parseFloat(stopLossPrice) > 0;
 
-        <View style={styles.detailRow}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {strings('perps.position.card.liquidation_price_label')}
-          </Text>
-          <View style={styles.liquidationPriceValue}>
+                if (hasTakeProfit || hasStopLoss) {
+                  const parts: string[] = [];
+
+                  if (hasTakeProfit && takeProfitPrice) {
+                    const tpPrice = formatPerpsPrice(takeProfitPrice, {
+                      szDecimals,
+                    });
+                    parts.push(`${strings('perps.order.tp')} ${tpPrice}`);
+                  }
+
+                  if (hasStopLoss && stopLossPrice) {
+                    const slPrice = formatPerpsPrice(stopLossPrice, {
+                      szDecimals,
+                    });
+                    parts.push(`${strings('perps.order.sl')} ${slPrice}`);
+                  }
+
+                  return (
+                    <SensitiveText
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Short}
+                    >
+                      {parts.join(', ')}
+                    </SensitiveText>
+                  );
+                }
+
+                return (
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {strings('perps.auto_close.description')}
+                  </Text>
+                );
+              })()}
+            </View>
+            {onAutoClosePress && (
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Sm}
+                onPress={handleAutoCloseButtonPress}
+                style={styles.autoCloseButton}
+              >
+                {hasTPSLConfigured
+                  ? strings('perps.auto_close.edit_button')
+                  : strings('perps.auto_close.set_button')}
+              </Button>
+            )}
+          </TouchableOpacity>
+        </Box>
+
+        <SectionDivider />
+        <SectionHeader title={strings('perps.position.card.details_title')} />
+        <View testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}>
+          <View style={styles.detailRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.position.card.direction_label')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              testID={PerpsPositionCardSelectorsIDs.DIRECTION_VALUE}
+            >
+              {direction === 'long'
+                ? strings('perps.market.long')
+                : strings('perps.market.short')}{' '}
+              {position.leverage.value}x
+            </Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.position.card.entry_label')}
+            </Text>
             <SensitiveText
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
-              testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+              testID={PerpsPositionCardSelectorsIDs.ENTRY_VALUE}
             >
-              {position.liquidationPrice !== undefined &&
-              position.liquidationPrice !== null
-                ? formatPerpsFiat(position.liquidationPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                  })
-                : PERPS_CONSTANTS.FallbackPriceDisplay}
+              {formatPerpsFiat(position.entryPrice, {
+                ranges: PRICE_RANGES_UNIVERSAL,
+              })}
             </SensitiveText>
-            {liquidationDistance !== null && !privacyMode && (
-              <>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {' '}
-                  {Math.round(liquidationDistance)}%
-                </Text>
-                <Icon
-                  name={isLong ? IconName.TrendDown : IconName.TrendUp}
-                  size={IconSize.Sm}
-                  color={IconColor.Alternative}
-                />
-              </>
-            )}
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.position.card.liquidation_price_label')}
+            </Text>
+            <View style={styles.liquidationPriceValue}>
+              <SensitiveText
+                variant={TextVariant.BodyMD}
+                color={TextColor.Default}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+              >
+                {position.liquidationPrice !== undefined &&
+                position.liquidationPrice !== null
+                  ? formatPerpsFiat(position.liquidationPrice, {
+                      ranges: PRICE_RANGES_UNIVERSAL,
+                    })
+                  : PERPS_CONSTANTS.FallbackPriceDisplay}
+              </SensitiveText>
+              {liquidationDistance !== null && !privacyMode && (
+                <>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {' '}
+                    {Math.round(liquidationDistance)}%
+                  </Text>
+                  <Icon
+                    name={isLong ? IconName.TrendDown : IconName.TrendUp}
+                    size={IconSize.Sm}
+                    color={IconColor.Alternative}
+                  />
+                </>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.position.card.funding_payments_label')}
+            </Text>
+            <SensitiveText
+              variant={TextVariant.BodyMD}
+              color={privacyMode ? TextColor.Default : fundingColor}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              testID={PerpsPositionCardSelectorsIDs.FUNDING_PAYMENTS_VALUE}
+            >
+              {fundingDisplay}
+            </SensitiveText>
           </View>
         </View>
-
-        <View style={[styles.detailRow, styles.detailRowLast]}>
-          <Text
-            variant={TextVariant.BodyMDMedium}
-            color={TextColor.Alternative}
-          >
-            {strings('perps.position.card.funding_payments_label')}
-          </Text>
-          <SensitiveText
-            variant={TextVariant.BodyMD}
-            color={privacyMode ? TextColor.Default : fundingColor}
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Short}
-            testID={PerpsPositionCardSelectorsIDs.FUNDING_PAYMENTS_VALUE}
-          >
-            {fundingDisplay}
-          </SensitiveText>
-        </View>
       </View>
-    </View>
+    </Box>
   );
 };
 
