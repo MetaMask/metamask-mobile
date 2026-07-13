@@ -315,12 +315,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           sparse-checkout: |
-            .github/scripts/resolve-main-browserstack-apps.mjs
+            .github/scripts/resolve-main-browserstack-apps.cjs
+            .github/scripts/browserstack-app-validation.cjs
           sparse-checkout-cone-mode: false
 
       - name: Resolve latest main BrowserStack apps
         id: resolve
-        run: node .github/scripts/resolve-main-browserstack-apps.mjs
+        run: node .github/scripts/resolve-main-browserstack-apps.cjs
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
