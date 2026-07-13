@@ -52,8 +52,6 @@ export interface PerpsChartFullscreenModalProps {
   positionSize?: string;
   /** Hyperliquid size decimals; forwarded so fullscreen advanced chart matches market precision. */
   szDecimals?: number | null;
-  /** Effective chart library from the parent surface, used for initial attribution. */
-  initialChartLibrary?: string;
 }
 
 const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
@@ -78,7 +76,6 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   symbol,
   positionSize,
   szDecimals,
-  initialChartLibrary,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
@@ -96,9 +93,8 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const [ohlcvHeight, setOhlcvHeight] = useState<number>(0);
   const { track } = usePerpsEventTracking();
   const configuredChartLibrary = useMemo(
-    () =>
-      initialChartLibrary ?? getChartLibrary(Boolean(isAdvancedChartEnabled)),
-    [initialChartLibrary, isAdvancedChartEnabled],
+    () => getChartLibrary(Boolean(isAdvancedChartEnabled)),
+    [isAdvancedChartEnabled],
   );
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,

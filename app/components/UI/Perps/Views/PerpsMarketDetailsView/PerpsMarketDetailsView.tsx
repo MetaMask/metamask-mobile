@@ -1860,7 +1860,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         symbol={market?.symbol}
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
-        initialChartLibrary={chartLibrary}
       />
 
       {/* Market Insights Disclaimer Bottom Sheet */}

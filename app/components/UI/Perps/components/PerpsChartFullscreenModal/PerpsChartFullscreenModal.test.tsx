@@ -624,15 +624,12 @@ describe('PerpsChartFullscreenModal', () => {
       );
     });
 
-    it('uses initialChartLibrary for fullscreen screen-view attribution', () => {
+    it('tracks advanced when a fullscreen advanced render succeeds after parent fallback', () => {
       render(
         <PerpsChartFullscreenModal
           {...defaultProps}
           isVisible
           isAdvancedChartEnabled
-          initialChartLibrary={
-            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
-          }
           symbol="BTC"
         />,
       );
@@ -650,39 +647,44 @@ describe('PerpsChartFullscreenModal', () => {
             PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
           [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
-            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
           [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
             PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
         }),
       );
     });
 
-    it('resets fullscreen screen-view tracking when initialChartLibrary changes', () => {
+    it('resets fullscreen screen-view tracking when the fullscreen render library changes', () => {
       const { rerender } = render(
         <PerpsChartFullscreenModal
           {...defaultProps}
           isVisible
-          isAdvancedChartEnabled
-          initialChartLibrary={
-            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
-          }
+          candleData={mockCandleData}
+          isAdvancedChartEnabled={false}
           symbol="BTC"
         />,
       );
 
-      const initialAdvancedChartProps =
-        mockPerpsAdvancedChart.mock.calls[
-          mockPerpsAdvancedChart.mock.calls.length - 1
-        ][0];
-      initialAdvancedChartProps.onSkeletonHidden();
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
       mockTrack.mockClear();
 
       rerender(
         <PerpsChartFullscreenModal
           {...defaultProps}
           isVisible
+          candleData={mockCandleData}
           isAdvancedChartEnabled
-          initialChartLibrary={PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
           symbol="BTC"
         />,
       );
