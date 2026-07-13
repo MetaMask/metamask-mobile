@@ -4,10 +4,17 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectPredictPendingDepositByAddress } from '../selectors/predictController';
 
 const mockGoBack = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();
+const mockSelectPredictPendingDepositByAddress =
+  selectPredictPendingDepositByAddress as jest.MockedFunction<
+    typeof selectPredictPendingDepositByAddress
+  >;
+
+const TEST_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -63,13 +70,13 @@ jest.mock('./usePredictTrading', () => ({
 }));
 
 jest.mock('../selectors/predictController', () => ({
-  selectPredictPendingDepositByAddress: () => null,
+  selectPredictPendingDepositByAddress: jest.fn(() => null),
 }));
 
 jest.mock('../utils/accounts', () => ({
-  getEvmAccountFromSelectedAccountGroup: () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
     address: '0x1234567890123456789012345678901234567890',
-  }),
+  })),
 }));
 
 jest.mock(
@@ -81,7 +88,7 @@ jest.mock(
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: (selector: () => unknown) => selector(),
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
 }));
 
 // Mock the entire confirm-component to avoid deep dependency chain
@@ -128,10 +135,17 @@ describe('usePredictDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockDepositWithConfirmation.mockReturnValue(Promise.resolve());
+    mockSelectPredictPendingDepositByAddress.mockReturnValue(null);
+
+    const { getEvmAccountFromSelectedAccountGroup } =
+      jest.requireMock('../utils/accounts');
+    getEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: TEST_ADDRESS,
+    });
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('returns deposit function and isDepositPending flag', () => {
@@ -142,6 +156,33 @@ describe('usePredictDeposit', () => {
     expect(result.current.deposit).toBeDefined();
     expect(typeof result.current.deposit).toBe('function');
     expect(result.current.isDepositPending).toBe(false);
+  });
+
+  it('passes selected EVM address to pending deposit selector', () => {
+    // Arrange & Act
+    renderHook(() => usePredictDeposit());
+
+    // Assert
+    expect(mockSelectPredictPendingDepositByAddress).toHaveBeenCalledWith(
+      expect.any(Object),
+      TEST_ADDRESS,
+    );
+  });
+
+  it('uses an empty selector key when no EVM account is selected', () => {
+    // Arrange
+    const { getEvmAccountFromSelectedAccountGroup } =
+      jest.requireMock('../utils/accounts');
+    getEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
+
+    // Act
+    renderHook(() => usePredictDeposit());
+
+    // Assert
+    expect(mockSelectPredictPendingDepositByAddress).toHaveBeenCalledWith(
+      expect.any(Object),
+      '',
+    );
   });
 
   it('calls navigateToConfirmation when deposit is called', async () => {

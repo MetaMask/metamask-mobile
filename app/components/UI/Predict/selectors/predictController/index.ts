@@ -3,6 +3,11 @@ import { RootState } from '../../../../../reducers';
 import { PredictPositionStatus } from '../../types';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
+const weakMapMemoizeOptions = {
+  memoize: weakMapMemoize,
+  argsMemoize: weakMapMemoize,
+} as const;
+
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
 
@@ -41,10 +46,7 @@ const selectPredictClaimablePositionsByAddress = createSelector(
     (_state: RootState, address: string) => address,
   ],
   (claimablePositions, address) => claimablePositions[address] || [],
-  {
-    memoize: weakMapMemoize,
-    argsMemoize: weakMapMemoize,
-  },
+  weakMapMemoizeOptions,
 );
 
 const selectPredictWonPositions = createSelector(
@@ -53,30 +55,21 @@ const selectPredictWonPositions = createSelector(
     claimablePositions.filter(
       (position) => position.status === PredictPositionStatus.WON,
     ),
-  {
-    memoize: weakMapMemoize,
-    argsMemoize: weakMapMemoize,
-  },
+  weakMapMemoizeOptions,
 );
 
 const selectPredictWinFiat = createSelector(
   [selectPredictWonPositions],
   (winningPositions) =>
     winningPositions.reduce((acc, position) => acc + position.currentValue, 0),
-  {
-    memoize: weakMapMemoize,
-    argsMemoize: weakMapMemoize,
-  },
+  weakMapMemoizeOptions,
 );
 
 const selectPredictWinPnl = createSelector(
   [selectPredictWonPositions],
   (winningPositions) =>
     winningPositions.reduce((acc, position) => acc + position.cashPnl, 0),
-  {
-    memoize: weakMapMemoize,
-    argsMemoize: weakMapMemoize,
-  },
+  weakMapMemoizeOptions,
 );
 
 const selectPredictBalances = createSelector(
@@ -87,10 +80,7 @@ const selectPredictBalances = createSelector(
 const selectPredictBalanceByAddress = createSelector(
   [selectPredictBalances, (_state: RootState, address: string) => address],
   (balances, address) => balances[address]?.balance || 0,
-  {
-    memoize: weakMapMemoize,
-    argsMemoize: weakMapMemoize,
-  },
+  weakMapMemoizeOptions,
 );
 
 const selectPredictPendingDepositByAddress = createSelector(
@@ -99,19 +89,13 @@ const selectPredictPendingDepositByAddress = createSelector(
     (_state: RootState, address: string) => address,
   ],
   (pendingDeposits, address) => pendingDeposits[address] || undefined,
-  {
-    memoize: weakMapMemoize,
-    argsMemoize: weakMapMemoize,
-  },
+  weakMapMemoizeOptions,
 );
 
 const selectPredictPendingClaimByAddress = createSelector(
   [selectPredictPendingClaims, (_state: RootState, address: string) => address],
   (pendingClaims, address) => pendingClaims[address] || undefined,
-  {
-    memoize: weakMapMemoize,
-    argsMemoize: weakMapMemoize,
-  },
+  weakMapMemoizeOptions,
 );
 
 const selectPredictSelectedPaymentToken = createSelector(
@@ -132,10 +116,7 @@ const selectPredictAccountMetaByAddress = createSelector(
   ],
   (accountMeta, providerId, address) =>
     accountMeta[providerId]?.[address] || {},
-  {
-    memoize: weakMapMemoize,
-    argsMemoize: weakMapMemoize,
-  },
+  weakMapMemoizeOptions,
 );
 
 export {

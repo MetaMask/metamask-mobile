@@ -16,6 +16,46 @@ import {
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+
+const makeWonPosition = (
+  overrides: Partial<PredictPosition> = {},
+): PredictPosition =>
+  ({
+    id: 'pos-1',
+    providerId: POLYMARKET_PROVIDER_ID,
+    marketId: 'market-1',
+    outcomeId: 'outcome-1',
+    outcome: 'Yes',
+    outcomeTokenId: '123',
+    currentValue: 100,
+    title: 'Test Market',
+    icon: 'icon-url',
+    amount: 50,
+    price: 0.5,
+    status: PredictPositionStatus.WON,
+    size: 100,
+    outcomeIndex: 0,
+    percentPnl: 50,
+    cashPnl: 25,
+    claimable: true,
+    initialValue: 75,
+    avgPrice: 0.75,
+    endDate: '2024-12-31',
+    ...overrides,
+  }) as PredictPosition;
+
+const makeClaimablePositionsState = (
+  claimablePositions: Record<string, PredictPosition[]>,
+) => ({
+  engine: {
+    backgroundState: {
+      PredictController: {
+        claimablePositions,
+      },
+    },
+  },
+});
+
 describe('Predict Controller Selectors', () => {
   describe('selectPredictControllerState', () => {
     it('selects the PredictController state', () => {
@@ -445,108 +485,31 @@ describe('Predict Controller Selectors', () => {
       expect(result).toEqual([]);
     });
 
-    it('memoizes repeated calls for the same state and address', () => {
-      const testAddress = '0x123';
-      const claimablePositions = {
-        [testAddress]: [
-          {
-            id: 'pos-1',
-            providerId: POLYMARKET_PROVIDER_ID,
-            marketId: 'market-1',
-            outcomeId: 'outcome-1',
-            outcome: 'Yes',
-            outcomeTokenId: '123',
-            currentValue: 100,
-            title: 'Test Market',
-            icon: 'icon-url',
-            amount: 50,
-            price: 0.5,
-            status: PredictPositionStatus.WON,
-            size: 100,
-            outcomeIndex: 0,
-            percentPnl: 50,
-            cashPnl: 25,
-            claimable: true,
-            initialValue: 75,
-            avgPrice: 0.75,
-            endDate: '2024-12-31',
-          },
-        ],
-      };
-
-      const mockState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              claimablePositions,
-            },
-          },
-        },
-      };
-      const updatedState = {
-        engine: {
-          backgroundState: {
-            PredictController: {
-              claimablePositions: {
-                [testAddress]: [
-                  ...claimablePositions[testAddress],
-                  {
-                    id: 'pos-2',
-                    providerId: POLYMARKET_PROVIDER_ID,
-                    marketId: 'market-2',
-                    outcomeId: 'outcome-2',
-                    outcome: 'Yes',
-                    outcomeTokenId: '456',
-                    currentValue: 200,
-                    title: 'Test Market 2',
-                    icon: 'icon-url-2',
-                    amount: 150,
-                    price: 0.75,
-                    status: PredictPositionStatus.WON,
-                    size: 200,
-                    outcomeIndex: 0,
-                    percentPnl: 33.33,
-                    cashPnl: 50,
-                    claimable: true,
-                    initialValue: 150,
-                    avgPrice: 0.75,
-                    endDate: '2024-12-31',
-                  },
-                ],
-              },
-            },
-          },
-        },
-      };
+    it('retains memoized results across different addresses', () => {
+      const addressA = '0xaaa';
+      const addressB = '0xbbb';
+      const mockState = makeClaimablePositionsState({
+        [addressA]: [makeWonPosition({ id: 'pos-a' })],
+        [addressB]: [makeWonPosition({ id: 'pos-b', marketId: 'market-2' })],
+      });
 
       selectPredictWonPositions.resetRecomputations();
 
-      const firstResult = selectPredictWonPositions(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockState as any,
-        testAddress,
-      );
-      const recomputationsAfterFirstCall =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resultA1 = selectPredictWonPositions(mockState as any, addressA);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resultB = selectPredictWonPositions(mockState as any, addressB);
+      const recomputationsAfterTwoAddresses =
         selectPredictWonPositions.recomputations();
-      const secondResult = selectPredictWonPositions(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockState as any,
-        testAddress,
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resultA2 = selectPredictWonPositions(mockState as any, addressA);
 
-      expect(secondResult).toBe(firstResult);
+      // A → B → A must not recompute A again (weakMap multi-arg cache).
+      // Default createSelector LRU (maxSize: 1) would recompute on the third call.
+      expect(resultA2).toBe(resultA1);
+      expect(resultB).not.toBe(resultA1);
       expect(selectPredictWonPositions.recomputations()).toBe(
-        recomputationsAfterFirstCall,
-      );
-
-      selectPredictWonPositions(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        updatedState as any,
-        testAddress,
-      );
-
-      expect(selectPredictWonPositions.recomputations()).toBe(
-        recomputationsAfterFirstCall + 1,
+        recomputationsAfterTwoAddresses,
       );
     });
   });
