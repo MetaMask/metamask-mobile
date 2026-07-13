@@ -4,6 +4,7 @@ import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { Side } from '../types';
 import {
   ensureError,
+  isNetworkError,
   createDepositErrorToast,
   parseErrorMessage,
   checkPlaceOrderError,
@@ -87,6 +88,43 @@ describe('predictErrorHandler', () => {
 
       expect(result).toBeInstanceOf(Error);
       expect(result.message).toBe('[object Object]');
+    });
+  });
+
+  describe('isNetworkError', () => {
+    it.each([
+      'java.lang.RuntimeException: Cronet failed: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT',
+      'Cronet failed: net::ERR_NAME_NOT_RESOLVED',
+      'net::ERR_INTERNET_DISCONNECTED',
+      'TypeError: Network request failed',
+      'Failed to fetch',
+      'The connection timed out',
+      'Connection was reset',
+      'Request timeout',
+      'The Internet connection appears to be offline.',
+      'Network is unreachable',
+      'Could not resolve host: example.com',
+    ])('returns true for connectivity failure: %s', (message) => {
+      expect(isNetworkError(new Error(message))).toBe(true);
+    });
+
+    it('matches network errors passed as plain strings', () => {
+      expect(isNetworkError('net::ERR_CONNECTION_REFUSED')).toBe(true);
+    });
+
+    it.each([
+      'Failed to get positions',
+      'Address is required',
+      'Order not fully filled',
+      'Unexpected token in JSON',
+      '',
+    ])('returns false for non-network error: %s', (message) => {
+      expect(isNetworkError(new Error(message))).toBe(false);
+    });
+
+    it('returns false for null/undefined', () => {
+      expect(isNetworkError(null)).toBe(false);
+      expect(isNetworkError(undefined)).toBe(false);
     });
   });
 

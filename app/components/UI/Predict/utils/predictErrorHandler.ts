@@ -24,6 +24,49 @@ export function ensureError(error: unknown): Error {
   return new Error(String(error));
 }
 
+/**
+ * Patterns that identify transient connectivity failures rather than
+ * application bugs. These surface differently across transports
+ * (Android Cronet via nitro-fetch, RN default fetch, iOS URLSession) so we
+ * match on the substrings each of them emits.
+ *
+ * Reported as breadcrumbs/warnings instead of Sentry errors, since they are
+ * driven by the user's network conditions (DNS failures, timeouts, offline,
+ * geo/ISP blocking) and are not actionable as crashes.
+ */
+const NETWORK_ERROR_PATTERNS: RegExp[] = [
+  // Chromium/Cronet (Android nitro-fetch) net::ERR_* codes
+  /net::ERR_/iu,
+  /Cronet failed/iu,
+  // React Native default fetch (OkHttp / iOS)
+  /Network request failed/iu,
+  /Failed to fetch/iu,
+  // Common cross-platform connectivity phrases
+  /connection (was |)(timed out|refused|reset|closed)/iu,
+  /request tim(ed |e)?out/iu,
+  /timeout/iu,
+  /network is unreachable/iu,
+  /(the )?internet connection appears to be offline/iu,
+  /name (not resolved|resolution failed)/iu,
+  /could not (connect|resolve host)/iu,
+];
+
+/**
+ * Determines whether an error represents a transient network/connectivity
+ * failure (as opposed to an application bug). Used to avoid reporting
+ * unactionable connectivity noise to Sentry.
+ *
+ * @param error - The caught error (Error, string, or unknown)
+ * @returns true when the error looks like a connectivity failure
+ */
+export function isNetworkError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  if (!message) {
+    return false;
+  }
+  return NETWORK_ERROR_PATTERNS.some((pattern) => pattern.test(message));
+}
+
 export function createDepositErrorToast(
   theme: {
     colors: { error: { default: string }; accent04: { normal: string } };
