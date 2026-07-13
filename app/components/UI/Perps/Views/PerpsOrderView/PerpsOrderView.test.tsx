@@ -159,6 +159,7 @@ jest.mock('../../hooks/stream', () => ({
     bid: '2999',
     ask: '3001',
   })),
+  usePerpsLiveFocusedPrice: jest.fn(() => undefined),
 }));
 
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
@@ -823,7 +824,7 @@ const defaultMockHooks = {
 const createMockStreamManager = () => {
   // Using Map to track subscribers for potential cleanup
   const subscribers = new Map<string, (data: unknown) => void>();
-  let subscriberCounter = 0;
+  let subscriberIdCounter = 0;
 
   return {
     prices: {
@@ -834,7 +835,7 @@ const createMockStreamManager = () => {
         symbols: string[];
         callback: (data: unknown) => void;
       }) => {
-        const id = `mock-price-subscriber-${++subscriberCounter}`;
+        const id = String(subscriberIdCounter++);
         subscribers.set(id, callback);
         // Immediately provide mock price data
         const mockPrices: Record<string, unknown> = {};
@@ -876,7 +877,7 @@ const createMockStreamManager = () => {
         symbol: string;
         callback: (data: unknown) => void;
       }) => {
-        const id = `mock-tob-subscriber-${++subscriberCounter}`;
+        const id = String(subscriberIdCounter++);
         subscribers.set(id, callback);
         // Immediately provide mock top of book data
         const mockTopOfBook = {

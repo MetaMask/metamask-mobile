@@ -115,6 +115,7 @@ import {
 } from '../../hooks';
 import {
   usePerpsLiveAccount,
+  usePerpsLiveFocusedPrice,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
@@ -463,13 +464,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return unsubscribe;
   }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
-  // Get real-time price data using new stream architecture (deferred)
-  // Uses single WebSocket subscription with component-level debouncing
+  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
+  const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    symbol: isDataReady ? orderForm.asset : '',
+    enabled: isDataReady,
+  });
+
+  // allMids baseline as first-render fallback (~2 s)
   const prices = usePerpsLivePrices({
-    symbols: isDataReady ? [orderForm.asset] : [], // Defer subscription
+    symbols: isDataReady ? [orderForm.asset] : [],
     throttleMs: !isDataReady ? 0 : 1000,
   });
-  const currentPrice = prices[orderForm.asset];
+
+  // Prefer fast focused price; fall back to allMids baseline
+  const currentPrice = focusedPriceUpdate ?? prices[orderForm.asset];
 
   // Get top of book data for maker/taker fee determination (deferred)
   const currentTopOfBook = usePerpsTopOfBook({
