@@ -12,6 +12,7 @@ import React, {
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -76,9 +77,11 @@ import { TraceName } from '../../../../../util/trace';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
+import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
+import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../../selectors/featureFlags';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -107,9 +110,16 @@ const PerpsClosePositionView: React.FC = () => {
     traceName: TraceName.PerpsClosePositionView,
   });
 
+  // Feature flag gating the Market/Limit order-type selector on the close screen.
+  // Defaults to off so it can be rolled out/rolled back independently of the release.
+  const isClosePositionLimitOrderEnabled = useSelector(
+    selectPerpsClosePositionLimitOrderEnabledFlag,
+  );
+
   // State for order type and bottom sheets
   const [orderType, setOrderType] = useState<OrderType>('market');
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
+  const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isUserInputActive, setIsUserInputActive] = useState(false);
 
@@ -583,6 +593,13 @@ const PerpsClosePositionView: React.FC = () => {
         )}
         title={strings('perps.close_position.title')}
         isLoading={isClosing}
+        direction={isLong ? 'short' : 'long'}
+        orderType={isClosePositionLimitOrderEnabled ? orderType : undefined}
+        onOrderTypePress={
+          isClosePositionLimitOrderEnabled
+            ? () => setIsOrderTypeVisible(true)
+            : undefined
+        }
       />
 
       <ScrollView
@@ -789,6 +806,25 @@ const PerpsClosePositionView: React.FC = () => {
         direction={isLong ? 'short' : 'long'} // Opposite direction for closing
         isClosingPosition
       />
+
+      {/* Order Type Bottom Sheet - gated behind feature flag */}
+      {isClosePositionLimitOrderEnabled && (
+        <PerpsOrderTypeBottomSheet
+          isVisible={isOrderTypeVisible}
+          onClose={() => setIsOrderTypeVisible(false)}
+          onSelect={(type) => {
+            setOrderType(type);
+            // Clear limit price when switching back to market order
+            if (type === 'market') {
+              setLimitPrice('');
+            }
+            setIsOrderTypeVisible(false);
+          }}
+          currentOrderType={orderType}
+          asset={position.symbol}
+          direction={isLong ? 'short' : 'long'} // Opposite direction for closing
+        />
+      )}
     </SafeAreaView>
   );
 };

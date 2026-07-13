@@ -179,7 +179,6 @@ export const usePerpsClosePosition = (
           }
           // Market order immediately fills or fails
           // Limit orders aren't guaranteed to fill immediately, so we don't display "close position success" toast for them.
-          // Note: We only support market close for now but keeping check for future limit close support.
           if (orderType === 'market') {
             // Market closed full position
             if (isFullClose) {
@@ -204,7 +203,8 @@ export const usePerpsClosePosition = (
           // Call success callback
           options?.onSuccess?.(result);
         } else {
-          // Note: We only support market close for now but keeping check for future limit close support.
+          // Limit orders surface failures via the centralized error handler below;
+          // only market orders get a dedicated failure toast here.
           if (orderType === 'market') {
             // Market full close failed
             if (isFullClose) {

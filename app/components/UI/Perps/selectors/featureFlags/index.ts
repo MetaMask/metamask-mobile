@@ -132,6 +132,27 @@ export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Close Position order-type selector feature flag.
+ * Controls visibility of the Market/Limit order-type selector on the close
+ * position screen. Defaults to false (disabled by default) so it can be
+ * rolled out and rolled back independently of the release.
+ *
+ * @returns boolean - true if the close-position order-type selector should be shown, false otherwise
+ */
+export const selectPerpsClosePositionLimitOrderEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag =
+      process.env.MM_PERPS_CLOSE_POSITION_LIMIT_ORDER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsClosePositionLimitOrderEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for HIP-3 configuration version
  * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
  *

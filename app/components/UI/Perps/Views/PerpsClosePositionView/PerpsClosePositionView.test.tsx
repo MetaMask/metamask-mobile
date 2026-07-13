@@ -4,6 +4,8 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  PerpsOrderHeaderSelectorsIDs,
+  PerpsOrderTypeBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -60,6 +62,11 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectPerpsClosePositionLimitOrderEnabledFlag: jest.fn(() => false),
+}));
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // Only mock components that would cause issues in tests
@@ -78,6 +85,39 @@ jest.mock('../../components/PerpsLimitPriceBottomSheet', () => ({
   __esModule: true,
   default: 'PerpsLimitPriceBottomSheet',
 }));
+
+// Lightweight stub so tests can exercise the order-type selection wiring
+// without depending on the real BottomSheet internals.
+jest.mock('../../components/PerpsOrderTypeBottomSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  const { PerpsOrderTypeBottomSheetSelectorsIDs: SelectorsIDs } =
+    jest.requireActual('../../Perps.testIds');
+  return {
+    __esModule: true,
+    default: ({
+      isVisible,
+      onSelect,
+    }: {
+      isVisible?: boolean;
+      onSelect: (type: 'market' | 'limit') => void;
+    }) =>
+      isVisible
+        ? ReactActual.createElement(
+            ReactActual.Fragment,
+            null,
+            ReactActual.createElement(TouchableOpacity, {
+              testID: SelectorsIDs.MARKET_OPTION,
+              onPress: () => onSelect('market'),
+            }),
+            ReactActual.createElement(TouchableOpacity, {
+              testID: SelectorsIDs.LIMIT_OPTION,
+              onPress: () => onSelect('limit'),
+            }),
+          )
+        : null,
+  };
+});
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
   default: 'PerpsBottomSheetTooltip',
@@ -3262,6 +3302,84 @@ describe('PerpsClosePositionView', () => {
           defaultPerpsClosePositionMock.handleClosePosition,
         ).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('Order type selector (feature flag)', () => {
+    const selectPerpsClosePositionLimitOrderEnabledFlagMock = jest.mocked(
+      jest.requireMock('../../selectors/featureFlags')
+        .selectPerpsClosePositionLimitOrderEnabledFlag,
+    );
+
+    afterEach(() => {
+      selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(false);
+    });
+
+    it('does not render the order-type selector when the feature flag is disabled', () => {
+      // Arrange - flag off (default)
+      selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(false);
+
+      // Act
+      const { queryByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      expect(
+        queryByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders the order-type selector when the feature flag is enabled', () => {
+      // Arrange
+      selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(true);
+
+      // Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert
+      expect(
+        getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+      ).toBeDefined();
+    });
+
+    it('opens the order-type bottom sheet and switches to a limit order', () => {
+      // Arrange
+      selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(true);
+      const { getByTestId, queryByTestId, getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      // Assert - bottom sheet is closed initially
+      expect(
+        queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      ).toBeNull();
+
+      // Act - open the selector
+      fireEvent.press(
+        getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+      );
+
+      // Assert - both options are shown
+      expect(
+        getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION),
+      ).toBeDefined();
+
+      // Act - select limit
+      fireEvent.press(
+        getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
+
+      // Assert - header reflects the limit order type
+      expect(getByText(strings('perps.order.limit'))).toBeDefined();
     });
   });
 });
