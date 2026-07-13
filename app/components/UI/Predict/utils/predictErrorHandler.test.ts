@@ -97,7 +97,6 @@ describe('predictErrorHandler', () => {
       'Cronet failed: net::ERR_NAME_NOT_RESOLVED',
       'net::ERR_INTERNET_DISCONNECTED',
       'TypeError: Network request failed',
-      'Failed to fetch',
       'The connection timed out',
       'Connection was reset',
       'Request timeout',
@@ -113,7 +112,11 @@ describe('predictErrorHandler', () => {
     });
 
     it.each([
+      // App-level HTTP/logic errors must still reach Sentry, including
+      // "Failed to fetch X" messages for non-OK responses.
       'Failed to get positions',
+      'Failed to fetch related tags',
+      'Failed to fetch carousel data',
       'Address is required',
       'Order not fully filled',
       'Unexpected token in JSON',

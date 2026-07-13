@@ -38,9 +38,11 @@ const NETWORK_ERROR_PATTERNS: RegExp[] = [
   // Chromium/Cronet (Android nitro-fetch) net::ERR_* codes
   /net::ERR_/iu,
   /Cronet failed/iu,
-  // React Native default fetch (OkHttp / iOS)
+  // React Native default fetch (OkHttp / iOS). Note: we intentionally do NOT
+  // match the browser-only "Failed to fetch" phrasing here, because the Predict
+  // providers throw many app-level errors like "Failed to fetch related tags"
+  // for non-OK HTTP responses, which are actionable and must reach Sentry.
   /Network request failed/iu,
-  /Failed to fetch/iu,
   // Common cross-platform connectivity phrases
   /connection (was |)(timed out|refused|reset|closed)/iu,
   /request tim(ed |e)?out/iu,
