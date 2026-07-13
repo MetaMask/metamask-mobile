@@ -167,30 +167,25 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
           </Text>
         </Box>
 
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          gap={isMedium ? 3 : 4}
+        <Button
+          variant={ButtonVariant.Primary}
+          testID={
+            isUserTypeNew
+              ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON
+              : OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON
+          }
+          isFullWidth
+          size={isMedium ? ButtonSize.Md : ButtonSize.Lg}
+          onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
           marginBottom={4}
           twClassName="w-full"
         >
-          <Button
-            variant={ButtonVariant.Primary}
-            testID={
-              isUserTypeNew
-                ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON
-                : OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON
-            }
-            isFullWidth
-            size={isMedium ? ButtonSize.Md : ButtonSize.Lg}
-            onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
-          >
-            {strings(
-              isUserTypeNew
-                ? 'social_login_ios_user.new_user_button'
-                : 'social_login_ios_user.existing_user_button',
-            )}
-          </Button>
-        </Box>
+          {strings(
+            isUserTypeNew
+              ? 'social_login_ios_user.new_user_button'
+              : 'social_login_ios_user.existing_user_button',
+          )}
+        </Button>
       </Box>
     </SafeAreaView>
   );

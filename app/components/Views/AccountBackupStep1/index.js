@@ -164,30 +164,30 @@ const AccountBackupStep1 = (props) => {
               }
               style={tw.style('w-[250px] h-[250px] mx-auto')}
             />
-            <Box twClassName="mt-8 self-start gap-y-4">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="mt-8 self-start"
+            >
+              {strings('account_backup_step_1.info_text_1_1')}{' '}
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.PrimaryDefault}
+                onPress={showWhatIsSeedphrase}
+                testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
               >
-                {strings('account_backup_step_1.info_text_1_1')}{' '}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.PrimaryDefault}
-                  onPress={showWhatIsSeedphrase}
-                  testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
-                >
-                  {strings('account_backup_step_1.info_text_1_2')}
-                </Text>{' '}
-                {strings('account_backup_step_1.info_text_1_3')}{' '}
-              </Text>
+                {strings('account_backup_step_1.info_text_1_2')}
+              </Text>{' '}
+              {strings('account_backup_step_1.info_text_1_3')}{' '}
+            </Text>
 
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('account_backup_step_1.info_text_1_4')}
-              </Text>
-            </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="self-start mt-4"
+            >
+              {strings('account_backup_step_1.info_text_1_4')}
+            </Text>
           </Box>
 
           <Box
