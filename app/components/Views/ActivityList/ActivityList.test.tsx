@@ -318,6 +318,7 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     return (
       <TouchableOpacity testID={`row-${hash}`} onPress={() => onPress(item)}>
         <Text testID={`row-kind-${hash}`}>{item.type}</Text>
+        <Text testID={`row-raw-${hash}`}>{item.raw?.type}</Text>
         <Text>{title ?? item.hash}</Text>
       </TouchableOpacity>
     );
@@ -806,6 +807,126 @@ describe('ActivityList', () => {
     expect(screen.getAllByTestId(`row-${upgradeHash}`)).toHaveLength(1);
     expect(screen.getByTestId(`row-kind-${upgradeHash}`)).toHaveTextContent(
       'smartAccountUpgrade',
+    );
+  });
+
+  it('keeps the quote-enriched local swap row over a bare confirmed contractInteraction copy', () => {
+    const swapHash = '0xswap';
+    const localSwap = {
+      type: 'swap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: swapHash,
+      data: {
+        sourceToken: { direction: 'out', symbol: 'POL', decimals: 18 },
+        destinationToken: { direction: 'in', symbol: 'USDT', decimals: 6 },
+      },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: {
+            chainId: '0x1',
+            hash: swapHash,
+            id: 'swap-id',
+            txParams: { from: '0xevm', nonce: '0xb' },
+          },
+        },
+      },
+    };
+    // Indexer hasn't classified the swap yet — the confirmed copy is a bare
+    // contract call with the same hash.
+    const confirmedSwapContractCall = {
+      type: 'contractInteraction',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: swapHash,
+      data: { from: '0xevm', to: '0xrouter' },
+      raw: {
+        type: 'apiEvmTransaction',
+        data: { chainId: 1, from: '0xevm', hash: swapHash, nonce: 11 },
+      },
+    };
+    (useLocalActivityItems as jest.Mock).mockReturnValue([localSwap]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedSwapContractCall] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // One row, and it's the typed swap (with both tokens) — the bare confirmed
+    // "contractInteraction" copy is deduped away, not the reverse.
+    expect(screen.getAllByTestId(`row-${swapHash}`)).toHaveLength(1);
+    expect(screen.getByTestId(`row-kind-${swapHash}`)).toHaveTextContent(
+      'swap',
+    );
+  });
+
+  it('keeps the local approve row with the cap amount over the amount-less confirmed copy', () => {
+    const approveHash = '0xapprovecap';
+    const localApprove = {
+      type: 'approveSpendingCap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: approveHash,
+      data: {
+        token: {
+          direction: 'out',
+          amount: '100000',
+          decimals: 6,
+          symbol: 'USDC',
+        },
+      },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: {
+            chainId: '0x1',
+            hash: approveHash,
+            id: 'approve-id',
+            txParams: { from: '0xevm', nonce: '0xb' },
+          },
+        },
+      },
+    };
+    // The accounts API returns no calldata for an approve, so the confirmed
+    // copy carries no cap amount.
+    const confirmedApproveNoAmount = {
+      type: 'approveSpendingCap',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 7,
+      hash: approveHash,
+      data: {},
+      raw: {
+        type: 'apiEvmTransaction',
+        data: { chainId: 1, from: '0xevm', hash: approveHash, nonce: 11 },
+      },
+    };
+    (useLocalActivityItems as jest.Mock).mockReturnValue([localApprove]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedApproveNoAmount] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // One row, and it's the local copy (which carries the cap amount) — the
+    // amount-less confirmed copy is deduped away, not the reverse.
+    expect(screen.getAllByTestId(`row-${approveHash}`)).toHaveLength(1);
+    expect(screen.getByTestId(`row-raw-${approveHash}`)).toHaveTextContent(
+      'localTransaction',
     );
   });
 
