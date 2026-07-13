@@ -141,8 +141,7 @@ const MoreSection = () => {
         />
         <MoreActionRow
           label={strings('homepage.sections.more.contact_support')}
-          startIconName={IconName.MessageQuestion}
-          endIconName={IconName.Export}
+          startIconName={IconName.Sms}
           onPress={handleContactSupport}
           testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON}
         />
