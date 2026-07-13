@@ -45,7 +45,10 @@ const END_DOT_DIAMETER = 16;
  * Binary-search for the data point whose timestamp is closest to `target`.
  * Assumes `sortedPrices` is sorted ascending by timestamp.
  */
-function findNearestIndex(sortedPrices: TokenPrice[], target: number): number {
+export function findNearestIndex(
+  sortedPrices: TokenPrice[],
+  target: number,
+): number {
   if (sortedPrices.length === 0) return -1;
   let lo = 0;
   let hi = sortedPrices.length - 1;
