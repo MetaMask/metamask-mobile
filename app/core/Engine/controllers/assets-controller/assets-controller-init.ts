@@ -150,12 +150,7 @@ export const assetsControllerInit: MessengerClientInitFunction<
       enabled: true,
     },
     isOnboarded: () => selectCompletedOnboarding(store.getState()),
-    // TEMPORARY (ASSETS-3346): supplies the legacy TokensController /
-    // AccountsController persisted state so the controller can restore
-    // custom-token metadata wiped by a prior defect on chains that cannot
-    // self-heal via auto-detection. Remove together with the controller
-    // option in a future release.
-    // See https://github.com/MetaMask/core/pull/9393
+    // TEMPORARY (ASSETS-3346): legacy state slices used to heal wiped `assetsInfo` metadata.
     tempMigrateAssetsInfoMetadataAssets3346: () => ({
       TokensController: persistedState?.TokensController,
       AccountsController: persistedState?.AccountsController,
