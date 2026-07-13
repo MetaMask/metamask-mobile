@@ -15,10 +15,10 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface PredictPreviewSheetProps {
   renderHeader?: () => React.ReactNode;
+  renderRightComponent?: () => React.ReactNode;
   title?: string;
   image?: string;
   subtitle?: string;
@@ -37,6 +37,7 @@ const PredictPreviewSheet = forwardRef<
   (
     {
       renderHeader,
+      renderRightComponent,
       title,
       image,
       subtitle,
@@ -55,7 +56,6 @@ const PredictPreviewSheet = forwardRef<
       handleSheetClosed,
       getRefHandlers,
     } = usePredictBottomSheet({ onDismiss });
-    const surfaceClass = useElevatedSurface();
 
     useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
 
@@ -70,7 +70,6 @@ const PredictPreviewSheet = forwardRef<
         isFullscreen={isFullscreen}
         onClose={handleSheetClosed}
         testID={testID}
-        twClassName={surfaceClass}
       >
         <BottomSheetHeader
           onClose={closeSheet}
@@ -94,15 +93,22 @@ const PredictPreviewSheet = forwardRef<
                 />
               )}
               <Box twClassName="flex-1 min-w-0 shrink">
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  twClassName="text-default"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  testID="preview-sheet-title"
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-1 min-w-0"
                 >
-                  {title}
-                </Text>
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    twClassName="text-default shrink"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    testID="preview-sheet-title"
+                  >
+                    {title}
+                  </Text>
+                  {renderRightComponent ? renderRightComponent() : null}
+                </Box>
                 {subtitle && (
                   <Text
                     variant={TextVariant.BodySm}

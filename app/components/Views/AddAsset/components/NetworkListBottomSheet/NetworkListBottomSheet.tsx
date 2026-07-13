@@ -98,7 +98,6 @@ export default function NetworkListBottomSheet({
         {Object.values(filteredNetworkConfigurations).map((network) => (
           <Box twClassName="items-start" key={network.chainId}>
             <Cell
-              style={tw.style(surfaceClass)}
               variant={CellVariant.Select}
               title={network.name}
               avatarProps={{

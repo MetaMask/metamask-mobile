@@ -364,24 +364,43 @@ export const useBridgeQuoteData = ({
     }
   }, [manuallySelectedQuote, dispatch]);
 
-  const returnValue = {
-    bestQuote,
-    quoteFetchError,
-    activeQuote,
-    quotesLoadingStatus,
-    destTokenAmount,
-    isLoading,
-    formattedQuoteData,
-    isNoQuotesAvailable,
-    willRefresh,
-    isExpired,
-    blockaidError,
-    shouldShowPriceImpactWarning,
-    validQuotes,
-    needsNewQuote,
-    isActiveQuoteForCurrentTokenPair:
-      isQuoteSourceTokenMatch && isQuoteDestTokenMatch,
-  };
+  const isActiveQuoteForCurrentTokenPair =
+    isQuoteSourceTokenMatch && isQuoteDestTokenMatch;
 
-  return returnValue;
+  return useMemo(
+    () => ({
+      bestQuote,
+      quoteFetchError,
+      activeQuote,
+      quotesLoadingStatus,
+      destTokenAmount,
+      isLoading,
+      formattedQuoteData,
+      isNoQuotesAvailable,
+      willRefresh,
+      isExpired,
+      blockaidError,
+      shouldShowPriceImpactWarning,
+      validQuotes,
+      needsNewQuote,
+      isActiveQuoteForCurrentTokenPair,
+    }),
+    [
+      bestQuote,
+      quoteFetchError,
+      activeQuote,
+      quotesLoadingStatus,
+      destTokenAmount,
+      isLoading,
+      formattedQuoteData,
+      isNoQuotesAvailable,
+      willRefresh,
+      isExpired,
+      blockaidError,
+      shouldShowPriceImpactWarning,
+      validQuotes,
+      needsNewQuote,
+      isActiveQuoteForCurrentTokenPair,
+    ],
+  );
 };
