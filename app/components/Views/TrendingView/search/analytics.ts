@@ -115,46 +115,7 @@ export const trackExploreInteracted = (
       .addProperties(properties as unknown as Record<string, unknown>)
       .build(),
   );
-
-  if (shouldTrackExplorePredictAssetViewed(properties)) {
-    trackExplorePredictAssetViewed(properties);
-  }
 };
-
-const PREDICT_EXPLORE_ASSET_VIEWED_INTERACTIONS = new Set<
-  ExploreInteractedProperties['interaction_type']
->(['section_item_tapped', 'prediction_voted']);
-
-function shouldTrackExplorePredictAssetViewed(
-  properties: ExploreInteractedProperties,
-): boolean {
-  if (
-    !properties.item_clicked ||
-    !PREDICT_EXPLORE_ASSET_VIEWED_INTERACTIONS.has(properties.interaction_type)
-  ) {
-    return false;
-  }
-
-  return (
-    properties.interaction_type === 'prediction_voted' ||
-    properties.asset_type === 'prediction'
-  );
-}
-
-function trackExplorePredictAssetViewed(
-  properties: ExploreInteractedProperties,
-): void {
-  analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
-      .addProperties(
-        mergeAssetViewedProperties(
-          'Predict',
-          properties as unknown as Record<string, unknown>,
-        ),
-      )
-      .build(),
-  );
-}
 
 const PREDICTIONS_TRENDING_SECTION: ExploreSectionName = 'predictions_trending';
 

@@ -742,6 +742,43 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('carries market_id from market details opened into subsequent feed Asset Viewed events', () => {
+      predictAnalytics.trackMarketDetailsOpened({
+        marketId: 'm1',
+        marketTitle: 'Market title',
+        entryPoint: 'predict_feed',
+        marketDetailsViewed: 'about',
+      });
+
+      predictAnalytics.trackFeedViewed({
+        sessionId: 's1',
+        feedTab: 'trending',
+        numPagesViewed: 1,
+        sessionTime: 10,
+        entryPoint: 'carousel',
+      });
+
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(4);
+
+      const assetViewedEvent = getTrackEventMock().mock
+        .calls[3][0] as TrackedEvent;
+
+      expect(assetViewedEvent.name).toBe(
+        MetaMetricsEvents.ASSET_VIEWED.category,
+      );
+      expect(assetViewedEvent.properties).toMatchObject({
+        session_id: 's1',
+        predict_feed_tab: 'trending',
+        num_feed_pages_viewed_in_session: 1,
+        session_time_in_feed: 10,
+        is_session_end: false,
+        entry_point: 'carousel',
+        market_id: 'm1',
+        trade_type: 'Predict',
+        implementation_type: 'native',
+      });
+    });
+
     it('tracks banner viewed action with action type and banner type', () => {
       predictAnalytics.trackBannerAction({
         actionType: 'viewed',

@@ -204,6 +204,7 @@ const PREDICT_PORTFOLIO_MODULE_COMPONENT =
   PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE;
 
 export class PredictAnalytics {
+  private lastPredictMarketId: string | null = null;
   private readonly context: PredictAnalyticsContext;
 
   constructor(context: PredictAnalyticsContext) {
@@ -549,6 +550,11 @@ export class PredictAnalytics {
     const analyticsProperties = config.mapProperties(eventArgs);
     const sensitiveProperties = config.mapSensitiveProperties?.(eventArgs);
 
+    if (configKey === 'marketDetailsOpened') {
+      const marketId = analyticsProperties[PredictEventProperties.MARKET_ID];
+      this.lastPredictMarketId = typeof marketId === 'string' ? marketId : null;
+    }
+
     DevLogger.log(config.logLabel, {
       analyticsProperties,
     });
@@ -574,12 +580,22 @@ export class PredictAnalytics {
       (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') &&
       !isFocusOnlyFeedView
     ) {
+      const assetViewedBaseProperties =
+        configKey === 'feedViewed' &&
+        this.lastPredictMarketId &&
+        analyticsProperties[PredictEventProperties.MARKET_ID] === undefined
+          ? {
+              ...analyticsProperties,
+              [PredictEventProperties.MARKET_ID]: this.lastPredictMarketId,
+            }
+          : analyticsProperties;
+
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
           .addProperties(
             mergeAssetViewedProperties(
               'Predict',
-              analyticsProperties as Record<string, unknown>,
+              assetViewedBaseProperties as Record<string, unknown>,
             ),
           )
           .build(),
