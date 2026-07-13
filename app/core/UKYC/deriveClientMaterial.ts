@@ -1,8 +1,9 @@
 import { hkdf } from '@noble/hashes/hkdf';
 import { sha256 } from '@noble/hashes/sha2';
 import { ed25519 } from '@noble/curves/ed25519';
-import { bytesToBase64, stringToBytes } from '@metamask/utils';
+import { stringToBytes } from '@metamask/utils';
 import { UKYC_DERIVED_KEY_SIZES, UKYC_KDF_INFO } from './constants';
+import { toBase64Url } from './encoding';
 
 /**
  * Derives UKYC client material from the root `local_user_secret` using
@@ -16,20 +17,17 @@ import { UKYC_DERIVED_KEY_SIZES, UKYC_KDF_INFO } from './constants';
 export interface UkycClientMaterial {
   /** Opaque lookup key for the encrypted KYC object. */
   storageId: Uint8Array;
-  /** Key used to encrypt `encrypted_kyc_data` (or wrap per-blob keys). */
-  contentEncryptionKey: Uint8Array;
-  /** Ed25519 private-key seed backing `storageSigningKey`. */
-  storageSigningSeed: Uint8Array;
+  /** Symmetric key that encrypts `encrypted_kyc_data` (or wraps per-blob keys). */
+  dataEncryptionKey: Uint8Array;
   /**
-   * Ed25519 private key used to authenticate storage GET/PUT/DELETE
-   * operations. For Ed25519 the 32-byte seed *is* the private key, so this is
-   * identical to {@link storageSigningSeed} and is exposed under the
-   * doc-aligned name for clarity at call sites.
+   * Ed25519 private key used to sign `storage_access_token` capabilities. For
+   * Ed25519 the 32-byte HKDF output *is* the private key. The private half
+   * never leaves the device.
    */
-  storageSigningKey: Uint8Array;
-  /** Public half of `storageSigningKey`, registered with the object. */
-  storagePublicKey: Uint8Array;
-  /** Key for establishing/authenticating the encrypted tunnel to idOS. */
+  signingKey: Uint8Array;
+  /** Public half of `signingKey`, registered with the object on first write. */
+  signingPublicKey: Uint8Array;
+  /** Key for establishing/authenticating the encrypted tunnel to idOS, if needed. */
   relayTunnelKey: Uint8Array;
 }
 
@@ -40,7 +38,7 @@ export interface UkycClientMaterial {
  */
 export interface EncodedUkycClientMaterial {
   storageId: string;
-  storagePublicKey: string;
+  signingPublicKey: string;
 }
 
 /**
@@ -83,15 +81,16 @@ export function deriveClientMaterial(
     UKYC_DERIVED_KEY_SIZES.storageId,
   );
 
-  const contentEncryptionKey = deriveLabeled(
-    UKYC_KDF_INFO.contentEncryptionKey,
-    UKYC_DERIVED_KEY_SIZES.contentEncryptionKey,
+  const dataEncryptionKey = deriveLabeled(
     localUserSecret,
+    UKYC_KDF_INFO.dataEncryptionKey,
+    UKYC_DERIVED_KEY_SIZES.dataEncryptionKey,
   );
 
-  const storageSigningSeed = deriveLabeled(
-    UKYC_KDF_INFO.storageSigningSeed,
-    UKYC_DERIVED_KEY_SIZES.storageSigningSeed,
+  const signingKey = deriveLabeled(
+    localUserSecret,
+    UKYC_KDF_INFO.signingKey,
+    UKYC_DERIVED_KEY_SIZES.signingKey,
   );
 
   const relayTunnelKey = deriveLabeled(
@@ -100,21 +99,20 @@ export function deriveClientMaterial(
     UKYC_DERIVED_KEY_SIZES.relayTunnelKey,
   );
 
-  const storagePublicKey = ed25519.getPublicKey(storageSigningSeed);
+  const signingPublicKey = ed25519.getPublicKey(signingKey);
 
   return {
     storageId,
-    contentEncryptionKey,
-    storageSigningSeed,
-    storageSigningKey: storageSigningSeed, // validate this
-    storagePublicKey,
+    dataEncryptionKey,
+    signingKey,
+    signingPublicKey,
     relayTunnelKey,
   };
 }
 
 /**
  * Encodes the non-secret client material into the base64url wire shapes used by
- * the UKYC storage API (`storage_id` and `storage_public_key`).
+ * the UKYC storage API (`storage_id` and `signing_public_key`).
  *
  * @param material - The derived client material.
  * @returns The base64url-encoded, non-secret fields.
@@ -124,19 +122,6 @@ export function encodeClientMaterial(
 ): EncodedUkycClientMaterial {
   return {
     storageId: toBase64Url(material.storageId),
-    storagePublicKey: toBase64Url(material.storagePublicKey),
+    signingPublicKey: toBase64Url(material.signingPublicKey),
   };
-}
-
-/**
- * Encodes bytes as unpadded base64url (RFC 4648 §5).
- *
- * @param bytes - The bytes to encode.
- * @returns The base64url string without `=` padding.
- */
-function toBase64Url(bytes: Uint8Array): string {
-  return bytesToBase64(bytes)
-    .replace(/\+/gu, '-')
-    .replace(/\//gu, '_')
-    .replace(/[=]+$/u, '');
 }
