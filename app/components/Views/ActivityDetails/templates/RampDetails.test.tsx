@@ -160,4 +160,44 @@ describe('RampDetails', () => {
       params: { url: 'https://etherscan.io/tx/0xhash', title: 'etherscan.io' },
     });
   });
+
+  it('renders native RampsOrder details via RampRampsOrderDetails', () => {
+    const { mapRampsOrder } = jest.requireActual(
+      '../../../../util/activity-adapters',
+    );
+    const { RampsOrderStatus } = jest.requireActual(
+      '@metamask/ramps-controller',
+    );
+    const order = {
+      isOnlyLink: false,
+      success: true,
+      cryptoAmount: '5.01',
+      fiatAmount: 6.27,
+      providerOrderId: 'po-1',
+      providerOrderLink: 'https://example.com',
+      createdAt: Date.UTC(2025, 11, 10, 10, 34),
+      totalFeesFiat: 1.26,
+      txHash: '0x232123456789abcdef123456789abcdef12321',
+      walletAddress: '0x232123456789abcdef123456789abcdef12321',
+      status: RampsOrderStatus.Completed,
+      network: { name: 'Ethereum', chainId: 'eip155:1' },
+      canBeUpdated: false,
+      idHasExpired: false,
+      excludeFromPurchases: false,
+      timeDescriptionPending: '',
+      orderType: 'BUY',
+      id: '/providers/transak/orders/po-1',
+      cryptoCurrency: { symbol: 'mUSD', decimals: 6 },
+      fiatCurrency: { symbol: 'USD', decimals: 2 },
+      provider: { name: 'Transak' },
+    };
+    const item = mapRampsOrder({ order }) as RampActivityListItem;
+
+    const { getByText } = render(<RampDetails item={item} />);
+
+    expect(getByText('+5.01 mUSD')).toBeOnTheScreen();
+    expect(getByText('/providers/transak/orders/po-1')).toBeOnTheScreen();
+    expect(getByText('$1.26')).toBeOnTheScreen();
+    expect(getByText('$6.27')).toBeOnTheScreen();
+  });
 });

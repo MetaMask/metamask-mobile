@@ -10,7 +10,7 @@ import type { FiatOrder } from '../../../reducers/fiatOrders/types';
 export function isRampFiatOrder(
   data: FiatOrder | RampsOrder,
 ): data is FiatOrder {
-  return typeof (data as FiatOrder).provider === 'string' && 'state' in data;
+  return typeof (data as FiatOrder).provider === 'string';
 }
 
 export function isRampRampsOrder(

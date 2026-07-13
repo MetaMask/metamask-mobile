@@ -1,4 +1,5 @@
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { renderFiat } from '../../../../util/number/bigint';
 import {
@@ -7,6 +8,7 @@ import {
   mapRampOrderType,
   toRampOrderToken,
 } from '../../../../util/activity-adapters/adapters/ramp-order-helpers';
+import { mapRampsOrderStatus } from '../../../../util/activity-adapters/adapters/ramps-order-helpers';
 import I18n, { strings } from '../../../../../locales/i18n';
 
 type RenderFiatCurrencyCode = Parameters<typeof renderFiat>[1];
@@ -74,6 +76,10 @@ export function valueOrUnavailable(value: string | undefined) {
 
 export function mapRampActivityStatus(order: FiatOrder) {
   return mapRampOrderStatus(order.state);
+}
+
+export function mapRampsOrderActivityStatus(order: RampsOrder) {
+  return mapRampsOrderStatus(order.status);
 }
 
 export function formatRampActivityDate(timestamp: number) {
