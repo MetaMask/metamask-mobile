@@ -27,6 +27,10 @@ import { resetCardState } from '../../../redux/slices/card';
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  validatedVersionGatedFeatureFlag: (flag?: { enabled?: boolean }) =>
+    flag?.enabled ?? false,
+}));
 jest.mock('../../../redux/slices/card', () => ({
   resetCardState: jest.fn(() => ({ type: 'card/resetCardState' })),
 }));
@@ -305,6 +309,64 @@ describe('CardController', () => {
   });
 });
 
+describe('CardController — setSelectedCountry', () => {
+  function build(flags: Record<string, unknown>) {
+    const messenger = buildMockMessenger();
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: flags };
+      }
+      if (action === 'AccountsController:getState') {
+        return { internalAccounts: { accounts: {}, selectedAccount: '' } };
+      }
+      return undefined;
+    });
+    return new CardController({
+      messenger,
+      providers: {
+        baanx: buildMockProvider({ id: 'baanx' }),
+        immersve: buildMockProvider({ id: 'immersve' }),
+      },
+      state: { activeProviderId: 'baanx' },
+    });
+  }
+
+  it('routes an enabled Immersve country to the immersve provider', () => {
+    const controller = build({
+      immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
+      cardFeature: { immersve: { countries: ['GB'] } },
+    });
+
+    controller.setSelectedCountry('GB');
+
+    expect(controller.state.selectedCountry).toBe('GB');
+    expect(controller.state.activeProviderId).toBe('immersve');
+  });
+
+  it('keeps the default provider when the kill-switch is off', () => {
+    const controller = build({
+      immersveOnboardingEnabled: { enabled: false, minimumVersion: '0.0.1' },
+      cardFeature: { immersve: { countries: ['GB'] } },
+    });
+
+    controller.setSelectedCountry('GB');
+
+    expect(controller.state.selectedCountry).toBe('GB');
+    expect(controller.state.activeProviderId).toBe('baanx');
+  });
+
+  it('keeps the default provider for a non-Immersve country', () => {
+    const controller = build({
+      immersveOnboardingEnabled: { enabled: true, minimumVersion: '0.0.1' },
+      cardFeature: { immersve: { countries: ['GB'] } },
+    });
+
+    controller.setSelectedCountry('FR');
+
+    expect(controller.state.activeProviderId).toBe('baanx');
+  });
+});
+
 describe('CardController — auth methods', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -318,7 +380,7 @@ describe('CardController — auth methods', () => {
 
       await controller.initiateAuth('US');
 
-      expect(provider.initiateAuth).toHaveBeenCalledWith('US');
+      expect(provider.initiateAuth).toHaveBeenCalledWith('US', undefined);
       expect(controller.getCurrentAuthStep()).toStrictEqual(
         mockSession.currentStep,
       );
