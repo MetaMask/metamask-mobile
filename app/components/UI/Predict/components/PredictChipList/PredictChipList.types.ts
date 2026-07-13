@@ -3,7 +3,7 @@ import type { ImageSource } from 'expo-image';
 export interface PredictChipItem {
   key: string;
   label: string;
-  imageSource?: ImageSource;
+  imageSource?: ImageSource | number;
 }
 
 export interface PredictChipListProps {
