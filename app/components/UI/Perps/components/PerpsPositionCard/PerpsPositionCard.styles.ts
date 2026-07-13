@@ -49,12 +49,6 @@ const styleSheet = (params: StyleSheetParams) => {
       borderRadius: 4,
       backgroundColor: colors.background.alternative,
     },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 16,
-    },
     positionGrid: {
       gap: 12,
       marginBottom: 12,
@@ -90,12 +84,6 @@ const styleSheet = (params: StyleSheetParams) => {
     },
     toggleThumbEnabled: {
       alignSelf: 'flex-end',
-    },
-    detailsSection: {
-      marginTop: 20,
-    },
-    detailsTitle: {
-      marginBottom: 16,
     },
     detailsGrid: {
       gap: 12,

@@ -2,14 +2,6 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    container: {
-      gap: 16,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
     statisticsGrid: {
       gap: 12,
     },
@@ -19,6 +11,9 @@ const styleSheet = () =>
     },
     statisticsItem: {
       flex: 1,
+    },
+    orderBookButton: {
+      marginTop: 12,
     },
     fundingRateContainer: {
       flexDirection: 'row',

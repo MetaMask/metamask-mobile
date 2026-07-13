@@ -35,8 +35,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../../../hooks/useStyles', () => ({
   useStyles: jest.fn(() => ({
     styles: {
-      container: { gap: 16 },
-      header: { flexDirection: 'row', alignItems: 'center', gap: 8 },
       statisticsGrid: { gap: 12 },
       statisticsRow: {
         flexDirection: 'row',
@@ -44,6 +42,9 @@ jest.mock('../../../../hooks/useStyles', () => ({
       },
       statisticsItem: {
         flex: 1,
+      },
+      orderBookButton: {
+        marginTop: 12,
       },
       fundingRateContainer: {
         flexDirection: 'row',

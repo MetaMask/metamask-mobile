@@ -1,10 +1,14 @@
 import React, { useMemo } from 'react';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
   IconName,
   KeyValueColumn,
+  SectionHeader,
   Tag,
   TagSeverity,
   Text as DSText,
@@ -126,73 +130,88 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     [liveOraclePrice],
   );
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text variant={CLTextVariant.HeadingMD} color={CLTextColor.Default}>
+  const statsTitle = useMemo(
+    () => (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
+        <DSText variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
           {strings('perps.market.stats')}
-        </Text>
-        {dexName && (
+        </DSText>
+        {dexName ? (
           <Tag severity={TagSeverity.Neutral}>{dexName.toUpperCase()}</Tag>
-        )}
-      </View>
+        ) : null}
+      </Box>
+    ),
+    [dexName],
+  );
 
-      <View style={styles.statisticsGrid}>
-        <View style={styles.statisticsRow}>
-          <KeyValueColumn
-            style={styles.statisticsItem}
-            keyLabel={strings('perps.market.24h_volume')}
-            value={marketStats.volume24h}
-          />
-          <KeyValueColumn
-            style={styles.statisticsItem}
-            keyLabel={strings('perps.market.open_interest')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: () => onTooltipPress('open_interest'),
-              testID:
-                PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
-            }}
-            value={marketStats.openInterest}
-          />
+  return (
+    <Box paddingBottom={3}>
+      <SectionHeader title={statsTitle} />
+
+      <Box paddingHorizontal={4}>
+        <View style={styles.statisticsGrid}>
+          <View style={styles.statisticsRow}>
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.24h_volume')}
+              value={marketStats.volume24h}
+            />
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.open_interest')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('open_interest'),
+                testID:
+                  PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
+              }}
+              value={marketStats.openInterest}
+            />
+          </View>
+
+          <View style={styles.statisticsRow}>
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.funding_rate')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('funding_rate'),
+                testID:
+                  PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
+              }}
+              value={fundingValueContent}
+            />
+            <KeyValueColumn
+              style={styles.statisticsItem}
+              keyLabel={strings('perps.market.oracle_price')}
+              keyEndButtonIconProps={{
+                iconName: IconName.Info,
+                onPress: () => onTooltipPress('oracle_price'),
+                testID: 'perps-market-details-oracle-price-info-icon',
+              }}
+              value={oraclePriceContent}
+            />
+          </View>
         </View>
 
-        <View style={styles.statisticsRow}>
-          <KeyValueColumn
-            style={styles.statisticsItem}
-            keyLabel={strings('perps.market.funding_rate')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: () => onTooltipPress('funding_rate'),
-              testID: PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
-            }}
-            value={fundingValueContent}
-          />
-          <KeyValueColumn
-            style={styles.statisticsItem}
-            keyLabel={strings('perps.market.oracle_price')}
-            keyEndButtonIconProps={{
-              iconName: IconName.Info,
-              onPress: () => onTooltipPress('oracle_price'),
-              testID: 'perps-market-details-oracle-price-info-icon',
-            }}
-            value={oraclePriceContent}
-          />
-        </View>
-      </View>
-
-      {onOrderBookPress && (
-        <Button
-          variant={ButtonVariant.Secondary}
-          isFullWidth
-          size={ButtonSize.Lg}
-          onPress={onOrderBookPress}
-          testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
-        >
-          {strings('perps.market.order_book')}
-        </Button>
-      )}
-    </View>
+        {onOrderBookPress ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            size={ButtonSize.Lg}
+            onPress={onOrderBookPress}
+            style={styles.orderBookButton}
+            testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
+          >
+            {strings('perps.market.order_book')}
+          </Button>
+        ) : null}
+      </Box>
+    </Box>
   );
 };
 

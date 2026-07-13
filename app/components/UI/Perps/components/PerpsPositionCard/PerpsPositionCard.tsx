@@ -3,15 +3,23 @@ import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  ButtonIcon,
+  ButtonIconSize,
   IconName as DSIconName,
   KeyValueColumn,
+  SectionDivider,
+  SectionHeader,
+  Text as MDSText,
+  TextColor as MDSTextColor,
+  TextVariant as MDSTextVariant,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
@@ -471,123 +479,143 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     );
   }
 
+  const sectionTitle = onSharePress ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="w-full"
+    >
+      <MDSText
+        variant={MDSTextVariant.HeadingMd}
+        color={MDSTextColor.TextDefault}
+      >
+        {strings('perps.position.card.position_title')}
+      </MDSText>
+      <ButtonIcon
+        iconName={DSIconName.Share}
+        size={ButtonIconSize.Sm}
+        onPress={onSharePress}
+        testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
+      />
+    </Box>
+  ) : (
+    strings('perps.position.card.position_title')
+  );
+
   return (
-    <View style={styles.container} testID={PerpsPositionCardSelectorsIDs.CARD}>
-      {/* Header Section */}
-      <View style={styles.header} testID={PerpsPositionCardSelectorsIDs.HEADER}>
-        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-          {strings('perps.position.card.position_title')}
-        </Text>
-        {onSharePress && (
-          <ButtonIcon
-            size={ButtonIconSizes.Sm}
-            iconName={IconName.Share}
-            onPress={onSharePress}
-            testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
-          />
-        )}
-      </View>
-
-      {/* Position metrics */}
-      <View style={styles.positionGrid}>
-        <View style={styles.positionRow}>
-          <KeyValueColumn
-            style={styles.positionItem}
-            testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
-            keyLabel={strings('perps.position.card.pnl_label')}
-            value={pnlValueContent}
-          />
-          <KeyValueColumn
-            style={styles.positionItem}
-            testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
-            keyLabel={strings('perps.position.card.return_label')}
-            value={returnValueContent}
-          />
-        </View>
-
-        <View style={styles.positionRow}>
-          <KeyValueColumn
-            style={styles.positionItem}
-            testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
-            keyLabel={strings('perps.position.card.size_label')}
-            value={sizeValueContent}
-            valueEndButtonIconProps={{
-              iconName: DSIconName.SwapHorizontal,
-              onPress: handleSizeToggle,
-              testID: PerpsPositionCardSelectorsIDs.FLIP_ICON,
-            }}
-          />
-          <KeyValueColumn
-            style={styles.positionItem}
-            testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
-            keyLabel={strings('perps.position.card.margin_label')}
-            value={marginValueContent}
-            valueEndButtonIconProps={
-              onMarginPress
-                ? {
-                    iconName: DSIconName.Edit,
-                    onPress: onMarginPress,
-                    testID: PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON,
-                  }
-                : undefined
-            }
-          />
-        </View>
-      </View>
-
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        onPress={handleAutoCloseButtonPress}
-        isDisabled={!onAutoClosePress}
-        testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
-      >
-        {strings('perps.auto_close.title')}
-      </Button>
-
-      {/* Details Section - Always expanded */}
+    <Box paddingBottom={3}>
       <View
-        style={styles.detailsSection}
-        testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}
+        style={styles.container}
+        testID={PerpsPositionCardSelectorsIDs.CARD}
       >
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.detailsTitle}
-        >
-          {strings('perps.position.card.details_title')}
-        </Text>
+        <SectionHeader
+          title={sectionTitle}
+          titleWrapperProps={
+            onSharePress ? { twClassName: 'w-full' } : undefined
+          }
+          testID={PerpsPositionCardSelectorsIDs.HEADER}
+        />
 
-        <View style={styles.detailsGrid}>
-          <View style={styles.detailsRow}>
-            <KeyValueColumn
-              style={styles.detailsItem}
-              keyLabel={strings('perps.position.card.direction_label')}
-              value={directionValueContent}
-            />
-            <KeyValueColumn
-              style={styles.detailsItem}
-              keyLabel={strings('perps.position.card.entry_label')}
-              value={entryValueContent}
-            />
+        <Box paddingHorizontal={4}>
+          <View style={styles.positionGrid}>
+            <View style={styles.positionRow}>
+              <KeyValueColumn
+                style={styles.positionItem}
+                testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
+                keyLabel={strings('perps.position.card.pnl_label')}
+                value={pnlValueContent}
+              />
+              <KeyValueColumn
+                style={styles.positionItem}
+                testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
+                keyLabel={strings('perps.position.card.return_label')}
+                value={returnValueContent}
+              />
+            </View>
+
+            <View style={styles.positionRow}>
+              <KeyValueColumn
+                style={styles.positionItem}
+                testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
+                keyLabel={strings('perps.position.card.size_label')}
+                value={sizeValueContent}
+                valueEndButtonIconProps={{
+                  iconName: DSIconName.SwapHorizontal,
+                  onPress: handleSizeToggle,
+                  testID: PerpsPositionCardSelectorsIDs.FLIP_ICON,
+                }}
+              />
+              <KeyValueColumn
+                style={styles.positionItem}
+                testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
+                keyLabel={strings('perps.position.card.margin_label')}
+                value={marginValueContent}
+                valueEndButtonIconProps={
+                  onMarginPress
+                    ? {
+                        iconName: DSIconName.Edit,
+                        onPress: onMarginPress,
+                        testID: PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON,
+                      }
+                    : undefined
+                }
+              />
+            </View>
           </View>
 
-          <View style={styles.detailsRow}>
-            <KeyValueColumn
-              style={styles.detailsItem}
-              keyLabel={strings('perps.position.card.liquidation_price_label')}
-              value={liquidationValueContent}
-            />
-            <KeyValueColumn
-              style={styles.detailsItem}
-              keyLabel={strings('perps.position.card.funding_payments_label')}
-              value={fundingPaymentsValueContent}
-            />
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleAutoCloseButtonPress}
+            isDisabled={!onAutoClosePress}
+            testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
+          >
+            {strings('perps.auto_close.title')}
+          </Button>
+        </Box>
+
+        <SectionDivider />
+        <SectionHeader title={strings('perps.position.card.details_title')} />
+
+        <Box paddingHorizontal={4}>
+          <View testID={PerpsPositionCardSelectorsIDs.DETAILS_SECTION}>
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailsRow}>
+                <KeyValueColumn
+                  style={styles.detailsItem}
+                  keyLabel={strings('perps.position.card.direction_label')}
+                  value={directionValueContent}
+                />
+                <KeyValueColumn
+                  style={styles.detailsItem}
+                  keyLabel={strings('perps.position.card.entry_label')}
+                  value={entryValueContent}
+                />
+              </View>
+
+              <View style={styles.detailsRow}>
+                <KeyValueColumn
+                  style={styles.detailsItem}
+                  keyLabel={strings(
+                    'perps.position.card.liquidation_price_label',
+                  )}
+                  value={liquidationValueContent}
+                />
+                <KeyValueColumn
+                  style={styles.detailsItem}
+                  keyLabel={strings(
+                    'perps.position.card.funding_payments_label',
+                  )}
+                  value={fundingPaymentsValueContent}
+                />
+              </View>
+            </View>
           </View>
-        </View>
+        </Box>
       </View>
-    </View>
+    </Box>
   );
 };
 
