@@ -139,7 +139,12 @@ function buildInitRequestMock(
     useTransactionSimulations: true,
     advancedGasFee: {},
   };
-  const selectedAccountAddress = providedSelectedAccountAddress ?? '0x123';
+  const selectedAccountAddress = Object.prototype.hasOwnProperty.call(
+    initRequestProperties,
+    'selectedAccountAddress',
+  )
+    ? providedSelectedAccountAddress
+    : '0x123';
   const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -458,6 +463,21 @@ describe('Transaction Controller Init', () => {
 
       expect(
         optionFn?.({ ...MOCK_TRANSACTION_META, chainId: '0x2' }),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when there is no transaction or selected account', () => {
+      const optionFn = testConstructorOption(
+        'getSavedGasFees',
+        {},
+        { selectedAccountAddress: undefined },
+      ) as unknown as GetSavedGasFeesOption | undefined;
+
+      expect(
+        optionFn?.({
+          ...MOCK_TRANSACTION_META,
+          txParams: {},
+        } as TransactionMeta),
       ).toBeUndefined();
     });
   });

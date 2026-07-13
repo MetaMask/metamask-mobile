@@ -89,6 +89,25 @@ describe('AdvancedEIP1559Modal', () => {
     expect(mockHandleCloseModals).toHaveBeenCalledTimes(1);
   });
 
+  it('does not save when an EIP-1559 fee is missing', () => {
+    const mockSetActiveModal = jest.fn();
+    const mockHandleCloseModals = jest.fn();
+
+    const { getByTestId, getByText } = render(
+      <AdvancedEIP1559Modal
+        setActiveModal={mockSetActiveModal}
+        handleCloseModals={mockHandleCloseModals}
+      />,
+    );
+
+    fireEvent.changeText(getByTestId('priority-fee-input'), '');
+    fireEvent.press(getByText('Save'));
+
+    expect(mockUpdateTransactionGasFees).not.toHaveBeenCalled();
+    expect(mockPersistGasFeePreference).not.toHaveBeenCalled();
+    expect(mockHandleCloseModals).not.toHaveBeenCalled();
+  });
+
   it('calls updateTransactionGasFees with correct values when all fields are changed', () => {
     const mockSetActiveModal = jest.fn();
     const mockHandleCloseModals = jest.fn();

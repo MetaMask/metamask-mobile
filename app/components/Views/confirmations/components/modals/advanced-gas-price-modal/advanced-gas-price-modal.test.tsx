@@ -44,7 +44,7 @@ describe('AdvancedGasPriceModal', () => {
     expect(getByTestId('gas-input')).toBeOnTheScreen();
   });
 
-  it('calls updateTransactionGasFees when the save button is pressed', () => {
+  it('does not save when the gas price is missing', () => {
     const mockSetActiveModal = jest.fn();
     const mockHandleCloseModals = jest.fn();
 
@@ -58,20 +58,9 @@ describe('AdvancedGasPriceModal', () => {
     const saveButton = getByTestId('save-gas-price-button');
     fireEvent.press(saveButton);
 
-    expect(mockUpdateTransactionGasFees).toHaveBeenCalledTimes(1);
-    expect(mockUpdateTransactionGasFees).toHaveBeenCalledWith(
-      simpleSendTransaction.id,
-      expect.objectContaining({
-        userFeeLevel: 'custom',
-      }),
-    );
-    expect(mockPersistGasFeePreference).toHaveBeenCalledWith(
-      simpleSendTransaction,
-      {
-        userFeeLevel: 'custom',
-      },
-    );
-    expect(mockHandleCloseModals).toHaveBeenCalledTimes(1);
+    expect(mockUpdateTransactionGasFees).not.toHaveBeenCalled();
+    expect(mockPersistGasFeePreference).not.toHaveBeenCalled();
+    expect(mockHandleCloseModals).not.toHaveBeenCalled();
   });
 
   it('calls updateTransactionGasFees with correct values when gas price and gas limit are changed', () => {

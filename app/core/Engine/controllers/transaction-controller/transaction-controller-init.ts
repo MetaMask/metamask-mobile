@@ -131,14 +131,18 @@ function getSavedGasFees(
 ): SavedGasFees | undefined {
   const selectedAccount = initMessenger.call(
     'AccountsController:getSelectedAccount',
-  ).address;
+  )?.address;
   const isTransactionMeta = typeof chainIdOrTransactionMeta !== 'string';
   const transactionMeta = isTransactionMeta
     ? chainIdOrTransactionMeta
     : undefined;
-  const account = (
-    transactionMeta?.txParams.from ?? selectedAccount
-  ).toLowerCase();
+  const account = transactionMeta?.txParams.from ?? selectedAccount;
+
+  if (!account) {
+    return undefined;
+  }
+
+  const normalizedAccount = account.toLowerCase();
   const chainId = isTransactionMeta
     ? chainIdOrTransactionMeta.chainId
     : chainIdOrTransactionMeta;
@@ -148,7 +152,7 @@ function getSavedGasFees(
   ) as PreferencesStateWithSavedGasFees;
 
   const savedGasFeePreference =
-    preferencesState.advancedGasFee?.[chainId]?.[account];
+    preferencesState.advancedGasFee?.[chainId]?.[normalizedAccount];
 
   if (!savedGasFeePreference) {
     return undefined;

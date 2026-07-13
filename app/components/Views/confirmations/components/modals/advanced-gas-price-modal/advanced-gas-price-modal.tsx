@@ -23,6 +23,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import BottomModal from '../../UI/bottom-modal';
 import styleSheet from './advanced-gas-price-modal.styles';
 import { usePersistGasFeePreference } from '../../../hooks/gas/usePersistGasFeePreference';
+import { hasValidCustomGasFeePreferences } from '../../../hooks/gas/gas-fee-preference-utils';
 
 export const AdvancedGasPriceModal = ({
   setActiveModal,
@@ -49,19 +50,37 @@ export const AdvancedGasPriceModal = ({
     gas: false,
     gasPrice: false,
   });
-  const hasError = Boolean(errors.gas || errors.gasPrice);
+  const savedGasFeePreferences = useMemo(
+    () => ({
+      userFeeLevel: UserFeeLevel.CUSTOM,
+      ...pickBy({ gasPrice: gasParams.gasPrice }, Boolean),
+    }),
+    [gasParams.gasPrice],
+  );
+  const hasError = Boolean(
+    errors.gas ||
+      errors.gasPrice ||
+      !hasValidCustomGasFeePreferences(savedGasFeePreferences),
+  );
 
   const handleSaveClick = useCallback(() => {
+    if (!hasValidCustomGasFeePreferences(savedGasFeePreferences)) {
+      return;
+    }
+
     updateTransactionGasFees(transactionMeta.id, {
       userFeeLevel: UserFeeLevel.CUSTOM,
       ...pickBy(gasParams, Boolean),
     });
-    persistGasFeePreference(transactionMeta, {
-      userFeeLevel: UserFeeLevel.CUSTOM,
-      ...pickBy({ gasPrice: gasParams.gasPrice }, Boolean),
-    });
+    persistGasFeePreference(transactionMeta, savedGasFeePreferences);
     handleCloseModals();
-  }, [transactionMeta, gasParams, persistGasFeePreference, handleCloseModals]);
+  }, [
+    transactionMeta,
+    gasParams,
+    persistGasFeePreference,
+    handleCloseModals,
+    savedGasFeePreferences,
+  ]);
 
   const navigateToEstimatesModal = useCallback(() => {
     setActiveModal(GasModalType.ESTIMATES);

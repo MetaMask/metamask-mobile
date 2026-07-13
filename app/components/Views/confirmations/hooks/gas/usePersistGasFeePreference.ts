@@ -1,10 +1,14 @@
 import { useCallback } from 'react';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  UserFeeLevel,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 
 import Engine from '../../../../../core/Engine';
 import type { AdvancedGasFeePreferences } from '../../../../../core/Engine/controllers/preferences-controller-types';
 import { hexWEIToDecGWEI } from '../../../../../util/conversions';
+import { hasValidCustomGasFeePreferences } from './gas-fee-preference-utils';
 
 export function usePersistGasFeePreference() {
   return useCallback(
@@ -16,6 +20,13 @@ export function usePersistGasFeePreference() {
       const chainId = transactionMeta?.chainId;
 
       if (!account || !chainId) {
+        return;
+      }
+
+      if (
+        gasFeePreferences.userFeeLevel === UserFeeLevel.CUSTOM &&
+        !hasValidCustomGasFeePreferences(gasFeePreferences)
+      ) {
         return;
       }
 

@@ -54,4 +54,22 @@ describe('usePersistGasFeePreference', () => {
 
     expect(mockSetAdvancedGasFee).not.toHaveBeenCalled();
   });
+
+  it('does not persist custom preferences without fee values', () => {
+    const transactionMeta = {
+      chainId: '0x1',
+      txParams: {
+        from: '0x123',
+      },
+    } as unknown as TransactionMeta;
+
+    const { result } = renderHook(() => usePersistGasFeePreference());
+
+    result.current(transactionMeta, {
+      userFeeLevel: 'custom',
+      maxBaseFee: '0x1',
+    });
+
+    expect(mockSetAdvancedGasFee).not.toHaveBeenCalled();
+  });
 });
