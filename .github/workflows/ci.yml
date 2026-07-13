@@ -130,13 +130,19 @@ jobs:
     outputs:
       fingerprint: ${{ steps.publish.outputs.fingerprint }}
     steps:
-      # Use the default ref (refs/pull/N/merge on pull_request, github.sha otherwise) so the
-      # fingerprint is computed against the SAME working tree that `build-android-e2e.yml`,
-      # `build-ios-e2e.yml`, and `run-e2e-workflow.yml` check out and build/test against.
-      # Posting on `pull_request.head.sha` while fingerprinting the PR head tree would let
-      # two PRs with identical heads but different merges collide on the cache key — and the
-      # native build then runs against a different (merge) tree than the one we fingerprinted.
-      - uses: actions/checkout@v6
+      # Default: fingerprint the PR merge tree (or push/schedule commit).
+      - name: Checkout repository
+        if: ${{ needs.get_requirements.outputs.native_build_needed != 'false' || github.event_name != 'pull_request' }}
+        uses: actions/checkout@v6
+
+      # Test-only PRs reuse main native builds — fingerprint main HEAD so the lookup
+      # key matches completed ci.yml runs on the main branch.
+      - name: Checkout main for test-only fingerprint
+        if: ${{ needs.get_requirements.outputs.native_build_needed == 'false' && github.event_name == 'pull_request' }}
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 1
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -153,7 +159,7 @@ jobs:
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
-          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
+          post-status: ${{ inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' && needs.get_requirements.outputs.native_build_needed != 'false' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request

@@ -159,9 +159,10 @@ jobs:
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
-          metadata-artifact-name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          metadata-artifact-name: ${{ inputs.reuse-main-builds-only != true && env.E2E_BUILD_METADATA_ARTIFACT || '' }}
           github-token: ${{ github.token }}
           main-branch-only: ${{ inputs.reuse-main-builds-only }}
+          max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
 
       - name: Download reusable iOS build metadata from prior run
         id: download-reusable-metadata
@@ -245,10 +246,9 @@ jobs:
         run: |
           if [[ "${{ inputs.reuse-main-builds-only }}" == "true" ]]; then
             if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
-               && "${{ steps.validate-reusable-metadata.outputs.valid }}" == "true" \
                && "${{ steps.download-reusable-app.outcome }}" == "success" ]]; then
               echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
-              echo "Test-only PR: reusing main branch iOS artifacts without repack."
+              echo "Test-only PR: reusing main branch iOS artifacts from GitHub Actions (no repack)."
             else
               echo "::error::Test-only PR requires reusable iOS builds from main, but none were found."
               exit 1
