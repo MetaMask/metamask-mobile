@@ -9,7 +9,7 @@ import {
   selectMoneyTokenListCtaTokens,
 } from '../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
-import { useMoneyEarnableTokens } from './useMoneyEarnableTokens';
+import { useMoneyDepositTokens } from './useMoneyDepositTokens';
 
 const getTokenKey = (address: string, chainId: string) =>
   `${chainId.toLowerCase()}-${address.toLowerCase()}`;
@@ -25,12 +25,12 @@ export const useMoneyCtaVisibility = () => {
   const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const { tokens: earnableTokens } = useMoneyEarnableTokens();
+  const { tokens: depositTokens } = useMoneyDepositTokens();
 
   const ctaTokenKeys = useMemo(
     () =>
       new Set(
-        earnableTokens.flatMap((token) => {
+        depositTokens.flatMap((token) => {
           if (
             !token.address ||
             !token.chainId ||
@@ -42,7 +42,7 @@ export const useMoneyCtaVisibility = () => {
           return [getTokenKey(token.address, token.chainId)];
         }),
       ),
-    [ctaTokens, earnableTokens],
+    [ctaTokens, depositTokens],
   );
 
   const isMoneyAccountReady = Boolean(

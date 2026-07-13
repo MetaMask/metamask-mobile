@@ -137,6 +137,10 @@ function setupSelectors(options: SelectorOptions = {}) {
 describe('useMoneyAccountDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     setupSelectors();
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
@@ -210,7 +214,11 @@ describe('useMoneyAccountDeposit', () => {
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: undefined,
+      replace: undefined,
     });
+    expect(
+      getNavigateToConfirmation().mock.invocationCallOrder[0],
+    ).toBeLessThan(mockBuildDepositBatch.mock.invocationCallOrder[0]);
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -236,6 +244,7 @@ describe('useMoneyAccountDeposit', () => {
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: true,
+      replace: undefined,
     });
   });
 
@@ -267,6 +276,7 @@ describe('useMoneyAccountDeposit', () => {
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
       autoSelectFiatPayment: undefined,
+      replace: undefined,
     });
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(intentAtCallTime).toBe('addMusd');
@@ -328,11 +338,25 @@ describe('useMoneyAccountDeposit', () => {
     expect(caught).toBe(txError);
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
-      '[Money Account] Deposit transaction failed',
+      '[Money Account] Deposit setup failed',
     );
     expect(showDevErrorAlert).toHaveBeenCalledWith(
-      '[Money Account] Deposit transaction failed',
+      '[Money Account] Deposit setup failed',
       txError,
+    );
+  });
+
+  it('forwards replaceConfirmation to confirmation navigation', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ replaceConfirmation: true });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        replace: true,
+      }),
     );
   });
 
@@ -357,6 +381,10 @@ describe('useMoneyAccountDeposit', () => {
 describe('useMoneyAccountWithdrawal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     setupSelectors();
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
@@ -450,6 +478,9 @@ describe('useMoneyAccountWithdrawal', () => {
       loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
+    expect(
+      getNavigateToConfirmation().mock.invocationCallOrder[0],
+    ).toBeLessThan(mockBuildWithdrawBatch.mock.invocationCallOrder[0]);
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({

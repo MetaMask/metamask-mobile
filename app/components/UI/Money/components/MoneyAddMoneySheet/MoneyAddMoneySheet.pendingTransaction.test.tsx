@@ -205,6 +205,10 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     jest.clearAllMocks();
     // Reset the module-level binding so a prior test's setter can't leak in.
     unmountSheet = () => undefined;
+    global.requestAnimationFrame = jest.fn((callback) => {
+      callback(0);
+      return 0;
+    });
     mockEngineState.TransactionController = { transactions: [] };
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '0',

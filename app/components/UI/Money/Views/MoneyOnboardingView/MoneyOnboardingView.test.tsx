@@ -14,11 +14,25 @@ import {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 
 const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 let mockIsUsUnauthenticatedNonCardholder = false;
+let mockRouteParams:
+  | {
+      postOnboardingRedirect?: {
+        type: MoneyPostOnboardingRedirectType;
+        preferredPaymentToken?: {
+          address: `0x${string}`;
+          chainId: `0x${string}`;
+        };
+      };
+    }
+  | undefined;
+const mockInitiateDeposit = jest.fn();
 
 const setWindowDimensions = ({
   height,
@@ -49,6 +63,7 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -61,6 +76,10 @@ jest.mock('react-redux', () => ({
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: () => ({ apyPercent: 4 }),
+}));
+
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -136,6 +155,11 @@ describe('MoneyOnboardingView', () => {
     jest.clearAllMocks();
     mockTriggerCallbacks = {};
     mockIsUsUnauthenticatedNonCardholder = false;
+    mockRouteParams = undefined;
+    mockInitiateDeposit.mockResolvedValue(undefined);
+    jest.mocked(useMoneyAccountDeposit).mockReturnValue({
+      initiateDeposit: mockInitiateDeposit,
+    });
     setWindowDimensions({ height: 844, width: 390 });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackOnboardingEvent: mockTrackOnboardingEvent,
@@ -320,6 +344,55 @@ describe('MoneyOnboardingView', () => {
         screen: Routes.MONEY.ROOT,
         params: { screen: Routes.MONEY.HOME },
       });
+    });
+
+    it('initiates deposit with preferred token after completing onboarding', async () => {
+      const preferredPaymentToken = {
+        address: '0xabc' as const,
+        chainId: '0x1' as const,
+      };
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken,
+        },
+      };
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        mockOnStateChanged('State Machine 1', 'FinalState');
+      });
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken,
+        replaceConfirmation: true,
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        }),
+      );
+    });
+
+    it('logs error when post-onboarding deposit fails', async () => {
+      const error = new Error('deposit failed');
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+        },
+      };
+      mockInitiateDeposit.mockRejectedValue(error);
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        mockOnStateChanged('State Machine 1', 'FinalState');
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
     });
 
     it('dispatches setMoneyOnboardingSeen when FinalState fires', () => {

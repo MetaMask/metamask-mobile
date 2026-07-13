@@ -39,24 +39,41 @@ jest.mock('../../../../selectors/preferencesController', () => ({
   selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
 }));
 
-jest.mock('../../Earn/hooks/useMusdCtaVisibility', () => ({
-  useMusdCtaVisibility: jest.fn(() => ({
-    shouldShowGetMusdCta: false,
-    shouldShowTokenListItemCta: jest.fn(() => false),
-    shouldShowConversionTokenListItemCta: jest.fn(() => false),
-    shouldShowConversionAssetDetailCta: jest.fn(() => false),
+const mockTokenListItemCta = {
+  label: 'Get 4% APY',
+  color: 'success-default',
+  shouldShow: jest.fn(),
+  onPress: jest.fn(),
+};
+
+jest.mock('../../Money/hooks/useMoneyTokenListCta', () => ({
+  useMoneyTokenListCta: jest.fn(() => ({
+    tokenListItemCta: mockTokenListItemCta,
   })),
 }));
 
 // Mock child components
 jest.mock('./TokenListItem/TokenListItem', () => ({
-  TokenListItem: ({ assetKey }: { assetKey: { address: string } }) => {
+  TokenListItem: ({
+    assetKey,
+    tokenListItemCta,
+  }: {
+    assetKey: { address: string };
+    tokenListItemCta?: { label: string };
+  }) => {
     const React = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
     return React.createElement(
       View,
       { testID: `token-item-${assetKey.address}` },
       React.createElement(Text, null, `Token: ${assetKey.address}`),
+      tokenListItemCta
+        ? React.createElement(
+            Text,
+            { testID: `token-cta-${assetKey.address}` },
+            tokenListItemCta.label,
+          )
+        : null,
     );
   },
   TokenListItemBip44: ({ assetKey }: { assetKey: { address: string } }) => {
@@ -204,6 +221,13 @@ describe('TokenList', () => {
     ).toBeOnTheScreen();
     expect(getByTestId('token-item-0x123')).toBeOnTheScreen();
     expect(getByTestId('token-item-0x456')).toBeOnTheScreen();
+  });
+
+  it('forwards Money CTA to mapped token rows', () => {
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('token-cta-0x123')).toHaveTextContent('Get 4% APY');
+    expect(getByTestId('token-cta-0x456')).toHaveTextContent('Get 4% APY');
   });
 
   it('renders empty container when no tokens', () => {

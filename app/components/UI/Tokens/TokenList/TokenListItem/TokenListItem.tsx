@@ -144,8 +144,6 @@ interface TokenListItemProps {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   tokenListItemCta?: TokenListItemCta;
-  /** @deprecated Kept temporarily for typed test compatibility. */
-  shouldShowTokenListItemCta?: (asset?: TokenI) => boolean;
   /**
    * When true, mUSD rows render only the native balance on the secondary row
    * (no token price / 24h change). Used by the Money Hub.

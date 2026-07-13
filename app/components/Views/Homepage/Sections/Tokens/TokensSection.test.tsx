@@ -122,10 +122,15 @@ jest.mock('../../hooks/useHomepageTrendingTransactionActiveAbTests', () => ({
     mockUseHomepageTrendingTransactionActiveAbTests(),
 }));
 
-const mockShouldShowTokenListItemCta = jest.fn().mockReturnValue(false);
-jest.mock('../../../../UI/Earn/hooks/useMusdCtaVisibility', () => ({
-  useMusdCtaVisibility: () => ({
-    shouldShowTokenListItemCta: mockShouldShowTokenListItemCta,
+const mockTokenListItemCta = {
+  label: 'Get 4% APY',
+  color: 'success-default',
+  shouldShow: jest.fn(),
+  onPress: jest.fn(),
+};
+jest.mock('../../../../UI/Money/hooks/useMoneyTokenListCta', () => ({
+  useMoneyTokenListCta: () => ({
+    tokenListItemCta: mockTokenListItemCta,
   }),
 }));
 
@@ -205,9 +210,11 @@ jest.mock(
 const MockTokenListItem = ({
   assetKey,
   showRemoveMenu,
+  tokenListItemCta,
 }: {
   assetKey: { address: string; chainId?: string };
   showRemoveMenu?: (token: unknown) => void;
+  tokenListItemCta?: { label: string };
 }) => {
   const ReactActual = jest.requireActual('react');
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
@@ -230,6 +237,13 @@ const MockTokenListItem = ({
         }),
     },
     ReactActual.createElement(Text, null, `Token ${assetKey.address}`),
+    tokenListItemCta
+      ? ReactActual.createElement(
+          Text,
+          { testID: `token-cta-${assetKey.address}` },
+          tokenListItemCta.label,
+        )
+      : null,
   );
 };
 
@@ -239,6 +253,7 @@ jest.mock(
     TokenListItem: (props: {
       assetKey: { address: string; chainId?: string };
       showRemoveMenu?: (token: unknown) => void;
+      tokenListItemCta?: { label: string };
     }) => MockTokenListItem(props),
   }),
 );
@@ -570,6 +585,21 @@ describe('TokensSection', () => {
 
     expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
     expect(screen.getByTestId('token-item-0xtoken2')).toBeOnTheScreen();
+  });
+
+  it('forwards Money CTA to account token rows', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.getByTestId('token-cta-0xtoken1')).toHaveTextContent(
+      'Get 4% APY',
+    );
   });
 
   it('limits displayed tokens to MAX_TOKENS_DISPLAYED (5)', () => {
