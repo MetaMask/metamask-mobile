@@ -21,7 +21,10 @@ import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
 } from '../../../selectors/smartTransactionsController';
-import { selectMetaMaskPayFlags } from '../../../selectors/featureFlagController/confirmations';
+import {
+  selectMetaMaskPayFlags,
+  selectPayQuoteConfig,
+} from '../../../selectors/featureFlagController/confirmations';
 import { store } from '../../../store';
 import type { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
@@ -35,7 +38,10 @@ import { accountSupports7702 } from '../account-supports-7702';
 import { isSendBundleSupported } from '../sentinel-api';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 import { QUOTE_REQUIRED_TRANSACTION_TYPES } from '../../../components/Views/confirmations/constants/confirmations';
-import { hasTransactionType } from '../../../components/Views/confirmations/utils/transaction';
+import {
+  getPostQuoteTransactionType,
+  hasTransactionType,
+} from '../../../components/Views/confirmations/utils/transaction';
 
 const TRANSACTION_SUBMISSION_METHOD_METRIC_NAME =
   'transaction_submission_method';
@@ -127,7 +133,7 @@ function publishHook({
       return payResult;
     }
 
-    validateRequiredQuote(transactionMeta, initMessenger);
+    validateRequiredQuote(transactionMeta, initMessenger, state);
 
     const { isExternalSign } = transactionMeta;
     const isRevokeDelegation =
@@ -223,8 +229,20 @@ function publishHook({
 function validateRequiredQuote(
   transactionMeta: TransactionMeta,
   messenger: TransactionControllerInitMessenger,
+  state: RootState,
 ) {
-  if (!hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES)) {
+  const isQuoteRequiredType = hasTransactionType(
+    transactionMeta,
+    QUOTE_REQUIRED_TRANSACTION_TYPES,
+  );
+
+  const postQuoteType = getPostQuoteTransactionType(transactionMeta);
+
+  const isPostQuoteWithdraw =
+    Boolean(postQuoteType) &&
+    selectPayQuoteConfig(state, postQuoteType).enabled === true;
+
+  if (!isQuoteRequiredType && !isPostQuoteWithdraw) {
     return;
   }
 
@@ -232,11 +250,29 @@ function validateRequiredQuote(
     'TransactionPayController:getState',
   );
 
-  const quotes = transactionData?.[transactionMeta.id]?.quotes ?? [];
+  const data = transactionData?.[transactionMeta.id];
+  const quotes = data?.quotes ?? [];
 
-  if (!quotes.length) {
-    throw new Error('MetaMask Pay: Cannot submit without quote');
+  // No-op quotes also count: the controller validated the route as direct.
+  if (quotes.length) {
+    return;
   }
+
+  // Older controller versions store no quotes at all for direct routes.
+  // Allow those only when the pay config and destination token are set and
+  // no conversion is pending, so a withdraw that lost its quotes or was
+  // never initialised cannot submit without the conversion.
+  const isValidatedDirectRoute =
+    !isQuoteRequiredType &&
+    data?.isPostQuote === true &&
+    Boolean(data.paymentToken) &&
+    !data.sourceAmounts?.length;
+
+  if (isValidatedDirectRoute) {
+    return;
+  }
+
+  throw new Error('MetaMask Pay: Cannot submit without quote');
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {

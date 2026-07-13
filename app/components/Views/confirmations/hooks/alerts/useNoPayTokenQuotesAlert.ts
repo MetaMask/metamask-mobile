@@ -16,6 +16,7 @@ import {
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { QUOTE_REQUIRED_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
+import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
@@ -27,6 +28,7 @@ export function useNoPayTokenQuotesAlert() {
   const isPostQuote = useTransactionPayIsPostQuote();
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const transactionMeta = useTransactionMetadataRequest();
+  const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
   const fiatAmount = Number(fiatPayment?.amountFiat);
   const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
@@ -87,11 +89,23 @@ export function useNoPayTokenQuotesAlert() {
     !quotes?.length &&
     hasPositiveRequiredAmount;
 
+  // Withdraws with token selection enabled must have the pay config
+  // (isPostQuote) and a destination token set on the controller before
+  // confirming. Blocks the timing races where initialisation never
+  // completed, so no quotes were fetched and the transaction previously
+  // submitted without the conversion.
+  const shouldShowWithdrawNotInitialisedAlert =
+    canSelectWithdrawToken &&
+    !isQuotesLoading &&
+    hasPositiveRequiredAmount &&
+    (!payToken || !isPostQuote);
+
   const showAlert =
     shouldShowNonFiatNoQuotesAlert ||
     shouldShowFiatNoQuotesAlert ||
     shouldShowPostQuoteNoQuotesAlert ||
-    shouldShowQuoteRequiredNoQuotesAlert;
+    shouldShowQuoteRequiredNoQuotesAlert ||
+    shouldShowWithdrawNotInitialisedAlert;
 
   return useMemo(() => {
     if (!showAlert) {
