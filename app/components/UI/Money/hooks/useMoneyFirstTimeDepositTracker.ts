@@ -7,9 +7,7 @@ import {
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { store } from '../../../../store';
-import { selectMoneyFirstTimeDepositAnimationEnabledFlag } from '../selectors/featureFlags';
-import { isMoneyDepositTx } from '../utils/moneyTransactionGuards';
-import { hasPriorMoneyDeposit } from '../utils/firstTimeDeposit';
+import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 
 export const useMoneyFirstTimeDepositTracker = () => {
   const navigation = useNavigation();
@@ -18,13 +16,7 @@ export const useMoneyFirstTimeDepositTracker = () => {
     const handleTransactionConfirmed = (tx: TransactionMeta) => {
       if (tx.status !== TransactionStatus.confirmed) return;
 
-      const state = store.getState();
-
-      if (
-        !isMoneyDepositTx(tx) ||
-        !selectMoneyFirstTimeDepositAnimationEnabledFlag(state) ||
-        hasPriorMoneyDeposit(state, tx.id)
-      ) {
+      if (!shouldShowMoneyFirstTimeDepositAnimation(store.getState(), tx)) {
         return;
       }
 

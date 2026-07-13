@@ -151,6 +151,7 @@ const toastStyles = StyleSheet.create({
 
 const useMoneyToasts = (): {
   showToast: (config: MoneyToastOptions) => void;
+  closeToast: () => void;
   MoneyToastOptions: MoneyToastOptionsConfig;
 } => {
   const { toastRef } = useContext(ToastContext);
@@ -427,7 +428,7 @@ const useMoneyToasts = (): {
     moneyBaseToastOptions.success,
   ]);
 
-  return { showToast, MoneyToastOptions };
+  return { showToast, closeToast, MoneyToastOptions };
 };
 
 export default useMoneyToasts;

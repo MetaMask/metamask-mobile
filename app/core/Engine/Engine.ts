@@ -190,6 +190,7 @@ import { authenticatedUserStorageServiceInit } from './controllers/authenticated
 import { socialControllerInit } from './controllers/social-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
+import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
 import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
@@ -404,6 +405,7 @@ export class Engine {
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
         CardController: cardControllerInit,
         QrSyncController: qrSyncControllerInit,
+        QrSyncProvisioningService: qrSyncProvisioningServiceInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
         ChompApiService: chompApiServiceInit,
@@ -467,6 +469,8 @@ export class Engine {
     const clientController = messengerClientsByName.ClientController;
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
+    const qrSyncProvisioningService =
+      messengerClientsByName.QrSyncProvisioningService;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -659,6 +663,7 @@ export class Engine {
       AuthenticatedUserStorageService: authenticatedUserStorageService,
       CardController: cardController,
       QrSyncController: messengerClientsByName.QrSyncController,
+      QrSyncProvisioningService: qrSyncProvisioningService,
       ClientController: clientController,
       ComplianceService: complianceService,
       ComplianceController: complianceController,

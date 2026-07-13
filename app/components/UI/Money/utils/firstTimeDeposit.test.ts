@@ -3,16 +3,29 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { hasPriorMoneyDeposit } from './firstTimeDeposit';
+import {
+  hasPriorMoneyDeposit,
+  shouldShowMoneyFirstTimeDepositAnimation,
+} from './firstTimeDeposit';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
+import { selectMoneyFirstTimeDepositAnimationEnabledFlag } from '../selectors/featureFlags';
 
 jest.mock('../../../../selectors/transactionController', () => ({
   selectNonReplacedTransactions: jest.fn(),
 }));
 
+jest.mock('../selectors/featureFlags', () => ({
+  selectMoneyFirstTimeDepositAnimationEnabledFlag: jest.fn(),
+}));
+
 const mockedSelectNonReplacedTransactions =
   selectNonReplacedTransactions as unknown as jest.MockedFunction<
     (state: unknown) => TransactionMeta[]
+  >;
+
+const mockedFlagSelector =
+  selectMoneyFirstTimeDepositAnimationEnabledFlag as unknown as jest.MockedFunction<
+    (state: unknown) => boolean
   >;
 
 const baseTx = {
@@ -91,6 +104,63 @@ describe('hasPriorMoneyDeposit', () => {
     ]);
 
     const result = hasPriorMoneyDeposit(mockState, 'current-tx');
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('shouldShowMoneyFirstTimeDepositAnimation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedFlagSelector.mockReturnValue(true);
+    mockedSelectNonReplacedTransactions.mockReturnValue([]);
+  });
+
+  it('returns true for a first money deposit with the feature enabled', () => {
+    const tx = makeTx('current-tx', TransactionType.moneyAccountDeposit);
+    mockedSelectNonReplacedTransactions.mockReturnValue([tx]);
+
+    const result = shouldShowMoneyFirstTimeDepositAnimation(mockState, tx);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for a first nested batch money deposit', () => {
+    const tx = makeTx('current-tx', TransactionType.batch, [
+      { type: TransactionType.moneyAccountDeposit },
+    ]);
+    mockedSelectNonReplacedTransactions.mockReturnValue([tx]);
+
+    const result = shouldShowMoneyFirstTimeDepositAnimation(mockState, tx);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when the transaction is not a money deposit', () => {
+    const tx = makeTx('current-tx', TransactionType.contractInteraction);
+
+    const result = shouldShowMoneyFirstTimeDepositAnimation(mockState, tx);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the feature flag is disabled', () => {
+    mockedFlagSelector.mockReturnValue(false);
+    const tx = makeTx('current-tx', TransactionType.moneyAccountDeposit);
+
+    const result = shouldShowMoneyFirstTimeDepositAnimation(mockState, tx);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when a prior money deposit exists', () => {
+    const tx = makeTx('current-tx', TransactionType.moneyAccountDeposit);
+    mockedSelectNonReplacedTransactions.mockReturnValue([
+      tx,
+      makeTx('prior-tx', TransactionType.moneyAccountDeposit),
+    ]);
+
+    const result = shouldShowMoneyFirstTimeDepositAnimation(mockState, tx);
 
     expect(result).toBe(false);
   });
