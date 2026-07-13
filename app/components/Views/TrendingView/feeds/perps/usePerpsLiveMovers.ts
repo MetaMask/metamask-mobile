@@ -17,6 +17,16 @@ export interface UsePerpsLiveMoversOptions {
   /** Throttle delay for the underlying price subscription. @default 3000 */
   throttleMs?: number;
   /**
+   * Minimum time between recomputes of the rank/filter/sort/fingerprint work
+   * (a full pass over every market). Ticks arriving inside the interval
+   * still merge into the ref for free; only the recompute itself is batched
+   * to at most once per interval, using the most recently accumulated
+   * percents when it runs. `0` recomputes on every tick (still gated by
+   * `throttleMs` above).
+   * @default 0
+   */
+  recomputeIntervalMs?: number;
+  /**
    * When false, the live subscription is torn down and the previously
    * displayed items are frozen in place instead of updating.
    * @default true
@@ -41,12 +51,17 @@ const EMPTY_ITEMS: PerpsFeedItem[] = [];
  *
  * Items whose displayed value didn't change keep their previous object
  * reference, so memoized pill components skip re-rendering too.
+ *
+ * `recomputeIntervalMs` batches the recompute itself (not just the state
+ * commit) so callers with a large market set can bound how often the full
+ * pass runs, independent of the subscription's own `throttleMs`.
  */
 export const usePerpsLiveMovers = ({
   items,
   direction,
   maxCount,
   throttleMs = 3000,
+  recomputeIntervalMs = 0,
   enabled = true,
 }: UsePerpsLiveMoversOptions): PerpsFeedItem[] => {
   const stream = usePerpsStream();
@@ -127,15 +142,54 @@ export const usePerpsLiveMovers = ({
     recomputeRef.current = recompute;
   }, [recompute]);
 
+  // Wall-clock instant of the last recompute pass, used to schedule the next
+  // one no sooner than recomputeIntervalMs after it.
+  const lastRecomputeAtRef = useRef<number>(0);
+  const pendingRecomputeTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const clearPendingRecompute = useCallback(() => {
+    if (pendingRecomputeTimerRef.current !== undefined) {
+      clearTimeout(pendingRecomputeTimerRef.current);
+      pendingRecomputeTimerRef.current = undefined;
+    }
+  }, []);
+
+  // Trailing-throttle (not debounce) the recompute pass: a strict debounce
+  // would never fire under a continuous stream of ticks. At most one
+  // recompute runs per recomputeIntervalMs, always using the freshest
+  // accumulated ref data by the time it fires, so batched ticks are never
+  // lost — just coalesced into fewer full passes.
+  const scheduleRecompute = useCallback(() => {
+    if (recomputeIntervalMs <= 0) {
+      lastRecomputeAtRef.current = Date.now();
+      recomputeRef.current();
+      return;
+    }
+
+    if (pendingRecomputeTimerRef.current !== undefined) return;
+
+    const elapsed = Date.now() - lastRecomputeAtRef.current;
+    const delay = Math.max(recomputeIntervalMs - elapsed, 0);
+
+    pendingRecomputeTimerRef.current = setTimeout(() => {
+      pendingRecomputeTimerRef.current = undefined;
+      lastRecomputeAtRef.current = Date.now();
+      recomputeRef.current();
+    }, delay);
+  }, [recomputeIntervalMs]);
+
   // Recompute from the base feed whenever it (or the ranking params) change
   // — e.g. initial load, pull-to-refresh, or the gainers/losers toggle.
   // Gated on `enabled` so a hidden/unfocused strip stays frozen rather than
-  // picking up REST refreshes in the background.
+  // picking up REST refreshes in the background. Runs immediately (bypassing
+  // recomputeIntervalMs) since these are user-initiated, not tick-driven.
   useEffect(() => {
     if (!enabled) return;
     itemsRef.current = items;
+    clearPendingRecompute();
+    lastRecomputeAtRef.current = Date.now();
     recompute();
-  }, [enabled, recompute, items]);
+  }, [enabled, recompute, items, clearPendingRecompute]);
 
   useEffect(() => {
     if (!enabled || symbols.length === 0) return;
@@ -151,19 +205,27 @@ export const usePerpsLiveMovers = ({
           if (Number.isNaN(parsed)) continue;
           livePercentsRef.current[symbol] = parsed;
         }
-        recomputeRef.current();
+        scheduleRecompute();
       },
       throttleMs,
     });
 
     return () => {
       unsubscribe();
+      clearPendingRecompute();
     };
     // symbolsKey captures symbols changes via memoization, so symbols is
     // intentionally omitted to prevent re-subscriptions when the array
     // reference changes but its contents don't (mirrors usePerpsLivePrices).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, symbolsKey, throttleMs, enabled]);
+  }, [
+    stream,
+    symbolsKey,
+    throttleMs,
+    enabled,
+    scheduleRecompute,
+    clearPendingRecompute,
+  ]);
 
   return displayed;
 };

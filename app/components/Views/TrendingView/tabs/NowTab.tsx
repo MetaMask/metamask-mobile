@@ -78,6 +78,11 @@ interface PerpsBlockProps {
 // so the movers hook should rank/display exactly as many as will be shown.
 const PERPS_MOVERS_MAX_COUNT = 12;
 
+// Pills only ever show a 24h percent change, so re-ranking the top-N more
+// often than this is wasted work — batch the ranking pass to at most once
+// per interval regardless of how often price ticks arrive.
+const PERPS_MOVERS_RECOMPUTE_INTERVAL_MS = 10_000;
+
 const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   const [activeMoverDirection, setActiveMoverDirection] =
     useState<PerpsPriceChangeDirection>('gainers');
@@ -110,6 +115,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
     items: perps.data,
     direction: activeMoverDirection,
     maxCount: PERPS_MOVERS_MAX_COUNT,
+    recomputeIntervalMs: PERPS_MOVERS_RECOMPUTE_INTERVAL_MS,
     enabled: isMoversSubscriptionEnabled,
   });
   const pillData =

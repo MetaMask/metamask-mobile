@@ -266,4 +266,184 @@ describe('usePerpsLiveMovers', () => {
 
     expect(mockSubscribeToSymbols).not.toHaveBeenCalled();
   });
+
+  describe('recomputeIntervalMs', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('batches multiple ticks inside the interval into a single recompute using the freshest percents', async () => {
+      let capturedCallback: (prices: PriceUpdatePayload) => void = jest.fn();
+      mockSubscribeToSymbols.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      const items = [
+        makeFeedItem('HIGH_GAINER', 5),
+        makeFeedItem('LOW_GAINER', 1),
+      ];
+
+      let renderCount = 0;
+      const { result } = renderHook(() => {
+        renderCount++;
+        return usePerpsLiveMovers({
+          items,
+          direction: 'gainers',
+          maxCount: 12,
+          recomputeIntervalMs: 10000,
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.map((item) => item.market.symbol)).toEqual([
+          'HIGH_GAINER',
+          'LOW_GAINER',
+        ]);
+      });
+
+      jest.useFakeTimers();
+      const renderCountBeforeTicks = renderCount;
+
+      // First tick schedules a recompute ~10s out; the values it carries
+      // should NOT be what ends up displayed, since a second tick arrives
+      // before the timer fires.
+      act(() => {
+        capturedCallback({
+          HIGH_GAINER: { percentChange24h: '2' },
+          LOW_GAINER: { percentChange24h: '9' },
+        });
+      });
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'HIGH_GAINER',
+        'LOW_GAINER',
+      ]);
+
+      // Second tick lands inside the same interval — it only updates the
+      // ref, it must not schedule a second timer/commit.
+      act(() => {
+        capturedCallback({
+          HIGH_GAINER: { percentChange24h: '6' },
+          LOW_GAINER: { percentChange24h: '3' },
+        });
+      });
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'HIGH_GAINER',
+        'LOW_GAINER',
+      ]);
+      expect(renderCount).toBe(renderCountBeforeTicks);
+
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
+
+      // Exactly one additional render for two batched ticks, reflecting the
+      // most recently accumulated percents (from the second tick).
+      expect(renderCount).toBe(renderCountBeforeTicks + 1);
+      expect(
+        result.current.map((item) => item.market.change24hPercent),
+      ).toEqual(['+6.00%', '+3.00%']);
+    });
+
+    it('cancels a pending recompute when disabled', async () => {
+      let capturedCallback: (prices: PriceUpdatePayload) => void = jest.fn();
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToSymbols.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return mockUnsubscribe;
+      });
+
+      const items = [
+        makeFeedItem('HIGH_GAINER', 5),
+        makeFeedItem('LOW_GAINER', 1),
+      ];
+
+      const { result, rerender } = renderHook(
+        ({ enabled }: { enabled: boolean }) =>
+          usePerpsLiveMovers({
+            items,
+            direction: 'gainers',
+            maxCount: 12,
+            recomputeIntervalMs: 10000,
+            enabled,
+          }),
+        { initialProps: { enabled: true } },
+      );
+
+      await waitFor(() => {
+        expect(result.current.map((item) => item.market.symbol)).toEqual([
+          'HIGH_GAINER',
+          'LOW_GAINER',
+        ]);
+      });
+
+      jest.useFakeTimers();
+
+      // Schedule a pending recompute, then disable before it fires.
+      act(() => {
+        capturedCallback({
+          HIGH_GAINER: { percentChange24h: '2' },
+          LOW_GAINER: { percentChange24h: '9' },
+        });
+      });
+
+      const displayedBeforeDisable = result.current;
+
+      act(() => {
+        rerender({ enabled: false });
+      });
+
+      expect(mockUnsubscribe).toHaveBeenCalled();
+
+      // Advancing time must not resurrect the cancelled recompute — the
+      // strip stays exactly as it was frozen.
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
+      expect(result.current).toBe(displayedBeforeDisable);
+    });
+
+    it('recomputes immediately on a direction change even with a recompute pending', async () => {
+      let capturedCallback: (prices: PriceUpdatePayload) => void = jest.fn();
+      mockSubscribeToSymbols.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      const items = [makeFeedItem('GAINER', 5), makeFeedItem('LOSER', -3)];
+
+      const { result, rerender } = renderHook(
+        ({ direction }: { direction: 'gainers' | 'losers' }) =>
+          usePerpsLiveMovers({
+            items,
+            direction,
+            maxCount: 12,
+            recomputeIntervalMs: 10000,
+          }),
+        { initialProps: { direction: 'gainers' as const } },
+      );
+
+      await waitFor(() => {
+        expect(result.current.map((item) => item.market.symbol)).toEqual([
+          'GAINER',
+        ]);
+      });
+
+      jest.useFakeTimers();
+
+      // Schedule a pending recompute that won't fire for 10s.
+      act(() => {
+        capturedCallback({ GAINER: { percentChange24h: '5' } });
+      });
+
+      // The direction toggle (user-initiated) must not wait for that timer.
+      act(() => {
+        rerender({ direction: 'losers' });
+      });
+
+      expect(result.current.map((item) => item.market.symbol)).toEqual([
+        'LOSER',
+      ]);
+    });
+  });
 });
