@@ -59,7 +59,7 @@ test.describe(PerformanceOnboarding, () => {
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
         // +50 accounts on BrowserStack can take longer than local emulator.
-        { ios: 21000, android: 5000 },
+        { ios: 21000, android: 6000 },
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;

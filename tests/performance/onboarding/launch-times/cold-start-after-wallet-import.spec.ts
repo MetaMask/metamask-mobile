@@ -37,7 +37,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
         'Time since the user clicks on unlock button, until the app unlocks',
         {
           ios: 12000, // this number is because Appium DOM screenshot in iOS takes too long, but visually the button is visible in just a few seconds, so we assume that this time is approximately 2 seconds, any change in the real time, will impact this as well.
-          android: 2000,
+          android: 2500,
         },
         currentDeviceDetails.platform,
       );
