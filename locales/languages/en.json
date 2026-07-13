@@ -7388,6 +7388,9 @@
       "transfer": "Send",
       "card": "Card"
     },
+    "token_list_cta": {
+      "get_apy": "Get {{apy}}% APY"
+    },
     "earnings": {
       "title": "Estimated earnings",
       "estimated_monthly": "Monthly",

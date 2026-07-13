@@ -24,7 +24,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
-import { useMusdCtaVisibility } from '../../Earn/hooks/useMusdCtaVisibility';
+import { useMoneyTokenListCta } from '../../Money/hooks/useMoneyTokenListCta';
 
 export interface FlashListAssetKey {
   address: string;
@@ -83,8 +83,7 @@ const TokenListComponent = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  // Declaring this here and passing it down to avoid O(n) API calls to on-ramp
-  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
+  const { tokenListItemCta } = useMoneyTokenListCta();
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
@@ -169,7 +168,7 @@ const TokenListComponent = ({
         privacyMode={privacyMode}
         showPercentageChange={showPercentageChange}
         isFullView={isFullView}
-        shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+        tokenListItemCta={tokenListItemCta}
         hideSecondaryPriceRow={hideSecondaryPriceRow}
       />
     ),
@@ -179,7 +178,7 @@ const TokenListComponent = ({
       privacyMode,
       showPercentageChange,
       isFullView,
-      shouldShowTokenListItemCta,
+      tokenListItemCta,
       hideSecondaryPriceRow,
     ],
   );
@@ -200,7 +199,7 @@ const TokenListComponent = ({
           privacyMode={privacyMode}
           showPercentageChange={showPercentageChange}
           isFullView={isFullView}
-          shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+          tokenListItemCta={tokenListItemCta}
           hideSecondaryPriceRow={hideSecondaryPriceRow}
         />
       ))}
