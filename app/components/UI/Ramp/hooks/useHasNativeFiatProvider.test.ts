@@ -1,20 +1,21 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useHasNativeFiatProvider } from './useHasNativeFiatProvider';
 import { useRampsProviders } from './useRampsProviders';
-import { useFiatProviderScope } from '../utils/providerScope';
-import type { FiatProviderScope } from '../../../../reducers/fiatOrders/types';
+import { useHeadlessAllProvidersEnabled } from './useHeadlessAllProvidersEnabled';
 
 jest.mock('./useRampsProviders');
-jest.mock('../utils/providerScope');
+jest.mock('./useHeadlessAllProvidersEnabled');
 
 describe('useHasNativeFiatProvider', () => {
   const useRampsProvidersMock = jest.mocked(useRampsProviders);
-  const useFiatProviderScopeMock = jest.mocked(useFiatProviderScope);
+  const useHeadlessAllProvidersEnabledMock = jest.mocked(
+    useHeadlessAllProvidersEnabled,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
-    // Default to native-only; individual widened cases opt in via mockScope.
-    useFiatProviderScopeMock.mockReturnValue('off');
+    // Default to native-only; widened cases opt in via mockFlag(true).
+    useHeadlessAllProvidersEnabledMock.mockReturnValue(false);
   });
 
   function mockSelection(selectedProvider: unknown, providers: unknown[] = []) {
@@ -24,11 +25,11 @@ describe('useHasNativeFiatProvider', () => {
     } as unknown as ReturnType<typeof useRampsProviders>);
   }
 
-  function mockScope(scope: FiatProviderScope) {
-    useFiatProviderScopeMock.mockReturnValue(scope);
+  function mockFlag(allProvidersEnabled: boolean) {
+    useHeadlessAllProvidersEnabledMock.mockReturnValue(allProvidersEnabled);
   }
 
-  describe('scope off (native-only)', () => {
+  describe('flag disabled (native-only)', () => {
     it('returns true when the selected (preferred) provider is native', () => {
       mockSelection({ id: '/providers/transak-native', type: 'native' });
       const { result } = renderHook(() => useHasNativeFiatProvider());
@@ -59,49 +60,35 @@ describe('useHasNativeFiatProvider', () => {
     });
   });
 
-  describe('scope in-app / all (widened)', () => {
-    const widened: FiatProviderScope[] = ['in-app', 'all'];
+  describe('flag enabled (widened to all providers)', () => {
+    beforeEach(() => {
+      mockFlag(true);
+    });
 
-    it.each(widened)(
-      'returns true for a native selected provider (scope %s)',
-      (scope) => {
-        mockScope(scope);
-        mockSelection({ id: '/providers/transak-native', type: 'native' });
-        const { result } = renderHook(() => useHasNativeFiatProvider());
-        expect(result.current).toBe(true);
-      },
-    );
+    it('returns true for a native selected provider', () => {
+      mockSelection({ id: '/providers/transak-native', type: 'native' });
+      const { result } = renderHook(() => useHasNativeFiatProvider());
+      expect(result.current).toBe(true);
+    });
 
-    it.each(widened)(
-      'returns true when an aggregator is selected but the region has providers (scope %s)',
-      (scope) => {
-        mockScope(scope);
-        mockSelection({ id: '/providers/moonpay', type: 'aggregator' }, [
-          { id: '/providers/moonpay', type: 'aggregator' },
-        ]);
-        const { result } = renderHook(() => useHasNativeFiatProvider());
-        expect(result.current).toBe(true);
-      },
-    );
+    it('returns true when an aggregator is selected but the region has providers', () => {
+      mockSelection({ id: '/providers/moonpay', type: 'aggregator' }, [
+        { id: '/providers/moonpay', type: 'aggregator' },
+      ]);
+      const { result } = renderHook(() => useHasNativeFiatProvider());
+      expect(result.current).toBe(true);
+    });
 
-    it.each(widened)(
-      'returns true when no provider is selected but the region has providers (scope %s)',
-      (scope) => {
-        mockScope(scope);
-        mockSelection(null, [{ id: '/providers/moonpay', type: 'aggregator' }]);
-        const { result } = renderHook(() => useHasNativeFiatProvider());
-        expect(result.current).toBe(true);
-      },
-    );
+    it('returns true when no provider is selected but the region has providers', () => {
+      mockSelection(null, [{ id: '/providers/moonpay', type: 'aggregator' }]);
+      const { result } = renderHook(() => useHasNativeFiatProvider());
+      expect(result.current).toBe(true);
+    });
 
-    it.each(widened)(
-      'returns false when the region has no providers (scope %s)',
-      (scope) => {
-        mockScope(scope);
-        mockSelection(null, []);
-        const { result } = renderHook(() => useHasNativeFiatProvider());
-        expect(result.current).toBe(false);
-      },
-    );
+    it('returns false when the region has no providers', () => {
+      mockSelection(null, []);
+      const { result } = renderHook(() => useHasNativeFiatProvider());
+      expect(result.current).toBe(false);
+    });
   });
 });

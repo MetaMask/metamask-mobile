@@ -3869,8 +3869,6 @@
         "amount_placeholder": "e.g. 25",
         "get_quotes": "Get quotes",
         "get_quotes_disabled_hint": "Enter a positive amount",
-        "provider_scope_label": "Provider scope (dev / RC only)",
-        "provider_scope_hint": "Widens headless fiat quoting to in-app aggregators. Production is always off.",
         "headless_section_badge": "⚠️ HEADLESS CONSUMER SIMULATION",
         "headless_section_title": "useHeadlessBuy sandbox",
         "headless_section_warning": "Inputs default to hardcoded sim values. Pick a different token, payment method or provider in the accordions above to override — tap Reset here to switch back to the hardcoded value.",

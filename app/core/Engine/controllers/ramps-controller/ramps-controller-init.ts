@@ -5,8 +5,6 @@ import {
   getDefaultRampsControllerState,
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
-import { store } from '../../../../store';
-import { getEffectiveProviderScope } from '../../../../components/UI/Ramp/utils/providerScope';
 import { getRampCallbackBaseUrl } from '../../../../components/UI/Ramp/utils/getRampCallbackBaseUrl';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
@@ -39,11 +37,10 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const controller = new RampsController({
     messenger: controllerMessenger,
     state: rampsControllerState,
-    // Read per quote call so the dev/RC provider-scope toggle takes effect at
-    // runtime. Production is hard-forced to `off` (native-only) inside
-    // `getEffectiveProviderScope`.
-    getProviderScope: () => getEffectiveProviderScope(store.getState()),
-    // Default redirect URL for the widened in-app quote fetch. MM Pay's quote
+    // The all-providers widening is driven by the `moneyHeadlessAllProviders`
+    // remote feature flag, which the controller reads itself through the
+    // `RemoteFeatureFlagController:getState` messenger action per quote call.
+    // Default redirect URL for the widened quote fetch. MM Pay's quote
     // request omits `redirectUrl`, so aggregator quotes would come back without
     // the buy-widget URL the headless Checkout WebView needs; supply the same
     // callback base the UB2 flow uses so the widened path can open the WebView.
