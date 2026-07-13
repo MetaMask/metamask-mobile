@@ -248,7 +248,7 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({
       params: mockRouteParams,
     }),
-    useFocusEffect: jest.fn(),
+    useFocusEffect: (cb: () => void | (() => void)) => cb(),
   };
 });
 
@@ -389,6 +389,7 @@ jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
 const mockGetOrderFills = jest.fn();
 const mockToggleWatchlistMarket = jest.fn();
 const mockGetWatchlistMarkets = jest.fn(() => [] as string[]);
+const mockRecordMarketViewed = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -396,6 +397,8 @@ jest.mock('../../../../../core/Engine', () => ({
       toggleWatchlistMarket: (...args: unknown[]) =>
         mockToggleWatchlistMarket(...args),
       getWatchlistMarkets: () => mockGetWatchlistMarkets(),
+      recordMarketViewed: (...args: unknown[]) =>
+        mockRecordMarketViewed(...args),
     },
   },
 }));
@@ -4752,6 +4755,59 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(queryByTestId('market-insights-entry-card')).toBeNull();
       expect(queryByTestId('market-insights-entry-card-skeleton')).toBeNull();
+    });
+  });
+
+  describe('Recently viewed tracking', () => {
+    it('records the market view when the screen mounts', () => {
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('BTC');
+    });
+
+    it('records the view again when navigating to a different market (e.g. via related markets)', () => {
+      const renderView = () => (
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>
+      );
+      const { rerender } = renderWithProvider(renderView(), {
+        state: initialState,
+      });
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('BTC');
+
+      mockRecordMarketViewed.mockClear();
+      mockRouteParams.market = {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        price: '$3,000.00',
+        change24h: '-$50.00',
+        change24hPercent: '-1.64%',
+        volume: '$1.2B',
+        maxLeverage: '25x',
+      };
+      rerender(renderView());
+
+      expect(mockRecordMarketViewed).toHaveBeenCalledWith('ETH');
+    });
+
+    it('does not record a view when there is no market', () => {
+      mockRouteParams.market = undefined;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockRecordMarketViewed).not.toHaveBeenCalled();
     });
   });
 });
