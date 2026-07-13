@@ -342,6 +342,10 @@ interface MockUsePerpsOpenOrdersResult {
   error: string | null;
 }
 
+const MOCK_NOW_MS = 1_700_000_000_000;
+const MOCK_TWO_MINUTES_AGO_MS = MOCK_NOW_MS - 2 * 60 * 1000;
+const MOCK_FIVE_MINUTES_AGO_MS = MOCK_NOW_MS - 5 * 60 * 1000;
+
 const mockRefreshOrders = jest.fn();
 const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
   () => ({
@@ -355,8 +359,8 @@ const mockUsePerpsOpenOrdersImpl = jest.fn<MockUsePerpsOpenOrdersResult, []>(
         originalSize: '0.1',
         price: '45000',
         status: 'open',
-        timestamp: Date.now(),
-        lastUpdated: Date.now(),
+        timestamp: MOCK_NOW_MS,
+        lastUpdated: MOCK_NOW_MS,
         orderType: 'limit',
         filledSize: '0',
         remainingSize: '0.1',
@@ -823,6 +827,9 @@ const initialState = {
 describe('PerpsMarketDetailsView', () => {
   // Set up default mock return values before each test
   beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW_MS);
+
     mockUsePerpsAccount.mockReturnValue({
       account: {
         spendableBalance: '1000.00',
@@ -918,7 +925,7 @@ describe('PerpsMarketDetailsView', () => {
 
   // Clean up mocks after each test
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -3000,7 +3007,7 @@ describe('PerpsMarketDetailsView', () => {
           liquidationPrice: '45000',
         },
         refreshPosition: jest.fn(),
-        positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+        positionOpenedTimestamp: MOCK_TWO_MINUTES_AGO_MS,
       });
 
       // Mock useStopLossPrompt to return add_margin variant
@@ -3066,7 +3073,7 @@ describe('PerpsMarketDetailsView', () => {
           liquidationPrice: '45000',
         },
         refreshPosition: jest.fn(),
-        positionOpenedTimestamp: Date.now() - 120000, // 2 minutes ago
+        positionOpenedTimestamp: MOCK_TWO_MINUTES_AGO_MS,
       });
 
       // Mock useStopLossPrompt to return stop_loss variant
@@ -3655,7 +3662,7 @@ describe('PerpsMarketDetailsView', () => {
 
     it('uses positionOpenedTimestamp from useHasExistingPosition hook', () => {
       // Arrange - Hook provides the timestamp
-      const timestamp = Date.now() - 5 * 60 * 1000;
+      const timestamp = MOCK_FIVE_MINUTES_AGO_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -3753,7 +3760,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('excludes child orders from default TP order selection', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'parent-order-1',
@@ -3837,7 +3844,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('excludes child orders from default SL order selection', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'parent-order-2',
@@ -3921,7 +3928,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('includes standalone trigger orders when no child orders exist', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'order-1',
@@ -4003,7 +4010,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('handles orders with only takeProfitOrderId', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'parent-order-3',
@@ -4068,7 +4075,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('handles orders with only stopLossOrderId', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       const orders = [
         {
           id: 'parent-order-4',
@@ -4133,7 +4140,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('hides reduce-only orders marked isPositionTpsl=true from Orders section', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -4219,7 +4226,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('hides flagged full-position TP/SL while position is loading', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: false,
         isLoading: true,
@@ -4287,7 +4294,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('shows reduce-only orders marked isPositionTpsl=false in Orders section', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -4373,7 +4380,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('shows synthetic TP/SL rows when parent metadata exists and size matches existing position', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,
@@ -4446,7 +4453,7 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('uses size fallback when isPositionTpsl is undefined', () => {
-      const timestamp = Date.now();
+      const timestamp = MOCK_NOW_MS;
       mockUseHasExistingPosition.mockReturnValue({
         hasPosition: true,
         isLoading: false,

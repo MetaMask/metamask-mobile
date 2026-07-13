@@ -823,6 +823,7 @@ const defaultMockHooks = {
 const createMockStreamManager = () => {
   // Using Map to track subscribers for potential cleanup
   const subscribers = new Map<string, (data: unknown) => void>();
+  let subscriberCounter = 0;
 
   return {
     prices: {
@@ -833,7 +834,7 @@ const createMockStreamManager = () => {
         symbols: string[];
         callback: (data: unknown) => void;
       }) => {
-        const id = Math.random().toString();
+        const id = `mock-price-subscriber-${++subscriberCounter}`;
         subscribers.set(id, callback);
         // Immediately provide mock price data
         const mockPrices: Record<string, unknown> = {};
@@ -875,7 +876,7 @@ const createMockStreamManager = () => {
         symbol: string;
         callback: (data: unknown) => void;
       }) => {
-        const id = Math.random().toString();
+        const id = `mock-tob-subscriber-${++subscriberCounter}`;
         subscribers.set(id, callback);
         // Immediately provide mock top of book data
         const mockTopOfBook = {

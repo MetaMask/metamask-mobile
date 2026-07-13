@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { act } from 'react-test-renderer';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsChartFullscreenModal from './PerpsChartFullscreenModal';
 import {
   lockAsync,
