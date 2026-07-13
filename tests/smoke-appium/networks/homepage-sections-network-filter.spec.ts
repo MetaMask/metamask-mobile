@@ -1,6 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeWalletPlatform } from '../../tags.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import FixtureBuilder, {
   DEFAULT_SOLANA_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder.js';
@@ -257,10 +260,7 @@ appiumTest.describe(
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
-
-            await Assertions.expectElementToBeVisible(WalletView.container, {
-              description: 'Wallet homepage should be visible',
-            });
+            await waitForWalletHomePlaywright();
 
             await WalletView.tapOnNewTokensSection();
 
@@ -346,10 +346,7 @@ appiumTest.describe(
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
-
-            await Assertions.expectElementToBeVisible(WalletView.container, {
-              description: 'Wallet homepage should be visible',
-            });
+            await waitForWalletHomePlaywright();
 
             await WalletView.tapOnNewTokensSection();
             await TokensFullView.waitForVisible();
@@ -364,11 +361,7 @@ appiumTest.describe(
             await NetworkManager.checkTokenIsNotVisible('ETH');
 
             await TokensFullView.tapBackButton();
-
-            await Assertions.expectElementToBeVisible(WalletView.container, {
-              description:
-                'Wallet homepage should be visible after navigating back',
-            });
+            await waitForWalletHomePlaywright();
 
             await NetworkManager.checkTokenIsVisible('SOL');
             await NetworkManager.checkTokenIsVisible('ETH');
