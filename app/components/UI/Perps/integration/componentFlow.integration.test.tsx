@@ -7,7 +7,7 @@
  * boundary stays mocked by the harness.
  */
 
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { type Position } from '@metamask/perps-controller';
 import React from 'react';
 
@@ -49,7 +49,9 @@ describe('Perps component flows — integration', () => {
           ).not.toBe(true);
         });
 
-        fireEvent.press(placeOrderButton);
+        await act(async () => {
+          fireEvent.press(placeOrderButton);
+        });
 
         // Assert
         await waitFor(() => {
@@ -75,9 +77,20 @@ describe('Perps component flows — integration', () => {
             ]),
           }),
         );
-        await waitFor(() => {
-          expect(perps.mocks.showToast.mock.calls.length).toBeGreaterThan(1);
-        });
+        await waitFor(
+          () => {
+            expect(perps.mocks.showToast).toHaveBeenCalledWith(
+              expect.objectContaining({
+                labelOptions: expect.arrayContaining([
+                  expect.objectContaining({
+                    label: expect.stringMatching(/filled/i),
+                  }),
+                ]),
+              }),
+            );
+          },
+          { timeout: 2000 },
+        );
       } finally {
         perps.teardown();
       }
@@ -110,11 +123,13 @@ describe('Perps component flows — integration', () => {
         );
 
         // Act
-        fireEvent.press(
-          await screen.findByTestId(
-            PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
-          ),
-        );
+        await act(async () => {
+          fireEvent.press(
+            await screen.findByTestId(
+              PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
+            ),
+          );
+        });
 
         // Assert
         await waitFor(() => {
