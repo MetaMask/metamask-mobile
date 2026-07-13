@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "8.4.0",
+  "version": "8.3.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
