@@ -89,7 +89,7 @@ describe('useTokenWatchlistQuery', () => {
     });
 
     expect(
-      queryClient.getQueryData(tokenWatchlistQueryKeys.blob),
+      queryClient.getQueryData(tokenWatchlistQueryKeys.hydrated),
     ).toStrictEqual([]);
   });
 
@@ -308,7 +308,7 @@ describe('useTokenWatchlistQuery', () => {
         queryClient.getQueryData(tokenWatchlistQueryKeys.suggested),
       ).toStrictEqual([]);
       expect(
-        queryClient.getQueryData(tokenWatchlistQueryKeys.blob),
+        queryClient.getQueryData(tokenWatchlistQueryKeys.hydrated),
       ).toBeUndefined();
     });
 

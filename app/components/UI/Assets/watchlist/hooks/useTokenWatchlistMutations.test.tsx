@@ -14,7 +14,7 @@ import {
   type WatchlistBlob,
   writeToTokenWatchList,
 } from '../storage';
-import { tokenWatchlistQueryKeys } from './useTokenWatchlist.keys';
+import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 import {
   tokenWatchlistBatcher,
   useTokenWatchlistAddItemMutation,
