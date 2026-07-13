@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Animated,
   Dimensions,
+  Keyboard,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -588,7 +589,7 @@ const ImportFromSecretRecoveryPhrase = ({
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
         showsVerticalScrollIndicator={false}
-        enabled={currentStep === 0}
+        enabled
       >
         <Animated.View
           style={[
@@ -703,7 +704,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   onFocus={() => setIsPasswordFieldFocused(true)}
                   onBlur={() => setIsPasswordFieldFocused(false)}
                   secureTextEntry={showPasswordIndex.includes(0)}
-                  returnKeyType={'next'}
+                  returnKeyType="next"
                   autoCapitalize="none"
                   autoComplete="new-password"
                   keyboardAppearance={themeAppearance || 'light'}
@@ -757,11 +758,12 @@ const ImportFromSecretRecoveryPhrase = ({
                   onChangeText={onPasswordConfirmChange}
                   secureTextEntry={showPasswordIndex.includes(1)}
                   autoComplete="new-password"
-                  returnKeyType={'next'}
+                  returnKeyType="done"
                   autoCapitalize="none"
                   value={confirmPassword}
                   isError={isError}
                   keyboardAppearance={themeAppearance || 'light'}
+                  onSubmitEditing={Keyboard.dismiss}
                   endAccessory={
                     <Icon
                       name={
@@ -830,30 +832,31 @@ const ImportFromSecretRecoveryPhrase = ({
                   }
                 />
               </Box>
-
-              <SafeAreaView
-                edges={['bottom']}
-                style={tw.style(
-                  'w-full gap-y-4 mt-auto',
-                  Platform.OS === 'android' ? 'mb-6' : 'mb-4',
-                )}
-              >
-                <Button
-                  isLoading={loading}
-                  isFullWidth
-                  variant={ButtonVariant.Primary}
-                  onPress={onPressImport}
-                  size={ButtonSize.Lg}
-                  isDisabled={isContinueButtonDisabled}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                >
-                  {strings('import_from_seed.import_create_password_cta')}
-                </Button>
-              </SafeAreaView>
             </Box>
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
+      {currentStep === 1 && (
+        <SafeAreaView
+          edges={['bottom']}
+          style={tw.style(
+            'px-4 w-full gap-y-4',
+            Platform.OS === 'android' ? 'mb-6' : 'mb-4',
+          )}
+        >
+          <Button
+            isLoading={loading}
+            isFullWidth
+            variant={ButtonVariant.Primary}
+            onPress={onPressImport}
+            size={ButtonSize.Lg}
+            isDisabled={isContinueButtonDisabled}
+            testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+          >
+            {strings('import_from_seed.import_create_password_cta')}
+          </Button>
+        </SafeAreaView>
+      )}
       {currentStep === 0 && (
         <SafeAreaView
           edges={['bottom']}

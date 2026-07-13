@@ -1434,6 +1434,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(confirmPasswordInput).toHaveProp('secureTextEntry', false);
     });
 
+    it('shows Done keyboard action on confirm password field', async () => {
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      expect(confirmPasswordInput).toHaveProp('returnKeyType', 'done');
+    });
+
     it('error message is shown when passwords do not match', async () => {
       const { getByText, getByTestId } = await renderCreatePasswordUI();
 

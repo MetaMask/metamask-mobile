@@ -17,6 +17,7 @@ export const QuickBuyEventProperties = {
   INTERACTION_TYPE: 'interaction_type',
   LATENCY_MS: 'latency_ms',
   MARKET_CAP: 'market_cap',
+  ORIGINAL_ENTRY_POINT: 'original_entry_point',
   PAY_WITH_TOKEN: 'pay_with_token',
   PRESET_VALUE: 'preset_value',
   SLIDER_PERCENT: 'slider_percent',
@@ -77,3 +78,14 @@ export type QuickBuySheetSource =
   | 'explore_rwas'
   | 'explore_trending'
   | 'explore_stocks';
+
+/**
+ * How the user reached the follow-trading token (trade) screen before opening
+ * Quick Buy. Mirrors `Follow Trading Token Screen Viewed` entry attribution.
+ */
+export type QuickBuyOriginalEntryPoint =
+  | 'leaderboard'
+  | 'trader_profile'
+  | 'notification'
+  | 'deep_link'
+  | 'home_carousel';
