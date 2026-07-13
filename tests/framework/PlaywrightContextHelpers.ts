@@ -104,17 +104,23 @@ export default class PlaywrightContextHelpers {
     webviews: DetailedContext[],
     dappUrl?: string,
   ): Promise<DetailedContext | undefined> {
+    const targetsLocalhost = Boolean(dappUrl?.includes('localhost'));
+
     if (dappUrl) {
-      const urlMatch = webviews.find(
-        (ctx) => ctx.url?.includes(dappUrl) && !/localhost/i.test(ctx.url),
-      );
+      const urlMatch = webviews.find((ctx) => {
+        if (!ctx.url?.includes(dappUrl)) {
+          return false;
+        }
+        return targetsLocalhost || !/localhost/i.test(ctx.url ?? '');
+      });
       if (urlMatch) return urlMatch;
     }
 
     const filtered = webviews.filter((ctx) => {
       const shouldAvoid =
         /devtools/i.test(ctx.id) ||
-        (ctx.url && /chrome|devtools|localhost/i.test(ctx.url));
+        (ctx.url && /chrome|devtools/i.test(ctx.url)) ||
+        (!targetsLocalhost && ctx.url && /localhost/i.test(ctx.url));
       return !shouldAvoid;
     });
 
