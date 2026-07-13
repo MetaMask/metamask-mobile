@@ -3,20 +3,20 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
   Card,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_CONSTANTS,
@@ -234,8 +234,9 @@ const PerpsMarketRowItem = ({
             gap={2}
           >
             <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Default}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
               numberOfLines={1}
               ellipsizeMode="tail"
               style={styles.name}
@@ -263,8 +264,8 @@ const PerpsMarketRowItem = ({
               {showTickerSuffix && (
                 <>
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
                     numberOfLines={1}
                     testID={getPerpsMarketRowItemSelector.tickerSuffix(
                       market.symbol,
@@ -273,8 +274,8 @@ const PerpsMarketRowItem = ({
                     {getPerpsDisplaySymbol(displayMarket.symbol)}
                   </Text>
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
                     numberOfLines={1}
                   >
                     {'\u00B7'}
@@ -282,8 +283,8 @@ const PerpsMarketRowItem = ({
                 </>
               )}
               <Text
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
                 numberOfLines={1}
               >
                 {displayText}
@@ -309,12 +310,20 @@ const PerpsMarketRowItem = ({
         gap={2}
       >
         <Box alignItems={BoxAlignItems.End} gap={1}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
             {displayMarket.price}
           </Text>
           <Text
-            variant={TextVariant.BodySM}
-            color={isPositiveChange ? TextColor.Success : TextColor.Error}
+            variant={TextVariant.BodySm}
+            color={
+              isPositiveChange
+                ? TextColor.SuccessDefault
+                : TextColor.ErrorDefault
+            }
           >
             {displayMarket.change24hPercent}
           </Text>
