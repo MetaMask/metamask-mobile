@@ -464,11 +464,13 @@ describe('Toast', () => {
 
       await showToast(toastRef, options);
 
-      fireEvent(screen.getByText('Wrapped title'), 'onTextLayout', {
-        nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
-      });
-      fireEvent(screen.getByText('Wrapped description'), 'onTextLayout', {
-        nativeEvent: { lines: [{ text: 'description line' }] },
+      await act(async () => {
+        fireEvent(screen.getByText('Wrapped title'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
+        });
+        fireEvent(screen.getByText('Wrapped description'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'description line' }] },
+        });
       });
 
       const labelsContainer = screen.getByTestId(ToastSelectorsIDs.CONTAINER);
@@ -505,14 +507,16 @@ describe('Toast', () => {
 
       expect(screen.getByText('Wrapped title')).toBeOnTheScreen();
 
-      fireEvent(screen.getByText('Wrapped title'), 'onTextLayout', {
-        nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
-      });
-      fireEvent(screen.getByText('Wrapped description'), 'onTextLayout', {
-        nativeEvent: { lines: [{ text: 'description line' }] },
-      });
-      fireEvent(screen.getByText('Extra description'), 'onTextLayout', {
-        nativeEvent: { lines: [{ text: 'extra description line' }] },
+      await act(async () => {
+        fireEvent(screen.getByText('Wrapped title'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'line 1' }, { text: 'line 2' }] },
+        });
+        fireEvent(screen.getByText('Wrapped description'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'description line' }] },
+        });
+        fireEvent(screen.getByText('Extra description'), 'onTextLayout', {
+          nativeEvent: { lines: [{ text: 'extra description line' }] },
+        });
       });
 
       await act(async () => {
