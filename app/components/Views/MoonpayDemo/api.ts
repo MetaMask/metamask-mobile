@@ -26,10 +26,12 @@ import Engine from '../../../core/Engine';
 // ---------------------------------------------------------------------------
 
 // Android emulator uses 10.0.2.2 to reach the host machine's localhost.
-export const UKYC_API_BASE_URL = Platform.select({
-  android: 'http://10.0.2.2:3000',
-  default: 'http://localhost:3000',
-}) as string;
+export const UKYC_API_BASE_URL =
+  process.env.UKYC_API_BASE_URL ||
+  (Platform.select({
+    android: 'http://10.0.2.2:3000',
+    default: 'http://localhost:3000',
+  }) as string);
 
 // Bearer for the local Universal KYC service in dev.
 export const UKYC_BEARER_TOKEN = '123';

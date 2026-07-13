@@ -36,11 +36,16 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+  IconColor,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
+import ClipboardManager from '../../../core/ClipboardManager';
 import type { IdentityStatus, IdentitySubmission } from './api';
 import MoonpayFrame from './MoonpayFrame';
 import useMoonpayReset from './useMoonpayReset';
@@ -160,6 +165,7 @@ const styles = StyleSheet.create({
   },
   debugHeaderActions: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   debugList: {
@@ -601,46 +607,68 @@ const DebugPanel: React.FC<{
   phase,
   showCheckFrame,
   onToggleCheckFrameVisibility,
-}) => (
-  <View
-    style={[
-      styles.debugPanel,
-      {
-        backgroundColor: colors.background.alternative,
-        borderColor: colors.border.muted,
-      },
-    ]}
-  >
-    <View style={styles.debugHeader}>
-      <Text variant={TextVariant.HeadingSm}>
-        Check frame debug ({events.length})
-      </Text>
-      <View style={styles.debugHeaderActions}>
-        {phase === 'check' && (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={onToggleCheckFrameVisibility}
-          >
-            {showCheckFrame ? 'Hide frame' : 'Show frame'}
-          </Button>
-        )}
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          onPress={onClear}
-        >
-          Clear
-        </Button>
+}) => {
+  const handleCopy = () => {
+    const serialized = events
+      .map((event) => {
+        let dataString: string;
+        try {
+          dataString = JSON.stringify(event.data, null, 2);
+        } catch {
+          dataString = String(event.data);
+        }
+        return `[${event.timestamp}] ${event.label}\n${dataString}`;
+      })
+      .join('\n\n');
+    ClipboardManager.setString(serialized);
+  };
+
+  return (
+    <View
+      style={[
+        styles.debugPanel,
+        {
+          backgroundColor: colors.background.alternative,
+          borderColor: colors.border.muted,
+        },
+      ]}
+    >
+      <View style={styles.debugHeader}>
+        <Text variant={TextVariant.HeadingSm}>
+          Check frame debug ({events.length})
+        </Text>
+        <View style={styles.debugHeaderActions}>
+          {phase === 'check' && (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              onPress={onToggleCheckFrameVisibility}
+            >
+              {showCheckFrame ? 'Hide frame' : 'Show frame'}
+            </Button>
+          )}
+          <ButtonIcon
+            iconName={IconName.Copy}
+            size={ButtonIconSize.Md}
+            onPress={handleCopy}
+            iconProps={{ color: IconColor.IconDefault }}
+          />
+          <ButtonIcon
+            iconName={IconName.Trash}
+            size={ButtonIconSize.Md}
+            onPress={onClear}
+            iconProps={{ color: IconColor.IconDefault }}
+          />
+        </View>
+      </View>
+      <View style={styles.debugList}>
+        {events.map((event) => (
+          <DebugEntry key={event.id} event={event} colors={colors} />
+        ))}
       </View>
     </View>
-    <View style={styles.debugList}>
-      {events.map((event) => (
-        <DebugEntry key={event.id} event={event} colors={colors} />
-      ))}
-    </View>
-  </View>
-);
+  );
+};
 
 const ErrorPanel: React.FC<{
   message: string;
