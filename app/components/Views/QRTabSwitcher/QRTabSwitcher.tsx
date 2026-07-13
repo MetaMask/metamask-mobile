@@ -12,11 +12,12 @@ import { useTheme } from '../../../util/theme';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import createStyles from './styles';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { HeaderBase } from '@metamask/design-system-react-native';
+import {
+  HeaderBase,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import type { QrSyncPhase } from '../../../core/QrSync/types';
@@ -224,18 +225,16 @@ const QRTabSwitcher = () => {
         />
       ) : null}
 
-      <View style={styles.overlay}>
-        <HeaderBase
-          style={styles.header}
-          endAccessory={
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Md}
-              onPress={goBack}
-            />
-          }
-        ></HeaderBase>
-      </View>
+      <HeaderBase
+        style={[styles.overlay, styles.header]}
+        endAccessory={
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            onPress={goBack}
+          />
+        }
+      />
 
       {/* QR scanner interface - camera view only */}
     </View>

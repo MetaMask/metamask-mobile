@@ -175,9 +175,9 @@ describe('QRTabSwitcher', () => {
       otp: { otp: '123456', deadline: Date.now() + 30_000 },
     });
 
-    const ButtonIcon = jest.requireActual(
-      '../../../component-library/components/Buttons/ButtonIcon',
-    ).default;
+    const { ButtonIcon } = jest.requireActual(
+      '@metamask/design-system-react-native',
+    );
     fireEvent.press(UNSAFE_getByType(ButtonIcon));
 
     expect(mockResetState).toHaveBeenCalledTimes(1);
