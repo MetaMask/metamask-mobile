@@ -48,6 +48,12 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
 import TraderPositionQuickBuy from './components/QuickBuy';
+import {
+  narrowQuickBuyOriginalEntryPoint,
+  resolveQuickBuyOriginalEntryPointFromPositionSource,
+  type QuickBuyOriginalEntryPoint,
+  type QuickBuySheetSource,
+} from './components/QuickBuy/analytics';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
@@ -113,6 +119,7 @@ const TraderPositionView = () => {
     position: positionParam,
     positionId,
     source: sourceParam,
+    originalEntryPoint: originalEntryPointParam,
     isClosed: isClosedParam,
     notificationSubtype,
   } = route.params;
@@ -231,12 +238,12 @@ const TraderPositionView = () => {
     toastRef,
   ]);
 
-  // Narrow the open-ended nav source into the QuickBuySheetSource schema enum.
-  // `deep_link` collapses to `profile_position` (its canonical host).
-  const quickBuySource: 'notification' | 'profile_position' | 'leaderboard' =
-    sourceParam === 'notification' || sourceParam === 'leaderboard'
-      ? sourceParam
-      : 'profile_position';
+  // Quick Buy `source` is always the trade screen; upstream journey attribution
+  // is carried separately on `original_entry_point`.
+  const quickBuySource: QuickBuySheetSource = 'profile_position';
+  const quickBuyOriginalEntryPoint: QuickBuyOriginalEntryPoint | undefined =
+    narrowQuickBuyOriginalEntryPoint(originalEntryPointParam) ??
+    resolveQuickBuyOriginalEntryPointFromPositionSource(sourceParam);
 
   // Narrow into FollowTradingTokenSource. `profile_position` from a row-tap
   // maps to `trader_profile` (the upstream surface in the schema).
@@ -828,6 +835,7 @@ const TraderPositionView = () => {
                   typeof currentPrice === 'number' ? currentPrice : undefined
                 }
                 source={quickBuySource}
+                originalEntryPoint={quickBuyOriginalEntryPoint}
                 isTraderPositionClosed={isClosed}
               />
             </>
