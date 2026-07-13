@@ -49,6 +49,7 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectQuoteStreamComplete,
   selectBridgeBalanceRefreshKey,
+  selectBridgeControllerState,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
@@ -81,10 +82,11 @@ import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
   Pressable,
   ScrollView,
+  View,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -156,6 +158,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   );
 
   const { styles } = useStyles(createStyles);
+  const { bottom: bottomInset } = useSafeAreaInsets();
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
@@ -292,6 +295,35 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
+
+  const { quotesLastFetched } = useSelector(selectBridgeControllerState);
+
+  const isFooterVisible = useMemo(() => {
+    if (isLoading && !activeQuote && !needsNewQuote) {
+      return false;
+    }
+    if (needsNewQuote) {
+      return true;
+    }
+    if (!activeQuote) {
+      return false;
+    }
+    return Boolean(isValidSourceAmount && activeQuote && quotesLastFetched);
+  }, [
+    isLoading,
+    activeQuote,
+    needsNewQuote,
+    isValidSourceAmount,
+    quotesLastFetched,
+  ]);
+
+  const scrollContentContainerStyle = useMemo(
+    () => [
+      styles.scrollViewContent,
+      { paddingBottom: isFooterVisible ? 0 : bottomInset },
+    ],
+    [styles.scrollViewContent, isFooterVisible, bottomInset],
+  );
 
   const hasValidBridgeInputs =
     isValidSourceAmount &&
@@ -479,10 +511,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   );
 
   return (
-    <SafeAreaView
-      style={styles.screenWrapper}
-      edges={['bottom', 'left', 'right']}
-    >
+    <View style={styles.screenWrapper}>
       <HeaderStandard
         title={headerTitle}
         onBack={() => navigation.goBack()}
@@ -498,7 +527,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
             ref={scrollViewRef}
             testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
+            contentContainerStyle={scrollContentContainerStyle}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
             onScrollBeginDrag={
@@ -795,7 +824,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
           </SwapsKeypad>
         </Box>
       </ScreenView>
-    </SafeAreaView>
+    </View>
   );
 };
 
