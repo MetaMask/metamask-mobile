@@ -51,7 +51,9 @@ export interface NavigateToRampOrderTargetArgs {
 }
 
 /**
- * Flag-OFF consumer: navigates to the same destinations OrdersList uses.
+ * Flag-OFF only: navigates to the same destinations OrdersList uses.
+ * Callers must gate on `!isTransactionsRedesignEnabled` (ActivityList does —
+ * redesign ON goes to ActivityDetails / TemplateLoader instead).
  * Always pass goToBuy from useRampNavigation().
  */
 export function navigateToRampOrderTarget({

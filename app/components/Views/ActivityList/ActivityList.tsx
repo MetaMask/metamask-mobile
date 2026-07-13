@@ -820,12 +820,37 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
-        // CREATED deposit never opens a details screen (matches OrdersList).
+        // Ramp rows own their redesign gate: flag ON → ActivityDetails /
+        // TemplateLoader; flag OFF → OrdersList destinations. Kept ahead of the
+        // shared redesign early-return so CREATED deposits always resume buy and
+        // flag-OFF never accidentally hits ActivityDetails.
         if (raw.type === 'rampOrder') {
           if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
             goToBuy();
             return;
           }
+
+          if (isTransactionsRedesignEnabled) {
+            const detailsRoute = getActivityDetailsRoute(item);
+            if (detailsRoute) {
+              navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+              return;
+            }
+            // Mappers always set hash (txHash || id); keep the pre-native
+            // fallback keyed by order id if a row somehow lacks hash.
+            navigation.navigate(Routes.ACTIVITY_DETAILS, {
+              chainId: item.chainId,
+              txIdentifier: item.hash ?? raw.data.id,
+            });
+            return;
+          }
+
+          navigateToRampOrderTarget({
+            data: raw.data,
+            navigation,
+            goToBuy,
+          });
+          return;
         }
 
         // Non-EVM swaps/bridges submitted from this device carry a
@@ -884,15 +909,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
             screen: Routes.PREDICT.ACTIVITY_DETAIL,
             params: { activity: predictActivityToItem(raw.data) },
-          });
-          return;
-        }
-
-        if (raw.type === 'rampOrder') {
-          navigateToRampOrderTarget({
-            data: raw.data,
-            navigation,
-            goToBuy,
           });
           return;
         }
