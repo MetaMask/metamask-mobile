@@ -671,8 +671,7 @@ class AuthenticationService {
         passcodeAvailable,
       });
 
-      // Ex - "Face ID", "Device Passcode", "Password"
-      const authLabel = getAuthLabel({
+      const authLabelKey = getAuthLabel({
         allowLoginWithRememberMe,
         legacyUserChoseBiometrics,
         legacyUserChosePasscode,
@@ -680,9 +679,10 @@ class AuthenticationService {
         passcodeAvailable,
         supportedBiometricTypes,
       });
+      const authLabel = strings(authLabelKey);
 
       const authDescription =
-        authLabel === 'Device Authentication'
+        authLabelKey === 'authentication.labels.device_authentication'
           ? strings('app_settings.enable_device_authentication_desc')
           : undefined;
 
