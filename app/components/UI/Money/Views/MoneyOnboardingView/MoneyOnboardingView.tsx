@@ -438,7 +438,7 @@ const MoneyOnboardingView = () => {
         layoutScaleFactor={PixelRatio.get()}
         onStateChanged={handleStateChanged}
         onError={handleError}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
       />
       <MoneyOnboardingTextOverlay

@@ -8,7 +8,7 @@ import {
 const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
   StyleSheet.create({
     wrapper: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: colors.background.default,
       // Hidden by default
       display: 'none',

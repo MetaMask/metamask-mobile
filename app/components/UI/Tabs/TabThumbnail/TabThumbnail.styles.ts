@@ -47,7 +47,7 @@ const createStyles = (colors: ThemeColors) =>
       flex: 1,
     },
     tabImage: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       resizeMode: 'cover',
     },
     activeTab: {
