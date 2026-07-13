@@ -582,7 +582,7 @@ describe('PerpsOrderBookView', () => {
       expect(mockTrack).toHaveBeenCalled();
     });
 
-    it('switches to USD unit when USD toggle is pressed', () => {
+    it('switches to USD unit when USD toggle is pressed', async () => {
       const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
         state: initialState,
       });
@@ -590,15 +590,23 @@ describe('PerpsOrderBookView', () => {
       const baseToggle = getByTestId(
         PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE,
       );
-      const usdToggle = getByTestId(
-        PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD,
-      );
 
       fireEvent.press(baseToggle);
-      mockTrack.mockClear();
-      fireEvent.press(usdToggle);
 
-      expect(mockTrack).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(
+          getByTestId(PerpsOrderBookViewSelectorsIDs.TABLE).props.unit,
+        ).toBe('base');
+      });
+
+      mockTrack.mockClear();
+      fireEvent.press(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD),
+      );
+
+      await waitFor(() => {
+        expect(mockTrack).toHaveBeenCalled();
+      });
     });
 
     it('starts with USD as default unit', () => {
