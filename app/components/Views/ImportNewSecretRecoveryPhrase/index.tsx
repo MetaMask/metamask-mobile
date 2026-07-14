@@ -220,6 +220,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     } catch (e) {
       switch ((e as Error)?.message) {
         case 'This mnemonic has already been imported.':
+        case 'This Secret Recovery Phrase has already been imported.':
           Alert.alert(
             strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
           );
