@@ -6,6 +6,7 @@ import type { FeedPerpItem, FeedSpotItem } from '../types';
 import {
   getFeedItemTestId,
   getFeedTradeButtonTestId,
+  getFeedTraderTestId,
 } from '../FeedView.testIds';
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -15,6 +16,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 const spotItem: FeedSpotItem = {
   id: 'spot-1',
   type: 'spot',
+  traderId: 'trader-spot-1',
   username: 'dutchiono',
   traderAddress: '0x1111111111111111111111111111111111111111',
   action: 'bought',
@@ -30,11 +32,19 @@ const spotItem: FeedSpotItem = {
   hasValueData: true,
   hasPnlData: true,
   isPnlPositive: true,
+  tokenAvatar: {
+    positionId: 'pos-spot-1',
+    chain: 'ethereum',
+    tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+    tokenImageUrl: null,
+    tokenSymbol: 'PEPE',
+  },
 };
 
 const perpItem: FeedPerpItem = {
   id: 'perp-1',
   type: 'perps',
+  traderId: 'trader-perp-1',
   username: 'aparjey',
   traderAddress: '0x2222222222222222222222222222222222222222',
   action: 'closed',
@@ -50,6 +60,13 @@ const perpItem: FeedPerpItem = {
   hasValueData: true,
   hasPnlData: true,
   isPnlPositive: true,
+  tokenAvatar: {
+    positionId: 'pos-perp-1',
+    chain: 'hyperliquid',
+    tokenAddress: '',
+    tokenImageUrl: null,
+    tokenSymbol: 'ETH',
+  },
 };
 
 describe('FeedItemRow', () => {
@@ -59,7 +76,11 @@ describe('FeedItemRow', () => {
 
   it('renders a spot row with the token symbol, value, and username', () => {
     renderWithProvider(
-      <FeedItemRow item={spotItem} onTradePress={jest.fn()} />,
+      <FeedItemRow
+        item={spotItem}
+        onTradePress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
     );
 
     expect(screen.getByTestId(getFeedItemTestId('spot-1'))).toBeOnTheScreen();
@@ -78,7 +99,13 @@ describe('FeedItemRow', () => {
       isPnlPositive: false,
     };
 
-    renderWithProvider(<FeedItemRow item={item} onTradePress={jest.fn()} />);
+    renderWithProvider(
+      <FeedItemRow
+        item={item}
+        onTradePress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
 
     expect(screen.getByText('PEPE')).toBeOnTheScreen();
     expect(screen.queryByText('$123,000.5')).toBeNull();
@@ -92,7 +119,13 @@ describe('FeedItemRow', () => {
       hasPnlData: false,
     };
 
-    renderWithProvider(<FeedItemRow item={item} onTradePress={jest.fn()} />);
+    renderWithProvider(
+      <FeedItemRow
+        item={item}
+        onTradePress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
 
     expect(screen.getByText('$123,000.5')).toBeOnTheScreen();
     expect(screen.queryByText('+12%')).toBeNull();
@@ -101,7 +134,11 @@ describe('FeedItemRow', () => {
   it('calls onTradePress with the item when Trade is pressed', () => {
     const onTradePress = jest.fn();
     renderWithProvider(
-      <FeedItemRow item={spotItem} onTradePress={onTradePress} />,
+      <FeedItemRow
+        item={spotItem}
+        onTradePress={onTradePress}
+        onTraderPress={jest.fn()}
+      />,
     );
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('spot-1')));
@@ -109,9 +146,28 @@ describe('FeedItemRow', () => {
     expect(onTradePress).toHaveBeenCalledWith(spotItem);
   });
 
+  it('calls onTraderPress with the item when the trader identity is pressed', () => {
+    const onTraderPress = jest.fn();
+    renderWithProvider(
+      <FeedItemRow
+        item={spotItem}
+        onTradePress={jest.fn()}
+        onTraderPress={onTraderPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(getFeedTraderTestId('spot-1')));
+
+    expect(onTraderPress).toHaveBeenCalledWith(spotItem);
+  });
+
   it('renders the perp direction badge for a perps row', () => {
     renderWithProvider(
-      <FeedItemRow item={perpItem} onTradePress={jest.fn()} />,
+      <FeedItemRow
+        item={perpItem}
+        onTradePress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
     );
 
     expect(screen.getByText('ETH')).toBeOnTheScreen();
@@ -128,6 +184,7 @@ describe('FeedItemRow', () => {
       <FeedItemRow
         item={{ ...perpItem, leverage: null }}
         onTradePress={jest.fn()}
+        onTraderPress={jest.fn()}
       />,
     );
 

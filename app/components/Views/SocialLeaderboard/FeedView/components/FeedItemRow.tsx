@@ -1,4 +1,5 @@
 import {
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -12,34 +13,54 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 import PerpBadges from '../../components/PerpBadges';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import type { FeedItem } from '../types';
 import { formatFeedTimestamp } from '../../utils/formatters';
 import {
   getFeedItemTestId,
   getFeedTradeButtonTestId,
+  getFeedTraderTestId,
 } from '../FeedView.testIds';
-import FeedTokenIcon from './FeedTokenIcon';
 
 const AVATAR_SIZE = 24;
+
+const styles = StyleSheet.create({
+  // Keep the tappable trader identity flexible so the Trade button retains its
+  // width and the username still truncates.
+  traderIdentity: {
+    flex: 1,
+    minWidth: 0,
+  },
+});
 
 export interface FeedItemRowProps {
   item: FeedItem;
   onTradePress: (item: FeedItem) => void;
+  onTraderPress: (item: FeedItem) => void;
 }
 
 /**
  * A single trader-activity feed row: trader identity + action + time on top,
  * with an indented detail card (token, perp badges, sub-header, value, P&L)
- * and a Trade CTA.
+ * and a Trade CTA. Tapping the trader identity opens their profile.
  */
-const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
+const FeedItemRow: React.FC<FeedItemRowProps> = ({
+  item,
+  onTradePress,
+  onTraderPress,
+}) => {
   const handleTradePress = useCallback(() => {
     onTradePress(item);
   }, [item, onTradePress]);
+
+  const handleTraderPress = useCallback(() => {
+    onTraderPress(item);
+  }, [item, onTraderPress]);
 
   const actionLabel = strings(`social_leaderboard.feed.action.${item.action}`);
   const timeLabel = formatFeedTimestamp(item.timestamp);
@@ -53,37 +74,44 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
         justifyContent={BoxJustifyContent.Between}
         gap={3}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-          twClassName="flex-1 min-w-0"
+        <TouchableOpacity
+          onPress={handleTraderPress}
+          accessibilityRole="button"
+          testID={getFeedTraderTestId(item.id)}
+          style={styles.traderIdentity}
         >
-          <TraderAvatar
-            imageUrl={item.avatarUri}
-            address={item.traderAddress}
-            size={AVATAR_SIZE}
-            recyclingKey={item.id}
-          />
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            numberOfLines={1}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
             twClassName="flex-1 min-w-0"
           >
+            <TraderAvatar
+              imageUrl={item.avatarUri}
+              address={item.traderAddress}
+              size={AVATAR_SIZE}
+              recyclingKey={item.id}
+            />
             <Text
               variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+              twClassName="flex-1 min-w-0"
             >
-              {item.username}
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {item.username}
+              </Text>
+              <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+                {` ${actionLabel}`}
+              </Text>
+              {` \u00b7 ${timeLabel}`}
             </Text>
-            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-              {` ${actionLabel}`}
-            </Text>
-            {` \u00b7 ${timeLabel}`}
-          </Text>
-        </Box>
+          </Box>
+        </TouchableOpacity>
 
         <Button
           variant={ButtonVariant.Primary}
@@ -101,9 +129,10 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({ item, onTradePress }) => {
         gap={3}
         twClassName="bg-muted rounded-2xl p-3"
       >
-        <FeedTokenIcon
-          symbol={symbol}
-          chainIdHex={item.type === 'spot' ? item.chainIdHex : undefined}
+        <PositionTokenAvatar
+          position={item.tokenAvatar}
+          size={AvatarTokenSize.Md}
+          showChainBadge
         />
 
         <Box twClassName="flex-1 min-w-0">
