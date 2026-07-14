@@ -189,6 +189,12 @@ export class ImmersveProvider implements ICardProvider {
     return this.programConfig.network ?? DEFAULT_NETWORK;
   }
 
+  private get clientApplicationId(): string {
+    return (
+      this.programConfig.clientApplicationId || this.config.clientApplicationId
+    );
+  }
+
   private requireProgramValue(key: 'cardProgramId' | 'fundingType'): string {
     const value = this.programConfig[key];
     if (!value) {
@@ -218,7 +224,7 @@ export class ImmersveProvider implements ICardProvider {
         {
           loginMethod: 'siwe',
           network: this.network,
-          clientApplicationId: this.config.clientApplicationId,
+          clientApplicationId: this.clientApplicationId,
           scopes: ['cardholder-partner'],
           address,
           url: this.config.appUrl,
@@ -297,7 +303,7 @@ export class ImmersveProvider implements ICardProvider {
         '/auth/token',
         {
           refreshToken: tokens.refreshToken,
-          clientApplicationId: this.config.clientApplicationId,
+          clientApplicationId: this.clientApplicationId,
         },
         undefined,
         { origin: this.config.appUrl },

@@ -112,6 +112,24 @@ describe('ImmersveProvider', () => {
       });
       expect(session._metadata.address).toBe('0xabc');
     });
+
+    it('prefers the feature-flag clientApplicationId over the env config', async () => {
+      const { provider, service } = createProvider({
+        immersve: { ...FEATURE_FLAG.immersve, clientApplicationId: 'flag-app' },
+        immersveCountries: ['GB'],
+      });
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'sign in' },
+      });
+
+      await provider.initiateAuth('GB', { address: '0xabc' });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({ clientApplicationId: 'flag-app' }),
+      );
+    });
   });
 
   describe('submitCredentials', () => {
