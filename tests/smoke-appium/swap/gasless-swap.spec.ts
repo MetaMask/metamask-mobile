@@ -44,7 +44,7 @@ function buildLocalhostFixture({ localNodes }: { localNodes?: LocalNode[] }) {
 
 async function mockGaslessMusdQuote(
   mockServer: Parameters<typeof swapTestSpecificMock>[0],
-  quote: unknown,
+  quote: object[],
 ): Promise<void> {
   await swapTestSpecificMock(mockServer);
   // Priority 1000 > 999 so this rule beats the empty-string MUSD mock in swapTestSpecificMock.
