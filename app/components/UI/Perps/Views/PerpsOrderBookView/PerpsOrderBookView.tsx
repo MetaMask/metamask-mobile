@@ -64,6 +64,7 @@ import {
 } from '../../hooks';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { usePerpsLiveOrderBook } from '../../hooks/stream/usePerpsLiveOrderBook';
+import { usePerpsLiveFocusedPrice } from '../../hooks/stream/usePerpsLiveFocusedPrice';
 import { usePerpsLivePrices } from '../../hooks/stream/usePerpsLivePrices';
 import { usePerpsTopOfBook } from '../../hooks/stream/usePerpsTopOfBook';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -84,8 +85,8 @@ import {
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
+  FAST_ORDER_BOOK_LEVELS,
   formatGroupingLabel,
-  MAX_ORDER_BOOK_LEVELS,
   selectDefaultGrouping,
 } from '../../utils/orderBookGrouping';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
@@ -214,26 +215,35 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // This is intentionally independent from order book aggregation/grouping.
   const topOfBook = usePerpsTopOfBook({ symbol: symbol || '' });
 
-  // Subscribe to live price updates for header display (TAT-2441)
-  // This ensures the price in the header updates in real-time
+  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
+  const focusedPrice = usePerpsLiveFocusedPrice({
+    symbol: symbol || '',
+    enabled: Boolean(symbol),
+  });
+
+  // allMids baseline as first-render fallback (~2 s)
   const livePrices = usePerpsLivePrices({
     symbols: symbol ? [symbol] : [],
     throttleMs: 1000,
   });
 
-  // Current price for header - use live price with fallback to static market price
+  // Current price for header — prefer fast focused price, fall back to allMids,
+  // then to static market price
   const currentPrice = useMemo(() => {
-    const priceData = livePrices[symbol || ''];
-    if (priceData?.price) {
-      const parsed = parseFloat(priceData.price);
-      // Validate parsed value - fallback to marketPrice if invalid
-      if (Number.isFinite(parsed) && parsed > 0) {
-        return parsed;
-      }
+    const focusedParsed = focusedPrice?.price
+      ? parseFloat(focusedPrice.price)
+      : NaN;
+    if (Number.isFinite(focusedParsed) && focusedParsed > 0) {
+      return focusedParsed;
     }
-    // Fallback to static market price if live price not available or invalid
+    const baselineParsed = livePrices[symbol || '']?.price
+      ? parseFloat(livePrices[symbol || ''].price)
+      : NaN;
+    if (Number.isFinite(baselineParsed) && baselineParsed > 0) {
+      return baselineParsed;
+    }
     return marketPrice ?? 0;
-  }, [livePrices, symbol, marketPrice]);
+  }, [focusedPrice, livePrices, symbol, marketPrice]);
 
   const spreadMetrics = useMemo(() => {
     const bidStr = topOfBook?.bestBid;
@@ -269,17 +279,22 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   }, [currentGrouping, marketPrice]);
 
   // Subscribe to live order book data with dynamic nSigFigs and mantissa
-  // These parameters match Hyperliquid's API for consistent price aggregation
+  // These parameters match Hyperliquid's API for consistent price aggregation.
+  // `fast: true` opts into Hyperliquid's fast stream (5 levels @ ~0.5s) for a
+  // snappier book on this focused screen (TAT-3333). `levels` is paired with
+  // FAST_ORDER_BOOK_LEVELS (not MAX_ORDER_BOOK_LEVELS) so it agrees with the
+  // 5-level cap the fast stream actually enforces per side.
   const {
     orderBook: rawOrderBook,
     isLoading,
     error,
   } = usePerpsLiveOrderBook({
     symbol: symbol || '',
-    levels: MAX_ORDER_BOOK_LEVELS,
+    levels: FAST_ORDER_BOOK_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,
     throttleMs: 100,
+    fast: true,
   });
 
   // Process order book data
