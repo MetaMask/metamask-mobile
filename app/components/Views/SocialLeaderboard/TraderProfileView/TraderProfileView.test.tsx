@@ -687,6 +687,7 @@ describe('TraderProfileView', () => {
         tokenSymbol: fixtureOpenPositions[0].tokenSymbol,
         position: fixtureOpenPositions[0],
         source: 'profile_position',
+        originalEntryPoint: 'leaderboard',
         isClosed: false,
       },
     );
@@ -959,6 +960,7 @@ describe('TraderProfileView', () => {
           source: 'trader_profile',
           traderAddress: '0xabc',
           traderUsername: 'trader1',
+          traderAvatarUri: fixtureProfile.profile.imageUrl,
         }),
       );
     });

@@ -253,4 +253,30 @@ describe('MoneyActivityItem', () => {
       }),
     ).toBeOnTheScreen();
   });
+
+  it('renders the real primary and fiat amounts when privacyMode is false', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" privacyMode={false} />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('+$0.00');
+    expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveTextContent(
+      '$0.00',
+    );
+  });
+
+  it('masks the primary and fiat amounts when privacyMode is true', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" privacyMode />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('•'.repeat(9));
+    expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveTextContent(
+      '•'.repeat(6),
+    );
+  });
 });

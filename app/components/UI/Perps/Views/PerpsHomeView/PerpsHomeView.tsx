@@ -62,6 +62,7 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
+  selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
@@ -97,6 +98,8 @@ import Reanimated, { SharedValue } from 'react-native-reanimated';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
+import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -164,6 +167,9 @@ const PerpsHomeView = ({
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isProductsEnabled = useSelector(selectPerpsProductsEnabledFlag);
   const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
+  const isRecentlyAddedEnabled = useSelector(
+    selectPerpsRecentlyAddedEnabledFlag,
+  );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   // Mirrors PerpsProducts' own visibility check (enabled + has categories).
   const productCategories = usePerpsCategories();
@@ -299,6 +305,11 @@ const PerpsHomeView = ({
     isLoading,
   } = usePerpsHomeData({});
 
+  // Independently gates the section from the Terminal backend flag that
+  // supplies `listedAt` data, so it can be hidden even when that data flows.
+  const isRecentlyAddedVisible =
+    isRecentlyAddedEnabled && recentlyAddedMarkets.length > 0;
+
   // Mirrors PerpsWatchlistMarkets V1/V2 gating: suggestions only count toward
   // section visibility when the redesigned watchlist flag is on.
   const isWatchlistVisible =
@@ -346,6 +357,34 @@ const PerpsHomeView = ({
   usePerpsMeasurement({
     traceName: TraceName.PerpsMarketListView, // Keep same trace name for consistency
     conditions: [!isAnyLoading],
+  });
+
+  const entryCufVariant = hasPositions
+    ? PERPS_CUF_VARIANT.POSITION
+    : PERPS_CUF_VARIANT.EMPTY;
+  const entryCufEndData = {
+    [PERPS_CUF_TAG.VARIANT]:
+      orders.length > 0 ? PERPS_CUF_VARIANT.ORDER : entryCufVariant,
+  };
+
+  // Entry CUF: enter Perps -> live market list. Starts at mount; launch-context
+  // tag splits cold from warm p75. Captured at mount so the tag is the launch
+  // context, not the post-settle value.
+  const entryCufTags = useMemo(() => buildPerpsCufStartTags(), []);
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsEntryToLiveMarketList,
+    // endConditions (not the simple `conditions` API): this span must measure
+    // mount -> live data. The simple API auto-resets whenever its first
+    // condition is false, which for a readiness flag means the span restarts on
+    // every render during loading and under-reports the true latency. Using
+    // endConditions starts at mount and never resets.
+    // The variant endData reads orders.length, so — unlike the screen-load
+    // metric above, which deliberately ignores orders for speed — this span
+    // must wait for the orders stream too, or a user with open orders is
+    // misrecorded as empty/position.
+    endConditions: [!isAnyLoading, !isLoading.orders],
+    tags: entryCufTags,
+    endData: entryCufEndData,
   });
 
   // Reset section tracking when screen comes into focus
@@ -396,9 +435,6 @@ const PerpsHomeView = ({
     // PerpsHomeSectionList does not render an orphan divider.
     if (isTopMoversVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
-    // Recently Added self-hides when there are no markets listed in the last
-    // 30 days; no loading skeleton, so gate purely on data length.
-    if (recentlyAddedMarkets.length > 0) sections.push('recently_added');
     // Explore category lists render a skeleton while markets load, then self-hide
     // when their own market array is empty.
     if (isLoading.markets || perpsMarkets.length > 0)
@@ -409,6 +445,9 @@ const PerpsHomeView = ({
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS);
     if (isLoading.markets || forexMarkets.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
+    // Recently Added self-hides when there are no markets listed in the last
+    // 30 days, or when the feature flag is off.
+    if (isRecentlyAddedVisible) sections.push('recently_added');
     // Recent activity shows a skeleton while loading, then self-hides when empty.
     if (isLoading.activity || recentActivity.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
@@ -422,7 +461,7 @@ const PerpsHomeView = ({
     isProductsEnabled,
     productCategories,
     isTopMoversVisible,
-    recentlyAddedMarkets,
+    isRecentlyAddedVisible,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,
@@ -503,6 +542,14 @@ const PerpsHomeView = ({
     },
     [perpsNavigation],
   );
+
+  const handleRecentlyAddedHeaderPress = useCallback(() => {
+    perpsNavigation.navigateToMarketList({
+      defaultMarketTypeFilter: 'new',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
+    });
+  }, [perpsNavigation, transactionActiveAbTests]);
 
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
@@ -750,20 +797,6 @@ const PerpsHomeView = ({
         ),
       },
       {
-        key: 'recently-added',
-        // Mirrors PerpsRecentlyAddedSection's own render gate (markets.length
-        // === 0 -> null) so PerpsHomeSectionList does not render an orphan
-        // divider for an empty rail.
-        visible: recentlyAddedMarkets.length > 0,
-        onLayout: handleSectionLayout('recently_added'),
-        content: (
-          <PerpsRecentlyAddedSection
-            markets={recentlyAddedMarkets}
-            onMarketPress={handleRecentlyAddedMarketPress}
-          />
-        ),
-      },
-      {
         key: 'crypto',
         visible: isLoading.markets || perpsMarkets.length > 0,
         onLayout: handleSectionLayout(
@@ -839,6 +872,21 @@ const PerpsHomeView = ({
         ),
       },
       {
+        key: 'recently-added',
+        // Mirrors PerpsRecentlyAddedSection's own render gate (markets.length
+        // === 0 -> null) plus the feature flag, so PerpsHomeSectionList does
+        // not render an orphan divider for an empty/disabled rail.
+        visible: isRecentlyAddedVisible,
+        onLayout: handleSectionLayout('recently_added'),
+        content: (
+          <PerpsRecentlyAddedSection
+            markets={recentlyAddedMarkets}
+            onMarketPress={handleRecentlyAddedMarketPress}
+            onViewAllPress={handleRecentlyAddedHeaderPress}
+          />
+        ),
+      },
+      {
         key: 'recent-activity',
         visible: isLoading.activity || recentActivity.length > 0,
         onLayout: handleSectionLayout(
@@ -874,8 +922,10 @@ const PerpsHomeView = ({
       isProductsEnabled,
       productCategories.length,
       isTopMoversVisible,
+      isRecentlyAddedVisible,
       recentlyAddedMarkets,
       handleRecentlyAddedMarketPress,
+      handleRecentlyAddedHeaderPress,
       perpsMarkets,
       commoditiesMarkets,
       stocksMarkets,

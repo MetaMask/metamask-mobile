@@ -7,7 +7,6 @@ import { toChecksumAddress } from '../../../../util/address';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { EVM_SCOPE } from '../constants/networks';
 import { RootState } from '../../../../reducers';
-import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -49,7 +48,6 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
   );
 
   const tokenBalances = useSelector(selectTokensBalances);
-  const tokenMarketDataByAddressByChainId = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -108,27 +106,23 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
 
       const chainConfig = networkConfigurations?.[chainId];
       const nativeCurrency = chainConfig?.nativeCurrency;
-      const conversionRate = nativeCurrency
-        ? currencyRates?.[nativeCurrency]?.conversionRate
+      const nativeRates = nativeCurrency
+        ? currencyRates?.[nativeCurrency]
         : undefined;
+      const conversionRate = nativeRates?.conversionRate;
+      const usdConversionRate = nativeRates?.usdConversionRate;
 
-      const tokenMarketDataForChain =
-        tokenMarketDataByAddressByChainId?.[chainId] ?? {};
-      const tokenPriceInNativeCurrency =
-        tokenMarketDataForChain[normalizedTokenAddress]?.price;
-
-      if (
-        !conversionRate ||
-        !currentCurrency ||
-        tokenPriceInNativeCurrency === undefined
-      ) {
+      if (!conversionRate || !usdConversionRate || !currentCurrency) {
         continue;
       }
 
-      const tokenFiatRate = new BigNumber(tokenPriceInNativeCurrency).times(
-        conversionRate,
+      // mUSD is USD-pegged 1:1; value it from the peg rather than its market
+      // price, which drifts a few cents off $1 and diverges from
+      // useTokenFiatRate (stablecoin → 1) and useMoneyAccountBalance.
+      const currencyPerUsd = new BigNumber(conversionRate).dividedBy(
+        usdConversionRate,
       );
-      const fiatValue = new BigNumber(tokenBalance).times(tokenFiatRate);
+      const fiatValue = new BigNumber(tokenBalance).times(currencyPerUsd);
 
       fiatBalanceResult[chainId] = fiatValue.toFixed();
       fiatBalanceFormattedResult[chainId] = formatWithThreshold(
@@ -185,7 +179,6 @@ export const useMusdBalance = (): UseMusdBalanceResult => {
     currentCurrency,
     musdBalanceChainIds,
     networkConfigurations,
-    tokenMarketDataByAddressByChainId,
   ]);
 
   return {
