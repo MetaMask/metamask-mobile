@@ -13,7 +13,10 @@ import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
 } from '../../../selectors/smartTransactionsController';
-import { selectMetaMaskPayFlags } from '../../../selectors/featureFlagController/confirmations';
+import {
+  selectMetaMaskPayFlags,
+  selectPayQuoteConfig,
+} from '../../../selectors/featureFlagController/confirmations';
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
 import { store } from '../../../store';
 import {
@@ -134,6 +137,9 @@ describe('getTransactionControllerHooks', () => {
     jest.mocked(accountSupports7702).mockResolvedValue(false);
     jest.mocked(isSendBundleSupported).mockResolvedValue(true);
     jest.mocked(getTransactionById).mockReturnValue(MOCK_TRANSACTION_META);
+    jest
+      .mocked(selectPayQuoteConfig)
+      .mockReturnValue({ enabled: false, tokens: [] } as never);
   });
 
   it('returns the TransactionController hook functions', () => {
@@ -322,6 +328,28 @@ describe('getTransactionControllerHooks', () => {
     ).rejects.toThrow('Could not find transaction with id missing-tx');
   });
 
+  function buildPayStateRequest(
+    payData: Record<string, unknown> | undefined,
+  ): TransactionControllerHookRequest {
+    return buildRequest({
+      initMessenger: {
+        call: jest.fn((action: string) => {
+          if (action === 'PredictController:publish') {
+            return { transactionHash: undefined };
+          }
+
+          if (action === 'TransactionPayController:getState') {
+            return {
+              transactionData: payData ? { '123': payData } : {},
+            };
+          }
+
+          return undefined;
+        }),
+      } as unknown as TransactionControllerHookRequest['initMessenger'],
+    });
+  }
+
   describe('quote-required transaction types', () => {
     it('throws when moneyAccountDeposit has no quotes', async () => {
       const request = buildRequest({
@@ -388,6 +416,213 @@ describe('getTransactionControllerHooks', () => {
       };
 
       const result = await hooks.publish?.(simpleSendTx);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
+
+    it('throws when moneyAccountDeposit only has a no-op quote', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({ quotes: [{ strategy: 'none' }] }),
+      );
+      const moneyAccountTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.moneyAccountDeposit,
+      };
+
+      await expect(hooks.publish?.(moneyAccountTx)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
+    });
+
+    it('does not throw for moneyAccountDeposit when an executable quote is in state', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({ quotes: [{ strategy: 'relay' }] }),
+      );
+      const moneyAccountTx = {
+        ...MOCK_TRANSACTION_META,
+        type: TransactionType.moneyAccountDeposit,
+      };
+
+      const result = await hooks.publish?.(moneyAccountTx);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
+  });
+
+  describe('pay-token-required transaction types', () => {
+    const REQUIRED_TOKEN = {
+      address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+      chainId: '0xa4b1',
+      skipIfBalance: false,
+    };
+
+    const GAS_TOKEN = {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0xa4b1',
+      skipIfBalance: true,
+    };
+
+    const PERPS_DEPOSIT_TX = {
+      ...MOCK_TRANSACTION_META,
+      type: TransactionType.perpsDeposit,
+    };
+
+    it('throws for perps deposit when no pay state exists', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest(undefined),
+      );
+
+      await expect(hooks.publish?.(PERPS_DEPOSIT_TX)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
+    });
+
+    it('throws for perps deposit without quotes when paying with a different token', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({
+          paymentToken: { address: '0x123', chainId: '0x1' },
+          quotes: [],
+          sourceAmounts: [],
+          tokens: [REQUIRED_TOKEN],
+        }),
+      );
+
+      await expect(hooks.publish?.(PERPS_DEPOSIT_TX)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
+    });
+
+    it('throws for perps deposit without quotes when a required conversion is pending', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({
+          paymentToken: REQUIRED_TOKEN,
+          quotes: [],
+          sourceAmounts: [{ targetTokenAddress: REQUIRED_TOKEN.address }],
+          tokens: [REQUIRED_TOKEN],
+        }),
+      );
+
+      await expect(hooks.publish?.(PERPS_DEPOSIT_TX)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
+    });
+
+    it('does not throw for perps deposit paying with the required token when only optional conversions are pending', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({
+          paymentToken: REQUIRED_TOKEN,
+          quotes: [],
+          sourceAmounts: [{ targetTokenAddress: GAS_TOKEN.address }],
+          tokens: [REQUIRED_TOKEN, GAS_TOKEN],
+        }),
+      );
+
+      const result = await hooks.publish?.(PERPS_DEPOSIT_TX);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
+
+    it('does not throw for perps deposit with only a no-op quote on a validated direct route', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({
+          paymentToken: {
+            ...REQUIRED_TOKEN,
+            address: REQUIRED_TOKEN.address.toLowerCase(),
+          },
+          quotes: [{ strategy: 'none' }],
+          sourceAmounts: [],
+          tokens: [REQUIRED_TOKEN],
+        }),
+      );
+
+      const result = await hooks.publish?.(PERPS_DEPOSIT_TX);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
+  });
+
+  describe('post-quote withdraw types', () => {
+    const PREDICT_WITHDRAW_TX = {
+      ...MOCK_TRANSACTION_META,
+      type: TransactionType.predictWithdraw,
+    };
+
+    const PAYMENT_TOKEN = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+    };
+
+    beforeEach(() => {
+      jest
+        .mocked(selectPayQuoteConfig)
+        .mockReturnValue({ enabled: true, tokens: [] } as never);
+    });
+
+    it('does not validate when the post-quote flag is disabled', async () => {
+      jest
+        .mocked(selectPayQuoteConfig)
+        .mockReturnValue({ enabled: false, tokens: [] } as never);
+
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest(undefined),
+      );
+
+      const result = await hooks.publish?.(PREDICT_WITHDRAW_TX);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
+
+    it('throws for predict withdraw when pay state is missing', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest(undefined),
+      );
+
+      await expect(hooks.publish?.(PREDICT_WITHDRAW_TX)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
+    });
+
+    it('throws for predict withdraw without quotes when a conversion is pending', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({
+          isPostQuote: true,
+          paymentToken: PAYMENT_TOKEN,
+          quotes: [],
+          sourceAmounts: [{ targetTokenAddress: PAYMENT_TOKEN.address }],
+        }),
+      );
+
+      await expect(hooks.publish?.(PREDICT_WITHDRAW_TX)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
+    });
+
+    it('does not throw for predict withdraw on a validated direct route', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({
+          isPostQuote: true,
+          paymentToken: PAYMENT_TOKEN,
+          quotes: [],
+          sourceAmounts: [],
+        }),
+      );
+
+      const result = await hooks.publish?.(PREDICT_WITHDRAW_TX);
+
+      expect(result).toStrictEqual({ transactionHash: undefined });
+    });
+
+    it('does not throw for predict withdraw when an executable quote is in state', async () => {
+      const hooks = getTransactionControllerHooks(
+        buildPayStateRequest({
+          isPostQuote: true,
+          paymentToken: PAYMENT_TOKEN,
+          quotes: [{ strategy: 'relay' }],
+          sourceAmounts: [{ targetTokenAddress: PAYMENT_TOKEN.address }],
+        }),
+      );
+
+      const result = await hooks.publish?.(PREDICT_WITHDRAW_TX);
 
       expect(result).toStrictEqual({ transactionHash: undefined });
     });

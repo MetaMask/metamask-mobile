@@ -22,6 +22,7 @@ import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
 } from '../../../selectors/smartTransactionsController';
+import { isNoOpQuote } from '../../../selectors/transactionPayController';
 import {
   selectMetaMaskPayFlags,
   selectPayQuoteConfig,
@@ -262,8 +263,13 @@ function validateRequiredQuote(
   const data = transactionData?.[transactionMeta.id];
   const quotes = data?.quotes ?? [];
 
-  // No-op quotes also count: the controller validated the route as direct.
-  if (quotes.length) {
+  // No-op quotes mark a direct route but cannot be executed, so they are not
+  // sufficient on their own. Ignoring them keeps this guard consistent with
+  // the confirmation alerts, which read quotes through the same filter, and
+  // lets the direct-route checks below decide instead.
+  const executableQuotes = quotes.filter((quote) => !isNoOpQuote(quote));
+
+  if (executableQuotes.length) {
     return;
   }
 
@@ -275,7 +281,7 @@ function validateRequiredQuote(
     throw new Error('MetaMask Pay: Cannot submit without quote');
   }
 
-  // Quotes can still be empty for a direct route in the window before the
+  // Quotes can be empty for a direct route in the window before the
   // controller stores the no-op quote. Allow that only when the pay config
   // and destination token are set and no conversion is pending, so a withdraw
   // that lost its quotes or was never initialised cannot submit without the

@@ -697,6 +697,79 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it('ignores no-op quotes and sets mm_pay_quote_skipped', () => {
+    request.transactionMeta.type = TransactionType.predictWithdraw;
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x89',
+      tokenAddress: '0x0000000000000000000000000000000000000000',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: { allTokens: {} },
+          TransactionPayController: {
+            transactionData: {
+              'child-1': {
+                paymentToken: { symbol: 'USDC', chainId: '0x89' },
+                quotes: [{ strategy: TransactionPayStrategy.None }],
+                tokens: [{ skipIfBalance: false, amountUsd: '5' }],
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result.properties).toStrictEqual(
+      expect.objectContaining({
+        mm_pay: true,
+        mm_pay_quote_skipped: true,
+        mm_pay_transaction_step_total: 1,
+        mm_pay_transaction_step: 1,
+      }),
+    );
+    expect(result.properties.mm_pay_strategy).toBeUndefined();
+  });
+
+  it('sets mm_pay_quote_skipped as false when only executable quotes are present', () => {
+    request.transactionMeta.type = TransactionType.predictWithdraw;
+    request.transactionMeta.metamaskPay = {
+      chainId: '0x89',
+      tokenAddress: '0x0000000000000000000000000000000000000000',
+    };
+
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: { allTokens: {} },
+          TransactionPayController: {
+            transactionData: {
+              'child-1': {
+                paymentToken: { symbol: 'USDC', chainId: '0x89' },
+                quotes: [{ strategy: TransactionPayStrategy.Relay }],
+                tokens: [{ skipIfBalance: false, amountUsd: '5' }],
+              },
+            },
+          },
+        },
+      },
+    } as never);
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result.properties).toStrictEqual(
+      expect.objectContaining({
+        mm_pay_quote_skipped: false,
+        mm_pay_strategy: 'relay',
+        mm_pay_transaction_step_total: 2,
+        mm_pay_transaction_step: 2,
+      }),
+    );
+  });
+
   describe('mm_pay_payment_method_selected', () => {
     it('defaults to crypto when no fiat method is selected', () => {
       request.transactionMeta.type = TransactionType.perpsDeposit;
