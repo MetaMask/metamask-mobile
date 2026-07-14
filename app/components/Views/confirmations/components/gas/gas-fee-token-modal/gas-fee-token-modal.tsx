@@ -1,19 +1,24 @@
-import React, { useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import React, { useCallback, useRef } from 'react';
+import { Modal, View } from 'react-native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { GasFeeToken } from '@metamask/transaction-controller';
-import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
-import { strings } from '../../../../../../../locales/i18n';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { updateSelectedGasFeeToken } from '../../../../../../util/transaction-controller';
-import BottomModal from '../../UI/bottom-modal';
-import { View } from 'react-native';
-import { useStyles } from '../../../../../../component-library/hooks';
-import styleSheet from './gas-fee-token-modal.styles';
-import { GasFeeTokenListItem } from '../gas-fee-token-list-item';
 import { Hex } from '@metamask/utils';
+
+import { useStyles } from '../../../../../../component-library/hooks';
+import { updateSelectedGasFeeToken } from '../../../../../../util/transaction-controller';
+import { strings } from '../../../../../../../locales/i18n';
+import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { GasFeeTokenListItem } from '../gas-fee-token-list-item';
+import styleSheet from './gas-fee-token-modal.styles';
 
 export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
   const transactionMeta = useTransactionMetadataRequest();
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const { styles } = useStyles(styleSheet, {});
 
@@ -32,6 +37,14 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
       .map((token) => token.tokenAddress) ?? []),
   ];
 
+  const handleSheetClosed = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
+
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   const handleTokenClick = useCallback(
     (token: GasFeeToken) => {
       const selectedAddress =
@@ -40,28 +53,31 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
           : token.tokenAddress;
 
       updateSelectedGasFeeToken(transactionId, selectedAddress);
-
-      onClose?.();
+      bottomSheetRef.current?.onCloseBottomSheet();
     },
-    [onClose, transactionId],
+    [transactionId],
   );
 
   return (
-    <BottomModal
-      testID="gas-fee-token-modal"
-      onClose={
-        onClose ??
-        (() => {
-          // Intentionally empty
-        })
-      }
+    <Modal
+      visible
+      animationType="none"
+      transparent
+      presentationStyle="overFullScreen"
+      onRequestClose={handleRequestClose}
     >
-      <View style={styles.modalContainer}>
-        <HeaderStandard
-          title={strings('gas_fee_token_modal.title')}
-          onClose={onClose}
+      <BottomSheet
+        testID="gas-fee-token-modal"
+        ref={bottomSheetRef}
+        keyboardAvoidingViewEnabled={false}
+        onClose={handleSheetClosed}
+      >
+        <BottomSheetHeader
+          onClose={handleRequestClose}
           closeButtonProps={{ testID: 'close-button' }}
-        />
+        >
+          {strings('gas_fee_token_modal.title')}
+        </BottomSheetHeader>
         <View style={styles.contentContainer}>
           {gasFeeTokenAddresses.map((tokenAddress: Hex) => (
             <GasFeeTokenListItem
@@ -76,7 +92,7 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
             />
           ))}
         </View>
-      </View>
-    </BottomModal>
+      </BottomSheet>
+    </Modal>
   );
 }
