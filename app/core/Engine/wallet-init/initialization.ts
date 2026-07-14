@@ -1,6 +1,5 @@
 import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
-import type { RootState } from '../../../reducers';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
@@ -21,17 +20,14 @@ import { getTransactionControllerInitMessenger } from './messengers/transaction-
  * client-specific options live in its own builder under `./instance-options/`.
  *
  * @param request - The wallet initialization request.
- * @param request.getState - Returns the current Redux root state.
  * @param request.messenger - The root messenger.
  * @param request.state - The persisted controller state.
  * @returns The constructed `Wallet`.
  */
 export function initializeWallet({
-  getState,
   messenger,
   state,
 }: {
-  getState: () => RootState;
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
@@ -53,7 +49,6 @@ export function initializeWallet({
         }),
       storageService: getStorageServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
-        getState,
         initMessenger: transactionControllerInitMessenger,
       }),
     },
@@ -61,7 +56,6 @@ export function initializeWallet({
 
   setupRpcEndpointMetrics(messenger);
   setupTransactionControllerListeners({
-    getState,
     messenger: transactionControllerInitMessenger,
   });
 

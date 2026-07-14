@@ -291,7 +291,6 @@ export class Engine {
     };
 
     this.#wallet = initializeWallet({
-      getState: () => store.getState(),
       messenger: this.controllerMessenger,
       state: mergedInitialState,
     });

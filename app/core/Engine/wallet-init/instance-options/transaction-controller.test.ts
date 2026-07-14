@@ -10,7 +10,6 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 
-import type { RootState } from '../../../../reducers';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -66,8 +65,6 @@ describe('TransactionController wallet instance options', () => {
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
   const accountSupports7702Mock = jest.mocked(accountSupports7702);
 
-  const getState = jest.fn(() => ({}) as RootState);
-
   function buildOptions({
     preferencesState = {
       securityAlertsEnabled: false,
@@ -86,7 +83,6 @@ describe('TransactionController wallet instance options', () => {
     const initMessenger = getTransactionControllerInitMessenger(rootMessenger);
 
     return getTransactionControllerInstanceOptions({
-      getState,
       initMessenger,
     });
   }
@@ -238,8 +234,6 @@ describe('TransactionController wallet instance options', () => {
 });
 
 describe('setupTransactionControllerListeners', () => {
-  const getState = jest.fn(() => ({}) as RootState);
-
   const MOCK_TRANSACTION_META = {
     id: '123',
     chainId: CHAIN_ID_MOCK,
@@ -257,7 +251,6 @@ describe('setupTransactionControllerListeners', () => {
     const rootMessenger = buildRootMessenger();
     const initMessenger = getTransactionControllerInitMessenger(rootMessenger);
     setupTransactionControllerListeners({
-      getState,
       messenger: initMessenger,
     });
     return { rootMessenger };
@@ -273,7 +266,7 @@ describe('setupTransactionControllerListeners', () => {
     expect(handleShowNotification).toHaveBeenCalledWith(MOCK_TRANSACTION_META);
     expect(handleTransactionApprovedEventForMetrics).toHaveBeenCalledWith(
       MOCK_TRANSACTION_META,
-      expect.objectContaining({ getState, initMessenger: expect.anything() }),
+      expect.objectContaining({ getState: expect.any(Function), initMessenger: expect.anything() }),
     );
   });
 

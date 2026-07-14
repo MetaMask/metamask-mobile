@@ -15,8 +15,8 @@ import {
 } from '../../../../components/Views/confirmations/constants/confirmations';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import type { RootState } from '../../../../reducers';
 import AppConstants from '../../../../core/AppConstants';
+import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
@@ -38,12 +38,10 @@ type TransactionControllerInstanceOptions = NonNullable<
 >;
 
 interface GetTransactionControllerInstanceOptionsRequest {
-  getState: () => RootState;
   initMessenger: TransactionControllerInitMessenger;
 }
 
 interface SetupTransactionControllerListenersRequest {
-  getState: () => RootState;
   messenger: TransactionControllerInitMessenger;
 }
 
@@ -53,12 +51,10 @@ interface SetupTransactionControllerListenersRequest {
  * persisted state, so those are excluded here.
  *
  * @param request - The request bag.
- * @param request.getState - Returns the current Redux root state.
  * @param request.initMessenger - The TransactionController init messenger.
  * @returns The TransactionController instance options.
  */
 export function getTransactionControllerInstanceOptions({
-  getState,
   initMessenger,
 }: GetTransactionControllerInstanceOptionsRequest): TransactionControllerInstanceOptions {
   const transactionController = getTransactionController(initMessenger);
@@ -66,13 +62,12 @@ export function getTransactionControllerInstanceOptions({
   return {
     disableSwaps: true,
     hooks: getTransactionControllerHooks({
-      getState,
+      getState: store.getState,
       getTransactionController: () => transactionController,
       initMessenger,
     }),
     isAutomaticGasFeeUpdateEnabled,
     isEIP7702GasFeeTokensEnabled: isEIP7702GasFeeTokensEnabled.bind(null, {
-      getState,
       messenger: initMessenger,
     }),
     isFirstTimeInteractionEnabled: () =>
@@ -91,15 +86,13 @@ export function getTransactionControllerInstanceOptions({
  * listeners to the `TransactionController` events over the init messenger.
  *
  * @param request - The request bag.
- * @param request.getState - Returns the current Redux root state.
  * @param request.messenger - The TransactionController init messenger.
  */
 export function setupTransactionControllerListeners({
-  getState,
   messenger,
 }: SetupTransactionControllerListenersRequest) {
   const transactionEventHandlerRequest: TransactionEventHandlerRequest = {
-    getState,
+    getState: store.getState,
     initMessenger: messenger,
     smartTransactionsController: getSmartTransactionsController(messenger),
   };
@@ -257,10 +250,8 @@ function getTransactionController(
 
 async function isEIP7702GasFeeTokensEnabled(
   {
-    getState,
     messenger,
   }: {
-    getState: () => RootState;
     messenger: TransactionControllerInitMessenger;
   },
   transactionMeta: TransactionMeta,
@@ -275,7 +266,7 @@ async function isEIP7702GasFeeTokensEnabled(
   }
 
   const { chainId, isExternalSign } = transactionMeta;
-  const state = getState();
+  const state = store.getState();
 
   const isSmartTransactionEnabled = selectShouldUseSmartTransaction(
     state,

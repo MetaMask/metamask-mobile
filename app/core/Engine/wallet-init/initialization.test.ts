@@ -9,7 +9,6 @@ import {
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
-import type { RootState } from '../../../reducers';
 
 const mockWalletInit = jest.fn().mockResolvedValue([]);
 jest.mock('@metamask/wallet', () => ({
@@ -46,14 +45,12 @@ jest.mock('./messengers/transaction-controller-messenger', () => ({
 describe('initializeWallet', () => {
   const messenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
   const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
-  const getState = jest.fn(() => ({}) as RootState);
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('constructs a Wallet, wiring each builder output to its instanceOptions slot', () => {
-    initializeWallet({ getState, messenger, state });
+    initializeWallet({ messenger, state });
 
     expect(Wallet).toHaveBeenCalledWith({
       messenger,
@@ -71,7 +68,7 @@ describe('initializeWallet', () => {
   });
 
   it('threads the messenger and state through to the builders that need them', () => {
-    initializeWallet({ getState, messenger, state });
+    initializeWallet({ messenger, state });
 
     expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(messenger);
     expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
@@ -81,19 +78,15 @@ describe('initializeWallet', () => {
   });
 
   it('builds the TransactionController options and listeners with the init messenger', () => {
-    initializeWallet({ getState, messenger, state });
+    initializeWallet({ messenger, state });
 
     expect(getTransactionControllerInitMessenger).toHaveBeenCalledWith(
       messenger,
     );
-    expect(getTransactionControllerInstanceOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        getState,
-        initMessenger: 'tx-init-messenger',
-      }),
-    );
+    expect(getTransactionControllerInstanceOptions).toHaveBeenCalledWith({
+      initMessenger: 'tx-init-messenger',
+    });
     expect(setupTransactionControllerListeners).toHaveBeenCalledWith({
-      getState,
       messenger: 'tx-init-messenger',
     });
   });
