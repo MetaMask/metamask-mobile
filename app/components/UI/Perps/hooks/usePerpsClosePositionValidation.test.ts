@@ -191,6 +191,63 @@ describe('usePerpsClosePositionValidation', () => {
     );
   });
 
+  it('values a limit close at the limit price (not the mark) for protocol validation', async () => {
+    // A limit close rests at the limit price, so the protocol's
+    // minimum-notional check must value it at the limit price. A limit price
+    // far above the mark previously made the mark-priced notional fall below
+    // the minimum and silently disabled the button.
+    mockValidateClosePosition.mockResolvedValue({ isValid: true });
+
+    const params = {
+      ...defaultParams,
+      orderType: 'limit' as const,
+      limitPrice: '1000',
+      currentPrice: 65.288, // live mark price, far below the limit price
+    };
+
+    const { result } = renderHook(() =>
+      usePerpsClosePositionValidation(params),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+    });
+
+    expect(mockValidateClosePosition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderType: 'limit',
+        price: '1000',
+        currentPrice: 1000,
+      }),
+    );
+  });
+
+  it('values a market close at the mark price for protocol validation', async () => {
+    mockValidateClosePosition.mockResolvedValue({ isValid: true });
+
+    const params = {
+      ...defaultParams,
+      orderType: 'market' as const,
+      limitPrice: undefined,
+      currentPrice: 65.288,
+    };
+
+    const { result } = renderHook(() =>
+      usePerpsClosePositionValidation(params),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+    });
+
+    expect(mockValidateClosePosition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderType: 'market',
+        currentPrice: 65.288,
+      }),
+    );
+  });
+
   it('should return error for market order with 0% close', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 

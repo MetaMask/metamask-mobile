@@ -127,13 +127,26 @@ export function usePerpsClosePositionValidation(
     setValidation((prev) => ({ ...prev, isValidating: true }));
 
     try {
+      // Price the order will actually rest/execute at. A limit close rests at
+      // the user's limit price, so the protocol's minimum-notional check must
+      // value it at that price (matching the "$" amount shown in the UI) rather
+      // than the live mark price. Otherwise a limit price far above the mark
+      // makes the displayed value (size × limit) and the validated value
+      // (size × mark) diverge, silently disabling the button. Market orders
+      // keep using the mark price.
+      const limitPriceNum = limitPrice ? Number.parseFloat(limitPrice) : NaN;
+      const executionPrice =
+        orderType === 'limit' && !isNaN(limitPriceNum) && limitPriceNum > 0
+          ? limitPriceNum
+          : currentPrice;
+
       // Prepare params for protocol validation
       const closeParams: ClosePositionParams = {
         symbol,
         size: closePercentage === 100 ? undefined : closeAmount.toString(),
         orderType,
         price: orderType === 'limit' ? limitPrice : undefined,
-        currentPrice,
+        currentPrice: executionPrice,
       };
 
       // Get protocol-specific validation
@@ -182,13 +195,10 @@ export function usePerpsClosePositionValidation(
       }
 
       // Limit order specific validation (price warning only - required check is done by protocol)
-      if (
-        orderType === 'limit' &&
-        limitPrice &&
-        Number.parseFloat(limitPrice) > 0
-      ) {
-        const limitPriceNum = Number.parseFloat(limitPrice);
-        // Add warning if limit price is far from current price
+      if (orderType === 'limit' && !isNaN(limitPriceNum) && limitPriceNum > 0) {
+        // Add warning if the limit price is far from the live mark price
+        // (currentPrice), so this deliberately compares against the mark, not
+        // the limit-based executionPrice used for the notional check above.
         const priceDifference = Math.abs(
           (limitPriceNum - currentPrice) / currentPrice,
         );
