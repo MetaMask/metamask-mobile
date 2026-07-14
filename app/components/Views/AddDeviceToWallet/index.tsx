@@ -118,9 +118,9 @@ const AddDeviceToWallet = () => {
     (data: ScanSuccess, content?: string) => {
       const scannedQrPayload = content ?? data.content ?? '';
 
-      submitQrPayload(scannedQrPayload).catch((error: unknown) => {
+      submitQrPayload(scannedQrPayload).catch((err: unknown) => {
         Logger.error(
-          error as Error,
+          err as Error,
           'AddDeviceToWallet: failed to submit scanned QR payload',
         );
       });
