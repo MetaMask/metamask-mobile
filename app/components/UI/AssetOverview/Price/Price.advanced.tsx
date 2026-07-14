@@ -1002,6 +1002,7 @@ const PriceAdvanced = ({
                 onIntervalSelect={handleInlineIntervalSelect}
                 chartType={chartType}
                 onChartTypeSelect={handleChartTypeSelect}
+                selectedColor={initialAmbientColor}
               />
             </Box>
           </View>

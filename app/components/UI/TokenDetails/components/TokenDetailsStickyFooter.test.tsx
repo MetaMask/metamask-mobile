@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
@@ -367,82 +366,74 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('ambient price color A/B test', () => {
-    const ambientProps = {
+  describe('geo-based button colors', () => {
+    const geoProps = {
       ...defaultProps,
       swapTestID: 'swap-btn',
       buyTestID: 'buy-btn',
     };
 
     const defaultSuccessBg = `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`;
-    const defaultSuccessBorder = `border-[${LIGHT_MODE_SUCCESS_GREEN}]`;
 
-    it('uses default success styles when useAmbientColor is false', () => {
+    it('uses success (green) styles for non-Asia users', () => {
+      setupSelectorMock('US');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor={false}
-          isPricePositive={false}
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses error accent on success button when useAmbientColor + negative price', () => {
+    it('uses error-default (red) styles for Asian users (JP)', () => {
+      setupSelectorMock('JP');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={false}
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
-      expect(buyBtn.props.twClassName).toBe(`bg-[${AMBIENT_NEGATIVE_COLOR}]`);
+      expect(buyBtn.props.twClassName).toBe('bg-error-default');
     });
 
-    it('uses error accent on secondary button border when useAmbientColor + negative price', () => {
+    it('uses error-default border on secondary button for Asian users (KR)', () => {
+      setupSelectorMock('KR');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={false}
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const swapBtn = getByTestId('swap-btn');
       expect(swapBtn.props.twClassName).toBe(
-        `bg-transparent border-[${AMBIENT_NEGATIVE_COLOR}]`,
+        'bg-transparent border-error-default',
       );
     });
 
-    it('uses default success styles when useAmbientColor + positive price', () => {
+    it.each(['VN', 'TW', 'CN'])(
+      'uses error-default for %s country code',
+      (code) => {
+        setupSelectorMock(code);
+        const { getByTestId } = render(
+          <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
+        );
+
+        const buyBtn = getByTestId('buy-btn');
+        expect(buyBtn.props.twClassName).toBe('bg-error-default');
+      },
+    );
+
+    it('uses success (green) styles when geolocation is undefined', () => {
+      setupSelectorMock(undefined);
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses default success styles when isPricePositive is null (not yet resolved)', () => {
+    it('uses success (green) styles for non-Asia country (GB)', () => {
+      setupSelectorMock('GB');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...ambientProps}
-          useAmbientColor
-          isPricePositive={null}
-          balanceFiatUsd={50}
-        />,
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
       );
 
       const buyBtn = getByTestId('buy-btn');

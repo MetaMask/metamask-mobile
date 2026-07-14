@@ -20,6 +20,8 @@ interface IntervalBarProps {
   onIntervalSelect?: (interval: string) => void;
   chartType?: ChartType;
   onChartTypeSelect?: (type: ChartType) => void;
+  /** Override background color for the selected pill (A/B test). */
+  selectedColor?: string;
 }
 
 const IntervalBar: React.FC<IntervalBarProps> = ({
@@ -27,6 +29,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
   onIntervalSelect,
   chartType,
   onChartTypeSelect,
+  selectedColor,
 }) => {
   const tw = useTailwind();
 
@@ -51,7 +54,10 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
               style={({ pressed }) =>
                 tw.style(
                   PILL_BASE,
-                  isSelected && 'bg-muted',
+                  isSelected &&
+                    (selectedColor
+                      ? { backgroundColor: selectedColor }
+                      : 'bg-muted'),
                   pressed && 'opacity-70',
                 )
               }
@@ -64,7 +70,18 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
                 variant={TextVariant.BodySm}
                 fontWeight={isSelected ? FontWeight.Bold : FontWeight.Medium}
                 twClassName={
-                  isSelected ? 'text-text-default' : 'text-text-alternative'
+                  isSelected
+                    ? selectedColor
+                      ? 'text-success-inverse'
+                      : 'text-text-default'
+                    : selectedColor
+                      ? undefined
+                      : 'text-text-alternative'
+                }
+                style={
+                  !isSelected && selectedColor
+                    ? { color: selectedColor }
+                    : undefined
                 }
               >
                 {interval}
@@ -78,6 +95,7 @@ const IntervalBar: React.FC<IntervalBarProps> = ({
         chartType={chartType}
         onChartTypeSelect={onChartTypeSelect}
         containerTwClassName="shrink-0 rounded-lg border border-border-muted p-0.5"
+        selectedColor={selectedColor}
       />
     </Box>
   );

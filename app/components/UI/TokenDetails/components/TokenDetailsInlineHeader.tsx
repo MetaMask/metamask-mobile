@@ -41,8 +41,6 @@ export const TokenDetailsInlineHeader = ({
   onStarPress,
   isWatched,
   onCopyAddress,
-  iconColor,
-  useAmbientColor = false,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -52,9 +50,6 @@ export const TokenDetailsInlineHeader = ({
   onStarPress?: () => void;
   isWatched?: boolean;
   onCopyAddress?: () => void;
-  /** Hex color string for the back button icon (A/B test). */
-  iconColor?: string;
-  useAmbientColor?: boolean;
 }) => {
   const tw = useTailwind();
   const { isStockToken } = useRWAToken();
@@ -72,15 +67,6 @@ export const TokenDetailsInlineHeader = ({
     contractAddress,
     onCopyAddress,
   );
-
-  const shouldShowEndButtons = !useAmbientColor || iconColor !== undefined;
-
-  const backButtonIconProps = useMemo(() => {
-    if (useAmbientColor && iconColor) {
-      return { twClassName: `text-[${iconColor}]` };
-    }
-    return undefined;
-  }, [useAmbientColor, iconColor]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
@@ -146,7 +132,7 @@ export const TokenDetailsInlineHeader = ({
           : 'Add to watchlist',
       });
     }
-    if (shouldShowEndButtons && onSharePress) {
+    if (onSharePress) {
       buttons.push({
         iconName: IconName.Share,
         onPress: onSharePress,
@@ -154,7 +140,7 @@ export const TokenDetailsInlineHeader = ({
         accessibilityLabel: 'Share token',
       });
     }
-    if (shouldShowEndButtons && onPriceAlertPress) {
+    if (onPriceAlertPress) {
       buttons.push({
         iconName: IconName.Notification,
         onPress: onPriceAlertPress,
@@ -163,13 +149,7 @@ export const TokenDetailsInlineHeader = ({
       });
     }
     return buttons.length > 0 ? buttons : undefined;
-  }, [
-    shouldShowEndButtons,
-    onStarPress,
-    isWatched,
-    onSharePress,
-    onPriceAlertPress,
-  ]);
+  }, [onStarPress, isWatched, onSharePress, onPriceAlertPress]);
 
   const descriptionEndAccessory = useMemo(() => {
     if (!contractAddress) {
@@ -197,7 +177,6 @@ export const TokenDetailsInlineHeader = ({
           iconName={IconName.ArrowLeft}
           size={ButtonIconSize.Md}
           onPress={onBackPress}
-          iconProps={backButtonIconProps}
           testID="back-arrow-button"
         />
       }
