@@ -250,9 +250,8 @@ describe('Transaction Controller Init', () => {
       slippage: 0.005,
       stxDisabled: false,
       enableDepositWalletWithdraw: false,
-      enablePerpsMoneyAccountTransactions: false,
-      enablePredictMoneyAccountTransactions: false,
-      enableMoneyHomePagePerpsTransaction: false,
+      enableMoneyAccountTransactions: {},
+      prefilledAmount: { default: { enabled: false }, overrides: {} },
     });
 
     payHookClassMock.mockReturnValue({
@@ -409,9 +408,8 @@ describe('Transaction Controller Init', () => {
         slippage: 0.005,
         stxDisabled: true,
         enableDepositWalletWithdraw: false,
-        enablePerpsMoneyAccountTransactions: false,
-        enablePredictMoneyAccountTransactions: false,
-        enableMoneyHomePagePerpsTransaction: false,
+        enableMoneyAccountTransactions: {},
+        prefilledAmount: { default: { enabled: false }, overrides: {} },
       });
 
       const hooks = testConstructorOption('hooks');
@@ -430,9 +428,8 @@ describe('Transaction Controller Init', () => {
         slippage: 0.005,
         stxDisabled: false,
         enableDepositWalletWithdraw: false,
-        enablePerpsMoneyAccountTransactions: false,
-        enablePredictMoneyAccountTransactions: false,
-        enableMoneyHomePagePerpsTransaction: false,
+        enableMoneyAccountTransactions: {},
+        prefilledAmount: { default: { enabled: false }, overrides: {} },
       });
 
       const hooks = testConstructorOption('hooks');
@@ -776,20 +773,6 @@ describe('Transaction Controller Init', () => {
         expect(result).toEqual({ transactionHash: undefined });
       });
     });
-  });
-
-  it('determines incoming transactions based on preference privacyMode', () => {
-    const option = testConstructorOption('incomingTransactions', {
-      state: {
-        privacyMode: false,
-      },
-    });
-
-    const isEnabledFn = option?.isEnabled;
-    const updateTransactionsProp = option?.updateTransactions;
-
-    expect(isEnabledFn?.()).toBe(true);
-    expect(updateTransactionsProp).toBe(true);
   });
 
   describe('isAutomaticGasFeeUpdateEnabled', () => {

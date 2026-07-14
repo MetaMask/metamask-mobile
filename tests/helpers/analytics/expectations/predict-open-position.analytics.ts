@@ -14,7 +14,7 @@ export const predictOpenPositionAnalyticsExpectations: AnalyticsExpectations = {
     {
       name: PREDICT_FEED_VIEWED,
       containProperties: {
-        predict_feed_tab: 'trending',
+        predict_feed_tab: 'world-cup',
         entry_point: 'homepage_positions',
       },
     },

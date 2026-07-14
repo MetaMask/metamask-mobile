@@ -100,15 +100,16 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       useNetworkEnablement();
     const { detectNfts, abortDetection } = useNftDetection();
     const popularNetworksKey = popularNetworks.join(',');
-    const areAllPopularNetworksEnabled = useMemo(
-      () =>
-        popularNetworks.every((chainId) =>
+    const areAllPopularNetworksEnabled = useMemo(() => {
+      if (popularNetworksKey === '') {
+        return true;
+      }
+      return popularNetworksKey
+        .split(',')
+        .every((chainId) =>
           isNetworkEnabled(chainId as Parameters<typeof isNetworkEnabled>[0]),
-        ),
-      // popularNetworksKey stabilizes by content; popularNetworks is a new array ref every render from the hook
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [isNetworkEnabled, popularNetworksKey],
-    );
+        );
+    }, [isNetworkEnabled, popularNetworksKey]);
 
     // useFocusEffect (not useEffect) so we run every time the user focuses this screen
     // (e.g. switches to Wallet tab or returns from a section). With useEffect we would
@@ -297,9 +298,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           value={trendingAbTestContextValue}
         >
           <Box
-            gap={8}
             marginBottom={8}
-            paddingTop={6}
             testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
             accessible={false}
           >
@@ -327,9 +326,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                       totalSectionsLoaded={totalSectionsLoaded}
                       mode={sectionMode}
                     />
-                    <Box gap={8}>
-                      {renderTreatmentNonPerpsSections(trendingPerpsSection)}
-                    </Box>
+                    <>{renderTreatmentNonPerpsSections(trendingPerpsSection)}</>
                   </>
                 );
                 return perpsProvidersHoisted ? (
@@ -351,9 +348,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         value={trendingAbTestContextValue}
       >
         <Box
-          gap={8}
           marginBottom={8}
-          paddingTop={6}
           testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
           accessible={false}
         >

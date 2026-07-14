@@ -59,8 +59,12 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
 
     try {
       const path = await stopProfiling(true);
-      if (typeof path === 'string' && path.length > 0) {
-        setLastProfilePath(path);
+      // Nested ifs (rather than a single `&&` expression) avoid a "value block
+      // inside try/catch", which the React Compiler cannot yet optimize.
+      if (typeof path === 'string') {
+        if (path.length > 0) {
+          setLastProfilePath(path);
+        }
       }
     } catch (error) {
       // fail silently

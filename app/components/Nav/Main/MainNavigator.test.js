@@ -91,6 +91,7 @@ describe('MainNavigator Route Constants', () => {
 
   it('has card routes defined', () => {
     expect(Routes.CARD.ROOT).toBeDefined();
+    expect(Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT).toBeDefined();
   });
 
   it('has feature flag override route defined', () => {
@@ -148,7 +149,7 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET).toBeDefined();
     expect(Routes.MONEY.MODALS.LINK_CARD_SHEET).toBeDefined();
     expect(Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET).toBeDefined();
-    expect(Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.DEEPLINK_MODAL).toBeDefined();
   });
 });
 

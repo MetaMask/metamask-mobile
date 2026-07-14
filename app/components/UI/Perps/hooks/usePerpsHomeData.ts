@@ -26,6 +26,8 @@ import Engine from '../../../../core/Engine';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
+import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
+import { isWithinLast30Days } from '../utils/time';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -39,11 +41,21 @@ interface UsePerpsHomeDataReturn {
   positions: Position[];
   orders: Order[];
   watchlistMarkets: PerpsMarketData[];
+  /** Top 5 markets by 24h volume, used as suggestions when watchlist is empty */
+  suggestedWatchlistMarkets: PerpsMarketData[];
   perpsMarkets: PerpsMarketData[]; // Crypto markets (renamed from trending)
   stocksMarkets: PerpsMarketData[]; // Equity markets
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
   stocksAndCommoditiesMarkets: PerpsMarketData[]; // Combined stocks & commodities markets
   forexMarkets: PerpsMarketData[]; // Forex markets
+  /** Markets listed within the last 30 days, sorted newest first. Empty when no markets qualify. */
+  recentlyAddedMarkets: PerpsMarketData[];
+  /**
+   * True when the raw (unfiltered) market list is non-empty. Reflects the
+   * full set that PerpsTopMoversSection ranks, including HIP-3 and any market
+   * type not bucketed into the home-screen explore slices.
+   */
+  hasMarkets: boolean;
   recentActivity: PerpsTransaction[];
   sortBy: SortField;
   isLoading: {
@@ -61,8 +73,8 @@ interface UsePerpsHomeDataReturn {
  * Uses object parameters pattern for maintainability
  */
 export const usePerpsHomeData = ({
-  positionsLimit = HOME_SCREEN_CONFIG.PositionsCarouselLimit,
-  ordersLimit = HOME_SCREEN_CONFIG.OrdersCarouselLimit,
+  positionsLimit,
+  ordersLimit,
   trendingLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit,
   activityLimit = HOME_SCREEN_CONFIG.RecentActivityLimit,
   searchQuery = '',
@@ -165,6 +177,13 @@ export const usePerpsHomeData = ({
     [allMarkets, watchlistSymbols],
   );
 
+  // Top markets by volume — shown as suggestions below the watchlist.
+  // Excludes already-watchlisted markets so the list shrinks as items are added.
+  const suggestedWatchlistMarkets = useMemo(
+    () => getSuggestedWatchlistMarkets(allMarkets, watchlistSymbols),
+    [allMarkets, watchlistSymbols],
+  );
+
   const sortBy = MARKET_SORTING_CONFIG.SortFields.Volume;
   const direction = MARKET_SORTING_CONFIG.DefaultDirection;
 
@@ -234,6 +253,18 @@ export const usePerpsHomeData = ({
     [allMarkets, sortBy, direction, trendingLimit],
   );
 
+  // Markets listed within the last 30 days, sorted newest first (largest listedAt first).
+  // Markets without a listedAt timestamp are excluded entirely.
+  const recentlyAddedMarkets = useMemo(
+    () =>
+      allMarkets
+        .filter(
+          (m) => m.listedAt !== undefined && isWithinLast30Days(m.listedAt),
+        )
+        .sort((a, b) => (b.listedAt as number) - (a.listedAt as number)),
+    [allMarkets],
+  );
+
   // Refresh markets data (WebSocket data auto-updates, only markets need manual refresh)
   const refresh = useCallback(async () => {
     await refreshMarkets();
@@ -298,12 +329,21 @@ export const usePerpsHomeData = ({
     [filterBySearchQuery, searchQuery],
   );
 
+  // The Perps home screen renders positions/orders in a vertical ScrollView with
+  // no "see all" page, so it must show every open position/order. Only apply a
+  // cap when a caller explicitly passes a finite limit (default: no cap).
   const limitedPositions = useMemo(
-    () => filteredData.positions.slice(0, positionsLimit),
+    () =>
+      positionsLimit === undefined
+        ? filteredData.positions
+        : filteredData.positions.slice(0, positionsLimit),
     [filteredData.positions, positionsLimit],
   );
   const limitedOrders = useMemo(
-    () => filteredData.orders.slice(0, ordersLimit),
+    () =>
+      ordersLimit === undefined
+        ? filteredData.orders
+        : filteredData.orders.slice(0, ordersLimit),
     [filteredData.orders, ordersLimit],
   );
   const limitedWatchlistMarkets = useMemo(
@@ -365,11 +405,14 @@ export const usePerpsHomeData = ({
     positions: limitedPositions,
     orders: limitedOrders,
     watchlistMarkets: limitedWatchlistMarkets,
+    suggestedWatchlistMarkets,
     perpsMarkets: searchedPerpsMarkets, // Crypto markets (renamed from trendingMarkets)
     stocksMarkets: searchedStocksMarkets,
     commoditiesMarkets: searchedCommoditiesMarkets,
     stocksAndCommoditiesMarkets: searchedStocksAndCommoditiesMarkets,
     forexMarkets: searchedForexMarkets,
+    recentlyAddedMarkets,
+    hasMarkets: allMarkets.length > 0,
     recentActivity: limitedActivity,
     sortBy,
     // Hooks handle reconnection internally: clearCache() sends null →

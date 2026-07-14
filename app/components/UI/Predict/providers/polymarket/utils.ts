@@ -18,7 +18,6 @@ import {
   type PredictPosition,
   PredictActivity,
   PredictOutcome,
-  PredictOutcomeGroup,
   PredictOutcomeToken,
   PredictMarketGame,
 } from '../../types';
@@ -34,6 +33,11 @@ import {
   isMoneylineLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
+import { getTokenImage } from '../../utils/sports';
+import {
+  getSportsMarketTeamLogo,
+  resolveNegRiskMoneylineShortTitles,
+} from './sportsUtils';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -47,10 +51,8 @@ import type {
 import {
   ClobAuthDomain,
   DEFAULT_CLOB_BASE_URL,
-  DEFAULT_GROUP_KEY,
   EIP712Domain,
   GROUP_ORDER,
-  SPORTS_MARKET_TYPE_PRIORITIES,
   HASH_ZERO_BYTES32,
   MATIC_CONTRACTS_V2,
   MSG_TO_SIGN,
@@ -76,16 +78,27 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
+  RoundConfig,
   TickSize,
   OrderBook,
 } from './types';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG } from '../../constants/flags';
+import {
+  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+  PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
+} from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
 import { roundToFiveDecimals } from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
+import {
+  buildOutcomeGroups,
+  filterGroupableOutcomes,
+  normalizeEnabledSportsMarketTypes,
+  sortGameMarkets,
+} from './outcomeGrouping';
 
 export { SPORTS_MARKET_TYPE_TO_GROUP, GROUP_ORDER } from './constants';
+export { buildOutcomeGroups, sortGameMarkets } from './outcomeGrouping';
 
 /**
  * Parse a fetch `Response` body as JSON, raising a contextual error when the
@@ -637,121 +650,11 @@ function replaceAll(s: string, search: string, replace: string) {
   return s.split(search).join(replace);
 }
 
-const normalizeSportsMarketType = (type: string): string => {
-  const lower = type.toLowerCase();
-  if (lower.startsWith('first_half_')) {
-    return lower.slice('first_half_'.length);
-  }
-  return lower;
-};
-
-const getSportsMarketTypePriority = (type: string): number =>
-  SPORTS_MARKET_TYPE_PRIORITIES[type.toLowerCase()] ?? 3;
-
-export function buildOutcomeGroups(
-  outcomes: PredictOutcome[],
-): PredictOutcomeGroup[] {
-  if (outcomes.length === 0) {
-    return [];
-  }
-
-  const groupMap = new Map<string, PredictOutcome[]>();
-
-  for (const outcome of outcomes) {
-    const groupKey =
-      (outcome.sportsMarketType &&
-        SPORTS_MARKET_TYPE_TO_GROUP[outcome.sportsMarketType]) ||
-      DEFAULT_GROUP_KEY;
-
-    const bucket = groupMap.get(groupKey);
-    if (bucket) {
-      bucket.push(outcome);
-    } else {
-      groupMap.set(groupKey, [outcome]);
-    }
-  }
-
-  for (const [, groupOutcomes] of groupMap) {
-    groupOutcomes.sort((a, b) => {
-      const priorityDiff =
-        getSportsMarketTypePriority(
-          normalizeSportsMarketType(a.sportsMarketType ?? ''),
-        ) -
-        getSportsMarketTypePriority(
-          normalizeSportsMarketType(b.sportsMarketType ?? ''),
-        );
-      if (priorityDiff !== 0) {
-        return priorityDiff;
-      }
-      const volumeDiff = b.volume - a.volume;
-      if (volumeDiff !== 0) return volumeDiff;
-      return (b.liquidity ?? 0) - (a.liquidity ?? 0);
-    });
-  }
-
-  const groupEntries = [...groupMap.entries()];
-  groupEntries.sort((a, b) => {
-    const aIndex = GROUP_ORDER.indexOf(a[0]);
-    const bIndex = GROUP_ORDER.indexOf(b[0]);
-    const aPriority = aIndex === -1 ? GROUP_ORDER.length : aIndex;
-    const bPriority = bIndex === -1 ? GROUP_ORDER.length : bIndex;
-    if (aPriority !== bPriority) {
-      return aPriority - bPriority;
-    }
-    return a[0].localeCompare(b[0]);
-  });
-
-  return groupEntries.map(([key, groupOutcomes]) => {
-    const typeMap = new Map<string, PredictOutcome[]>();
-    for (const outcome of groupOutcomes) {
-      const type = outcome.sportsMarketType ?? key;
-      const bucket = typeMap.get(type);
-      if (bucket) {
-        bucket.push(outcome);
-      } else {
-        typeMap.set(type, [outcome]);
-      }
-    }
-
-    if (typeMap.size < 2) {
-      return { key, outcomes: groupOutcomes };
-    }
-
-    const subgroupEntries = [...typeMap.entries()];
-    subgroupEntries.sort(
-      (a, b) =>
-        getSportsMarketTypePriority(normalizeSportsMarketType(a[0])) -
-        getSportsMarketTypePriority(normalizeSportsMarketType(b[0])),
-    );
-
-    return {
-      key,
-      outcomes: [],
-      subgroups: subgroupEntries.map(([subKey, subOutcomes]) => ({
-        key: subKey,
-        outcomes: subOutcomes,
-      })),
-    };
-  });
-}
-
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
 const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
   isMoneylineLikeMarketType(market.sportsMarketType);
-
-/**
- * Sort markets within a sports market type group by liquidity + volume (descending)
- */
-const sortByLiquidityAndVolume = (
-  markets: PolymarketApiMarket[],
-): PolymarketApiMarket[] =>
-  [...markets].sort((a, b) => {
-    const aScore = (a.liquidity ?? 0) + (a.volumeNum ?? 0);
-    const bScore = (b.liquidity ?? 0) + (b.volumeNum ?? 0);
-    return bScore - aScore;
-  });
 
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   const groupItemTitle = market.groupItemTitle ?? market.question ?? '';
@@ -871,37 +774,10 @@ const getNegRiskYesTokenTitle = (
   ) {
     return undefined;
   }
+
   return market.groupItemTitle.toLowerCase().startsWith('draw')
     ? 'Draw'
     : market.groupItemTitle;
-};
-
-const resolveNegRiskShortTitles = (
-  market: PolymarketApiMarket,
-  game: PredictMarketGame,
-): { yesShort?: string; noShort?: string } => {
-  if (
-    !market.negRisk ||
-    !isMoneylineLikeMarket(market) ||
-    !market.groupItemTitle
-  ) {
-    return {};
-  }
-
-  if (market.groupItemTitle.toLowerCase().startsWith('draw')) {
-    return {};
-  }
-
-  const nameToAbbr = buildNameToAbbreviation(game);
-  const yesAbbr = nameToAbbr[market.groupItemTitle];
-  if (!yesAbbr) return {};
-
-  const isHome = yesAbbr === game.homeTeam.abbreviation;
-  const noAbbr = isHome
-    ? game.awayTeam.abbreviation
-    : game.homeTeam.abbreviation;
-
-  return { yesShort: yesAbbr, noShort: noAbbr };
 };
 
 const parsePolymarketMarketOutcomes = (
@@ -919,76 +795,43 @@ const parsePolymarketMarketOutcomes = (
     : [];
 
   const negRiskYesTitle = getNegRiskYesTokenTitle(market);
-  const negRiskShort = game ? resolveNegRiskShortTitles(market, game) : {};
+  const isNegRiskMoneyline = negRiskYesTitle !== undefined;
+  const negRiskShort = game
+    ? resolveNegRiskMoneylineShortTitles(market, game)
+    : {};
 
   const outcomeTokens = outcomeTokensIds.map(
     (tokenId: string, index: number) => {
       const isYes = outcomes[index] === 'Yes';
       const isNo = outcomes[index] === 'No';
 
+      let shortTitle: string | undefined = shortTitles[index];
       let title = outcomes[index];
-      if (negRiskYesTitle && isYes) {
+      if (isNegRiskMoneyline && isYes && negRiskYesTitle) {
         title = negRiskYesTitle;
       }
-
-      let shortTitle: string | undefined = shortTitles[index];
-      if (negRiskYesTitle && isYes && negRiskShort.yesShort) {
+      if (isNegRiskMoneyline && isYes && negRiskShort.yesShort) {
         shortTitle = negRiskShort.yesShort;
-      } else if (negRiskYesTitle && isNo && negRiskShort.noShort) {
+      } else if (isNegRiskMoneyline && isNo && negRiskShort.noShort) {
         shortTitle = negRiskShort.noShort;
       }
+
+      const tokenImage = getTokenImage({
+        sportsMarketType: market.sportsMarketType,
+        tokenTitle: title,
+        game,
+      });
 
       return {
         id: tokenId,
         title,
         ...(shortTitle && { shortTitle }),
+        ...(tokenImage && { image: tokenImage }),
         price: parseFloat(outcomePrices[index]),
       };
     },
   );
   return sortOutcomeTokens(outcomeTokens, market, event);
-};
-
-/**
- * Sort sport markets by:
- * 1. Group by sportsMarketType
- * 2. Order groups: moneyline first, spreads second, totals third, then alphabetically
- * 3. Within each group, sort by liquidity + volume (descending)
- * 4. Return flattened array of all groups in order
- */
-export const sortGameMarkets = (
-  markets: PolymarketApiMarket[],
-): PolymarketApiMarket[] => {
-  // Group markets by sportsMarketType
-  const groupedMarkets = markets.reduce<Record<string, PolymarketApiMarket[]>>(
-    (acc, market) => {
-      const type = market.sportsMarketType ?? 'other';
-      if (!acc[type]) {
-        acc[type] = [];
-      }
-      acc[type].push(market);
-      return acc;
-    },
-    {},
-  );
-
-  // Get all unique types and sort them by priority
-  const sortedTypes = Object.keys(groupedMarkets).sort((a, b) => {
-    const priorityA = getSportsMarketTypePriority(a);
-    const priorityB = getSportsMarketTypePriority(b);
-
-    // If same priority (both are "other" category), sort alphabetically
-    if (priorityA === priorityB && priorityA === 3) {
-      return a.toLowerCase().localeCompare(b.toLowerCase());
-    }
-
-    return priorityA - priorityB;
-  });
-
-  // Sort each group by liquidity + volume, then flatten
-  return sortedTypes.flatMap((type) =>
-    sortByLiquidityAndVolume(groupedMarkets[type]),
-  );
 };
 
 export const sortMarketsByField = (
@@ -1082,7 +925,7 @@ export const parsePolymarketMarket = (
   marketId: event.id,
   title: market.question,
   description: market.description,
-  image: market.icon ?? market.image,
+  image: getSportsMarketTeamLogo(market, game) ?? market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   groupItemThreshold:
     market.groupItemThreshold != null
@@ -1112,6 +955,7 @@ export interface ParsePolymarketEventsOptions {
   sortMarketsBy?: 'price' | 'ascending' | 'descending';
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
+  enabledSportsMarketTypes?: string[];
 }
 
 export const parsePolymarketEvents = (
@@ -1124,7 +968,12 @@ export const parsePolymarketEvents = (
       ? { category: categoryOrOptions, sortMarketsBy }
       : categoryOrOptions;
 
-  const { category, teamLookup, extendedSportsMarketsLeagues } = options;
+  const {
+    category,
+    teamLookup,
+    extendedSportsMarketsLeagues,
+    enabledSportsMarketTypes,
+  } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
   return events.flatMap((event: PolymarketApiEvent) => {
@@ -1177,10 +1026,17 @@ export const parsePolymarketEvents = (
         game &&
         eventLeague &&
         extendedSportsMarketsLeagues?.includes(eventLeague);
+      const normalizedEnabledSportsMarketTypes =
+        normalizeEnabledSportsMarketTypes(enabledSportsMarketTypes);
 
-      const outcomeGroups = outcomeGroupingEnabled
-        ? buildOutcomeGroups(outcomes)
-        : undefined;
+      const outcomesForGroups = outcomeGroupingEnabled
+        ? filterGroupableOutcomes(outcomes, normalizedEnabledSportsMarketTypes)
+        : [];
+
+      const outcomeGroups =
+        outcomesForGroups.length > 0
+          ? buildOutcomeGroups(outcomesForGroups)
+          : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);
 
@@ -1267,6 +1123,14 @@ export const parsePolymarketActivity = (
 
     const price = Number(activity.price ?? 0);
     const amount = Number(activity.usdcSize ?? 0);
+    const rawSize =
+      activity.size === undefined || activity.size === null
+        ? undefined
+        : Number(activity.size);
+    const size =
+      rawSize !== undefined && Number.isFinite(rawSize) && rawSize > 0
+        ? rawSize
+        : undefined;
 
     const outcomeId = String(activity.conditionId ?? '');
     const marketId = String(activity.conditionId ?? '');
@@ -1274,6 +1138,16 @@ export const parsePolymarketActivity = (
     const title = String(activity.title ?? 'Market');
     const outcome = activity.outcome ? String(activity.outcome) : undefined;
     const icon = activity.icon as string | undefined;
+    const slug = activity.slug ? String(activity.slug) : undefined;
+    const eventSlug = activity.eventSlug
+      ? String(activity.eventSlug)
+      : undefined;
+    const netPnlUsd =
+      typeof activity.netPnlUsd === 'number' ? activity.netPnlUsd : undefined;
+    const totalNetPnlUsd =
+      typeof activity.totalNetPnlUsd === 'number'
+        ? activity.totalNetPnlUsd
+        : undefined;
 
     const parsedActivity: PredictActivity = {
       id,
@@ -1289,14 +1163,23 @@ export const parsePolymarketActivity = (
               outcomeTokenId,
               amount,
               price,
+              ...(size !== undefined && { size }),
             },
       title,
       outcome,
       icon,
+      slug,
+      eventSlug,
+      netPnlUsd,
+      totalNetPnlUsd,
     } as PredictActivity & {
       title?: string;
       outcome?: string;
       icon?: string;
+      slug?: string;
+      eventSlug?: string;
+      netPnlUsd?: number;
+      totalNetPnlUsd?: number;
     };
 
     return parsedActivity;
@@ -1369,6 +1252,11 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('order', 'volume24hr');
     queryParams.set('ascending', 'false');
     queryParamsEvents = queryParams.toString();
+  } else if (category === 'wimbledon') {
+    queryParamsEvents = appendCustomQueryParams(
+      queryParams,
+      customQueryParams ?? PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+    );
   } else {
     queryParams.set('active', 'true');
     queryParams.set('archived', 'false');
@@ -1379,7 +1267,7 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('volume_min', String(10000.0));
 
     const categoryParamMap: Record<
-      Exclude<PredictCategory, 'world-cup'>,
+      Exclude<PredictCategory, 'world-cup' | 'wimbledon'>,
       Record<string, string>
     > = {
       trending: { order: 'volume24hr' },
@@ -2373,6 +2261,77 @@ export const roundOrderAmount = ({
   return amount;
 };
 
+const toDecimalTickSizeString = (value: number): string => {
+  const valueAsString = value.toString();
+
+  if (!valueAsString.includes('e')) {
+    return valueAsString;
+  }
+
+  return value
+    .toFixed(COLLATERAL_TOKEN_DECIMALS)
+    .replace(/(?:\.0+|(\.\d*?)0+)$/u, '$1');
+};
+
+const normalizeTickSizeCandidate = (
+  tickSize?: string | number | null,
+): string | undefined => {
+  if (tickSize === undefined || tickSize === null) {
+    return undefined;
+  }
+
+  const parsedTickSize = Number(tickSize);
+
+  if (
+    !Number.isFinite(parsedTickSize) ||
+    parsedTickSize <= 0 ||
+    parsedTickSize >= 1
+  ) {
+    return undefined;
+  }
+
+  return toDecimalTickSizeString(parsedTickSize);
+};
+
+const getTickSizeDecimalPlaces = (tickSize: string): number => {
+  const [, decimalPart = ''] = tickSize.split('.');
+  return decimalPart.length;
+};
+
+export const getTickSizeRoundConfig = ({
+  tickSize,
+}: {
+  tickSize?: string | number | null;
+}): { tickSize: string; roundConfig: RoundConfig } => {
+  const normalizedTickSize = normalizeTickSizeCandidate(tickSize);
+
+  if (!normalizedTickSize) {
+    throw new Error(
+      `Invalid Polymarket tick size: ${String(tickSize ?? 'missing')}`,
+    );
+  }
+
+  const configuredRoundConfig = ROUNDING_CONFIG[normalizedTickSize];
+
+  if (configuredRoundConfig) {
+    return {
+      tickSize: normalizedTickSize,
+      roundConfig: configuredRoundConfig,
+    };
+  }
+
+  const priceDecimals = getTickSizeDecimalPlaces(normalizedTickSize);
+
+  return {
+    tickSize: normalizedTickSize,
+    roundConfig: {
+      price: priceDecimals,
+      size: 2,
+      amount: Math.min(priceDecimals + 2, COLLATERAL_TOKEN_DECIMALS),
+    },
+  };
+};
+
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
@@ -2408,7 +2367,9 @@ export const previewOrder = async (
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
-  const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
 
   if (side === Side.BUY) {
     const { asks } = book;
@@ -2434,7 +2395,7 @@ export const previewOrder = async (
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
       slippage: SLIPPAGE_BUY,
-      tickSize: parseFloat(book.tick_size),
+      tickSize: parseFloat(tickSize),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       feeRateBps,
@@ -2471,6 +2432,11 @@ export const previewOrder = async (
     amount: dollarAmount,
     decimals: roundConfig.amount,
   });
+  const serviceFees = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: takerAmount,
+  });
   return {
     marketId,
     outcomeId,
@@ -2482,10 +2448,10 @@ export const previewOrder = async (
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
     slippage: SLIPPAGE_SELL,
-    tickSize: parseFloat(book.tick_size),
+    tickSize: parseFloat(tickSize),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,
-    // no fees for sell orders
+    fees: serviceFees,
   };
 };

@@ -29,6 +29,7 @@ import {
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
 import { createAddressListNavigationDetails } from '../../AddressList/AddressList';
+import { AddressListViewedSource } from '../../../../../util/analytics/addressListViewedTracking';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import {
   endTrace,
@@ -110,6 +111,7 @@ const MultichainAccountActions = () => {
         title: `${strings('multichain_accounts.address_list.addresses')} / ${
           accountGroup.metadata.name
         }`,
+        source: AddressListViewedSource.ACCOUNT_ACTIONS,
         onLoad: () => {
           endTrace({ name: TraceName.ShowAccountAddressList });
         },

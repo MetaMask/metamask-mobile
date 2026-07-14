@@ -4,6 +4,8 @@ import {
   PerpsCandlestickChartSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  PerpsPositionCardSelectorsIDs,
+  PerpsCompactOrderRowSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -133,7 +135,7 @@ class PerpsMarketDetailsView {
   }
 
   // Scroll view
-  get scrollView(): DetoxElement {
+  get scrollView(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
     );
@@ -234,7 +236,20 @@ class PerpsMarketDetailsView {
 
   // Actions
   async tapBackButton() {
-    await Gestures.waitAndTap(this.backButton);
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.backButton, {
+          elemDescription: 'Perps market details back',
+        });
+      },
+      appium: async () => {
+        const backEl = await asPlaywrightElement(this.backButton);
+        await PlaywrightGestures.waitAndTap(backEl, {
+          checkForDisplayed: true,
+          timeout: 15_000,
+        });
+      },
+    });
   }
 
   async tapLongButton() {
@@ -315,6 +330,83 @@ class PerpsMarketDetailsView {
     });
   }
 
+  /**
+   * Waits for a newly placed limit order to appear on market details (compact orders section).
+   * Perps navigates here immediately after Place order while the WebSocket feed catches up.
+   */
+  async expectCompactOpenOrderVisible(options: {
+    direction: 'long' | 'short';
+    timeout?: number;
+  }): Promise<void> {
+    const { direction, timeout = 60000 } = options;
+    const orderLabel = `Limit ${direction}`;
+    const firstRow = Matchers.getElementByID(
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
+    );
+    const scrollContainer = Matchers.scrollContainer(
+      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+    );
+
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Gestures.scrollToElement(
+            Matchers.getElementByText(orderLabel),
+            scrollContainer,
+            {
+              direction: 'down',
+              scrollAmount: 200,
+              timeout: 5000,
+              elemDescription: `Scroll to ${orderLabel} on market details`,
+            },
+          );
+        } catch {
+          // Order row may not be in the DOM yet.
+        }
+
+        try {
+          await Assertions.expectElementToBeVisible(firstRow, {
+            description: 'Compact open order row on market details',
+            timeout: 3000,
+          });
+          return;
+        } catch {
+          await Assertions.expectTextDisplayed(orderLabel, {
+            description: `${orderLabel} visible on market details`,
+            timeout: 3000,
+          });
+        }
+      },
+      { interval: 1000, timeout },
+    );
+  }
+
+  /** Asserts the compact open-order row for this limit direction is gone (e.g. after cancel or fill). */
+  async expectCompactOpenOrderNotVisible(options: {
+    direction: 'long' | 'short';
+    timeout?: number;
+  }): Promise<void> {
+    const { direction, timeout = 60000 } = options;
+    const orderLabel = `Limit ${direction}`;
+    const firstRow = Matchers.getElementByID(
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
+    );
+
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToNotBeVisible(firstRow, {
+          description: 'Compact open order row cleared from market details',
+          timeout: 3000,
+        });
+        await Assertions.expectTextNotDisplayed(orderLabel, {
+          description: `${orderLabel} cleared from market details`,
+          timeout: 3000,
+        });
+      },
+      { interval: 1000, timeout },
+    );
+  }
+
   // Verify that Orders tab has at least one open order card
   async expectOpenOrderVisible() {
     const openOrderCard = Matchers.getElementByID(
@@ -353,7 +445,7 @@ class PerpsMarketDetailsView {
   async expectClosePositionButtonVisible() {
     const closeBtn = Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-    ) as DetoxElement;
+    );
 
     for (let i = 0; i < 3; i++) {
       const visible = await Utilities.isElementVisible(closeBtn, 2000);
@@ -377,11 +469,81 @@ class PerpsMarketDetailsView {
   async expectClosePositionButtonNotVisible() {
     const closeBtn = Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-    ) as DetoxElement;
+    );
     await Assertions.expectElementToNotBeVisible(closeBtn, {
       description:
         'Close position button should not be visible when there is no open position on this market',
       timeout: 5000,
+    });
+  }
+
+  async tapFirstCompactOrderRow(): Promise<void> {
+    const firstOrderRow = Matchers.getElementByID(
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
+    );
+
+    await Gestures.scrollToElement(
+      firstOrderRow,
+      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      {
+        direction: 'down',
+        scrollAmount: 250,
+        elemDescription: 'Scroll market details to first open order row',
+      },
+    );
+
+    await Gestures.waitAndTap(firstOrderRow, {
+      elemDescription: 'Tap first compact open order row',
+      timeout: 15000,
+    });
+  }
+
+  async tapAutoCloseSection(): Promise<void> {
+    const autoCloseSection = Matchers.getElementByID(
+      PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE,
+    );
+    const scrollContainer = Matchers.scrollContainer(
+      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+    );
+
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.scrollToElement(autoCloseSection, scrollContainer, {
+          direction: 'down',
+          scrollAmount: 250,
+          elemDescription: 'Scroll market details to Auto close section',
+        });
+        await Gestures.waitAndTap(autoCloseSection, {
+          elemDescription: 'Tap Auto close section on position card',
+          checkStability: true,
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.scrollToElement(
+          autoCloseSection,
+          scrollContainer,
+          {
+            direction: 'down',
+            description: 'Scroll market details to Auto close section',
+          },
+        );
+
+        await UnifiedGestures.waitAndTap(autoCloseSection, {
+          description: 'Tap Auto close section on position card',
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+      },
+    });
+  }
+
+  async tapOpenOrderCancelButton(): Promise<void> {
+    const cancelButton = Matchers.getElementByID(
+      PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
+    );
+    await Gestures.waitAndTap(cancelButton, {
+      elemDescription: 'Cancel open order button',
+      timeout: 15000,
     });
   }
 

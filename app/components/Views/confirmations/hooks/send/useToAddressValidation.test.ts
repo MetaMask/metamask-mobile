@@ -170,6 +170,32 @@ describe('useToAddressValidation', () => {
     });
   });
 
+  it('validate non-checksummed mixed-case evm hex address as valid', async () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        name: 'Ethereum',
+        address: ETHEREUM_ADDRESS,
+        isNative: true,
+        chainId: '0x1',
+        symbol: 'ETH',
+        decimals: 18,
+      },
+      to: '0xcDCB11f5522eD63552016CA00E92d765Ee4C866d',
+      chainId: '0x1',
+    } as unknown as ReturnType<typeof useSendContext>);
+    const { result } = renderHookWithProvider(
+      () => useToAddressValidation(),
+      mockState,
+    );
+    await waitFor(() => {
+      expect(result.current.toAddressValidated).toBe(
+        '0xcDCB11f5522eD63552016CA00E92d765Ee4C866d',
+      );
+      expect(result.current.toAddressError).toBeUndefined();
+      expect(result.current.loading).toBe(false);
+    });
+  });
+
   it('validate valid solana address through validateSolanaAddress', async () => {
     mockUseSendContext.mockReturnValue({
       asset: SOLANA_ASSET,

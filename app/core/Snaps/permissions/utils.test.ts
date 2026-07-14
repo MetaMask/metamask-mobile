@@ -1,20 +1,20 @@
 import { Messenger, MOCK_ANY_NAMESPACE } from '@metamask/messenger';
 import { getMnemonicSeed } from './utils';
-import { KeyringControllerWithKeyringAction } from '@metamask/keyring-controller';
+import { KeyringControllerWithKeyringV2UnsafeAction } from '@metamask/keyring-controller';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
+import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
 import { hexToBytes } from '@metamask/utils';
-import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { mnemonicToSeed } from 'ethers/lib/utils';
-import { Keyring } from '@metamask/keyring-utils';
+import { Keyring } from '@metamask/keyring-api/v2';
 import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring as LedgerKeyringV2 } from '@metamask/eth-ledger-bridge-keyring/v2';
 
 const TEST_MNEMONIC =
   'test test test test test test test test test test test ball';
-const TEST_MNEMONIC_BYTES = mnemonicPhraseToBytes(TEST_MNEMONIC);
 const TEST_MNEMONIC_SEED = hexToBytes(mnemonicToSeed(TEST_MNEMONIC));
 
 /**
- * Setup the messenger and mock `KeyringController:withKeyring`.
+ * Setup the messenger and mock `KeyringController:withKeyringV2`.
  *
  * @param deserialize - Whether to deserialize the HD keyring state before returning.
  * @returns The messenger.
@@ -32,17 +32,23 @@ async function getMessenger(deserialize = true) {
   const ledgerKeyring = new LedgerKeyring({ bridge: {} });
 
   const keyrings: Record<string, Keyring> = {
-    main: hdKeyring,
-    ledger: ledgerKeyring,
+    main: new HdKeyringV2({
+      legacyKeyring: hdKeyring,
+      entropySource: 'mock-hd-keyring-id',
+    }),
+    ledger: new LedgerKeyringV2({
+      legacyKeyring: ledgerKeyring,
+      entropySource: 'mock-ledger-keyring-id',
+    }),
   };
 
   const messenger = new Messenger<
     string,
-    KeyringControllerWithKeyringAction,
+    KeyringControllerWithKeyringV2UnsafeAction,
     never
   >({ namespace: MOCK_ANY_NAMESPACE });
   messenger.registerActionHandler(
-    'KeyringController:withKeyring',
+    'KeyringController:withKeyringV2Unsafe',
     (selector, operation) => {
       if ('type' in selector) {
         const [id, keyring] = Object.entries(keyrings).filter(

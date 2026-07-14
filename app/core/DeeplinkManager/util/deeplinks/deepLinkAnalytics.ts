@@ -461,6 +461,7 @@ const routeExtractors: Record<
   (urlParams: UrlParamValues, sensitiveProps: Record<string, string>) => void
 > = {
   [DeepLinkRoute.SWAP]: extractSwapProperties,
+  [DeepLinkRoute.BATCH_SELL]: extractInvalidProperties,
   [DeepLinkRoute.PERPS]: extractPerpsProperties,
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
@@ -486,6 +487,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.SDK_CONNECT]: extractInvalidProperties,
   [DeepLinkRoute.SDK_MMSDK]: extractInvalidProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
+  [DeepLinkRoute.MONEY]: extractInvalidProperties,
 };
 
 /**
@@ -579,6 +581,8 @@ export const mapSupportedActionToRoute = (
   switch (action) {
     case ACTIONS.SWAP:
       return DeepLinkRoute.SWAP;
+    case ACTIONS.BATCH_SELL:
+      return DeepLinkRoute.BATCH_SELL;
     case ACTIONS.PERPS:
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
@@ -637,6 +641,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SDK_CONNECT;
     case ACTIONS.MMSDK:
       return DeepLinkRoute.SDK_MMSDK;
+    case ACTIONS.MONEY:
+      return DeepLinkRoute.MONEY;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -655,6 +661,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
     switch (route) {
       case 'swap':
         return DeepLinkRoute.SWAP;
+      case 'batch-sell':
+        return DeepLinkRoute.BATCH_SELL;
       case 'perps':
         return DeepLinkRoute.PERPS;
       case 'deposit':
@@ -699,6 +707,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.NFT;
       case 'agentic-cli':
         return DeepLinkRoute.AGENTIC_CLI;
+      case 'money':
+        return DeepLinkRoute.MONEY;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:

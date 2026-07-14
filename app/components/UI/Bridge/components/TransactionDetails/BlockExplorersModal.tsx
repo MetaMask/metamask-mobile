@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet, {
+  type BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { Box } from '../../../Box/Box';
@@ -24,6 +26,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { Transaction } from '@metamask/keyring-api';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -43,6 +47,8 @@ interface BlockExplorersModalRouteParams {
 
 const BlockExplorersModal = () => {
   const navigation = useNavigation();
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: BlockExplorersModalRouteParams }, 'params'>>();
   const { styles } = useStyles(styleSheet, {});
@@ -67,8 +73,34 @@ const BlockExplorersModal = () => {
     txHash: bridgeTxHistoryItem?.status.destChain?.txHash,
   });
 
+  const handleBlockExplorerPress = useCallback(
+    (url: string | undefined, text: string) => {
+      if (!url) {
+        return;
+      }
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'bridge_transaction_details',
+        text,
+        url,
+      });
+
+      // Dismiss the transparent modal stack before opening the in-app webview.
+      // Navigating while the modal is still presented leaves a touch-blocking
+      // overlay on top and freezes the app.
+      sheetRef.current?.onCloseBottomSheet(() => {
+        navigation.navigate(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url,
+          },
+        });
+      });
+    },
+    [trackEvent, createEventBuilder, navigation],
+  );
+
   return (
-    <BottomSheet>
+    <BottomSheet ref={sheetRef}>
       <BottomSheetHeader>
         {strings('bridge_transaction_details.view_on_block_explorer')}
       </BottomSheetHeader>
@@ -88,14 +120,12 @@ const BlockExplorersModal = () => {
           <Button
             variant={ButtonVariant.Secondary}
             isFullWidth
-            onPress={() => {
-              navigation.navigate(Routes.WEBVIEW.MAIN, {
-                screen: Routes.WEBVIEW.SIMPLE,
-                params: {
-                  url: srcExplorerData.explorerTxUrl,
-                },
-              });
-            }}
+            onPress={() =>
+              handleBlockExplorerPress(
+                srcExplorerData.explorerTxUrl,
+                srcExplorerData.explorerName ?? srcExplorerData.chainName ?? '',
+              )
+            }
           >
             <Box
               flexDirection={FlexDirection.Row}
@@ -118,14 +148,14 @@ const BlockExplorersModal = () => {
           <Button
             variant={ButtonVariant.Secondary}
             isFullWidth
-            onPress={() => {
-              navigation.navigate(Routes.WEBVIEW.MAIN, {
-                screen: Routes.WEBVIEW.SIMPLE,
-                params: {
-                  url: bridgeDestExplorerData.explorerTxUrl,
-                },
-              });
-            }}
+            onPress={() =>
+              handleBlockExplorerPress(
+                bridgeDestExplorerData.explorerTxUrl,
+                bridgeDestExplorerData.explorerName ??
+                  bridgeDestExplorerData.chainName ??
+                  '',
+              )
+            }
           >
             <Box
               flexDirection={FlexDirection.Row}

@@ -34,15 +34,6 @@ export const DEFAULT_RPC_ENDPOINT_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint: 'https://mainnet.era.zksync.io/',
-      responseCode: 200,
-      response: {
-        jsonrpc: '2.0',
-        id: 1,
-        result: '0x0',
-      },
-    },
-    {
       urlEndpoint: /^https:\/\/virtual\.mainnet\.rpc\.tenderly\.co\/.+$/,
       responseCode: 200,
       response: {

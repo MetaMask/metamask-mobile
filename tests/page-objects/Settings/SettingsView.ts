@@ -1,65 +1,67 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class SettingsView {
-  get title(): DetoxElement {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
   }
 
-  get generalSettingsButton(): DetoxElement {
+  get generalSettingsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }
 
-  get advancedButton(): DetoxElement {
+  get advancedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.ADVANCED);
   }
 
-  get contactsSettingsButton(): DetoxElement {
+  get contactsSettingsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS);
   }
 
-  get securityAndPrivacyButton(): DetoxElement {
+  get securityAndPrivacyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  get notificationsButton(): DetoxElement {
+  get notificationsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
   }
 
-  get aesCryptoTestForm(): DetoxElement {
+  get aesCryptoTestForm(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
     );
   }
 
-  get lockSettingsButton(): DetoxElement {
+  get lockSettingsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
   }
-  get contactSupportButton(): DetoxElement {
+  get contactSupportButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACT);
   }
 
-  get contactSupportSectionTitle(): DetoxElement {
+  get contactSupportSectionTitle(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
     );
   }
 
-  get backupAndSyncSectionButton(): DetoxElement {
+  get backupAndSyncSectionButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
-  get snapsSectionButton(): DetoxElement {
+  get snapsSectionButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SNAPS);
   }
 
-  get alertButton(): DetoxElement {
-    return device.getPlatform() === 'android'
+  get alertButton(): EncapsulatedElementType {
+    return PlatformDetector.isAndroid()
       ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
       : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
   }
@@ -154,8 +156,11 @@ class SettingsView {
   }
 
   async tapYesAlertButton(): Promise<void> {
-    await Gestures.tap(this.alertButton, {
+    await Gestures.waitAndTap(this.alertButton, {
       elemDescription: 'Settings - Alert Yes Button',
+      timeout: 30_000,
+      delay: 0,
+      checkEnabled: false,
     });
   }
 
@@ -194,7 +199,7 @@ class SettingsView {
     });
   }
 
-  get backButton(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACK_BUTTON);
   }
 

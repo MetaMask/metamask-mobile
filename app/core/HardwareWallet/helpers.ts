@@ -12,6 +12,8 @@ import { getDeviceId } from '../Ledger/Ledger';
 
 const LEDGER_DEVICE_ID_LOOKUP_TIMEOUT_MS = 5000;
 
+type NoEmptyAddress<T extends string> = T extends '' ? never : T;
+
 const createLedgerDeviceIdLookupTimeoutError = () =>
   new HardwareWalletError('Ledger device id lookup timed out', {
     code: ErrorCode.DeviceUnresponsive,
@@ -43,6 +45,11 @@ const withLedgerDeviceIdLookupTimeout = async <Result>(
     }
   });
 };
+
+const isLedgerDeviceIdLookupTimeoutError = (error: unknown): boolean =>
+  error instanceof HardwareWalletError &&
+  error.code === ErrorCode.DeviceUnresponsive &&
+  error.metadata?.errorName === 'LedgerDeviceIdLookupTimeoutError';
 
 /**
  * Helper to get wallet type display name
@@ -83,15 +90,25 @@ export function getHardwareWalletTypeForAddress(
  *
  * Some hardware wallets, like Ledger over BLE, require a persisted device id
  * to reconnect. Others, like QR signers, do not.
+ * @param address - The wallet address to get the device id for. It cannot be an empty string.
  */
 export async function getDeviceIdForAddress(
-  address: string,
+  address: NoEmptyAddress<string>, // !This value cannot be an empty string.
 ): Promise<string | undefined> {
   const walletType = getHardwareWalletTypeForAddress(address);
 
   switch (walletType) {
     case HardwareWalletType.Ledger:
-      return await withLedgerDeviceIdLookupTimeout(getDeviceId());
+      try {
+        return await withLedgerDeviceIdLookupTimeout(getDeviceId());
+      } catch (error) {
+        // On cold app start, keyring mutex contention can delay device-id lookup.
+        // Falling back to undefined lets the readiness flow recover via scan/connect.
+        if (isLedgerDeviceIdLookupTimeoutError(error)) {
+          return undefined;
+        }
+        throw error;
+      }
     default:
       return undefined;
   }

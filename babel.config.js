@@ -1,4 +1,8 @@
-const isTestEnv = process.env.NODE_ENV === 'test';
+// React Compiler plugin (incl. bailout logging and test-env gating) lives in its
+// own module so this config stays focused on wiring plugins together.
+// `reactCompilerPlugins` is empty under Jest and a single-element array otherwise.
+// eslint-disable-next-line import-x/no-commonjs
+const { reactCompilerBabelConfig } = require('./scripts/react-compiler');
 
 // Hermes (RN's bytecode compiler) does not accept dynamic `import()` syntax —
 // even inside dead code branches — and aborts with "Invalid expression
@@ -60,12 +64,15 @@ module.exports = {
         /\/expo\/virtual\/streams\.js$/.test(filename)),
   ],
   presets: ['babel-preset-expo'],
-  // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
   plugins: [
-    // Disabled under Jest (see isTestEnv note above) to avoid the jest.mock
-    // hoisting conflict with the compiler-injected `_c` helper.
-    ...(isTestEnv ? [] : ['react-compiler']),
-    'transform-inline-environment-variables',
+    ...reactCompilerBabelConfig,
+    // `JEST_WORKER_ID` must NOT be inlined: Metro runs Babel transforms inside
+    // `jest-worker` child processes, which set `JEST_WORKER_ID` in their env.
+    // Inlining it bakes a truthy value into the app bundle and defeats every
+    // `process.env.JEST_WORKER_ID` runtime guard (e.g. the xhr2-based test-only
+    // XMLHttpRequest shim), crashing the app. Excluding it keeps the lookup at
+    // runtime: undefined in the app, set under Jest.
+    ['transform-inline-environment-variables', { exclude: ['JEST_WORKER_ID'] }],
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
     // Required by reanimated v3 to compile `'worklet'` directives; without it,

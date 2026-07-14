@@ -304,18 +304,19 @@ describe('PerpsHomeSection', () => {
 
   describe('edge cases', () => {
     it('handles empty string title', () => {
-      const { queryByText } = render(
+      const { getByTestId } = render(
         <PerpsHomeSection
           title=""
           isLoading={false}
           isEmpty={false}
           renderSkeleton={mockSkeleton}
+          testID="empty-title-section"
         >
           {mockChildren}
         </PerpsHomeSection>,
       );
 
-      expect(queryByText('')).toBeTruthy();
+      expect(getByTestId('empty-title-section')).toBeTruthy();
     });
 
     it('handles complex children', () => {

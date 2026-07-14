@@ -26,10 +26,16 @@ export enum TokenDetailsSource {
   ExploreSearch = 'explore_search',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
+  /** Swap discovery feed — hot tokens / movers pills */
+  MoversSwaps = 'movers-swaps',
+  /** Swap discovery feed — stocks section */
+  RwasStocksSwaps = 'rwas_stocks-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */
   HomepageTrending = 'homepage-trending',
   /** Swap/Bridge token selector */
   Swap = 'swap',
+  /** Price alert notification deeplink */
+  PriceAlertNotification = 'price_alert_notification',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
@@ -81,3 +87,9 @@ export type TokenDetailsExitAction =
   | 'back_navigation'
   | 'cta_clicked'
   | 'app_backgrounded';
+
+/**
+ * Technical indicators that occupy a sub-pane below the main chart.
+ * Derived from `buildIndicatorLegendConfig` — no manual sync needed.
+ */
+export { SUB_PANE_INDICATORS } from '../../Charts/AdvancedChart/indicatorColors';

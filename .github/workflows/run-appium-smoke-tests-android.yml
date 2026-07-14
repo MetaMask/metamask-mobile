@@ -1,0 +1,197 @@
+# Appium Smoke Tests — Android
+#
+# Fans out one reusable job per Appium smoke tag. Add a matching job below.
+# Invoked from ci.yml when build-android-apks succeeds (PR + main).
+
+name: Appium Smoke Tests (Android)
+
+on:
+  workflow_call:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector (e.g. ["SmokeAccounts"] or ["ALL"])'
+        required: false
+        type: string
+        default: '["ALL"]'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+      selected_tags:
+        description: 'JSON array of tags from smart E2E selector'
+        required: false
+        type: string
+        default: '["ALL"]'
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  appium-accounts-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2, 3, 4]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-accounts-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeAccounts
+      split_number: ${{ matrix.split }}
+      total_splits: 4
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-perps-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokePerps'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-perps-android-smoke
+      platform: android
+      test_suite_tag: SmokePerps
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-predictions-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokePredictions'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2, 3]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-predictions-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokePredictions
+      split_number: ${{ matrix.split }}
+      total_splits: 3
+      test-timeout-minutes: 60
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-seedless-onboarding-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-seedless-onboarding-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokeSeedlessOnboarding
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      test-timeout-minutes: 60
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-network-abstractions-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-network-abstractions-android-smoke
+      platform: android
+      test_suite_tag: SmokeNetworkAbstractions
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
+
+  appium-wallet-platform-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform'))
+      }}
+    strategy:
+      matrix:
+        split: [1]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-wallet-platform-android-smoke
+      platform: android
+      test_suite_tag: SmokeWalletPlatform
+      split_number: ${{ matrix.split }}
+      total_splits: 1
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit

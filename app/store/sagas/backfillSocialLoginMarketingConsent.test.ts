@@ -1,5 +1,4 @@
 import { expectSaga } from 'redux-saga-test-plan';
-import { updateDataRecordingFlag } from '../../util/analytics/analyticsDataDeletion';
 import { backfillSocialLoginMarketingConsentSaga } from './backfillSocialLoginMarketingConsent';
 import initialRootState from '../../util/test/initial-root-state';
 import { setPendingSocialLoginMarketingConsentBackfill } from '../../actions/onboarding';
@@ -22,10 +21,6 @@ jest.mock('../../util/analytics/analytics', () => ({
     identify: jest.fn(),
     trackEvent: jest.fn(),
   },
-}));
-
-jest.mock('../../util/analytics/analyticsDataDeletion', () => ({
-  updateDataRecordingFlag: jest.fn(),
 }));
 
 jest.mock('../../util/Logger', () => ({
@@ -66,7 +61,6 @@ describe('backfillSocialLoginMarketingConsent', () => {
 
     expect(mockedIdentify).not.toHaveBeenCalled();
     expect(mockedTrackEvent).not.toHaveBeenCalled();
-    expect(updateDataRecordingFlag).not.toHaveBeenCalled();
     expect(mockedGetMarketingOptInStatus).not.toHaveBeenCalled();
   });
 
@@ -96,7 +90,6 @@ describe('backfillSocialLoginMarketingConsent', () => {
     });
     expect(mockedTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        saveDataRecording: true,
         properties: expect.objectContaining({
           has_marketing_consent: true,
           is_metrics_opted_in: true,
@@ -106,7 +99,6 @@ describe('backfillSocialLoginMarketingConsent', () => {
         }),
       }),
     );
-    expect(updateDataRecordingFlag).toHaveBeenCalledWith(true);
   });
 
   it('uses OAuth marketing status when Redux dataCollectionForMarketing is not true', async () => {
@@ -135,7 +127,6 @@ describe('backfillSocialLoginMarketingConsent', () => {
     });
     expect(mockedTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        saveDataRecording: true,
         properties: expect.objectContaining({
           has_marketing_consent: false,
           is_metrics_opted_in: true,
@@ -145,7 +136,6 @@ describe('backfillSocialLoginMarketingConsent', () => {
         }),
       }),
     );
-    expect(updateDataRecordingFlag).toHaveBeenCalledWith(true);
   });
 
   it('uses OAuth opt-in when it is true even if Redux marketing flag is false', async () => {
@@ -212,7 +202,6 @@ describe('backfillSocialLoginMarketingConsent', () => {
     );
     expect(mockedIdentify).not.toHaveBeenCalled();
     expect(mockedTrackEvent).not.toHaveBeenCalled();
-    expect(updateDataRecordingFlag).not.toHaveBeenCalled();
   });
 
   it('clears the marker when trackEvent throws', async () => {
@@ -241,7 +230,6 @@ describe('backfillSocialLoginMarketingConsent', () => {
     expect(mockedIdentify).toHaveBeenCalledWith({
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
     });
-    expect(updateDataRecordingFlag).not.toHaveBeenCalled();
   });
 
   it('persists fetched OAuth marketing consent before clearing the marker when analytics fails', async () => {

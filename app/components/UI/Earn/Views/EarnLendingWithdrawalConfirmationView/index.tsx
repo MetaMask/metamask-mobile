@@ -12,9 +12,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import Badge, {
   BadgeVariant,
@@ -485,7 +483,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   tooltip: {
                     title: strings('earn.withdrawal_time'),
                     content: strings('earn.tooltip_content.withdrawal_time'),
-                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
@@ -528,7 +525,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   tooltip: {
                     title: strings('earn.protocol'),
                     content: strings('earn.tooltip_content.protocol'),
-                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
@@ -631,7 +627,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                           </View>
                         </View>
                       ),
-                      size: TooltipSizes.Sm,
                     },
                   }}
                   value={{

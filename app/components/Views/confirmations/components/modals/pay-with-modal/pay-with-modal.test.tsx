@@ -36,6 +36,8 @@ import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredi
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 
 const mockAddTokens = jest.fn().mockResolvedValue(undefined);
+const mockRenderNoFeeTag = jest.fn(() => null);
+const mockEnsurePayToken = jest.fn().mockResolvedValue(undefined);
 const mockFindNetworkClientIdByChainId = jest
   .fn()
   .mockReturnValue('network-client-1');
@@ -52,6 +54,14 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
+  usePayWithNoFeeToken: () => ({
+    noFeeToken: undefined,
+    isNoFeeToken: () => false,
+    renderNoFeeTag: mockRenderNoFeeTag,
+    renderNoFeeTagForToken: () => null,
+  }),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
@@ -432,6 +442,61 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
+    it('does not render no-fee tags for withdrawal transactions', async () => {
+      const withdrawToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xWithdrawToken',
+        balance: '1',
+        balanceInSelectedCurrency: '$1.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        name: 'Withdraw Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'WITHDRAW',
+      } as AssetType;
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [withdrawToken]),
+      );
+
+      const { findByText } = render();
+
+      expect(await findByText('Withdraw Token')).toBeOnTheScreen();
+      expect(mockRenderNoFeeTag).not.toHaveBeenCalled();
+    });
+
+    it('renders no-fee tags for Money Account withdrawals', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.moneyAccountWithdraw,
+        nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const withdrawToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xWithdrawToken',
+        balance: '1',
+        balanceInSelectedCurrency: '$1.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        name: 'Withdraw Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'WITHDRAW',
+      } as AssetType;
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [withdrawToken]),
+      );
+
+      const { findByText } = render();
+
+      expect(await findByText('Withdraw Token')).toBeOnTheScreen();
+      expect(mockRenderNoFeeTag).toHaveBeenCalled();
+    });
+
     it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {
       const callOrder: string[] = [];
 
@@ -512,6 +577,42 @@ describe('PayWithModal', () => {
         ],
         'network-client-1',
       );
+    });
+  });
+
+  describe('no-fee tags by flow', () => {
+    const setFlow = (type: TransactionType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type,
+        nestedTransactions: [{ type }],
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    };
+
+    it('renders no-fee tags for Money Account deposits', async () => {
+      setFlow(TransactionType.moneyAccountDeposit);
+
+      const { findByText } = render();
+
+      expect(await findByText('TST1')).toBeOnTheScreen();
+      expect(mockRenderNoFeeTag).toHaveBeenCalled();
+    });
+
+    it.each([
+      ['perps deposit', TransactionType.perpsDepositAndOrder],
+      ['predict deposit', TransactionType.predictDepositAndOrder],
+    ])('does not render no-fee tags for %s', async (_label, type) => {
+      setFlow(type);
+
+      const { findByText } = render();
+
+      expect(await findByText('TST1')).toBeOnTheScreen();
+      expect(mockRenderNoFeeTag).not.toHaveBeenCalled();
     });
   });
 

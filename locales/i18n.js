@@ -49,6 +49,9 @@ export const I18nEvents = new EventEmitter();
 // Should the app fallback to English if user locale doesn't exists
 I18n.fallbacks = true;
 I18n.defaultLocale = 'en';
+// Restrict placeholders to just "{{ }}" syntax, to avoid errors with "%{{ }}" in Turkish
+// Default is `/(?:\{\{|%\{)(.*?)(?:\}\}?)/gm`, which supports "{{ }}" and "%{ }" syntax
+I18n.placeholder = /\{\{(.*?)\}\}/gm
 // Define the supported translations
 I18n.translations = supportedTranslations;
 // If language selected get locale

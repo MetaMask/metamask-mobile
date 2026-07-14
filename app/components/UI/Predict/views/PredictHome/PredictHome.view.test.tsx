@@ -21,7 +21,8 @@ import {
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
 import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderStacked';
-import { MOCK_PREDICT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
+import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
+import { PredictEventValues } from '../../constants/eventNames';
 
 const SEARCH_PLACEHOLDER = 'Search prediction markets';
 const PREDICTIONS_TITLE = 'Predictions';
@@ -47,11 +48,30 @@ describe('PredictHome', () => {
     (
       Engine.context.PredictController.getMarkets as jest.Mock
     ).mockResolvedValue({ markets: [], nextCursor: null });
-    // The Live Now section hides itself when there is no data, so it needs at
-    // least one live market to render for the composition/order assertion.
+    // Live Now hides when empty after load and only keeps scoreboard-capable
+    // markets (`game` present). The sport card also needs full team/league data
+    // once the carousel renders loaded cards (see MOCK_PREDICT_LIVE_SPORT_MARKET).
     (
       Engine.context.PredictController.listMarkets as jest.Mock
-    ).mockResolvedValue({ markets: [MOCK_PREDICT_MARKET], nextCursor: null });
+    ).mockResolvedValue({
+      markets: [MOCK_PREDICT_LIVE_SPORT_MARKET],
+      nextCursor: null,
+    });
+    (
+      Engine.context.PredictController.listFilterOptions as jest.Mock
+    ).mockResolvedValue([
+      {
+        id: 'elections',
+        label: 'Elections',
+        source: 'related-tags',
+        params: {
+          tagSlugs: ['elections'],
+          status: 'open',
+          order: 'volume24hr',
+          limit: 12,
+        },
+      },
+    ]);
     (
       Engine.context.PredictController.searchMarkets as jest.Mock
     ).mockResolvedValue({ markets: [], totalResults: 0 });
@@ -86,34 +106,25 @@ describe('PredictHome', () => {
 
   describe('shell composition', () => {
     it('renders the large "Predictions" title', async () => {
-      const { findByTestId } = renderPredictHomeView();
+      const { getByTestId } = renderPredictHomeView();
 
-      expect(
-        await findByTestId(PredictHomeSelectorsIDs.TITLE),
-      ).toHaveTextContent(PREDICTIONS_TITLE);
+      await waitFor(() => {
+        expect(getByTestId(PredictHomeSelectorsIDs.TITLE)).toHaveTextContent(
+          PREDICTIONS_TITLE,
+        );
+      });
     });
 
     it('composes the section placeholders in Figma order', async () => {
-      const { findByTestId, getByTestId } = renderPredictHomeView();
+      const { findByTestId } = renderPredictHomeView();
 
-      // Wait for the shell to mount.
+      // Wait for the shell and async sections (Live Now loads via React Query).
       await findByTestId(PredictHomeSelectorsIDs.CONTAINER);
-
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.PORTFOLIO_MODULE),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.CATEGORIES_SECTION),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION),
-      ).toBeOnTheScreen();
+      await findByTestId(PredictHomeSelectorsIDs.PORTFOLIO_MODULE);
+      await findByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.CATEGORIES_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
     });
   });
 
@@ -124,6 +135,87 @@ describe('PredictHome', () => {
       fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
 
       expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
+    });
+
+    it('tracks the search opened event when the user presses the search icon', async () => {
+      const { getByTestId } = renderPredictHomeView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(
+        Engine.context.PredictController.trackSearchInteracted,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ interactionType: 'opened' }),
+      );
+    });
+
+    it('does not attribute the opened event to predict_feed when no entry point was provided', async () => {
+      // The redesigned home is rendered without an `entryPoint` route param, so
+      // the event must not fall back to the legacy `predict_feed` surface.
+      const { getByTestId } = renderPredictHomeView();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      const trackSearchInteracted = Engine.context.PredictController
+        .trackSearchInteracted as jest.Mock;
+      const openedCall = trackSearchInteracted.mock.calls
+        .map(
+          ([args]) => args as { interactionType?: string; entryPoint?: string },
+        )
+        .find((args) => args.interactionType === 'opened');
+
+      expect(openedCall).toBeDefined();
+      expect(openedCall?.entryPoint).toBeUndefined();
+    });
+  });
+
+  describe('analytics', () => {
+    it('tracks the redesigned home viewed on focus', async () => {
+      // The shared Engine mock is not reset between tests in this suite, so
+      // clear this spy to assert this render fires exactly one home-viewed.
+      (
+        Engine.context.PredictController.trackHomeViewed as jest.Mock
+      ).mockClear();
+
+      renderPredictHomeView();
+
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.trackHomeViewed,
+        ).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('tracks a section-viewed impression once it dwells in the viewport', async () => {
+      const { findByTestId, getByTestId } = renderPredictHomeView();
+
+      // Establish the scroll viewport height.
+      const scrollView = getByTestId(PredictHomeSelectorsIDs.SCROLL_VIEW);
+      fireEvent(scrollView, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 800 } },
+      });
+
+      // Measure the Trending section fully within the viewport.
+      const trendingWrapper = await findByTestId(
+        PredictHomeSelectorsIDs.TRENDING_IMPRESSION,
+      );
+      fireEvent(trendingWrapper, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 100, width: 400, height: 300 } },
+      });
+
+      // After the dwell period the impression fires exactly once.
+      await waitFor(
+        () => {
+          expect(
+            Engine.context.PredictController.trackHomeSectionInteraction,
+          ).toHaveBeenCalledWith({
+            sectionId: PredictEventValues.SECTION_ID.TRENDING,
+            actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+            entryPoint: undefined,
+          });
+        },
+        { timeout: 2000 },
+      );
     });
   });
 

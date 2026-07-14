@@ -30,6 +30,7 @@ import {
   KEYRING_SNAP_REMOVAL_WARNING_CONTINUE,
   KEYRING_SNAP_REMOVAL_WARNING_TEXT_INPUT,
 } from '../../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning.constants';
+import { createMockRouteMessenger } from '../../../../../util/test/mock-route-messenger';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS_1,
@@ -202,26 +203,29 @@ const mockSnap = {
   ],
 };
 
+jest.mock('../../../../../core/SnapKeyring/utils/getAccountsBySnapId', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ADDRESS_1, MOCK_ADDRESS_2 } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    getAccountsBySnapId: jest
+      .fn()
+      .mockResolvedValue([
+        MOCK_ADDRESS_1.toLowerCase(),
+        MOCK_ADDRESS_2.toLowerCase(),
+      ]),
+  };
+});
+
 jest.mock('../../../../../core/Engine', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const { MOCK_ADDRESS_1, MOCK_ADDRESS_2 } = jest.requireActual(
     '../../../../../util/test/accountsControllerTestUtils',
   );
   return {
-    getSnapKeyring: jest.fn().mockReturnValue({
-      type: 'Snap Keyring',
-      getAccountsBySnapId: jest
-        .fn()
-        .mockReturnValue([
-          MOCK_ADDRESS_1.toLowerCase(),
-          MOCK_ADDRESS_2.toLowerCase(),
-        ]),
-    }),
     removeAccount: jest.fn(),
     context: {
-      SnapController: {
-        removeSnap: jest.fn(),
-      },
       KeyringController: {
         state: {
           keyrings: [
@@ -252,11 +256,16 @@ describe('SnapSettings with non keyring snap', () => {
   });
 
   it('renders correctly', () => {
+    const routeMessenger = createMockRouteMessenger({
+      'SnapController:removeSnap': jest.fn(),
+    });
+
     const { getAllByTestId, getByTestId } = renderWithProvider(
       <SnapSettings />,
       {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         state: initialState as any,
+        routeMessenger,
       },
     );
 
@@ -275,9 +284,14 @@ describe('SnapSettings with non keyring snap', () => {
   });
 
   it('calls navigation.goBack when header back button is pressed', () => {
+    const routeMessenger = createMockRouteMessenger({
+      'SnapController:removeSnap': jest.fn(),
+    });
+
     const { getByTestId } = renderWithProvider(<SnapSettings />, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: initialState as any,
+      routeMessenger,
     });
 
     fireEvent(getByTestId(SNAP_SETTINGS_BACK_BUTTON), 'onPress');
@@ -285,14 +299,22 @@ describe('SnapSettings with non keyring snap', () => {
   });
 
   it('remove snap and goes back when Remove button is pressed', async () => {
+    const routeMessenger = createMockRouteMessenger({
+      'SnapController:removeSnap': jest.fn(),
+    });
+
+    jest.spyOn(routeMessenger, 'call');
+
     const { getByTestId } = renderWithProvider(<SnapSettings />, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: initialState as any,
+      routeMessenger,
     });
 
     const removeButton = getByTestId(SNAP_SETTINGS_REMOVE_BUTTON);
     fireEvent(removeButton, 'onPress');
-    expect(Engine.context.SnapController.removeSnap).toHaveBeenCalledWith(
+    expect(routeMessenger.call).toHaveBeenCalledWith(
+      'SnapController:removeSnap',
       'npm:@chainsafe/filsnap',
     );
     await waitFor(() => {
@@ -407,9 +429,14 @@ describe('SnapSettings with keyring snap', () => {
   };
 
   it('renders KeyringSnapRemovalWarning when removing a keyring snap', async () => {
+    const routeMessenger = createMockRouteMessenger({
+      'SnapController:removeSnap': jest.fn(),
+    });
+
     const { getByTestId } = renderWithProvider(<SnapSettings />, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: initialStateWithKeyringSnap as any,
+      routeMessenger,
     });
 
     // Needed to allow for useEffect to run
@@ -423,10 +450,17 @@ describe('SnapSettings with keyring snap', () => {
     });
   });
 
-  it('calls Engine.context.SnapController and Engine.removeAccount when removing a keyring snap with accounts', async () => {
+  it('calls `SnapController:removeSnap` when removing a keyring snap with accounts', async () => {
+    const routeMessenger = createMockRouteMessenger({
+      'SnapController:removeSnap': jest.fn(),
+    });
+
+    jest.spyOn(routeMessenger, 'call');
+
     const { getByTestId } = renderWithProvider(<SnapSettings />, {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       state: initialStateWithKeyringSnap as any,
+      routeMessenger,
     });
 
     // Needed to allow for useEffect to run
@@ -456,7 +490,8 @@ describe('SnapSettings with keyring snap', () => {
 
     // Step 5: Verify that the removal functions are called
     await waitFor(() => {
-      expect(Engine.context.SnapController.removeSnap).toHaveBeenCalledWith(
+      expect(routeMessenger.call).toHaveBeenCalledWith(
+        'SnapController:removeSnap',
         mockKeyringSnapId,
       );
       expect(Engine.removeAccount).toHaveBeenCalledTimes(2);

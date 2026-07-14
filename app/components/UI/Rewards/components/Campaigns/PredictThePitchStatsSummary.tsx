@@ -31,6 +31,7 @@ export const PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS = {
   ROI: 'predict-the-pitch-stats-summary-roi',
   TOTAL_VOLUME: 'predict-the-pitch-stats-summary-total-volume',
   PNL: 'predict-the-pitch-stats-summary-pnl',
+  MARKETS_TRADED: 'predict-the-pitch-stats-summary-markets-traded',
   PENDING_TAG: 'predict-the-pitch-stats-summary-pending-tag',
   QUALIFIED_TAG: 'predict-the-pitch-stats-summary-qualified-tag',
   STATS_ERROR: 'predict-the-pitch-stats-summary-error',
@@ -92,6 +93,17 @@ const PredictThePitchStatsSummary: React.FC<
     leaderboardPosition != null && !leaderboardPosition.eligible;
   const isQualified =
     leaderboardPosition != null && leaderboardPosition.eligible;
+
+  const marketsTraded = leaderboardPosition?.marketsTraded ?? null;
+  const minimumMarketsTraded =
+    leaderboardPosition?.minimumMarketsTraded ?? null;
+  const showMarketsTraded =
+    marketsTraded != null && minimumMarketsTraded != null;
+  const marketsDisplay = showMarketsTraded
+    ? marketsTraded < minimumMarketsTraded
+      ? `${marketsTraded}/${minimumMarketsTraded}`
+      : String(marketsTraded)
+    : '';
 
   const rankDisplay = rank != null ? String(rank).padStart(2, '0') : '-';
   const roiDisplay = roi != null ? formatPercentChange(roi) : '-';
@@ -165,6 +177,18 @@ const PredictThePitchStatsSummary: React.FC<
           testID={PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS.PNL}
         />
       </Box>
+      {showMarketsTraded && (
+        <Box flexDirection={BoxFlexDirection.Row}>
+          <StatCell
+            label={strings(
+              'rewards.predict_the_pitch_campaign.label_markets_traded',
+            )}
+            value={marketsDisplay}
+            isLoading={showSkeleton}
+            testID={PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS.MARKETS_TRADED}
+          />
+        </Box>
+      )}
 
       {leaderboardPosition?.computedAt && (
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>

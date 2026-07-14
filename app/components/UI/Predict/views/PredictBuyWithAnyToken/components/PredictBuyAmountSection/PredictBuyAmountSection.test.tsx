@@ -43,7 +43,7 @@ jest.mock('../../../../components/PredictAmountDisplay', () => {
 });
 
 jest.mock(
-  '../../../../../../../component-library/components/Skeleton/Skeleton',
+  '../../../../../../../component-library/components-temp/Skeleton/Skeleton',
   () => {
     const { View: RNView } = jest.requireActual('react-native');
     return function MockSkeleton(props: Record<string, unknown>) {

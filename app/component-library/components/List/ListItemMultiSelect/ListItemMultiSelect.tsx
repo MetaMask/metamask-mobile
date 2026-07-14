@@ -17,6 +17,11 @@ import styleSheet from './ListItemMultiSelect.styles';
 import { ListItemMultiSelectProps } from './ListItemMultiSelect.types';
 import { DEFAULT_LISTITEMMULTISELECT_GAP } from './ListItemMultiSelect.constants';
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future release.
+ * Please use the ListItemMultiSelect component from @metamask/design-system-react-native instead.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/ListItemMultiSelect | Component Source}
+ */
 const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   style,
   isSelected = false,

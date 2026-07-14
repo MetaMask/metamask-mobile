@@ -215,7 +215,7 @@ describe('LedgerSelectAccount', () => {
       mockEnsureDeviceReady.mockReturnValue(new Promise(() => undefined));
       const { queryByText } = renderWithProvider(<LedgerSelectAccount />);
 
-      expect(queryByText('Looking for device')).toBeOnTheScreen();
+      expect(queryByText('Looking for your device')).toBeOnTheScreen();
     });
 
     it('sets target wallet type to Ledger on mount', async () => {
@@ -660,6 +660,44 @@ describe('LedgerSelectAccount', () => {
       });
 
       expect(mockAccountsController.setAccountName).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('HD Path Defaulting', () => {
+    it.each([LEDGER_BIP44_PATH, LEDGER_LEGACY_PATH])(
+      'always sets HD path to Ledger Live on mount regardless of previously stored path (%s)',
+      async (previousPath) => {
+        mockGetHDPath.mockResolvedValue(previousPath);
+        mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
+
+        renderWithProvider(<LedgerSelectAccount />);
+
+        await waitFor(() => {
+          expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_LIVE_PATH);
+        });
+      },
+    );
+
+    it('sets HD path to Ledger Live before fetching accounts', async () => {
+      const callOrder: string[] = [];
+      mockSetHDPath.mockImplementation(async () => {
+        callOrder.push('setHDPath');
+      });
+      mockGetLedgerAccountsByOperation.mockImplementation(async () => {
+        callOrder.push('getLedgerAccountsByOperation');
+        return mockAccounts;
+      });
+
+      renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(callOrder).toContain('setHDPath');
+        expect(callOrder).toContain('getLedgerAccountsByOperation');
+      });
+
+      expect(callOrder.indexOf('setHDPath')).toBeLessThan(
+        callOrder.indexOf('getLedgerAccountsByOperation'),
+      );
     });
   });
 

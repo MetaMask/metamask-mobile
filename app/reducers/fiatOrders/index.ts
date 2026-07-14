@@ -5,7 +5,7 @@ import type {
   DepositRegion,
   DepositCryptoCurrency,
   DepositPaymentMethod,
-} from '@consensys/native-ramps-sdk';
+} from '../../components/UI/Ramp/types/legacyDeposit';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../selectors/networkController';
@@ -25,7 +25,6 @@ import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
 
 export type { FiatOrder } from './types';
-export { UnifiedRampRoutingType } from './types';
 
 /** Action Creators */
 
@@ -134,13 +133,6 @@ export const setFiatSellTxHash = (orderId: string, txHash: string) => ({
 export const removeFiatSellTxHash = (orderId: string) => ({
   type: ACTIONS.FIAT_REMOVE_SELL_TX_HASH,
   payload: orderId,
-});
-
-export const setRampRoutingDecision = (
-  routingDecision: FiatOrdersState['rampRoutingDecision'],
-) => ({
-  type: ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION,
-  payload: routingDecision,
 });
 
 export const setHasAgreedTransakNativePolicy = (hasAgreed: boolean) => ({
@@ -334,11 +326,6 @@ export const getDetectedGeolocation: (
   return location === 'UNKNOWN' || !location ? undefined : location;
 };
 
-export const getRampRoutingDecision: (
-  state: RootState,
-) => FiatOrdersState['rampRoutingDecision'] = (state: RootState) =>
-  state.fiatOrders.rampRoutingDecision;
-
 export const initialState: FiatOrdersState = {
   orders: [],
   customOrderIds: [],
@@ -354,7 +341,6 @@ export const initialState: FiatOrdersState = {
   hasAgreedTransakNativePolicy: false,
   authenticationUrls: [],
   activationKeys: [],
-  rampRoutingDecision: null,
 };
 
 const findOrderIndex = (
@@ -641,12 +627,6 @@ const fiatOrderReducer: (
           },
           ...orders.slice(index + 1),
         ],
-      };
-    }
-    case ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION: {
-      return {
-        ...state,
-        rampRoutingDecision: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY: {

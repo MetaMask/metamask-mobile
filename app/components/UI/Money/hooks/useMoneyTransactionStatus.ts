@@ -7,7 +7,10 @@ import {
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import { useEffect, useRef } from 'react';
+import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
+import EngineService from '../../../../core/EngineService';
+import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
@@ -34,8 +37,14 @@ import { TELLER_ABI } from '../utils/moneyAccountTransactions';
 import {
   isMoneyAccountTx,
   isMoneyDepositTx,
+  isPerpsPredictMoneyActivity,
+  isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
   nestedTxWithType,
+  perpsPredictServiceFamily,
+  resolveMoneyDepositIntent,
 } from '../utils/moneyTransactionGuards';
+import { shouldShowMoneyFirstTimeDepositAnimation } from '../utils/firstTimeDeposit';
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
@@ -145,13 +154,55 @@ export function formatMusdAmountForToast(amountWei: bigint): string {
   return moneyFormatFiat(musdDecimal.times(rate), currentCurrency);
 }
 
+function formatMetamaskPayFiat(value: unknown): string | undefined {
+  const fiat = Number(value);
+  if (Number.isNaN(fiat) || fiat <= 0) return undefined;
+  return moneyFormatFiat(
+    new BigNumber(fiat),
+    selectCurrentCurrency(store.getState()),
+  );
+}
+
+function navigateToMoneyTransactionDetails(transactionId: string) {
+  NavigationService.navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+    transactionId,
+  });
+}
+
 const IN_PROGRESS_KEY = 'in-progress';
 const FAILED_KEY = 'failed';
 const CONFIRMED_KEY = 'confirmed';
 export const IN_PROGRESS_DELAY_MS = 1500;
 
+// Reads the freshest copy of a transaction from controller state. The deferred
+// in-progress toast derives deposit intent from `metamaskPay`, which can be
+// populated after the `approved` event that scheduled the toast without another
+// status change re-delivering the meta — so the captured snapshot is unsafe for
+// derivation.
+function latestTransactionMeta(
+  transactionId: string,
+): TransactionMeta | undefined {
+  return Engine.context.TransactionController.state.transactions.find(
+    (tx) => tx.id === transactionId,
+  );
+}
+
+// Activity rows render transaction status from the Redux copy of
+// TransactionController state, which trails these messenger events behind
+// EngineService's update batcher; under a busy JS thread the rows visibly lag
+// the toasts. Flushing here makes rows update in the same frame as the toast.
+function flushActivityState(transactionMeta: TransactionMeta) {
+  if (
+    !isMoneyAccountTx(transactionMeta) &&
+    !isPerpsPredictMoneyActivity(transactionMeta)
+  ) {
+    return;
+  }
+  EngineService.flushState();
+}
+
 export const useMoneyTransactionStatus = () => {
-  const { showToast, MoneyToastOptions } = useMoneyToasts();
+  const { showToast, closeToast, MoneyToastOptions } = useMoneyToasts();
   const shownToastsRef = useRef<Set<string>>(new Set());
   const pendingInProgressRef = useRef<
     Map<string, ReturnType<typeof setTimeout>>
@@ -188,15 +239,28 @@ export const useMoneyTransactionStatus = () => {
       return toastKey;
     };
 
+    // Prefer the intent captured when the deposit was initiated; fall back to
+    // deriving it from the transaction's own payment data when it's missing.
+    const resolveDepositIntent = (transactionMeta: TransactionMeta) =>
+      getMoneyAccountDepositIntent(transactionMeta.batchId) ??
+      resolveMoneyDepositIntent(transactionMeta);
+
     const showInProgressFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       if (!reserveToastKey(transactionMeta.id, IN_PROGRESS_KEY)) return;
       if (pendingInProgress.has(transactionMeta.id)) return;
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
       const timeoutId = setTimeout(() => {
         pendingInProgress.delete(transactionMeta.id);
-        if (isMoneyDepositTx(transactionMeta)) {
-          const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-          showToast(MoneyToastOptions.deposit.inProgress({ intent }));
+        if (isSend) {
+          showToast(MoneyToastOptions.send.inProgress({ onPress }));
+        } else if (isMoneyDepositTx(transactionMeta)) {
+          const freshMeta =
+            latestTransactionMeta(transactionMeta.id) ?? transactionMeta;
+          const intent = resolveDepositIntent(freshMeta);
+          showToast(MoneyToastOptions.deposit.inProgress({ intent, onPress }));
         } else {
           showToast(MoneyToastOptions.withdraw.inProgress());
         }
@@ -205,12 +269,17 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showFailedFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
-      if (isMoneyDepositTx(transactionMeta)) {
-        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-        showToast(MoneyToastOptions.deposit.failed({ intent }));
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
+      if (isSend) {
+        showToast(MoneyToastOptions.send.failed({ onPress }));
+      } else if (isMoneyDepositTx(transactionMeta)) {
+        const intent = resolveDepositIntent(transactionMeta);
+        showToast(MoneyToastOptions.deposit.failed({ intent, onPress }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());
@@ -219,9 +288,52 @@ export const useMoneyTransactionStatus = () => {
     };
 
     const showConfirmedFor = (transactionMeta: TransactionMeta) => {
-      if (!isMoneyAccountTx(transactionMeta)) return;
+      const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
+      const isReceive = isPerpsPredictMoneyWithdraw(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
+      // The in-progress toast has no timeout and is normally dismissed by the
+      // final toast replacing it. It has actually been displayed only if its
+      // key was reserved and its deferral timer already fired.
+      const inProgressToastDisplayed =
+        shownToastsRef.current.has(
+          `${transactionMeta.id}-${IN_PROGRESS_KEY}`,
+        ) && !pendingInProgress.has(transactionMeta.id);
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
+      const onPress = () =>
+        navigateToMoneyTransactionDetails(transactionMeta.id);
+
+      if (isSend) {
+        const amountFiat = formatMetamaskPayFiat(
+          transactionMeta.metamaskPay?.targetFiat,
+        );
+        const family = perpsPredictServiceFamily(transactionMeta);
+        const destination = strings(
+          family === 'predict'
+            ? 'money.toasts.send_destination_predict'
+            : 'money.toasts.send_destination_perps',
+        );
+        showToast(
+          MoneyToastOptions.send.success({ amountFiat, destination, onPress }),
+        );
+        scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
+        return;
+      }
+
+      if (isReceive) {
+        const amountFiat = formatMetamaskPayFiat(
+          transactionMeta.metamaskPay?.targetFiat,
+        );
+        showToast(
+          MoneyToastOptions.deposit.success({
+            amountFiat,
+            intent: 'addMusd',
+            onPress,
+          }),
+        );
+        scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
+        return;
+      }
 
       const depositNested = nestedTxWithType(
         transactionMeta,
@@ -245,8 +357,24 @@ export const useMoneyTransactionStatus = () => {
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
-        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
-        showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
+        // A first deposit is confirmed by the full-page animation takeover
+        // instead of a toast, so the lingering in-progress toast must be
+        // closed explicitly rather than replaced by the success toast.
+        if (
+          shouldShowMoneyFirstTimeDepositAnimation(
+            store.getState(),
+            transactionMeta,
+          )
+        ) {
+          if (inProgressToastDisplayed) {
+            closeToast();
+          }
+        } else {
+          const intent = resolveDepositIntent(transactionMeta);
+          showToast(
+            MoneyToastOptions.deposit.success({ amountFiat, intent, onPress }),
+          );
+        }
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         const destination =
@@ -264,6 +392,7 @@ export const useMoneyTransactionStatus = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
+      flushActivityState(transactionMeta);
       switch (transactionMeta.status) {
         case TransactionStatus.approved:
           showInProgressFor(transactionMeta);
@@ -286,6 +415,7 @@ export const useMoneyTransactionStatus = () => {
 
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
       if (transactionMeta.status !== TransactionStatus.confirmed) return;
+      flushActivityState(transactionMeta);
       showConfirmedFor(transactionMeta);
     };
 
@@ -312,5 +442,11 @@ export const useMoneyTransactionStatus = () => {
       pendingCleanups.forEach((timeoutId) => clearTimeout(timeoutId));
       pendingCleanups.clear();
     };
-  }, [MoneyToastOptions.deposit, MoneyToastOptions.withdraw, showToast]);
+  }, [
+    MoneyToastOptions.deposit,
+    MoneyToastOptions.withdraw,
+    MoneyToastOptions.send,
+    showToast,
+    closeToast,
+  ]);
 };

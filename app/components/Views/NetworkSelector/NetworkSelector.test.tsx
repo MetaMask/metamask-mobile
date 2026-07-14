@@ -1,6 +1,6 @@
 // Third party dependencies
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { fireEvent, waitFor, screen } from '@testing-library/react-native';
 
 // External dependencies
@@ -308,7 +308,7 @@ const initialState = {
   },
 };
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const createMockRoute = () => ({
   params: {},
@@ -730,6 +730,61 @@ describe('Network Selector', () => {
       const mainnetCell = getByText('Ethereum Mainnet');
       expect(mainnetCell).toBeTruthy();
       expect(mainnetRpcUrl).toBeTruthy();
+    });
+  });
+
+  describe('renderRpcNetworks - delete guard for non-removable networks', () => {
+    const MENU_BUTTON_TEST_ID = 'button-menu-select-test-id';
+    const MONAD_MAINNET_CHAIN_ID = '0x8f';
+
+    const stateWithOnlyMonadMainnet = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {
+              mainnet: { status: 'available', EIPS: { '1559': true } },
+            },
+            networkConfigurationsByChainId: {
+              '0x1':
+                initialState.engine.backgroundState.NetworkController
+                  .networkConfigurationsByChainId['0x1'],
+              [MONAD_MAINNET_CHAIN_ID]: {
+                blockExplorerUrls: ['https://monadscan.com'],
+                chainId: MONAD_MAINNET_CHAIN_ID,
+                defaultRpcEndpointIndex: 0,
+                name: 'Monad Mainnet',
+                nativeCurrency: 'MON',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'monad-mainnet',
+                    type: 'infura' as const,
+                    url: 'https://monad-mainnet.infura.io/v3/test',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    it('does not show delete option when 3-dot menu is opened for Monad mainnet', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const { getAllByTestId, queryByTestId } = renderComponent(
+        stateWithOnlyMonadMainnet,
+      );
+
+      const menuButtons = getAllByTestId(MENU_BUTTON_TEST_ID);
+      fireEvent.press(menuButtons[2]);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(NetworkListModalSelectorsIDs.DELETE_NETWORK),
+        ).toBeNull();
+      });
     });
   });
 

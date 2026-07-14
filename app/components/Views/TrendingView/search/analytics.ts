@@ -83,7 +83,8 @@ export type ExploreSectionName =
   | 'sites_recents'
   | 'sites_favorites'
   | 'sites_ecosystems'
-  | 'sites_popular';
+  | 'sites_popular'
+  | 'whats_happening';
 
 export interface ExploreInteractedProperties {
   interaction_type:
@@ -91,7 +92,7 @@ export interface ExploreInteractedProperties {
     | 'section_see_all_tapped'
     | 'section_item_tapped'
     | 'prediction_voted';
-  tab_name: ExploreTabName;
+  tab_name?: ExploreTabName;
   section_name?: ExploreSectionName;
   position?: number;
   asset_type?: 'token' | 'stock' | 'perp' | 'prediction' | 'dapp';
@@ -100,6 +101,8 @@ export interface ExploreInteractedProperties {
   token_symbol?: string;
   chain_id?: string;
   item_clicked?: string;
+  /** Entry surface when the user arrived on Explore (e.g. `homescreen_pill`). */
+  source?: string;
 }
 
 export const trackExploreInteracted = (

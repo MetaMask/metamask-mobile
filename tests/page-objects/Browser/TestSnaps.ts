@@ -20,74 +20,74 @@ import { IndexableWebElement } from 'detox/detox';
 import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
-import { RetryOptions } from '../../framework';
+import { RetryOptions, EncapsulatedElementType } from '../../framework';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.4.2/';
+  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
 
 class TestSnaps {
-  get getConnectSnapButton(): DetoxElement {
+  get getConnectSnapButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
   }
 
-  get getApproveSnapPermissionsRequestButton(): DetoxElement {
+  get getApproveSnapPermissionsRequestButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
   }
 
-  get getConnectSnapInstallOkButton(): DetoxElement {
+  get getConnectSnapInstallOkButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SNAP_INSTALL_OK);
   }
 
-  get getApproveSignRequestButton(): DetoxElement {
+  get getApproveSignRequestButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
     );
   }
 
-  get confirmSignatureButton(): DetoxElement {
+  get confirmSignatureButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
     );
   }
 
-  get solanaConfirmButton(): DetoxElement {
+  get solanaConfirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       'confirm-sign-message-confirm-snap-footer-button',
     );
   }
 
-  get footerButton(): DetoxElement {
+  get footerButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
     );
   }
 
-  get checkboxElement(): DetoxElement {
+  get checkboxElement(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-ui-renderer__checkbox');
   }
 
-  get dateTimePickerTouchable(): DetoxElement {
+  get dateTimePickerTouchable(): EncapsulatedElementType {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--datetime-touchable',
     );
   }
 
-  get datePickerTouchable(): DetoxElement {
+  get datePickerTouchable(): EncapsulatedElementType {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--date-touchable',
     );
   }
 
-  get timePickerTouchable(): DetoxElement {
+  get timePickerTouchable(): EncapsulatedElementType {
     return Matchers.getElementByID(
       'snap-ui-renderer__date-time-picker--time-touchable',
     );
   }
 
-  get dateTimePickerOkButton(): DetoxElement {
+  get dateTimePickerOkButton(): EncapsulatedElementType {
     return Matchers.getElementByText('OK');
   }
 
@@ -433,7 +433,7 @@ class TestSnaps {
     const webElement = Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestSnapInputSelectorWebIDS[locator],
-    ) as Promise<IndexableWebElement>;
+    ) as unknown as Promise<IndexableWebElement>;
     // New gestures currently don't support web elements
     await Gestures.typeInWebElement(webElement, message);
   }
@@ -468,9 +468,12 @@ class TestSnaps {
       timeout: 15_000,
     });
     await this.blurActiveWebViewInput();
+    await Utilities.waitForElementToStopMoving(this.confirmSignatureButton, {
+      stableCount: 2,
+      timeout: 5_000,
+    });
     await Gestures.tap(this.confirmSignatureButton, {
       elemDescription: 'confirm snap signature',
-      checkStability: true,
     });
   }
 

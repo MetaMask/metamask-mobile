@@ -283,10 +283,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   }, [currentSeriesMarkets, market.series, selectedMarket]);
   const isSelectedMarketLive = liveMarketForChart.id === selectedMarket.id;
 
-  const {
-    openOutcomes: selectedOpenOutcomes,
-    yesPercentage: selectedYesPercentage,
-  } = useOpenOutcomes({
+  const { openOutcomes: selectedOpenOutcomes } = useOpenOutcomes({
     market: selectedMarket,
   });
   const canClaim = Boolean(onClaimPress && hasPositivePnl);
@@ -646,7 +643,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             isMarketLoading={isMarketLoading}
             market={selectedMarket}
             openOutcomes={selectedOpenOutcomes}
-            yesPercentage={selectedYesPercentage}
             onClaimPress={onClaimPress ?? NOOP}
             onBuyPress={handleBuyPress}
             isClaimPending={isClaimPending}
