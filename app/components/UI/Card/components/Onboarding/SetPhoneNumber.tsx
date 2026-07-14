@@ -364,20 +364,26 @@ const SetPhoneNumber = () => {
       >
         {strings('card.card_onboarding.continue_button')}
       </Button>
-      <Text
-        variant={TextVariant.BodySm}
-        testID="set-phone-number-legal-terms"
-        twClassName="text-text-alternative text-center"
-      >
-        {strings('card.card_onboarding.set_phone_number.legal_terms')}
-      </Text>
+      {!isImmersve ? (
+        <Text
+          variant={TextVariant.BodySm}
+          testID="set-phone-number-legal-terms"
+          twClassName="text-text-alternative text-center"
+        >
+          {strings('card.card_onboarding.set_phone_number.legal_terms')}
+        </Text>
+      ) : null}
     </Box>
   );
 
   return (
     <OnboardingStep
       title={strings('card.card_onboarding.set_phone_number.title')}
-      description={strings('card.card_onboarding.set_phone_number.description')}
+      description={
+        isImmersve
+          ? undefined
+          : strings('card.card_onboarding.set_phone_number.description')
+      }
       formFields={renderFormFields()}
       actions={renderActions()}
       stickyActions
