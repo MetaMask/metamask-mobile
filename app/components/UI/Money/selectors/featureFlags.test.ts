@@ -912,8 +912,8 @@ describe('selectMoneyNoFeeDepositTokens', () => {
     expect(result['0x38']).toEqual(
       expect.arrayContaining(['USDC', 'aUSDC', 'aUSDT', 'USDT']),
     );
-    expect(result['0xe708']).toEqual(['MUSD']);
-    expect(result['0x8f']).toEqual(['USDC', 'MUSD']);
+    expect(result['0xe708']).toEqual(['mUSD']);
+    expect(result['0x8f']).toEqual(['mUSD', 'USDC']);
   });
 
   it('lists Monad mUSD even though no route emits a Monad mUSD -> Monad mUSD deposit', () => {
@@ -923,7 +923,7 @@ describe('selectMoneyNoFeeDepositTokens', () => {
 
     const result = selectMoneyNoFeeDepositTokens(state as never);
 
-    expect(result['0x8f']).toContain('MUSD');
+    expect(result['0x8f']).toContain('mUSD');
   });
 
   it('deduplicates symbols within a chain', () => {

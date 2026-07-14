@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useMemo } from 'react';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
+import { Image, type ImageSource } from 'expo-image';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import {
   Box,
@@ -80,7 +81,7 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
         >
           {chip.imageSource ? (
             <Image
-              source={chip.imageSource}
+              source={chip.imageSource as unknown as ImageSource}
               style={tw.style('size-4 rounded')}
             />
           ) : null}
