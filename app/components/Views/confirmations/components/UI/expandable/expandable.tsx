@@ -60,7 +60,13 @@ const Expandable = ({
         {collapsedContent}
       </TouchableOpacity>
       {expanded && (
-        <Modal visible transparent animationType="none">
+        <Modal
+          visible
+          transparent
+          animationType="none"
+          presentationStyle="overFullScreen"
+          onRequestClose={handleClose}
+        >
           <BottomSheet
             ref={bottomSheetRef}
             onClose={handleSheetClosed}
