@@ -174,6 +174,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: {
           mm_pay_payment_method_available: ['crypto'],
+          mm_pay_payment_token_list_size: 5,
         },
         sensitiveProperties: {},
       },
@@ -578,6 +579,7 @@ describe('useTransactionPayMetrics', () => {
         params: {
           properties: expect.objectContaining({
             mm_pay_payment_method_available: [],
+            mm_pay_payment_token_list_size: 0,
           }),
           sensitiveProperties: {},
         },
@@ -658,6 +660,7 @@ describe('useTransactionPayMetrics', () => {
           properties: expect.objectContaining({
             mm_pay_payment_method_available: ['rev_pay'],
             mm_pay_payment_method_presented: 'rev_pay',
+            mm_pay_payment_token_list_size: 0,
           }),
           sensitiveProperties: {},
         },
