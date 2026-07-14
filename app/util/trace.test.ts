@@ -7,6 +7,8 @@ import { Scope, type Span, withIsolationScope } from '@sentry/core';
 import {
   endTrace,
   trace,
+  annotateTrace,
+  getTraceContext,
   TraceName,
   TRACES_CLEANUP_INTERVAL,
   flushBufferedTraces,
@@ -276,6 +278,59 @@ describe('Trace', () => {
         dateNowSpy.mockRestore();
         endTrace({ name: NAME_MOCK, id: ID_MOCK });
       }
+    });
+  });
+
+  describe('annotateTrace', () => {
+    it('sets attributes on the provided span context', () => {
+      const setAttributeMock = jest.fn();
+      const spanMock = {
+        setAttribute: setAttributeMock,
+      } as unknown as Span;
+
+      annotateTrace(spanMock, {
+        'onboarding.method': 'social',
+        account_type: 'imported_telegram',
+      });
+
+      expect(setAttributeMock).toHaveBeenCalledWith(
+        'onboarding.method',
+        'social',
+      );
+      expect(setAttributeMock).toHaveBeenCalledWith(
+        'account_type',
+        'imported_telegram',
+      );
+    });
+
+    it('no-ops when context is undefined', () => {
+      expect(() =>
+        annotateTrace(undefined, { 'onboarding.method': 'srp' }),
+      ).not.toThrow();
+    });
+  });
+
+  describe('getTraceContext', () => {
+    it('returns the pending span for an open manual trace', () => {
+      updateCachedConsent(true);
+
+      const spanEndMock = jest.fn();
+      const spanMock = { end: spanEndMock } as unknown as Span;
+
+      startSpanManualMock.mockImplementationOnce((_, fn) =>
+        fn(spanMock, () => {
+          // Intentionally empty
+        }),
+      );
+
+      trace({ name: NAME_MOCK });
+
+      expect(getTraceContext({ name: NAME_MOCK })).toBe(spanMock);
+      endTrace({ name: NAME_MOCK });
+    });
+
+    it('returns undefined when no pending trace matches', () => {
+      expect(getTraceContext({ name: NAME_MOCK })).toBeUndefined();
     });
   });
 

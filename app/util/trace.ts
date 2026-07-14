@@ -490,6 +490,36 @@ function finishPendingTrace(
  *
  * @param request - The data necessary to identify and end the pending trace.
  */
+/**
+ * Return the in-flight span for a pending manual trace, if any.
+ * Used to nest a security op (e.g. Create Key and Backup SRP) under an
+ * already-open journey span (e.g. New Social Create Wallet) without
+ * threading the span through route params.
+ */
+export function getTraceContext(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+): TraceContext {
+  return tracesByKey.get(getTraceKey(request))?.span;
+}
+
+/**
+ * Attach tags/attributes to an already-started span (e.g. set
+ * `onboarding.method` on the Overall Journey once the user picks a path).
+ * No-ops when context is undefined (buffered/consent-disabled).
+ */
+export function annotateTrace(
+  context: TraceContext,
+  tags: Record<string, TraceValue>,
+): void {
+  if (!context) {
+    return;
+  }
+
+  for (const [key, value] of Object.entries(tags)) {
+    context.setAttribute(key, value);
+  }
+}
+
 export function endTrace(request: EndTraceRequest): void {
   const { name, timestamp } = request;
   const id = getTraceId(request);

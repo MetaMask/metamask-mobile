@@ -33,6 +33,7 @@ import {
 } from '../../../actions/onboarding';
 import {
   AccountType,
+  OnboardingMethod,
   getSocialAccountType,
 } from '../../../constants/onboarding';
 import {
@@ -72,6 +73,7 @@ import {
   TraceContext,
   endTrace,
   trace,
+  annotateTrace,
   hasMetricsConsent,
   discardBufferedTraces,
   updateCachedConsent,
@@ -410,6 +412,10 @@ const Onboarding = () => {
     await hasMetricsConsent();
 
     const action = () => {
+      annotateTrace(onboardingTraceCtx.current, {
+        'onboarding.method': OnboardingMethod.Srp,
+        account_type: AccountType.Metamask,
+      });
       trace({
         name: TraceName.OnboardingNewSrpCreateWallet,
         op: TraceOperation.OnboardingUserJourney,
@@ -453,6 +459,10 @@ const Onboarding = () => {
     await hasMetricsConsent();
 
     const action = async () => {
+      annotateTrace(onboardingTraceCtx.current, {
+        'onboarding.method': OnboardingMethod.Srp,
+        account_type: AccountType.Imported,
+      });
       trace({
         name: TraceName.OnboardingExistingSrpImport,
         op: TraceOperation.OnboardingUserJourney,
@@ -857,6 +867,10 @@ const Onboarding = () => {
       discardBufferedTraces();
 
       const accountType = getSocialAccountType(provider, !createWallet);
+      const onboardingPathTags = {
+        'onboarding.method': OnboardingMethod.Social,
+        account_type: accountType,
+      };
       metrics.trackEvent(
         metrics
           .createEventBuilder(MetaMetricsEvents.METRICS_OPT_IN)
@@ -879,9 +893,12 @@ const Onboarding = () => {
         onboardingTraceCtx.current = trace({
           name: TraceName.OnboardingJourneyOverall,
           op: TraceOperation.OnboardingUserJourney,
-          tags: getTraceTags(store.getState()),
+          tags: { ...getTraceTags(store.getState()), ...onboardingPathTags },
         });
       }
+      // Always annotate so reused mount journeys (and spans started without path
+      // tags) get filterable attributes in Sentry.
+      annotateTrace(onboardingTraceCtx.current, onboardingPathTags);
 
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {

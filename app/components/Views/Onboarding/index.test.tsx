@@ -77,11 +77,12 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
-import { AccountType } from '../../../constants/onboarding';
+import { AccountType, OnboardingMethod } from '../../../constants/onboarding';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ATTRIBUTION_DEFAULT_TTL_MS } from '../../../core/redux/slices/attribution';
 import {
+  annotateTrace,
   discardBufferedTraces,
   endTrace,
   trace,
@@ -239,6 +240,7 @@ jest.mock('../../../util/trace', () => ({
     .fn()
     .mockReturnValue({ _buffered: true, _name: 'test', _id: 'test' }),
   endTrace: jest.fn(),
+  annotateTrace: jest.fn(),
   updateCachedConsent: jest.fn(),
   discardBufferedTraces: jest.fn(),
 }));
@@ -671,6 +673,13 @@ describe('Onboarding', () => {
           onboardingTraceCtx: expect.any(Object),
         }),
       );
+      expect(annotateTrace).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          'onboarding.method': OnboardingMethod.Srp,
+          account_type: AccountType.Metamask,
+        }),
+      );
     });
 
     it('stores the onboarding version on the first create wallet press', async () => {
@@ -838,6 +847,14 @@ describe('Onboarding', () => {
         );
       });
 
+      expect(annotateTrace).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          'onboarding.method': OnboardingMethod.Srp,
+          account_type: AccountType.Imported,
+        }),
+      );
+
       await waitFor(() => {
         expect(mockAnalytics.optOut).toHaveBeenCalled();
       });
@@ -984,6 +1001,13 @@ describe('Onboarding', () => {
         false,
         // Social-login attempt trace context forwarded so auth spans nest under it.
         expect.anything(),
+      );
+      expect(annotateTrace).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          'onboarding.method': OnboardingMethod.Social,
+          account_type: AccountType.MetamaskGoogle,
+        }),
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,

@@ -39,6 +39,7 @@ import {
   TraceContext,
   trace,
   endTrace,
+  getTraceContext,
 } from '../../util/trace';
 import { isE2EMockOAuth } from '../../util/environment';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
@@ -1000,10 +1001,16 @@ class AuthenticationService {
       );
 
       let createKeyAndBackupSrpSuccess = false;
+      // Nest under the open New Social Create Wallet journey span when present so
+      // this security op appears in the onboarding waterfall (not as a root span).
+      const parentContext = getTraceContext({
+        name: TraceName.OnboardingNewSocialCreateWallet,
+      });
       try {
         trace({
           name: TraceName.OnboardingCreateKeyAndBackupSrp,
           op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
         });
         await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase(
           password,
@@ -1019,6 +1026,7 @@ class AuthenticationService {
           name: TraceName.OnboardingCreateKeyAndBackupSrpError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
+          parentContext,
         });
         endTrace({
           name: TraceName.OnboardingCreateKeyAndBackupSrpError,

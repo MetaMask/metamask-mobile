@@ -354,6 +354,7 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
 const mockGetTraceTags = jest.fn();
+const mockGetTraceContext = jest.fn();
 
 jest.mock('../../util/sentry/tags', () => ({
   getTraceTags: () => mockGetTraceTags(),
@@ -365,6 +366,8 @@ jest.mock('../../util/trace', () => ({
   trace: (...args: any[]) => mockTrace(...args),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTrace: (...args: any[]) => mockEndTrace(...args),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getTraceContext: (...args: any[]) => mockGetTraceContext(...args),
 }));
 
 const mockMultichainAccountGroup = {
@@ -1526,6 +1529,57 @@ describe('Authentication', () => {
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
 
       createWalletSpy.mockRestore();
+    });
+
+    it('nests Create Key and Backup SRP under the open New Social Create Wallet span', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const parentContext = {
+        _name: TraceName.OnboardingNewSocialCreateWallet,
+      } as unknown as TraceContext;
+      mockGetTraceContext.mockReturnValue(parentContext);
+
+      Engine.context.SeedlessOnboardingController = {
+        state: {},
+        createToprfKeyAndBackupSeedPhrase: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        clearState: jest.fn(),
+        exportEncryptionKey: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
+        setMigrationVersion: jest.fn(),
+      };
+      Engine.context.KeyringController.state.keyrings = [
+        { metadata: { id: 'test-keyring' } },
+      ];
+      Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+      Engine.context.KeyringController.exportEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      const createWalletSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+        .mockResolvedValue(undefined);
+
+      await Authentication.createAndBackupSeedPhrase('test-password');
+
+      expect(mockGetTraceContext).toHaveBeenCalledWith({
+        name: TraceName.OnboardingNewSocialCreateWallet,
+      });
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
+        }),
+      );
+
+      createWalletSpy.mockRestore();
+      mockGetTraceContext.mockReturnValue(undefined);
     });
 
     it('sets migration version on successful backup', async () => {
