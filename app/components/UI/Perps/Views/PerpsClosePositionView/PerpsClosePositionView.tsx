@@ -23,11 +23,9 @@ import {
   IconColor,
   IconName,
   IconSize,
+  KeyValueRow,
+  KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
-import ListItem from '../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../component-library/components/List/ListItemColumn';
 import Text, {
   TextColor,
   TextVariant,
@@ -658,32 +656,19 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Limit Price - only show for limit orders (still hidden during input to avoid overlap) */}
         {orderType === 'limit' && !isInputFocused && (
           <View style={styles.detailsWrapper}>
-            <View style={[styles.detailItem, styles.detailListItem]}>
+            <View style={styles.inputGroupContainer}>
               <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
-                <ListItem>
-                  <ListItemColumn widthType={WidthType.Fill}>
-                    <View style={styles.detailLeft}>
-                      <Text
-                        variant={TextVariant.BodyLGMedium}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('perps.order.limit_price')}
-                      </Text>
-                    </View>
-                  </ListItemColumn>
-                  <ListItemColumn widthType={WidthType.Auto}>
-                    <Text
-                      variant={TextVariant.BodyLGMedium}
-                      color={TextColor.Default}
-                    >
-                      {limitPrice
-                        ? `${formatPerpsFiat(limitPrice, {
-                            ranges: PRICE_RANGES_UNIVERSAL,
-                          })}`
-                        : 'Set price'}
-                    </Text>
-                  </ListItemColumn>
-                </ListItem>
+                <KeyValueRow
+                  variant={KeyValueRowVariant.Input}
+                  keyLabel={strings('perps.order.limit_price')}
+                  value={
+                    limitPrice
+                      ? formatPerpsFiat(limitPrice, {
+                          ranges: PRICE_RANGES_UNIVERSAL,
+                        })
+                      : 'Set price'
+                  }
+                />
               </TouchableOpacity>
             </View>
           </View>
