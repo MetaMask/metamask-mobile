@@ -5,6 +5,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
 } from '../../Perps.testIds';
@@ -91,6 +92,8 @@ let mockLimitPriceConfirmValue = '0';
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { TouchableOpacity } = jest.requireActual('react-native');
+  const { PerpsLimitPriceBottomSheetSelectorsIDs: SelectorsIDs } =
+    jest.requireActual('../../Perps.testIds');
   return {
     __esModule: true,
     default: ({
@@ -102,7 +105,7 @@ jest.mock('../../components/PerpsLimitPriceBottomSheet', () => {
     }) =>
       isVisible
         ? ReactActual.createElement(TouchableOpacity, {
-            testID: 'limit-price-confirm-button',
+            testID: SelectorsIDs.CONFIRM_BUTTON,
             onPress: () => onConfirm(mockLimitPriceConfirmValue),
           })
         : null,
@@ -1201,7 +1204,11 @@ describe('PerpsClosePositionView', () => {
               PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW,
             ),
           );
-          fireEvent.press(utils.getByTestId('limit-price-confirm-button'));
+          fireEvent.press(
+            utils.getByTestId(
+              PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+            ),
+          );
         }
 
         return utils;
@@ -1981,7 +1988,7 @@ describe('PerpsClosePositionView', () => {
         slippage: {
           usdAmount: undefined, // undefined for full close to bypass $10 minimum validation
           priceAtCalculation: 3000, // effectivePrice: currentPrice for market orders
-          maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps, // 3% market slippage tolerance
+          maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
         },
       });
     });
@@ -3118,7 +3125,9 @@ describe('PerpsClosePositionView', () => {
       fireEvent.press(
         getByTestId(PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW),
       );
-      fireEvent.press(getByTestId('limit-price-confirm-button'));
+      fireEvent.press(
+        getByTestId(PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+      );
 
       // Assert - the limit price row is showing while the flag is enabled
       expect(
@@ -3180,7 +3189,9 @@ describe('PerpsClosePositionView', () => {
       );
 
       // Assert - the limit-price sheet is open
-      expect(queryByTestId('limit-price-confirm-button')).toBeDefined();
+      expect(
+        queryByTestId(PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+      ).toBeDefined();
 
       // Act - the flag flips off mid-session while the sheet is still open
       selectPerpsClosePositionLimitOrderEnabledFlagMock.mockReturnValue(false);
@@ -3192,7 +3203,9 @@ describe('PerpsClosePositionView', () => {
       });
 
       // Assert - the limit-price sheet is closed immediately
-      expect(queryByTestId('limit-price-confirm-button')).toBeNull();
+      expect(
+        queryByTestId(PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON),
+      ).toBeNull();
     });
   });
 });

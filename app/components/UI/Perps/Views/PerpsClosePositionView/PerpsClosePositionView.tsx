@@ -438,8 +438,8 @@ const PerpsClosePositionView: React.FC = () => {
         priceAtCalculation: effectivePrice,
         maxSlippageBps:
           effectiveOrderType === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps // 1% for limit orders
-            : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps, // 3% for market orders
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+            : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
       },
     });
   };
