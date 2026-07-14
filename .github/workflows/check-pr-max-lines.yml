@@ -3,6 +3,19 @@ name: 'Check PR Max Lines'
 on:
   pull_request:
     types: [opened, reopened, synchronize]
+    # Skip the check when a PR only touches files excluded from the line
+    # count: pr-line-check crashes on such PRs (its `grep -Ev` pipeline exits
+    # 1 under `set -e -o pipefail` when every changed file is filtered out),
+    # and the result would always be 0 lines anyway.
+    # Keep this list in sync with `ignore-patterns` below.
+    paths-ignore:
+      - '**.lock'
+      - '**.snap'
+      - '**.md'
+      - '**.svg'
+      - '**.yaml'
+      - 'tests/integration/**'
+      - '.agents/skills/integration-test/**'
 
 permissions:
   contents: read
