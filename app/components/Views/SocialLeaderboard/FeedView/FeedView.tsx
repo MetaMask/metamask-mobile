@@ -23,7 +23,11 @@ import {
   type SectionListRenderItemInfo,
 } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
-import { ImpactMoment, playImpact } from '../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
@@ -153,8 +157,21 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
             symbol: item.tradeSymbol,
             name: item.marketName,
           } as PerpsMarketData,
-          source: 'social_feed',
+          source: 'trader_feed',
         },
+      });
+    },
+    [navigation],
+  );
+
+  const handleTraderPress = useCallback(
+    (item: FeedItem) => {
+      playSelection().catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+        traderId: item.traderId,
+        traderName: item.username,
+        traderAddress: item.traderAddress,
+        source: 'trader_feed',
       });
     },
     [navigation],
@@ -162,9 +179,13 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
 
   const renderItem = useCallback(
     ({ item }: SectionListRenderItemInfo<FeedItem, FeedSection>) => (
-      <FeedItemRow item={item} onTradePress={handleTradePress} />
+      <FeedItemRow
+        item={item}
+        onTradePress={handleTradePress}
+        onTraderPress={handleTraderPress}
+      />
     ),
-    [handleTradePress],
+    [handleTradePress, handleTraderPress],
   );
 
   const renderSectionHeader = useCallback(
@@ -352,7 +373,7 @@ const FeedView: React.FC<FeedViewProps> = ({ isActive = true }) => {
         target={quickBuyTarget}
         onClose={handleQuickBuyClose}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'social_feed' }}
+        analyticsContext={{ source: 'trader_feed' }}
       />
     </Box>
   );
