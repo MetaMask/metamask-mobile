@@ -189,6 +189,39 @@ describe('completeExistingUserQrSyncImport', () => {
     await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(false);
   });
 
+  it('returns false when keyring mnemonic is missing', async () => {
+    setHdKeyringCount(1);
+    mockWithKeyringV2.mockImplementationOnce(
+      async (
+        _selector: unknown,
+        operation: (args: { keyring: { mnemonic: null } }) => Promise<boolean>,
+      ) => operation({ keyring: { mnemonic: null } }),
+    );
+
+    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(false);
+  });
+
+  it('returns false when mnemonic byte lengths differ', async () => {
+    setHdKeyringCount(1);
+    mockWithKeyringV2.mockImplementationOnce(
+      async (
+        _selector: unknown,
+        operation: (args: {
+          keyring: { mnemonic: Uint8Array };
+        }) => Promise<boolean>,
+      ) => operation({ keyring: { mnemonic: new Uint8Array([1, 2, 3]) } }),
+    );
+
+    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(false);
+  });
+
+  it('returns false when keyring inspection throws', async () => {
+    setHdKeyringCount(1);
+    mockWithKeyringV2.mockRejectedValueOnce(new Error('vault locked'));
+
+    await expect(isMnemonicAlreadyOnDevice(TEST_MNEMONIC)).resolves.toBe(false);
+  });
+
   it('shows import-failed sheet and navigates home when import fails for a non-duplicate reason', async () => {
     mockImportNewSecretRecoveryPhrase.mockRejectedValueOnce(
       new Error('import failed'),
