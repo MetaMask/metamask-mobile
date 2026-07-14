@@ -1282,4 +1282,28 @@ describe('AdvancedCustomAmountInfoSkeleton', () => {
     expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
     expect(getByTestId('pay-with-row-skeleton')).toBeTruthy();
   });
+
+  it('renders skeleton without account and pay-with rows when autoSelectFiatPayment param is set', () => {
+    jest.mocked(useRoute).mockReturnValue({
+      key: 'mock-route',
+      name: 'MockScreen',
+      params: { autoSelectFiatPayment: true },
+    } as never);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <AdvancedCustomAmountInfoSkeleton />,
+      {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      },
+    );
+
+    expect(getByTestId('custom-amount-skeleton')).toBeTruthy();
+    expect(queryByTestId('account-selector-skeleton')).toBeNull();
+    expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
+  });
 });

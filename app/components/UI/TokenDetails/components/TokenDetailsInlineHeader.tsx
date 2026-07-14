@@ -1,6 +1,6 @@
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
-import React, { useMemo } from 'react';
+import React, { useMemo, type ReactNode } from 'react';
 import {
   Box,
   BoxFlexDirection,
@@ -38,8 +38,7 @@ export const TokenDetailsInlineHeader = ({
   onBackPress,
   onPriceAlertPress,
   onSharePress,
-  onStarPress,
-  isWatched,
+  starButton,
   onCopyAddress,
   iconColor,
   useAmbientColor = false,
@@ -49,8 +48,8 @@ export const TokenDetailsInlineHeader = ({
   onBackPress: () => void;
   onPriceAlertPress?: () => void;
   onSharePress?: () => void;
-  onStarPress?: () => void;
-  isWatched?: boolean;
+  /** Self-contained watchlist star button ReactNode (e.g. WatchlistStarButton). */
+  starButton?: ReactNode;
   onCopyAddress?: () => void;
   /** Hex color string for the back button icon (A/B test). */
   iconColor?: string;
@@ -134,42 +133,45 @@ export const TokenDetailsInlineHeader = ({
     isStockToken,
   ]);
 
-  const endButtonIconProps = useMemo(() => {
-    const buttons = [];
-    if (onStarPress) {
-      buttons.push({
-        iconName: isWatched ? IconName.StarFilled : IconName.Star,
-        onPress: onStarPress,
-        testID: 'watchlist-star-button',
-        accessibilityLabel: isWatched
-          ? 'Remove from watchlist'
-          : 'Add to watchlist',
-      });
+  const endAccessory = useMemo(() => {
+    const buttons: ReactNode[] = [];
+
+    if (starButton) {
+      buttons.push(<React.Fragment key="star">{starButton}</React.Fragment>);
     }
     if (shouldShowEndButtons && onSharePress) {
-      buttons.push({
-        iconName: IconName.Share,
-        onPress: onSharePress,
-        testID: 'share-button',
-        accessibilityLabel: 'Share token',
-      });
+      buttons.push(
+        <ButtonIcon
+          key="share"
+          iconName={IconName.Share}
+          size={ButtonIconSize.Md}
+          onPress={onSharePress}
+          testID="share-button"
+          accessibilityLabel="Share token"
+        />,
+      );
     }
     if (shouldShowEndButtons && onPriceAlertPress) {
-      buttons.push({
-        iconName: IconName.Notification,
-        onPress: onPriceAlertPress,
-        testID: TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON,
-        accessibilityLabel: 'Create price alert',
-      });
+      buttons.push(
+        <ButtonIcon
+          key="alert"
+          iconName={IconName.Notification}
+          size={ButtonIconSize.Md}
+          onPress={onPriceAlertPress}
+          testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
+          accessibilityLabel="Create price alert"
+        />,
+      );
     }
-    return buttons.length > 0 ? buttons : undefined;
-  }, [
-    shouldShowEndButtons,
-    onStarPress,
-    isWatched,
-    onSharePress,
-    onPriceAlertPress,
-  ]);
+
+    if (buttons.length === 0) return undefined;
+    if (buttons.length === 1) return buttons[0];
+    return (
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
+        {buttons}
+      </Box>
+    );
+  }, [starButton, shouldShowEndButtons, onSharePress, onPriceAlertPress]);
 
   const descriptionEndAccessory = useMemo(() => {
     if (!contractAddress) {
@@ -201,7 +203,7 @@ export const TokenDetailsInlineHeader = ({
           testID="back-arrow-button"
         />
       }
-      endButtonIconProps={endButtonIconProps}
+      endAccessory={endAccessory}
       avatar={
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}

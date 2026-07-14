@@ -41,6 +41,7 @@ import {
 } from '../types';
 import {
   getDefaultPredictControllerState,
+  OPTIMISTIC_BALANCE_MAX_AGE_MS,
   PredictController,
   PredictControllerMessenger,
   type PredictControllerState,
@@ -6599,6 +6600,38 @@ describe('PredictController', () => {
       });
     });
 
+    it('clears cached balance and invalidates account state after confirmed withdrawals', async () => {
+      await withController(async ({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictWithdraw,
+          status: TransactionStatus.confirmed,
+          from: accountAddress,
+        });
+
+        // Cache entries can be keyed by checksummed addresses — seed one to
+        // verify the case-insensitive cleanup.
+        const checksummedAddress =
+          accountAddress.slice(0, 2) + accountAddress.slice(2).toUpperCase();
+        controller.updateStateForTesting((state) => {
+          state.balances[checksummedAddress] = {
+            balance: 250,
+            validUntil: Date.now() + 60_000,
+          };
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        await Promise.resolve();
+
+        expect(
+          mockPolymarketProvider.invalidateAccountState,
+        ).toHaveBeenCalledWith(accountAddress);
+        expect(controller.state.balances[checksummedAddress]).toBeUndefined();
+      });
+    });
+
     it('invalidates account state and syncs deposit-wallet balance allowance after confirmed deposits', async () => {
       await withController(async ({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
@@ -9483,7 +9516,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for BUY orders', async () => {
+    it('holds optimistic balance for the settlement safety window for BUY orders', async () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const mockResult = {
         success: true as const,
@@ -9509,7 +9542,9 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(
+            now + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+          );
         },
         {
           state: {
@@ -9559,7 +9594,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for SELL orders', async () => {
+    it('holds optimistic balance for the settlement safety window for SELL orders', async () => {
       const preview = createMockOrderPreview({ side: Side.SELL });
       const mockResult = {
         success: true as const,
@@ -9585,13 +9620,80 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(
+            now + OPTIMISTIC_BALANCE_MAX_AGE_MS,
+          );
         },
         {
           state: {
             balances: {
               '0x1234567890123456789012345678901234567890':
                 createMockPredictBalance(),
+            },
+          },
+        },
+      );
+    });
+
+    it('skips optimistic balance update when there is no cached balance baseline', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(async ({ controller }) => {
+        // Act
+        await controller.placeOrder({
+          preview,
+        });
+
+        // Assert — no baseline means no optimistic entry; the next
+        // getBalance call must fetch the real value from chain.
+        expect(
+          controller.state.balances[
+            '0x1234567890123456789012345678901234567890'
+          ],
+        ).toBeUndefined();
+      });
+    });
+
+    it('clamps optimistic BUY balance at zero when spend exceeds the cached baseline', async () => {
+      const preview = createMockOrderPreview({ side: Side.BUY });
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '50',
+          receivedAmount: '100',
+        },
+      };
+      mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+
+      await withController(
+        async ({ controller }) => {
+          // Act
+          await controller.placeOrder({
+            preview,
+          });
+
+          // Assert
+          const updatedBalance =
+            controller.state.balances[
+              '0x1234567890123456789012345678901234567890'
+            ];
+          expect(updatedBalance.balance).toBe(0);
+        },
+        {
+          state: {
+            balances: {
+              '0x1234567890123456789012345678901234567890':
+                createMockPredictBalance({ balance: 40 }),
             },
           },
         },
