@@ -3,7 +3,6 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import QRTabSwitcher, { QRTabSwitcherScreens } from './QRTabSwitcher';
 import { useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -15,6 +14,10 @@ import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncControl
 import type { RootState } from '../../../reducers';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
 import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
+
+const { ButtonIcon } = jest.requireActual(
+  '@metamask/design-system-react-native',
+);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -236,9 +239,6 @@ describe('QRTabSwitcher', () => {
       otp: { otp: '123456', deadline: Date.now() + 30_000 },
     });
 
-    const ButtonIcon = jest.requireActual(
-      '../../../component-library/components/Buttons/ButtonIcon',
-    ).default;
     fireEvent.press(UNSAFE_getByType(ButtonIcon));
 
     expect(mockResetState).toHaveBeenCalledTimes(1);

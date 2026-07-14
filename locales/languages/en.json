@@ -1065,6 +1065,50 @@
         "open_settings": "Open settings"
       }
     },
+    "feed": {
+      "title": "Top Traders",
+      "tabs": {
+        "leaderboard": "Leaderboard",
+        "feed": "Feed"
+      },
+      "following": "Following",
+      "all": "All",
+      "trade": "Trade",
+      "action": {
+        "bought": "bought",
+        "sold": "sold",
+        "opened": "opened",
+        "closed": "closed"
+      },
+      "type_filter": {
+        "all": "All types",
+        "tokens": "Tokens",
+        "perps": "Perps"
+      },
+      "empty_following": {
+        "title": "No activity yet",
+        "description": "Follow traders to see their trades show up here."
+      },
+      "empty_all": {
+        "title": "No activity yet",
+        "description": "Trader activity will show up here as trades come in."
+      },
+      "empty_type": {
+        "tokens": {
+          "title": "No token activity"
+        },
+        "perps": {
+          "title": "No perps activity"
+        },
+        "description": "No matching trades in the activity so far."
+      },
+      "load_more": "Load more",
+      "error": {
+        "title": "Couldn't load the feed",
+        "retry": "Try again"
+      },
+      "no_data": "No data"
+    },
     "onboarding": {
       "slide_trade": {
         "title": "Trade like a pro",
