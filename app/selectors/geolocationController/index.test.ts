@@ -2,6 +2,7 @@ import {
   selectGeolocationControllerState,
   selectGeolocationLocation,
   selectGeolocationStatus,
+  selectIsUserInAsia,
 } from '.';
 import type { RootState } from '../../reducers';
 
@@ -85,6 +86,44 @@ describe('geolocationController selectors', () => {
 
     it('returns undefined when GeolocationController is absent', () => {
       expect(selectGeolocationStatus({} as RootState)).toBeUndefined();
+    });
+  });
+
+  describe('selectIsUserInAsia', () => {
+    beforeEach(() => {
+      selectIsUserInAsia.resetRecomputations();
+    });
+
+    it.each(['JP', 'KR', 'VN', 'TW', 'CN'])('returns true for %s', (code) => {
+      const state = buildState({ location: code, status: 'complete' });
+      expect(selectIsUserInAsia(state as unknown as RootState)).toBe(true);
+    });
+
+    it('returns true for country-region code (e.g. CN-BJ)', () => {
+      const state = buildState({ location: 'CN-BJ', status: 'complete' });
+      expect(selectIsUserInAsia(state as unknown as RootState)).toBe(true);
+    });
+
+    it.each(['US', 'GB', 'FR', 'AU', 'BR'])(
+      'returns false for non-Asia country %s',
+      (code) => {
+        const state = buildState({ location: code, status: 'complete' });
+        expect(selectIsUserInAsia(state as unknown as RootState)).toBe(false);
+      },
+    );
+
+    it('returns false when location is UNKNOWN', () => {
+      const state = buildState({ location: 'UNKNOWN', status: 'complete' });
+      expect(selectIsUserInAsia(state as unknown as RootState)).toBe(false);
+    });
+
+    it('returns false when location is undefined', () => {
+      const state = buildState({ status: 'complete' });
+      expect(selectIsUserInAsia(state as unknown as RootState)).toBe(false);
+    });
+
+    it('returns false when GeolocationController is absent', () => {
+      expect(selectIsUserInAsia({} as RootState)).toBe(false);
     });
   });
 });
