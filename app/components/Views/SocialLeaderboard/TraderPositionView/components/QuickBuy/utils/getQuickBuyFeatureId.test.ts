@@ -19,6 +19,9 @@ describe('getQuickBuyFeatureId', () => {
     expect(getQuickBuyFeatureId('leaderboard')).toBe(
       FeatureId.QUICK_BUY_FOLLOW_TRADING,
     );
+    expect(getQuickBuyFeatureId('social_feed')).toBe(
+      FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
     expect(getQuickBuyFeatureId('profile_position')).toBe(
       FeatureId.QUICK_BUY_FOLLOW_TRADING,
     );

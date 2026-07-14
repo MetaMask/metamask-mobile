@@ -18,12 +18,18 @@ jest.mock('../../multichain-accounts/discovery', () => ({
   discoverAccounts: jest.fn().mockResolvedValue(0),
 }));
 
+const mockProvisionFromMetadata = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('../../core/Engine/Engine', () => ({
   context: {
     KeyringController: {
       state: {
         keyrings: [{ metadata: { id: 'mock-keyring-id' } }],
       },
+    },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: (...args: unknown[]) =>
+        mockProvisionFromMetadata(...args),
     },
   },
 }));
@@ -38,6 +44,7 @@ describe('finalizeOnboardingCompletion', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
   it('tracks ONBOARDING_COMPLETED via analytics.trackEvent for eligible flows', () => {
@@ -101,6 +108,51 @@ describe('finalizeOnboardingCompletion', () => {
     expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('calls provisionFromMetadata instead of discoverAccounts when needsQrProvisioning is true', () => {
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+      accountType: AccountType.Imported,
+      isBasicFunctionalityEnabled: true,
+      walletSetupAttributionProps: {},
+      dispatch: mockDispatch,
+      needsQrProvisioning: true,
+    });
+
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+  });
+
+  it('logs when provisionFromMetadata rejects', async () => {
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // no-op
+    });
+    mockProvisionFromMetadata.mockRejectedValueOnce(
+      new Error('provisioning failed'),
+    );
+
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+      accountType: AccountType.Imported,
+      isBasicFunctionalityEnabled: true,
+      walletSetupAttributionProps: {},
+      dispatch: mockDispatch,
+      needsQrProvisioning: true,
+      discoverAccountsLogContext: 'TestContext',
+    });
+
+    await Promise.resolve();
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.any(Error),
+      'TestContext: provisionFromMetadata failed',
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+
+    loggerSpy.mockRestore();
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
   it('logs discoverAccounts failures with the provided context', async () => {

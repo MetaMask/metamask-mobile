@@ -151,6 +151,25 @@ export const selectPerpsClosePositionLimitOrderEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Recently Viewed rail feature flag.
+ * Controls visibility of the "Recently viewed" markets rail on the Perps
+ * market list screen.
+ *
+ * @returns boolean - true if the recently viewed rail should be shown.
+ */
+export const selectPerpsRecentlyViewedEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = process.env.MM_PERPS_RECENTLY_VIEWED_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRecentlyViewedEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for HIP-3 configuration version
  * Used by ConnectionManager to detect when HIP-3 config changes and trigger reconnection
  *
