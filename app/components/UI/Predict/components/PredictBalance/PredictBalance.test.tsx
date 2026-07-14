@@ -646,6 +646,117 @@ describe('PredictBalance', () => {
     });
   });
 
+  describe('when balance fails to load', () => {
+    it('displays a retryable error state instead of $0 when the fetch fails with no cached data', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <PredictBalance />,
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByTestId(PREDICT_BALANCE_TEST_IDS.ERROR)).toBeOnTheScreen();
+      expect(
+        getByText(strings('predict.balance_error.title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('predict.balance_error.description')),
+      ).toBeOnTheScreen();
+      expect(queryByText(/\$0/)).not.toBeOnTheScreen();
+    });
+
+    it('calls refetch when the retry button is pressed', () => {
+      // Arrange
+      const mockRefetch = jest.fn();
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+        refetch: mockRefetch,
+      });
+
+      // Act
+      const { getByTestId } = renderWithProvider(<PredictBalance />, {
+        state: initialState,
+      });
+      fireEvent.press(getByTestId(PREDICT_BALANCE_TEST_IDS.RETRY_BUTTON));
+
+      // Assert
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('displays the loading skeleton while a retry is in flight', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: true,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PredictBalance />,
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByTestId(PREDICT_BALANCE_TEST_IDS.SKELETON)).toBeOnTheScreen();
+      expect(queryByTestId(PREDICT_BALANCE_TEST_IDS.ERROR)).toBeNull();
+    });
+
+    it('displays the last known balance when a background refetch fails', () => {
+      // Arrange — stale data beats an error state
+      mockUsePredictBalance.mockReturnValue({
+        data: 42.5,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      const { getByText, queryByTestId } = renderWithProvider(
+        <PredictBalance />,
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByText(/\$42\.50/)).toBeOnTheScreen();
+      expect(queryByTestId(PREDICT_BALANCE_TEST_IDS.ERROR)).toBeNull();
+    });
+
+    it('hides the title in the error state when hideTitle is true', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isLoading: false,
+        isError: true,
+        isFetching: false,
+        refetch: jest.fn(),
+      });
+
+      // Act
+      const { queryByText } = renderWithProvider(<PredictBalance hideTitle />, {
+        state: initialState,
+      });
+
+      // Assert
+      expect(queryByText(strings('wallet.predict'))).toBeNull();
+    });
+  });
+
   describe('balance refresh', () => {
     it('component renders with adding funds state when deposit is pending', () => {
       // Arrange - set up pending deposit to test the adding funds UI

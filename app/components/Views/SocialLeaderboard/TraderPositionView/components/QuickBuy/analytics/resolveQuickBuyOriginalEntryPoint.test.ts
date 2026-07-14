@@ -38,6 +38,9 @@ describe('resolveQuickBuyOriginalEntryPointFromPositionSource', () => {
       resolveQuickBuyOriginalEntryPointFromPositionSource('deep_link'),
     ).toBe('deep_link');
     expect(
+      resolveQuickBuyOriginalEntryPointFromPositionSource('home_carousel'),
+    ).toBe('home_carousel');
+    expect(
       resolveQuickBuyOriginalEntryPointFromPositionSource('profile_position'),
     ).toBe('trader_profile');
   });

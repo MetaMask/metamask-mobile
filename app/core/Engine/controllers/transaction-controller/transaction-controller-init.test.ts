@@ -1,12 +1,15 @@
 import { NetworkController } from '@metamask/network-controller';
 import {
+  GasFeeEstimateLevel,
   PublishHook,
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerOptions,
   TransactionMeta,
   TransactionType,
+  UserFeeLevel,
   type PublishBatchHookTransaction,
+  type SavedGasFees,
 } from '@metamask/transaction-controller';
 
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
@@ -123,11 +126,25 @@ function buildInitRequestMock(
 > {
   const {
     predictControllerMock: providedPredictControllerMock,
+    preferencesState: providedPreferencesState,
+    selectedAccountAddress: providedSelectedAccountAddress,
     ...requestOverrides
   } = initRequestProperties;
   const predictControllerMock =
     (providedPredictControllerMock as ControllerMock | undefined) ??
     buildControllerMock();
+  const preferencesState = providedPreferencesState ?? {
+    privacyMode: false,
+    securityAlertsEnabled: true,
+    useTransactionSimulations: true,
+    advancedGasFee: {},
+  };
+  const selectedAccountAddress = Object.prototype.hasOwnProperty.call(
+    initRequestProperties,
+    'selectedAccountAddress',
+  )
+    ? providedSelectedAccountAddress
+    : '0x123';
   const initMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -145,11 +162,11 @@ function buildInitRequestMock(
       }
 
       if (actionType === 'PreferencesController:getState') {
-        return {
-          privacyMode: false,
-          securityAlertsEnabled: true,
-          useTransactionSimulations: true,
-        };
+        return preferencesState;
+      }
+
+      if (actionType === 'AccountsController:getSelectedAccount') {
+        return { address: selectedAccountAddress };
       }
 
       if (
@@ -178,6 +195,15 @@ function buildInitRequestMock(
 
   return requestMock;
 }
+
+type SavedGasFeesWithLevel = Partial<SavedGasFees> & {
+  gasPrice?: string;
+  level?: UserFeeLevel | GasFeeEstimateLevel;
+};
+
+type GetSavedGasFeesOption = (
+  chainIdOrTransactionMeta: Hex | TransactionMeta,
+) => SavedGasFeesWithLevel | undefined;
 
 describe('Transaction Controller Init', () => {
   const transactionControllerClassMock = jest.mocked(TransactionController);
@@ -304,6 +330,156 @@ describe('Transaction Controller Init', () => {
     });
 
     expect(optionFn?.()).toBe(true);
+  });
+
+  describe('getSavedGasFees', () => {
+    const account = '0x123';
+
+    function getSavedGasFeesOption(gasFeePreferences: Record<string, unknown>) {
+      return testConstructorOption(
+        'getSavedGasFees',
+        {},
+        {
+          preferencesState: {
+            privacyMode: false,
+            securityAlertsEnabled: true,
+            useTransactionSimulations: true,
+            advancedGasFee: {
+              '0x1': {
+                [account]: gasFeePreferences,
+              },
+            },
+          },
+          selectedAccountAddress: account,
+        },
+      ) as unknown as GetSavedGasFeesOption | undefined;
+    }
+
+    it('returns saved custom gas fees for the transaction account on the chain', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: UserFeeLevel.CUSTOM,
+        maxBaseFee: '1',
+        priorityFee: '2',
+      });
+
+      expect(optionFn?.(MOCK_TRANSACTION_META)).toEqual({
+        level: UserFeeLevel.CUSTOM,
+        maxBaseFee: '1',
+        priorityFee: '2',
+      });
+    });
+
+    it('normalizes the transaction account before lookup', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: UserFeeLevel.CUSTOM,
+        maxBaseFee: '1',
+        priorityFee: '2',
+      });
+
+      expect(
+        optionFn?.({
+          ...MOCK_TRANSACTION_META,
+          txParams: { from: account.toUpperCase() },
+        } as TransactionMeta),
+      ).toEqual({
+        level: UserFeeLevel.CUSTOM,
+        maxBaseFee: '1',
+        priorityFee: '2',
+      });
+    });
+
+    it('uses the transaction account instead of the selected account', () => {
+      const optionFn = testConstructorOption(
+        'getSavedGasFees',
+        {},
+        {
+          preferencesState: {
+            privacyMode: false,
+            securityAlertsEnabled: true,
+            useTransactionSimulations: true,
+            advancedGasFee: {
+              '0x1': {
+                '0x456': {
+                  userFeeLevel: UserFeeLevel.CUSTOM,
+                  maxBaseFee: '1',
+                  priorityFee: '2',
+                },
+              },
+            },
+          },
+          selectedAccountAddress: account,
+        },
+      ) as unknown as GetSavedGasFeesOption | undefined;
+
+      expect(
+        optionFn?.({
+          ...MOCK_TRANSACTION_META,
+          txParams: { from: '0x456' },
+        } as TransactionMeta),
+      ).toEqual({
+        level: UserFeeLevel.CUSTOM,
+        maxBaseFee: '1',
+        priorityFee: '2',
+      });
+    });
+
+    it('returns saved estimate-level preferences', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: GasFeeEstimateLevel.Low,
+      });
+
+      expect(optionFn?.(MOCK_TRANSACTION_META)).toEqual({
+        level: GasFeeEstimateLevel.Low,
+      });
+    });
+
+    it('returns saved legacy custom gas price preferences', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: UserFeeLevel.CUSTOM,
+        gasPrice: '10',
+      });
+
+      expect(optionFn?.(MOCK_TRANSACTION_META)).toEqual({
+        gasPrice: '10',
+        level: UserFeeLevel.CUSTOM,
+      });
+    });
+
+    it('returns undefined when the custom fees are incomplete', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: UserFeeLevel.CUSTOM,
+        maxBaseFee: '1',
+      });
+
+      expect(optionFn?.(MOCK_TRANSACTION_META)).toBeUndefined();
+    });
+
+    it('returns undefined when there is no saved preference for the chain', () => {
+      const optionFn = getSavedGasFeesOption({
+        userFeeLevel: UserFeeLevel.CUSTOM,
+        maxBaseFee: '1',
+        priorityFee: '2',
+      });
+
+      expect(
+        optionFn?.({ ...MOCK_TRANSACTION_META, chainId: '0x2' }),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when there is no transaction or selected account', () => {
+      const optionFn = testConstructorOption(
+        'getSavedGasFees',
+        {},
+        { selectedAccountAddress: undefined },
+      ) as unknown as GetSavedGasFeesOption | undefined;
+
+      expect(
+        optionFn?.({
+          ...MOCK_TRANSACTION_META,
+          txParams: {},
+        } as TransactionMeta),
+      ).toBeUndefined();
+    });
   });
 
   describe('beforePublish hook', () => {
