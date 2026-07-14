@@ -14,6 +14,7 @@ jest.mock('../../core/Engine', () => ({
     context: {
       MoneyAccountUpgradeController: {
         upgradeAccountWithRetry: jest.fn(),
+        state: { upgradedAccounts: {} },
       },
     },
   },
@@ -61,6 +62,9 @@ describe('upgradeMoneyAccount', () => {
     dispatch = jest.fn();
     getState = jest.fn().mockReturnValue({} as RootState);
     mockUpgradeAccount.mockResolvedValue(undefined);
+    Engine.context.MoneyAccountUpgradeController.state = {
+      upgradedAccounts: {},
+    };
   });
 
   it('calls MoneyAccountUpgradeController.upgradeAccountWithRetry with the primary money account address', async () => {
@@ -72,6 +76,75 @@ describe('upgradeMoneyAccount', () => {
     expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS, {
       signal: undefined,
     });
+  });
+
+  it('logs the start of an upgrade, noting the account was not previously recorded', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+
+    upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'starting upgrade',
+      { address: ADDRESS, recordedBefore: false },
+    );
+  });
+
+  it('logs the start of an upgrade, noting the account was previously recorded', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    Engine.context.MoneyAccountUpgradeController.state = {
+      upgradedAccounts: {
+        [ADDRESS]: { configFingerprint: 'fingerprint', completedAt: 1 },
+      },
+    };
+
+    upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'starting upgrade',
+      { address: ADDRESS, recordedBefore: true },
+    );
+  });
+
+  it('logs success with the duration and the recorded upgrade status', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const recorded = { configFingerprint: 'fingerprint', completedAt: 123 };
+    mockUpgradeAccount.mockImplementationOnce(async () => {
+      Engine.context.MoneyAccountUpgradeController.state = {
+        upgradedAccounts: { [ADDRESS]: recorded },
+      };
+    });
+
+    upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'upgrade succeeded',
+      expect.objectContaining({
+        address: ADDRESS,
+        recordedBefore: false,
+        durationMs: expect.any(Number),
+        recorded,
+      }),
+    );
+  });
+
+  it('does not log success when the upgrade fails', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    mockUpgradeAccount.mockRejectedValueOnce(new Error('boom'));
+
+    upgradeMoneyAccount()(dispatch, getState, undefined);
+    await flushPromises();
+
+    expect(mockLogLog).not.toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'upgrade succeeded',
+      expect.anything(),
+    );
   });
 
   it('passes the provided AbortSignal to upgradeAccountWithRetry', async () => {

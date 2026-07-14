@@ -39,13 +39,32 @@ export const upgradeMoneyAccount =
     }
 
     upgradesInFlight.add(address);
+    const startedAt = Date.now();
     whenMoneyAccountUpgradeReady()
       .then(
-        () =>
-          Engine.context.MoneyAccountUpgradeController.upgradeAccountWithRetry(
+        async () => {
+          const { MoneyAccountUpgradeController } = Engine.context;
+          const accountKey = address.toLowerCase() as Hex;
+          const recordedBefore = Boolean(
+            MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+          );
+          Logger.log(LOG_PREFIX, 'starting upgrade', {
             address,
-            { signal },
-          ),
+            recordedBefore,
+          });
+
+          await MoneyAccountUpgradeController.upgradeAccountWithRetry(address, {
+            signal,
+          });
+
+          Logger.log(LOG_PREFIX, 'upgrade succeeded', {
+            address,
+            recordedBefore,
+            durationMs: Date.now() - startedAt,
+            recorded:
+              MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+          });
+        },
         (error: unknown) => {
           // The controller isn't ready: the feature flag is off, the keyring
           // is locked, or bootstrap failed. "Not ready" is a normal state, and
