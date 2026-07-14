@@ -415,7 +415,7 @@ describe('TokenDetailsStickyFooter', () => {
       );
     });
 
-    it.each(['VN', 'TW', 'CN'])(
+    it.each(['TW', 'CN', 'HK'])(
       'uses error-default for %s country code when useAmbientColor is true',
       (code) => {
         setupSelectorMock(code);

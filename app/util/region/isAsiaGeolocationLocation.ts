@@ -1,6 +1,6 @@
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
-const ASIA_COUNTRY_CODES = new Set(['JP', 'KR', 'VN', 'TW', 'CN']);
+const ASIA_COUNTRY_CODES = new Set(['JP', 'KR', 'TW', 'CN', 'HK']);
 
 /**
  * Whether a GeolocationController location string resolves to one of the

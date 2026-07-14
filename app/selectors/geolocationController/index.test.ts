@@ -94,7 +94,7 @@ describe('geolocationController selectors', () => {
       selectIsUserInAsia.resetRecomputations();
     });
 
-    it.each(['JP', 'KR', 'VN', 'TW', 'CN'])('returns true for %s', (code) => {
+    it.each(['JP', 'KR', 'TW', 'CN', 'HK'])('returns true for %s', (code) => {
       const state = buildState({ location: code, status: 'complete' });
       expect(selectIsUserInAsia(state as unknown as RootState)).toBe(true);
     });

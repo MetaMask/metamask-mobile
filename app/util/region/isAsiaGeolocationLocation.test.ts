@@ -2,7 +2,7 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { isAsiaGeolocationLocation } from './isAsiaGeolocationLocation';
 
 describe('isAsiaGeolocationLocation', () => {
-  it.each(['JP', 'KR', 'VN', 'TW', 'CN'])(
+  it.each(['JP', 'KR', 'TW', 'CN', 'HK'])(
     'returns true for %s country code',
     (code) => {
       expect(isAsiaGeolocationLocation(code)).toBe(true);
