@@ -387,7 +387,7 @@ const useMoonpayIdentityFlow = () => {
       setStatusMessage('KYC check complete.');
       pushDebug(`Step 4 kyc-required result (${country})`, result, 'success');
       // Starting the sumsub sdk whatever the result is for the sake of demo
-      launchSumSubSDK();
+      launchSumSubSDK(accessToken);
     } catch (err) {
       setErrorMessage(`KYC check failed: ${err}`);
       setPhase('error');
@@ -437,6 +437,7 @@ const useMoonpayIdentityFlow = () => {
   }, []);
 
   return {
+    accessToken,
     phase,
     statusMessage,
     errorMessage,

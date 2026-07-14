@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -16,6 +16,8 @@ import {
   BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader from '../../components/MoneyHeader';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
@@ -45,6 +47,8 @@ import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyAct
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
+import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
+import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import AppConstants from '../../../../../core/AppConstants';
 import {
@@ -104,6 +108,8 @@ const MoneyHomeView = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedCardActionRowViewRef = useRef(false);
+  const { PreferencesController } = Engine.context;
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const {
     trackButtonClicked,
@@ -156,7 +162,9 @@ const MoneyHomeView = () => {
     [musdTokenBalanceAggregated],
   );
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens({
+    overrideToUsd: true,
+  });
   const { initiateDeposit } = useMoneyAccountDeposit();
   // Share the single merge/bucket path with the full activity view so the home
   // preview and that view never diverge (notably in mock mode). The home
@@ -460,6 +468,10 @@ const MoneyHomeView = () => {
     });
   }, [trackTooltipClicked, navigation, apyPercent]);
 
+  const handleBalancePress = useCallback(() => {
+    PreferencesController.setPrivacyMode(!privacyMode);
+  }, [PreferencesController, privacyMode]);
+
   const handleEarningsInfoPress = useCallback(() => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_EARNINGS,
@@ -490,11 +502,9 @@ const MoneyHomeView = () => {
         redirect_target: MONEY_URLS.MUSD_PRICE,
       });
 
-      Linking.openURL(AppConstants.URLS.MUSD_PRICE).catch((error: Error) => {
-        Logger.error(error, '[MoneyHomeView] Failed to open mUSD price page');
-      });
+      openInAppBrowser(navigation, AppConstants.URLS.MUSD_PRICE);
     },
-    [trackSurfaceClicked],
+    [navigation, trackSurfaceClicked],
   );
 
   const handleTokenButtonPress = useCallback(
@@ -649,12 +659,25 @@ const MoneyHomeView = () => {
   );
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
-  const cardBalance = cardPrimaryToken?.balanceFiat ?? formattedZero;
+  const currencyRates = useSelector(selectCurrencyRates);
+  // The Card pipeline reports balanceFiat in the user's selected currency, but
+  // we want to show USD fiat values in this view.
+  const cardBalanceUsd = useMemo(() => {
+    const usd = convertSelectedFiatToUsd(
+      cardPrimaryToken?.rawFiatNumber,
+      currencyRates,
+    );
+    return usd === undefined
+      ? formattedZero
+      : moneyFormatUsd(new BigNumber(usd));
+  }, [cardPrimaryToken?.rawFiatNumber, currencyRates, formattedZero]);
+
   const cardState = deriveCardState({
     isCardholder,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
   });
+
   const isCardAnalyticsReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
 
@@ -670,8 +693,9 @@ const MoneyHomeView = () => {
             onManagePress={navigateToCardHome}
             showMetalCard={hasMetalCard}
             isLinkDisabled={isLinking}
-            cardBalance={cardBalance}
+            cardBalance={cardBalanceUsd}
             isBalanceStale={showBalanceUnavailableBanner}
+            privacyMode={privacyMode}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}
             analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
@@ -697,6 +721,7 @@ const MoneyHomeView = () => {
           yearlyEarnings={yearlyEarnings}
           isLoading={vaultApyQuery.isLoading || isBalanceLoading}
           onInfoPress={handleEarningsInfoPress}
+          privacyMode={privacyMode}
         />
       ),
     });
@@ -725,6 +750,7 @@ const MoneyHomeView = () => {
             }
             onAddPress={handleMusdRowAddPress}
             balance={musdFiatFormatted}
+            privacyMode={privacyMode}
           />
         </>
       ),
@@ -748,6 +774,7 @@ const MoneyHomeView = () => {
           onViewAllPress={handleViewAllActivityPress}
           onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
+          privacyMode={privacyMode}
         />
       ),
     });
@@ -766,6 +793,7 @@ const MoneyHomeView = () => {
           onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
           onHeaderPress={handlePotentialEarningsHeaderPress}
           onInfoPress={handleEarnCryptoInfoPress}
+          privacyMode={privacyMode}
         />
       ),
     });
@@ -846,6 +874,8 @@ const MoneyHomeView = () => {
           apy={apyPercent}
           displayState={displayState}
           onApyInfoPress={handleApyInfoPress}
+          privacyMode={privacyMode}
+          onBalancePress={handleBalancePress}
         />
         <MoneyActionButtonRow
           add={{

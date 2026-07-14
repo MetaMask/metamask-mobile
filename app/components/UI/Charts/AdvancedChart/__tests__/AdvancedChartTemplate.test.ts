@@ -14,6 +14,20 @@ describe('createAdvancedChartTemplate', () => {
     expect(html).toContain('useSubscriptPriceFormat: true');
   });
 
+  it('defaults priceDecimals to null in CONFIG', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain('priceDecimals: null');
+  });
+
+  it('bakes priceDecimals when provided', () => {
+    const html = createAdvancedChartTemplate(mockTheme, {
+      priceDecimals: 4,
+    });
+
+    expect(html).toContain('priceDecimals: 4');
+  });
+
   it('uses current-price override for the last-close label background', () => {
     const currentPriceColor = '#ffffff0a';
 
@@ -70,44 +84,36 @@ describe('createAdvancedChartTemplate', () => {
   it('uses Map APIs for RN-backed pending older-bar callbacks', () => {
     const html = createAdvancedChartTemplate(mockTheme);
 
-    expect(html).toContain('window.pendingOlderBarsCallbacks = new Map();');
-    expect(html).toContain(
-      'window.pendingOlderBarsCallbacks.get(payload.requestId)',
-    );
-    expect(html).toContain(
-      'window.pendingOlderBarsCallbacks.delete(payload.requestId)',
-    );
-    expect(html).toContain(
-      'globalThis.pendingOlderBarsCallbacks.set(requestId, {',
-    );
+    expect(html).toContain('pendingCallbacks = new Map()');
+    expect(html).toContain('pendingCallbacks.get(payload.requestId)');
+    expect(html).toContain('pendingCallbacks.delete(payload.requestId)');
+    expect(html).toContain('pendingCallbacks.set(requestId, {');
   });
 
   it('resolves RN-backed pending older-bar callbacks before discarding them', () => {
     const html = createAdvancedChartTemplate(mockTheme);
 
-    expect(html).toContain('function resolvePendingOlderBarsNoData(pending)');
+    expect(html).toContain('function resolvePendingNoData(pending)');
     expect(html).toContain('pending.onResult([], { noData: true });');
     expect(html).toContain('function resolveAllPendingOlderBarsNoData()');
     expect(html).toContain('resolveAllPendingOlderBarsNoData();');
-    expect(html).toContain('resolvePendingOlderBarsNoData(pending);');
+    expect(html).toContain('resolvePendingNoData(pending);');
   });
 
   it('deduplicates RN-backed older bars before prepending them', () => {
     const html = createAdvancedChartTemplate(mockTheme);
 
-    expect(html).toContain('var existingTimes = new Set();');
-    expect(html).toContain('existingTimes.add(window.ohlcvData[j].time);');
+    expect(html).toContain('const existingTimes = new Set()');
+    expect(html).toContain('existingTimes.add(bar.time)');
     expect(html).toContain(
       'bar.time < pending.oldestAtDefer && !existingTimes.has(bar.time)',
     );
-    expect(html).toContain('existingTimes.add(bar.time);');
   });
 
   it('posts RN-backed older-bar requests and accepts noData responses', () => {
     const html = createAdvancedChartTemplate(mockTheme);
 
-    expect(html).toContain("sendToReactNative('FETCH_OLDER_BARS_REQUEST',");
-    expect(html).toContain("case 'FETCH_OLDER_BARS_RESPONSE':");
+    expect(html).toContain("postToRN('FETCH_OLDER_BARS_REQUEST',");
     expect(html).toContain('payload.noData');
     expect(html).toContain('pending.onResult([], { noData: true });');
   });
@@ -115,9 +121,9 @@ describe('createAdvancedChartTemplate', () => {
   it('uses monotonic RN-backed older-bar request ids without Math.random', () => {
     const html = createAdvancedChartTemplate(mockTheme);
 
-    expect(html).toContain('globalThis.olderBarsRequestSeq += 1;');
+    expect(html).toContain('requestSeq += 1;');
     expect(html).toContain(
-      "const requestId = 'obr-' + gen + '-' + globalThis.olderBarsRequestSeq;",
+      "const requestId = 'obr-' + gen + '-' + requestSeq;",
     );
     expect(html).not.toContain('Math.random');
   });

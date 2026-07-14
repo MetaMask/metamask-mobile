@@ -31,7 +31,9 @@ import {
   PerpsStopLossPromptSelectorsIDs,
   PerpsTransactionSelectorsIDs,
   TradingViewChartSelectorsIDs,
+  getPerpsMarketRowItemSelector,
 } from '../Perps.testIds';
+import { PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY } from '../selectors/featureFlags';
 import PerpsLoader from '../components/PerpsLoader/PerpsLoader';
 import LivePriceDisplay from '../components/LivePriceDisplay/LivePriceDisplay';
 import PerpsMarketRowItem from '../components/PerpsMarketRowItem/PerpsMarketRowItem';
@@ -171,12 +173,18 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       >,
       { market: ethMarket, onPress: mockOnPress },
     );
-    expect(await screen.findByText('Ethereum')).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('ETH'),
+      ),
+    ).toHaveTextContent('ETH');
     expect(screen.getByText('$2,000')).toBeOnTheScreen();
     expect(screen.getByText('+2.5%')).toBeOnTheScreen();
 
     // Trader taps the market row
-    fireEvent.press(screen.getByText('Ethereum'));
+    fireEvent.press(
+      screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+    );
     expect(mockOnPress).toHaveBeenCalledTimes(1);
 
     // Trader sees BTC market row with negative change
@@ -189,7 +197,11 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       >,
       { market: btcMarket },
     );
-    expect(await screen.findByText('Bitcoin')).toBeOnTheScreen();
+    expect(
+      await screen.findByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('BTC'),
+      ),
+    ).toHaveTextContent('BTC');
     expect(screen.getByText('$50,000')).toBeOnTheScreen();
     expect(screen.getByText('-1.0%')).toBeOnTheScreen();
 
@@ -462,5 +474,36 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     );
     renderPerpsView(NotificationTooltipWrapper, 'NotificationTooltipTest');
     expect(screen.queryByText(NOTIFICATIONS_TITLE)).not.toBeOnTheScreen();
+  });
+
+  it('renders full asset names on market rows when perpsShowFullAssetNames is enabled', async () => {
+    renderPerpsComponent(
+      PerpsMarketRowItem as unknown as React.ComponentType<
+        Record<string, unknown>
+      >,
+      { market: ethMarket },
+      {
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      await screen.findByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('ETH'),
+      ),
+    ).toHaveTextContent('Ethereum');
   });
 });

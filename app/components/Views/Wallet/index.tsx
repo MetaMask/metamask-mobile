@@ -27,12 +27,14 @@ import {
   StyleSheet as RNStyleSheet,
   unstable_batchedUpdates,
   View,
+  type LayoutChangeEvent,
 } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Reanimated, {
+  runOnUI,
   useSharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
@@ -476,10 +478,13 @@ const Wallet = ({
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => resolve());
       });
-    } finally {
+    } catch (error) {
       setPostOnboardingExitAnimating(false);
       walletHomePostOnboardingExitInProgressRef.current = false;
+      throw error;
     }
+    setPostOnboardingExitAnimating(false);
+    walletHomePostOnboardingExitInProgressRef.current = false;
   }, [dispatch]);
 
   const onReceive = useCallback(() => {
@@ -553,8 +558,6 @@ const Wallet = ({
   const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
-
-  const currentToast = toastRef?.current;
 
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
@@ -676,8 +679,9 @@ const Wallet = ({
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
+    const toast = toastRef?.current;
     storePrivacyPolicyShownDate();
-    currentToast?.showToast({
+    toast?.showToast({
       variant: ToastVariants.Plain,
       labelOptions: [
         {
@@ -690,14 +694,14 @@ const Wallet = ({
         variant: ButtonVariants.Primary,
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
+          toast?.closeToast();
         },
       },
       linkButtonOptions: {
         label: strings(`privacy_policy.toast_read_more`),
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
+          toast?.closeToast();
           Linking.openURL(CONSENSYS_PRIVACY_POLICY);
         },
       },
@@ -707,7 +711,7 @@ const Wallet = ({
     storePrivacyPolicyShownDate,
     shouldShowNewPrivacyToast,
     storePrivacyPolicyClickedOrClosed,
-    currentToast,
+    toastRef,
   ]);
 
   const isNotificationEnabled = useSelector(
@@ -810,6 +814,20 @@ const Wallet = ({
     };
   });
 
+  const handleWalletHeaderLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      const h = e.nativeEvent.layout.height;
+      if (h > 0) {
+        setHeaderHeight(h);
+        runOnUI((height: number) => {
+          'worklet';
+          sharedHeaderHeight.value = height;
+        })(h);
+      }
+    },
+    [sharedHeaderHeight],
+  );
+
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
@@ -880,20 +898,21 @@ const Wallet = ({
     refreshInProgressRef.current = true;
     setRefreshing(true);
 
+    const refreshHomepage = isDiscoveryTabsTreatment
+      ? homepageDiscoveryTabsRef.current?.refresh()
+      : homepageRef.current?.refresh();
+
     try {
-      const refreshHomepage = isDiscoveryTabsTreatment
-        ? homepageDiscoveryTabsRef.current?.refresh()
-        : homepageRef.current?.refresh();
       await Promise.all([refreshBalance(), refreshHomepage]);
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
-    } finally {
-      refreshInProgressRef.current = false;
+    }
 
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        setRefreshing(false);
-      }
+    refreshInProgressRef.current = false;
+
+    // Only update state if component is still mounted
+    if (isMountedRef.current) {
+      setRefreshing(false);
     }
   }, [refreshBalance, isDiscoveryTabsTreatment]);
 
@@ -1114,13 +1133,7 @@ const Wallet = ({
                 <HeaderRoot
                   onLayout={
                     isDiscoveryTabsTreatment
-                      ? (e) => {
-                          const h = e.nativeEvent.layout.height;
-                          if (h > 0) {
-                            setHeaderHeight(h);
-                            sharedHeaderHeight.value = h;
-                          }
-                        }
+                      ? handleWalletHeaderLayout
                       : undefined
                   }
                   testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}

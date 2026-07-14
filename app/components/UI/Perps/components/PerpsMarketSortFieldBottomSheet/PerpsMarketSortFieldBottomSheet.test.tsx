@@ -2,10 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortFieldBottomSheet from './PerpsMarketSortFieldBottomSheet';
 
-jest.mock('../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'bg-default',
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const MockReact = jest.requireActual('react');
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
