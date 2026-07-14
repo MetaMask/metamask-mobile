@@ -10,10 +10,12 @@ import AddDeviceToWalletView from '../page-objects/Onboarding/AddDeviceToWalletV
 import AddWalletView from '../page-objects/Onboarding/AddWalletView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import WalletView from '../page-objects/wallet/WalletView';
+import { FrameworkDetector } from '../framework/FrameworkDetector';
 import {
   closeOnboardingModals,
   dismissOnboardingInterestQuestionnaire,
   loginToApp,
+  loginToAppPlaywright,
 } from './wallet.flow';
 import {
   IDENTITY_TEAM_PASSWORD,
@@ -134,7 +136,11 @@ export const completeExistingUserQrSyncSrp = async ({
 }: {
   mnemonic?: string;
 } = {}): Promise<void> => {
-  await loginToApp();
+  if (FrameworkDetector.isAppium()) {
+    await loginToAppPlaywright({ scenarioType: 'e2e' });
+  } else {
+    await loginToApp();
+  }
   await WalletView.tapIdenticon();
   await Assertions.expectElementToBeVisible(
     AccountListBottomSheet.accountList,
