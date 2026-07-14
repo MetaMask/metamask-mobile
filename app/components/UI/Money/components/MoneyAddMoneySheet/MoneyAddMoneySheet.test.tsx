@@ -8,11 +8,12 @@ import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
-import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
+import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
+  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -59,8 +60,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../hooks/useRegionHasNativeFiatProvider', () => ({
-  useRegionHasNativeFiatProvider: jest.fn(),
+jest.mock('../../../Ramp/hooks/useRegionHasFiatProvider', () => ({
+  useRegionHasFiatProvider: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
@@ -131,7 +132,7 @@ describe('MoneyAddMoneySheet', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
   });
 
   it('renders all options', () => {
@@ -307,8 +308,8 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('hides the Deposit funds option when the region has no native fiat provider', () => {
-    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(false);
+  it('hides the Deposit funds option when the region has no usable fiat provider', () => {
+    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(false);
 
     const { queryByTestId, getByTestId } = renderWithProvider(
       <MoneyAddMoneySheet />,
@@ -332,14 +333,22 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the Deposit funds option when the region has a native fiat provider', () => {
-    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+  it('shows the Deposit funds option when the region has a usable fiat provider', () => {
+    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
     ).toBeOnTheScreen();
+  });
+
+  it('gates on the mUSD-on-Monad asset id', () => {
+    renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(useRegionHasFiatProvider).toHaveBeenCalledWith(
+      MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD],
+    );
   });
 
   it('disables the Convert crypto option when no account has any crypto balance', () => {

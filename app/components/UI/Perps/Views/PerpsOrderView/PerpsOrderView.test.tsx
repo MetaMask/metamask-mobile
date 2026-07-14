@@ -2383,6 +2383,58 @@ describe('PerpsOrderView', () => {
       expect(placeOrderButton).toBeDefined();
     });
 
+    it('accepts a signed take profit (negative RoE below current price) after the sheet confirms', async () => {
+      // Arrange: long order with a TP at 2000 (below current 3000). Classic
+      // side rules reject this, but the Auto Close sheet allows it as a
+      // negative take profit. Regression for PR #32404: the order view must
+      // accept the signed trigger once the sheet reports its sign.
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        orderContextWithTPSL({ direction: 'long', takeProfitPrice: '2000' }),
+      );
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Before the sheet reports a sign, the default + TP shows the warning.
+      await waitFor(() => {
+        expect(screen.getByText(/Take profit must be above/)).toBeDefined();
+      });
+
+      // Act: open the TP/SL sheet and confirm with a signed (negative) RoE.
+      const tpslRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON,
+      );
+      fireEvent.press(tpslRow);
+      const { onConfirm } =
+        mockNavigate.mock.calls[mockNavigate.mock.calls.length - 1][1];
+      await act(async () => {
+        await onConfirm(undefined, '2000', undefined, {
+          direction: 'long',
+          source: 'trade_screen',
+          positionSize: 0,
+          takeProfitPercentage: -10,
+        });
+      });
+
+      // Assert: the signed trigger is accepted — no wrong-side warning and the
+      // Place Order button is no longer disabled on TP/SL grounds.
+      await waitFor(() => {
+        expect(screen.queryByText(/Take profit must be/)).toBeNull();
+      });
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton.props.accessibilityState?.disabled).toBeFalsy();
+    });
+
     describe('limit order TP/SL validates against entry price, not market price', () => {
       const orderContextForLimitOrder = (overrides: {
         direction: 'long' | 'short';

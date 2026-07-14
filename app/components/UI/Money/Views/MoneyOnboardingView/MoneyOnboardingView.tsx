@@ -50,7 +50,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
-import onboardingFlowV23Animation from '../../../../../animations/onboarding_flow_v23.riv';
+import onboardingFlowV24Animation from '../../../../../animations/onboarding_flow_v24.riv';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -430,7 +430,7 @@ const MoneyOnboardingView = () => {
     <View style={styles.root}>
       <Rive
         ref={ref}
-        source={onboardingFlowV23Animation}
+        source={onboardingFlowV24Animation}
         artboardName={RIVE_ARTBOARD_NAME}
         stateMachineName={RIVE_STATE_MACHINE_NAME}
         dataBinding={AutoBind(true)}

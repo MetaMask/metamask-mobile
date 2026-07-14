@@ -258,7 +258,12 @@ export function getLocalTransactionStatus(
 
   if (
     statusKey === TransactionStatus.cancelled ||
-    statusKey === environment.transactionGroupStatus.cancelled ||
+    statusKey === environment.transactionGroupStatus.cancelled
+  ) {
+    return 'cancelled';
+  }
+
+  if (
     statusKey === TransactionStatus.dropped ||
     statusKey === TransactionStatus.failed ||
     statusKey === TransactionStatus.rejected

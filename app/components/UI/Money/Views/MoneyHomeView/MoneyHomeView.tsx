@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -502,11 +502,9 @@ const MoneyHomeView = () => {
         redirect_target: MONEY_URLS.MUSD_PRICE,
       });
 
-      Linking.openURL(AppConstants.URLS.MUSD_PRICE).catch((error: Error) => {
-        Logger.error(error, '[MoneyHomeView] Failed to open mUSD price page');
-      });
+      openInAppBrowser(navigation, AppConstants.URLS.MUSD_PRICE);
     },
-    [trackSurfaceClicked],
+    [navigation, trackSurfaceClicked],
   );
 
   const handleTokenButtonPress = useCallback(

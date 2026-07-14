@@ -9931,15 +9931,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^16.0.0":
-  version: 16.0.0
-  resolution: "@metamask/ramps-controller@npm:16.0.0"
+"@metamask/ramps-controller@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "@metamask/ramps-controller@npm:17.0.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
-  checksum: 10/a918edf198ede829ec51edc56898b2118b9da55e8091b2fe3616858038c9a28947467b31e73e89745ee76f67766476e8653a88a440a876cc54c119167acab576
+    "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
+  checksum: 10/45980e93d79bf72c00edc44e2cd075a738c44a1c0b3dd695a7bce688f7954f80f28988b56c7a5774b1747e335b66c16f6a7d36833030bf116cefafc7b2e5f223
   languageName: node
   linkType: hard
 
@@ -10488,17 +10489,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:2.3.1":
-  version: 2.3.1
-  resolution: "@metamask/social-controllers@npm:2.3.1"
+"@metamask/social-controllers@npm:^2.5.0":
+  version: 2.5.0
+  resolution: "@metamask/social-controllers@npm:2.5.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/base-data-service": "npm:^0.1.3"
-    "@metamask/controller-utils": "npm:^12.2.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.2.0"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/messenger": "npm:^2.0.0"
+    "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/superstruct": "npm:^3.1.0"
-  checksum: 10/9da64cbe4f946ea881e3adc3adda1ccc7c7a13368579f56e223c7d1f6ec34d6cc1da4fd886053d535cfc96260c9094849e8c1c8521fd4262953705aaf9cfdb9f
+  checksum: 10/6b52a5fa295a2335c024107c444397fe1dcaa7efb32387776f79216cfe453e381b422d45dcec0cca142de91a08fcd877926944db34a3bd30ae46988e05516781
   languageName: node
   linkType: hard
 
@@ -10623,9 +10624,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:68.4.0":
-  version: 68.4.0
-  resolution: "@metamask/transaction-controller@npm:68.4.0"
+"@metamask/transaction-controller@npm:69.0.0":
+  version: 69.0.0
+  resolution: "@metamask/transaction-controller@npm:69.0.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10634,7 +10635,7 @@ __metadata:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
     "@ethersproject/wallet": "npm:^5.7.0"
-    "@metamask/accounts-controller": "npm:^39.0.4"
+    "@metamask/accounts-controller": "npm:^39.0.5"
     "@metamask/approval-controller": "npm:^9.0.2"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
@@ -10657,7 +10658,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/12a9ea21e6a5d7d0ca8a504dde2a453fdfb74d826e80432f775bbaaab1acae5faf561bcfbef37d5cc36acf927f0bba53e4f56353ca0e0fb0ae866e450226e73b
+  checksum: 10/e1a41998784e8a10a05126e6d4bbab1cf1d97e049bc7746cf9725a74f244f48ad473eecdba184f1ad3aaa1dee2ad7572ed1fd97c5eff61d09b818b0c911c71a4
   languageName: node
   linkType: hard
 
@@ -10689,10 +10690,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.29.1":
-  version: 1.29.1
-  resolution: "@metamask/tron-wallet-snap@npm:1.29.1"
-  checksum: 10/90c83ec57e5f5160cdb07fbf4529c5686062367449f1502dd1e384b4d3e28a12116e5a7b7e49e2bce7634ea8d6f919f68a257b92b7ecfbb9dd189a3d996a9a0d
+"@metamask/tron-wallet-snap@npm:^1.31.0":
+  version: 1.31.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.31.0"
+  checksum: 10/01c81d25c3893abd4cfbc3e88e30f5f7dca9fac363d9c996ce2c727e6ae5b6829963a5734ca96342703bb44bf9729002905df51a20bc1ee311ef344af3fba11d
   languageName: node
   linkType: hard
 
@@ -10897,9 +10898,9 @@ __metadata:
   linkType: hard
 
 "@nktkas/rews@npm:^4.0.1":
-  version: 4.1.0
-  resolution: "@nktkas/rews@npm:4.1.0"
-  checksum: 10/07130006a7e226729100ec1ffbf6c07e0c55a5c62c1662b2f484e099c21b76e71ff8752a04cf2d6de926546489078882e15805ec82063df4ed2e2cdd090d08ac
+  version: 4.0.1
+  resolution: "@nktkas/rews@npm:4.0.1"
+  checksum: 10/7c4434b9a717c4b955aa665f6d25dc3ae351e77f4cf78850379fdaab77f4e6505e99c6214f0a133a8050659624438a1e6c22c859b5395d81ad8fbc1ef3bdbffa
   languageName: node
   linkType: hard
 
@@ -35897,7 +35898,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.3.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^16.0.0"
+    "@metamask/ramps-controller": "npm:^17.0.0"
     "@metamask/react-data-query": "npm:^0.2.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
@@ -35922,7 +35923,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.1.0"
     "@metamask/snaps-sdk": "npm:^11.2.0"
     "@metamask/snaps-utils": "npm:^12.4.0"
-    "@metamask/social-controllers": "npm:2.3.1"
+    "@metamask/social-controllers": "npm:^2.5.0"
     "@metamask/solana-wallet-snap": "npm:^2.10.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
@@ -35933,9 +35934,9 @@ __metadata:
     "@metamask/test-dapp-bitcoin": "npm:^0.2.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/transaction-controller": "npm:^68.2.0"
+    "@metamask/transaction-controller": "npm:^69.0.0"
     "@metamask/transaction-pay-controller": "npm:^24.0.1"
-    "@metamask/tron-wallet-snap": "npm:^1.29.1"
+    "@metamask/tron-wallet-snap": "npm:^1.31.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^6.0.0"
     "@myx-trade/sdk": "npm:^0.1.265"
@@ -46730,14 +46731,14 @@ __metadata:
   linkType: hard
 
 "valibot@npm:^1.2.0, valibot@npm:^1.4.1":
-  version: 1.4.2
-  resolution: "valibot@npm:1.4.2"
+  version: 1.4.1
+  resolution: "valibot@npm:1.4.1"
   peerDependencies:
     typescript: ">=5"
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10/bb88d083a3f8f37a19796cd9c4e06004ad939a1bdb996b77a7246fceb133d5da5d1ba21c89baebaec327f421f23200fea54d1e682de3452a30138e2e70548521
+  checksum: 10/39092725e4045e332e3593e9b95253c1a3429033e13be1805597fb8d346ad20a727bef82971e3b9a1b7d631bb8ad65fff186ec55d430e16f25b6bbba151c4e80
   languageName: node
   linkType: hard
 

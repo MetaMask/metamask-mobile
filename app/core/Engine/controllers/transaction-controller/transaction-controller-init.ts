@@ -1,6 +1,9 @@
 import {
+  GasFeeEstimateLevel,
   TransactionController,
   TransactionType,
+  UserFeeLevel,
+  type SavedGasFees,
   type TransactionControllerMessenger,
   type TransactionMeta,
   TransactionControllerOptions,
@@ -33,6 +36,7 @@ import { isSendBundleSupported } from '../../../../util/transactions/sentinel-ap
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { hasTransactionType } from '../../../../components/Views/confirmations/utils/transaction';
 import { getTransactionControllerHooks } from '../../../../util/transactions/hooks';
+import type { PreferencesStateWithSavedGasFees } from '../preferences-controller-types';
 
 export const TransactionControllerInit: MessengerClientInitFunction<
   TransactionController,
@@ -93,6 +97,8 @@ export const TransactionControllerInit: MessengerClientInitFunction<
         isSimulationEnabled: () =>
           initMessenger.call('PreferencesController:getState')
             .useTransactionSimulations,
+        getSavedGasFees: (chainIdOrTransactionMeta) =>
+          getSavedGasFees(chainIdOrTransactionMeta, initMessenger),
         messenger: controllerMessenger,
         publicKeyEIP7702: AppConstants.EIP_7702_PUBLIC_KEY as Hex | undefined,
         state: persistedState.TransactionController,
@@ -114,6 +120,66 @@ function isFirstTimeInteractionEnabled(
     initMessenger.call('PreferencesController:getState')
       ?.securityAlertsEnabled === true
   );
+}
+
+/**
+ * Retrieve saved gas fee preferences for the transaction account and chain.
+ */
+function getSavedGasFees(
+  chainIdOrTransactionMeta: Hex | TransactionMeta,
+  initMessenger: TransactionControllerInitMessenger,
+): SavedGasFees | undefined {
+  const selectedAccount = initMessenger.call(
+    'AccountsController:getSelectedAccount',
+  )?.address;
+  const isTransactionMeta = typeof chainIdOrTransactionMeta !== 'string';
+  const transactionMeta = isTransactionMeta
+    ? chainIdOrTransactionMeta
+    : undefined;
+  const account = transactionMeta?.txParams.from ?? selectedAccount;
+
+  if (!account) {
+    return undefined;
+  }
+
+  const normalizedAccount = account.toLowerCase();
+  const chainId = isTransactionMeta
+    ? chainIdOrTransactionMeta.chainId
+    : chainIdOrTransactionMeta;
+
+  const preferencesState = initMessenger.call(
+    'PreferencesController:getState',
+  ) as PreferencesStateWithSavedGasFees;
+
+  const savedGasFeePreference =
+    preferencesState.advancedGasFee?.[chainId]?.[normalizedAccount];
+
+  if (!savedGasFeePreference) {
+    return undefined;
+  }
+
+  const { gasPrice, maxBaseFee, priorityFee, userFeeLevel } =
+    savedGasFeePreference;
+
+  if (userFeeLevel !== UserFeeLevel.CUSTOM) {
+    return {
+      level: userFeeLevel as UserFeeLevel | GasFeeEstimateLevel,
+    } as unknown as SavedGasFees;
+  }
+
+  if (gasPrice) {
+    return { gasPrice, level: UserFeeLevel.CUSTOM } as unknown as SavedGasFees;
+  }
+
+  if (!maxBaseFee || !priorityFee) {
+    return undefined;
+  }
+
+  return {
+    maxBaseFee,
+    priorityFee,
+    level: UserFeeLevel.CUSTOM,
+  } as unknown as SavedGasFees;
 }
 
 function getKeyringController(messenger: TransactionControllerInitMessenger) {

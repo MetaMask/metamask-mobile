@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -33,6 +33,7 @@ import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
 import { formatNoFeeTokenBullets } from '../../utils/depositFaqTokens';
 import AppConstants from '../../../../../core/AppConstants';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
@@ -163,8 +164,8 @@ const MoneyHowItWorksView = () => {
       label_key: 'money.how_it_works_page.faq_a4_link',
       redirect_target: MONEY_URLS.CARD_FEES,
     });
-    Linking.openURL(AppConstants.CARD.CARD_FEES_URL);
-  }, [trackButtonClicked]);
+    openInAppBrowser(navigation, AppConstants.CARD.CARD_FEES_URL);
+  }, [navigation, trackButtonClicked]);
 
   return (
     <Box
