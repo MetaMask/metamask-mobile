@@ -102,8 +102,6 @@ const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
 
-// Helper to flush all pending promises
-const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
 const IOS_GOOGLE_WARNING_TITLE = strings('error_sheet.ios_need_update_title');
 const IOS_GOOGLE_WARNING_BUTTON = strings('error_sheet.ios_need_update_button');
 
@@ -348,6 +346,7 @@ jest.mock('@react-navigation/native', () => ({
 describe('Onboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasTestOverrides = false;
     mockCreateEventBuilder.mockClear();
     (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
     (mockAnalytics.trackEvent as jest.Mock).mockClear();
@@ -677,8 +676,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         fireEvent.press(createWalletButton);
-        await flushPromises();
-        await flushPromises();
       });
 
       await waitFor(() => {
@@ -814,8 +811,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         fireEvent.press(importSeedButton);
-        await flushPromises();
-        await flushPromises();
       });
 
       await waitFor(() => {
@@ -835,6 +830,10 @@ describe('Onboarding', () => {
   });
 
   describe('componentDidMount behavior', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('checks for existing user on mount', async () => {
       renderScreen(
         Onboarding,
@@ -1097,7 +1096,9 @@ describe('Onboarding', () => {
 
     it('attaches persisted attribution to Social Login Completed for Google create wallet when marketing consent is granted', async () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
-      const capturedAt = Date.now() - 60_000;
+      const fixedNow = 1_704_116_800_000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
+      const capturedAt = fixedNow - 60_000;
       const stateWithAttribution = {
         ...mockInitialState,
         security: {
@@ -1146,26 +1147,30 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleOAuthFunction(true);
-        await flushPromises();
-        await flushPromises();
       });
 
-      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Social Login Completed',
-          properties: expect.objectContaining({
-            account_type: AccountType.MetamaskGoogle,
-            utm_source: 'google-ads',
-            utm_campaign: 'spring',
-            attribution_id: 'slc-google-1',
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Social Login Completed',
+            properties: expect.objectContaining({
+              account_type: AccountType.MetamaskGoogle,
+              utm_source: 'google-ads',
+              utm_campaign: 'spring',
+              attribution_id: 'slc-google-1',
+            }),
           }),
-        }),
-      );
+        );
+      });
+
+      dateNowSpy.mockRestore();
     });
 
     it('attaches persisted attribution to Social Login Completed for Apple create wallet when marketing consent is granted', async () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
-      const capturedAt = Date.now() - 60_000;
+      const fixedNow = 1_704_116_800_000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
+      const capturedAt = fixedNow - 60_000;
       const stateWithAttribution = {
         ...mockInitialState,
         security: {
@@ -1214,26 +1219,30 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await appleOAuthFunction(true);
-        await flushPromises();
-        await flushPromises();
       });
 
-      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Social Login Completed',
-          properties: expect.objectContaining({
-            account_type: AccountType.MetamaskApple,
-            utm_source: 'newsletter',
-            utm_medium: 'email',
-            attribution_id: 'slc-apple-1',
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Social Login Completed',
+            properties: expect.objectContaining({
+              account_type: AccountType.MetamaskApple,
+              utm_source: 'newsletter',
+              utm_medium: 'email',
+              attribution_id: 'slc-apple-1',
+            }),
           }),
-        }),
-      );
+        );
+      });
+
+      dateNowSpy.mockRestore();
     });
 
     it('does not attach UTM to Social Login Completed when marketing consent is false', async () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
-      const capturedAt = Date.now() - 60_000;
+      const fixedNow = 1_704_116_800_000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
+      const capturedAt = fixedNow - 60_000;
       const stateNoMarketingConsent = {
         ...mockInitialState,
         security: {
@@ -1278,29 +1287,33 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await navCall[1].params.onPressContinueWithGoogle(true);
-        await flushPromises();
-        await flushPromises();
       });
 
-      const socialLoginCall = (
-        mockAnalytics.trackEvent as jest.Mock
-      ).mock.calls.find(
-        (args) =>
-          args[0] &&
-          typeof args[0] === 'object' &&
-          'name' in args[0] &&
-          (args[0] as { name: string }).name === 'Social Login Completed',
-      );
+      await waitFor(() => {
+        const socialLoginCall = (
+          mockAnalytics.trackEvent as jest.Mock
+        ).mock.calls.find(
+          (args) =>
+            args[0] &&
+            typeof args[0] === 'object' &&
+            'name' in args[0] &&
+            (args[0] as { name: string }).name === 'Social Login Completed',
+        );
 
-      expect(socialLoginCall).toBeDefined();
-      const socialEventPayload = socialLoginCall?.[0] as {
-        properties: Record<string, unknown>;
-      };
-      expect(socialEventPayload.properties).not.toHaveProperty('utm_source');
+        expect(socialLoginCall).toBeDefined();
+        const socialEventPayload = socialLoginCall?.[0] as {
+          properties: Record<string, unknown>;
+        };
+        expect(socialEventPayload.properties).not.toHaveProperty('utm_source');
+      });
+
+      dateNowSpy.mockRestore();
     });
 
     it('does not attach UTM to Social Login Completed when persisted attribution is expired', async () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const fixedNow = 1_704_116_800_000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(fixedNow);
       const stateExpiredAttribution = {
         ...mockInitialState,
         security: {
@@ -1312,7 +1325,7 @@ describe('Onboarding', () => {
         attribution: {
           attribution: {
             utm_source: 'expired-src',
-            capturedAt: Date.now() - ATTRIBUTION_DEFAULT_TTL_MS - 1,
+            capturedAt: fixedNow - ATTRIBUTION_DEFAULT_TTL_MS - 1,
           },
         },
       };
@@ -1345,25 +1358,27 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await navCall[1].params.onPressContinueWithGoogle(true);
-        await flushPromises();
-        await flushPromises();
       });
 
-      const socialLoginCall = (
-        mockAnalytics.trackEvent as jest.Mock
-      ).mock.calls.find(
-        (args) =>
-          args[0] &&
-          typeof args[0] === 'object' &&
-          'name' in args[0] &&
-          (args[0] as { name: string }).name === 'Social Login Completed',
-      );
+      await waitFor(() => {
+        const socialLoginCall = (
+          mockAnalytics.trackEvent as jest.Mock
+        ).mock.calls.find(
+          (args) =>
+            args[0] &&
+            typeof args[0] === 'object' &&
+            'name' in args[0] &&
+            (args[0] as { name: string }).name === 'Social Login Completed',
+        );
 
-      expect(socialLoginCall).toBeDefined();
-      const socialEventPayload = socialLoginCall?.[0] as {
-        properties: Record<string, unknown>;
-      };
-      expect(socialEventPayload.properties).not.toHaveProperty('utm_source');
+        expect(socialLoginCall).toBeDefined();
+        const socialEventPayload = socialLoginCall?.[0] as {
+          properties: Record<string, unknown>;
+        };
+        expect(socialEventPayload.properties).not.toHaveProperty('utm_source');
+      });
+
+      dateNowSpy.mockRestore();
     });
 
     it('calls Apple OAuth login for import wallet flow', async () => {
@@ -1552,8 +1567,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleOAuthFunction(true);
-        await flushPromises();
-        await flushPromises();
       });
 
       // Verify the warning sheet was shown with the iOS not-supported message.
@@ -1582,8 +1595,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await warningSheetCall?.[1].params.onPrimaryButtonPress?.();
-        await flushPromises();
-        await flushPromises();
       });
 
       expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
@@ -1643,8 +1654,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleOAuthFunction(false);
-        await flushPromises();
-        await flushPromises();
       });
 
       const warningSheetCall = getIosGoogleWarningSheetCall();
@@ -1669,8 +1678,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await warningSheetCall?.[1].params.onPrimaryButtonPress?.();
-        await flushPromises();
-        await flushPromises();
       });
 
       expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
@@ -1743,8 +1750,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleOAuthFunction(true);
-        await flushPromises();
-        await flushPromises();
       });
 
       const errorSheetCall = getIosGoogleBlockingErrorSheetCall();
@@ -1767,8 +1772,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await errorSheetCall?.[1].params.onPrimaryButtonPress?.();
-        await flushPromises();
-        await flushPromises();
       });
 
       expect(mockCreateLoginHandler).not.toHaveBeenCalled();
@@ -1834,8 +1837,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await navCall[1].params.onPressContinueWithGoogle(true);
-        await flushPromises();
-        await flushPromises();
       });
 
       expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
@@ -1902,8 +1903,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleOAuthFunction(false);
-        await flushPromises();
-        await flushPromises();
       });
 
       const rehydrationSheetCall = getIosGoogleBlockingRehydrationSheetCall();
@@ -1926,8 +1925,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await rehydrationSheetCall?.[1].params.onPrimaryButtonPress?.();
-        await flushPromises();
-        await flushPromises();
       });
 
       expect(mockCreateLoginHandler).not.toHaveBeenCalled();
@@ -2595,8 +2592,6 @@ describe('Onboarding', () => {
       mockNavigate.mockClear();
       await act(async () => {
         await googleOAuthFunction(true);
-        await flushPromises();
-        await flushPromises();
       });
 
       // Verify fallback was NOT attempted (only 1 call, no fallback)
@@ -2659,8 +2654,6 @@ describe('Onboarding', () => {
       mockNavigate.mockClear();
       await act(async () => {
         await googleOAuthFunction(true);
-        await flushPromises();
-        await flushPromises();
       });
 
       // Verify fallback was attempted
@@ -2711,8 +2704,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleOAuthFunction(true);
-        await flushPromises();
-        await flushPromises();
       });
 
       await waitFor(() => {
@@ -3181,8 +3172,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await appleOAuthFunction(false);
-        await flushPromises();
-        await flushPromises();
       });
 
       await waitFor(() => {
@@ -3270,7 +3259,6 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await appleOAuthFunction(false);
-        await flushPromises();
       });
 
       await waitFor(() => {
@@ -3331,7 +3319,6 @@ describe('Onboarding', () => {
       mockNavigate.mockClear();
       await act(async () => {
         await appleOAuthFunction(false);
-        await flushPromises();
       });
 
       await waitFor(() => {
@@ -3398,7 +3385,6 @@ describe('Onboarding', () => {
       mockNavigate.mockClear();
       await act(async () => {
         await googleOAuthFunction(true);
-        await flushPromises();
       });
 
       await waitFor(() => {
@@ -3509,15 +3495,16 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleLogin(true);
-        await flushPromises();
       });
 
-      // The journey span started on mount is reused: no second start and no
-      // abandonment end while the user is actively continuing.
-      const journeyStartCalls = mockTrace.mock.calls.filter(
-        ([request]) => request?.name === TraceName.OnboardingJourneyOverall,
-      );
-      expect(journeyStartCalls).toHaveLength(1);
+      await waitFor(() => {
+        // The journey span started on mount is reused: no second start and no
+        // abandonment end while the user is actively continuing.
+        const journeyStartCalls = mockTrace.mock.calls.filter(
+          ([request]) => request?.name === TraceName.OnboardingJourneyOverall,
+        );
+        expect(journeyStartCalls).toHaveLength(1);
+      });
       expect(mockEndTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingJourneyOverall,
@@ -3538,13 +3525,14 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleLogin(true);
-        await flushPromises();
       });
 
-      const journeyStartCalls = mockTrace.mock.calls.filter(
-        ([request]) => request?.name === TraceName.OnboardingJourneyOverall,
-      );
-      expect(journeyStartCalls).toHaveLength(2);
+      await waitFor(() => {
+        const journeyStartCalls = mockTrace.mock.calls.filter(
+          ([request]) => request?.name === TraceName.OnboardingJourneyOverall,
+        );
+        expect(journeyStartCalls).toHaveLength(2);
+      });
       expect(mockEndTrace).not.toHaveBeenCalledWith(
         expect.objectContaining({
           name: TraceName.OnboardingJourneyOverall,
@@ -3563,8 +3551,15 @@ describe('Onboarding', () => {
       const { googleLogin } = await openSheetAndGetGoogleLogin();
 
       await act(async () => {
-        googleLogin(true);
-        await flushPromises();
+        void googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSocialLoginAttempt,
+          }),
+        );
       });
 
       jest.useFakeTimers();
@@ -3578,9 +3573,6 @@ describe('Onboarding', () => {
           existingUser: false,
           accountName: 'test@example.com',
         });
-        for (let i = 0; i < 10; i += 1) {
-          await Promise.resolve();
-        }
       });
 
       expect(mockEndTrace).toHaveBeenCalledWith({
@@ -3610,8 +3602,15 @@ describe('Onboarding', () => {
       const { googleLogin } = await openSheetAndGetGoogleLogin();
 
       await act(async () => {
-        googleLogin(true);
-        await flushPromises();
+        void googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSocialLoginAttempt,
+          }),
+        );
       });
 
       jest.useFakeTimers();
@@ -3651,8 +3650,15 @@ describe('Onboarding', () => {
       const { googleLogin, unmount } = await openSheetAndGetGoogleLogin();
 
       await act(async () => {
-        googleLogin(true);
-        await flushPromises();
+        void googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSocialLoginAttempt,
+          }),
+        );
       });
 
       jest.useFakeTimers();
