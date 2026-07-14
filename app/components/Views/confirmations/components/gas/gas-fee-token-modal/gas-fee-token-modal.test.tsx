@@ -21,42 +21,6 @@ jest.mock('../../../../../../util/transaction-controller');
 jest.mock('../../../hooks/useNetworkInfo');
 jest.mock('../../../hooks/gas/useGasFeeToken');
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View: RNView } = jest.requireActual('react-native');
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      {
-        children,
-        onClose,
-        testID,
-      }: {
-        children: React.ReactNode;
-        onClose?: (hasPendingAction?: boolean) => void;
-        testID?: string;
-      },
-      ref: React.Ref<{
-        onCloseBottomSheet: (cb?: () => void) => void;
-        onOpenBottomSheet: (cb?: () => void) => void;
-      }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: (cb?: () => void) => {
-          onClose?.(false);
-          cb?.();
-        },
-        onOpenBottomSheet: jest.fn(),
-      }));
-      return <RNView testID={testID}>{children}</RNView>;
-    },
-  );
-  return {
-    ...actual,
-    BottomSheet: MockBottomSheet,
-  };
-});
-
 const WETH_TOKEN_ADDRESS = '0x1234567890123456789012345678901234567894';
 
 const GAS_FEE_TOKEN_MOCK: GasFeeToken = {
