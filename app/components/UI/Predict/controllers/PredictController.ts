@@ -2595,11 +2595,6 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Gets the current WebSocket connection status for live data feeds.
-   *
-   * @returns Connection status for sports, market, and RTDS data WebSocket channels
-   */
-  /**
    * Subscribes to WebSocket connection-status changes for live data feeds.
    * The callback fires immediately with the current status and thereafter only
    * on real transitions, replacing per-subscriber polling.
@@ -2617,6 +2612,11 @@ export class PredictController extends BaseController<
     return provider.subscribeToConnectionStatus(callback);
   }
 
+  /**
+   * Gets the current WebSocket connection status for live data feeds.
+   *
+   * @returns Connection status for sports, market, and RTDS data WebSocket channels
+   */
   public getConnectionStatus(): ConnectionStatus {
     const provider = this.provider;
     if (!provider?.getConnectionStatus) {
