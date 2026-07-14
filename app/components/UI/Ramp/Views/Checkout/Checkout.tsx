@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import type { Dispatch, UnknownAction } from 'redux';
 import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
-import { normalizeProviderCode } from '@metamask/ramps-controller';
+import { normalizeProviderCode, type RampsOrder } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -26,7 +27,12 @@ import ErrorView from '../../Aggregator/components/ErrorView';
 import Logger from '../../../../../util/Logger';
 import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
-import { completeHeadlessCheckoutCallback } from './completeHeadlessCheckoutCallback';
+import {
+  emitOrderConfirmedAnalyticsFromCallback,
+  emitTerminalOrderAnalyticsFromCallback,
+  isTerminalOrderStatus,
+} from '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
+import { setHeadlessOrderContext } from '../../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import {
   BottomSheet,
   HeaderStandard,
@@ -38,6 +44,7 @@ import {
   failSession,
   getSession,
 } from '../../headless/sessionRegistry';
+import type { HeadlessSession } from '../../headless/types';
 import {
   dismissHeadlessFlow,
   setHeadlessEntryCardTouchThrough,
@@ -54,6 +61,7 @@ import {
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import type { RampSurface } from '../../types/depositAnalytics';
 
 interface CheckoutParams {
   url: string;
@@ -90,6 +98,81 @@ interface CheckoutParams {
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
   Routes.RAMP.CHECKOUT,
 );
+
+type HandleHeadlessCheckoutCallbackParams = {
+  sessionId: string;
+  session: HeadlessSession;
+  providerCode: string;
+  callbackUrl: string;
+  walletAddress: string;
+  headlessRampSurface: RampSurface | undefined;
+  regionCode: string | undefined;
+  getOrderFromCallback: (
+    providerCode: string,
+    callbackUrl: string,
+    walletAddress: string,
+  ) => Promise<RampsOrder>;
+  addOrder: (order: RampsOrder) => void;
+  dispatch: Dispatch<UnknownAction>;
+  dismissActiveHeadlessFlow: () => void;
+};
+
+/**
+ * Headless checkout callback: fetch order, emit mid/terminal analytics, notify
+ * consumer, and tear down the session. Caller must gate on session presence.
+ */
+async function handleHeadlessCheckoutCallback({
+  sessionId,
+  session,
+  providerCode,
+  callbackUrl,
+  walletAddress,
+  headlessRampSurface,
+  regionCode,
+  getOrderFromCallback,
+  addOrder,
+  dispatch,
+  dismissActiveHeadlessFlow,
+}: HandleHeadlessCheckoutCallbackParams): Promise<void> {
+  const rampsOrder = await getOrderFromCallback(
+    providerCode,
+    callbackUrl,
+    walletAddress,
+  );
+  if (!rampsOrder) {
+    throw new Error('Order could not be retrieved from callback');
+  }
+  addOrder(rampsOrder);
+
+  // TRAM-3623/3691: carry headless context for terminal RAMPS_TRANSACTION_FAILED.
+  setHeadlessOrderContext(rampsOrder.providerOrderId, {
+    rampSurface: headlessRampSurface,
+    region: regionCode ?? '',
+  });
+
+  // TRAM-3738 / TRAM-3691: headless callback skips OrderDetails.
+  if (isTerminalOrderStatus(rampsOrder.status)) {
+    emitTerminalOrderAnalyticsFromCallback(rampsOrder);
+  } else {
+    emitOrderConfirmedAnalyticsFromCallback(rampsOrder, {
+      rampType: 'HEADLESS',
+      rampSurface: headlessRampSurface,
+      region: regionCode,
+    });
+  }
+
+  dispatch(protectWalletModalVisible());
+  try {
+    session.callbacks.onOrderCreated(rampsOrder.providerOrderId);
+  } catch (callbackError) {
+    Logger.error(
+      callbackError as Error,
+      'UnifiedCheckout: onOrderCreated callback threw',
+    );
+  }
+  closeSession(sessionId, { reason: 'completed' });
+  dismissActiveHeadlessFlow();
+}
 
 const Checkout = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -405,10 +488,13 @@ const Checkout = () => {
         // close the session, and unwind out of the ramp stack so the caller
         // regains foreground. Skip RAMPS_ORDER_DETAILS — the headless consumer
         // drives its own UI.
-        if (
-          await completeHeadlessCheckoutCallback({
-            headlessSessionId,
-            session: getSession(headlessSessionId),
+        const headlessSession = headlessSessionId
+          ? getSession(headlessSessionId)
+          : undefined;
+        if (headlessSessionId && headlessSession) {
+          await handleHeadlessCheckoutCallback({
+            sessionId: headlessSessionId,
+            session: headlessSession,
             providerCode,
             callbackUrl: navState.url,
             walletAddress,
@@ -418,14 +504,9 @@ const Checkout = () => {
             addOrder,
             dispatch,
             dismissActiveHeadlessFlow,
-            onHeadlessSessionTerminated: () => {
-              hasTerminatedHeadlessSessionRef.current = true;
-            },
-            onCallbackSuccessCloseSource: () => {
-              closeSourceRef.current = 'callback_success';
-            },
-          })
-        ) {
+          });
+          hasTerminatedHeadlessSessionRef.current = true;
+          closeSourceRef.current = 'callback_success';
           return;
         }
 
