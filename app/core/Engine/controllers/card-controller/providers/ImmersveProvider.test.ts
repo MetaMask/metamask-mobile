@@ -23,6 +23,7 @@ const FEATURE_FLAG: CardFeatureFlag = {
   immersve: {
     network: 'base-sepolia',
     cardProgramId: 'program-1',
+    partnerAccountId: 'partner-1',
     fundingType: 'base-sepolia-usdc-universal-evm',
   },
   immersveCountries: ['GB'],
@@ -277,10 +278,12 @@ describe('ImmersveProvider', () => {
 
       const result = await provider.createFundingSource(TOKENS);
 
+      // Funding channels are listed under the partner account (from the flag)...
       expect(service.get).toHaveBeenCalledWith(
-        '/api/accounts/cardholder-1/funding-channels',
+        '/api/accounts/partner-1/funding-channels',
         TOKENS,
       );
+      // ...but the funding source is still created for the cardholder.
       expect(service.post).toHaveBeenCalledWith(
         '/api/funding-sources',
         {
@@ -291,6 +294,15 @@ describe('ImmersveProvider', () => {
         TOKENS,
       );
       expect(result.id).toBe('fs-1');
+    });
+
+    it('createFundingSource throws when partnerAccountId is unconfigured', async () => {
+      const { provider } = createProvider({
+        immersve: { fundingType: 'base-sepolia-usdc-universal-evm' },
+      });
+      await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
+        CardProviderError,
+      );
     });
 
     it('createFundingSource throws when no channel matches the configured fundingType', async () => {

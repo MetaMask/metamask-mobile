@@ -158,6 +158,7 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
     network: 'base-sepolia',
     cardProgramId: '',
     clientApplicationId: '',
+    partnerAccountId: '',
     fundingType: 'base-sepolia-usdc-universal-evm',
   },
   immersveCountries: ['GB'],
@@ -179,6 +180,7 @@ export interface ImmersveProgramConfig {
   network?: string;
   cardProgramId?: string;
   clientApplicationId?: string;
+  partnerAccountId?: string;
   fundingType?: string;
 }
 
