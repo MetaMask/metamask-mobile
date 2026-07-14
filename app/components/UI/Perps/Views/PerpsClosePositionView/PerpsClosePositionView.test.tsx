@@ -81,10 +81,32 @@ jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
 // Mock PerpsAmountDisplay to allow triggering onPress but keep it simple
 jest.mock('../../components/PerpsAmountDisplay');
 
-jest.mock('../../components/PerpsLimitPriceBottomSheet', () => ({
-  __esModule: true,
-  default: 'PerpsLimitPriceBottomSheet',
-}));
+// Value the limit-price bottom sheet stub confirms with. Tests set this before
+// pressing the confirm button so the real onConfirm wiring runs with a price.
+let mockLimitPriceConfirmValue = '0';
+
+// Lightweight stub so tests can confirm a limit price through the real
+// onConfirm wiring without depending on the real BottomSheet internals.
+jest.mock('../../components/PerpsLimitPriceBottomSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      isVisible,
+      onConfirm,
+    }: {
+      isVisible?: boolean;
+      onConfirm: (price: string) => void;
+    }) =>
+      isVisible
+        ? ReactActual.createElement(TouchableOpacity, {
+            testID: 'limit-price-confirm-button',
+            onPress: () => onConfirm(mockLimitPriceConfirmValue),
+          })
+        : null,
+  };
+});
 
 // Lightweight stub so tests can exercise the order-type selection wiring
 // without depending on the real BottomSheet internals.
@@ -206,6 +228,7 @@ describe('PerpsClosePositionView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLimitPriceConfirmValue = '0';
 
     // Setup navigation mocks
     useNavigationMock.mockReturnValue({
@@ -1113,434 +1136,245 @@ describe('PerpsClosePositionView', () => {
     });
 
     describe('Limit Price Calculations', () => {
-      it('uses limit price for effective price when limit order type is selected', () => {
-        // Arrange - Mock position and live prices
-        const mockPosition = {
-          ...defaultPerpsPositionMock,
-          size: '1',
-          entryPrice: '100',
-          marginUsed: '500',
-          unrealizedPnl: '50',
-        };
-        const limitPriceValue = '120';
-        const currentPriceValue = '110';
+      const selectLimitFlagMock = jest.mocked(
+        jest.requireMock('../../selectors/featureFlags')
+          .selectPerpsClosePositionLimitOrderEnabledFlag,
+      );
 
-        useRouteMock.mockReturnValue({
-          params: { position: mockPosition },
-        });
-
-        usePerpsLivePricesMock.mockReturnValue({
-          BTC: { price: currentPriceValue },
-        });
-
-        // Mock fee calculation for limit order at limit price
-        const mockFees = {
-          totalFee: 12, // 1 * 120 * 0.1% = 0.12, but using $12 for clear test
-          metamaskFeeRate: 0.001,
-          protocolFeeRate: 0.0005,
-        };
-        usePerpsOrderFeesMock.mockReturnValue(mockFees);
-
-        // Create test component that simulates limit order with price
-        const TestComponent = () => {
-          const [orderType] = React.useState<'market' | 'limit'>('limit');
-          const [limitPrice] = React.useState(limitPriceValue);
-          const entryPrice = parseFloat(mockPosition.entryPrice);
-          const absSize = Math.abs(parseFloat(mockPosition.size));
-
-          // Simulate the effectivePrice calculation from component
-          const effectivePrice =
-            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-              ? parseFloat(limitPrice)
-              : parseFloat(currentPriceValue);
-
-          // Simulate effectivePnL calculation for long position
-          const isLong = parseFloat(mockPosition.size) > 0;
-          const priceDiff = isLong
-            ? effectivePrice - entryPrice
-            : entryPrice - effectivePrice;
-          const effectivePnL = priceDiff * absSize;
-
-          return (
-            <View>
-              <Text testID="effective-price">{effectivePrice}</Text>
-              <Text testID="effective-pnl">{effectivePnL}</Text>
-              <Text testID="order-type">{orderType}</Text>
-            </View>
-          );
-        };
-
-        // Act
-        const { getByTestId } = render(<TestComponent />);
-
-        // Assert - Should use limit price (120) instead of current price (110)
-        expect(getByTestId('effective-price').props.children).toBe(120);
-        expect(getByTestId('effective-pnl').props.children).toBe(20); // (120 - 100) * 1 = 20
+      afterEach(() => {
+        selectLimitFlagMock.mockReturnValue(false);
       });
 
-      it('calculates receive amount using limit price for limit orders', () => {
-        // Arrange
-        const mockPosition = {
+      // Drives the real view into a confirmed limit close so the tests assert on
+      // production output (the handleClosePosition payload) rather than on math
+      // re-implemented inside the test.
+      const renderConfirmedLimitClose = ({
+        position,
+        markPrice,
+        limitPrice,
+        fees,
+        handleClosePosition,
+      }: {
+        position: typeof defaultPerpsPositionMock;
+        markPrice: string;
+        limitPrice?: string;
+        fees?: typeof defaultPerpsOrderFeesMock;
+        handleClosePosition: jest.Mock;
+      }) => {
+        selectLimitFlagMock.mockReturnValue(true);
+        useRouteMock.mockReturnValue({ params: { position } });
+        usePerpsLivePositionsMock.mockReturnValue({
+          positions: [position],
+          isInitialLoading: false,
+        });
+        usePerpsLivePricesMock.mockReturnValue({
+          [position.symbol]: { price: markPrice },
+        });
+        usePerpsOrderFeesMock.mockReturnValue(
+          fees ?? defaultPerpsOrderFeesMock,
+        );
+        usePerpsClosePositionMock.mockReturnValue({
+          handleClosePosition,
+          isClosing: false,
+        });
+
+        const utils = renderWithProvider(
+          <PerpsClosePositionView />,
+          { state: STATE_MOCK },
+          true,
+        );
+
+        // Switch to a limit order through the real order-type selector
+        fireEvent.press(
+          utils.getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+        );
+        fireEvent.press(
+          utils.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+        );
+
+        // Confirm a limit price through the real onConfirm wiring
+        if (limitPrice !== undefined) {
+          mockLimitPriceConfirmValue = limitPrice;
+          fireEvent.press(
+            utils.getByTestId(
+              PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW,
+            ),
+          );
+          fireEvent.press(utils.getByTestId('limit-price-confirm-button'));
+        }
+
+        return utils;
+      };
+
+      it('sends the limit-price PnL and margin-derived receive amount for a long close', async () => {
+        // Arrange - long 2 @ entry 100, mark 120, closing with a 130 limit
+        const handleClosePosition = jest.fn();
+        const position = {
           ...defaultPerpsPositionMock,
-          size: '2', // 2 token long position
+          size: '2',
           entryPrice: '100',
           marginUsed: '200',
-          unrealizedPnl: '40', // Current unrealized P&L at market price
-        };
-        const limitPriceValue = '130';
-        const currentPriceValue = '120';
-
-        useRouteMock.mockReturnValue({
-          params: { position: mockPosition },
-        });
-
-        usePerpsLivePricesMock.mockReturnValue({
-          BTC: { price: currentPriceValue },
-        });
-
-        const mockFees = {
-          totalFee: 26, // Fee on 2 * 130 = $260 value
-          metamaskFeeRate: 0.001,
-          protocolFeeRate: 0.0005,
-        };
-        usePerpsOrderFeesMock.mockReturnValue(mockFees);
-
-        // Test component simulating limit order calculations
-        const TestComponent = () => {
-          const [orderType] = React.useState<'market' | 'limit'>('limit');
-          const [limitPrice] = React.useState(limitPriceValue);
-          const [closePercentage] = React.useState(100);
-
-          const entryPrice = parseFloat(mockPosition.entryPrice);
-          const marginUsed = parseFloat(mockPosition.marginUsed);
-          const unrealizedPnl = parseFloat(mockPosition.unrealizedPnl);
-          const absSize = Math.abs(parseFloat(mockPosition.size));
-          const isLong = parseFloat(mockPosition.size) > 0;
-
-          // Calculate effective price (limit price for limit orders)
-          const effectivePrice =
-            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-              ? parseFloat(limitPrice)
-              : parseFloat(currentPriceValue);
-
-          // Calculate effective P&L at limit price
-          const priceDiff = isLong
-            ? effectivePrice - entryPrice
-            : entryPrice - effectivePrice;
-          const effectivePnL = priceDiff * absSize;
-
-          // marginUsed embeds P&L at the current mark price, so swap that
-          // current-price P&L for the limit-price P&L (mirrors the component).
-          const effectiveMargin = marginUsed - unrealizedPnl + effectivePnL;
-
-          // Calculate receive amount
-          const receiveAmount =
-            (closePercentage / 100) * effectiveMargin - mockFees.totalFee;
-
-          return (
-            <View>
-              <Text testID="effective-margin">{effectiveMargin}</Text>
-              <Text testID="receive-amount">{receiveAmount}</Text>
-              <Text testID="effective-pnl">{effectivePnL}</Text>
-            </View>
-          );
+          unrealizedPnl: '40',
         };
 
         // Act
-        const { getByTestId } = render(<TestComponent />);
-
-        // Assert
-        // Effective P&L at limit price: (130 - 100) * 2 = 60
-        expect(getByTestId('effective-pnl').props.children).toBe(60);
-
-        // Effective margin: 200 - 40 (current P&L) + 60 (limit P&L) = 220
-        expect(getByTestId('effective-margin').props.children).toBe(220);
-
-        // Receive amount: 220 - 26 = 194
-        expect(getByTestId('receive-amount').props.children).toBe(194);
-      });
-
-      it('calculates position value using limit price for fee calculations', () => {
-        // Arrange
-        const mockPosition = {
-          ...defaultPerpsPositionMock,
-          size: '1.5',
-          entryPrice: '100',
-          marginUsed: '150',
-        };
-        const limitPriceValue = '140';
-
-        useRouteMock.mockReturnValue({
-          params: { position: mockPosition },
+        const { getByTestId } = renderConfirmedLimitClose({
+          position,
+          markPrice: '120',
+          limitPrice: '130',
+          fees: { ...defaultPerpsOrderFeesMock, totalFee: 26 },
+          handleClosePosition,
         });
+        fireEvent.press(
+          getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        );
 
-        // Act - Test that position value calculation uses limit price
-        const TestComponent = () => {
-          const [orderType] = React.useState<'market' | 'limit'>('limit');
-          const [limitPrice] = React.useState(limitPriceValue);
-          const [closePercentage] = React.useState(75); // Partial close
-
-          const absSize = Math.abs(parseFloat(mockPosition.size));
-          const effectivePrice =
-            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-              ? parseFloat(limitPrice)
-              : 120; // fallback price
-
-          const positionValue = absSize * effectivePrice;
-          const closingValue = positionValue * (closePercentage / 100);
-
-          return (
-            <View>
-              <Text testID="position-value">{positionValue}</Text>
-              <Text testID="closing-value">{closingValue}</Text>
-            </View>
+        // Assert - realized PnL at the limit price (130-100)*2 = 60 and receive
+        // amount from the limit-adjusted margin (200-40+60) - 26 = 194
+        await waitFor(() => {
+          expect(handleClosePosition).toHaveBeenCalledWith(
+            expect.objectContaining({
+              orderType: 'limit',
+              limitPrice: '130',
+              trackingData: expect.objectContaining({
+                realizedPnl: 60,
+                receivedAmount: 194,
+              }),
+            }),
           );
-        };
-
-        const { getByTestId } = render(<TestComponent />);
-
-        // Assert
-        // Position value: 1.5 * 140 = 210
-        expect(getByTestId('position-value').props.children).toBe(210);
-
-        // Closing value for 75%: 210 * 0.75 = 157.5
-        expect(getByTestId('closing-value').props.children).toBe(157.5);
-      });
-
-      it('falls back to current price when limit price is not set', () => {
-        // Arrange
-        const currentPriceValue = '125';
-
-        usePerpsLivePricesMock.mockReturnValue({
-          BTC: { price: currentPriceValue },
         });
-
-        // Test component with limit order but no limit price
-        const TestComponent = () => {
-          const [orderType] = React.useState<'market' | 'limit'>('limit');
-          const [limitPrice] = React.useState(''); // No limit price set
-
-          const effectivePrice =
-            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-              ? parseFloat(limitPrice)
-              : parseFloat(currentPriceValue);
-
-          return (
-            <View>
-              <Text testID="effective-price">{effectivePrice}</Text>
-            </View>
-          );
-        };
-
-        // Act
-        const { getByTestId } = render(<TestComponent />);
-
-        // Assert - Should fall back to current price
-        expect(getByTestId('effective-price').props.children).toBe(125);
       });
 
-      it('handles short position P&L calculations with limit price', () => {
-        // Arrange - Short position
-        const mockPosition = {
+      it('derives realized PnL from the entry-minus-limit spread for a short close', async () => {
+        // Arrange - short 3 @ entry 100, closing with an 80 limit (profitable)
+        const handleClosePosition = jest.fn();
+        const position = {
           ...defaultPerpsPositionMock,
-          size: '-3', // 3 token short position
+          size: '-3',
           entryPrice: '100',
           marginUsed: '300',
-        };
-        const limitPriceValue = '80'; // Closing short at $80 (profitable)
-
-        useRouteMock.mockReturnValue({
-          params: { position: mockPosition },
-        });
-
-        // Test component for short position calculations
-        const TestComponent = () => {
-          const [orderType] = React.useState<'market' | 'limit'>('limit');
-          const [limitPrice] = React.useState(limitPriceValue);
-
-          const entryPrice = parseFloat(mockPosition.entryPrice);
-          const absSize = Math.abs(parseFloat(mockPosition.size));
-          const isLong = parseFloat(mockPosition.size) > 0;
-
-          const effectivePrice =
-            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-              ? parseFloat(limitPrice)
-              : 90; // fallback
-
-          // For short positions: (entryPrice - effectivePrice) * absSize
-          const priceDiff = isLong
-            ? effectivePrice - entryPrice
-            : entryPrice - effectivePrice;
-          const effectivePnL = priceDiff * absSize;
-
-          return (
-            <View>
-              <Text testID="effective-pnl">{effectivePnL}</Text>
-              <Text testID="is-profitable">
-                {effectivePnL > 0 ? 'true' : 'false'}
-              </Text>
-            </View>
-          );
+          unrealizedPnl: '0',
         };
 
         // Act
-        const { getByTestId } = render(<TestComponent />);
+        const { getByTestId } = renderConfirmedLimitClose({
+          position,
+          markPrice: '120',
+          limitPrice: '80',
+          fees: { ...defaultPerpsOrderFeesMock, totalFee: 0 },
+          handleClosePosition,
+        });
+        fireEvent.press(
+          getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        );
 
-        // Assert
-        // Short P&L: (100 - 80) * 3 = 60 (profitable)
-        expect(getByTestId('effective-pnl').props.children).toBe(60);
-        expect(getByTestId('is-profitable').props.children).toBe('true');
+        // Assert - short realized PnL (100-80)*3 = 60, receive (300-0+60)-0 = 360
+        await waitFor(() => {
+          expect(handleClosePosition).toHaveBeenCalledWith(
+            expect.objectContaining({
+              orderType: 'limit',
+              limitPrice: '80',
+              trackingData: expect.objectContaining({
+                realizedPnl: 60,
+                receivedAmount: 360,
+              }),
+            }),
+          );
+        });
       });
 
-      it('updates calculations when limit price changes', () => {
-        // Arrange
-        const mockPosition = {
+      it('uses the live unrealized PnL (not a limit price) for a market close', async () => {
+        // Arrange - the default market path must ignore limit-price math
+        const handleClosePosition = jest.fn();
+        const position = {
           ...defaultPerpsPositionMock,
-          size: '1',
+          size: '2',
           entryPrice: '100',
-          marginUsed: '100',
+          marginUsed: '200',
+          unrealizedPnl: '40',
         };
-
-        useRouteMock.mockReturnValue({
-          params: { position: mockPosition },
+        selectLimitFlagMock.mockReturnValue(true);
+        useRouteMock.mockReturnValue({ params: { position } });
+        usePerpsLivePositionsMock.mockReturnValue({
+          positions: [position],
+          isInitialLoading: false,
+        });
+        usePerpsLivePricesMock.mockReturnValue({
+          [position.symbol]: { price: '120' },
+        });
+        usePerpsClosePositionMock.mockReturnValue({
+          handleClosePosition,
+          isClosing: false,
         });
 
-        // Test component that changes limit price
-        const TestComponent = () => {
-          const [limitPrice, setLimitPrice] = React.useState('110');
-          const [orderType] = React.useState<'market' | 'limit'>('limit');
+        // Act
+        const { getByTestId } = renderWithProvider(
+          <PerpsClosePositionView />,
+          { state: STATE_MOCK },
+          true,
+        );
+        fireEvent.press(
+          getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        );
 
-          const entryPrice = parseFloat(mockPosition.entryPrice);
-          const absSize = Math.abs(parseFloat(mockPosition.size));
-          const isLong = parseFloat(mockPosition.size) > 0;
-
-          const effectivePrice =
-            orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0
-              ? parseFloat(limitPrice)
-              : 105;
-
-          const priceDiff = isLong
-            ? effectivePrice - entryPrice
-            : entryPrice - effectivePrice;
-          const effectivePnL = priceDiff * absSize;
-
-          return (
-            <View>
-              <TouchableOpacity
-                testID="change-price"
-                onPress={() => setLimitPrice('120')}
-              >
-                <Text>Change Price</Text>
-              </TouchableOpacity>
-              <Text testID="effective-pnl">{effectivePnL}</Text>
-            </View>
+        // Assert - market close reports the live unrealized PnL (40), not a
+        // limit-derived value, and sends no limit price
+        await waitFor(() => {
+          expect(handleClosePosition).toHaveBeenCalledWith(
+            expect.objectContaining({
+              orderType: 'market',
+              limitPrice: undefined,
+              trackingData: expect.objectContaining({ realizedPnl: 40 }),
+            }),
           );
-        };
-
-        const { getByTestId } = render(<TestComponent />);
-
-        // Initial P&L: (110 - 100) * 1 = 10
-        expect(getByTestId('effective-pnl').props.children).toBe(10);
-
-        // Act - Change limit price
-        fireEvent.press(getByTestId('change-price'));
-
-        // Assert - P&L should update: (120 - 100) * 1 = 20
-        expect(getByTestId('effective-pnl').props.children).toBe(20);
+        });
       });
     });
 
-    it('prevents confirm when limit price is missing for limit orders', () => {
-      const mockHandleClosePosition = jest.fn();
+    it('does not submit a limit close while the limit price is unset', async () => {
+      // Arrange - switch to a limit order but never confirm a price, so the
+      // real handleConfirm guard should block submission
+      const handleClosePosition = jest.fn();
+      const selectLimitFlagMock = jest.mocked(
+        jest.requireMock('../../selectors/featureFlags')
+          .selectPerpsClosePositionLimitOrderEnabledFlag,
+      );
+      selectLimitFlagMock.mockReturnValue(true);
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
 
-      const TestComponent = () => {
-        const [orderType] = React.useState<'market' | 'limit'>('limit');
-        const [limitPrice] = React.useState<string>('');
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
 
-        const handleConfirm = () => {
-          if (orderType === 'limit' && !limitPrice) {
-            return;
-          }
-          mockHandleClosePosition();
-        };
+      // Act - move to a limit order without setting a price, then confirm
+      fireEvent.press(
+        getByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+      );
+      fireEvent.press(
+        getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
+      fireEvent.press(
+        getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
 
-        return (
-          <View>
-            <TouchableOpacity testID="confirm-button" onPress={handleConfirm}>
-              <Text>Confirm</Text>
-            </TouchableOpacity>
-            <Text testID="order-type">{orderType}</Text>
-            <Text testID="limit-price">{limitPrice}</Text>
-          </View>
-        );
-      };
-
-      const { getByTestId } = render(<TestComponent />);
-
-      fireEvent.press(getByTestId('confirm-button'));
-
-      expect(mockHandleClosePosition).not.toHaveBeenCalled();
-    });
-
-    it('validates invalid limit price values before using as effective price', () => {
-      const TestComponent = () => {
-        const [limitPrice, setLimitPrice] = React.useState<string>('invalid');
-        const orderType = 'limit';
-        const currentPrice = 50000;
-
-        const effectivePrice = () => {
-          if (orderType === 'limit' && limitPrice) {
-            const parsed = parseFloat(limitPrice);
-            if (!isNaN(parsed) && parsed > 0) {
-              return parsed;
-            }
-          }
-          return currentPrice;
-        };
-
-        return (
-          <View>
-            <TouchableOpacity
-              testID="set-invalid"
-              onPress={() => setLimitPrice('invalid')}
-            >
-              <Text>Set Invalid</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="set-negative"
-              onPress={() => setLimitPrice('-100')}
-            >
-              <Text>Set Negative</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="set-zero"
-              onPress={() => setLimitPrice('0')}
-            >
-              <Text>Set Zero</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="set-valid"
-              onPress={() => setLimitPrice('51000')}
-            >
-              <Text>Set Valid</Text>
-            </TouchableOpacity>
-            <Text testID="effective-price">{effectivePrice()}</Text>
-          </View>
-        );
-      };
-
-      const { getByTestId } = render(<TestComponent />);
-
-      expect(getByTestId('effective-price').props.children).toBe(50000);
-
-      fireEvent.press(getByTestId('set-negative'));
-      expect(getByTestId('effective-price').props.children).toBe(50000);
-
-      fireEvent.press(getByTestId('set-zero'));
-      expect(getByTestId('effective-price').props.children).toBe(50000);
-
-      fireEvent.press(getByTestId('set-valid'));
-      expect(getByTestId('effective-price').props.children).toBe(51000);
+      // Assert - no close is dispatched without a limit price
+      await waitFor(() => {
+        expect(handleClosePosition).not.toHaveBeenCalled();
+      });
+      selectLimitFlagMock.mockReturnValue(false);
     });
   });
 

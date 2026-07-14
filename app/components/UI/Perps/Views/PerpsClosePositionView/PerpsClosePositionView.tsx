@@ -327,7 +327,11 @@ const PerpsClosePositionView: React.FC = () => {
     closeAmount: closeAmount.toString(),
     orderType,
     limitPrice,
-    currentPrice: effectivePrice,
+    // Pass the live mark price (not the limit price) so the "limit price far
+    // from market" warning and protocol validation compare against the real
+    // market. Limit-price valuation is applied separately via positionValue/
+    // closingValue below.
+    currentPrice,
     positionSize: absSize,
     positionValue,
     minimumOrderAmount,
@@ -600,7 +604,6 @@ const PerpsClosePositionView: React.FC = () => {
         )}
         title={strings('perps.close_position.title')}
         isLoading={isClosing}
-        direction={isLong ? 'short' : 'long'}
         orderType={isClosePositionLimitOrderEnabled ? orderType : undefined}
         onOrderTypePress={
           isClosePositionLimitOrderEnabled
@@ -657,7 +660,10 @@ const PerpsClosePositionView: React.FC = () => {
         {orderType === 'limit' && !isInputFocused && (
           <View style={styles.detailsWrapper}>
             <View style={styles.inputGroupContainer}>
-              <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
+              <TouchableOpacity
+                testID={PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW}
+                onPress={() => setIsLimitPriceVisible(true)}
+              >
                 <KeyValueRow
                   variant={KeyValueRowVariant.Input}
                   keyLabel={strings('perps.order.limit_price')}
@@ -666,7 +672,7 @@ const PerpsClosePositionView: React.FC = () => {
                       ? formatPerpsFiat(limitPrice, {
                           ranges: PRICE_RANGES_UNIVERSAL,
                         })
-                      : 'Set price'
+                      : strings('perps.order.set_price')
                   }
                 />
               </TouchableOpacity>

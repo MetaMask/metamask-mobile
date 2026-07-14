@@ -1374,6 +1374,7 @@
       "title": "New order",
       "leverage": "Leverage",
       "limit_price": "Limit price",
+      "set_price": "Set price",
       "market_price": "Market price",
       "enter_price": "Enter price",
       "trigger_price": "Trigger price",
