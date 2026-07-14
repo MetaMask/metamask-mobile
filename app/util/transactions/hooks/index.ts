@@ -39,7 +39,7 @@ import { accountSupports7702 } from '../account-supports-7702';
 import { isSendBundleSupported } from '../sentinel-api';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 import {
-  PERPS_DEPOSIT_TRANSACTION_TYPES,
+  PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../../components/Views/confirmations/constants/confirmations';
 import {
@@ -240,9 +240,9 @@ function validateRequiredQuote(
     QUOTE_REQUIRED_TRANSACTION_TYPES,
   );
 
-  const isPerpsDeposit = hasTransactionType(
+  const isPayTokenRequiredType = hasTransactionType(
     transactionMeta,
-    PERPS_DEPOSIT_TRANSACTION_TYPES,
+    PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   );
 
   const postQuoteType = getPostQuoteTransactionType(transactionMeta);
@@ -251,7 +251,7 @@ function validateRequiredQuote(
     Boolean(postQuoteType) &&
     selectPayQuoteConfig(state, postQuoteType).enabled === true;
 
-  if (!isQuoteRequiredType && !isPostQuoteWithdraw && !isPerpsDeposit) {
+  if (!isQuoteRequiredType && !isPostQuoteWithdraw && !isPayTokenRequiredType) {
     return;
   }
 
@@ -267,8 +267,8 @@ function validateRequiredQuote(
     return;
   }
 
-  if (isPerpsDeposit) {
-    if (isValidatedDirectPerpsDeposit(data)) {
+  if (isPayTokenRequiredType) {
+    if (isValidatedDirectDeposit(data)) {
       return;
     }
 
@@ -293,18 +293,16 @@ function validateRequiredQuote(
 }
 
 /**
- * A perps deposit may submit without quotes only when the user pays with the
- * deposit token itself and the controller recorded no pending conversion.
- * Anything else (payment token missing or different, or a required conversion
- * without a quote) means the deposit would land without funds, so it must not
- * submit.
+ * A pay-type deposit or conversion may submit without quotes only when the
+ * user pays with the required token itself and the controller recorded no
+ * pending conversion. Anything else (payment token missing or different, or
+ * a required conversion without a quote) means the transaction would land
+ * without funds, so it must not submit.
  *
  * @param data - Pay state for the transaction.
  * @returns Whether direct submission is safe.
  */
-function isValidatedDirectPerpsDeposit(
-  data: TransactionData | undefined,
-): boolean {
+function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
   const paymentToken = data?.paymentToken;
 
   if (!paymentToken) {

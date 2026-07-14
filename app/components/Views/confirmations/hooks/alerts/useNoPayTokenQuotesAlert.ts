@@ -15,7 +15,7 @@ import {
 } from '../pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
-  PERPS_DEPOSIT_TRANSACTION_TYPES,
+  PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   QUOTE_REQUIRED_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
 import { hasTransactionType } from '../../utils/transaction';
@@ -103,15 +103,16 @@ export function useNoPayTokenQuotesAlert() {
     hasPositiveRequiredAmount &&
     (!payToken || !isPostQuote);
 
-  // Perps deposits must have a payment token set on the controller before
-  // confirming. Blocks the timing races where auto-selection never completed,
-  // so no quotes were fetched and the deposit previously submitted directly
-  // on Arbitrum without funds.
-  const shouldShowPerpsDepositNotInitialisedAlert =
-    hasTransactionType(transactionMeta, PERPS_DEPOSIT_TRANSACTION_TYPES) &&
+  // Pay-type deposits and conversions must have a payment token set on the
+  // controller (or a fiat payment method selected) before confirming. Blocks
+  // the timing races where auto-selection never completed, so no quotes were
+  // fetched and the transaction previously submitted directly without funds.
+  const shouldShowPayTokenNotSelectedAlert =
+    hasTransactionType(transactionMeta, PAY_TOKEN_REQUIRED_TRANSACTION_TYPES) &&
     !isQuotesLoading &&
     hasPositiveRequiredAmount &&
-    !payToken;
+    !payToken &&
+    !hasSelectedFiatPaymentMethod;
 
   const showAlert =
     shouldShowNonFiatNoQuotesAlert ||
@@ -119,7 +120,7 @@ export function useNoPayTokenQuotesAlert() {
     shouldShowPostQuoteNoQuotesAlert ||
     shouldShowQuoteRequiredNoQuotesAlert ||
     shouldShowWithdrawNotInitialisedAlert ||
-    shouldShowPerpsDepositNotInitialisedAlert;
+    shouldShowPayTokenNotSelectedAlert;
 
   return useMemo(() => {
     if (!showAlert) {

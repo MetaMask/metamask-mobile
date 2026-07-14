@@ -145,11 +145,15 @@ export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
 ] as const;
 
 /**
- * Perps deposit transaction types. They require a Pay quote at publish time
- * unless the user pays with the deposit token itself and no conversion is
- * pending.
+ * MetaMask Pay transaction types that cannot work without a payment token
+ * (unless paying with fiat). Confirmation is blocked and publish throws when
+ * no payment token is set. Claims and withdraws are excluded because they can
+ * legitimately submit without engaging MetaMask Pay.
  */
-export const PERPS_DEPOSIT_TRANSACTION_TYPES = [
+export const PAY_TOKEN_REQUIRED_TRANSACTION_TYPES = [
+  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
 ] as const;
