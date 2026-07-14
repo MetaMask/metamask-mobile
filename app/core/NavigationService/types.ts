@@ -957,6 +957,7 @@ export type RootStackParamList = {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
+  CardOnboardingKYCProcessing: { countryKey?: string } | undefined;
   CardModals: NestedNavigationParams | undefined;
   CardAddFundsModal: undefined;
   CardAssetSelectionModal: undefined;
@@ -973,6 +974,7 @@ export type RootStackParamList = {
     callerParams?: Record<string, unknown>;
   };
   CardWaitlistFormModal: { url: string };
+  CardImmersveKYCModal: { url: string; redirectUrl: string };
   CardForgotPasswordModal: { location?: 'us' | 'international' } | undefined;
   CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
   CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;

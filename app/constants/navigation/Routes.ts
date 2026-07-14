@@ -550,6 +550,7 @@ const Routes = {
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
+      KYC_PROCESSING: 'CardOnboardingKYCProcessing',
     },
     MODALS: {
       ID: 'CardModals',
@@ -563,6 +564,7 @@ const Routes = {
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
+      IMMERSVE_KYC: 'CardImmersveKYCModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',

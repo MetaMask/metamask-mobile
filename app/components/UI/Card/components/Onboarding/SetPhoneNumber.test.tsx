@@ -1370,7 +1370,7 @@ describe('SetPhoneNumber Component', () => {
         });
     });
 
-    it('submits contact-details (no verification) and routes to the pending step', async () => {
+    it('submits contact-details (no verification) and routes to the KYC processing step', async () => {
       mockPatchContactDetails.mockResolvedValue(undefined);
 
       const { getByTestId } = render(
@@ -1394,7 +1394,12 @@ describe('SetPhoneNumber Component', () => {
       // No phone verification is sent in Immersve mode.
       expect(mockSendPhoneVerification).not.toHaveBeenCalled();
       await waitFor(() =>
-        expect(mockNavigate).toHaveBeenCalledWith('CardOnboardingKYCPending'),
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardOnboardingKYCProcessing',
+          {
+            countryKey: 'GB',
+          },
+        ),
       );
     });
   });

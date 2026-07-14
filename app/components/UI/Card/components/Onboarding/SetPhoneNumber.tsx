@@ -173,9 +173,9 @@ const SetPhoneNumber = () => {
         email: immersveEmail,
         phone: `+${areaCode}${phoneNumber}`,
       });
-      // ponytail: interim terminus. Branch 6 replaces this with the
-      // spending-prerequisites flow (KYC URL webview -> polling -> SpendingLimit).
-      navigation.navigate(Routes.CARD.ONBOARDING.KYC_PENDING);
+      navigation.navigate(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+        countryKey,
+      });
     } catch (e) {
       setImmersveError(getCardProviderErrorMessage(e));
     } finally {

@@ -364,7 +364,12 @@ export interface CardFundingSourceResult {
 }
 
 export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';
-export type CardPrerequisiteStatus = 'action-required' | 'pending' | 'ok';
+export type CardPrerequisiteStatus =
+  | 'action-required'
+  | 'pending'
+  | 'ok'
+  | 'blocked'
+  | 'kyc_check_failed';
 
 export interface CardSmartContractWriteParams {
   abi: unknown[];
