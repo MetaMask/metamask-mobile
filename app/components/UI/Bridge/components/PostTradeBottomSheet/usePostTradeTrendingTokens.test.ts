@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   getTrendingTokens,
@@ -117,6 +117,7 @@ describe('usePostTradeTrendingTokens', () => {
         vsCurrency: expect.any(String),
       }),
     );
+    expect(mockGetTrendingTokens).toHaveBeenCalledTimes(1);
     expect(result.current.tokens).toHaveLength(
       POST_TRADE_TRENDING_TOKENS_LIMIT,
     );
@@ -143,5 +144,127 @@ describe('usePostTradeTrendingTokens', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.tokens).toEqual([]);
     expect(mockGetTrendingTokens).not.toHaveBeenCalled();
+  });
+
+  it('fills sparse destination results with Ethereum tokens', async () => {
+    const { Wrapper } = createWrapper();
+    const lineaToken = createTrendingToken(
+      'eip155:59144/erc20:0x0000000000000000000000000000000000000001',
+      'LINEA',
+      1,
+    );
+    const ethereumTokens = Array.from({ length: 20 }, (_, index) =>
+      createTrendingToken(
+        `eip155:1/erc20:0x${(index + 1).toString(16).padStart(40, '0')}`,
+        `ETH${index + 1}`,
+        index + 1,
+      ),
+    );
+    let resolveEthereumTokens: (tokens: TrendingAsset[]) => void = () =>
+      undefined;
+    const ethereumTokensPromise = new Promise<TrendingAsset[]>((resolve) => {
+      resolveEthereumTokens = resolve;
+    });
+    mockGetTrendingTokens
+      .mockResolvedValueOnce([lineaToken])
+      .mockReturnValueOnce(ethereumTokensPromise);
+
+    const { result } = renderHook(
+      () =>
+        usePostTradeTrendingTokens({
+          destToken: createBridgeToken({ chainId: '0xe708' }),
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(mockGetTrendingTokens).toHaveBeenCalledTimes(2);
+    });
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.tokens).toEqual([]);
+
+    expect(mockGetTrendingTokens).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        chainIds: ['eip155:59144'],
+        minLiquidity: 100000,
+        minVolume24hUsd: 25000,
+      }),
+    );
+    expect(mockGetTrendingTokens).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        chainIds: ['eip155:1'],
+        minLiquidity: 100000,
+        minVolume24hUsd: 500000,
+      }),
+    );
+
+    await act(async () => {
+      resolveEthereumTokens(ethereumTokens);
+    });
+
+    await waitFor(() => {
+      expect(result.current.tokens).toHaveLength(
+        POST_TRADE_TRENDING_TOKENS_LIMIT,
+      );
+    });
+
+    expect(result.current.tokens).toHaveLength(
+      POST_TRADE_TRENDING_TOKENS_LIMIT,
+    );
+    expect(result.current.tokens[0]).toBe(lineaToken);
+    expect(result.current.tokens[1].symbol).toBe('ETH20');
+  });
+
+  it('returns destination results when the Ethereum fallback fails', async () => {
+    const { Wrapper } = createWrapper();
+    const lineaToken = createTrendingToken(
+      'eip155:59144/erc20:0x0000000000000000000000000000000000000001',
+      'LINEA',
+      1,
+    );
+    mockGetTrendingTokens
+      .mockResolvedValueOnce([lineaToken])
+      .mockRejectedValueOnce(new Error('Ethereum unavailable'));
+
+    const { result } = renderHook(
+      () =>
+        usePostTradeTrendingTokens({
+          destToken: createBridgeToken({ chainId: '0xe708' }),
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+      expect(mockGetTrendingTokens).toHaveBeenCalledTimes(2);
+    });
+
+    expect(result.current.tokens).toEqual([lineaToken]);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('does not request an Ethereum fallback for sparse Ethereum results', async () => {
+    const { Wrapper } = createWrapper();
+    const ethereumToken = createTrendingToken(
+      'eip155:1/erc20:0x0000000000000000000000000000000000000001',
+      'ETH1',
+      1,
+    );
+    mockGetTrendingTokens.mockResolvedValueOnce([ethereumToken]);
+
+    const { result } = renderHook(
+      () => usePostTradeTrendingTokens({ destToken: createBridgeToken() }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(mockGetTrendingTokens).toHaveBeenCalledTimes(1);
+    expect(result.current.tokens).toEqual([ethereumToken]);
   });
 });
