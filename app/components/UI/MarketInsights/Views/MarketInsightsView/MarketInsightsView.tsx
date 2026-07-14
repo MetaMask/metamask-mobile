@@ -169,6 +169,8 @@ export interface MarketInsightsRouteParams {
   isAtOICap?: boolean;
   /** Surface from which Market Insights was accessed */
   source?: 'token_details' | 'perps' | 'unknown';
+  /** Whether the ambient price color A/B test treatment is active. */
+  useAmbientColor?: boolean;
 }
 
 /**
@@ -198,6 +200,7 @@ const MarketInsightsView: React.FC = () => {
     hasPerpsPosition = false,
     isAtOICap = false,
     source: routeSource = 'unknown',
+    useAmbientColor,
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
@@ -873,6 +876,7 @@ const MarketInsightsView: React.FC = () => {
               onBuyPress={handleStickyBuyPress}
               onQuickBuyPress={onQuickBuyPress}
               quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
+              useAmbientColor={useAmbientColor}
               sourcePage="MarketInsightsView"
             />
           </Box>

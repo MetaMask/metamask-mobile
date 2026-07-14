@@ -87,6 +87,8 @@ interface TokenStickyFooterProps {
   quickBuyTestID?: string;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
+  /** Whether the ambient price color A/B test treatment is active. */
+  useAmbientColor?: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -104,6 +106,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onQuickBuyPress,
   quickBuyTestID,
   sourcePage,
+  useAmbientColor = false,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -113,10 +116,11 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const { indicators: indicatorsActive } = useTokenChartPreferences();
 
   const geolocation = useSelector(getDetectedGeolocation);
-  const isUserInAsia = isAsiaGeolocationLocation(geolocation);
+  const useErrorAccent =
+    useAmbientColor && isAsiaGeolocationLocation(geolocation);
 
   const getAccentClass = (prefix: string, defaultClass: string) => {
-    if (isUserInAsia) {
+    if (useErrorAccent) {
       return `${prefix}-error-default`;
     }
     if (isLightMode) {
@@ -129,7 +133,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const successBorder = getAccentClass('border', 'border-success-default');
   const successText = getAccentClass('text', 'text-success-default');
 
-  const successColorHex = isUserInAsia
+  const successColorHex = useErrorAccent
     ? colors.error.default
     : isLightMode
       ? LIGHT_MODE_SUCCESS_GREEN

@@ -67,7 +67,9 @@ const SecurityTrustScreen: React.FC = () => {
   const hasTrackedView = useRef(false);
   const timeSpentStart = useRef<number>(Date.now());
 
-  const params = route.params as TokenDetailsRouteParams;
+  const params = route.params as TokenDetailsRouteParams & {
+    useAmbientColor?: boolean;
+  };
   const securityData = params?.securityData ?? null;
   const explorer = useBlockExplorer(params?.chainId);
   const evmNetworkConfigurations = useSelector(
@@ -717,6 +719,7 @@ const SecurityTrustScreen: React.FC = () => {
         securityData={securityData}
         networkName={networkName}
         sourcePage="SecurityTrustView"
+        useAmbientColor={params.useAmbientColor}
         onQuickBuyPress={onQuickBuyPress}
       />
       {quickBuySheet}

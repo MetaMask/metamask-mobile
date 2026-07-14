@@ -385,20 +385,28 @@ describe('TokenDetailsStickyFooter', () => {
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses error-default (red) styles for Asian users (JP)', () => {
+    it('uses error-default (red) styles for Asian users when useAmbientColor is true (JP)', () => {
       setupSelectorMock('JP');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
+        <TokenDetailsStickyFooter
+          {...geoProps}
+          balanceFiatUsd={50}
+          useAmbientColor
+        />,
       );
 
       const buyBtn = getByTestId('buy-btn');
       expect(buyBtn.props.twClassName).toBe('bg-error-default');
     });
 
-    it('uses error-default border on secondary button for Asian users (KR)', () => {
+    it('uses error-default border on secondary button for Asian users when useAmbientColor is true (KR)', () => {
       setupSelectorMock('KR');
       const { getByTestId } = render(
-        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
+        <TokenDetailsStickyFooter
+          {...geoProps}
+          balanceFiatUsd={50}
+          useAmbientColor
+        />,
       );
 
       const swapBtn = getByTestId('swap-btn');
@@ -408,17 +416,31 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it.each(['VN', 'TW', 'CN'])(
-      'uses error-default for %s country code',
+      'uses error-default for %s country code when useAmbientColor is true',
       (code) => {
         setupSelectorMock(code);
         const { getByTestId } = render(
-          <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
+          <TokenDetailsStickyFooter
+            {...geoProps}
+            balanceFiatUsd={50}
+            useAmbientColor
+          />,
         );
 
         const buyBtn = getByTestId('buy-btn');
         expect(buyBtn.props.twClassName).toBe('bg-error-default');
       },
     );
+
+    it('uses success (green) for Asian users when useAmbientColor is false (control)', () => {
+      setupSelectorMock('JP');
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
 
     it('uses success (green) styles when geolocation is undefined', () => {
       setupSelectorMock(undefined);

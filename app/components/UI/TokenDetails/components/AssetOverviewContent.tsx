@@ -482,6 +482,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       pricePercentChange: percentChange,
       token,
       source: 'token_details',
+      useAmbientColor,
     });
   }, [
     navigation,
@@ -490,6 +491,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     token,
     marketInsightsCaip19Id,
     marketInsightsReport,
+    useAmbientColor,
     priceDiff,
     comparePrice,
   ]);
@@ -714,6 +716,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
+                  useAmbientColor={useAmbientColor}
                 />
               </View>
             )}
