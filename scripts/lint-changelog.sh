@@ -14,7 +14,9 @@ set -euo pipefail
 #   release/X.Y.Z, release/X.Y.Z-ota   (release branches, incl. OTA hotfixes)
 #   release-changelog/X.Y.Z[...]       (the changelog-generation working branch)
 #
-# package.json has no "repository" field, so --repo is passed explicitly.
+# package.json's "repository" field supplies the repo URL automatically (Yarn
+# 3.x/Berry sets PROJECT_CWD, which @metamask/auto-changelog reads), so --repo
+# does not need to be passed explicitly here.
 #
 # --prettier tells the validator to expect the changelog in Prettier-formatted
 # Markdown (blank line after headings), which matches this repo's existing
@@ -22,8 +24,6 @@ set -euo pipefail
 # denser canonical form (no blank line after headings) hardcoded in
 # @metamask/auto-changelog's stringifier, which would otherwise force
 # reformatting the entire file's history to pass.
-
-readonly REPO_URL='https://github.com/MetaMask/metamask-mobile'
 
 branch="${GITHUB_HEAD_REF:-}"
 if [[ -z "$branch" ]]; then
@@ -41,4 +41,4 @@ else
   echo "Branch '${branch}' is not release-oriented: validating without --rc"
 fi
 
-yarn auto-changelog validate --repo "$REPO_URL" --prettier "${rc_flag[@]+"${rc_flag[@]}"}"
+yarn auto-changelog validate --prettier "${rc_flag[@]+"${rc_flag[@]}"}"

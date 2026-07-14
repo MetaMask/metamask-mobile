@@ -2,6 +2,10 @@
   "name": "metamask",
   "version": "8.4.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MetaMask/metamask-mobile.git"
+  },
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
@@ -20,7 +24,7 @@
     "lint:clean": "rm -f .eslintcache",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=12288' tsc --project ./tsconfig.json",
     "lint:changelog": "./scripts/lint-changelog.sh",
-    "lint:changelog:rc": "auto-changelog validate --rc --prettier --repo https://github.com/MetaMask/metamask-mobile",
+    "lint:changelog:rc": "auto-changelog validate --rc --prettier",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "format:check": "prettier '**/*.{js,ts,tsx,json}' --check",
     "format:check:changed": "git diff --name-only --diff-filter=ACM HEAD~1 | { grep -E '\\.(js|ts|tsx|json)$' || true; } | xargs --no-run-if-empty prettier --check",
