@@ -727,7 +727,7 @@ function resolveCoreContent(
         }),
         primaryToken: item.data.token,
       };
-    case 'assetActivation':{
+    case 'assetActivation': {
       const token = item.data.token;
       return {
         title: statusTitle(item, {
@@ -756,7 +756,9 @@ function resolveCoreContent(
             strings('transactions.activity_trustline_deactivating'),
             item.data.token?.symbol,
           ),
-          failed: strings('transactions.activity_trustline_deactivation_failed'),
+          failed: strings(
+            'transactions.activity_trustline_deactivation_failed',
+          ),
         }),
         primaryToken: token,
       };
